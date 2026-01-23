@@ -1,8 +1,8 @@
-import { DappVariants } from '../../../framework/Constants';
+import { DappVariants } from '../../../../tests/framework/Constants';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+} from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import TestHelpers from '../../../helpers';
 import { RegressionNetworkExpansion } from '../../../tags';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
@@ -15,7 +15,7 @@ import {
 } from '../solana-wallet-standard/testHelpers';
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMultiSelector';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';

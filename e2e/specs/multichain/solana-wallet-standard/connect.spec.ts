@@ -1,5 +1,5 @@
 import { SmokeNetworkExpansion } from '../../../tags';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import {
   account1Short,
@@ -11,7 +11,7 @@ import { withSolanaAccountEnabled } from '../../../common-solana';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import { Utilities } from '../../../framework';
+import { Utilities } from '../../../../tests/framework';
 import { navigateToBrowserView } from '../../../viewHelper';
 
 describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {

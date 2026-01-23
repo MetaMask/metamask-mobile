@@ -26,7 +26,7 @@ module.exports = {
         'tests/**/*.{js,ts}',
         'appwright/**/*.{js,ts}',
       ],
-      extends: ['./e2e/framework/.eslintrc.js'],
+      extends: ['./tests/framework/.eslintrc.js'],
     },
     {
       files: ['*.{ts,tsx}'],
@@ -74,6 +74,23 @@ module.exports = {
             allowAsProps: true,
           },
         ],
+      },
+    },
+    {
+      files: ['scripts/**/*.mjs'],
+      parser: '@babel/eslint-parser',
+      parserOptions: {
+        requireConfigFile: false,
+        babelOptions: {
+          presets: ['@babel/preset-env'],
+        },
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+      rules: {
+        'no-console': 'off',
+        'import/no-commonjs': 'off',
+        'import/no-nodejs-modules': 'off',
       },
     },
     {

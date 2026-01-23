@@ -1,9 +1,9 @@
 import { RegressionAssets } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../../viewHelper';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import TokenOverview from '../../../pages/wallet/TokenOverview';
 import NetworkManager from '../../../pages/wallet/NetworkManager';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';

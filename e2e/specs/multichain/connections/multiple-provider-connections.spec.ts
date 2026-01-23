@@ -1,10 +1,10 @@
 import { SmokeNetworkExpansion } from '../../../tags';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+} from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import Browser from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
@@ -16,10 +16,10 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import { DappVariants } from '../../../framework/Constants';
-import { createLogger } from '../../../framework/logger';
+import { DappVariants } from '../../../../tests/framework/Constants';
+import { createLogger } from '../../../../tests/framework/logger';
 import { requestPermissions } from './helpers';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({

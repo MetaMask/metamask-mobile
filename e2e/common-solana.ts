@@ -1,16 +1,16 @@
+import { loginToApp } from './viewHelper';
+import TestHelpers from './helpers';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from './api-mocking/mock-responses/feature-flags-mocks';
+import { SolScope } from '@metamask/keyring-api';
+import { MOCK_ENTROPY_SOURCE } from '../app/util/test/keyringControllerTestUtils';
+import { DappVariants } from 'tests/framework/Constants';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_SOLANA_FIXTURE_ACCOUNT,
   ENTROPY_WALLET_1_ID,
-} from './framework/fixtures/FixtureBuilder';
-import { withFixtures } from './framework/fixtures/FixtureHelper';
-import { loginToApp } from './viewHelper';
-import TestHelpers from './helpers';
-import { DappVariants } from './framework/Constants';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from './api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from './api-mocking/helpers/remoteFeatureFlagsHelper';
-import { SolScope } from '@metamask/keyring-api';
-import { MOCK_ENTROPY_SOURCE } from '../app/util/test/keyringControllerTestUtils';
+} from 'tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from 'tests/framework/fixtures/FixtureHelper';
+import { setupRemoteFeatureFlagsMock } from 'tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 // Account IDs used in the fixture - must match between AccountTreeController and AccountsController
 const ETH_ACCOUNT_ID = '4d7a5e0b-b261-4aed-8126-43972b0fa0a1';

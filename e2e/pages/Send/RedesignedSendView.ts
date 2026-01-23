@@ -1,7 +1,7 @@
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
-import { Assertions, Utilities } from '../../framework';
+import { Utilities, Assertions } from '../../../tests/framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class SendView {

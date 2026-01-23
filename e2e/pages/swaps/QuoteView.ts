@@ -1,9 +1,12 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import { waitFor } from 'detox';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
 } from '../../../app/components/UI/Swaps/QuoteView.testIds';
+
+const TOKEN_LIST_MATCHER = by.id(QuoteViewSelectorIDs.TOKEN_LIST);
 
 class QuoteView {
   get selectAmountLabel(): DetoxElement {
@@ -77,13 +80,23 @@ class QuoteView {
   }
 
   async tapToken(chainId: string, symbol: string): Promise<void> {
-    await Gestures.waitAndTap(
-      this.token(chainId, symbol) as unknown as DetoxElement,
+    const tokenElement = this.token(chainId, symbol);
+    // Wait for the token element to exist first (network change may still be in progress)
+    await waitFor(tokenElement).toExist().withTimeout(15000);
+    // Scroll to the token element since it may be below the visible viewport
+    await Gestures.scrollToElement(
+      tokenElement as unknown as DetoxElement,
+      Promise.resolve(TOKEN_LIST_MATCHER),
       {
-        delay: 1000,
-        elemDescription: `Select token symbol ${symbol}`,
+        direction: 'down',
+        scrollAmount: 350,
+        elemDescription: `Scroll to token symbol ${symbol}`,
       },
     );
+    await Gestures.waitAndTap(tokenElement as unknown as DetoxElement, {
+      delay: 1000,
+      elemDescription: `Select token symbol ${symbol}`,
+    });
   }
 
   async typeSearchToken(symbol: string) {
