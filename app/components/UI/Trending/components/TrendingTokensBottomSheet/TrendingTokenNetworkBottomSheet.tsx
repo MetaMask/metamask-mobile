@@ -3,9 +3,6 @@ import { StyleSheet, ScrollView } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import Icon, {
   IconName,

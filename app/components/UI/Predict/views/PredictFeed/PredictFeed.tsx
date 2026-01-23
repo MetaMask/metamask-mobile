@@ -20,7 +20,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Icon,
   IconColor,
   IconName,

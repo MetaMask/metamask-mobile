@@ -13,6 +13,8 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
+  IconName as DSIconName,
+  TextVariant as DSTextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
@@ -24,6 +26,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import { useTheme } from '../../../../util/theme';
 import type { ListHeaderWithSearchProps } from './ListHeaderWithSearch.types';
 import styleSheet from './ListHeaderWithSearch.styles';
@@ -93,15 +96,14 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
   // Use custom handler if provided, otherwise use default
   const handleBack = onBack || defaultHandleBack;
 
-  return (
-    <Pressable
-      style={styles.header}
-      onPress={() => Keyboard.dismiss()}
-      testID={testID}
-    >
-      {isSearchVisible ? (
+  if (isSearchVisible) {
+    return (
+      <Pressable
+        style={styles.header}
+        onPress={() => Keyboard.dismiss()}
+        testID={testID}
+      >
         <View style={styles.headerContainerWrapper}>
-          {/* Search Bar - Replaces back button and title */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -124,7 +126,6 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
               testID={testID ? `${testID}-search-bar` : undefined}
             />
           </Box>
-          {/* Cancel Button */}
           <TouchableOpacity
             style={styles.searchButton}
             onPress={onSearchToggle}
@@ -135,41 +136,23 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
             </Text>
           </TouchableOpacity>
         </View>
-      ) : (
-        <View style={styles.headerContainerWrapper}>
-          {/* Back Button */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={handleBack}
-            testID={testID ? `${testID}-back-button` : undefined}
-          >
-            <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
-          </TouchableOpacity>
+      </Pressable>
+    );
+  }
 
-          {/* Title */}
-          <View style={styles.headerTitleContainer}>
-            <Text
-              variant={TextVariant.HeadingLG}
-              color={TextColor.Default}
-              style={styles.headerTitle}
-            >
-              {title || defaultTitle}
-            </Text>
-          </View>
-
-          {/* Search Toggle Button */}
-          <View style={styles.titleButtonsRightContainer}>
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={onSearchToggle}
-              testID={testID ? `${testID}-search-toggle` : undefined}
-            >
-              <Icon name={IconName.Search} size={IconSize.Lg} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-    </Pressable>
+  return (
+    <HeaderCenter
+      title={title || defaultTitle}
+      onBack={handleBack}
+      endButtonIconProps={[
+        {
+          iconName: DSIconName.Search,
+          onPress: onSearchToggle,
+          testID: testID ? `${testID}-search-toggle` : undefined,
+        },
+      ]}
+      testID={testID}
+    />
   );
 };
 

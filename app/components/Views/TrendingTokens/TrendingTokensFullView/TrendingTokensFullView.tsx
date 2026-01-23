@@ -10,11 +10,9 @@ import {
   View,
   TouchableOpacity,
   RefreshControl,
-  TextInput,
-  Platform,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useAppThemeFromContext, useTheme } from '../../../../util/theme';
+import { useAppThemeFromContext } from '../../../../util/theme';
 import { Theme } from '../../../../util/theme/models';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import Icon, {
@@ -23,6 +21,7 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
+import { TrendingListHeader } from '../../../UI/Trending/components/TrendingListHeader';
 import TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import {
@@ -31,10 +30,7 @@ import {
 } from '@metamask/assets-controllers';
 import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { PopularList } from '../../../../util/networks/customNetworks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../component-library/components/Texts/Text';
+import Text from '../../../../component-library/components/Texts/Text';
 import {
   TrendingTokenTimeBottomSheet,
   TrendingTokenNetworkBottomSheet,
@@ -46,13 +42,6 @@ import {
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
-import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  IconName as DSIconName,
-} from '@metamask/design-system-react-native';
 import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
 
 interface TrendingTokensNavigationParamList {
@@ -68,29 +57,6 @@ const createStyles = (theme: Theme) =>
     },
     headerContainer: {
       backgroundColor: theme.colors.background.default,
-    },
-    searchHeaderContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      backgroundColor: theme.colors.background.default,
-    },
-    searchBarContainer: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: theme.colors.background.muted,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: Platform.OS === 'ios' ? 12 : 4,
-      marginRight: 8,
-    },
-    searchInput: {
-      flex: 1,
-      fontSize: 16,
-      color: theme.colors.text.default,
-      marginLeft: 8,
     },
     cardContainer: {
       margin: 16,
@@ -158,7 +124,6 @@ const TrendingTokensFullView = () => {
   const navigation =
     useNavigation<StackNavigationProp<TrendingTokensNavigationParamList>>();
   const theme = useAppThemeFromContext();
-  const { colors } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
@@ -346,55 +311,15 @@ const TrendingTokensFullView = () => {
           },
         ]}
       >
-        {isSearchVisible ? (
-          <View
-            style={styles.searchHeaderContainer}
-            testID="trending-tokens-search-header"
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              style={styles.searchBarContainer}
-            >
-              <Icon
-                name={IconName.Search}
-                size={IconSize.Sm}
-                color={IconColor.Alternative}
-              />
-              <TextInput
-                value={searchQuery}
-                onChangeText={handleSearchQueryChange}
-                placeholder={strings('trending.search_placeholder')}
-                placeholderTextColor={colors.text.muted}
-                autoFocus
-                style={styles.searchInput}
-                testID="trending-tokens-search-input"
-              />
-            </Box>
-            <TouchableOpacity
-              onPress={handleSearchToggle}
-              testID="trending-tokens-search-cancel"
-            >
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {strings('trending.cancel')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <HeaderCenter
-            title={strings('trending.trending_tokens')}
-            onBack={handleBackPress}
-            endButtonIconProps={[
-              {
-                iconName: DSIconName.Search,
-                onPress: handleSearchToggle,
-                testID: 'trending-tokens-search-toggle',
-              },
-            ]}
-            includesTopInset={false}
-            testID="trending-tokens-header"
-          />
-        )}
+        <TrendingListHeader
+          title={strings('trending.trending_tokens')}
+          isSearchVisible={isSearchVisible}
+          searchQuery={searchQuery}
+          onSearchQueryChange={handleSearchQueryChange}
+          onBack={handleBackPress}
+          onSearchToggle={handleSearchToggle}
+          testID="trending-tokens-header"
+        />
       </View>
       {!isSearchVisible ? (
         <View style={styles.controlBarWrapper}>
