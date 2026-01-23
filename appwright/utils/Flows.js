@@ -15,8 +15,8 @@ import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors.js';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures.js';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors.js';
 import { expect } from 'appwright';
 
 export async function selectAccountDevice(device, testInfo) {

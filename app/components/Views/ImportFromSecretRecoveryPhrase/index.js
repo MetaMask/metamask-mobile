@@ -618,18 +618,8 @@ const ImportFromSecretRecoveryPhrase = ({
                   placeholderText={strings('import_from_seed.srp_placeholder')}
                   uniqueId={uniqueId}
                   onCurrentWordChange={setCurrentInputWord}
+                  autoFocus={false}
                 />
-                <View style={styles.seedPhraseCtaContainer}>
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    label={strings('import_from_seed.continue')}
-                    onPress={handleContinueImportFlow}
-                    width={ButtonWidthTypes.Full}
-                    size={ButtonSize.Lg}
-                    isDisabled={isSRPContinueButtonDisabled || Boolean(error)}
-                    testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
-                  />
-                </View>
               </View>
             </>
           )}
@@ -794,6 +784,19 @@ const ImportFromSecretRecoveryPhrase = ({
           )}
         </Animated.View>
       </KeyboardAwareScrollView>
+      {currentStep === 0 && (
+        <View style={styles.fixedBottomContainer}>
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings('import_from_seed.continue')}
+            onPress={handleContinueImportFlow}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+            isDisabled={isSRPContinueButtonDisabled}
+            testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
+          />
+        </View>
+      )}
       {isSrpWordSuggestionsEnabled &&
         currentStep === 0 &&
         isKeyboardVisible && (

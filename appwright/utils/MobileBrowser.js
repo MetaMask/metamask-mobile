@@ -1,6 +1,6 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors.js';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import MobileBrowserScreen from '../../wdio/screen-objects/MobileBrowser.js';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 
 export async function launchMobileBrowser(device) {
   const isAndroid = AppwrightSelectors.isAndroid(device);

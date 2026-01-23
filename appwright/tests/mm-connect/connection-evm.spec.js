@@ -12,9 +12,9 @@ import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
 import SwitchChainModal from '../../../wdio/screen-objects/Modals/SwitchChainModal.js';
-import AppwrightHelpers from '../../../e2e/framework/AppwrightHelpers.js';
+import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../../tests/framework/AppwrightGestures.js';
 
 const EVM_LEGACY_TEST_DAPP_URL =
   'https://metamask.github.io/connect-monorepo/legacy-evm-e2e/';

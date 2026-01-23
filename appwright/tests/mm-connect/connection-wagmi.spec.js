@@ -13,7 +13,7 @@ import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnect
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
 import SwitchChainModal from '../../../wdio/screen-objects/Modals/SwitchChainModal.js';
 import AddChainModal from '../../../wdio/screen-objects/Modals/AddChainModal.js';
-import AppwrightHelpers from '../../../e2e/framework/AppwrightHelpers.js';
+import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 
 const WAGMI_TEST_DAPP_URL =
