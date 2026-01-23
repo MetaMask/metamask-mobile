@@ -17,8 +17,8 @@ import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModa
 import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMultiSelector';
 import Assertions from '../../../../tests/framework/Assertions';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(
   RegressionNetworkExpansion('Multiple Provider Connections [Regression]'),
@@ -169,7 +169,12 @@ describe(
 
           //Validate no other network Permissions exist
           await NetworkConnectMultiSelector.isNetworkChainPermissionNotSelected(
-            NetworkNonPemittedBottomSheetSelectorsText.LINEA_MAINNET_NETWORK_NAME,
+            NetworkNonPemittedBottomSheetSelectorsText.TRON_NETWORK_NAME,
+          );
+
+          //Validate no other network Permissions exist
+          await NetworkConnectMultiSelector.isNetworkChainPermissionNotSelected(
+            NetworkNonPemittedBottomSheetSelectorsText.BITCOIN_NETWORK_NAME,
           );
         },
       );

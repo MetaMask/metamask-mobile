@@ -20,7 +20,7 @@ import { DappVariants } from '../../../../tests/framework/Constants';
 import { createLogger } from '../../../../tests/framework/logger';
 import { requestPermissions } from './helpers';
 import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'multiple-provider-connections.spec.ts',

@@ -6,11 +6,11 @@ import { loginToApp } from '../../../viewHelper';
 import Assertions from '../../../../tests/framework/Assertions';
 import TokenOverview from '../../../pages/wallet/TokenOverview';
 import NetworkManager from '../../../pages/wallet/NetworkManager';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   remoteFeatureFlagTronAccounts,
   remoteFeatureMultichainAccountsAccountDetailsV2,
-} from '../../../api-mocking/mock-responses/feature-flags-mocks';
+} from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
