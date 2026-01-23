@@ -114,12 +114,15 @@ export const useAnalytics = (): UseAnalyticsHook =>
       ): Promise<void> => {
         analytics.identify(userTraits);
       },
-      createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,
-      checkDataDeleteStatus: MetaMetrics.getInstance().checkDataDeleteStatus,
-      getDeleteRegulationCreationDate:
-        MetaMetrics.getInstance().getDeleteRegulationCreationDate,
-      getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
-      isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
+      createDataDeletionTask: () =>
+        MetaMetrics.getInstance().createDataDeletionTask(),
+      checkDataDeleteStatus: () =>
+        MetaMetrics.getInstance().checkDataDeleteStatus(),
+      getDeleteRegulationCreationDate: () =>
+        MetaMetrics.getInstance().getDeleteRegulationCreationDate(),
+      getDeleteRegulationId: () =>
+        MetaMetrics.getInstance().getDeleteRegulationId(),
+      isDataRecorded: () => MetaMetrics.getInstance().isDataRecorded(),
       isEnabled: (): boolean => analytics.isEnabled(),
       getAnalyticsId: async (): Promise<string | undefined> => {
         const id = await analytics.getAnalyticsId();

@@ -2,8 +2,8 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
+  MetaMetrics,
 } from '../../../core/Analytics';
-import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import type {
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
@@ -22,7 +22,14 @@ jest.unmock('./useAnalytics');
 // Import after unmocking
 const { useAnalytics } = jest.requireActual('./useAnalytics');
 
-jest.mock('../../../core/Analytics/MetaMetrics');
+const mockMetaMetricsInstance = {
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  updateDataRecordingFlag: jest.fn(),
+};
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
@@ -76,30 +83,7 @@ const createMockEventBuilder = (
   build: jest.fn(() => analyticsEvent),
 });
 
-type MetaMetricsMocks = Pick<
-  IMetaMetrics,
-  | 'createDataDeletionTask'
-  | 'checkDataDeleteStatus'
-  | 'getDeleteRegulationCreationDate'
-  | 'getDeleteRegulationId'
-  | 'isDataRecorded'
-  | 'updateDataRecordingFlag'
->;
-
 describe('useAnalytics', () => {
-  const mockMetaMetrics: jest.Mocked<MetaMetricsMocks> = {
-    createDataDeletionTask: jest.fn(() =>
-      Promise.resolve(expectedDataDeletionTaskResponse),
-    ),
-    checkDataDeleteStatus: jest.fn(() =>
-      Promise.resolve(expectedDataDeleteStatus),
-    ),
-    getDeleteRegulationCreationDate: jest.fn(() => expectedDate),
-    getDeleteRegulationId: jest.fn(() => expectedDataDeleteRegulationId),
-    isDataRecorded: jest.fn(() => true),
-    updateDataRecordingFlag: jest.fn(),
-  };
-
   let mockEventBuilder: ReturnType<
     typeof AnalyticsEventBuilder.createEventBuilder
   >;
@@ -108,10 +92,47 @@ describe('useAnalytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const mockGetInstance = MetaMetrics.getInstance as jest.MockedFunction<
-      typeof MetaMetrics.getInstance
-    >;
-    mockGetInstance.mockReturnValue(mockMetaMetrics as unknown as IMetaMetrics);
+    // Mock MetaMetrics.getInstance to return our mock instance
+    jest
+      .spyOn(MetaMetrics, 'getInstance')
+      .mockReturnValue(mockMetaMetricsInstance as unknown as IMetaMetrics);
+
+    // Set up mock return values
+    (
+      mockMetaMetricsInstance.createDataDeletionTask as jest.MockedFunction<
+        typeof mockMetaMetricsInstance.createDataDeletionTask
+      >
+    ).mockResolvedValue(expectedDataDeletionTaskResponse);
+    (
+      mockMetaMetricsInstance.checkDataDeleteStatus as jest.MockedFunction<
+        typeof mockMetaMetricsInstance.checkDataDeleteStatus
+      >
+    ).mockResolvedValue(expectedDataDeleteStatus);
+    (
+      mockMetaMetricsInstance.getDeleteRegulationCreationDate as jest.MockedFunction<
+        typeof mockMetaMetricsInstance.getDeleteRegulationCreationDate
+      >
+    ).mockReturnValue(expectedDate);
+    (
+      mockMetaMetricsInstance.getDeleteRegulationId as jest.MockedFunction<
+        typeof mockMetaMetricsInstance.getDeleteRegulationId
+      >
+    ).mockReturnValue(expectedDataDeleteRegulationId);
+    (
+      mockMetaMetricsInstance.isDataRecorded as jest.MockedFunction<
+        typeof mockMetaMetricsInstance.isDataRecorded
+      >
+    ).mockReturnValue(true);
+
+    // Set up analytics mock return values
+    (
+      analytics.isEnabled as jest.MockedFunction<typeof analytics.isEnabled>
+    ).mockReturnValue(true);
+    (
+      analytics.getAnalyticsId as jest.MockedFunction<
+        typeof analytics.getAnalyticsId
+      >
+    ).mockResolvedValue('4d657461-4d61-436b-8e73-46756e212121');
 
     mockAnalyticsEvent = buildAnalyticsEvent(false);
     mockEventBuilder = createMockEventBuilder(mockAnalyticsEvent);
@@ -119,6 +140,10 @@ describe('useAnalytics', () => {
     jest
       .spyOn(AnalyticsEventBuilder, 'createEventBuilder')
       .mockReturnValue(mockEventBuilder);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   it('exposes analytics event builder', () => {
@@ -174,7 +199,9 @@ describe('useAnalytics', () => {
       result.current.trackEvent(event, false);
     });
 
-    expect(mockMetaMetrics.updateDataRecordingFlag).toHaveBeenCalledWith(false);
+    expect(
+      mockMetaMetricsInstance.updateDataRecordingFlag,
+    ).toHaveBeenCalledWith(false);
   });
 
   it('calls analytics optIn when enable is true', async () => {
@@ -217,7 +244,9 @@ describe('useAnalytics', () => {
       deletionTask = await result.current.createDataDeletionTask();
     });
 
-    expect(mockMetaMetrics.createDataDeletionTask).toHaveBeenCalledTimes(1);
+    expect(
+      mockMetaMetricsInstance.createDataDeletionTask,
+    ).toHaveBeenCalledTimes(1);
     expect(deletionTask).toEqual(expectedDataDeletionTaskResponse);
   });
 
@@ -230,7 +259,9 @@ describe('useAnalytics', () => {
       dataDeleteStatus = await result.current.checkDataDeleteStatus();
     });
 
-    expect(mockMetaMetrics.checkDataDeleteStatus).toHaveBeenCalledTimes(1);
+    expect(mockMetaMetricsInstance.checkDataDeleteStatus).toHaveBeenCalledTimes(
+      1,
+    );
     expect(dataDeleteStatus).toEqual(expectedDataDeleteStatus);
   });
 
@@ -240,7 +271,7 @@ describe('useAnalytics', () => {
     const deletionDate = result.current.getDeleteRegulationCreationDate();
 
     expect(
-      mockMetaMetrics.getDeleteRegulationCreationDate,
+      mockMetaMetricsInstance.getDeleteRegulationCreationDate,
     ).toHaveBeenCalledTimes(1);
     expect(deletionDate).toEqual(expectedDate);
   });
@@ -250,7 +281,9 @@ describe('useAnalytics', () => {
 
     const regulationId = result.current.getDeleteRegulationId();
 
-    expect(mockMetaMetrics.getDeleteRegulationId).toHaveBeenCalledTimes(1);
+    expect(mockMetaMetricsInstance.getDeleteRegulationId).toHaveBeenCalledTimes(
+      1,
+    );
     expect(regulationId).toEqual(expectedDataDeleteRegulationId);
   });
 
@@ -259,7 +292,7 @@ describe('useAnalytics', () => {
 
     const isDataRecordedValue = result.current.isDataRecorded();
 
-    expect(mockMetaMetrics.isDataRecorded).toHaveBeenCalledTimes(1);
+    expect(mockMetaMetricsInstance.isDataRecorded).toHaveBeenCalledTimes(1);
     expect(isDataRecordedValue).toBe(true);
   });
 
