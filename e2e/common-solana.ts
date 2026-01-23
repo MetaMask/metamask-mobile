@@ -8,6 +8,17 @@ import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
 import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import { DappVariants } from '../tests/framework/Constants';
 
+/**
+ * This function creates a new Solana account and connects it to the test dapp.
+ *
+ * @deprecated This helper is only relevant in a BIP-44 disabled environment.
+ * Do not use it for new tests.
+ *
+ * @param numberOfAccounts - The number of Solana accounts to create
+ * @param solanaAccountPermitted - Whether the Solana account is permitted
+ * @param evmAccountPermitted - Whether the EVM account is permitted
+ * @param dappVariant - The dapp variant to use
+ */
 export async function withSolanaAccountEnabled(
   {
     numberOfAccounts = 1,
