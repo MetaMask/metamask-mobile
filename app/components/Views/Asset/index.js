@@ -10,12 +10,7 @@ import {
   TextColor as DSTextColor,
   FontWeight,
   IconName,
-  AvatarSize,
 } from '@metamask/design-system-react-native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
 import {
   TX_CONFIRMED,
@@ -104,6 +99,7 @@ import { addCurrencySymbol } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import NetworkAssetLogo from '../../UI/NetworkAssetLogo';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 
 const createStyles = (colors) =>

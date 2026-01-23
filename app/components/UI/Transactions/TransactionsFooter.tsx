@@ -1,49 +1,28 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import type { Theme } from '@metamask/design-tokens';
+import { View, StyleSheet } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import Text, {
-  getFontFamily,
+  ButtonVariant,
+  Text,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import {
   getBlockExplorerName,
   isMainnetByChainId,
 } from '../../../util/networks';
-import { useTheme } from '../../../util/theme';
 
-interface Styles {
-  viewMoreWrapper: ViewStyle;
-  viewMoreButton: ViewStyle;
-  disclaimerWrapper: ViewStyle;
-  disclaimerText: TextStyle;
-}
-
-const createStyles = (
-  colors: Theme['colors'],
-  typography: Theme['typography'],
-): Styles =>
-  StyleSheet.create({
-    viewMoreWrapper: {
-      padding: 16,
-    },
-    viewMoreButton: {
-      width: '100%',
-    },
-    disclaimerWrapper: {
-      padding: 16,
-    },
-    disclaimerText: {
-      color: colors.text.default,
-      ...typography.sBodySM,
-      fontFamily: getFontFamily(TextVariant.BodySM),
-    } as TextStyle,
-  });
+const styles = StyleSheet.create({
+  viewMoreWrapper: {
+    padding: 16,
+  },
+  disclaimerWrapper: {
+    padding: 16,
+  },
+});
 
 interface TransactionsFooterProps {
   /**
@@ -80,9 +59,6 @@ const TransactionsFooter = ({
   onViewBlockExplorer,
   showDisclaimer = true,
 }: TransactionsFooterProps) => {
-  const { colors, typography } = useTheme();
-  const styles = createStyles(colors, typography);
-
   const getBlockExplorerText = (): string | null => {
     if (isNonEvmChain) {
       if (rpcBlockExplorer && rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER) {
@@ -113,17 +89,18 @@ const TransactionsFooter = ({
       {blockExplorerText && rpcBlockExplorer && (
         <View style={styles.viewMoreWrapper}>
           <Button
-            variant={ButtonVariants.Link}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            label={blockExplorerText}
-            style={styles.viewMoreButton}
             onPress={onViewBlockExplorer}
-          />
+            isFullWidth
+          >
+            {blockExplorerText}
+          </Button>
         </View>
       )}
       {showDisclaimer && (
         <View style={styles.disclaimerWrapper}>
-          <Text style={styles.disclaimerText}>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('asset_overview.disclaimer')}
           </Text>
         </View>

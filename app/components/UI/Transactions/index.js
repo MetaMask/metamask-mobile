@@ -77,7 +77,7 @@ const createStyles = (colors) =>
       flex: 1,
     },
     listContentContainer: {
-      paddingBottom: 80,
+      paddingBottom: 16,
     },
     bottomModal: {
       justifyContent: 'flex-end',
