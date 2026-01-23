@@ -1,16 +1,7 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import { strings } from '../../locales/i18n';
-import StorageWrapper from '../store/storage-wrapper';
-import { Platform } from 'react-native';
 import { MetaMetricsEvents, MetaMetrics } from './Analytics';
-import {
-  BIOMETRY_CHOICE,
-  BIOMETRY_CHOICE_DISABLED,
-  PASSCODE_CHOICE,
-  PASSCODE_DISABLED,
-  TRUE,
-} from '../constants/storage';
 import Device from '../util/device';
 
 const privates = new WeakMap();
@@ -149,8 +140,6 @@ const SecureKeychain = {
 
   async resetGenericPassword() {
     const options = { service: defaultOptions.service };
-    await StorageWrapper.removeItem(BIOMETRY_CHOICE);
-    await StorageWrapper.removeItem(PASSCODE_CHOICE);
     // This is called to remove other auth types and set the user back to the default password login
     await MetaMetrics.getInstance().addTraitsToUser({
       [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
@@ -210,63 +199,11 @@ const SecureKeychain = {
     }
 
     const encryptedPassword = await instance.encryptPassword(password);
+
     await Keychain.setGenericPassword('metamask-user', encryptedPassword, {
       ...defaultOptions,
       ...authOptions,
     });
-
-    if (type === this.TYPES.BIOMETRICS) {
-      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
-      await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-      await StorageWrapper.removeItem(PASSCODE_CHOICE);
-      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
-
-      // If the user enables biometrics, we're trying to read the password
-      // immediately so we get the permission prompt
-      if (Platform.OS === 'ios') {
-        try {
-          await this.getGenericPassword();
-        } catch (error) {
-          // Specifically check for user cancellation
-          if ((error as Error).message === 'User canceled the operation.') {
-            // Store password without biometrics
-            const encryptedPasswordWithoutBiometrics =
-              await instance.encryptPassword(password);
-            await Keychain.setGenericPassword(
-              'metamask-user',
-              encryptedPasswordWithoutBiometrics,
-              {
-                ...defaultOptions,
-              },
-            );
-
-            // Update storage to reflect disabled biometrics
-            await StorageWrapper.removeItem(BIOMETRY_CHOICE);
-            await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-
-            // Update metrics
-            await metrics.addTraitsToUser({
-              [UserProfileProperty.AUTHENTICATION_TYPE]:
-                AUTHENTICATION_TYPE.PASSWORD,
-            });
-
-            return;
-          }
-          throw error;
-        }
-      }
-    } else if (type === this.TYPES.PASSCODE) {
-      await StorageWrapper.removeItem(BIOMETRY_CHOICE);
-      await StorageWrapper.removeItem(PASSCODE_DISABLED);
-      await StorageWrapper.setItem(PASSCODE_CHOICE, TRUE);
-      await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    } else if (type === this.TYPES.REMEMBER_ME) {
-      await StorageWrapper.removeItem(BIOMETRY_CHOICE);
-      await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-      await StorageWrapper.removeItem(PASSCODE_CHOICE);
-      await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-      //Don't need to add any parameter
-    }
   },
 
   ACCESS_CONTROL: Keychain.ACCESS_CONTROL,

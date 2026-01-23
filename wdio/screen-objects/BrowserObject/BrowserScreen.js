@@ -4,7 +4,7 @@ import  {
   BrowserViewSelectorsIDs,
 } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { expect } from 'appwright';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 
 
 class BrowserScreen {

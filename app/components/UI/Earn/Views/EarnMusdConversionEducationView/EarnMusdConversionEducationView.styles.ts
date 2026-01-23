@@ -26,7 +26,6 @@ export const styleSheet = (_params: { theme: Theme }) =>
       lineHeight: 40,
       paddingVertical: 16,
       textAlign: 'center',
-      textOverflow: 'ellipsis',
     },
     bodyText: {
       textAlign: 'center',

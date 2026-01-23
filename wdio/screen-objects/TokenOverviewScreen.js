@@ -1,9 +1,9 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import { TokenOverviewSelectorsIDs } from '../../app/components/UI/AssetOverview/TokenOverview.testIds';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { expect as expectAppwright } from 'appwright';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 class TokenOverviewScreen {
   get device() {
     return this._device;
