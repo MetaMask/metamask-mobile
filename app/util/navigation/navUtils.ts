@@ -2,6 +2,11 @@
 import { useMemo } from 'react';
 import { RouteProp, useRoute } from '@react-navigation/native';
 
+// Re-export navigation types for convenience
+export type { RootParamList, NavigatableRootParamList } from './types';
+// Import to ensure global declarations are included
+import './types';
+
 type NavigationParams = object | undefined;
 
 export type NavigationDetails<T extends NavigationParams = NavigationParams> =
