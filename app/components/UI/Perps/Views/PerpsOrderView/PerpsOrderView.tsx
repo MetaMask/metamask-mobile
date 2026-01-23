@@ -140,7 +140,7 @@ import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
-import { PerpsDepositFees } from './PerpsDepositFees';
+import { PerpsDepositFees } from '../../../../Views/confirmations/components/info/external/perps';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';

@@ -1,16 +1,16 @@
 import React from 'react';
-import { Box } from '../../../../UI/Box/Box';
-import { BridgeFeeRow } from '../../../../Views/confirmations/components/rows/bridge-fee-row';
-import { BridgeTimeRow } from '../../../../Views/confirmations/components/rows/bridge-time-row';
-import { PercentageRow } from '../../../../Views/confirmations/components/rows/percentage-row';
-import { TotalRow } from '../../../../Views/confirmations/components/rows/total-row';
-import { InfoRowSkeleton } from '../../../../Views/confirmations/components/UI/info-row/info-row';
+import { Box } from '../../../../../../UI/Box/Box';
+import { BridgeFeeRow } from '../../../rows/bridge-fee-row';
+import { BridgeTimeRow } from '../../../rows/bridge-time-row';
+import { PercentageRow } from '../../../rows/percentage-row';
+import { TotalRow } from '../../../rows/total-row';
+import { InfoRowSkeleton } from '../../../UI/info-row/info-row';
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
-} from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
+} from '../../../../hooks/pay/useTransactionPayData';
 
 export const PerpsDepositFees = () => {
   const isResultReady = useIsResultReady();
