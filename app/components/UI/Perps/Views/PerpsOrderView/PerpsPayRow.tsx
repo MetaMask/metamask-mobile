@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -58,11 +58,21 @@ import { useTransactionMetadataRequest } from '../../../../Views/confirmations/h
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import type { Hex } from '@metamask/utils';
 
+const tokenIconStyles = StyleSheet.create({
+  icon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+});
+
 interface PerpsPayRowProps {
-  hideNetworkFilter?: boolean;
+  onCustomTokenSelected?: () => void;
 }
 
-export const PerpsPayRow = ({ hideNetworkFilter }: PerpsPayRowProps = {}) => {
+export const PerpsPayRow = ({
+  onCustomTokenSelected,
+}: PerpsPayRowProps = {}) => {
   const navigation = useNavigation();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
@@ -114,32 +124,25 @@ export const PerpsPayRow = ({ hideNetworkFilter }: PerpsPayRowProps = {}) => {
       const currentTokenKey = `${payToken.chainId}-${payToken.address}`;
       if (currentTokenKey !== initialPayTokenRef.current) {
         setHasUserInteracted(true);
+        onCustomTokenSelected?.();
       }
     }
-  }, [payToken]);
-
-  // Check if the selected token is HyperLiquid USDC (default Perps balance)
-  const isHyperliquidUsdc = useMemo(() => {
-    if (!payToken) return false;
-    return (
-      payToken.chainId.toLowerCase() === hyperliquidChainId.toLowerCase() &&
-      payToken.address.toLowerCase() === usdcAddress.toLowerCase()
-    );
-  }, [payToken, hyperliquidChainId, usdcAddress]);
+  }, [payToken, onCustomTokenSelected]);
 
   const handleClick = useCallback(() => {
     if (!canEdit) return;
     // Mark that user has interacted when they open the modal
     setHasUserInteracted(true);
+    onCustomTokenSelected?.();
     setConfirmationMetric({
       properties: {
         mm_pay_token_list_opened: true,
       },
     });
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      hideNetworkFilter,
+      hideNetworkFilter: true,
     });
-  }, [canEdit, navigation, setConfirmationMetric, hideNetworkFilter]);
+  }, [canEdit, navigation, setConfirmationMetric, onCustomTokenSelected]);
 
   // Determine Arbitrum chain ID for token lookup (USDC is stored under Arbitrum chain ID)
   const arbitrumChainId = useMemo(
@@ -154,17 +157,6 @@ export const PerpsPayRow = ({ hideNetworkFilter }: PerpsPayRowProps = {}) => {
   const displayToken = useMemo(() => {
     // If user hasn't interacted, always show Perps balance
     if (!hasUserInteracted) {
-      return {
-        address: usdcAddress as Hex,
-        tokenLookupChainId: arbitrumChainId as Hex, // Use Arbitrum to find token
-        networkBadgeChainId: hyperliquidChainId as Hex, // Use HyperLiquid for network badge
-        label: strings('perps.adjust_margin.perps_balance'),
-        balance: availableBalance,
-      };
-    }
-
-    // User has interacted - show selected token (or Perps balance if HyperLiquid USDC)
-    if (isHyperliquidUsdc) {
       return {
         address: usdcAddress as Hex,
         tokenLookupChainId: arbitrumChainId as Hex, // Use Arbitrum to find token
@@ -196,7 +188,6 @@ export const PerpsPayRow = ({ hideNetworkFilter }: PerpsPayRowProps = {}) => {
   }, [
     hasUserInteracted,
     payToken,
-    isHyperliquidUsdc,
     usdcAddress,
     arbitrumChainId,
     hyperliquidChainId,
@@ -263,7 +254,7 @@ export const PerpsPayRow = ({ hideNetworkFilter }: PerpsPayRowProps = {}) => {
           variant={TextVariant.BodyMDMedium}
           color={TextColor.Default}
           testID={
-            !hasUserInteracted || isHyperliquidUsdc
+            !hasUserInteracted
               ? 'perps-pay-row-label'
               : TransactionPayComponentIDs.PAY_WITH_SYMBOL
           }
@@ -274,7 +265,7 @@ export const PerpsPayRow = ({ hideNetworkFilter }: PerpsPayRowProps = {}) => {
           variant={TextVariant.BodyMDMedium}
           color={TextColor.Alternative}
           testID={
-            !hasUserInteracted || isHyperliquidUsdc
+            !hasUserInteracted
               ? 'perps-pay-row-balance'
               : TransactionPayComponentIDs.PAY_WITH_BALANCE
           }

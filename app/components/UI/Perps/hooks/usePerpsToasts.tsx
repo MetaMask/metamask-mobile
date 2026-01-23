@@ -99,6 +99,7 @@ export interface PerpsToastOptionsConfig {
       ) => PerpsToastOptions;
       creationFailed: (error?: string) => PerpsToastOptions;
     };
+    payWithTokenRequired: PerpsToastOptions;
   };
   positionManagement: {
     closePosition: {
@@ -611,6 +612,13 @@ const usePerpsToasts = (): {
               strings('perps.order.order_still_active'),
             ),
           },
+        },
+        payWithTokenRequired: {
+          ...perpsBaseToastOptions.error,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.order.pay_with_token_required'),
+            strings('perps.order.select_token_to_pay_with'),
+          ),
         },
       },
       positionManagement: {
