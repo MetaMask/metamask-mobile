@@ -4622,6 +4622,8 @@
     "buy": "Buy {{ticker}}",
     "on_network": "on {{networkName}}",
     "debit_card": "Debit card",
+    "pay_with": "Pay with",
+    "debit_card_payments_more_likely": "Debit card payments are more likely to succeed.",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",

@@ -28,6 +28,7 @@ const Routes = {
       UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
       UNSUPPORTED_TOKEN: 'RampUnsupportedTokenModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
+      PAYMENT_SELECTION: 'RampPaymentSelectionModal',
       SETTINGS: 'RampSettingsModal',
     },
   },
