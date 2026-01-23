@@ -14,7 +14,7 @@ import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironme
 import { logger } from '../../../tests/framework/logger';
 import { testSpecificMock } from './helpers/swap-mocks';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',

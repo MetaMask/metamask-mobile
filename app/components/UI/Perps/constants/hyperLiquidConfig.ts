@@ -326,6 +326,9 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
 
   // xyz DEX - Commodities
   'xyz:GOLD': 'commodity',
+  'xyz:SILVER': 'commodity',
+  'xyz:CL': 'commodity',
+  'xyz:COPPER': 'commodity',
 
   // Future asset mappings as xyz adds more markets
 } as const;

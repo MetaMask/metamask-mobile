@@ -9,7 +9,7 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { LocalNode } from '../../../tests/framework/types';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const sourceTokenSymbol = 'ETH';
 const destTokenSymbol = 'DAI';

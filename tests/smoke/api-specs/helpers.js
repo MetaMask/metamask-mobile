@@ -1,4 +1,4 @@
-import TestHelpers from '../helpers';
+import TestHelpers from '../../../e2e/helpers';
 import { v4 as uuid } from 'uuid';
 
 export const taskQueue = [];
