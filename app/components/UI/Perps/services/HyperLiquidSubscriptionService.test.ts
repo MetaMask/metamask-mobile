@@ -274,6 +274,20 @@ describe('HyperLiquidSubscriptionService', () => {
         }, 0);
         return Promise.resolve(mockSubscription);
       }),
+      bbo: jest.fn((_params: any, callback: any) => {
+        // Simulate BBO data
+        setTimeout(() => {
+          callback({
+            coin: _params.coin,
+            time: Date.now(),
+            bbo: [
+              { px: '49900', sz: '1.5', n: 1 },
+              { px: '50100', sz: '2.0', n: 1 },
+            ],
+          });
+        }, 0);
+        return Promise.resolve(mockSubscription);
+      }),
       activeAsset: jest.fn((params: any, callback: any) => {
         // Simulate activeAsset data (similar to activeAssetCtx)
         setTimeout(() => {
@@ -1422,26 +1436,27 @@ describe('HyperLiquidSubscriptionService', () => {
     });
   });
 
-  describe('L2 Book (Order Book) Subscriptions', () => {
-    it('should subscribe to L2 book when includeOrderBook is true', async () => {
+  describe('BBO (Order Book) Subscriptions', () => {
+    it('should subscribe to BBO when includeOrderBook is true', async () => {
       const mockCallback = jest.fn();
-      const mockL2BookSubscription = {
+      const mockBboSubscription = {
         unsubscribe: jest.fn().mockResolvedValue(undefined),
       };
 
-      mockSubscriptionClient.l2Book.mockImplementation(
+      mockSubscriptionClient.bbo.mockImplementation(
         (_params: any, callback: any) => {
-          // Simulate L2 book data
+          // Simulate BBO data
           setTimeout(() => {
             callback({
               coin: 'BTC',
-              levels: [
-                [{ px: '49900', sz: '1.5' }], // Bid level
-                [{ px: '50100', sz: '2.0' }], // Ask level
+              time: Date.now(),
+              bbo: [
+                { px: '49900', sz: '1.5', n: 1 }, // Bid
+                { px: '50100', sz: '2.0', n: 1 }, // Ask
               ],
             });
           }, 0);
-          return Promise.resolve(mockL2BookSubscription);
+          return Promise.resolve(mockBboSubscription);
         },
       );
 
@@ -1454,9 +1469,9 @@ describe('HyperLiquidSubscriptionService', () => {
       // Wait for subscription and data processing
       await jest.runAllTimersAsync();
 
-      // Verify L2 book subscription was created
-      expect(mockSubscriptionClient.l2Book).toHaveBeenCalledWith(
-        { coin: 'BTC', nSigFigs: 5 },
+      // Verify BBO subscription was created
+      expect(mockSubscriptionClient.bbo).toHaveBeenCalledWith(
+        { coin: 'BTC' },
         expect.any(Function),
       );
 
@@ -1477,7 +1492,7 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe();
     });
 
-    it('should not subscribe to L2 book when includeOrderBook is false', async () => {
+    it('should not subscribe to BBO when includeOrderBook is false', async () => {
       const mockCallback = jest.fn();
 
       const unsubscribe = await service.subscribeToPrices({
@@ -1489,15 +1504,19 @@ describe('HyperLiquidSubscriptionService', () => {
       // Wait for any potential subscriptions
       await jest.runAllTimersAsync();
 
-      // Verify L2 book subscription was NOT created
-      expect(mockSubscriptionClient.l2Book).not.toHaveBeenCalled();
+      // Verify BBO subscription was NOT created
+      expect(mockSubscriptionClient.bbo).not.toHaveBeenCalled();
 
       unsubscribe();
     });
 
-    it('should handle multiple L2 book subscriptions with reference counting', async () => {
+    it('should handle multiple BBO subscriptions with reference counting', async () => {
       const mockCallback1 = jest.fn();
       const mockCallback2 = jest.fn();
+      const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
+      mockSubscriptionClient.bbo.mockResolvedValue({
+        unsubscribe: mockUnsubscribe,
+      });
 
       // First subscription
       const unsubscribe1 = await service.subscribeToPrices({
@@ -1518,29 +1537,33 @@ describe('HyperLiquidSubscriptionService', () => {
       await jest.runAllTimersAsync();
 
       // Should only create one L2 book subscription
-      expect(mockSubscriptionClient.l2Book).toHaveBeenCalledTimes(1);
+      expect(mockSubscriptionClient.bbo).toHaveBeenCalledTimes(1);
 
       // Unsubscribe first
       unsubscribe1();
       await jest.runAllTimersAsync();
 
-      // L2 book subscription should still be active
-      expect(mockSubscriptionClient.l2Book).toHaveBeenCalledTimes(1);
+      // BBO subscription should still be active
+      expect(mockSubscriptionClient.bbo).toHaveBeenCalledTimes(1);
+      expect(mockUnsubscribe).not.toHaveBeenCalled();
 
       // Unsubscribe second
       unsubscribe2();
+      await jest.runAllTimersAsync();
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle L2 book data with missing levels gracefully', async () => {
+    it('should handle BBO data with missing levels gracefully', async () => {
       const mockCallback = jest.fn();
 
-      mockSubscriptionClient.l2Book.mockImplementation(
+      mockSubscriptionClient.bbo.mockImplementation(
         (_params: any, callback: any) => {
-          // Simulate L2 book data with missing levels
+          // Simulate BBO data with missing levels
           setTimeout(() => {
             callback({
               coin: 'BTC',
-              levels: [], // Empty levels
+              time: Date.now(),
+              bbo: [undefined, undefined],
             });
           }, 0);
           return Promise.resolve({
@@ -1576,11 +1599,11 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe();
     });
 
-    it('should handle L2 book subscription errors', async () => {
+    it('should handle BBO subscription errors', async () => {
       const mockCallback = jest.fn();
 
-      mockSubscriptionClient.l2Book.mockRejectedValue(
-        new Error('L2 book subscription failed'),
+      mockSubscriptionClient.bbo.mockRejectedValue(
+        new Error('BBO subscription failed'),
       );
 
       const unsubscribe = await service.subscribeToPrices({
@@ -1602,14 +1625,15 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should calculate spread from bid/ask prices', async () => {
       const mockCallback = jest.fn();
 
-      mockSubscriptionClient.l2Book.mockImplementation(
+      mockSubscriptionClient.bbo.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
             callback({
               coin: 'BTC',
-              levels: [
-                [{ px: '49900', sz: '1.5' }], // Bid
-                [{ px: '50100', sz: '2.0' }], // Ask
+              time: Date.now(),
+              bbo: [
+                { px: '49900', sz: '1.5', n: 1 }, // Bid
+                { px: '50100', sz: '2.0', n: 1 }, // Ask
               ],
             });
           }, 0);
@@ -3843,18 +3867,22 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe2();
     });
 
-    it('clears L2Book subscriptions during restoration', async () => {
+    it('clears BBO subscriptions during restoration', async () => {
       const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
       const mockSubscription = { unsubscribe: mockUnsubscribe };
       let subscriptionCallCount = 0;
 
-      mockSubscriptionClient.l2Book.mockImplementation(
-        (_params: any, l2BookCallback: any) => {
+      mockSubscriptionClient.bbo.mockImplementation(
+        (_params: any, bboCallback: any) => {
           subscriptionCallCount++;
           setTimeout(() => {
-            l2BookCallback({
+            bboCallback({
               coin: _params.coin,
-              levels: { bids: [], asks: [] },
+              time: Date.now(),
+              bbo: [
+                { px: '49900', sz: '1.5', n: 1 },
+                { px: '50100', sz: '2.0', n: 1 },
+              ],
             });
           }, 10);
           return Promise.resolve(mockSubscription);
@@ -3870,12 +3898,12 @@ describe('HyperLiquidSubscriptionService', () => {
       await jest.runAllTimersAsync();
 
       // Verify initial subscription was created
-      expect((service as any).globalL2BookSubscriptions.size).toBe(1);
+      expect((service as any).globalBboSubscriptions.size).toBe(1);
       const initialCallCount = subscriptionCallCount;
 
       // Set up a different subscription reference to verify it's cleared
       const oldSubscription = { unsubscribe: jest.fn() };
-      (service as any).globalL2BookSubscriptions.set('BTC', oldSubscription);
+      (service as any).globalBboSubscriptions.set('BTC', oldSubscription);
 
       // Restore subscriptions
       await service.restoreSubscriptions();
@@ -3884,12 +3912,12 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Verify old subscription was cleared and new one was re-established
       // The map should have the new subscription, not the old one
-      const currentSubscription = (
-        service as any
-      ).globalL2BookSubscriptions.get('BTC');
+      const currentSubscription = (service as any).globalBboSubscriptions.get(
+        'BTC',
+      );
       expect(currentSubscription).toBeDefined();
       expect(currentSubscription).not.toBe(oldSubscription);
-      // Verify l2Book was called again to re-establish the subscription
+      // Verify bbo was called again to re-establish the subscription
       expect(subscriptionCallCount).toBeGreaterThan(initialCallCount);
 
       unsubscribe();
