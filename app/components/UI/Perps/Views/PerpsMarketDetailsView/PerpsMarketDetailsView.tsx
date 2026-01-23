@@ -843,12 +843,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       };
 
       // Set the stop loss using the suggested price (keep existing TP if any)
-      await handleUpdateTPSL(
+      const result = await handleUpdateTPSL(
         existingPosition,
         existingPosition.takeProfitPrice, // Keep existing TP
         suggestedStopLossPrice, // Use suggested SL
         trackingData,
       );
+
+      // Only trigger success state if the update actually succeeded
+      if (!result.success) {
+        // Error toast is already shown by handleUpdateTPSL
+        return;
+      }
 
       // Trigger success state to start fade-out animation
       setIsStopLossSuccess(true);
