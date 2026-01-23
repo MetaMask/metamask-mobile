@@ -128,6 +128,7 @@ export type RootParamList = {
     | { onPasswordSet?: (password: string) => void }
     | undefined;
   RegionSelector: undefined;
+  SettingsRegionSelector: undefined;
 
   // Snaps
   SnapsSettingsList: undefined;
@@ -205,11 +206,22 @@ export type RootParamList = {
   DepositErrorDetailsModal: undefined;
 
   // Bridge Flow
+  Bridge: undefined;
   BridgeRoot: undefined;
   BridgeModalsRoot: undefined;
+  BridgeModals: undefined;
   BridgeView: undefined;
   BridgeSettings: undefined;
   BridgeTransactionDetails: { transaction?: object } | undefined;
+  BridgeSourceTokenSelector: undefined;
+  BridgeSourceNetworkSelector: undefined;
+  SlippageModal: undefined;
+  BridgeDestTokenSelector: undefined;
+  BridgeDestNetworkSelector: undefined;
+  TransactionDetailsBlockExplorer: undefined;
+  QuoteExpiredModal: undefined;
+  BlockaidModal: undefined;
+  RecipientSelectorModal: undefined;
 
   // Staking/Earn Flow
   StakeScreens: undefined;
@@ -219,6 +231,7 @@ export type RootParamList = {
   UnstakeConfirmation: undefined;
   Claim: undefined;
   LearnMore: { chainId?: string } | undefined;
+  TrxLearnMore: undefined;
   MaxInput: undefined;
   GasImpact: undefined;
   EarningsHistory: undefined;
@@ -228,26 +241,90 @@ export type RootParamList = {
   EarnLendingWithdrawalConfirmation: undefined;
   EarnLendingMaxWithdrawalModal: undefined;
   EarnLendingLearnMoreModal: undefined;
+  EarnModals: undefined;
+  EarnMusdConversionEducation: undefined;
   StakeModalStack: undefined;
 
   // Card Flow
   CardRoutes: undefined;
   CardScreens: undefined;
+  CardMainRoutes: undefined;
   CardHome: undefined;
+  CardWelcome: undefined;
+  CardAuthentication: undefined;
+  CardNotification: undefined;
+  CardSpendingLimit: undefined;
+  CardChangeAsset: undefined;
+  VerifyingRegistration: undefined;
+  // Card Onboarding
+  CardOnboarding: undefined;
+  CardOnboardingSignUp: undefined;
+  CardOnboardingConfirmEmail: undefined;
+  CardOnboardingSetPhoneNumber: undefined;
+  CardOnboardingConfirmPhoneNumber: undefined;
+  CardOnboardingVerifyIdentity: undefined;
+  CardOnboardingVerifyingVeriffKYC: undefined;
+  CardOnboardingPersonalDetails: undefined;
+  CardOnboardingPhysicalAddress: undefined;
+  CardOnboardingMailingAddress: undefined;
+  CardOnboardingComplete: undefined;
+  CardOnboardingKYCFailed: undefined;
+  CardOnboardingWebview: undefined;
+  // Card Modals
+  CardModals: undefined;
+  CardAddFundsModal: undefined;
+  CardAssetSelectionModal: undefined;
+  CardRegionSelectionModal: undefined;
+  CardConfirmModal: undefined;
 
   // Perps Flow
+  Perps: undefined;
   PerpsRoot: undefined;
+  PerpsTradingView: undefined;
   PerpsTutorial: undefined;
   PerpsModalsRoot: undefined;
+  PerpsModals: undefined;
   PerpsPositionTransaction: undefined;
   PerpsOrderTransaction: undefined;
   PerpsFundingTransaction: undefined;
   PerpsMarketDetails: undefined;
+  PerpsMarketListView: undefined;
+  PerpsTrendingView: undefined;
   PerpsOrder: undefined;
+  PerpsWithdraw: undefined;
+  PerpsPositions: undefined;
+  PerpsClosePosition: undefined;
+  PerpsHIP3Debug: undefined;
+  PerpsTPSL: undefined;
+  PerpsAdjustMargin: undefined;
+  PerpsSelectModifyAction: undefined;
+  PerpsSelectAdjustMarginAction: undefined;
+  PerpsSelectOrderType: undefined;
+  PerpsOrderDetailsView: undefined;
+  PerpsPnlHeroCard: undefined;
+  PerpsActivity: undefined;
+  PerpsOrderBook: undefined;
+  PerpsClosePositionModals: undefined;
+  PerpsQuoteExpiredModal: undefined;
+  PerpsGTMModal: undefined;
+  PerpsCloseAllPositions: undefined;
+  PerpsCancelAllOrders: undefined;
+  PerpsTooltip: undefined;
+  PerpsCrossMarginWarning: undefined;
 
   // Predict Flow
+  Predict: undefined;
   PredictRoot: undefined;
   PredictModalsRoot: undefined;
+  PredictModals: undefined;
+  PredictMarketList: undefined;
+  PredictMarketDetails: undefined;
+  PredictActivityDetail: undefined;
+  PredictBuyPreview: undefined;
+  PredictSellPreview: undefined;
+  PredictUnavailable: undefined;
+  PredictAddFundsSheet: undefined;
+  PredictGTMModal: undefined;
 
   // Rewards Flow
   RewardsView: undefined;
@@ -293,6 +370,7 @@ export type RootParamList = {
   ConnectionDetails: undefined;
   AddNewAccountBottomSheet: undefined;
   ImportPrivateKey: undefined;
+  ImportPrivateKeyView: undefined;
   ImportPrivateKeySuccess: undefined;
   MultichainAccountDetailActions: undefined;
   MultichainAccountsIntroModal: undefined;
@@ -305,6 +383,7 @@ export type RootParamList = {
   ImportNewSecretRecoveryPhrase: undefined;
   MultichainAccountAddressList: undefined;
   MultichainAccountPrivateKeyList: undefined;
+  ImportSrpView: undefined;
 
   // QR Scanner
   QRTabSwitcher: { onScanSuccess?: (data: string) => void } | undefined;
@@ -400,6 +479,89 @@ export type RootParamList = {
   SetPasswordFlow: undefined;
   FeatureFlagOverride: undefined;
   ProfilerManager: undefined;
+
+  // Sheet Routes
+  AddAccount: undefined;
+  AmbiguousAddress: undefined;
+  BasicFunctionality: undefined;
+  ResetNotifications: undefined;
+  SDKLoading: undefined;
+  SDKFeedback: undefined;
+  DataCollection: undefined;
+  ExperienceEnhancer: undefined;
+  SDKManageConnections: undefined;
+  SDKDisconnect: undefined;
+  RevokeAllAccountPermissions: undefined;
+  PermittedNetworksInfoSheet: undefined;
+  AccountActions: undefined;
+  SettingsAdvancedFiatOnTestnetsFriction: undefined;
+  ShowIpfs: undefined;
+  ShowNftDisplayMedia: undefined;
+  ShowTokenId: undefined;
+  TokenSort: undefined;
+  SelectSRP: undefined;
+  SeedphraseModal: undefined;
+  SkipAccountSecurityModal: undefined;
+  EligibilityFailedModal: undefined;
+  UnsupportedRegionModal: undefined;
+
+  // Multichain Account Details
+  MultichainAccountActions: undefined;
+  EditMultichainAccountName: undefined;
+  LegacyEditMultichainAccountName: undefined;
+  EditWalletName: undefined;
+  ShareAddress: undefined;
+  ShareAddressQR: undefined;
+  DeleteAccount: undefined;
+  RevealPrivateCredential: undefined;
+  RevealSRPCredential: undefined;
+  SRPRevealQuizInMultichainAccountDetails: undefined;
+  SmartAccount: undefined;
+
+  // Browser
+  AssetView: undefined;
+
+  // Additional Routes
+  AddNetwork: undefined;
+  EditNetwork: undefined;
+  LockScreen: undefined;
+  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithNetworkModal: undefined;
+  EditAccountName: undefined;
+  Recipient: undefined;
+  Send: undefined;
+  ReturnToDappToast: undefined;
+
+  // Ramp Modals
+  RampModals: undefined;
+
+  // Deposit Modals
+  DepositModals: undefined;
+
+  // Sample Feature (dev only)
+  SampleFeature: undefined;
+
+  // Onboarding Settings
+  AssetsSettings: undefined;
+
+  // Wallet
+  WalletTabStackFlow: undefined;
+  NftFullView: undefined;
+
+  // Vault Recovery
+  WalletResetNeeded: undefined;
+
+  // Import SRP
+  ImportSRPView: undefined;
+
+  // Multichain
+  MultichainAddressList: undefined;
+  MultichainAccountDetails: undefined;
+  MultichainAccountGroupDetails: undefined;
+  MultichainWalletDetails: undefined;
+
+  // No Header Confirmations
+  NoHeaderConfirmations: undefined;
 };
 
 /**
