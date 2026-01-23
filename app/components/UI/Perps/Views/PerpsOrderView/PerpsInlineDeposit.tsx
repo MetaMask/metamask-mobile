@@ -190,18 +190,28 @@ function BuySection() {
     (token) => token.address !== getNativeTokenAddress(token.chainId),
   );
 
+  if (!primaryRequiredToken?.chainId) {
+    throw new Error(
+      'PerpsInlineDeposit: primaryRequiredToken chainId is required',
+    );
+  }
+
   const asset = tokens.find(
     (token) =>
       token.address?.toLowerCase() ===
-        primaryRequiredToken?.address.toLowerCase() &&
-      token.chainId === primaryRequiredToken?.chainId,
+        primaryRequiredToken.address.toLowerCase() &&
+      token.chainId === primaryRequiredToken.chainId,
   );
+
+  if (!asset?.assetId) {
+    throw new Error('PerpsInlineDeposit: asset assetId is required');
+  }
 
   const assetId = toCaipAssetType(
     'eip155',
-    Number(primaryRequiredToken?.chainId ?? '0x0').toString(),
+    Number(primaryRequiredToken.chainId).toString(),
     'erc20',
-    asset?.assetId ?? '0x0',
+    asset.assetId,
   );
 
   const { goToBuy } = useRampNavigation();
