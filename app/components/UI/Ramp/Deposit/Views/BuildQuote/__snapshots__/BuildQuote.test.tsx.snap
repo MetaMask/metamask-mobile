@@ -119,11 +119,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -249,11 +249,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -1931,11 +1931,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -2061,11 +2061,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -3743,11 +3743,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -3873,11 +3873,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -5555,11 +5555,11 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -5685,11 +5685,11 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -7306,11 +7306,11 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -7436,11 +7436,11 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -9056,11 +9056,11 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -9186,11 +9186,11 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -10807,11 +10807,11 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -10937,11 +10937,11 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -12651,11 +12651,11 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -12781,11 +12781,11 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -14357,11 +14357,11 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -14487,11 +14487,11 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -16108,11 +16108,11 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -16238,11 +16238,11 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -17859,11 +17859,11 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -17989,11 +17989,11 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -19610,11 +19610,11 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -19740,11 +19740,11 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -21361,11 +21361,11 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -21491,11 +21491,11 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -23205,11 +23205,11 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -23335,11 +23335,11 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -24954,11 +24954,11 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -25084,11 +25084,11 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -26796,11 +26796,11 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -26926,11 +26926,11 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -28640,11 +28640,11 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -28770,11 +28770,11 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {

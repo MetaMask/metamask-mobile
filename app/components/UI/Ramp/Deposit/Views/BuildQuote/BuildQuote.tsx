@@ -164,8 +164,6 @@ const BuildQuote = () => {
         navigation,
         {
           title: strings('deposit.buildQuote.title'),
-          showBack: false,
-          showClose: true,
           showConfiguration: true,
           onConfigurationPress: () => {
             navigation.navigate(
