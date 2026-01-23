@@ -134,6 +134,7 @@
     ]
   },
   "resolutions": {
+    "@react-native-async-storage/async-storage": "^1.24.0",
     "json-schema": "^0.4.0",
     "node-fetch": "^2.6.7",
     "xml2js": ">=0.5.0",
@@ -304,7 +305,7 @@
     "@noble/curves": "1.9.6",
     "@noble/hashes": "1.8.0",
     "@notifee/react-native": "^9.0.0",
-    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-clipboard/clipboard": "^1.16.1",
     "@react-native-community/checkbox": "^0.5.20",
     "@react-native-community/cli": "15.0.1",
