@@ -66,6 +66,13 @@ export interface PlaceOrderParams {
     volume?: number;
     marketType?: string;
     outcome?: string;
+    marketSlug?: string;
+    gameId?: string;
+    gameStartTime?: string;
+    gameLeague?: string;
+    gameStatus?: string;
+    gamePeriod?: string | null;
+    gameClock?: string | null;
   };
 }
 
