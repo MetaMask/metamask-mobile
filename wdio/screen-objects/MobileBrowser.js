@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 
 class MobileBrowserScreen {
     constructor() {}
@@ -27,7 +27,7 @@ class MobileBrowserScreen {
     get chromeUrlBar() {
         if (!this._device) {
             return;
-        } 
+        }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
             return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/url_bar');
@@ -99,6 +99,5 @@ class MobileBrowserScreen {
         await AppwrightGestures.tap(element)
     }
 }
-  
+
   export default new MobileBrowserScreen();
-  

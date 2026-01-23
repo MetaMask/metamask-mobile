@@ -1,11 +1,11 @@
 import { SmokeAccounts } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import Assertions from '../../framework/Assertions.js';
+import Assertions from '../../../tests/framework/Assertions.js';
 import { withMultichainAccountDetailsV2EnabledFixtures } from '../multichain-accounts/common.js';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails.js';
 import AddressList from '../../pages/MultichainAccounts/AddressList.js';
-import { defaultGanacheOptions } from '../../framework/Constants.js';
+import { defaultGanacheOptions } from '../../../tests/framework/Constants.js';
 import { completeSrpQuiz } from '../multisrp/utils.js';
 
 // Quarantining, See open ticket here: https://github.com/MetaMask/metamask-mobile/issues/21429

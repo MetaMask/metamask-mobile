@@ -1,6 +1,6 @@
 import { DetectedTokensSelectorIDs } from '../../../app/components/Views/DetectedTokens/DetectedTokensView.testIds';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 
 class DetectedTokensView {
   get importButton(): DetoxElement {
