@@ -7,14 +7,14 @@ import {
   selectSourceToken,
   selectDestToken,
 } from '../../../../core/redux/slices/bridge';
-import { BridgeToken, TokenSelectorType } from '../types';
+import { BridgeToken } from '../types';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
  * Handles both normal selection and token swapping when selecting the opposite token
  * @param type - Whether this is a source or dest token selector
  */
-export const useTokenSelection = (type: TokenSelectorType) => {
+export const useTokenSelection = (type: 'source' | 'dest') => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const sourceToken = useSelector(selectSourceToken);
@@ -22,7 +22,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
 
   const handleTokenPress = useCallback(
     (token: BridgeToken) => {
-      const isSourcePicker = type === TokenSelectorType.Source;
+      const isSourcePicker = type === 'source';
       const otherToken = isSourcePicker ? destToken : sourceToken;
 
       // Check if the selected token matches the "other" token
@@ -45,8 +45,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
     [type, sourceToken, destToken, dispatch, navigation],
   );
 
-  const selectedToken =
-    type === TokenSelectorType.Source ? sourceToken : destToken;
+  const selectedToken = type === 'source' ? sourceToken : destToken;
 
   return { handleTokenPress, selectedToken };
 };

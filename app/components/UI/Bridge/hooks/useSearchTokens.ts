@@ -2,7 +2,10 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import { PopularToken, IncludeAsset } from './usePopularTokens';
-import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
+import {
+  BRIDGE_DEV_API_BASE_URL,
+  BRIDGE_PROD_API_BASE_URL,
+} from '@metamask/bridge-controller';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -113,7 +116,7 @@ export const useSearchTokens = ({
         }
 
         const response = await fetch(
-          `${BRIDGE_API_BASE_URL}/getTokens/search`,
+          `${process.env.BRIDGE_USE_DEV_APIS === 'true' ? BRIDGE_DEV_API_BASE_URL : BRIDGE_PROD_API_BASE_URL}/getTokens/search`,
           {
             method: 'POST',
             headers: {

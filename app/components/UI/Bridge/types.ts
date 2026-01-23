@@ -40,8 +40,3 @@ export enum BridgeViewMode {
   Bridge = 'Bridge',
   Unified = 'Unified',
 }
-
-export enum TokenSelectorType {
-  Source = 'source',
-  Dest = 'dest',
-}

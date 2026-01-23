@@ -4,7 +4,7 @@ import {
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { useTokensWithBalance } from '../useTokensWithBalance';
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { BridgeToken } from '../../types';
 
 /**
@@ -22,7 +22,7 @@ export interface BalanceData {
  * Map of assetId (CAIP format) to balance data for O(1) lookup
  * Example: { "eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": { balance: "0.0004", ... } }
  */
-export type BalancesByAssetId = Record<CaipAssetType, BalanceData>;
+export type BalancesByAssetId = Record<string, BalanceData>;
 
 /**
  * Hook to get balances indexed by assetId (CAIP format) for O(1) lookup
@@ -48,7 +48,7 @@ export const useBalancesByAssetId = ({
         // Normalize assetId because API returns assetId in lowercase for EVM chains
         const normalizedAssetId = isNonEvmChainId(token.chainId)
           ? assetId
-          : (assetId.toLowerCase() as CaipAssetType);
+          : assetId.toLowerCase();
         balancesMap[normalizedAssetId] = {
           balance: token.balance,
           balanceFiat: token.balanceFiat,

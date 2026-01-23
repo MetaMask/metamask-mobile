@@ -21,8 +21,7 @@ import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
-  selectSourceChainRanking,
-  selectDestChainRanking,
+  selectEnabledChainRanking,
   setIsSelectingToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
@@ -47,7 +46,7 @@ import { SkeletonItem } from '../BridgeTokenSelectorBase';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { BridgeToken, TokenSelectorType } from '../../types';
+import { BridgeToken } from '../../types';
 import { usePopularTokens, IncludeAsset } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
 import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
@@ -58,7 +57,7 @@ import Engine from '../../../../../core/Engine';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export interface BridgeTokenSelectorRouteParams {
-  type: TokenSelectorType;
+  type: 'source' | 'dest';
 }
 
 const MIN_SEARCH_LENGTH = 3;
@@ -96,13 +95,7 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  // Use appropriate chain ranking based on selector type
-  const sourceChainRanking = useSelector(selectSourceChainRanking);
-  const destChainRanking = useSelector(selectDestChainRanking);
-  const enabledChainRanking =
-    route.params?.type === TokenSelectorType.Source
-      ? sourceChainRanking
-      : destChainRanking;
+  const enabledChainRanking = useSelector(selectEnabledChainRanking);
 
   // Set navigation options for header
   useEffect(() => {
@@ -117,12 +110,12 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
-    route.params?.type,
+    route.params.type,
   );
 
   // Initialize selectedChainId with the chain id of the selected token
   const [selectedChainId, setSelectedChainId] = useState(
-    selectedToken?.chainId && route.params?.type === TokenSelectorType.Dest
+    selectedToken?.chainId && route.params?.type === 'dest'
       ? formatChainIdToCaip(selectedToken.chainId)
       : undefined,
   );
@@ -374,7 +367,7 @@ export const BridgeTokenSelector: React.FC = () => {
       }
 
       const isNoFeeAsset =
-        route.params?.type === TokenSelectorType.Source
+        route.params?.type === 'source'
           ? item.noFee?.isSource
           : item.noFee?.isDestination;
       return (
@@ -502,7 +495,6 @@ export const BridgeTokenSelector: React.FC = () => {
         <NetworkPills
           selectedChainId={selectedChainId}
           onChainSelect={handleChainSelect}
-          type={route.params?.type}
         />
 
         <TextFieldSearch

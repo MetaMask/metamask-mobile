@@ -91,10 +91,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     });
   return {
     selectBridgeFeatureFlags: jest.fn(() => getMockBridgeFeatureFlags()),
-    selectSourceChainRanking: jest.fn(
-      () => getMockBridgeFeatureFlags().chainRanking,
-    ),
-    selectDestChainRanking: jest.fn(
+    selectEnabledChainRanking: jest.fn(
       () => getMockBridgeFeatureFlags().chainRanking,
     ),
     setIsSelectingToken: jest.fn(() => ({

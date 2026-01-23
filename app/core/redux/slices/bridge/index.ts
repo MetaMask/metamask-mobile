@@ -11,6 +11,10 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
+import {
+  selectEVMEnabledNetworks,
+  selectNonEVMEnabledNetworks,
+} from '../../../../selectors/networkEnablementController';
 import { uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
@@ -22,7 +26,6 @@ import {
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
   isNonEvmChainId,
-  formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -279,16 +282,20 @@ export const selectBridgeFeatureFlags = createSelector(
 );
 
 /**
- * Selector that returns the chainRanking from feature flags filtered by user-configured networks.
- * Used by NetworkPills in SOURCE mode to show all networks the user has added.
+ * Selector that returns the chainRanking from feature flags filtered by user-enabled networks.
+ * Used by NetworkPills to only show networks the user has enabled.
  */
-export const selectSourceChainRanking = createSelector(
+export const selectEnabledChainRanking = createSelector(
   selectBridgeFeatureFlags,
-  selectNetworkConfigurations,
-  (bridgeFeatureFlags, networkConfigurations) => {
+  selectEVMEnabledNetworks,
+  selectNonEVMEnabledNetworks,
+  (bridgeFeatureFlags, evmEnabledNetworks, nonEvmEnabledNetworks) => {
     const { chainRanking } = bridgeFeatureFlags;
 
-    const configuredChainIds = new Set(Object.keys(networkConfigurations));
+    const enabledChainIds = new Set([
+      ...evmEnabledNetworks,
+      ...nonEvmEnabledNetworks,
+    ]);
 
     if (!chainRanking) {
       return [];
@@ -299,25 +306,15 @@ export const selectSourceChainRanking = createSelector(
 
       // For EVM chains (eip155:*), extract the hex chain ID and check if enabled
       if (chainId.startsWith('eip155:')) {
-        const hexChainId = formatChainIdToHex(chainId);
-        return configuredChainIds.has(hexChainId);
+        const decimalChainId = chainId.split(':')[1];
+        const hexChainId =
+          `0x${parseInt(decimalChainId, 10).toString(16)}` as Hex;
+        return enabledChainIds.has(hexChainId);
       }
 
       // For non-EVM chains, check directly against the CAIP chain ID
-      return configuredChainIds.has(chainId);
+      return enabledChainIds.has(chainId);
     });
-  },
-);
-
-/**
- * Selector that returns all chains from chainRanking (all bridge-supported networks).
- * Used by NetworkPills in DEST mode to show all available destination networks.
- */
-export const selectDestChainRanking = createSelector(
-  selectBridgeFeatureFlags,
-  (bridgeFeatureFlags) => {
-    const { chainRanking } = bridgeFeatureFlags;
-    return chainRanking ?? [];
   },
 );
 
