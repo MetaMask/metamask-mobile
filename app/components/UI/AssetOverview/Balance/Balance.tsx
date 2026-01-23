@@ -202,8 +202,15 @@ const Balance = ({
       navigation.navigate('AssetDetails', {
         chainId: asset.chainId,
         address: asset.address,
+        aggregators: asset.aggregators,
       }),
-    [asset.address, asset.chainId, asset.isNative, navigation],
+    [
+      asset.address,
+      asset.aggregators,
+      asset.chainId,
+      asset.isNative,
+      navigation,
+    ],
   );
 
   const label = asset.accountType

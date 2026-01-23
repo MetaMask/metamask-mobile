@@ -197,7 +197,7 @@ const AssetDetails = (props: InnerProps) => {
   );
 
   // Check if token is trustworthy for showing Perps banner
-  const isTokenTrustworthy = isTokenTrustworthyForPerps(asset);
+  const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
   // Handler for perps discovery banner press
   // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount
