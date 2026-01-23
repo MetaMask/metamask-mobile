@@ -641,13 +641,20 @@ export class MarketDataService {
    */
   async fetchHistoricalCandles(options: {
     provider: IPerpsProvider;
-    coin: string;
+    symbol: string;
     interval: CandlePeriod;
     limit?: number;
     endTime?: number;
     context: ServiceContext;
   }): Promise<CandleData> {
-    const { provider, coin, interval, limit = 100, endTime, context } = options;
+    const {
+      provider,
+      symbol,
+      interval,
+      limit = 100,
+      endTime,
+      context,
+    } = options;
     const traceId = uuidv4();
     let traceData: { success: boolean; error?: string } | undefined;
 
@@ -659,7 +666,7 @@ export class MarketDataService {
         tags: {
           provider: context.tracingContext.provider,
           isTestnet: String(context.tracingContext.isTestnet),
-          coin,
+          symbol,
           interval,
         },
       });
@@ -668,7 +675,7 @@ export class MarketDataService {
       const hyperLiquidProvider = provider as {
         clientService?: {
           fetchHistoricalCandles?: (
-            coin: string,
+            symbol: string,
             interval: CandlePeriod,
             limit: number,
             endTime?: number,
@@ -681,7 +688,7 @@ export class MarketDataService {
 
       const result =
         await hyperLiquidProvider.clientService.fetchHistoricalCandles(
-          coin,
+          symbol,
           interval,
           limit,
           endTime,
@@ -705,7 +712,7 @@ export class MarketDataService {
           name: context.errorContext.controller,
           data: {
             method: context.errorContext.method,
-            coin,
+            symbol,
             interval,
             limit,
             endTime,

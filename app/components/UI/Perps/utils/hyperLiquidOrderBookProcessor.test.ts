@@ -21,7 +21,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
     mockOrderBookCache = new Map();
     mockCachedPriceData = new Map();
     mockCreatePriceUpdate = jest.fn((symbol: string, price: string) => ({
-      coin: symbol,
+      symbol,
       price,
       timestamp: Date.now(),
     }));
@@ -41,7 +41,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
@@ -147,7 +147,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
@@ -179,7 +179,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
@@ -266,7 +266,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
@@ -294,7 +294,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('ETH', {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '3000',
         timestamp: Date.now(),
       });
@@ -316,13 +316,13 @@ describe('hyperLiquidOrderBookProcessor', () => {
 
     it('updates cached price data with newly created price update', () => {
       const existingPrice: PriceUpdate = {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now() - 1000,
       };
 
       const newPrice: PriceUpdate = {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       };
@@ -369,7 +369,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('SOL', {
-        coin: 'SOL',
+        symbol: 'SOL',
         price: '100',
         timestamp: Date.now(),
       });
@@ -401,7 +401,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
@@ -446,12 +446,12 @@ describe('hyperLiquidOrderBookProcessor', () => {
 
     it('processes multiple symbols independently', () => {
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
       mockCachedPriceData.set('ETH', {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '3000',
         timestamp: Date.now(),
       });

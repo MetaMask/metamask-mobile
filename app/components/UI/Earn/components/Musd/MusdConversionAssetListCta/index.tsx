@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import styleSheet from './MusdConversionAssetListCta.styles';
 import Text, {
@@ -52,33 +52,24 @@ const MusdConversionAssetListCta = () => {
 
   const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
 
-  const { shouldShowCta, showNetworkIcon, selectedChainId } =
-    shouldShowBuyGetMusdCta();
-
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  const { shouldShowCta, showNetworkIcon, selectedChainId, isEmptyWallet } =
+    shouldShowBuyGetMusdCta();
 
   const networkName = useNetworkName(
     selectedChainId ?? MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   );
 
-  const canConvert = useMemo(
-    () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
-    [tokens],
-  );
-
-  const ctaText = useMemo(() => {
-    if (!canConvert) {
-      return strings('earn.musd_conversion.buy_musd');
-    }
-
-    return strings('earn.musd_conversion.get_musd');
-  }, [canConvert]);
+  const ctaText = isEmptyWallet
+    ? strings('earn.musd_conversion.buy_musd')
+    : strings('earn.musd_conversion.get_musd');
 
   const submitCtaPressedEvent = () => {
     const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
     const getRedirectLocation = () => {
-      if (!canConvert) {
+      if (isEmptyWallet) {
         return EVENT_LOCATIONS.BUY_SCREEN;
       }
 
@@ -102,9 +93,10 @@ const MusdConversionAssetListCta = () => {
   };
 
   const handlePress = async () => {
+    // Redirect users to buy flow if they have an empty wallet.
     submitCtaPressedEvent();
     // Redirect users to deposit flow if they don't have any stablecoins to convert.
-    if (!canConvert) {
+    if (isEmptyWallet) {
       const rampIntent: RampIntent = {
         assetId:
           MUSD_TOKEN_ASSET_ID_BY_CHAIN[

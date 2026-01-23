@@ -1,10 +1,10 @@
-import { openE2EUrl } from '../../../framework/DeepLink';
-import { E2EDeeplinkSchemes } from '../../../framework/Constants';
-import { createLogger } from '../../../framework/logger';
+import { openE2EUrl } from '../../../../tests/framework/DeepLink';
+import { E2EDeeplinkSchemes } from '../../../../tests/framework/Constants';
+import { createLogger } from '../../../../tests/framework/logger';
 import CommandQueueServer, {
   CommandQueueItem,
-} from '../../../framework/fixtures/CommandQueueServer';
-import { PerpsModifiersCommandTypes } from '../../../framework/types';
+} from '../../../../tests/framework/fixtures/CommandQueueServer';
+import { PerpsModifiersCommandTypes } from '../../../../tests/framework/types';
 
 const logger = createLogger({
   name: 'PerpsE2EModifiers',

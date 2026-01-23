@@ -491,7 +491,7 @@ export class HyperLiquidSubscriptionService {
     return positions
       .map(
         (p) =>
-          `${p.coin}:${p.size}:${p.entryPrice}:${p.leverage.value}:${
+          `${p.symbol}:${p.size}:${p.entryPrice}:${p.leverage.value}:${
             p.takeProfitPrice || ''
           }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}:${
             p.unrealizedPnl
@@ -558,7 +558,7 @@ export class HyperLiquidSubscriptionService {
           const isStop = order.detailedOrderType?.includes('Stop');
 
           const matchingPosition = positions.find(
-            (p) => p.coin === order.symbol,
+            (p) => p.symbol === order.symbol,
           );
 
           // Determine TP vs SL classification for count and price updates
@@ -625,17 +625,17 @@ export class HyperLiquidSubscriptionService {
       const matchPositionToTpsl = (p: Position) => {
         if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
           return (
-            p.coin === order.coin && order.reduceOnly && order.isPositionTpsl
+            p.symbol === order.coin && order.reduceOnly && order.isPositionTpsl
           );
         }
 
         return (
-          p.coin === order.coin &&
+          p.symbol === order.coin &&
           Math.abs(parseFloat(order.sz)) >= Math.abs(parseFloat(p.size))
         );
       };
 
-      const matchPositionToCoin = (p: Position) => p.coin === order.coin;
+      const matchPositionToCoin = (p: Position) => p.symbol === order.coin;
 
       // Process trigger orders for TP/SL extraction
       if (order.triggerPx) {
@@ -728,8 +728,8 @@ export class HyperLiquidSubscriptionService {
     >,
   ): Position[] {
     return positions.map((position) => {
-      const tpsl = tpslMap.get(position.coin) || {};
-      const tpslCount = tpslCountMap.get(position.coin) || {};
+      const tpsl = tpslMap.get(position.symbol) || {};
+      const tpslCount = tpslCountMap.get(position.symbol) || {};
       return {
         ...position,
         takeProfitPrice: tpsl.takeProfitPrice || undefined,
@@ -967,7 +967,7 @@ export class HyperLiquidSubscriptionService {
   private async createUserDataSubscription(
     accountId?: CaipAccountId,
   ): Promise<void> {
-    this.clientService.ensureSubscriptionClient(
+    await this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
     const subscriptionClient = this.clientService.getSubscriptionClient();
@@ -1734,7 +1734,7 @@ export class HyperLiquidSubscriptionService {
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
-      this.clientService.ensureSubscriptionClient(
+      await this.clientService.ensureSubscriptionClient(
         this.walletService.createWalletAdapter(),
       );
       const client = this.clientService.getSubscriptionClient();
@@ -1932,7 +1932,7 @@ export class HyperLiquidSubscriptionService {
       (this.marketDataSubscribers.get(symbol)?.size ?? 0) > 0;
 
     const priceUpdate = {
-      coin: symbol,
+      symbol,
       price, // This is the mid price from allMids
       timestamp: Date.now(),
       percentChange24h,
@@ -2218,7 +2218,7 @@ export class HyperLiquidSubscriptionService {
    * to avoid redundant meta() API calls during subscription setup
    */
   private async createAssetCtxsSubscription(dex: string): Promise<void> {
-    this.clientService.ensureSubscriptionClient(
+    await this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
     const subscriptionClient = this.clientService.getSubscriptionClient();
@@ -2635,8 +2635,24 @@ export class HyperLiquidSubscriptionService {
   /**
    * Restore all active subscriptions after WebSocket reconnection
    * Re-establishes WebSocket subscriptions for all active subscribers
+   *
+   * IMPORTANT: This method verifies transport readiness before attempting
+   * any subscriptions to prevent "subscribe error: undefined" errors.
    */
   public async restoreSubscriptions(): Promise<void> {
+    // CRITICAL: Verify transport is ready before attempting any subscriptions
+    // This prevents race conditions where subscriptions are attempted while
+    // the WebSocket is still in CONNECTING state
+    try {
+      await this.clientService.ensureTransportReady(5000);
+    } catch (error) {
+      this.deps.debugLogger.log(
+        'Transport not ready during subscription restore, will retry on next reconnect',
+        { error: error instanceof Error ? error.message : String(error) },
+      );
+      return;
+    }
+
     // Re-establish global allMids subscription if there are price subscribers
     if (this.priceSubscribers.size > 0) {
       // Clear existing subscription reference (it's dead after reconnection)
