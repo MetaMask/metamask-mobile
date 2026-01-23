@@ -158,13 +158,6 @@ const main = async () => {
   const server = mockServer(port, openrpcDocument);
   server.start();
 
-  const testSpecificMock = async (mockServer) => {
-    await setupRemoteFeatureFlagsMock(
-      mockServer,
-      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
-    );
-  };
-
   await withFixtures(
     {
       dapps: [
@@ -175,7 +168,6 @@ const main = async () => {
       fixture: new FixtureBuilder().withGanacheNetwork().build(),
       disableLocalNodes: true,
       restartDevice: true,
-      testSpecificMock,
     },
     async () => {
       await loginToApp();
