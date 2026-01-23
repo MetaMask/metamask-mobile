@@ -219,7 +219,7 @@ export const ExploreFeed: React.FC = () => {
               </Text>
             ) : (
               <Icon
-                name={IconName.Explore}
+                name={IconName.Add}
                 size={IconSize.Lg}
                 color={IconColor.IconAlternative}
               />
