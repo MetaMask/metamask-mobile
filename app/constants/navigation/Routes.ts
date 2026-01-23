@@ -139,6 +139,7 @@ const Routes = {
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
     SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
+    REHYDRATE: 'Rehydrate',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -159,6 +160,7 @@ const Routes = {
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
+    REGION_SELECTOR: 'SettingsRegionSelector',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -239,13 +241,10 @@ const Routes = {
   BRIDGE: {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
+    TOKEN_SELECTOR: 'BridgeTokenSelector',
     MODALS: {
       ROOT: 'BridgeModals',
-      SOURCE_TOKEN_SELECTOR: 'BridgeSourceTokenSelector',
-      SOURCE_NETWORK_SELECTOR: 'BridgeSourceNetworkSelector',
       SLIPPAGE_MODAL: 'SlippageModal',
-      DEST_TOKEN_SELECTOR: 'BridgeDestTokenSelector',
-      DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',

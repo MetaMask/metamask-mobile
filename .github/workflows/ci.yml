@@ -276,6 +276,8 @@ jobs:
         with:
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          openai-api-key: ${{ secrets.E2E_OPENAI_API_KEY }}
+          google-api-key: ${{ secrets.E2E_GEMINI_API_KEY }}
           github-token: ${{ github.token }}
           pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}

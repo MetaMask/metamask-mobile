@@ -54,12 +54,12 @@ describe('usePerpsSorting', () => {
 
     it('initializes with custom sort option', () => {
       const { result } = renderHook(() =>
-        usePerpsSorting({ initialOptionId: 'priceChange-asc' }),
+        usePerpsSorting({ initialOptionId: 'priceChange' }),
       );
 
-      expect(result.current.selectedOptionId).toBe('priceChange-asc');
+      expect(result.current.selectedOptionId).toBe('priceChange');
       expect(result.current.sortBy).toBe('priceChange');
-      expect(result.current.direction).toBe('asc');
+      expect(result.current.direction).toBe('desc');
     });
   });
 
@@ -80,14 +80,10 @@ describe('usePerpsSorting', () => {
       const { result } = renderHook(() => usePerpsSorting());
 
       act(() => {
-        result.current.handleOptionChange(
-          'priceChange-asc',
-          'priceChange',
-          'asc',
-        );
+        result.current.handleOptionChange('priceChange', 'priceChange', 'asc');
       });
 
-      expect(result.current.selectedOptionId).toBe('priceChange-asc');
+      expect(result.current.selectedOptionId).toBe('priceChange');
       expect(result.current.sortBy).toBe('priceChange');
       expect(result.current.direction).toBe('asc');
     });
@@ -96,14 +92,10 @@ describe('usePerpsSorting', () => {
       const { result } = renderHook(() => usePerpsSorting());
 
       act(() => {
-        result.current.handleOptionChange(
-          'priceChange-desc',
-          'priceChange',
-          'desc',
-        );
+        result.current.handleOptionChange('priceChange', 'priceChange', 'desc');
       });
 
-      expect(result.current.selectedOptionId).toBe('priceChange-desc');
+      expect(result.current.selectedOptionId).toBe('priceChange');
       expect(result.current.sortBy).toBe('priceChange');
       expect(result.current.direction).toBe('desc');
     });
@@ -155,11 +147,7 @@ describe('usePerpsSorting', () => {
       const { result } = renderHook(() => usePerpsSorting());
 
       act(() => {
-        result.current.handleOptionChange(
-          'priceChange-asc',
-          'priceChange',
-          'asc',
-        );
+        result.current.handleOptionChange('priceChange', 'priceChange', 'asc');
       });
 
       act(() => {
@@ -247,11 +235,7 @@ describe('usePerpsSorting', () => {
       expect(result.current.sortBy).toBe('fundingRate');
 
       act(() => {
-        result.current.handleOptionChange(
-          'priceChange-asc',
-          'priceChange',
-          'asc',
-        );
+        result.current.handleOptionChange('priceChange', 'priceChange', 'asc');
       });
 
       expect(result.current.sortBy).toBe('priceChange');

@@ -46,10 +46,11 @@ import { CandlePeriod } from '../constants/chartConfig';
 import { OrderType } from '../controllers/types';
 
 /**
- * Represents historical candlestick data for a specific coin and interval
+ * Represents historical candlestick data for a specific symbol and interval
  */
 export interface CandleData {
-  coin: string;
+  /** Asset identifier (e.g., 'BTC', 'ETH'). Protocol-agnostic terminology for multi-provider support. */
+  symbol: string;
   interval: CandlePeriod;
   candles: CandleStick[];
 }

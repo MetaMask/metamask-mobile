@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,6 +14,7 @@ import {
   CaipAssetType,
   CaipChainId,
   isCaipAssetType,
+  isCaipChainId,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -54,6 +61,7 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useScrollToMerklRewards } from './hooks/useScrollToMerklRewards';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -111,6 +119,8 @@ import DSText, {
 } from '../../../component-library/components/Texts/Text';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import MerklRewards from '../Earn/components/MerklRewards';
+import { selectMerklCampaignClaimingEnabledFlag } from '../Earn/selectors/featureFlags';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
   selectTronResourcesBySelectedAccountGroup,
@@ -122,6 +132,11 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../Bridge/types';
+import { useRampTokens } from '../Ramp/hooks/useRampTokens';
+import { toAssetId } from '../Bridge/hooks/useAssetMetadata/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { parseCAIP19AssetId } from '../Ramp/Aggregator/utils/parseCaip19AssetId';
+import { toLowerCaseEquals } from '../../../util/general';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -211,7 +226,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isMerklCampaignClaimingEnabled = useSelector(
+    selectMerklCampaignClaimingEnabledFlag,
+  );
   const { navigateToSendPage } = useSendNavigation();
+  const merklRewardsRef = useRef<View>(null);
+  const merklRewardsYInHeaderRef = useRef<number | null>(null);
+
+  // Scroll to MerklRewards section when navigating from "Claim bonus" CTA
+  useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -275,7 +298,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { sourceToken, destToken } = getSwapTokens(asset);
 
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenDetails,
+    location: SwapBridgeNavigationLocation.TokenView,
     sourcePage: 'MainView',
     sourceToken,
     destToken,
@@ -733,6 +756,36 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`
       : undefined;
 
+  const { allTokens } = useRampTokens();
+
+  const isAssetBuyable = useMemo(() => {
+    if (!allTokens) return false;
+
+    const chainIdInCaip = isCaipChainId(asset.chainId)
+      ? asset.chainId
+      : toEvmCaipChainId(asset.chainId as Hex);
+    const assetId = toAssetId(asset.address, chainIdInCaip);
+
+    const matchingToken = allTokens.find((token) => {
+      if (!token.assetId) return false;
+
+      const parsedTokenAssetId = parseCAIP19AssetId(token.assetId);
+      if (!parsedTokenAssetId) return false;
+
+      // For native assets, match by chainId and slip44 namespace
+      if (asset.isNative) {
+        return (
+          token.chainId === chainIdInCaip &&
+          parsedTokenAssetId.assetNamespace === 'slip44'
+        );
+      }
+
+      // For ERC20 tokens, match by assetId
+      return assetId && toLowerCaseEquals(token.assetId, assetId);
+    });
+    return matchingToken?.tokenSupported ?? false;
+  }, [allTokens, asset.isNative, asset.chainId, asset.address]);
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {asset.hasBalanceError ? (
@@ -753,7 +806,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             {renderChartNavigationButton()}
           </View>
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
+            displayBuyButton={displayBuyButton && isAssetBuyable}
             displaySwapsButton={displaySwapsButton}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
@@ -790,6 +843,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
+          {isMerklCampaignClaimingEnabled && (
+            <View
+              ref={merklRewardsRef}
+              testID="merkl-rewards-section"
+              onLayout={(event) => {
+                // Store Y position relative to header (which is the scroll offset)
+                // This is more reliable than measureInWindow for FlatList scrolling
+                const { y } = event.nativeEvent.layout;
+                merklRewardsYInHeaderRef.current = y;
+              }}
+            >
+              <MerklRewards asset={asset} />
+            </View>
+          )}
           {isPerpsEnabled && hasPerpsMarket && marketData && (
             <>
               <View style={styles.perpsPositionHeader}>

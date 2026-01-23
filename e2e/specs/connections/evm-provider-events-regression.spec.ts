@@ -1,17 +1,17 @@
 import { RegressionWalletPlatform } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
-} from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+} from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TestDApp from '../../pages/Browser/TestDApp';
 import Browser from '../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import { DappVariants } from '../../framework/Constants';
+import { DappVariants } from '../../../tests/framework/Constants';
 import ToastModal from '../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 

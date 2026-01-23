@@ -226,7 +226,7 @@ describe('PerpsTabView', () => {
   ).selectSelectedInternalAccountByScope;
 
   const mockPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     entryPrice: '2000.00',
     positionValue: '5000.00',
