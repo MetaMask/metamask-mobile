@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import RecurringFeeModal from './RecurringFeeModal';
 import { RecurringFeeModalSelectors } from '../../../../../../e2e/selectors/Card/RecurringFeeModal.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,7 +31,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.recurring_fee_modal.title': 'Recurring fee',
       'card.recurring_fee_modal.description':
         'A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.',
-      'card.recurring_fee_modal.learn_more': 'Learn more',
       'card.recurring_fee_modal.got_it': 'Got it',
     };
     return map[key] || key;
@@ -145,7 +143,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('RecurringFeeModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
   });
 
   describe('Render', () => {
@@ -186,16 +183,6 @@ describe('RecurringFeeModal', () => {
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalled();
     });
-
-    it('opens Learn more URL when link is pressed', () => {
-      const { getByTestId } = render(<RecurringFeeModal />);
-
-      fireEvent.press(getByTestId(RecurringFeeModalSelectors.LEARN_MORE_LINK));
-
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        'https://support.metamask.io/metamask-card',
-      );
-    });
   });
 
   describe('Analytics', () => {
@@ -209,20 +196,6 @@ describe('RecurringFeeModal', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         action: CardActions.RECURRING_FEE_GOT_IT,
-        screen: CardScreens.REVIEW_ORDER,
-      });
-    });
-
-    it('tracks Learn more link click', () => {
-      const { getByTestId } = render(<RecurringFeeModal />);
-
-      fireEvent.press(getByTestId(RecurringFeeModalSelectors.LEARN_MORE_LINK));
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_BUTTON_CLICKED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action: CardActions.RECURRING_FEE_LEARN_MORE,
         screen: CardScreens.REVIEW_ORDER,
       });
     });

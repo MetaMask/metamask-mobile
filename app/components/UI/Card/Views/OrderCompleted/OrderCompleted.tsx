@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { Image, Platform } from 'react-native';
+import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -79,7 +79,7 @@ const OrderCompleted: React.FC = () => {
 
           <Text
             style={tw.style('text-center mt-6', {
-              fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+              fontFamily: 'MMPoly-Regular',
               fontWeight: '400',
               fontSize: 24,
               lineHeight: 36,

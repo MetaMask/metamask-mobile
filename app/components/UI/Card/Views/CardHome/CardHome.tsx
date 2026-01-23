@@ -90,6 +90,7 @@ import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import type { ShippingAddress } from '../ReviewOrder';
+import Logger from '../../../../../util/Logger';
 
 /**
  * Route params for CardHome screen
@@ -480,6 +481,15 @@ const CardHome = () => {
       cardDetails,
     ],
   );
+
+  Logger.log('isUserEligibleForMetalCard', isUserEligibleForMetalCard);
+  Logger.log({
+    isBaanxLoginEnabled,
+    isAuthenticated,
+    userLocation,
+    userShippingAddress,
+    cardDetails,
+  });
 
   const onCardDetailsImageError = useCallback(() => {
     clearCardDetailsImageUrl();
@@ -1032,6 +1042,7 @@ const CardHome = () => {
           />
         )}
         {isBaanxLoginEnabled &&
+          !isLoading &&
           !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
             <ManageCardListItem
               title={strings(
@@ -1059,15 +1070,6 @@ const CardHome = () => {
             onPress={navigateToCardPage}
             testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
           />
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.travel_title')}
-            description={strings(
-              'card.card_home.manage_card_options.travel_description',
-            )}
-            rightIcon={IconName.Export}
-            onPress={navigateToTravelPage}
-            testID={CardHomeSelectors.TRAVEL_ITEM}
-          />
           {isUserEligibleForMetalCard && (
             <ManageCardListItem
               title={strings(
@@ -1081,9 +1083,18 @@ const CardHome = () => {
               testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
             />
           )}
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.travel_title')}
+            description={strings(
+              'card.card_home.manage_card_options.travel_description',
+            )}
+            rightIcon={IconName.Export}
+            onPress={navigateToTravelPage}
+            testID={CardHomeSelectors.TRAVEL_ITEM}
+          />
         </>
       )}
-      {isAuthenticated && (
+      {isAuthenticated && !isLoading && (
         <>
           <Box twClassName="h-px mx-4 bg-border-muted" />
           <TouchableOpacity

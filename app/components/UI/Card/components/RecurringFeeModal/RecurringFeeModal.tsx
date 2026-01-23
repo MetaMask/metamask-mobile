@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { Linking } from 'react-native';
 import {
   Text,
   TextVariant,
@@ -17,9 +16,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { RecurringFeeModalSelectors } from '../../../../../../e2e/selectors/Card/RecurringFeeModal.selectors';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
-
-// TODO: Update this to the actual URL
-const LEARN_MORE_URL = 'https://support.metamask.io/metamask-card';
 
 const RecurringFeeModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -39,18 +35,6 @@ const RecurringFeeModal = () => {
         .build(),
     );
     sheetRef.current?.onCloseBottomSheet();
-  }, [trackEvent, createEventBuilder]);
-
-  const handleLearnMore = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.RECURRING_FEE_LEARN_MORE,
-          screen: CardScreens.REVIEW_ORDER,
-        })
-        .build(),
-    );
-    Linking.openURL(LEARN_MORE_URL);
   }, [trackEvent, createEventBuilder]);
 
   return (
@@ -75,15 +59,6 @@ const RecurringFeeModal = () => {
           testID={RecurringFeeModalSelectors.DESCRIPTION}
         >
           {strings('card.recurring_fee_modal.description')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-primary-default"
-          onPress={handleLearnMore}
-          testID={RecurringFeeModalSelectors.LEARN_MORE_LINK}
-        >
-          {strings('card.recurring_fee_modal.learn_more')}
         </Text>
 
         <Box twClassName="mt-4">

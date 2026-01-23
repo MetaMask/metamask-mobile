@@ -315,8 +315,14 @@ export const DaimoPayService = {
     }
   },
 
-  shouldLoadInWebView: (url: string): boolean =>
-    url.includes('miniapp.daimo.com'),
+  shouldLoadInWebView: (url: string): boolean => {
+    try {
+      const parsedUrl = new URL(url);
+      return parsedUrl.origin === DAIMO_ALLOWED_ORIGIN;
+    } catch {
+      return false;
+    }
+  },
 
   getEnvironment: getDaimoEnvironment,
 

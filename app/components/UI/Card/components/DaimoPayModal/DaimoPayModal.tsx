@@ -11,6 +11,8 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
+import { isEqual } from 'lodash';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,9 +30,15 @@ import { SPA_urlChangeListener } from '../../../../../util/browserScripts';
 import { MAX_MESSAGE_LENGTH } from '../../../../../constants/dapp';
 import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
+import Engine from '../../../../../core/Engine';
+import AppConstants from '../../../../../core/AppConstants';
+import { getPermittedEvmAddressesByHostname } from '../../../../../core/Permissions';
+import { selectPermissionControllerState } from '../../../../../selectors/snaps/permissionController';
+import type { RootState } from '../../../../../reducers';
 
 const POLLING_INTERVAL_MS = 5000;
 const POLLING_TIMEOUT_MS = 10 * 60 * 1000;
+const { NOTIFICATION_NAMES } = AppConstants;
 
 export interface DaimoPayModalParams {
   payId: string;
@@ -73,6 +81,38 @@ const DaimoPayModal: React.FC = () => {
 
   const webViewUrl = DaimoPayService.buildWebViewUrl(payId);
   const isProduction = DaimoPayService.isProduction();
+  const daimoOrigin = new URL(webViewUrl).origin;
+
+  const permittedAccountsList = useSelector((state: RootState) => {
+    const permissionsControllerState = selectPermissionControllerState(state);
+    return getPermittedEvmAddressesByHostname(
+      permissionsControllerState,
+      daimoOrigin,
+    );
+  }, isEqual);
+
+  const notifyAllConnections = useCallback((payload: unknown) => {
+    backgroundBridgeRef.current?.sendNotificationEip1193(payload);
+  }, []);
+
+  const sendActiveAccount = useCallback(() => {
+    const permissionsControllerState =
+      Engine.context.PermissionController.state;
+    const permittedAccounts = getPermittedEvmAddressesByHostname(
+      permissionsControllerState,
+      daimoOrigin,
+    );
+
+    Logger.log(
+      '[DaimoPay] Sending active accounts:',
+      JSON.stringify(permittedAccounts),
+    );
+
+    notifyAllConnections({
+      method: NOTIFICATION_NAMES.accountsChanged,
+      params: permittedAccounts,
+    });
+  }, [daimoOrigin, notifyAllConnections]);
 
   useEffect(() => {
     const loadEntryScript = async () => {
@@ -397,45 +437,103 @@ const DaimoPayModal: React.FC = () => {
   const handleLoadEnd = useCallback(() => {
     const origin = new URL(webViewUrl).origin;
     initializeBackgroundBridge(origin);
-  }, [webViewUrl, initializeBackgroundBridge]);
+
+    setTimeout(() => {
+      sendActiveAccount();
+    }, 100);
+  }, [webViewUrl, initializeBackgroundBridge, sendActiveAccount]);
+
+  useEffect(() => {
+    if (backgroundBridgeRef.current) {
+      sendActiveAccount();
+    }
+  }, [sendActiveAccount, permittedAccountsList]);
 
   const injectedJavaScriptForTransparency = `
     (function() {
+      // Ensure window.ethereum has the properties wagmi expects
       if (window.ethereum) {
+        // These flags help wagmi identify the provider
+        window.ethereum.isMetaMask = true;
         window.ethereum.isMetaMaskMobile = true;
-        window.ethereum.isMetaMaskWallet = true;
-        window.ethereum._metamask = window.ethereum._metamask || {};
-        window.ethereum._metamask.isUnlocked = function() { return Promise.resolve(true); };
         
+        // Ensure _metamask namespace exists with required methods
+        window.ethereum._metamask = window.ethereum._metamask || {};
+        if (!window.ethereum._metamask.isUnlocked) {
+          window.ethereum._metamask.isUnlocked = function() { 
+            return Promise.resolve(true); 
+          };
+        }
+        
+        // Add connect method if missing
         if (!window.ethereum.connect) {
           window.ethereum.connect = function() {
             return window.ethereum.request({ method: 'eth_requestAccounts' });
           };
         }
-      }
-      
-      setTimeout(function() {
+        
+        // Click interceptor to bypass wagmi's broken connector validation
+        // and directly trigger eth_requestAccounts
         document.addEventListener('click', function(e) {
-          if (window.ethereum && window.ethereum.selectedAddress) {
+          var target = e.target;
+          
+          // Only process clicks on actual DOM elements within the document body
+          if (!target || !document.body.contains(target)) {
             return;
           }
           
-          var target = e.target;
           var el = target;
+          var foundWalletButton = null;
           
-          while (el && el !== document.body) {
-            var text = (el.innerText || el.textContent || '').toLowerCase();
-            if (text.includes('metamask') && !text.includes('another wallet') && !text.includes('other')) {
-              if (window.ethereum && window.ethereum.request) {
-                window.ethereum.request({ method: 'eth_requestAccounts' }).catch(function() {});
-              }
-              return;
+          // Walk up the DOM tree to find if this is a MetaMask wallet button
+          // Look for max 5 levels to avoid matching large containers
+          var depth = 0;
+          while (el && el !== document.body && depth < 5) {
+            var text = (el.innerText || el.textContent || '').toLowerCase().trim();
+            
+            // Check if this looks like a wallet button:
+            // 1. Contains "metamask" text
+            // 2. Is short text (wallet name only, not a container)
+            // 3. Is a clickable element (button, has role, or has cursor pointer)
+            var isClickable = el.tagName === 'BUTTON' || 
+                              el.getAttribute('role') === 'button' ||
+                              el.tagName === 'A' ||
+                              (el.onclick !== null) ||
+                              (window.getComputedStyle && window.getComputedStyle(el).cursor === 'pointer');
+            
+            var isMetaMaskText = text === 'metamask' || 
+                                 (text.includes('metamask') && text.length < 30);
+            
+            if (isMetaMaskText && isClickable) {
+              foundWalletButton = el;
+              break;
             }
+            
             el = el.parentElement;
+            depth++;
           }
-        }, true);
-      }, 500);
+          
+          if (foundWalletButton) {
+            // Prevent the default wagmi connector action
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Directly call eth_requestAccounts
+            if (window.ethereum && window.ethereum.request) {
+              console.log('[DaimoPay] Intercepted MetaMask click, calling eth_requestAccounts');
+              window.ethereum.request({ method: 'eth_requestAccounts' })
+                .then(function(accounts) {
+                  console.log('[DaimoPay] eth_requestAccounts success:', accounts);
+                })
+                .catch(function(err) {
+                  console.log('[DaimoPay] eth_requestAccounts error:', err);
+                });
+            }
+          }
+        }, true); // Use capture phase to intercept before wagmi
+      }
 
+      // Transparency styles
       document.documentElement.style.backgroundColor = 'transparent';
       document.body.style.backgroundColor = 'transparent';
       
