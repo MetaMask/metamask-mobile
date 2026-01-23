@@ -31,6 +31,7 @@ import {
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
 import { colors as importedColors } from '../../../styles/common';
+import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
 import Toast, {
@@ -219,74 +220,94 @@ const OnboardingSuccessFlow = () => (
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
  */
-const OnboardingNav = () => (
-  <Stack.Navigator initialRouteName={'Onboarding'}>
-    <Stack.Screen name="Onboarding" component={Onboarding} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
-      component={SocialLoginSuccessNewUser}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
-    <Stack.Screen
-      name="AccountBackupStep1"
-      component={AccountBackupStep1}
-      options={{ headerShown: false, gestureEnabled: false }}
-    />
-    <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SUCCESS_FLOW}
-      component={OnboardingSuccessFlow}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccess} // Used in SRP flow
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
-      component={DefaultSettings}
-    />
-    <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-    <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-    <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-      component={ImportFromSecretRecoveryPhrase}
-    />
-    <Stack.Screen
-      name="OptinMetrics"
-      component={OptinMetrics}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AccountStatus"
-      component={AccountStatus}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
-      component={SocialLoginSuccessExistingUser}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AccountAlreadyExists"
-      component={AccountAlreadyExists}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AccountNotFound"
-      component={AccountNotFound}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="Rehydrate"
-      component={OAuthRehydration}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
+const OnboardingNav = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      initialRouteName={'Onboarding'}
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.background.default,
+          shadowColor: importedColors.transparent,
+          elevation: 0,
+        },
+        headerTintColor: colors.primary.default,
+        headerTitleStyle: {
+          color: colors.text.default,
+        },
+        title: '',
+      }}
+    >
+      <Stack.Screen name="Onboarding" component={Onboarding} />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
+        component={SocialLoginSuccessNewUser}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
+      <Stack.Screen
+        name="AccountBackupStep1"
+        component={AccountBackupStep1}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name="AccountBackupStep1B"
+        component={AccountBackupStep1B}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SUCCESS_FLOW}
+        component={OnboardingSuccessFlow}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SUCCESS}
+        component={OnboardingSuccess} // Used in SRP flow
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
+        component={DefaultSettings}
+      />
+      <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
+      <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
+      <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
+      <Stack.Screen
+        name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+        component={ImportFromSecretRecoveryPhrase}
+      />
+      <Stack.Screen
+        name="OptinMetrics"
+        component={OptinMetrics}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AccountStatus"
+        component={AccountStatus}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
+        component={SocialLoginSuccessExistingUser}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AccountAlreadyExists"
+        component={AccountAlreadyExists}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AccountNotFound"
+        component={AccountNotFound}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Rehydrate"
+        component={OAuthRehydration}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 /**
  * Parent Stack navigator that allows the
