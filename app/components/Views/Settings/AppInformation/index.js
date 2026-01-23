@@ -266,6 +266,24 @@ class AppInformation extends PureComponent {
                     <Text style={styles.branchInfo}>
                       {`OTA Update status: ${otaUpdateMessage}`}
                     </Text>
+                    <Text style={styles.branchInfo}>
+                      {`IOS_GOOGLE_CLIENT_ID: ${process.env.IOS_GOOGLE_CLIENT_ID?.substring(0, 3) || 'N/A'}... (${process.env.IOS_GOOGLE_CLIENT_ID?.length || 0})`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`IOS_GOOGLE_REDIRECT_URI: ${process.env.IOS_GOOGLE_REDIRECT_URI?.substring(0, 3) || 'N/A'}... (${process.env.IOS_GOOGLE_REDIRECT_URI?.length || 0})`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`ANDROID_APPLE_CLIENT_ID: ${process.env.ANDROID_APPLE_CLIENT_ID?.substring(0, 3) || 'N/A'}... (${process.env.ANDROID_APPLE_CLIENT_ID?.length || 0})`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`ANDROID_GOOGLE_CLIENT_ID: ${process.env.ANDROID_GOOGLE_CLIENT_ID?.substring(0, 3) || 'N/A'}... (${process.env.ANDROID_GOOGLE_CLIENT_ID?.length || 0})`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`MM_SENTRY_DSN: ${process.env.MM_SENTRY_DSN?.substring(0, 3) || 'N/A'}... (${process.env.MM_SENTRY_DSN?.length || 0})`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`WALLET_CONNECT_PROJECT_ID: ${process.env.WALLET_CONNECT_PROJECT_ID?.substring(0, 3) || 'N/A'}... (${process.env.WALLET_CONNECT_PROJECT_ID?.length || 0})`}
+                    </Text>
                   </>
                 )}
 
