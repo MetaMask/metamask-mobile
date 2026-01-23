@@ -3,7 +3,7 @@ import {
   contractConfiguration,
 } from '../../app/util/test/smart-contracts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
-import { createLogger } from '../../tests/framework/logger';
+import { createLogger } from '../framework/logger.ts';
 
 const logger = createLogger({
   name: 'AnvilSeeder',

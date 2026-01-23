@@ -7,7 +7,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../../tests/framework/Assertions';
 import { LocalNode } from '../../../tests/framework/types';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const EXPECTED_HIDDEN_BALANCE: string = '••••••••••••';
 
