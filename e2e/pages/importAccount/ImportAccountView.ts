@@ -1,5 +1,5 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import { ImportAccountFromPrivateKeyIDs } from '../../../app/components/Views/ImportPrivateKey/ImportAccountFromPrivateKey.testIds';
 
 class ImportAccountView {

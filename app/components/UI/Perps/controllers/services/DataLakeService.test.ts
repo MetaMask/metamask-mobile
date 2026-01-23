@@ -51,7 +51,7 @@ describe('DataLakeService', () => {
     it('skips reporting for testnet', async () => {
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: true,
         context: mockContext,
       });
@@ -73,7 +73,7 @@ describe('DataLakeService', () => {
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         sl_price: 45000,
         tp_price: 55000,
         isTestnet: false,
@@ -94,7 +94,7 @@ describe('DataLakeService', () => {
           }),
           body: JSON.stringify({
             user_id: mockEvmAccount.address,
-            coin: 'BTC',
+            symbol: 'BTC',
             sl_price: 45000,
             tp_price: 55000,
           }),
@@ -103,7 +103,7 @@ describe('DataLakeService', () => {
       expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Perps Data Lake Report',
-          tags: expect.objectContaining({ action: 'open', coin: 'BTC' }),
+          tags: expect.objectContaining({ action: 'open', symbol: 'BTC' }),
         }),
       );
       expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
@@ -122,7 +122,7 @@ describe('DataLakeService', () => {
 
       await dataLakeService.reportOrder({
         action: 'close',
-        coin: 'ETH',
+        symbol: 'ETH',
         isTestnet: false,
         context: mockContext,
       });
@@ -141,7 +141,7 @@ describe('DataLakeService', () => {
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
@@ -167,7 +167,7 @@ describe('DataLakeService', () => {
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: contextWithoutToken,
       });
@@ -187,7 +187,7 @@ describe('DataLakeService', () => {
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: contextWithoutMessenger,
       });
@@ -211,7 +211,7 @@ describe('DataLakeService', () => {
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
@@ -230,7 +230,7 @@ describe('DataLakeService', () => {
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         retryCount: 3,
@@ -266,7 +266,7 @@ describe('DataLakeService', () => {
 
       await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         retryCount: 0,
@@ -277,7 +277,7 @@ describe('DataLakeService', () => {
 
       await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         retryCount: 1,
@@ -288,7 +288,7 @@ describe('DataLakeService', () => {
 
       await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         retryCount: 2,
@@ -305,7 +305,7 @@ describe('DataLakeService', () => {
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
@@ -324,7 +324,7 @@ describe('DataLakeService', () => {
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'INVALID',
+        symbol: 'INVALID',
         isTestnet: false,
         context: mockContext,
       });
@@ -338,7 +338,7 @@ describe('DataLakeService', () => {
 
       await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
@@ -358,7 +358,7 @@ describe('DataLakeService', () => {
 
       await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         _traceId: 'custom-trace-id',
@@ -378,7 +378,7 @@ describe('DataLakeService', () => {
 
       await dataLakeService.reportOrder({
         action: 'close',
-        coin: 'BTC',
+        symbol: 'BTC',
         sl_price: 45000,
         tp_price: 55000,
         isTestnet: false,
@@ -390,7 +390,7 @@ describe('DataLakeService', () => {
         expect.objectContaining({
           body: JSON.stringify({
             user_id: mockEvmAccount.address,
-            coin: 'BTC',
+            symbol: 'BTC',
             sl_price: 45000,
             tp_price: 55000,
           }),
@@ -407,7 +407,7 @@ describe('DataLakeService', () => {
 
       await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'ETH',
+        symbol: 'ETH',
         isTestnet: false,
         context: mockContext,
       });
@@ -417,7 +417,7 @@ describe('DataLakeService', () => {
         expect.objectContaining({
           body: JSON.stringify({
             user_id: mockEvmAccount.address,
-            coin: 'ETH',
+            symbol: 'ETH',
             sl_price: undefined,
             tp_price: undefined,
           }),
@@ -434,7 +434,7 @@ describe('DataLakeService', () => {
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
@@ -455,7 +455,7 @@ describe('DataLakeService', () => {
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
@@ -476,7 +476,7 @@ describe('DataLakeService', () => {
 
       await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         retryCount: 2,

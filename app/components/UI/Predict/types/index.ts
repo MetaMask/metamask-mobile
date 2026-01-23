@@ -113,7 +113,7 @@ export type PredictCategory =
   | 'politics';
 
 // Sports league types
-export type PredictSportsLeague = 'nfl';
+export type PredictSportsLeague = 'nfl' | 'nba';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';

@@ -371,9 +371,8 @@ export const selectIconSeedAddressByAccountGroupId = (
         return accountsInGroup[0].address;
       }
 
-      throw new Error(
-        `Error in selectIconSeedAddressByAccountGroupId: No accounts found in the specified group ${groupId}`,
-      );
+      // Fallback to empty string
+      return '';
     },
   );
 

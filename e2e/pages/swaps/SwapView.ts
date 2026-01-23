@@ -3,10 +3,10 @@ import {
   SwapViewSelectorsTexts,
 } from '../../../app/components/UI/Swaps/SwapsView.testIds';
 
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import { waitFor } from 'detox';
-import { logger } from '../../framework/logger';
+import { logger } from '../../../tests/framework/logger';
 
 class SwapView {
   get quoteSummary(): DetoxElement {

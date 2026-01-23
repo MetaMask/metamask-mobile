@@ -150,6 +150,13 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   }, [priceHistories, tokenIds, seriesConfig]);
 
   useEffect(() => {
+    if (isLive && isFetching) {
+      initialDataLoadedRef.current = false;
+      setLiveChartData([]);
+    }
+  }, [isLive, isFetching]);
+
+  useEffect(() => {
     if (!isLive) {
       initialDataLoadedRef.current = false;
       setLiveChartData([]);

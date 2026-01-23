@@ -70,7 +70,7 @@ export function usePerpsOrderForm(
   // Get existing position leverage for this asset (protocol constraint)
   // Positions load asynchronously via WebSocket, so this may be undefined initially
   const existingPositionLeverage = useMemo(
-    () => positions.find((p) => p.coin === initialAsset)?.leverage?.value,
+    () => positions.find((p) => p.symbol === initialAsset)?.leverage?.value,
     [positions, initialAsset],
   );
 
