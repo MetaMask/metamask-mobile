@@ -5,24 +5,10 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import {
-  View,
-  Alert,
-  BackHandler,
-  ImageSourcePropType,
-  Dimensions,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Alert, BackHandler, ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  useSharedValue,
-  withTiming,
-  runOnJS,
-  useAnimatedStyle,
-} from 'react-native-reanimated';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { useSharedValue } from 'react-native-reanimated';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import { connect, useSelector } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
@@ -82,12 +68,13 @@ import {
   OLD_HOMEPAGE_URL_HOST,
   NOTIFICATION_NAMES,
   MM_MIXPANEL_TOKEN,
+  SCROLL_TOP_THRESHOLD,
 } from './constants';
+import GestureWebViewWrapper from './GestureWebViewWrapper';
 import { regex } from '../../../../app/util/regex';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from './BrowserView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
@@ -166,7 +153,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const navigation = useNavigation<StackNavigationProp<any>>();
-    const { styles, theme } = useStyles(styleSheet, {});
+    const { styles } = useStyles(styleSheet, {});
     const [backEnabled, setBackEnabled] = useState(false);
     const [forwardEnabled, setForwardEnabled] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -189,47 +176,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const isWebViewReadyToLoad = useRef(false);
 
     /**
-     * GESTURE NAVIGATION SYSTEM
+     * GESTURE NAVIGATION
      *
-     * Uses manualActivation(true) to control gesture activation based on touch position.
-     * All three gestures are handled by a single unified gesture handler:
-     *
-     * - Left edge swipe: Touch starts within 20px of left edge, swipe right to go back
-     * - Right edge swipe: Touch starts within 20px of right edge, swipe left to go forward
-     * - Pull-to-refresh: Only works when scrolled to top, pull down to refresh
-     *
-     * Key Technical Details:
-     * - Uses Gesture.Native() + simultaneousWithExternalGesture() to work with WebView
-     * - stateManager.activate() takes control from WebView for gesture zones
-     * - stateManager.fail() lets WebView handle non-gesture touches
-     * - Scroll position tracked via injected JavaScript (SCROLL_TRACKER_SCRIPT)
+     * Gesture handling is abstracted into GestureWebViewWrapper component.
+     * These shared values are passed to the wrapper for scroll position tracking.
      */
-
-    // Gesture constants
-    const EDGE_THRESHOLD = 20; // pixels from edge to trigger
-    const SWIPE_THRESHOLD = 0.3; // 30% of screen width to complete swipe
-    const PULL_THRESHOLD = 80; // pixels to trigger refresh
-    const SCROLL_TOP_THRESHOLD = 5; // Threshold for "at top" detection (Android WebView quirk)
-    const PULL_ACTIVATION_ZONE = 50; // Only activate pull in top 50px of WebView (prevents interference with WebView interactions)
-    const screenWidth = Dimensions.get('window').width;
-
-    // Gesture state
-    const [isAtTop, setIsAtTop] = useState(false); // Tracks if WebView is scrolled to top (starts false until confirmed by WebView)
-    const [isRefreshing, setIsRefreshing] = useState(false); // Pull-to-refresh in progress
-    const [shouldRefresh, setShouldRefresh] = useState(false); // State trigger for refresh
-    const pullDistanceRef = useRef<number>(0); // Track pull distance for analytics
     const scrollY = useSharedValue(0); // Current scroll position from WebView
-    const pullProgress = useSharedValue(0); // Pull animation progress (0-1.5)
-    const isPulling = useSharedValue(false); // Pull gesture active state
-    const pullHapticTriggered = useSharedValue(false); // Track if haptic was triggered for current pull
-    const swipeStartTime = useRef<number>(0);
-    const swipeProgress = useSharedValue(0);
-    const swipeDirection = useSharedValue<'back' | 'forward' | null>(null);
-
-    // Unified gesture approach - additional state for pull-to-refresh
-    const gestureType = useSharedValue<'back' | 'forward' | 'refresh' | null>(
-      null,
-    ); // Active gesture type (used for pull-to-refresh)
+    const isAtTop = useSharedValue(false); // Tracks if WebView is scrolled to top
+    const isRefreshing = useSharedValue(false); // Pull-to-refresh in progress
     const urlBarRef = useRef<BrowserUrlBarRef>(null);
     const autocompleteRef = useRef<UrlAutocompleteRef>(null);
     const onSubmitEditingRef = useRef<(text: string) => Promise<void>>(
@@ -290,8 +244,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const { faviconURI: favicon } = useFavicon(resolvedUrlRef.current);
-    const { isEnabled, getMetaMetricsId, trackEvent, createEventBuilder } =
-      useMetrics();
+    const { isEnabled, getMetaMetricsId } = useMetrics();
     /**
      * Is the current tab the active tab
      */
@@ -360,298 +313,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       const { current } = webviewRef;
       current?.goForward?.();
     }, [forwardEnabled]);
-
-    /**
-     * Trigger haptic feedback
-     * Used for all gesture interactions (swipe navigation + pull-to-refresh)
-     */
-    const triggerHapticFeedback = useCallback((style: ImpactFeedbackStyle) => {
-      impactAsync(style);
-    }, []);
-
-    /**
-     * Handle swipe navigation gesture completion
-     * Triggers WebView navigation and tracks analytics for horizontal edge swipes
-     */
-    const handleSwipeNavigation = useCallback(
-      (direction: 'back' | 'forward', distance: number, duration: number) => {
-        if (direction === 'back' && backEnabled) {
-          goBack();
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.BROWSER_SWIPE_BACK)
-              .addProperties({
-                swipe_distance: distance,
-                swipe_duration: duration,
-              })
-              .build(),
-          );
-          triggerHapticFeedback(ImpactFeedbackStyle.Medium);
-        } else if (direction === 'forward' && forwardEnabled) {
-          goForward();
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.BROWSER_SWIPE_FORWARD)
-              .addProperties({
-                swipe_distance: distance,
-                swipe_duration: duration,
-              })
-              .build(),
-          );
-          triggerHapticFeedback(ImpactFeedbackStyle.Medium);
-        }
-      },
-      [
-        backEnabled,
-        forwardEnabled,
-        goBack,
-        goForward,
-        trackEvent,
-        createEventBuilder,
-        triggerHapticFeedback,
-      ],
-    );
-
-    /**
-     * Reset swipe animation state
-     * Returns swipe progress indicator to 0 with smooth animation
-     */
-    const resetSwipeAnimation = useCallback(() => {
-      swipeProgress.value = withTiming(0, { duration: 200 });
-      swipeDirection.value = null;
-    }, [swipeProgress, swipeDirection]);
-
-    /**
-     * Reset pull animation state
-     * Returns pull progress indicator to 0 with smooth animation
-     */
-    const resetPullAnimation = useCallback(() => {
-      pullProgress.value = withTiming(0, { duration: 200 });
-      isPulling.value = false;
-    }, [pullProgress, isPulling]);
-
-    /**
-     * Check if gestures should be enabled
-     * Disables all gestures when URL bar is focused or page is loading
-     */
-    const areGesturesEnabled = useMemo(
-      () => isTabActive && !isUrlBarFocused && firstUrlLoaded,
-      [isTabActive, isUrlBarFocused, firstUrlLoaded],
-    );
-
-    /**
-     * UNIFIED GESTURE APPROACH
-     *
-     * Uses Gesture.Native() to work with WebView's internal touch handling
-     * and a single unified Pan gesture with simultaneousWithExternalGesture.
-     * Gesture type is determined by the touch origin position in onStart.
-     */
-
-    /**
-     * Native gesture for WebView - represents WebView's internal scrolling
-     * Required for simultaneousWithExternalGesture to work properly
-     */
-    const webViewNativeGesture = useMemo(() => Gesture.Native(), []);
-
-    /**
-     * FULLY UNIFIED GESTURE using manualActivation
-     *
-     * This approach uses manualActivation(true) to manually control when the
-     * gesture activates based on touch position. This allows us to:
-     * 1. Check touch position in onTouchesDown
-     * 2. Activate the gesture ONLY for edge swipes or pull-to-refresh zones
-     * 3. Fail the gesture for other touches, letting WebView handle them
-     *
-     * This is the most promising approach for a true unified gesture solution.
-     *
-     * IMPORTANT: We use scrollY.value (shared value) instead of isAtTop (React state)
-     * to check scroll position. Shared values are accessible in worklets in real-time,
-     * while React state may be stale when the gesture fires.
-     */
-    const fullyUnifiedGesture = useMemo(
-      () =>
-        Gesture.Pan()
-          .manualActivation(true)
-          .onTouchesDown((event, stateManager) => {
-            'worklet';
-            if (!areGesturesEnabled) {
-              stateManager.fail();
-              return;
-            }
-
-            const touch = event.allTouches[0];
-            if (!touch) {
-              stateManager.fail();
-              return;
-            }
-
-            const { x, y } = touch;
-
-            // Check if touch is in a gesture zone
-            // Use scrollY.value (shared value) for real-time scroll position check
-            // This is more reliable than React state which may be stale in worklets
-            const isLeftEdge = x < EDGE_THRESHOLD && backEnabled;
-            const isRightEdge =
-              x > screenWidth - EDGE_THRESHOLD && forwardEnabled;
-            const currentlyAtTop = scrollY.value <= SCROLL_TOP_THRESHOLD;
-
-            // Pull-to-refresh: Only activate when touch is in top zone of WebView
-            // This prevents gesture interference with normal WebView interactions
-            // (e.g., tapping buttons, links) which was causing Android E2E test failures
-            const isInPullZone = y < PULL_ACTIVATION_ZONE;
-            const canPullToRefresh =
-              currentlyAtTop && !isRefreshing && isInPullZone;
-
-            if (isLeftEdge) {
-              // Left edge - prepare for back gesture
-              gestureType.value = 'back';
-              swipeDirection.value = 'back';
-              swipeProgress.value = 0;
-              swipeStartTime.current = Date.now();
-              stateManager.activate();
-              runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-            } else if (isRightEdge) {
-              // Right edge - prepare for forward gesture
-              gestureType.value = 'forward';
-              swipeDirection.value = 'forward';
-              swipeProgress.value = 0;
-              swipeStartTime.current = Date.now();
-              stateManager.activate();
-              runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-            } else if (canPullToRefresh) {
-              // Pull-to-refresh: Page is at top, allow gesture to activate
-              // We'll verify it's actually a downward pull in onUpdate
-              gestureType.value = 'refresh';
-              isPulling.value = true;
-              pullProgress.value = 0;
-              pullHapticTriggered.value = false; // Reset haptic flag
-              stateManager.activate();
-              // Don't trigger haptic yet - wait until we confirm downward movement
-            } else {
-              // Not in a gesture zone - let WebView handle it
-              stateManager.fail();
-            }
-          })
-          .onUpdate((event) => {
-            'worklet';
-            const currentGestureType = gestureType.value;
-            if (!currentGestureType) return;
-
-            const swipeDistance = screenWidth * SWIPE_THRESHOLD;
-
-            if (currentGestureType === 'back' && event.translationX > 0) {
-              // Rightward swipe for back navigation
-              swipeProgress.value = Math.min(
-                event.translationX / swipeDistance,
-                1,
-              );
-            } else if (
-              currentGestureType === 'forward' &&
-              event.translationX < 0
-            ) {
-              // Leftward swipe for forward navigation
-              swipeProgress.value = Math.min(
-                Math.abs(event.translationX) / swipeDistance,
-                1,
-              );
-            } else if (currentGestureType === 'refresh') {
-              // Pull-to-refresh gesture
-              if (event.translationY < 0) {
-                // Upward movement - cancel refresh gesture, let WebView handle scrolling
-                gestureType.value = null;
-                isPulling.value = false;
-                pullProgress.value = 0;
-                pullHapticTriggered.value = false;
-                runOnJS(resetPullAnimation)();
-                return;
-              }
-
-              // Downward pull confirmed - trigger haptic on first movement
-              if (!pullHapticTriggered.value && event.translationY > 10) {
-                pullHapticTriggered.value = true;
-                runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-              }
-
-              // Update pull progress
-              pullProgress.value = Math.min(
-                event.translationY / PULL_THRESHOLD,
-                1.5,
-              );
-            }
-          })
-          .onEnd((event) => {
-            'worklet';
-            const currentGestureType = gestureType.value;
-            if (!currentGestureType) {
-              runOnJS(resetSwipeAnimation)();
-              runOnJS(resetPullAnimation)();
-              return;
-            }
-
-            const swipeDistance = screenWidth * SWIPE_THRESHOLD;
-            const duration = Date.now() - swipeStartTime.current;
-
-            if (currentGestureType === 'back') {
-              // Trigger back if threshold met
-              if (event.translationX >= swipeDistance) {
-                runOnJS(handleSwipeNavigation)(
-                  'back',
-                  event.translationX,
-                  duration,
-                );
-              }
-              runOnJS(resetSwipeAnimation)();
-            } else if (currentGestureType === 'forward') {
-              // Trigger forward if threshold met
-              if (event.translationX <= -swipeDistance) {
-                runOnJS(handleSwipeNavigation)(
-                  'forward',
-                  Math.abs(event.translationX),
-                  duration,
-                );
-              }
-              runOnJS(resetSwipeAnimation)();
-            } else if (currentGestureType === 'refresh') {
-              // Trigger refresh if threshold met
-              if (event.translationY >= PULL_THRESHOLD) {
-                pullDistanceRef.current = event.translationY;
-                runOnJS(setShouldRefresh)(true);
-              }
-              runOnJS(resetPullAnimation)();
-            }
-
-            gestureType.value = null;
-          })
-          .onFinalize(() => {
-            'worklet';
-            gestureType.value = null;
-            isPulling.value = false;
-            pullHapticTriggered.value = false;
-            runOnJS(resetSwipeAnimation)();
-            runOnJS(resetPullAnimation)();
-          }),
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [
-        areGesturesEnabled,
-        backEnabled,
-        forwardEnabled,
-        // Note: We use scrollY.value (shared value) instead of isAtTop for real-time
-        // scroll position checking in the worklet. Shared values don't need to be deps.
-        isRefreshing,
-        screenWidth,
-        triggerHapticFeedback,
-        handleSwipeNavigation,
-        resetSwipeAnimation,
-        resetPullAnimation,
-      ],
-    );
-
-    /**
-     * Combined gesture for WebView - uses the fully unified gesture
-     * with manualActivation that handles all three gesture types
-     */
-    const combinedWebViewGesture = useMemo(
-      () => Gesture.Simultaneous(webViewNativeGesture, fullyUnifiedGesture),
-      [webViewNativeGesture, fullyUnifiedGesture],
-    );
 
     /**
      * Check if an origin is allowed
@@ -1200,8 +861,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             canGoForward,
           });
         }
+
+        // Reset pull-to-refresh state when page finishes loading
+        isRefreshing.value = false;
       },
-      [handleError, handleSuccessfulPageResolution, favicon],
+      [handleError, handleSuccessfulPageResolution, favicon, isRefreshing],
     );
 
     /**
@@ -1245,7 +909,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           scrollY.value = scrollPosition;
           // Use threshold instead of exact 0 - Android WebView may report small non-zero values
           // when at top due to content padding, headers, or floating-point precision
-          setIsAtTop(scrollPosition <= SCROLL_TOP_THRESHOLD);
+          isAtTop.value = scrollPosition <= SCROLL_TOP_THRESHOLD;
           return;
         }
         if (
@@ -1440,40 +1104,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       </View>
     );
 
-    /**
-     * Animated style for refresh indicator
-     */
-    const refreshIndicatorStyle = useAnimatedStyle(() => ({
-      transform: [
-        { translateY: pullProgress.value * PULL_THRESHOLD - PULL_THRESHOLD },
-      ],
-      opacity: pullProgress.value,
-    }));
-
-    /**
-     * Render refresh indicator
-     */
-    const renderRefreshIndicator = useCallback(
-      () =>
-        isAtTop && (
-          <Animated.View
-            pointerEvents="none"
-            style={[
-              styles.refreshIndicator,
-              // eslint-disable-next-line react-native/no-inline-styles
-              { height: PULL_THRESHOLD },
-              refreshIndicatorStyle,
-            ]}
-          >
-            <ActivityIndicator
-              size="small"
-              color={theme.colors.primary.default}
-            />
-          </Animated.View>
-        ),
-      [isAtTop, refreshIndicatorStyle, theme.colors.primary.default, styles],
-    );
-
     const isExternalLink = useMemo(
       () => linkType === EXTERNAL_LINK_TYPE,
       [linkType],
@@ -1579,28 +1209,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const returnHome = () => {
       onSubmitEditing(HOMEPAGE_HOST);
     };
-
-    /**
-     * Trigger refresh when state changes
-     * Uses state-driven pattern to avoid Reanimated runOnJS crashes
-     */
-    useEffect(() => {
-      if (shouldRefresh) {
-        setIsRefreshing(true);
-        setShouldRefresh(false);
-        reload();
-        impactAsync(ImpactFeedbackStyle.Medium);
-
-        // Track analytics
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.BROWSER_PULL_REFRESH)
-            .addProperties({ pull_distance: pullDistanceRef.current })
-            .build(),
-        );
-
-        setTimeout(() => setIsRefreshing(false), 1000);
-      }
-    }, [shouldRefresh, reload, trackEvent, createEventBuilder]);
 
     /**
      * Render the bottom navigation bar
@@ -1844,23 +1452,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             <View style={styles.wrapper}>
               {renderProgressBar()}
               <View style={styles.webview}>
-                {renderRefreshIndicator()}
-
-                {/*
-                  UNIFIED GESTURE NAVIGATION
-
-                  Uses manualActivation(true) to control gesture activation based on
-                  touch position. All three gestures (back, forward, refresh) are
-                  handled by a single gesture handler - NO OVERLAYS NEEDED!
-
-                  Gesture zones:
-                  - Left edge (20px): Swipe right to go back
-                  - Right edge (20px): Swipe left to go forward
-                  - Top zone: Pull down to refresh (when scrolled to top)
-                */}
-
                 {!!entryScriptWeb3 && firstUrlLoaded && (
-                  <GestureDetector gesture={combinedWebViewGesture}>
+                  <GestureWebViewWrapper
+                    isTabActive={isTabActive}
+                    isUrlBarFocused={isUrlBarFocused}
+                    firstUrlLoaded={firstUrlLoaded}
+                    backEnabled={backEnabled}
+                    forwardEnabled={forwardEnabled}
+                    onGoBack={goBack}
+                    onGoForward={goForward}
+                    onReload={() => webviewRef.current?.reload?.()}
+                    scrollY={scrollY}
+                    isAtTop={isAtTop}
+                    isRefreshing={isRefreshing}
+                  >
                     <View style={styles.webview}>
                       <WebView
                         originWhitelist={webViewOriginWhitelist}
@@ -1906,7 +1511,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         />
                       )}
                     </View>
-                  </GestureDetector>
+                  </GestureWebViewWrapper>
                 )}
               </View>
               <UrlAutocomplete

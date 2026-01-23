@@ -422,6 +422,39 @@ exports[`BrowserTab render Browser 1`] = `
         }
       >
         <View
+          pointerEvents="none"
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 9997,
+              },
+              {
+                "height": 80,
+              },
+              {
+                "display": "none",
+                "opacity": 0,
+                "transform": [
+                  {
+                    "translateY": -80,
+                  },
+                ],
+              },
+            ]
+          }
+        >
+          <ActivityIndicator
+            color="#4459ff"
+            size="small"
+          />
+        </View>
+        <View
           collapsable={false}
           style={
             {
