@@ -64,6 +64,7 @@ export const useMusdBalance = () => {
 
   return {
     hasMusdBalanceOnAnyChain,
+    // Balance are in hex format
     balancesByChain,
     hasMusdBalanceOnChain,
   };

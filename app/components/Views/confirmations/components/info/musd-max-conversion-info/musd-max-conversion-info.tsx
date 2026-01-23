@@ -128,7 +128,6 @@ export const MusdMaxConversionInfo = () => {
     );
   }
 
-  // Render asset header with icon, symbol, and fiat amount
   const renderAssetHeader = () => (
     <View
       style={styles.assetHeader}
