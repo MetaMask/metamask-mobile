@@ -6,6 +6,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsWebSocketHealthToast from './PerpsWebSocketHealthToast';
 import { WebSocketConnectionState } from '../../controllers/types';
+import { PerpsWebSocketHealthToastSelectorsIDs } from '../../Perps.testIds';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -106,7 +107,9 @@ describe('PerpsWebSocketHealthToast', () => {
 
       const { queryByTestId } = render(<PerpsWebSocketHealthToast />);
 
-      expect(queryByTestId('perps-websocket-health-toast')).toBeNull();
+      expect(
+        queryByTestId(PerpsWebSocketHealthToastSelectorsIDs.TOAST),
+      ).toBeNull();
     });
 
     it('renders when isVisible is true and state becomes visible', async () => {
@@ -118,7 +121,9 @@ describe('PerpsWebSocketHealthToast', () => {
       // Wait for the component to mount and animation to trigger
       await waitFor(
         async () => {
-          const toast = await findByTestId('perps-websocket-health-toast');
+          const toast = await findByTestId(
+            PerpsWebSocketHealthToastSelectorsIDs.TOAST,
+          );
           expect(toast).toBeTruthy();
         },
         { timeout: 1000 },
@@ -149,7 +154,7 @@ describe('PerpsWebSocketHealthToast', () => {
 
       await waitFor(async () => {
         const retryButton = await findByTestId(
-          'perps-websocket-health-toast-retry-button',
+          PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON,
         );
         expect(retryButton).toBeTruthy();
       });
@@ -163,7 +168,7 @@ describe('PerpsWebSocketHealthToast', () => {
 
       await waitFor(async () => {
         const retryButton = await findByTestId(
-          'perps-websocket-health-toast-retry-button',
+          PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON,
         );
         fireEvent.press(retryButton);
         expect(mockOnRetry).toHaveBeenCalled();
@@ -195,11 +200,11 @@ describe('PerpsWebSocketHealthToast', () => {
 
       // Wait for toast to render
       await waitFor(async () => {
-        await findByTestId('perps-websocket-health-toast');
+        await findByTestId(PerpsWebSocketHealthToastSelectorsIDs.TOAST);
       });
 
       expect(
-        queryByTestId('perps-websocket-health-toast-retry-button'),
+        queryByTestId(PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON),
       ).toBeNull();
     });
   });
@@ -229,11 +234,11 @@ describe('PerpsWebSocketHealthToast', () => {
 
       // Wait for toast to render
       await waitFor(async () => {
-        await findByTestId('perps-websocket-health-toast');
+        await findByTestId(PerpsWebSocketHealthToastSelectorsIDs.TOAST);
       });
 
       expect(
-        queryByTestId('perps-websocket-health-toast-retry-button'),
+        queryByTestId(PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON),
       ).toBeNull();
     });
 
@@ -257,7 +262,9 @@ describe('PerpsWebSocketHealthToast', () => {
 
       const { queryByTestId } = render(<PerpsWebSocketHealthToast />);
 
-      expect(queryByTestId('perps-websocket-health-toast')).toBeNull();
+      expect(
+        queryByTestId(PerpsWebSocketHealthToastSelectorsIDs.TOAST),
+      ).toBeNull();
     });
   });
 

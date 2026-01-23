@@ -17,6 +17,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { WebSocketConnectionState } from '../../controllers/types';
+import { PerpsWebSocketHealthToastSelectorsIDs } from '../../Perps.testIds';
 import toastStyleSheet from './PerpsWebSocketHealthToast.styles';
 import { useWebSocketHealthToastContext } from './PerpsWebSocketHealthToast.context';
 
@@ -175,7 +176,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
             opacity: opacityAnim,
           },
         ]}
-        testID="perps-websocket-health-toast"
+        testID={PerpsWebSocketHealthToastSelectorsIDs.TOAST}
         pointerEvents="box-none"
       >
         <View style={styles.toast}>
@@ -211,7 +212,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
               <TouchableOpacity
                 style={styles.retryButton}
                 onPress={onRetry}
-                testID="perps-websocket-health-toast-retry-button"
+                testID={PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON}
               >
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {strings('perps.connection.websocket_retry')}
