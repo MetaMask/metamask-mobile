@@ -1,7 +1,7 @@
 import { SolScope } from '@metamask/keyring-api';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 import { isCaipChainId } from '@metamask/utils';
-import { createLogger } from '../framework/logger';
+import { createLogger } from '../../tests/framework/logger';
 
 const logger = createLogger({
   name: 'MultichainUtilities',
