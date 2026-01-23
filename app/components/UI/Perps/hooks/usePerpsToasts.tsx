@@ -820,10 +820,7 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.position.tpsl.update_failed'),
-              handlePerpsError({
-                error,
-                fallbackMessage: strings('perps.errors.tpslUpdateFailed'),
-              }),
+              error || strings('perps.errors.tpslUpdateFailed'),
             ),
           }),
         },
@@ -850,10 +847,7 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.position.margin.adjustment_failed'),
-              handlePerpsError({
-                error,
-                fallbackMessage: strings('perps.errors.marginAdjustmentFailed'),
-              }),
+              error || strings('perps.errors.marginAdjustmentFailed'),
             ),
           }),
         },
@@ -864,10 +858,7 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.validation.failed'),
-              handlePerpsError({
-                error,
-                fallbackMessage: strings('perps.errors.unknownError'),
-              }),
+              error, // Pass through directly - validation errors are already localized
             ),
           }),
           limitPriceRequired: {
