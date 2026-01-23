@@ -1357,4 +1357,274 @@ describe('HyperLiquidClientService', () => {
       expect(terminateCallback).not.toHaveBeenCalled();
     });
   });
+
+  describe('Reconnection Logic', () => {
+    afterEach(() => {
+      // Restore default mock implementations that may have been changed by tests
+      const { WebSocketTransport } = require('@nktkas/hyperliquid');
+      (WebSocketTransport as jest.Mock).mockImplementation(
+        () => mockWsTransport,
+      );
+      mockWsTransportReady.mockResolvedValue(undefined);
+    });
+
+    it('reconnect() triggers reconnection and maintains CONNECTED state on success', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      // Verify initial state is CONNECTED
+      expect(service.getConnectionState()).toBe(
+        WebSocketConnectionState.CONNECTED,
+      );
+
+      // Call reconnect
+      await service.reconnect();
+
+      // After successful reconnect, state should be CONNECTED again
+      expect(service.getConnectionState()).toBe(
+        WebSocketConnectionState.CONNECTED,
+      );
+    });
+
+    it('reconnect() calls wsTransport.close() to cleanup existing transport', async () => {
+      await service.initialize(mockWallet);
+      mockWsTransport.close.mockClear();
+
+      // Call reconnect
+      await service.reconnect();
+
+      // Verify close was called during reconnection
+      expect(mockWsTransport.close).toHaveBeenCalled();
+    });
+
+    it('reconnect() creates new clients after reconnection', async () => {
+      const { InfoClient, SubscriptionClient } = require('@nktkas/hyperliquid');
+      await service.initialize(mockWallet);
+
+      const infoClientCallsBefore = (InfoClient as jest.Mock).mock.calls.length;
+      const subscriptionClientCallsBefore = (SubscriptionClient as jest.Mock)
+        .mock.calls.length;
+
+      await service.reconnect();
+
+      // New clients should have been created
+      expect((InfoClient as jest.Mock).mock.calls.length).toBeGreaterThan(
+        infoClientCallsBefore,
+      );
+      expect(
+        (SubscriptionClient as jest.Mock).mock.calls.length,
+      ).toBeGreaterThan(subscriptionClientCallsBefore);
+    });
+
+    it('performDisconnection resets isReconnecting flag', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      // Disconnect (which calls performDisconnection internally)
+      await service.disconnect();
+
+      expect(service.getConnectionState()).toBe(
+        WebSocketConnectionState.DISCONNECTED,
+      );
+
+      // Verify we can reconnect after disconnect (isReconnecting was reset)
+      // Reset ready mock to succeed
+      mockWsTransportReady.mockResolvedValue(undefined);
+
+      // Reset InfoClient counter since initialize creates new clients
+      mockInfoClientCallCount = 0;
+
+      await service.initialize(mockWallet);
+
+      expect(service.getConnectionState()).toBe(
+        WebSocketConnectionState.CONNECTED,
+      );
+    });
+  });
+
+  describe('Connection State Listeners', () => {
+    afterEach(() => {
+      // Restore default mock implementations
+      const { WebSocketTransport } = require('@nktkas/hyperliquid');
+      (WebSocketTransport as jest.Mock).mockImplementation(
+        () => mockWsTransport,
+      );
+      mockWsTransportReady.mockResolvedValue(undefined);
+    });
+
+    it('subscribeToConnectionState immediately notifies with current state', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      const listener = jest.fn();
+
+      service.subscribeToConnectionState(listener);
+
+      // Should be called immediately with current state
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.CONNECTED,
+        0,
+      );
+    });
+
+    it('listener receives state changes when connection state updates', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      const listener = jest.fn();
+      service.subscribeToConnectionState(listener);
+
+      // Clear the initial call
+      listener.mockClear();
+
+      // Trigger a state change by firing terminate event
+      const terminateHandler = mockSocket.addEventListener.mock.calls.find(
+        (call: [string, (...args: unknown[]) => unknown]) =>
+          call[0] === 'terminate',
+      )?.[1] as (event: Event) => void;
+
+      terminateHandler({ detail: { code: 1006 } } as unknown as Event);
+
+      // Listener should be notified of DISCONNECTED state
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.DISCONNECTED,
+        0,
+      );
+    });
+
+    it('unsubscribe function removes listener', async () => {
+      await service.initialize(mockWallet);
+
+      const listener = jest.fn();
+      const unsubscribe = service.subscribeToConnectionState(listener);
+
+      // Clear the initial call
+      listener.mockClear();
+
+      // Unsubscribe
+      unsubscribe();
+
+      // Trigger a state change
+      const terminateHandler = mockSocket.addEventListener.mock.calls.find(
+        (call: [string, (...args: unknown[]) => unknown]) =>
+          call[0] === 'terminate',
+      )?.[1] as (event: Event) => void;
+
+      terminateHandler({ detail: { code: 1006 } } as unknown as Event);
+
+      // Listener should NOT be called after unsubscribe
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('multiple listeners all receive notifications', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      const listener1 = jest.fn();
+      const listener2 = jest.fn();
+      const listener3 = jest.fn();
+
+      service.subscribeToConnectionState(listener1);
+      service.subscribeToConnectionState(listener2);
+      service.subscribeToConnectionState(listener3);
+
+      // All should be called with initial state
+      expect(listener1).toHaveBeenCalledWith(
+        WebSocketConnectionState.CONNECTED,
+        0,
+      );
+      expect(listener2).toHaveBeenCalledWith(
+        WebSocketConnectionState.CONNECTED,
+        0,
+      );
+      expect(listener3).toHaveBeenCalledWith(
+        WebSocketConnectionState.CONNECTED,
+        0,
+      );
+
+      // Clear all
+      listener1.mockClear();
+      listener2.mockClear();
+      listener3.mockClear();
+
+      // Trigger state change
+      const terminateHandler = mockSocket.addEventListener.mock.calls.find(
+        (call: [string, (...args: unknown[]) => unknown]) =>
+          call[0] === 'terminate',
+      )?.[1] as (event: Event) => void;
+
+      terminateHandler({ detail: { code: 1006 } } as unknown as Event);
+
+      // All should be notified
+      expect(listener1).toHaveBeenCalledWith(
+        WebSocketConnectionState.DISCONNECTED,
+        0,
+      );
+      expect(listener2).toHaveBeenCalledWith(
+        WebSocketConnectionState.DISCONNECTED,
+        0,
+      );
+      expect(listener3).toHaveBeenCalledWith(
+        WebSocketConnectionState.DISCONNECTED,
+        0,
+      );
+    });
+
+    it('reconnection triggers CONNECTING state notification', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      const listener = jest.fn();
+      service.subscribeToConnectionState(listener);
+
+      // Clear initial call
+      listener.mockClear();
+
+      // Start a reconnection attempt
+      await service.reconnect();
+
+      // Listener should have been called with CONNECTING state
+      const connectingCall = listener.mock.calls.find(
+        (call: [string, number]) =>
+          call[0] === WebSocketConnectionState.CONNECTING,
+      );
+      expect(connectingCall).toBeDefined();
+    });
+
+    it('successful reconnection notifies listeners with CONNECTED state', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      const listener = jest.fn();
+      service.subscribeToConnectionState(listener);
+
+      // Clear initial call
+      listener.mockClear();
+
+      // Trigger reconnect
+      await service.reconnect();
+
+      // Find the CONNECTED call after reconnection
+      const connectedCalls = listener.mock.calls.filter(
+        (call: [string, number]) =>
+          call[0] === WebSocketConnectionState.CONNECTED,
+      );
+
+      expect(connectedCalls.length).toBeGreaterThan(0);
+    });
+  });
 });
