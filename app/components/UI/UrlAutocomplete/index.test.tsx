@@ -115,9 +115,6 @@ const render = (...args: RenderWithProviderParams) => {
 
 jest.mock('../../../core/Engine', () => ({
   context: {
-    TokenSearchDiscoveryDataController: {
-      fetchSwapsTokens: jest.fn(),
-    },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
