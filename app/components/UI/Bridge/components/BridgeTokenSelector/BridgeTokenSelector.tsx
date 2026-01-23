@@ -21,7 +21,8 @@ import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
-  selectEnabledChainRanking,
+  selectSourceChainRanking,
+  selectDestChainRanking,
   setIsSelectingToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
@@ -95,7 +96,11 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  const enabledChainRanking = useSelector(selectEnabledChainRanking);
+  // Use appropriate chain ranking based on selector type
+  const sourceChainRanking = useSelector(selectSourceChainRanking);
+  const destChainRanking = useSelector(selectDestChainRanking);
+  const enabledChainRanking =
+    route.params.type === 'source' ? sourceChainRanking : destChainRanking;
 
   // Set navigation options for header
   useEffect(() => {
@@ -495,6 +500,7 @@ export const BridgeTokenSelector: React.FC = () => {
         <NetworkPills
           selectedChainId={selectedChainId}
           onChainSelect={handleChainSelect}
+          type={route.params.type}
         />
 
         <TextFieldSearch
