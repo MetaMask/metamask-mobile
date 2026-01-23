@@ -19,7 +19,7 @@ import {
   PermissionDoesNotExistError,
   RequestedPermissions,
 } from '@metamask/permission-controller';
-import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
+import { blockTagParamIndex } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
