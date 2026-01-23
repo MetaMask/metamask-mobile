@@ -140,7 +140,7 @@ import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
-import { PerpsDepositFees } from './PerpsInlineDeposit';
+import { PerpsDepositFees } from './PerpsDepositFees';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
@@ -1080,7 +1080,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     depositWithConfirmation,
   ]);
 
-  // Set deposit amount when depositAmount changes (similar to PerpsInlineDeposit defaultValue)
+  // Set deposit amount when depositAmount changes
   useEffect(() => {
     if (depositAmount && depositAmount.trim() !== '' && activeTransactionMeta) {
       updatePendingAmount(depositAmount);

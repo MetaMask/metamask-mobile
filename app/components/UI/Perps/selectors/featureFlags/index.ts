@@ -164,10 +164,10 @@ export const selectPerpsFeedbackEnabledFlag = createSelector(
 
 /**
  * Selector for Perps Trade With Any Token feature flag
- * Controls visibility of the PerpsInlineDeposit component in PerpsOrderView
- * When enabled, allows users to trade with any token
+ * Controls visibility of the deposit flow in PerpsOrderView
+ * When enabled, allows users to trade with any token by depositing first
  *
- * @returns boolean - true if PerpsInlineDeposit should be shown, false otherwise
+ * @returns boolean - true if trade with any token is enabled, false otherwise
  */
 export const selectPerpsTradeWithAnyTokenEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
