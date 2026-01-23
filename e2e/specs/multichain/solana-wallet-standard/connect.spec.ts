@@ -7,12 +7,16 @@ import {
   connectSolanaTestDapp,
   navigateToSolanaTestDApp,
 } from './testHelpers';
-import { withSolanaAccountEnabled } from '../../../common-solana';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import { Utilities } from '../../../../tests/framework';
-import { navigateToBrowserView } from '../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { DappVariants } from '../../../../tests/framework/Constants';
 
 describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   beforeAll(async () => {
@@ -20,58 +24,104 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   it('Should connect & disconnect from Solana test dapp', async () => {
-    await withSolanaAccountEnabled({}, async () => {
-      await navigateToSolanaTestDApp();
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          },
+        ],
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          });
+        },
+      },
+      async () => {
+        await loginToApp();
+        await navigateToSolanaTestDApp();
 
-      await connectSolanaTestDapp();
+        await connectSolanaTestDapp();
 
-      const header = SolanaTestDApp.getHeader();
+        const header = SolanaTestDApp.getHeader();
 
-      // Check we're connected
-      const account = await header.getAccount();
-      await Assertions.checkIfTextMatches(account, account1Short);
-      const connectionStatus = await header.getConnectionStatus();
-      await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
+        // Check we're connected
+        const account = await header.getAccount();
+        await Assertions.checkIfTextMatches(account, account1Short);
+        const connectionStatus = await header.getConnectionStatus();
+        await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
 
-      await header.disconnect();
+        await header.disconnect();
 
-      // Check we're disconnected
-      const connectionStatusAfterDisconnect =
-        await header.getConnectionStatus();
-      await Assertions.checkIfTextMatches(
-        connectionStatusAfterDisconnect,
-        'Not connected',
-      );
-    });
+        // Check we're disconnected
+        const connectionStatusAfterDisconnect =
+          await header.getConnectionStatus();
+        await Assertions.checkIfTextMatches(
+          connectionStatusAfterDisconnect,
+          'Not connected',
+        );
+      },
+    );
   });
 
   it('Should be able to cancel connection and connect again', async () => {
-    await withSolanaAccountEnabled({}, async () => {
-      await navigateToSolanaTestDApp();
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          },
+        ],
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          });
+        },
+      },
+      async () => {
+        await loginToApp();
+        await navigateToSolanaTestDApp();
 
-      const header = SolanaTestDApp.getHeader();
-      await header.connect();
-      await header.selectMetaMask();
+        const header = SolanaTestDApp.getHeader();
+        await header.connect();
+        await header.selectMetaMask();
 
-      await SolanaTestDApp.tapCancelButton();
+        await SolanaTestDApp.tapCancelButton();
 
-      const connectionStatus = await header.getConnectionStatus();
-      await Assertions.checkIfTextMatches(connectionStatus, 'Not connected');
+        const connectionStatus = await header.getConnectionStatus();
+        await Assertions.checkIfTextMatches(connectionStatus, 'Not connected');
 
-      await connectSolanaTestDapp();
+        await connectSolanaTestDapp();
 
-      const account = await header.getAccount();
-      await Assertions.checkIfTextMatches(account, account1Short);
-    });
+        const account = await header.getAccount();
+        await Assertions.checkIfTextMatches(account, account1Short);
+      },
+    );
   });
 
   // Skipping individual test for now, as it's flaky
   it.skip('Switching between 2 accounts should reflect in the dapp', async () => {
-    await withSolanaAccountEnabled(
+    await withFixtures(
       {
-        //numberOfAccounts: 2, // This was removed as parameter since current functionality does not support Solana account creation, instead, a new wallet would need to be created.
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          },
+        ],
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          });
+        },
       },
       async () => {
+        await loginToApp();
         await navigateToSolanaTestDApp();
         await connectSolanaTestDapp({ selectAllAccounts: true });
 
@@ -92,34 +142,51 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   it('Should stay connected after page refresh', async () => {
-    await withSolanaAccountEnabled({}, async () => {
-      await navigateToSolanaTestDApp();
-
-      await connectSolanaTestDapp();
-
-      // Should be connected
-      const header = SolanaTestDApp.getHeader();
-      const account = await header.getAccount();
-      await Assertions.checkIfTextMatches(account, account1Short);
-
-      // Refresh the page
-      await SolanaTestDApp.reloadSolanaTestDApp();
-
-      await Utilities.executeWithRetry(
-        async () => {
-          // Should still be connected after refresh
-          const headerAfterRefresh = SolanaTestDApp.getHeader();
-          const accountAfterRefresh = await headerAfterRefresh.getAccount();
-          await Assertions.checkIfTextMatches(
-            accountAfterRefresh,
-            account1Short,
-          );
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          },
+        ],
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          });
         },
-        {
-          timeout: 10000,
-          interval: 1500,
-        },
-      );
-    });
+      },
+      async () => {
+        await loginToApp();
+        await navigateToSolanaTestDApp();
+
+        await connectSolanaTestDapp();
+
+        // Should be connected
+        const header = SolanaTestDApp.getHeader();
+        const account = await header.getAccount();
+        await Assertions.checkIfTextMatches(account, account1Short);
+
+        // Refresh the page
+        await SolanaTestDApp.reloadSolanaTestDApp();
+
+        await Utilities.executeWithRetry(
+          async () => {
+            // Should still be connected after refresh
+            const headerAfterRefresh = SolanaTestDApp.getHeader();
+            const accountAfterRefresh = await headerAfterRefresh.getAccount();
+            await Assertions.checkIfTextMatches(
+              accountAfterRefresh,
+              account1Short,
+            );
+          },
+          {
+            timeout: 10000,
+            interval: 1500,
+          },
+        );
+      },
+    );
   });
 });
