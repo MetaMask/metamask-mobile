@@ -777,7 +777,7 @@ class AuthenticationService {
       if (existingUser) {
         // User exists. Attempt to unlock wallet.
 
-        if (password) {
+        if (password !== undefined) {
           // Explicitly provided password.
           passwordToUse = password;
         } else {

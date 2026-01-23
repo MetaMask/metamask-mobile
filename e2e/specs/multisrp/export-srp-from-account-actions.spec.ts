@@ -3,7 +3,7 @@ import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import { goToAccountActions, completeSrpQuiz } from './utils';
-import { defaultOptions } from '../../seeder/anvil-manager';
+import { defaultOptions } from '../../../tests/seeder/anvil-manager';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
