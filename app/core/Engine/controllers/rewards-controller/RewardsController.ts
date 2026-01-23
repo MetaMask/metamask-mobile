@@ -3061,6 +3061,7 @@ export class RewardsController extends BaseController<
         delete state.unlockedRewards[compositeKey];
         delete state.activeBoosts[compositeKey];
         delete state.pointsEvents[compositeKey];
+        delete state.subscriptionReferralDetails[compositeKey];
       });
     } else {
       // Invalidate all seasons for this subscription
