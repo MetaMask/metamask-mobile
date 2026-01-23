@@ -7,7 +7,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { Hex } from '@metamask/utils';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../../../TokenDetails/components/AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 
 interface CardAssetItemProps {

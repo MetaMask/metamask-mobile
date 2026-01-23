@@ -32,7 +32,7 @@ import { Hex } from '@metamask/utils';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../../../../../UI/TokenDetails/components/AssetOverview/Balance/Balance';
 
 const AddressElement: React.FC<AddressElementProps> = ({
   name,

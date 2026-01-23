@@ -29,7 +29,7 @@ import { selectNetworkConfigurationByChainId } from '../../../../../selectors/ne
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import AssetElement from '../../../AssetElement';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../../../TokenDetails/components/AssetOverview/Balance/Balance';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';

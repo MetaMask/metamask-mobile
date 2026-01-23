@@ -20,7 +20,7 @@ import BadgeWrapper, {
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../../../../AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../../../../TokenDetails/components/AssetOverview/Balance/Balance';
 import { buildTokenIconUrl } from '../../../util/buildTokenIconUrl';
 import { LINEA_CAIP_CHAIN_ID } from '../../../util/buildTokenList';
 import { safeFormatChainIdToHex } from '../../../util/safeFormatChainIdToHex';

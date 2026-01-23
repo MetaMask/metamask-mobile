@@ -52,7 +52,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../TokenDetails/components/AssetOverview/Balance/Balance';
 import {
   getFontFamily,
   TextVariant,

@@ -3,7 +3,7 @@ import Gestures from '../../../tests/framework/Gestures';
 import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText,
-} from '../../../app/components/UI/AssetOverview/TokenOverview.testIds';
+} from '../../../app/components/UI/TokenDetails/components/AssetOverview/TokenOverview.testIds';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';

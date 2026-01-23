@@ -20,7 +20,7 @@ import AvatarGroup from '../../../component-library/components/Avatars/AvatarGro
 import { AvatarProps } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import styleSheet from './DeFiPositionsListItem.styles';
-import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../TokenDetails/components/AssetOverview/Balance/Balance';
 import { useStyles } from '../../hooks/useStyles';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getTokenAvatarUrl } from './get-token-avatar-url';

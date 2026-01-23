@@ -34,7 +34,7 @@ import Tag from '../../../../../component-library/components/Tags/Tag';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../../../TokenDetails/components/AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 

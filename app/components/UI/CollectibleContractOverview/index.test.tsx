@@ -7,7 +7,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
 import { fireEvent, render } from '@testing-library/react-native';
-import { TokenOverviewSelectorsIDs } from '../AssetOverview/TokenOverview.testIds';
+import { TokenOverviewSelectorsIDs } from '../TokenDetails/components/AssetOverview/TokenOverview.testIds';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const mockStore = configureMockStore();

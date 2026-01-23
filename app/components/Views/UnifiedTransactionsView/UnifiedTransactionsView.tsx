@@ -39,7 +39,7 @@ import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
-} from '../../UI/AssetOverview/PriceChart/PriceChart.context';
+} from '../../UI/TokenDetails/components/AssetOverview/PriceChart/PriceChart.context';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';

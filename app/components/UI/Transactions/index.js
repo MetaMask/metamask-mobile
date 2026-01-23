@@ -61,7 +61,7 @@ import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/Le
 import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
 import PriceChartContext, {
   PriceChartProvider,
-} from '../AssetOverview/PriceChart/PriceChart.context';
+} from '../TokenDetails/components/AssetOverview/PriceChart/PriceChart.context';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import TransactionActionModal from '../TransactionActionModal';
 import TransactionElement from '../TransactionElement';

@@ -39,7 +39,7 @@ import {
 import { formatCurrency } from '../../../util/confirm-tx';
 import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
-import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
+import ContentDisplay from '../../UI/TokenDetails/components/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
 import { getDecimalChainId } from '../../../util/networks';
 import { MetaMetricsEvents } from '../../../core/Analytics';

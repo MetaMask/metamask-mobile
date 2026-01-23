@@ -35,7 +35,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
 import { Hex } from '@metamask/utils';
-import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../TokenDetails/components/AssetOverview/Balance/Balance';
 import { BridgeToken } from '../Bridge/types';
 import { toHex } from '../../../core/Delegation/utils';
 import { isNonEvmAddress } from '../../../core/Multichain/utils';

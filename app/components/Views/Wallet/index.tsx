@@ -136,7 +136,7 @@ import {
   useSwapBridgeNavigation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
-import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
+import AssetDetailsActions from '../../UI/TokenDetails/Views/AssetDetails/AssetDetailsActions';
 
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';

@@ -22,7 +22,7 @@ import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../../../TokenDetails/components/AssetOverview/Balance/Balance';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import type { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';

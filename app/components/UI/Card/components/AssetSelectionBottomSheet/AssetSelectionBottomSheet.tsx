@@ -35,7 +35,7 @@ import BadgeWrapper, {
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../../../TokenDetails/components/AssetOverview/Balance/Balance';
 import { CaipChainId } from '@metamask/utils';
 import BottomSheet, {
   BottomSheetRef,

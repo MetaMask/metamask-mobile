@@ -33,7 +33,7 @@ import BadgeWrapper, {
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../../../UI/AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../../../UI/TokenDetails/components/AssetOverview/Balance/Balance';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../constants/network';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 

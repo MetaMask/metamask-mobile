@@ -13,7 +13,7 @@ import BadgeWrapper, {
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { useStyles } from '../../../../../../component-library/hooks';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
-import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../../../../../UI/TokenDetails/components/AssetOverview/Balance/Balance';
 import { TokenI } from '../../../../../UI/Tokens/types';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { useTokenAsset } from '../../../hooks/useTokenAsset';

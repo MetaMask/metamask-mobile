@@ -73,7 +73,7 @@ import {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon/Icon.types';
-import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
+import { NetworkBadgeSource } from '../../../TokenDetails/components/AssetOverview/Balance/Balance';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 
 // Constants

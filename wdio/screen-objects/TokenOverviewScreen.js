@@ -1,6 +1,6 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import { TokenOverviewSelectorsIDs } from '../../app/components/UI/AssetOverview/TokenOverview.testIds';
+import { TokenOverviewSelectorsIDs } from '../../app/components/UI/TokenDetails/components/AssetOverview/TokenOverview.testIds';
 import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { expect as expectAppwright } from 'appwright';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
