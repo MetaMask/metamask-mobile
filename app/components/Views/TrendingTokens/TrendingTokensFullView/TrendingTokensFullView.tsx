@@ -53,7 +53,6 @@ const createStyles = (theme: Theme) =>
     safeArea: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
-      paddingBottom: 16,
     },
     headerContainer: {
       backgroundColor: theme.colors.background.default,
@@ -302,7 +301,10 @@ const TrendingTokensFullView = () => {
   }, [selectedPriceChangeOption]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+    <SafeAreaView
+      style={[styles.safeArea, { paddingBottom: insets.bottom }]}
+      edges={['left', 'right']}
+    >
       <View
         style={[
           styles.headerContainer,
