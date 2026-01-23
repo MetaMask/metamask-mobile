@@ -128,6 +128,7 @@ export class HyperLiquidClientService {
       } catch (readyError) {
         // Clean up on failure - close transport to prevent orphaned WebSocket connections
         this.subscriptionClient = undefined;
+        this.infoClient = undefined;
         if (this.wsTransport) {
           try {
             await this.wsTransport.close();
@@ -883,6 +884,10 @@ export class HyperLiquidClientService {
       this.subscriptionClient = new SubscriptionClient({
         transport: this.wsTransport,
       });
+
+      // Recreate InfoClient with new WebSocket transport
+      // (HTTP clients don't need recreation - they use separate httpTransport)
+      this.infoClient = new InfoClient({ transport: this.wsTransport });
 
       // CRITICAL: Wait for WebSocket to be ready BEFORE restoring subscriptions
       // This prevents "subscribe error: undefined" caused by calling socket.send()
