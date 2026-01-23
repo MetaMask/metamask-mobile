@@ -65,6 +65,13 @@ export const METAMASK_FEE_CONFIG = {
 } as const;
 
 /**
+ * Minimum number of aggregators (exchanges) a token must be listed on
+ * to be considered trustworthy for showing the Perps Discovery Banner.
+ * Native tokens (ETH, BNB, etc.) bypass this check.
+ */
+export const PERPS_MIN_AGGREGATORS_FOR_TRUST = 2;
+
+/**
  * Validation thresholds for UI warnings and checks
  * These values control when warnings are shown to users
  */
