@@ -172,7 +172,6 @@ describe('PerpsBottomSheetTooltip', () => {
     ).toBeTruthy();
     // The BottomSheetHeader component uses its own default testID
     expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
-    expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
     expect(
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
     ).toBeTruthy();
@@ -277,7 +276,6 @@ describe('PerpsBottomSheetTooltip', () => {
     });
 
     expect(getByTestId(customTestID)).toBeTruthy();
-    expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
     expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
     expect(
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
