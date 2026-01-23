@@ -198,6 +198,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Stop loss prompt banner state - for loading/success when setting stop loss via banner
   const [isSettingStopLoss, setIsSettingStopLoss] = useState(false);
   const [isStopLossSuccess, setIsStopLossSuccess] = useState(false);
+  // Preserve banner variant during success fade-out (hook's variant becomes null after SL is set)
+  const preservedBannerVariantRef = useRef<'stop_loss' | 'add_margin' | null>(
+    null,
+  );
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -439,12 +443,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Stop loss prompt banner logic
   // Hook handles visibility orchestration including fade-out animation
   const {
-    variant: bannerVariant,
+    variant: bannerVariantFromHook,
     liquidationDistance,
     suggestedStopLossPrice,
     suggestedStopLossPercent,
     isVisible: isBannerVisible,
-    isDismissing: isBannerDismissing,
     onDismissComplete: handleBannerDismissComplete,
   } = useStopLossPrompt({
     position: existingPosition,
@@ -452,9 +455,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     positionOpenedTimestamp,
   });
 
+  // Preserve banner variant when we have a valid one (for use during success fade-out)
+  // The hook's variant becomes null after SL is set, but we need to keep rendering
+  if (bannerVariantFromHook && !isStopLossSuccess) {
+    preservedBannerVariantRef.current = bannerVariantFromHook;
+  }
+
+  // Use preserved variant during success fade-out, otherwise use hook's variant
+  const bannerVariant = isStopLossSuccess
+    ? preservedBannerVariantRef.current
+    : bannerVariantFromHook;
+
   // Reset stop loss success state when market or position changes
   useEffect(() => {
     setIsStopLossSuccess(false);
+    preservedBannerVariantRef.current = null;
   }, [market?.symbol, existingPosition?.symbol]);
 
   // Track Perps asset screen load performance with simplified API
@@ -1053,8 +1068,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           )}
 
           {/* Stop Loss Prompt Banner - Shows when position needs attention */}
-          {/* Uses hook's isVisible which includes fade-out animation state */}
-          {isBannerVisible && bannerVariant && (
+          {/* Keep mounted while isStopLossSuccess is true to allow fade animation to complete */}
+          {(isBannerVisible || isStopLossSuccess) && bannerVariant && (
             <PerpsStopLossPromptBanner
               variant={bannerVariant}
               liquidationDistance={liquidationDistance ?? 0}
@@ -1063,7 +1078,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onSetStopLoss={handleSetStopLossFromBanner}
               onAddMargin={handleAddMarginFromBanner}
               isLoading={isSettingStopLoss}
-              isSuccess={isStopLossSuccess || isBannerDismissing}
+              isSuccess={isStopLossSuccess}
               onFadeOutComplete={handleBannerFadeOutComplete}
               testID={
                 PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
