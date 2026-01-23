@@ -14,7 +14,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   IconName as DSIconName,
-  TextVariant as DSTextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
