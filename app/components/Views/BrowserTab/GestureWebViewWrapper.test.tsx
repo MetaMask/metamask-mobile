@@ -7,8 +7,9 @@
  * - Lines 209-355: Gesture handler worklets (onTouchesDown, onUpdate, onEnd, onFinalize)
  * - Lines 137-158, 176-182: Callbacks only invoked from within worklets
  *
- * These worklets are tested via E2E tests instead.
- * See: e2e/specs/browser/ for gesture navigation E2E tests.
+ * Worklets run on the native UI thread via react-native-reanimated and cannot be
+ * invoked or tested in Jest's JavaScript environment. The gesture behavior should
+ * be verified through manual testing or E2E tests when available.
  *
  * This test file covers:
  * - Component rendering and prop handling
@@ -51,8 +52,14 @@ jest.mock('react-native-gesture-handler', () => ({
 }));
 
 // Mock react-native-reanimated
+// SharedValue mock must include all properties to satisfy TypeScript
 const mockSharedValue = <T,>(initialValue: T) => ({
   value: initialValue,
+  get: jest.fn(() => initialValue),
+  set: jest.fn(),
+  addListener: jest.fn(() => -1),
+  removeListener: jest.fn(),
+  modify: jest.fn(),
 });
 
 jest.mock('react-native-reanimated', () => ({
