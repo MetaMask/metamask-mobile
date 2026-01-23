@@ -344,7 +344,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
     // Mock client service
     mockClientService = {
-      ensureSubscriptionClient: jest.fn(),
+      ensureSubscriptionClient: jest.fn().mockResolvedValue(undefined),
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
       isTestnetMode: jest.fn(() => false),
       ensureTransportReady: jest.fn().mockResolvedValue(undefined),
@@ -478,12 +478,13 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToPositions(params);
 
+      // Wait for async operations (individual subscription setup for HIP-3 mode)
+      await jest.runAllTimersAsync();
+
+      // getUserAddressWithDefault is called after async ensureSubscriptionClient completes
       expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
         params.accountId,
       );
-
-      // Wait for async operations (individual subscription setup for HIP-3 mode)
-      await jest.runAllTimersAsync();
 
       // HIP-3 mode uses individual subscriptions (clearinghouseState + openOrders)
       // and webData3 only for OI caps

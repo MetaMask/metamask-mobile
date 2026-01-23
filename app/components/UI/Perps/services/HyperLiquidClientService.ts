@@ -126,8 +126,16 @@ export class HyperLiquidClientService {
       try {
         await this.ensureTransportReady(10000); // 10s timeout for initial connection
       } catch (readyError) {
-        // Clean up on failure
+        // Clean up on failure - close transport to prevent orphaned WebSocket connections
         this.subscriptionClient = undefined;
+        if (this.wsTransport) {
+          try {
+            await this.wsTransport.close();
+          } catch {
+            // Ignore close errors during cleanup
+          }
+          this.wsTransport = undefined;
+        }
         this.connectionState = WebSocketConnectionState.DISCONNECTED;
         throw new Error(
           `WebSocket initialization failed: ${ensureError(readyError).message}`,
@@ -883,11 +891,11 @@ export class HyperLiquidClientService {
         await this.ensureTransportReady(5000);
       } catch (readyError) {
         this.deps.debugLogger.log(
-          'Transport not ready after reconnect, will retry via health check',
+          'Transport not ready after reconnect, will require manual reinitialization',
           { error: ensureError(readyError).message },
         );
         this.connectionState = WebSocketConnectionState.DISCONNECTED;
-        return; // Health check will trigger another reconnection attempt
+        return;
       }
 
       this.connectionState = WebSocketConnectionState.CONNECTED;
