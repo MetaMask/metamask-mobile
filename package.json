@@ -562,7 +562,6 @@
     "@types/valid-url": "^1.0.4",
     "@typescript-eslint/eslint-plugin": "^7.10.0",
     "@typescript-eslint/parser": "^7.10.0",
-    "@walletconnect/jsonrpc-types": "^1.0.4",
     "@walletconnect/types": "^2.23.2",
     "@welldone-software/why-did-you-render": "^8.0.1",
     "appium": "^2.12.1",

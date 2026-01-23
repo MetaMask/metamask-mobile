@@ -19132,7 +19132,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@walletconnect/jsonrpc-types@npm:1.0.4, @walletconnect/jsonrpc-types@npm:^1.0.2, @walletconnect/jsonrpc-types@npm:^1.0.3, @walletconnect/jsonrpc-types@npm:^1.0.4":
+"@walletconnect/jsonrpc-types@npm:1.0.4, @walletconnect/jsonrpc-types@npm:^1.0.2, @walletconnect/jsonrpc-types@npm:^1.0.3":
   version: 1.0.4
   resolution: "@walletconnect/jsonrpc-types@npm:1.0.4"
   dependencies:
@@ -34386,7 +34386,6 @@ __metadata:
     "@viem/anvil": "npm:^0.0.10"
     "@walletconnect/client": "npm:^1.8.0"
     "@walletconnect/core": "npm:^2.23.2"
-    "@walletconnect/jsonrpc-types": "npm:^1.0.4"
     "@walletconnect/react-native-compat": "npm:^2.23.2"
     "@walletconnect/types": "npm:^2.23.2"
     "@walletconnect/utils": "npm:^2.23.2"
