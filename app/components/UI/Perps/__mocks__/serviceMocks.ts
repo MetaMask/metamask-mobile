@@ -128,7 +128,10 @@ export const createMockPerpsControllerState = (
     testnet: {},
     mainnet: {},
   },
-  marketFilterPreferences: 'volume',
+  marketFilterPreferences: {
+    optionId: 'volume',
+    direction: 'desc',
+  },
   lastError: null,
   lastUpdateTimestamp: Date.now(),
   hip3ConfigVersion: 0,
