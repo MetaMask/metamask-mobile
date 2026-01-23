@@ -3,6 +3,7 @@ import Matchers from '../../../tests/framework/Matchers';
 import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
 import { Utilities, Assertions } from '../../../tests/framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {
@@ -62,11 +63,15 @@ class SendView {
   }
 
   get insufficientBalanceToCoverFeesError(): DetoxElement {
-    return Matchers.getElementByText('Insufficient balance to cover fees');
+    return Matchers.getElementByText(
+      SendActionViewSelectorsIDs.INSUFFICIENT_BALANCE_TO_COVER_FEES_ERROR,
+    );
   }
 
   get insufficientFundsError(): DetoxElement {
-    return Matchers.getElementByText('Insufficient funds');
+    return Matchers.getElementByText(
+      SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
+    );
   }
 
   async selectEthereumToken(): Promise<void> {
