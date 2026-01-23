@@ -24,7 +24,7 @@ import {
   checkAutomatically,
 } from 'expo-updates';
 import { connect } from 'react-redux';
-import { getFullVersion } from '../../../../constants/ota';
+import { getFullVersion, OTA_VERSION } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -280,7 +280,7 @@ class AppInformation extends PureComponent {
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <TouchableOpacity onPress={this.onSendSentryTestError}>
             <Text style={styles.link}>
-              Send Sentry test error production v3
+              Send Sentry test error production {OTA_VERSION}
             </Text>
           </TouchableOpacity>
           <View style={styles.links}>
