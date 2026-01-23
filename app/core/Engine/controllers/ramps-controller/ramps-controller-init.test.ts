@@ -23,7 +23,7 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
       name: countryCode,
       phone: { prefix: '', placeholder: '', template: '' },
       currency: '',
-      supported: true,
+      supported: { buy: true, sell: true },
     },
     state: stateCode
       ? {

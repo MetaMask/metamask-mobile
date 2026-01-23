@@ -25,40 +25,31 @@ export interface UseRampsCountriesResult {
    */
   countries: Country[] | null;
   /**
-   * Fetch countries for a given action.
+   * Fetch countries.
    */
-  fetchCountries: (
-    action?: 'buy' | 'sell',
-    options?: ExecuteRequestOptions,
-  ) => Promise<Country[]>;
+  fetchCountries: (options?: ExecuteRequestOptions) => Promise<Country[]>;
 }
 
 /**
  * Hook to get countries request state from RampsController.
  * This hook assumes Engine is already initialized.
  *
- * @param action - Optional action type ('buy' or 'sell'). Defaults to 'buy'.
+ * Countries now include a `supported` object with `buy` and `sell` properties
+ * indicating whether each action is supported for that country.
+ *
  * @returns Countries request state and fetch function.
  */
-export function useRampsCountries(
-  action: 'buy' | 'sell' = 'buy',
-): UseRampsCountriesResult {
-  const requestSelector = useMemo(
-    () => selectCountriesRequest(action),
-    [action],
-  );
+export function useRampsCountries(): UseRampsCountriesResult {
+  const requestSelector = useMemo(() => selectCountriesRequest(), []);
 
   const { isFetching, error, data } = useSelector(
     requestSelector,
   ) as RequestSelectorResult<Country[]>;
 
   const fetchCountries = useCallback(
-    async (
-      fetchAction: 'buy' | 'sell' = action,
-      options?: ExecuteRequestOptions,
-    ) =>
-      await Engine.context.RampsController.getCountries(fetchAction, options),
-    [action],
+    async (options?: ExecuteRequestOptions) =>
+      await Engine.context.RampsController.getCountries(undefined, options),
+    [],
   );
 
   return {

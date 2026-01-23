@@ -971,7 +971,10 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -996,7 +999,10 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -1016,7 +1022,10 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -1030,7 +1039,10 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -1443,7 +1455,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -1499,7 +1511,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -1521,7 +1533,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -2023,7 +2035,10 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -2048,7 +2063,10 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -2068,7 +2086,10 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -2082,7 +2103,10 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -2495,7 +2519,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -2551,7 +2575,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -2573,7 +2597,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -3698,7 +3722,10 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                     "supported": true,
                                   },
                                 ],
-                                "supported": true,
+                                "supported": {
+                                  "buy": true,
+                                  "sell": true,
+                                },
                               },
                               "countryMatches": false,
                               "matchingStates": [
@@ -4484,7 +4511,10 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
@@ -5160,7 +5190,10 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                     "supported": true,
                                   },
                                 ],
-                                "supported": true,
+                                "supported": {
+                                  "buy": true,
+                                  "sell": true,
+                                },
                               },
                               "countryMatches": false,
                               "matchingStates": [
@@ -5904,7 +5937,10 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -5929,7 +5965,10 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -5949,7 +5988,10 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -5963,7 +6005,10 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -5979,7 +6024,10 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "de",
                             "state": null,
@@ -6393,7 +6441,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -6449,7 +6497,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -6471,7 +6519,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -6969,7 +7017,10 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "ca-on",
                             "state": {
@@ -7649,7 +7700,10 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "us-ny",
                             "state": {
@@ -9073,7 +9127,10 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                     "supported": true,
                                   },
                                 ],
-                                "supported": true,
+                                "supported": {
+                                  "buy": true,
+                                  "sell": true,
+                                },
                               },
                               "countryMatches": false,
                               "matchingStates": [
@@ -9098,7 +9155,10 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "us-ca",
                             "state": {
@@ -9936,7 +9996,10 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                                     "supported": true,
                                   },
                                 ],
-                                "supported": true,
+                                "supported": {
+                                  "buy": true,
+                                  "sell": true,
+                                },
                               },
                               "countryMatches": true,
                               "matchingStates": [],
@@ -10594,7 +10657,10 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -10619,7 +10685,10 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -10639,7 +10708,10 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -10653,7 +10725,10 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -10669,7 +10744,10 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "fr",
                             "state": null,
@@ -11098,7 +11176,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -11154,7 +11232,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -11176,7 +11254,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -11678,7 +11756,10 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -11703,7 +11784,10 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -11723,7 +11807,10 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -11737,7 +11824,10 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -11753,7 +11843,10 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "us-ca",
                             "state": {
@@ -12200,7 +12293,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -12256,7 +12349,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -12278,7 +12371,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -12834,7 +12927,10 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                     "supported": true,
                                   },
                                 ],
-                                "supported": true,
+                                "supported": {
+                                  "buy": true,
+                                  "sell": true,
+                                },
                               },
                               "countryMatches": false,
                               "matchingStates": [
@@ -12859,7 +12955,10 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "us-ca",
                             "state": {
@@ -13639,7 +13738,10 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "us-ca",
                             "state": {
@@ -14380,7 +14482,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14394,7 +14499,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14408,7 +14516,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14422,7 +14533,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14436,7 +14550,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14450,7 +14567,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14464,7 +14584,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14478,7 +14601,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14492,7 +14618,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14506,7 +14635,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14520,7 +14652,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14534,7 +14669,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14548,7 +14686,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14562,7 +14703,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14576,7 +14720,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14590,7 +14737,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14604,7 +14754,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14618,7 +14771,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14632,7 +14788,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -14646,7 +14805,10 @@ exports[`RegionSelector limits search results 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
@@ -17520,7 +17682,10 @@ exports[`RegionSelector renders countries list 1`] = `
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -17545,7 +17710,10 @@ exports[`RegionSelector renders countries list 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -17565,7 +17733,10 @@ exports[`RegionSelector renders countries list 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -17579,7 +17750,10 @@ exports[`RegionSelector renders countries list 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -17992,7 +18166,7 @@ exports[`RegionSelector renders countries list 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -18048,7 +18222,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -18070,7 +18244,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -18572,7 +18746,10 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -18614,7 +18791,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -18670,7 +18847,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -18692,7 +18869,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -19200,7 +19377,10 @@ exports[`RegionSelector renders country without flag 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
@@ -19830,7 +20010,10 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -19855,7 +20038,10 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -19875,7 +20061,10 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -19889,7 +20078,10 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -20302,7 +20494,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -20358,7 +20550,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -20380,7 +20572,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -21541,7 +21733,10 @@ exports[`RegionSelector renders disabled country 1`] = `
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -21566,7 +21761,10 @@ exports[`RegionSelector renders disabled country 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -21586,7 +21784,10 @@ exports[`RegionSelector renders disabled country 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -21600,7 +21801,10 @@ exports[`RegionSelector renders disabled country 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -22013,7 +22217,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -22069,7 +22273,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -22091,7 +22295,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -24346,7 +24550,10 @@ exports[`RegionSelector renders recommended countries 1`] = `
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -24360,7 +24567,10 @@ exports[`RegionSelector renders recommended countries 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
@@ -25664,7 +25874,10 @@ exports[`RegionSelector renders state without stateId 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
@@ -26976,7 +27189,10 @@ exports[`RegionSelector renders unsupported country 1`] = `
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -27001,7 +27217,10 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -27021,7 +27240,10 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -27035,7 +27257,10 @@ exports[`RegionSelector renders unsupported country 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -27448,7 +27673,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -27504,7 +27729,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -27526,7 +27751,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -28687,7 +28912,10 @@ exports[`RegionSelector renders when country has states and user region state is
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -28712,7 +28940,10 @@ exports[`RegionSelector renders when country has states and user region state is
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -28732,7 +28963,10 @@ exports[`RegionSelector renders when country has states and user region state is
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -28746,7 +28980,10 @@ exports[`RegionSelector renders when country has states and user region state is
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -28762,7 +28999,10 @@ exports[`RegionSelector renders when country has states and user region state is
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "us-ca",
                             "state": {
@@ -29209,7 +29449,7 @@ exports[`RegionSelector renders when country has states and user region state is
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -29265,7 +29505,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -29287,7 +29527,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -30290,7 +30530,10 @@ exports[`RegionSelector renders with selected user region 1`] = `
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -30315,7 +30558,10 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -30335,7 +30581,10 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -30349,7 +30598,10 @@ exports[`RegionSelector renders with selected user region 1`] = `
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -30365,7 +30617,10 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "us-ca",
                             "state": {
@@ -30812,7 +31067,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -30868,7 +31123,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -30890,7 +31145,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -33279,7 +33534,10 @@ exports[`RegionSelector shows state name in country view when user has selected 
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -33304,7 +33562,10 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -33324,7 +33585,10 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                   "supported": true,
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -33338,7 +33602,10 @@ exports[`RegionSelector shows state name in country view when user has selected 
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
@@ -33808,7 +34075,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              disabled={true}
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -33864,7 +34131,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -33886,7 +34153,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -34388,7 +34655,10 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                               },
                               "recommended": true,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -34402,7 +34672,10 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "currency": "",
@@ -34416,7 +34689,10 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                               },
                               "recommended": false,
                               "states": undefined,
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }

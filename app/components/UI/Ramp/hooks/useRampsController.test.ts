@@ -151,7 +151,7 @@ describe('useRampsController', () => {
       crypto: 'ETH',
     });
     expect(useRampsTokens).toHaveBeenCalledWith('us-ny', 'sell');
-    expect(useRampsCountries).toHaveBeenCalledWith('sell');
+    expect(useRampsCountries).toHaveBeenCalled();
   });
 
   it('passes undefined options when not provided', () => {
@@ -162,6 +162,6 @@ describe('useRampsController', () => {
 
     expect(useRampsProviders).toHaveBeenCalledWith(undefined, undefined);
     expect(useRampsTokens).toHaveBeenCalledWith(undefined, undefined);
-    expect(useRampsCountries).toHaveBeenCalledWith(undefined);
+    expect(useRampsCountries).toHaveBeenCalled();
   });
 });

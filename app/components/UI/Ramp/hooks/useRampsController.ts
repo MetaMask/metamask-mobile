@@ -27,7 +27,7 @@ export interface UseRampsControllerOptions {
    */
   region?: string;
   /**
-   * Optional action type ('buy' or 'sell') for tokens and countries requests.
+   * Optional action type ('buy' or 'sell') for tokens requests.
    * Defaults to 'buy'.
    */
   action?: 'buy' | 'sell';
@@ -152,7 +152,7 @@ export function useRampsController(
     isLoading: countriesLoading,
     error: countriesError,
     fetchCountries,
-  } = useRampsCountries(options?.action);
+  } = useRampsCountries();
 
   useRampsPreferredProviderAutoSet();
 

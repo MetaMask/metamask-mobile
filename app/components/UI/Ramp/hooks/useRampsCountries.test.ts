@@ -17,7 +17,7 @@ const mockCountries: Country[] = [
       template: 'XXX-XXX-XXXX',
     },
     currency: 'USD',
-    supported: true,
+    supported: { buy: true, sell: true },
   },
   {
     isoCode: 'CA',
@@ -29,7 +29,7 @@ const mockCountries: Country[] = [
       template: 'XXX-XXX-XXXX',
     },
     currency: 'CAD',
-    supported: true,
+    supported: { buy: true, sell: false },
   },
 ];
 
@@ -87,49 +87,31 @@ describe('useRampsCountries', () => {
     });
   });
 
-  describe('action parameter', () => {
-    it('defaults to buy when not provided', () => {
-      const store = createMockStore();
+  describe('countries with buy/sell support', () => {
+    it('returns countries with supported object containing buy and sell flags', () => {
+      const store = createMockStore({
+        requests: {
+          'getCountries:[]': {
+            status: RequestStatus.SUCCESS,
+            data: mockCountries,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
-      expect(result.current).toBeDefined();
-    });
-
-    it('uses buy action when provided', () => {
-      const store = createMockStore({
-        requests: {
-          'getCountries:["buy"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockCountries,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(() => useRampsCountries('buy'), {
-        wrapper: wrapper(store),
-      });
       expect(result.current.countries).toEqual(mockCountries);
-    });
-
-    it('uses sell action when provided', () => {
-      const store = createMockStore({
-        requests: {
-          'getCountries:["sell"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockCountries,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
+      expect(result.current.countries?.[0].supported).toEqual({
+        buy: true,
+        sell: true,
       });
-      const { result } = renderHook(() => useRampsCountries('sell'), {
-        wrapper: wrapper(store),
+      expect(result.current.countries?.[1].supported).toEqual({
+        buy: true,
+        sell: false,
       });
-      expect(result.current.countries).toEqual(mockCountries);
     });
   });
 
@@ -137,7 +119,7 @@ describe('useRampsCountries', () => {
     it('returns countries from request data', () => {
       const store = createMockStore({
         requests: {
-          'getCountries:["buy"]': {
+          'getCountries:[]': {
             status: RequestStatus.SUCCESS,
             data: mockCountries,
             error: null,
@@ -146,7 +128,7 @@ describe('useRampsCountries', () => {
           },
         },
       });
-      const { result } = renderHook(() => useRampsCountries('buy'), {
+      const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
       expect(result.current.countries).toEqual(mockCountries);
@@ -165,7 +147,7 @@ describe('useRampsCountries', () => {
     it('returns isLoading true when request is loading', () => {
       const store = createMockStore({
         requests: {
-          'getCountries:["buy"]': {
+          'getCountries:[]': {
             status: RequestStatus.LOADING,
             data: null,
             error: null,
@@ -174,7 +156,7 @@ describe('useRampsCountries', () => {
           },
         },
       });
-      const { result } = renderHook(() => useRampsCountries('buy'), {
+      const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
       expect(result.current.isLoading).toBe(true);
@@ -193,7 +175,7 @@ describe('useRampsCountries', () => {
     it('returns error from request state', () => {
       const store = createMockStore({
         requests: {
-          'getCountries:["buy"]': {
+          'getCountries:[]': {
             status: RequestStatus.ERROR,
             data: null,
             error: 'Network error',
@@ -202,7 +184,7 @@ describe('useRampsCountries', () => {
           },
         },
       });
-      const { result } = renderHook(() => useRampsCountries('buy'), {
+      const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
       expect(result.current.error).toBe('Network error');
@@ -210,26 +192,14 @@ describe('useRampsCountries', () => {
   });
 
   describe('fetchCountries', () => {
-    it('calls getCountries with hook action when called without arguments', async () => {
+    it('calls getCountries without action parameter', async () => {
       const store = createMockStore();
-      const { result } = renderHook(() => useRampsCountries('sell'), {
+      const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
       await result.current.fetchCountries();
       expect(Engine.context.RampsController.getCountries).toHaveBeenCalledWith(
-        'sell',
         undefined,
-      );
-    });
-
-    it('calls getCountries with provided action', async () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsCountries('buy'), {
-        wrapper: wrapper(store),
-      });
-      await result.current.fetchCountries('sell');
-      expect(Engine.context.RampsController.getCountries).toHaveBeenCalledWith(
-        'sell',
         undefined,
       );
     });
@@ -239,9 +209,9 @@ describe('useRampsCountries', () => {
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
-      await result.current.fetchCountries('buy', { forceRefresh: true });
+      await result.current.fetchCountries({ forceRefresh: true });
       expect(Engine.context.RampsController.getCountries).toHaveBeenCalledWith(
-        'buy',
+        undefined,
         { forceRefresh: true },
       );
     });

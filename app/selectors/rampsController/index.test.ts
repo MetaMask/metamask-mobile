@@ -44,7 +44,7 @@ const mockUserRegion: UserRegion = {
       template: 'XXX-XXX-XXXX',
     },
     currency: 'USD',
-    supported: true,
+    supported: { buy: true, sell: true },
   },
   state: { stateId: 'CA', name: 'California' },
   regionCode: 'us-ca',
@@ -76,7 +76,7 @@ const mockCountries: Country[] = [
       template: 'XXX-XXX-XXXX',
     },
     currency: 'USD',
-    supported: true,
+    supported: { buy: true, sell: true },
   },
 ];
 
@@ -259,54 +259,10 @@ describe('RampsController Selectors', () => {
   });
 
   describe('selectCountriesRequest', () => {
-    it('returns request state for buy action', () => {
+    it('returns request state for countries', () => {
       const state = createMockState({
         requests: {
-          'getCountries:["buy"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockCountries,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectCountriesRequest('buy')(state);
-
-      expect(result).toEqual({
-        data: mockCountries,
-        isFetching: false,
-        error: null,
-      });
-    });
-
-    it('returns request state for sell action', () => {
-      const state = createMockState({
-        requests: {
-          'getCountries:["sell"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockCountries,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectCountriesRequest('sell')(state);
-
-      expect(result).toEqual({
-        data: mockCountries,
-        isFetching: false,
-        error: null,
-      });
-    });
-
-    it('defaults to buy action when not provided', () => {
-      const state = createMockState({
-        requests: {
-          'getCountries:["buy"]': {
+          'getCountries:[]': {
             status: RequestStatus.SUCCESS,
             data: mockCountries,
             error: null,
@@ -318,13 +274,17 @@ describe('RampsController Selectors', () => {
 
       const result = selectCountriesRequest()(state);
 
-      expect(result.data).toEqual(mockCountries);
+      expect(result).toEqual({
+        data: mockCountries,
+        isFetching: false,
+        error: null,
+      });
     });
 
     it('returns default state when request does not exist', () => {
       const state = createMockState();
 
-      const result = selectCountriesRequest('buy')(state);
+      const result = selectCountriesRequest()(state);
 
       expect(result).toEqual({
         data: null,

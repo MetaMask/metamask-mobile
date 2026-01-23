@@ -60,16 +60,15 @@ export const selectUserRegionRequest = createRequestSelector<
 >(selectRampsControllerState, 'updateUserRegion', []);
 
 /**
- * Selects the countries request state for a given action.
+ * Selects the countries request state.
  *
- * @param action - The ramp action type ('buy' or 'sell').
  * @returns Request selector for countries.
  */
-export const selectCountriesRequest = (action: 'buy' | 'sell' = 'buy') =>
+export const selectCountriesRequest = () =>
   createRequestSelector<RootState, Country[]>(
     selectRampsControllerState,
     'getCountries',
-    [action],
+    [],
   );
 
 /**
