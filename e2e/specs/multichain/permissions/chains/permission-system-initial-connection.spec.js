@@ -2,14 +2,14 @@ import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
-import Assertions from '../../../../framework/Assertions';
+import Assertions from '../../../../../tests/framework/Assertions';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
-import { DappVariants } from '../../../../framework/Constants';
+import { DappVariants } from '../../../../../tests/framework/Constants';
 
 describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {

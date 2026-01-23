@@ -1,14 +1,14 @@
 import { SmokeNetworkAbstractions } from '../../tags';
-import Assertions from '../../framework/Assertions';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import Assertions from '../../../tests/framework/Assertions';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
-} from '../../framework/fixtures/FixtureBuilder';
+} from '../../../tests/framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
-import { Gestures } from '../../framework';
+import { Gestures } from '../../../tests/framework';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
