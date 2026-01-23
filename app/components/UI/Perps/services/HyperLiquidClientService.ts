@@ -177,7 +177,7 @@ export class HyperLiquidClientService {
    *
    * Both transports use SDK's built-in endpoint resolution via isTestnet flag
    */
-  private createTransports(): void {
+  private createTransports(): WebSocketTransport {
     // Prevent duplicate transport creation and listener accumulation
     // This guards against re-entry if initialize() is called multiple times
     // (e.g., after a failed initialization attempt that didn't properly clean up)
@@ -185,7 +185,7 @@ export class HyperLiquidClientService {
       this.deps.debugLogger.log(
         'HyperLiquid: Transports already exist, skipping creation',
       );
-      return;
+      return this.wsTransport;
     }
 
     this.deps.debugLogger.log('HyperLiquid: Creating transports', {
@@ -232,6 +232,8 @@ export class HyperLiquidClientService {
         this.onTerminateCallback(error);
       }
     });
+
+    return this.wsTransport;
   }
 
   /**
@@ -888,7 +890,8 @@ export class HyperLiquidClientService {
     try {
       this.updateConnectionState(WebSocketConnectionState.CONNECTING);
 
-      // Close existing WebSocket transport
+      // Close existing WebSocket transport and clear references
+      // so createTransports() will create fresh ones
       if (this.wsTransport) {
         try {
           await this.wsTransport.close();
@@ -896,21 +899,19 @@ export class HyperLiquidClientService {
           // Ignore errors during close - transport may already be dead
         }
       }
+      this.wsTransport = undefined;
+      this.httpTransport = undefined;
 
-      // Recreate WebSocket transport
-      this.createTransports();
-
-      if (!this.wsTransport) {
-        throw new Error('Failed to recreate WebSocket transport');
-      }
+      // Recreate WebSocket transport - returns the new transport for type safety
+      const newWsTransport = this.createTransports();
 
       // Recreate clients that use WebSocket transport
-      this.infoClient = new InfoClient({ transport: this.wsTransport });
+      this.infoClient = new InfoClient({ transport: newWsTransport });
       this.subscriptionClient = new SubscriptionClient({
-        transport: this.wsTransport,
+        transport: newWsTransport,
       });
 
-      await this.wsTransport.ready();
+      await newWsTransport.ready();
 
       // Notify callback to restore subscriptions
       if (this.onReconnectCallback) {
