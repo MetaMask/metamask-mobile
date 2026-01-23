@@ -3025,7 +3025,7 @@ workflows:
             - paths: /tmp/last-build-commit
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
+        stack: osx-xcode-26.2.x
         machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_release:
@@ -3385,7 +3385,7 @@ workflows:
                 echo "🧹 Cleaned up API key file"
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
+        stack: osx-xcode-26.2.x
         machine_type_id: g2.mac.4large
   set_main_target_workflow:
     steps:
@@ -3508,7 +3508,7 @@ app:
       SEEDLESS_ONBOARDING_ENABLED: true
 meta:
   bitrise.io:
-    stack: osx-xcode-16.3.x
+    stack: osx-xcode-26.2.x
     machine_type_id: g2.mac.4large
 trigger_map:
   # Disable auto RC generation
