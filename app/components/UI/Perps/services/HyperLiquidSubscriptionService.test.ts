@@ -6,6 +6,7 @@
 
 import type { CaipAccountId, Hex } from '@metamask/utils';
 import type {
+  SubscribeOrderBookParams,
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
   SubscribePricesParams,
@@ -4065,6 +4066,399 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe1();
       unsubscribe2();
       unsubscribe3();
+    });
+  });
+
+  describe('subscribeToOrderBook (L2Book)', () => {
+    it('should subscribe to L2Book with correct params', async () => {
+      const mockCallback = jest.fn();
+      const mockL2BookSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: [
+                [{ px: '49900', sz: '1.5', n: 3 }],
+                [{ px: '50100', sz: '2.0', n: 5 }],
+              ],
+            });
+          }, 0);
+          return Promise.resolve(mockL2BookSubscription);
+        },
+      );
+
+      const params: SubscribeOrderBookParams = {
+        symbol: 'BTC',
+        levels: 10,
+        nSigFigs: 5,
+        callback: mockCallback,
+      };
+
+      const unsubscribe = service.subscribeToOrderBook(params);
+
+      await jest.runAllTimersAsync();
+
+      expect(mockSubscriptionClient.l2Book).toHaveBeenCalledWith(
+        { coin: 'BTC', nSigFigs: 5, mantissa: undefined },
+        expect.any(Function),
+      );
+
+      expect(typeof unsubscribe).toBe('function');
+    });
+
+    it('should process L2Book data and call callback with OrderBookData', async () => {
+      const mockCallback = jest.fn();
+      const mockL2BookSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: [
+                [
+                  { px: '49900', sz: '1.0', n: 2 },
+                  { px: '49800', sz: '2.0', n: 3 },
+                ],
+                [
+                  { px: '50100', sz: '1.5', n: 4 },
+                  { px: '50200', sz: '2.5', n: 5 },
+                ],
+              ],
+            });
+          }, 0);
+          return Promise.resolve(mockL2BookSubscription);
+        },
+      );
+
+      service.subscribeToOrderBook({
+        symbol: 'BTC',
+        levels: 10,
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(mockCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bids: expect.arrayContaining([
+            expect.objectContaining({
+              price: '49900',
+              size: '1.0',
+            }),
+          ]),
+          asks: expect.arrayContaining([
+            expect.objectContaining({
+              price: '50100',
+              size: '1.5',
+            }),
+          ]),
+          spread: expect.any(String),
+          spreadPercentage: expect.any(String),
+          midPrice: expect.any(String),
+          lastUpdated: expect.any(Number),
+          maxTotal: expect.any(String),
+        }),
+      );
+    });
+
+    it('should unsubscribe when cleanup function is called', async () => {
+      const mockCallback = jest.fn();
+      const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: [
+                [{ px: '49900', sz: '1.5', n: 3 }],
+                [{ px: '50100', sz: '2.0', n: 5 }],
+              ],
+            });
+          }, 0);
+          return Promise.resolve({ unsubscribe: mockUnsubscribe });
+        },
+      );
+
+      const unsubscribe = service.subscribeToOrderBook({
+        symbol: 'BTC',
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      // Unsubscribe
+      unsubscribe();
+
+      await jest.runAllTimersAsync();
+
+      expect(mockUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('should call onError callback when subscription fails', async () => {
+      const mockCallback = jest.fn();
+      const mockOnError = jest.fn();
+
+      mockSubscriptionClient.l2Book.mockRejectedValue(
+        new Error('L2Book subscription failed'),
+      );
+
+      service.subscribeToOrderBook({
+        symbol: 'BTC',
+        callback: mockCallback,
+        onError: mockOnError,
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(mockOnError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'L2Book subscription failed',
+        }),
+      );
+    });
+
+    it('should handle subscription client not available', async () => {
+      mockClientService.getSubscriptionClient.mockReturnValue(undefined);
+
+      const mockCallback = jest.fn();
+      const mockOnError = jest.fn();
+
+      const unsubscribe = service.subscribeToOrderBook({
+        symbol: 'BTC',
+        callback: mockCallback,
+        onError: mockOnError,
+      });
+
+      await jest.runAllTimersAsync();
+
+      // Should call onError with appropriate message
+      expect(mockOnError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Subscription client not available',
+        }),
+      );
+
+      // Should return a no-op unsubscribe function
+      expect(typeof unsubscribe).toBe('function');
+      expect(mockSubscriptionClient.l2Book).not.toHaveBeenCalled();
+    });
+
+    it('should handle missing levels gracefully', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: undefined,
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      service.subscribeToOrderBook({
+        symbol: 'BTC',
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      // Should not crash - callback should not be called for invalid data
+      // (the implementation checks for data?.levels being truthy)
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('should ignore data for different coins', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          // First send data for wrong coin
+          setTimeout(() => {
+            callback({
+              coin: 'ETH',
+              levels: [
+                [{ px: '2900', sz: '10', n: 1 }],
+                [{ px: '3000', sz: '20', n: 1 }],
+              ],
+            });
+          }, 0);
+          // Then send data for correct coin
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: [
+                [{ px: '49900', sz: '1.5', n: 3 }],
+                [{ px: '50100', sz: '2.0', n: 5 }],
+              ],
+            });
+          }, 10);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      service.subscribeToOrderBook({
+        symbol: 'BTC',
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      // Should only receive data for BTC, not ETH
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+      expect(mockCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bids: expect.arrayContaining([
+            expect.objectContaining({ price: '49900' }),
+          ]),
+        }),
+      );
+    });
+
+    it('should pass mantissa parameter when provided', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: [
+                [{ px: '49900', sz: '1.5', n: 3 }],
+                [{ px: '50100', sz: '2.0', n: 5 }],
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      service.subscribeToOrderBook({
+        symbol: 'BTC',
+        nSigFigs: 5,
+        mantissa: 2,
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      expect(mockSubscriptionClient.l2Book).toHaveBeenCalledWith(
+        { coin: 'BTC', nSigFigs: 5, mantissa: 2 },
+        expect.any(Function),
+      );
+    });
+
+    it('should calculate cumulative totals correctly', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: [
+                [
+                  { px: '50000', sz: '1.0', n: 1 },
+                  { px: '49900', sz: '2.0', n: 1 },
+                  { px: '49800', sz: '3.0', n: 1 },
+                ],
+                [
+                  { px: '50100', sz: '0.5', n: 1 },
+                  { px: '50200', sz: '1.5', n: 1 },
+                ],
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      service.subscribeToOrderBook({
+        symbol: 'BTC',
+        levels: 10,
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      const orderBookData = mockCallback.mock.calls[0][0];
+
+      // Verify cumulative bid totals: 1.0, 3.0, 6.0
+      expect(parseFloat(orderBookData.bids[0].total)).toBe(1);
+      expect(parseFloat(orderBookData.bids[1].total)).toBe(3);
+      expect(parseFloat(orderBookData.bids[2].total)).toBe(6);
+
+      // Verify cumulative ask totals: 0.5, 2.0
+      expect(parseFloat(orderBookData.asks[0].total)).toBe(0.5);
+      expect(parseFloat(orderBookData.asks[1].total)).toBe(2);
+
+      // Verify maxTotal is the larger of bid/ask cumulative totals
+      expect(parseFloat(orderBookData.maxTotal)).toBe(6);
+    });
+
+    it('should limit levels based on the levels parameter', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: [
+                [
+                  { px: '50000', sz: '1.0', n: 1 },
+                  { px: '49900', sz: '2.0', n: 1 },
+                  { px: '49800', sz: '3.0', n: 1 },
+                  { px: '49700', sz: '4.0', n: 1 },
+                  { px: '49600', sz: '5.0', n: 1 },
+                ],
+                [
+                  { px: '50100', sz: '0.5', n: 1 },
+                  { px: '50200', sz: '1.5', n: 1 },
+                  { px: '50300', sz: '2.5', n: 1 },
+                  { px: '50400', sz: '3.5', n: 1 },
+                  { px: '50500', sz: '4.5', n: 1 },
+                ],
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      service.subscribeToOrderBook({
+        symbol: 'BTC',
+        levels: 3,
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      const orderBookData = mockCallback.mock.calls[0][0];
+
+      // Should only have 3 levels on each side
+      expect(orderBookData.bids.length).toBe(3);
+      expect(orderBookData.asks.length).toBe(3);
     });
   });
 });

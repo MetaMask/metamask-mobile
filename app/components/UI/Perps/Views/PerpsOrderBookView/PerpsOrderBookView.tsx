@@ -251,8 +251,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       return rawOrderBook;
     }
 
-    // No client-side aggregation needed - API handles it via nSigFigs
-    // Just return the raw order book data directly
     return rawOrderBook;
   }, [rawOrderBook]);
 
