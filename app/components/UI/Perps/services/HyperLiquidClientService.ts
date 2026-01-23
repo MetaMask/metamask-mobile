@@ -880,13 +880,15 @@ export class HyperLiquidClientService {
         throw new Error('Failed to recreate WebSocket transport');
       }
 
-      // Recreate SubscriptionClient with new transport
+      // Recreate WebSocket-dependent clients with new transport
+      // NOTE: HTTP-based clients (exchangeClient, infoClientHttp) are NOT recreated because:
+      // - HTTP is stateless - each request opens a new connection
+      // - There's no persistent connection that can become stale
+      // - The existing httpTransport configuration remains valid
       this.subscriptionClient = new SubscriptionClient({
         transport: this.wsTransport,
       });
 
-      // Recreate InfoClient with new WebSocket transport
-      // (HTTP clients don't need recreation - they use separate httpTransport)
       this.infoClient = new InfoClient({ transport: this.wsTransport });
 
       // CRITICAL: Wait for WebSocket to be ready BEFORE restoring subscriptions

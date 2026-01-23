@@ -295,6 +295,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Track whether clients have been initialized (lazy initialization)
   private clientsInitialized = false;
 
+  // Promise-based lock to prevent race conditions in concurrent initialization
+  private initializationPromise: Promise<void> | null = null;
+
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -367,28 +370,50 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return; // Already initialized
     }
 
-    const wallet = this.walletService.createWalletAdapter();
-    await this.clientService.initialize(wallet);
+    // Reuse existing initialization promise if one is in progress
+    // This prevents race conditions when multiple methods call concurrently
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
 
-    // Set reconnection callback to restore subscriptions when WebSocket reconnects
-    this.clientService.setOnReconnectCallback(async () => {
-      try {
-        // Restore subscription service subscriptions
-        await this.subscriptionService.restoreSubscriptions();
-
-        const streamManager = getStreamManagerInstance();
-        streamManager.clearAllChannels();
-      } catch {
-        // Ignore errors during reconnection
+    // Create and cache the initialization promise
+    this.initializationPromise = (async () => {
+      // Double-check after acquiring the "lock"
+      if (this.clientsInitialized) {
+        return;
       }
-    });
 
-    // Only set flag AFTER successful initialization
-    this.clientsInitialized = true;
+      const wallet = this.walletService.createWalletAdapter();
+      await this.clientService.initialize(wallet);
 
-    this.deps.debugLogger.log(
-      '[HyperLiquidProvider] Clients initialized lazily',
-    );
+      // Set reconnection callback to restore subscriptions when WebSocket reconnects
+      this.clientService.setOnReconnectCallback(async () => {
+        try {
+          // Restore subscription service subscriptions
+          await this.subscriptionService.restoreSubscriptions();
+
+          const streamManager = getStreamManagerInstance();
+          streamManager.clearAllChannels();
+        } catch {
+          // Ignore errors during reconnection
+        }
+      });
+
+      // Only set flag AFTER successful initialization
+      this.clientsInitialized = true;
+
+      this.deps.debugLogger.log(
+        '[HyperLiquidProvider] Clients initialized lazily',
+      );
+    })();
+
+    try {
+      await this.initializationPromise;
+    } finally {
+      // Clear promise after completion (success or failure)
+      // so future calls can retry if needed
+      this.initializationPromise = null;
+    }
   }
 
   /**
@@ -6316,6 +6341,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Clear pending promise trackers to prevent memory leaks and ensure clean state
       this.ensureReadyPromise = null;
+      this.initializationPromise = null;
       this.pendingBuilderFeeApprovals.clear();
 
       // Reset client initialization flag so wallet adapter will be recreated with new account
