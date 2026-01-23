@@ -30,7 +30,7 @@ import { IconName as ComponentLibraryIconName } from '../../../component-library
 import EthereumAddress from '../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import TokenImage from '../../UI/TokenImage';
-import Networks, { getDecimalChainId } from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
@@ -44,12 +44,7 @@ import WarningMessage from '../confirmations/legacy/components/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  selectProviderConfig,
-  selectNetworkConfigurationByChainId,
-  selectIsAllNetworks,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../selectors/networkController';
+import { selectNetworkConfigurationByChainId } from '../../../selectors/networkController';
 import {
   selectCurrentCurrency,
   selectConversionRateBySymbol,
@@ -166,7 +161,6 @@ const AssetDetails = (props: InnerProps) => {
   const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { toastRef } = useContext(ToastContext);
-  const providerConfig = useSelector(selectProviderConfig);
   const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
 
   // Perps Discovery Banner
@@ -175,16 +169,10 @@ const AssetDetails = (props: InnerProps) => {
   const selectedAccountAddress = selectedAccountAddressEvm?.address;
   const chainId = networkId;
 
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-
-  const tokenNetworkConfig = networkConfigurations[networkId]?.name;
-
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId),
   );
+  const networkName = networkConfigurationByChainId?.name;
   const conversionRateBySymbol = useSelector((state: RootState) =>
     selectConversionRateBySymbol(
       state,
@@ -229,22 +217,7 @@ const AssetDetails = (props: InnerProps) => {
     }
   }, [marketData, navigation]);
 
-  const getNetworkName = useCallback(() => {
-    let name = '';
-    if (isAllNetworks) {
-      name = tokenNetworkConfig;
-    } else if (providerConfig.nickname) {
-      name = providerConfig.nickname;
-    } else {
-      name =
-        (Networks as Record<string, { name: string }>)[providerConfig.type]
-          ?.name || { ...Networks.rpc, color: null }.name;
-    }
-    return name;
-  }, [isAllNetworks, tokenNetworkConfig, providerConfig]);
-
   const insets = useSafeAreaInsets();
-  const networkName = getNetworkName();
 
   const copyAddressToClipboard = async () => {
     await ClipboardManager.setString(address);
