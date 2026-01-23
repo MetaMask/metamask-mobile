@@ -77,6 +77,11 @@ export class HyperLiquidClientService {
 
   /**
    * Initialize all HyperLiquid SDK clients
+   *
+   * IMPORTANT: This method awaits transport.ready() to ensure the WebSocket is
+   * in OPEN state before marking initialization complete. This prevents race
+   * conditions where subscriptions are attempted before the WebSocket handshake
+   * completes (which would cause "subscribe error: undefined" errors).
    */
   public async initialize(wallet: {
     signTypedData: (params: {
@@ -134,9 +139,14 @@ export class HyperLiquidClientService {
         note: 'Using WebSocket for InfoClient (default), HTTP fallback available',
       });
     } catch (error) {
-      // Cleanup transports on failure to prevent leaks
-      // If createTransports() succeeded but wsTransport.ready() failed,
-      // we need to close the WebSocket to release resources and event listeners
+      // Cleanup on failure to prevent leaks and ensure isInitialized() returns false
+      // Clear clients first, then transports
+      this.subscriptionClient = undefined;
+      this.infoClient = undefined;
+      this.infoClientHttp = undefined;
+      this.exchangeClient = undefined;
+
+      // Close WebSocket transport to release resources and event listeners
       if (this.wsTransport) {
         try {
           await this.wsTransport.close();
@@ -351,6 +361,41 @@ export class HyperLiquidClientService {
       return undefined;
     }
     return this.subscriptionClient;
+  }
+
+  /**
+   * Ensures the WebSocket transport is in OPEN state and ready for subscriptions.
+   * This MUST be called before any subscription operations to prevent race conditions.
+   *
+   * The SDK's `transport.ready()` method:
+   * - Returns immediately if WebSocket is already in OPEN state
+   * - Waits for the "open" event if WebSocket is in CONNECTING state
+   * - Supports AbortSignal for timeout/cancellation
+   *
+   * @param timeoutMs - Maximum time to wait for transport ready (default 5000ms)
+   * @throws Error if transport not ready within timeout or subscription client unavailable
+   */
+  public async ensureTransportReady(timeoutMs: number = 5000): Promise<void> {
+    const subscriptionClient = this.getSubscriptionClient();
+    if (!subscriptionClient) {
+      throw new Error('Subscription client not initialized');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      await subscriptionClient.config_.transport.ready(controller.signal);
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new Error(
+          `WebSocket transport ready timeout after ${timeoutMs}ms`,
+        );
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   /**
@@ -913,7 +958,12 @@ export class HyperLiquidClientService {
 
       await newWsTransport.ready();
 
-      // Notify callback to restore subscriptions
+      this.deps.debugLogger.log(
+        'HyperLiquid: Transport ready, restoring subscriptions',
+        { timestamp: new Date().toISOString() },
+      );
+
+      // NOW safe to restore subscriptions
       if (this.onReconnectCallback) {
         await this.onReconnectCallback();
       }

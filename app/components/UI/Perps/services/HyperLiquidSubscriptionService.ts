@@ -2635,8 +2635,24 @@ export class HyperLiquidSubscriptionService {
   /**
    * Restore all active subscriptions after WebSocket reconnection
    * Re-establishes WebSocket subscriptions for all active subscribers
+   *
+   * IMPORTANT: This method verifies transport readiness before attempting
+   * any subscriptions to prevent "subscribe error: undefined" errors.
    */
   public async restoreSubscriptions(): Promise<void> {
+    // CRITICAL: Verify transport is ready before attempting any subscriptions
+    // This prevents race conditions where subscriptions are attempted while
+    // the WebSocket is still in CONNECTING state
+    try {
+      await this.clientService.ensureTransportReady(5000);
+    } catch (error) {
+      this.deps.debugLogger.log(
+        'Transport not ready during subscription restore, will retry on next reconnect',
+        { error: error instanceof Error ? error.message : String(error) },
+      );
+      return;
+    }
+
     // Re-establish global allMids subscription if there are price subscribers
     if (this.priceSubscribers.size > 0) {
       // Clear existing subscription reference (it's dead after reconnection)

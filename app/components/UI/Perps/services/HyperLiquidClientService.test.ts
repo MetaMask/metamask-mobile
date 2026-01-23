@@ -134,12 +134,12 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Constructor and Configuration', () => {
-    it('should initialize with mainnet by default', () => {
+    it('initializes with mainnet by default', () => {
       expect(service.isTestnetMode()).toBe(false);
       expect(service.getNetwork()).toBe('mainnet');
     });
 
-    it('should initialize with testnet when specified', () => {
+    it('initializes with testnet when specified', () => {
       const testnetService = new HyperLiquidClientService(mockDeps, {
         isTestnet: true,
       });
@@ -148,7 +148,7 @@ describe('HyperLiquidClientService', () => {
       expect(testnetService.getNetwork()).toBe('testnet');
     });
 
-    it('should update testnet mode', () => {
+    it('updates testnet mode', () => {
       service.setTestnetMode(true);
 
       expect(service.isTestnetMode()).toBe(true);
@@ -157,8 +157,8 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Client Initialization', () => {
-    it('should initialize clients successfully with dual transports', () => {
-      service.initialize(mockWallet);
+    it('initializes clients successfully with dual transports', async () => {
+      await service.initialize(mockWallet);
 
       expect(service.isInitialized()).toBe(true);
 
@@ -209,7 +209,7 @@ describe('HyperLiquidClientService', () => {
       });
     });
 
-    it('should handle initialization errors', async () => {
+    it('handles initialization errors', async () => {
       const { ExchangeClient } = require('@nktkas/hyperliquid');
       ExchangeClient.mockImplementationOnce(() => {
         throw new Error('Client initialization failed');
@@ -220,11 +220,11 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should initialize with testnet configuration', () => {
+    it('initializes with testnet configuration', async () => {
       const testnetService = new HyperLiquidClientService(mockDeps, {
         isTestnet: true,
       });
-      testnetService.initialize(mockWallet);
+      await testnetService.initialize(mockWallet);
 
       const {
         ExchangeClient,
@@ -256,51 +256,51 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Client Access', () => {
-    beforeEach(() => {
-      service.initialize(mockWallet);
+    beforeEach(async () => {
+      await service.initialize(mockWallet);
     });
 
-    it('should provide access to exchange client', () => {
+    it('provides access to exchange client', () => {
       const exchangeClient = service.getExchangeClient();
 
       expect(exchangeClient).toBe(mockExchangeClient);
     });
 
-    it('should provide access to info client (WebSocket by default)', () => {
+    it('provides access to info client (WebSocket by default)', () => {
       const infoClient = service.getInfoClient();
 
       expect(infoClient).toBe(mockInfoClientWs);
       expect((infoClient as any).transport).toBe('websocket');
     });
 
-    it('should provide access to HTTP info client when useHttp option is true', () => {
+    it('provides access to HTTP info client when useHttp option is true', () => {
       const infoClient = service.getInfoClient({ useHttp: true });
 
       expect(infoClient).toBe(mockInfoClientHttp);
       expect((infoClient as any).transport).toBe('http');
     });
 
-    it('should return WebSocket info client when useHttp option is false', () => {
+    it('returns WebSocket info client when useHttp option is false', () => {
       const infoClient = service.getInfoClient({ useHttp: false });
 
       expect(infoClient).toBe(mockInfoClientWs);
       expect((infoClient as any).transport).toBe('websocket');
     });
 
-    it('should return WebSocket info client when options is empty object', () => {
+    it('returns WebSocket info client when options is empty object', () => {
       const infoClient = service.getInfoClient({});
 
       expect(infoClient).toBe(mockInfoClientWs);
       expect((infoClient as any).transport).toBe('websocket');
     });
 
-    it('should provide access to subscription client', () => {
+    it('provides access to subscription client', () => {
       const subscriptionClient = service.getSubscriptionClient();
 
       expect(subscriptionClient).toBe(mockSubscriptionClient);
     });
 
-    it('should throw when accessing uninitialized exchange client', () => {
+    it('throws when accessing uninitialized exchange client', () => {
       const uninitializedService = new HyperLiquidClientService(mockDeps);
 
       expect(() => uninitializedService.getExchangeClient()).toThrow(
@@ -308,7 +308,7 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should throw when accessing uninitialized info client', () => {
+    it('throws when accessing uninitialized info client', () => {
       const uninitializedService = new HyperLiquidClientService(mockDeps);
 
       expect(() => uninitializedService.getInfoClient()).toThrow(
@@ -316,7 +316,7 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should return undefined for uninitialized subscription client', () => {
+    it('returns undefined for uninitialized subscription client', () => {
       const uninitializedService = new HyperLiquidClientService(mockDeps);
 
       expect(uninitializedService.getSubscriptionClient()).toBeUndefined();
@@ -324,23 +324,23 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Initialization State Management', () => {
-    it('should report not initialized before setup', () => {
+    it('reports not initialized before setup', () => {
       expect(service.isInitialized()).toBe(false);
     });
 
-    it('should report initialized after setup', () => {
-      service.initialize(mockWallet);
+    it('reports initialized after setup', async () => {
+      await service.initialize(mockWallet);
 
       expect(service.isInitialized()).toBe(true);
     });
 
-    it('should ensure initialization succeeds when clients are ready', () => {
-      service.initialize(mockWallet);
+    it('ensures initialization succeeds when clients are ready', async () => {
+      await service.initialize(mockWallet);
 
       expect(() => service.ensureInitialized()).not.toThrow();
     });
 
-    it('should throw when ensuring initialization on uninitialized service', () => {
+    it('throws when ensuring initialization on uninitialized service', () => {
       expect(() => service.ensureInitialized()).toThrow(
         'CLIENT_NOT_INITIALIZED',
       );
@@ -365,7 +365,7 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Network Management', () => {
-    it('should toggle between mainnet and testnet', async () => {
+    it('toggles between mainnet and testnet', async () => {
       expect(service.getNetwork()).toBe('mainnet');
 
       const newNetwork = await service.toggleTestnet(mockWallet);
@@ -375,7 +375,7 @@ describe('HyperLiquidClientService', () => {
       expect(service.isTestnetMode()).toBe(true);
     });
 
-    it('should toggle back from testnet to mainnet', async () => {
+    it('toggles back from testnet to mainnet', async () => {
       service.setTestnetMode(true);
 
       const newNetwork = await service.toggleTestnet(mockWallet);
@@ -387,11 +387,11 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Disconnection', () => {
-    beforeEach(() => {
-      service.initialize(mockWallet);
+    beforeEach(async () => {
+      await service.initialize(mockWallet);
     });
 
-    it('should disconnect successfully and close only WebSocket transport', async () => {
+    it('disconnects successfully and close only WebSocket transport', async () => {
       await service.disconnect();
 
       // Only WebSocket transport should be closed (HTTP is stateless)
@@ -399,7 +399,7 @@ describe('HyperLiquidClientService', () => {
       expect(service.getSubscriptionClient()).toBeUndefined();
     });
 
-    it('should handle disconnect errors gracefully', async () => {
+    it('handles disconnect errors gracefully', async () => {
       mockWsTransport.close.mockRejectedValueOnce(
         new Error('Disconnect failed'),
       );
@@ -411,7 +411,7 @@ describe('HyperLiquidClientService', () => {
       expect(mockWsTransport.close).toHaveBeenCalled();
     });
 
-    it('should clear all client references after disconnect', async () => {
+    it('clears all client references after disconnect', async () => {
       await service.disconnect();
 
       expect(service.isInitialized()).toBe(false);
@@ -420,7 +420,7 @@ describe('HyperLiquidClientService', () => {
       expect(() => service.getInfoClient()).toThrow();
     });
 
-    it('should handle disconnect when subscription client is already undefined', async () => {
+    it('handles disconnect when subscription client is already undefined', async () => {
       // Manually clear subscription client to simulate partial state
       Object.defineProperty(service, 'subscriptionClient', {
         value: undefined,
@@ -432,7 +432,7 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle transport creation errors', async () => {
+    it('handles transport creation errors', async () => {
       const { WebSocketTransport } = require('@nktkas/hyperliquid');
       WebSocketTransport.mockImplementationOnce(() => {
         throw new Error('Transport creation failed');
@@ -443,7 +443,7 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should maintain network state through errors', async () => {
+    it('maintains network state through errors', async () => {
       service.setTestnetMode(true);
 
       try {
@@ -459,10 +459,18 @@ describe('HyperLiquidClientService', () => {
       expect(service.isTestnetMode()).toBe(true);
       expect(service.getNetwork()).toBe('testnet');
     });
+
+    it('handles transport ready timeout', async () => {
+      // Make transport.ready() reject with abort error
+      mockWsTransportReady.mockRejectedValueOnce(new Error('Aborted'));
+
+      await expect(service.initialize(mockWallet)).rejects.toThrow('Aborted');
+      expect(service.isInitialized()).toBe(false);
+    });
   });
 
   describe('Logging and Debugging', () => {
-    it('should log initialization events', async () => {
+    it('logs initialization events', async () => {
       await service.initialize(mockWallet);
 
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
@@ -475,8 +483,8 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should log disconnect events', async () => {
-      service.initialize(mockWallet);
+    it('logs disconnect events', async () => {
+      await service.initialize(mockWallet);
 
       await service.disconnect();
 
@@ -489,8 +497,8 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should log transport creation events', () => {
-      service.initialize(mockWallet);
+    it('logs transport creation events', async () => {
+      await service.initialize(mockWallet);
 
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'HyperLiquid: Creating transports',
@@ -507,7 +515,7 @@ describe('HyperLiquidClientService', () => {
       await service.initialize(mockWallet);
     });
 
-    it('should fetch historical candles successfully', async () => {
+    it('fetches historical candles successfully', async () => {
       // Arrange
       const mockResponse = [
         { t: 1700000000000, o: 50000, h: 51000, l: 49000, c: 50500, v: 100 },
@@ -556,7 +564,7 @@ describe('HyperLiquidClientService', () => {
       });
     });
 
-    it('should handle empty candles response', async () => {
+    it('handles empty candles response', async () => {
       // Arrange
       const mockResponse: any[] = [];
 
@@ -579,7 +587,7 @@ describe('HyperLiquidClientService', () => {
       });
     });
 
-    it('should handle API errors gracefully', async () => {
+    it('handles API errors gracefully', async () => {
       // Arrange
       const errorMessage = 'API request failed';
       mockInfoClientWs.candleSnapshot = jest
@@ -592,7 +600,7 @@ describe('HyperLiquidClientService', () => {
       ).rejects.toThrow(errorMessage);
     });
 
-    it('should calculate correct time range for different intervals', async () => {
+    it('calculates correct time range for different intervals', async () => {
       // Arrange
       const mockResponse = {
         symbol: 'ETH',
@@ -626,7 +634,7 @@ describe('HyperLiquidClientService', () => {
       expect(timeDiff).toBe(expectedTimeDiff);
     });
 
-    it('should handle different interval formats', async () => {
+    it('handles different interval formats', async () => {
       // Arrange
       const testCases = [
         { interval: CandlePeriod.THREE_MINUTES, expected: 180000 }, // 3 minutes = 3 * 60 * 1000
@@ -653,12 +661,12 @@ describe('HyperLiquidClientService', () => {
       }
     });
 
-    it('should use testnet endpoint when in testnet mode', async () => {
+    it('uses testnet endpoint when in testnet mode', async () => {
       // Arrange
       const testnetService = new HyperLiquidClientService(mockDeps, {
         isTestnet: true,
       });
-      testnetService.initialize(mockWallet);
+      await testnetService.initialize(mockWallet);
 
       const mockResponse: any[] = [];
 
@@ -678,7 +686,7 @@ describe('HyperLiquidClientService', () => {
       // The testnet configuration is handled in the service initialization
     });
 
-    it('should throw error when service not initialized', async () => {
+    it('throws error when service not initialized', async () => {
       // Arrange
       const uninitializedService = new HyperLiquidClientService(mockDeps);
 
@@ -699,7 +707,7 @@ describe('HyperLiquidClientService', () => {
       jest.clearAllMocks();
     });
 
-    it('should throw error when service not initialized', () => {
+    it('throws error when service not initialized', () => {
       // Arrange
       const uninitializedService = new HyperLiquidClientService(mockDeps);
 
@@ -713,10 +721,10 @@ describe('HyperLiquidClientService', () => {
       ).toThrow('CLIENT_NOT_INITIALIZED');
     });
 
-    it('throws error when subscription client unavailable', () => {
+    it('throws error when subscription client unavailable', async () => {
       // Arrange
       const serviceWithNoSubClient = new HyperLiquidClientService(mockDeps);
-      serviceWithNoSubClient.initialize(mockWallet);
+      await serviceWithNoSubClient.initialize(mockWallet);
       // Force subscription client to be undefined
       (serviceWithNoSubClient as any).subscriptionClient = undefined;
 
@@ -730,7 +738,7 @@ describe('HyperLiquidClientService', () => {
       ).toThrow('CLIENT_NOT_INITIALIZED');
     });
 
-    it('should fetch historical data and setup WebSocket subscription', async () => {
+    it('fetches historical data and setup WebSocket subscription', async () => {
       // Arrange
       const mockHistoricalData = [
         {
@@ -808,7 +816,7 @@ describe('HyperLiquidClientService', () => {
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should transform historical candle data correctly', async () => {
+    it('transforms historical candle data correctly', async () => {
       // Arrange
       const mockHistoricalData = [
         {
@@ -857,7 +865,7 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should handle WebSocket updates for existing candle', async () => {
+    it('handles WebSocket updates for existing candle', async () => {
       // Arrange
       const mockHistoricalData = [
         {
@@ -925,7 +933,7 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should handle WebSocket updates for new candle', async () => {
+    it('handles WebSocket updates for new candle', async () => {
       // Arrange
       const mockHistoricalData = [
         {
@@ -1001,7 +1009,7 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should create immutable candles array for React re-renders', async () => {
+    it('creates immutable candles array for React re-renders', async () => {
       // Arrange
       const mockHistoricalData = [
         {
@@ -1055,7 +1063,7 @@ describe('HyperLiquidClientService', () => {
       expect(firstCallCandles).not.toBe(secondCallCandles);
     });
 
-    it('should handle empty historical data', async () => {
+    it('handles empty historical data', async () => {
       // Arrange
       mockInfoClientWs.candleSnapshot = jest.fn().mockResolvedValue([]);
 
@@ -1082,7 +1090,7 @@ describe('HyperLiquidClientService', () => {
       });
     });
 
-    it('should invoke unsubscribe when cleanup function called', async () => {
+    it('invokes unsubscribe when cleanup function called', async () => {
       // Arrange
       mockInfoClientWs.candleSnapshot = jest.fn().mockResolvedValue([]);
 
@@ -1110,7 +1118,7 @@ describe('HyperLiquidClientService', () => {
       expect(mockWsUnsubscribe).toHaveBeenCalled();
     });
 
-    it('should handle unsubscribe before WebSocket established', async () => {
+    it('handles unsubscribe before WebSocket established', async () => {
       // Arrange - delay the promise resolution to simulate slow network
       let resolveSnapshot: (value: any) => void = () => {
         /* noop */
@@ -1150,7 +1158,7 @@ describe('HyperLiquidClientService', () => {
       expect(callback).not.toHaveBeenCalled(); // Callback should not be invoked after unsubscribe
     });
 
-    it('should cleanup WebSocket when unsubscribed during subscription establishment', async () => {
+    it('cleans up WebSocket when unsubscribed during subscription establishment', async () => {
       // Arrange - fast snapshot, slow WebSocket subscription
       mockInfoClientWs.candleSnapshot = jest.fn().mockResolvedValue([]);
 
@@ -1625,6 +1633,53 @@ describe('HyperLiquidClientService', () => {
       );
 
       expect(connectedCalls.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('ensureTransportReady', () => {
+    it('resolves immediately when transport is ready', async () => {
+      await service.initialize(mockWallet);
+
+      // Should resolve without error
+      await expect(service.ensureTransportReady()).resolves.toBeUndefined();
+    });
+
+    it('throws error when subscription client not initialized', async () => {
+      // Service not initialized - subscription client is undefined
+      await expect(service.ensureTransportReady()).rejects.toThrow(
+        'Subscription client not initialized',
+      );
+    });
+
+    it('throws timeout error when transport not ready', async () => {
+      await service.initialize(mockWallet);
+
+      // Reset mock to simulate a never-resolving ready() call
+      // The AbortController in ensureTransportReady will abort after timeout
+      mockWsTransportReady.mockImplementationOnce(
+        (signal?: AbortSignal) =>
+          new Promise<void>((_resolve, reject) => {
+            // If there's an abort signal, listen to it and reject when aborted
+            if (signal) {
+              signal.addEventListener('abort', () => {
+                reject(new Error('Aborted'));
+              });
+            }
+            // Never resolves on its own - waits for abort
+          }),
+      );
+
+      // Use expect().rejects pattern with async timer advancement
+      // The promise and timer advancement need to happen concurrently
+      const promiseResult = service.ensureTransportReady(50).catch((e) => e);
+
+      // Advance timers to trigger the timeout
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Now check the result
+      const error = await promiseResult;
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toContain('WebSocket transport ready timeout');
     });
   });
 });

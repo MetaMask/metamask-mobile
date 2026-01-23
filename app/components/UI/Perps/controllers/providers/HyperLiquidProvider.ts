@@ -298,6 +298,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Track whether clients have been initialized (lazy initialization)
   private clientsInitialized = false;
 
+  // Promise-based lock to prevent race conditions in concurrent initialization
+  private initializationPromise: Promise<void> | null = null;
+
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -361,47 +364,75 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * This is called on first API operation to ensure Engine.context is ready.
    * Creating the wallet adapter requires accessing Engine.context.AccountTreeController,
    * which may not be available during early app initialization.
+   *
+   * IMPORTANT: This method awaits the WebSocket transport.ready() to ensure
+   * the connection is fully established before marking initialization complete.
    */
   private async ensureClientsInitialized(): Promise<void> {
     if (this.clientsInitialized) {
       return; // Already initialized
     }
 
-    const wallet = this.walletService.createWalletAdapter();
-    await this.clientService.initialize(wallet);
+    // Reuse existing initialization promise if one is in progress
+    // This prevents race conditions when multiple methods call concurrently
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
 
-    // Set termination callback for logging when WebSocket terminates
-    // Note: Do NOT restore subscriptions here - termination means connection failed permanently
-    this.clientService.setOnTerminateCallback((error: Error) => {
-      this.deps.debugLogger.log('[HyperLiquidProvider] WebSocket terminated', {
-        error: error.message,
-      });
-    });
-
-    // Set reconnection callback to restore subscriptions after successful reconnection
-    // This is called in handleConnectionDrop() after the WebSocket reconnects successfully
-    this.clientService.setOnReconnectCallback(async () => {
-      try {
-        this.deps.debugLogger.log(
-          '[HyperLiquidProvider] WebSocket reconnected, restoring subscriptions',
-        );
-        await this.subscriptionService.restoreSubscriptions();
-        const streamManager = getStreamManagerInstance();
-        streamManager.clearAllChannels();
-      } catch (restoreError) {
-        this.deps.debugLogger.log(
-          '[HyperLiquidProvider] Failed to restore subscriptions',
-          restoreError,
-        );
+    // Create and cache the initialization promise
+    this.initializationPromise = (async () => {
+      // Double-check after acquiring the "lock"
+      if (this.clientsInitialized) {
+        return;
       }
-    });
 
-    // Only set flag AFTER successful initialization
-    this.clientsInitialized = true;
+      const wallet = this.walletService.createWalletAdapter();
+      await this.clientService.initialize(wallet);
 
-    this.deps.debugLogger.log(
-      '[HyperLiquidProvider] Clients initialized lazily',
-    );
+      // Set termination callback for logging when WebSocket terminates
+      // Note: Do NOT restore subscriptions here - termination means connection failed permanently
+      this.clientService.setOnTerminateCallback((error: Error) => {
+        this.deps.debugLogger.log(
+          '[HyperLiquidProvider] WebSocket terminated',
+          {
+            error: error.message,
+          },
+        );
+      });
+
+      // Set reconnection callback to restore subscriptions after successful reconnection
+      // This is called in handleConnectionDrop() after the WebSocket reconnects successfully
+      this.clientService.setOnReconnectCallback(async () => {
+        try {
+          this.deps.debugLogger.log(
+            '[HyperLiquidProvider] WebSocket reconnected, restoring subscriptions',
+          );
+          await this.subscriptionService.restoreSubscriptions();
+          const streamManager = getStreamManagerInstance();
+          streamManager.clearAllChannels();
+        } catch (restoreError) {
+          this.deps.debugLogger.log(
+            '[HyperLiquidProvider] Failed to restore subscriptions',
+            restoreError,
+          );
+        }
+      });
+
+      // Only set flag AFTER successful initialization
+      this.clientsInitialized = true;
+
+      this.deps.debugLogger.log(
+        '[HyperLiquidProvider] Clients initialized lazily',
+      );
+    })();
+
+    try {
+      await this.initializationPromise;
+    } finally {
+      // Clear promise after completion (success or failure)
+      // so future calls can retry if needed
+      this.initializationPromise = null;
+    }
   }
 
   /**
@@ -484,6 +515,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Create and track initialization promise
     this.ensureReadyPromise = (async () => {
       // Lazy initialization: ensure clients are created (safe after Engine.context is ready)
+      // This awaits WebSocket transport.ready() to ensure connection is established
       await this.ensureClientsInitialized();
 
       // Verify clients are properly initialized
@@ -5727,6 +5759,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       const newIsTestnet = !this.clientService.isTestnetMode();
 
+      // Await pending initialization to prevent race condition where
+      // the IIFE sets clientsInitialized = true after we reset it
+      const pendingInit = this.initializationPromise;
+      this.initializationPromise = null;
+
+      if (pendingInit) {
+        try {
+          await pendingInit;
+        } catch {
+          // Ignore - we're switching networks anyway
+        }
+      }
+
       // Update all services
       this.clientService.setTestnetMode(newIsTestnet);
       this.walletService.setTestnetMode(newIsTestnet);
@@ -6326,9 +6371,31 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.cachedMetaByDex.clear();
       this.perpDexsCache = { data: null, timestamp: 0 };
 
-      // Clear pending promise trackers to prevent memory leaks and ensure clean state
+      // Await pending initialization before clearing to prevent the IIFE from
+      // setting clientsInitialized = true after disconnect completes
+      const pendingInit = this.initializationPromise;
+      const pendingReady = this.ensureReadyPromise;
+
+      // Clear references first to prevent new callers from reusing
+      this.initializationPromise = null;
       this.ensureReadyPromise = null;
       this.pendingBuilderFeeApprovals.clear();
+
+      // Wait for pending operations to complete (ignore errors)
+      if (pendingInit) {
+        try {
+          await pendingInit;
+        } catch {
+          // Ignore - we're disconnecting anyway
+        }
+      }
+      if (pendingReady) {
+        try {
+          await pendingReady;
+        } catch {
+          // Ignore - we're disconnecting anyway
+        }
+      }
 
       // Reset client initialization flag so wallet adapter will be recreated with new account
       // This fixes account synchronization issue where old account's address persists in wallet adapter

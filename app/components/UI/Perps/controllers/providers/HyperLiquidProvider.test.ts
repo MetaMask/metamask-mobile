@@ -401,25 +401,25 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Constructor and Initialization', () => {
-    it('should initialize with default mainnet configuration', () => {
+    it('initializes with default mainnet configuration', () => {
       expect(provider).toBeDefined();
       expect(provider.protocolId).toBe('hyperliquid');
     });
 
-    it('should initialize with testnet configuration', () => {
+    it('initializes with testnet configuration', () => {
       const testnetProvider = createTestProvider({ isTestnet: true });
       expect(testnetProvider).toBeDefined();
       expect(testnetProvider.protocolId).toBe('hyperliquid');
     });
 
-    it('should initialize provider successfully', async () => {
+    it('initializes provider successfully', async () => {
       const result = await provider.initialize();
 
       expect(result.success).toBe(true);
       expect(mockClientService.initialize).toHaveBeenCalled();
     });
 
-    it('should handle initialization errors', async () => {
+    it('handles initialization errors', async () => {
       mockClientService.initialize.mockImplementationOnce(() => {
         throw new Error('Init failed');
       });
@@ -486,7 +486,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Route Management', () => {
-    it('should get deposit routes with constraints', () => {
+    it('gets deposit routes with constraints', () => {
       const routes = provider.getDepositRoutes();
       expect(Array.isArray(routes)).toBe(true);
 
@@ -503,7 +503,7 @@ describe('HyperLiquidProvider', () => {
       }
     });
 
-    it('should get withdrawal routes with constraints', () => {
+    it('gets withdrawal routes with constraints', () => {
       const routes = provider.getWithdrawalRoutes();
       expect(Array.isArray(routes)).toBe(true);
 
@@ -520,7 +520,7 @@ describe('HyperLiquidProvider', () => {
       }
     });
 
-    it('should filter routes by parameters', () => {
+    it('filters routes by parameters', () => {
       const params = { isTestnet: true };
       const routes = provider.getDepositRoutes(params);
 
@@ -529,7 +529,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Trading Operations', () => {
-    it('should place a market order successfully', async () => {
+    it('places a market order successfully', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
         isBuy: true,
@@ -555,7 +555,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should place a limit order successfully', async () => {
+    it('places a limit order successfully', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
         isBuy: true,
@@ -580,7 +580,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should use Gtc TIF for limit orders (regression test)', async () => {
+    it('uses Gtc TIF for limit orders (regression test)', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
         isBuy: true,
@@ -605,7 +605,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should track performance measurements when placing order', async () => {
+    it('tracks performance measurements when placing order', async () => {
       const orderParams: OrderParams = {
         symbol: 'ETH',
         isBuy: true,
@@ -618,7 +618,7 @@ describe('HyperLiquidProvider', () => {
       await provider.placeOrder(orderParams);
     });
 
-    it('should calculate USD position size correctly for market orders', async () => {
+    it('calculates USD position size correctly for market orders', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
         isBuy: true,
@@ -630,7 +630,7 @@ describe('HyperLiquidProvider', () => {
       await provider.placeOrder(orderParams);
     });
 
-    it('should calculate USD position size correctly for limit orders', async () => {
+    it('calculates USD position size correctly for limit orders', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
         isBuy: true,
@@ -643,7 +643,7 @@ describe('HyperLiquidProvider', () => {
       await provider.placeOrder(orderParams);
     });
 
-    it('should handle order placement errors', async () => {
+    it('handles order placement errors', async () => {
       (
         mockClientService.getExchangeClient().order as jest.Mock
       ).mockResolvedValueOnce({
@@ -663,7 +663,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should edit an order successfully', async () => {
+    it('edits an order successfully', async () => {
       const editParams = {
         orderId: '123',
         newOrder: {
@@ -689,7 +689,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should edit a market order with slippage calculation', async () => {
+    it('edits a market order with slippage calculation', async () => {
       const editParams = {
         orderId: '123',
         newOrder: {
@@ -716,7 +716,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should handle editOrder when asset is not found', async () => {
+    it('handles editOrder when asset is not found', async () => {
       (
         mockClientService.getInfoClient().meta as jest.Mock
       ).mockResolvedValueOnce({
@@ -740,7 +740,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('Asset UNKNOWN not found');
     });
 
-    it('should handle editOrder when no price is available', async () => {
+    it('handles editOrder when no price is available', async () => {
       (
         mockClientService.getInfoClient().allMids as jest.Mock
       ).mockResolvedValueOnce({}); // Empty price data
@@ -761,7 +761,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('No price available for BTC');
     });
 
-    it('should handle editOrder when asset ID is not found', async () => {
+    it('handles editOrder when asset ID is not found', async () => {
       // Create a spy on the symbolToAssetId.get method to return undefined for BTC
       // eslint-disable-next-line dot-notation
       const originalGet = provider['symbolToAssetId'].get;
@@ -796,7 +796,7 @@ describe('HyperLiquidProvider', () => {
       jest.restoreAllMocks();
     });
 
-    it('should cancel an order successfully', async () => {
+    it('cancels an order successfully', async () => {
       const cancelParams = {
         orderId: '123',
         symbol: 'BTC',
@@ -1011,7 +1011,7 @@ describe('HyperLiquidProvider', () => {
       (mockPlatformDependencies.debugLogger.log as jest.Mock).mockClear();
     });
 
-    it('should close position without TP/SL successfully', async () => {
+    it('closes position without TP/SL successfully', async () => {
       // Position without TP/SL - using factory for standard BTC position
       mockClientService.getInfoClient = jest
         .fn()
@@ -1028,7 +1028,7 @@ describe('HyperLiquidProvider', () => {
       // No TP/SL logging expected since we removed this functionality
     });
 
-    it('should handle position with TP/SL successfully', async () => {
+    it('handles position with TP/SL successfully', async () => {
       // Mock position with TP/SL
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
@@ -1133,7 +1133,7 @@ describe('HyperLiquidProvider', () => {
       // No additional logging needed
     });
 
-    it('should handle partial position close with TP/SL', async () => {
+    it('handles partial position close with TP/SL', async () => {
       // Mock position with TP/SL
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
@@ -1234,7 +1234,7 @@ describe('HyperLiquidProvider', () => {
       // TP/SL orders are automatically handled by Hyperliquid for partial closes too
     });
 
-    it('should handle position without open TP/SL orders', async () => {
+    it('handles position without open TP/SL orders', async () => {
       // Position exists but no open TP/SL orders
       mockClientService.getInfoClient = jest
         .fn()
@@ -1256,7 +1256,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should handle close position when position not found', async () => {
+    it('handles close position when position not found', async () => {
       // Override to have NO positions (empty array)
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -1280,7 +1280,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('No position found for BTC');
     });
 
-    it('should handle short position close with TP/SL', async () => {
+    it('handles short position close with TP/SL', async () => {
       // Mock short position with TP/SL
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
@@ -1397,7 +1397,7 @@ describe('HyperLiquidProvider', () => {
       // TP/SL orders are automatically handled by Hyperliquid for short positions too
     });
 
-    it('should handle position close even if TP/SL info is unavailable', async () => {
+    it('handles position close even if TP/SL info is unavailable', async () => {
       // Mock position exists with TP/SL in positions call
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
@@ -1669,7 +1669,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('updatePositionTPSL', () => {
-    it('should update position TP/SL successfully', async () => {
+    it('updates position TP/SL successfully', async () => {
       const updateParams = {
         symbol: 'ETH',
         takeProfitPrice: '3500',
@@ -1682,7 +1682,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.orderId).toBeDefined();
     });
 
-    it('should handle update with only take profit price', async () => {
+    it('handles update with only take profit price', async () => {
       const updateParams = {
         symbol: 'ETH',
         takeProfitPrice: '3500',
@@ -1693,7 +1693,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should handle update with only stop loss price', async () => {
+    it('handles update with only stop loss price', async () => {
       const updateParams = {
         symbol: 'ETH',
         stopLossPrice: '2500',
@@ -1706,7 +1706,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Data Retrieval', () => {
-    it('should get positions successfully', async () => {
+    it('gets positions successfully', async () => {
       const positions = await provider.getPositions();
 
       expect(Array.isArray(positions)).toBe(true);
@@ -1716,7 +1716,7 @@ describe('HyperLiquidProvider', () => {
       ).toHaveBeenCalled();
     });
 
-    it('should get account state successfully', async () => {
+    it('gets account state successfully', async () => {
       const accountState = await provider.getAccountState();
 
       expect(accountState).toBeDefined();
@@ -1729,7 +1729,7 @@ describe('HyperLiquidProvider', () => {
       ).toHaveBeenCalled();
     });
 
-    it('should get markets successfully', async () => {
+    it('gets markets successfully', async () => {
       const markets = await provider.getMarkets();
 
       expect(Array.isArray(markets)).toBe(true);
@@ -1737,7 +1737,7 @@ describe('HyperLiquidProvider', () => {
       expect(mockClientService.getInfoClient().meta).toHaveBeenCalled();
     });
 
-    it('should handle data retrieval errors gracefully', async () => {
+    it('handles data retrieval errors gracefully', async () => {
       (
         mockClientService.getInfoClient().clearinghouseState as jest.Mock
       ).mockRejectedValueOnce(new Error('API Error'));
@@ -1750,7 +1750,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Withdrawal Operations', () => {
-    it('should process withdrawal successfully', async () => {
+    it('processes withdrawal successfully', async () => {
       const withdrawParams = {
         amount: '1000',
         destination: '0x1234567890123456789012345678901234567890' as Hex,
@@ -1763,7 +1763,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should handle withdrawal errors', async () => {
+    it('handles withdrawal errors', async () => {
       mockValidateWithdrawalParams.mockReturnValueOnce({
         isValid: false,
         error: 'Invalid withdrawal amount',
@@ -1783,7 +1783,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Subscription Management', () => {
-    it('should subscribe to prices', () => {
+    it('subscribes to prices', () => {
       const callback = jest.fn();
       const unsubscribe = provider.subscribeToPrices({
         symbols: ['BTC', 'ETH'],
@@ -1794,7 +1794,7 @@ describe('HyperLiquidProvider', () => {
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should subscribe to positions', () => {
+    it('subscribes to positions', () => {
       const callback = jest.fn();
       const unsubscribe = provider.subscribeToPositions({ callback });
 
@@ -1802,7 +1802,7 @@ describe('HyperLiquidProvider', () => {
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should subscribe to order fills', () => {
+    it('subscribes to order fills', () => {
       const callback = jest.fn();
       const unsubscribe = provider.subscribeToOrderFills({ callback });
 
@@ -1810,7 +1810,7 @@ describe('HyperLiquidProvider', () => {
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should set live data config', () => {
+    it('sets live data config', () => {
       const config: Partial<LiveDataConfig> = {
         priceThrottleMs: 1000,
         positionThrottleMs: 3000,
@@ -1824,13 +1824,13 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Provider State Management', () => {
-    it('should check if ready to trade', async () => {
+    it('checks if ready to trade', async () => {
       const result = await provider.isReadyToTrade();
 
       expect(result.ready).toBe(true);
     });
 
-    it('should handle readiness check errors', async () => {
+    it('handles readiness check errors', async () => {
       mockWalletService.getCurrentAccountId.mockImplementationOnce(() => {
         throw new Error('No account selected');
       });
@@ -1840,7 +1840,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.ready).toBe(false);
     });
 
-    it('should toggle testnet mode', async () => {
+    it('toggles testnet mode', async () => {
       const result = await provider.toggleTestnet();
 
       expect(result.success).toBe(true);
@@ -1848,14 +1848,51 @@ describe('HyperLiquidProvider', () => {
       expect(mockWalletService.setTestnetMode).toHaveBeenCalled();
     });
 
-    it('should disconnect successfully', async () => {
+    it('awaits pending initialization before toggling testnet', async () => {
+      // Simulate pending initialization with immediate resolution
+      const initPromise = Promise.resolve();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (provider as any).initializationPromise = initPromise;
+
+      const result = await provider.toggleTestnet();
+
+      expect(result.success).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((provider as any).initializationPromise).toBeNull();
+    });
+
+    it('disconnects successfully', async () => {
       const result = await provider.disconnect();
 
       expect(result.success).toBe(true);
       expect(mockClientService.disconnect).toHaveBeenCalled();
     });
 
-    it('should handle disconnect errors', async () => {
+    it('awaits pending initialization before disconnecting', async () => {
+      // Simulate pending initialization with immediate resolution
+      const initPromise = Promise.resolve();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (provider as any).initializationPromise = initPromise;
+
+      const result = await provider.disconnect();
+
+      expect(result.success).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((provider as any).clientsInitialized).toBe(false);
+    });
+
+    it('awaits pending ensureReady before disconnecting', async () => {
+      // Simulate pending ensureReady with immediate resolution
+      const readyPromise = Promise.resolve();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (provider as any).ensureReadyPromise = readyPromise;
+
+      const result = await provider.disconnect();
+
+      expect(result.success).toBe(true);
+    });
+
+    it('handles disconnect errors', async () => {
       mockClientService.disconnect.mockRejectedValueOnce(
         new Error('Disconnect failed'),
       );
@@ -1873,7 +1910,7 @@ describe('HyperLiquidProvider', () => {
         jest.spyOn(provider as any, 'ensureReady').mockResolvedValue(undefined);
       });
 
-      it('should successfully ping WebSocket connection with default timeout', async () => {
+      it('successfully ping WebSocket connection with default timeout', async () => {
         const mockReady = jest.fn().mockResolvedValue(undefined);
         const mockSubscriptionClient = {
           config_: {
@@ -1894,7 +1931,7 @@ describe('HyperLiquidProvider', () => {
         expect(mockReady.mock.calls[0][0]).toBeInstanceOf(AbortSignal);
       });
 
-      it('should successfully ping WebSocket connection with custom timeout', async () => {
+      it('successfully ping WebSocket connection with custom timeout', async () => {
         const mockReady = jest.fn().mockResolvedValue(undefined);
         const mockSubscriptionClient = {
           config_: {
@@ -1914,7 +1951,7 @@ describe('HyperLiquidProvider', () => {
         expect(mockReady.mock.calls[0][0]).toBeInstanceOf(AbortSignal);
       });
 
-      it('should throw error when subscription client is not initialized', async () => {
+      it('throws error when subscription client is not initialized', async () => {
         mockClientService.getSubscriptionClient.mockReturnValue(undefined);
 
         await expect(provider.ping()).rejects.toThrow(
@@ -1922,7 +1959,7 @@ describe('HyperLiquidProvider', () => {
         );
       });
 
-      it('should throw CONNECTION_TIMEOUT error when timeout occurs', async () => {
+      it('throws CONNECTION_TIMEOUT error when timeout occurs', async () => {
         const mockReady = jest
           .fn()
           .mockImplementation(
@@ -1946,7 +1983,7 @@ describe('HyperLiquidProvider', () => {
         await expect(provider.ping(50)).rejects.toThrow('CONNECTION_TIMEOUT');
       });
 
-      it('should throw error when WebSocket connection fails', async () => {
+      it('throws error when WebSocket connection fails', async () => {
         const mockReady = jest
           .fn()
           .mockRejectedValue(new Error('WebSocket closed'));
@@ -1968,7 +2005,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Asset Mapping', () => {
-    it('should handle asset mapping errors', async () => {
+    it('handles asset mapping errors', async () => {
       (
         mockClientService.getInfoClient().meta as jest.Mock
       ).mockRejectedValueOnce(new Error('Meta fetch failed'));
@@ -1987,7 +2024,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle validation errors in orders', async () => {
+    it('handles validation errors in orders', async () => {
       mockValidateOrderParams.mockReturnValueOnce({
         isValid: false,
         error: 'Invalid order parameters',
@@ -2006,7 +2043,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('Invalid order parameters');
     });
 
-    it('should handle validation errors in withdrawals', async () => {
+    it('handles validation errors in withdrawals', async () => {
       mockValidateWithdrawalParams.mockReturnValueOnce({
         isValid: false,
         error: 'Invalid withdrawal parameters',
@@ -2025,7 +2062,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('Invalid withdrawal parameters');
     });
 
-    it('should handle unknown errors gracefully', async () => {
+    it('handles unknown errors gracefully', async () => {
       (
         mockClientService.getInfoClient().clearinghouseState as jest.Mock
       ).mockRejectedValueOnce(new Error('Unknown error'));
@@ -2037,7 +2074,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('error mapping integration', () => {
-      it('should map HyperLiquid leverage error in placeOrder to ORDER_LEVERAGE_REDUCTION_FAILED', async () => {
+      it('maps HyperLiquid leverage error in placeOrder to ORDER_LEVERAGE_REDUCTION_FAILED', async () => {
         // Mock placeOrder to throw the specific HyperLiquid error
         mockClientService.getExchangeClient = jest.fn().mockReturnValue({
           order: jest
@@ -2067,7 +2104,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toBe('ORDER_LEVERAGE_REDUCTION_FAILED');
       });
 
-      it('should map case insensitive HyperLiquid error', async () => {
+      it('maps case insensitive HyperLiquid error', async () => {
         // Mock with uppercase version
         mockClientService.getExchangeClient = jest.fn().mockReturnValue({
           order: jest
@@ -2097,7 +2134,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toBe('ORDER_LEVERAGE_REDUCTION_FAILED');
       });
 
-      it('should map partial error message containing the pattern', async () => {
+      it('maps partial error message containing the pattern', async () => {
         // Mock with longer error message containing the pattern
         mockClientService.getExchangeClient = jest.fn().mockReturnValue({
           order: jest
@@ -2127,7 +2164,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toBe('ORDER_LEVERAGE_REDUCTION_FAILED');
       });
 
-      it('should preserve original error message for unmapped errors', async () => {
+      it('preserves original error message for unmapped errors', async () => {
         // Mock with an unmapped error
         const originalError = new Error('Some other HyperLiquid API error');
         mockClientService.getExchangeClient = jest.fn().mockReturnValue({
@@ -2155,7 +2192,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle missing asset info in orders', async () => {
+    it('handles missing asset info in orders', async () => {
       (
         mockClientService.getInfoClient().meta as jest.Mock
       ).mockResolvedValueOnce({
@@ -2176,7 +2213,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('Asset UNKNOWN not found');
     });
 
-    it('should handle missing price data', async () => {
+    it('handles missing price data', async () => {
       (
         mockClientService.getInfoClient().allMids as jest.Mock
       ).mockResolvedValueOnce({});
@@ -2194,7 +2231,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
     });
 
-    it('should handle missing position in close operation', async () => {
+    it('handles missing position in close operation', async () => {
       (
         mockClientService.getInfoClient().clearinghouseState as jest.Mock
       ).mockResolvedValueOnce({
@@ -2214,7 +2251,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('validateDeposit', () => {
-    it('should validate valid deposit parameters', async () => {
+    it('validates valid deposit parameters', async () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
       const params: DepositParams = {
@@ -2229,7 +2266,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBeUndefined();
     });
 
-    it('should reject empty amount', async () => {
+    it('rejects empty amount', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'Amount is required and must be greater than 0',
@@ -2249,7 +2286,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should reject zero amount', async () => {
+    it('rejects zero amount', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'Amount is required and must be greater than 0',
@@ -2269,7 +2306,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should reject negative amount', async () => {
+    it('rejects negative amount', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'Amount is required and must be greater than 0',
@@ -2289,7 +2326,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should reject invalid amount format', async () => {
+    it('rejects invalid amount format', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'Amount is required and must be greater than 0',
@@ -2309,7 +2346,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should reject amount below minimum for mainnet', async () => {
+    it('rejects amount below minimum for mainnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(false);
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
@@ -2328,7 +2365,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBe('Minimum deposit amount is 5 USDC');
     });
 
-    it('should reject amount below minimum for testnet', async () => {
+    it('rejects amount below minimum for testnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(true);
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
@@ -2347,7 +2384,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBe('Minimum deposit amount is 10 USDC');
     });
 
-    it('should accept amount at minimum for mainnet', async () => {
+    it('accepts amount at minimum for mainnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(false);
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
@@ -2363,7 +2400,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBeUndefined();
     });
 
-    it('should accept amount at minimum for testnet', async () => {
+    it('accepts amount at minimum for testnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(true);
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
@@ -2379,7 +2416,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBeUndefined();
     });
 
-    it('should reject empty assetId', async () => {
+    it('rejects empty assetId', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'AssetId is required for deposit validation',
@@ -2396,7 +2433,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBe('AssetId is required for deposit validation');
     });
 
-    it('should reject unsupported assetId', async () => {
+    it('rejects unsupported assetId', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'Asset not supported',
@@ -2414,7 +2451,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('not supported');
     });
 
-    it('should handle decimal amounts correctly', async () => {
+    it('handles decimal amounts correctly', async () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
       const params: DepositParams = {
@@ -2429,7 +2466,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBeUndefined();
     });
 
-    it('should handle large amounts correctly', async () => {
+    it('handles large amounts correctly', async () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
       const params: DepositParams = {
@@ -2444,7 +2481,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBeUndefined();
     });
 
-    it('should handle scientific notation', async () => {
+    it('handles scientific notation', async () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
       const params: DepositParams = {
@@ -2461,7 +2498,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('validateClosePosition', () => {
-    it('should validate full close position successfully', async () => {
+    it('validates full close position successfully', async () => {
       const params: ClosePositionParams = {
         symbol: 'BTC',
         orderType: 'market',
@@ -2473,7 +2510,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBeUndefined();
     });
 
-    it('should validate partial close position successfully', async () => {
+    it('validates partial close position successfully', async () => {
       const params: ClosePositionParams = {
         symbol: 'BTC',
         size: '0.5',
@@ -2487,7 +2524,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBeUndefined();
     });
 
-    it('should reject close position below minimum value on mainnet', async () => {
+    it('rejects close position below minimum value on mainnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(false);
 
       const params: ClosePositionParams = {
@@ -2503,7 +2540,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
-    it('should reject close position below minimum value on testnet', async () => {
+    it('rejects close position below minimum value on testnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(true);
 
       const params: ClosePositionParams = {
@@ -2519,7 +2556,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
-    it('should accept close position at minimum value', async () => {
+    it('accepts close position at minimum value', async () => {
       mockClientService.isTestnetMode.mockReturnValue(false);
 
       const params: ClosePositionParams = {
@@ -2535,7 +2572,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBeUndefined();
     });
 
-    it('should validate limit close position with price', async () => {
+    it('validates limit close position with price', async () => {
       const params: ClosePositionParams = {
         symbol: 'BTC',
         size: '1.0',
@@ -2550,7 +2587,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBeUndefined();
     });
 
-    it('should reject limit close without price', async () => {
+    it('rejects limit close without price', async () => {
       const params: ClosePositionParams = {
         symbol: 'BTC',
         size: '1.0',
@@ -2564,7 +2601,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED);
     });
 
-    it('should handle validation when currentPrice is not provided', async () => {
+    it('handles validation when currentPrice is not provided', async () => {
       const params: ClosePositionParams = {
         symbol: 'BTC',
         size: '0.5',
@@ -2595,7 +2632,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should calculate liquidation price for long position correctly', async () => {
+    it('calculates liquidation price for long position correctly', async () => {
       const params = {
         entryPrice: 50000,
         leverage: 10,
@@ -2615,7 +2652,7 @@ describe('HyperLiquidProvider', () => {
       expect(parseFloat(result)).toBeCloseTo(46153.85, 2);
     });
 
-    it('should calculate liquidation price for short position correctly', async () => {
+    it('calculates liquidation price for short position correctly', async () => {
       const params = {
         entryPrice: 50000,
         leverage: 10,
@@ -2635,7 +2672,7 @@ describe('HyperLiquidProvider', () => {
       expect(parseFloat(result)).toBeCloseTo(53658.54, 2);
     });
 
-    it('should throw error for leverage exceeding maintenance leverage', async () => {
+    it('throws error for leverage exceeding maintenance leverage', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           meta: jest.fn().mockResolvedValue({
@@ -2659,7 +2696,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should handle invalid inputs', async () => {
+    it('handles invalid inputs', async () => {
       const invalidCases = [
         { entryPrice: 0, leverage: 10, direction: 'long' as const },
         { entryPrice: 50000, leverage: 0, direction: 'long' as const },
@@ -2674,7 +2711,7 @@ describe('HyperLiquidProvider', () => {
       }
     });
 
-    it('should use default max leverage when asset is not provided', async () => {
+    it('uses default max leverage when asset is not provided', async () => {
       const params = {
         entryPrice: 50000,
         leverage: 4,
@@ -2695,7 +2732,7 @@ describe('HyperLiquidProvider', () => {
       expect(parseFloat(result)).toBeCloseTo(45002, -1);
     });
 
-    it('should throw error when leverage exceeds default max leverage', async () => {
+    it('throws error when leverage exceeds default max leverage', async () => {
       const params = {
         entryPrice: 50000,
         leverage: 10,
@@ -2710,7 +2747,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('calculateMaintenanceMargin', () => {
-    it('should calculate maintenance margin correctly for 40x max leverage asset', async () => {
+    it('calculates maintenance margin correctly for 40x max leverage asset', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           meta: jest.fn().mockResolvedValue({
@@ -2727,7 +2764,7 @@ describe('HyperLiquidProvider', () => {
       expect(result).toBe(0.0125);
     });
 
-    it('should calculate maintenance margin correctly for 3x max leverage asset', async () => {
+    it('calculates maintenance margin correctly for 3x max leverage asset', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         meta: jest.fn().mockResolvedValue({
           universe: [{ name: 'DOGE', maxLeverage: 3, szDecimals: 0 }],
@@ -2742,7 +2779,7 @@ describe('HyperLiquidProvider', () => {
       expect(result).toBeCloseTo(0.1667, 4);
     });
 
-    it('should return default maintenance margin when asset not found', async () => {
+    it('returns default maintenance margin when asset not found', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         meta: jest.fn().mockResolvedValue({
           universe: [],
@@ -2759,7 +2796,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('getMaxLeverage', () => {
-    it('should return max leverage for an asset', async () => {
+    it('returns max leverage for an asset', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           meta: jest.fn().mockResolvedValue({
@@ -2773,7 +2810,7 @@ describe('HyperLiquidProvider', () => {
       expect(result).toBe(30);
     });
 
-    it('should return default max leverage when asset not found', async () => {
+    it('returns default max leverage when asset not found', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         meta: jest.fn().mockResolvedValue({
           universe: [],
@@ -2786,7 +2823,7 @@ describe('HyperLiquidProvider', () => {
       expect(result).toBe(3);
     });
 
-    it('should return default max leverage on network failure', async () => {
+    it('returns default max leverage on network failure', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         meta: jest.fn().mockRejectedValue(new Error('Network error')),
       });
@@ -2800,7 +2837,7 @@ describe('HyperLiquidProvider', () => {
 
   describe('Additional Error Handling and Edge Cases', () => {
     describe('ensureReady and buildAssetMapping', () => {
-      it('should handle meta fetch failure in buildAssetMapping', async () => {
+      it('handles meta fetch failure in buildAssetMapping', async () => {
         // Create a fresh provider to test buildAssetMapping
         const freshProvider = createTestProvider();
 
@@ -2833,7 +2870,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain('Network timeout');
       });
 
-      it('should handle string response from meta endpoint', async () => {
+      it('handles string response from meta endpoint', async () => {
         // Test updatePositionTPSL with string meta response (invalid data type)
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
@@ -2854,7 +2891,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain('Invalid meta response');
       });
 
-      it('should handle meta response without universe property', async () => {
+      it('handles meta response without universe property', async () => {
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockResolvedValue({}), // Empty object without universe
@@ -2874,7 +2911,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('Order placement edge cases', () => {
-      it('should handle leverage update failure', async () => {
+      it('handles leverage update failure', async () => {
         mockClientService.getExchangeClient = jest.fn().mockReturnValue(
           createMockExchangeClient({
             updateLeverage: jest.fn().mockResolvedValue({
@@ -2899,7 +2936,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain('Failed to update leverage');
       });
 
-      it('should fail market order without current price or usdAmount', async () => {
+      it('fails market order without current price or usdAmount', async () => {
         const orderParams: OrderParams = {
           symbol: 'BTC',
           isBuy: true,
@@ -2914,7 +2951,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
       });
 
-      it('should handle order with custom slippage', async () => {
+      it('handles order with custom slippage', async () => {
         const orderParams: OrderParams = {
           symbol: 'BTC',
           isBuy: true,
@@ -2930,7 +2967,7 @@ describe('HyperLiquidProvider', () => {
         // Should use 2% slippage instead of default 1%
       });
 
-      it('should handle filled order response', async () => {
+      it('handles filled order response', async () => {
         mockClientService.getExchangeClient = jest.fn().mockReturnValue(
           createMockExchangeClient({
             order: jest.fn().mockResolvedValue({
@@ -2968,7 +3005,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.averagePrice).toBe('50100');
       });
 
-      it('should handle order with clientOrderId', async () => {
+      it('handles order with clientOrderId', async () => {
         const orderParams: OrderParams = {
           symbol: 'BTC',
           isBuy: true,
@@ -2983,7 +3020,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.success).toBe(true);
       });
 
-      it('should handle order with TP/SL and custom grouping', async () => {
+      it('handles order with TP/SL and custom grouping', async () => {
         const orderParams: OrderParams = {
           symbol: 'BTC',
           isBuy: true,
@@ -3002,7 +3039,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('updatePositionTPSL error scenarios', () => {
-      it('should handle WebSocket error in getPositions', async () => {
+      it('handles WebSocket error in getPositions', async () => {
         // Set up mock BEFORE creating fresh provider (provider calls metaAndAssetCtxs on init)
         MockedHyperLiquidClientService.mockImplementation(
           () => mockClientService,
@@ -3029,7 +3066,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toBe('WebSocket connection failed');
       });
 
-      it('should handle non-WebSocket error in getPositions', async () => {
+      it('handles non-WebSocket error in getPositions', async () => {
         // Set up mock BEFORE creating fresh provider (provider calls metaAndAssetCtxs on init)
         MockedHyperLiquidClientService.mockImplementation(
           () => mockClientService,
@@ -3056,7 +3093,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain('Generic API error');
       });
 
-      it('should handle canceling existing TP/SL orders', async () => {
+      it('handles canceling existing TP/SL orders', async () => {
         // Set up asset mapping for BTC
         Object.defineProperty(provider, 'symbolToAssetId', {
           value: new Map([['BTC', 0]]),
@@ -3122,7 +3159,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('getAccountState error handling', () => {
-      it('should re-throw errors instead of returning zeros', async () => {
+      it('re-throws errors instead of returning zeros', async () => {
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             clearinghouseState: jest
@@ -3143,7 +3180,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('getMarketDataWithPrices error scenarios', () => {
-      it('should handle missing perpsMeta', async () => {
+      it('handles missing perpsMeta', async () => {
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockResolvedValue(null),
@@ -3158,7 +3195,7 @@ describe('HyperLiquidProvider', () => {
         );
       });
 
-      it('should handle missing allMids', async () => {
+      it('handles missing allMids', async () => {
         // Set up mock BEFORE creating fresh provider
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
@@ -3193,7 +3230,7 @@ describe('HyperLiquidProvider', () => {
         expect(result[0].price).toBe('$---'); // Fallback when allMids is null
       });
 
-      it('should handle meta and predictedFundings calls successfully', async () => {
+      it('handles meta and predictedFundings calls successfully', async () => {
         // Set up mock BEFORE creating fresh provider
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
@@ -3234,7 +3271,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('withdrawal edge cases', () => {
-      it('should handle withdrawal without destination (use current user)', async () => {
+      it('handles withdrawal without destination (use current user)', async () => {
         mockWalletService.getUserAddressWithDefault.mockResolvedValue(
           '0xdefaultaddress',
         );
@@ -3269,7 +3306,7 @@ describe('HyperLiquidProvider', () => {
         });
       });
 
-      it('should handle withdrawal API error', async () => {
+      it('handles withdrawal API error', async () => {
         mockClientService.getExchangeClient = jest.fn().mockReturnValue({
           withdraw3: jest.fn().mockResolvedValue({
             status: 'insufficient_funds',
@@ -3300,7 +3337,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('liquidation price edge cases', () => {
-      it('should handle denominator close to zero', async () => {
+      it('handles denominator close to zero', async () => {
         // Create scenario where denominator approaches zero
         // For denominator = 1 - l * side to be close to 0 with long (side = 1):
         // We need l very close to 1, so maintenanceLeverage very close to 1
@@ -3329,7 +3366,7 @@ describe('HyperLiquidProvider', () => {
         expect(parseFloat(result)).toBeCloseTo(50000, 0);
       });
 
-      it('should handle liquidation price calculation error', async () => {
+      it('handles liquidation price calculation error', async () => {
         // Mock getMaxLeverage to throw an error but still use default
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
@@ -3352,7 +3389,7 @@ describe('HyperLiquidProvider', () => {
         consoleSpy.mockRestore();
       });
 
-      it('should handle negative liquidation price', async () => {
+      it('handles negative liquidation price', async () => {
         // Create scenario that might result in negative liquidation price
         const params = {
           entryPrice: 100,
@@ -3373,7 +3410,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('isReadyToTrade edge cases', () => {
-      it('should handle getCurrentAccountId throwing error', async () => {
+      it('handles getCurrentAccountId throwing error', async () => {
         mockWalletService.getCurrentAccountId.mockImplementation(() => {
           throw new Error('No account found');
         });
@@ -3385,7 +3422,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.networkSupported).toBe(true);
       });
 
-      it('should handle missing exchange or info client', async () => {
+      it('handles missing exchange or info client', async () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockClientService.getExchangeClient.mockReturnValue(null as any);
 
@@ -3395,7 +3432,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.walletConnected).toBe(false);
       });
 
-      it('should handle general error in readiness check', async () => {
+      it('handles general error in readiness check', async () => {
         mockClientService.getExchangeClient.mockImplementation(() => {
           throw new Error('Client error');
         });
@@ -3410,7 +3447,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('editOrder error scenarios', () => {
-      it('should handle edit order API failure', async () => {
+      it('handles edit order API failure', async () => {
         mockClientService.getExchangeClient = jest.fn().mockReturnValue({
           modify: jest.fn().mockResolvedValue({
             status: 'error',
@@ -3436,7 +3473,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('cancelOrder error scenarios', () => {
-      it('should handle cancel order API returning non-success status', async () => {
+      it('handles cancel order API returning non-success status', async () => {
         mockClientService.getExchangeClient = jest.fn().mockReturnValue({
           cancel: jest.fn().mockResolvedValue({
             status: 'ok',
@@ -3466,7 +3503,7 @@ describe('HyperLiquidProvider', () => {
         );
       });
 
-      it('should calculate fees for market orders', async () => {
+      it('calculates fees for market orders', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
           isMaker: false,
@@ -3478,7 +3515,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(145); // 100000 * 0.00145
       });
 
-      it('should calculate fees for limit orders as taker', async () => {
+      it('calculates fees for limit orders as taker', async () => {
         const result = await provider.calculateFees({
           orderType: 'limit',
           isMaker: false,
@@ -3490,7 +3527,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(145); // Includes MetaMask fee
       });
 
-      it('should calculate fees for limit orders as maker', async () => {
+      it('calculates fees for limit orders as maker', async () => {
         const result = await provider.calculateFees({
           orderType: 'limit',
           isMaker: true,
@@ -3502,7 +3539,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBeCloseTo(115, 10); // Includes MetaMask fee
       });
 
-      it('should handle zero amount', async () => {
+      it('handles zero amount', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
           isMaker: false,
@@ -3514,7 +3551,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(0);
       });
 
-      it('should handle undefined amount', async () => {
+      it('handles undefined amount', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
           isMaker: false,
@@ -3525,7 +3562,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBeUndefined();
       });
 
-      it('should use cached user-specific fee rates when available', async () => {
+      it('uses cached user-specific fee rates when available', async () => {
         // Reset mock and set user address to trigger user fee fetching
         (mockClientService.getInfoClient().userFees as jest.Mock).mockClear();
         (
@@ -3572,7 +3609,7 @@ describe('HyperLiquidProvider', () => {
         ).toHaveBeenCalledTimes(1);
       });
 
-      it('should fall back to base rates on API failure', async () => {
+      it('falls back to base rates on API failure', async () => {
         // Reset and mock user address
         (mockClientService.getInfoClient().userFees as jest.Mock).mockClear();
         mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
@@ -3594,7 +3631,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(145); // Includes MetaMask fee
       });
 
-      it('should handle non-numeric amount gracefully', async () => {
+      it('handles non-numeric amount gracefully', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
           isMaker: false,
@@ -3606,7 +3643,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(0); // parseFloat('invalid') returns NaN, which * 0.00045 = NaN, but we expect 0
       });
 
-      it('should return FeeCalculationResult with correct structure', async () => {
+      it('returns FeeCalculationResult with correct structure', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
           isMaker: false,
@@ -3620,7 +3657,7 @@ describe('HyperLiquidProvider', () => {
         expect(typeof result.feeAmount).toBe('number');
       });
 
-      it('should be async and return a Promise', () => {
+      it('is async and return a Promise', () => {
         const result = provider.calculateFees({
           orderType: 'market',
           isMaker: false,
@@ -3630,7 +3667,7 @@ describe('HyperLiquidProvider', () => {
         expect(result).toBeInstanceOf(Promise);
       });
 
-      it('should fetch user-specific fee rates when wallet is connected', async () => {
+      it('fetches user-specific fee rates when wallet is connected', async () => {
         const testAddress = '0xTestAddress123';
         mockWalletService.getUserAddressWithDefault.mockResolvedValue(
           testAddress,
@@ -3659,7 +3696,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBeCloseTo(143.2, 2); // Includes MetaMask fee
       });
 
-      it('should fall back to base rates when API returns invalid fee rates', async () => {
+      it('falls back to base rates when API returns invalid fee rates', async () => {
         const testAddress = '0xTestAddress123';
         mockWalletService.getUserAddressWithDefault.mockResolvedValue(
           testAddress,
@@ -3687,7 +3724,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(145); // Includes MetaMask fee
       });
 
-      it('should fall back to base rates when API returns negative fee rates', async () => {
+      it('falls back to base rates when API returns negative fee rates', async () => {
         const testAddress = '0xTestAddress123';
         mockWalletService.getUserAddressWithDefault.mockResolvedValue(
           testAddress,
@@ -3715,7 +3752,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(145); // Includes MetaMask fee
       });
 
-      it('should always use taker rate for market orders regardless of isMaker', async () => {
+      it('always uses taker rate for market orders regardless of isMaker', async () => {
         const testAddress = '0xTestAddress123';
         mockWalletService.getUserAddressWithDefault.mockResolvedValue(
           testAddress,
@@ -3745,7 +3782,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBeCloseTo(133.6, 2); // Includes MetaMask fee
       });
 
-      it('should apply referral discount only when no staking discount', async () => {
+      it('applies referral discount only when no staking discount', async () => {
         const testAddress = '0xTestAddress123';
         mockWalletService.getUserAddressWithDefault.mockResolvedValue(
           testAddress,
@@ -3774,7 +3811,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBeCloseTo(143.2, 2);
       });
 
-      it('should apply staking discount only when no referral discount', async () => {
+      it('applies staking discount only when no referral discount', async () => {
         const testAddress = '0xTestAddress123';
         mockWalletService.getUserAddressWithDefault.mockResolvedValue(
           testAddress,
@@ -3803,7 +3840,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBeCloseTo(140.5, 2);
       });
 
-      it('should cap combined discounts at 40%', async () => {
+      it('caps combined discounts at 40%', async () => {
         const testAddress = '0xTestAddress123';
         mockWalletService.getUserAddressWithDefault.mockResolvedValue(
           testAddress,
@@ -3833,7 +3870,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBeCloseTo(127.0, 2);
       });
 
-      it('should handle maker rates with discounts correctly', async () => {
+      it('handles maker rates with discounts correctly', async () => {
         const testAddress = '0xTestAddress123';
         mockWalletService.getUserAddressWithDefault.mockResolvedValue(
           testAddress,
@@ -3862,7 +3899,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBeCloseTo(113.65, 2);
       });
 
-      it('should handle zero discounts correctly', async () => {
+      it('handles zero discounts correctly', async () => {
         const testAddress = '0xTestAddress123';
         mockWalletService.getUserAddressWithDefault.mockResolvedValue(
           testAddress,
@@ -3891,7 +3928,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(145);
       });
 
-      it('should apply 2× fee multiplier for HIP-3 assets', async () => {
+      it('applies 2× fee multiplier for HIP-3 assets', async () => {
         // HIP-3 asset (dex:SYMBOL format)
         const result = await provider.calculateFees({
           orderType: 'market',
@@ -3905,7 +3942,7 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(190); // 100000 * 0.0019
       });
 
-      it('should apply 2× fee multiplier for HIP-3 maker orders', async () => {
+      it('applies 2× fee multiplier for HIP-3 maker orders', async () => {
         // HIP-3 asset (dex:SYMBOL format)
         const result = await provider.calculateFees({
           orderType: 'limit',
@@ -4182,7 +4219,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('getBlockExplorerUrl', () => {
-      it('should return mainnet explorer URL with address', () => {
+      it('returns mainnet explorer URL with address', () => {
         const address = '0x1234567890abcdef1234567890abcdef12345678';
         const result = provider.getBlockExplorerUrl(address);
 
@@ -4191,13 +4228,13 @@ describe('HyperLiquidProvider', () => {
         );
       });
 
-      it('should return mainnet base explorer URL without address', () => {
+      it('returns mainnet base explorer URL without address', () => {
         const result = provider.getBlockExplorerUrl();
 
         expect(result).toBe('https://app.hyperliquid.xyz/explorer');
       });
 
-      it('should return testnet explorer URL with address when in testnet mode', () => {
+      it('returns testnet explorer URL with address when in testnet mode', () => {
         // Mock testnet mode
         (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(true);
 
@@ -4209,7 +4246,7 @@ describe('HyperLiquidProvider', () => {
         );
       });
 
-      it('should return testnet base explorer URL without address when in testnet mode', () => {
+      it('returns testnet base explorer URL without address when in testnet mode', () => {
         // Mock testnet mode
         (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(true);
 
@@ -4218,7 +4255,7 @@ describe('HyperLiquidProvider', () => {
         expect(result).toBe('https://app.hyperliquid-testnet.xyz/explorer');
       });
 
-      it('should handle empty string address', () => {
+      it('handles empty string address', () => {
         const result = provider.getBlockExplorerUrl('');
 
         expect(result).toBe('https://app.hyperliquid.xyz/explorer');
@@ -4231,7 +4268,7 @@ describe('HyperLiquidProvider', () => {
       mockValidateOrderParams.mockReturnValue({ isValid: true });
     });
 
-    it('should validate order successfully with valid params and price', async () => {
+    it('validates order successfully with valid params and price', async () => {
       const params: OrderParams = {
         symbol: 'BTC',
         size: '0.1',
@@ -4253,7 +4290,7 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    it('should fail validation when currentPrice is missing', async () => {
+    it('fails validation when currentPrice is missing', async () => {
       const params: OrderParams = {
         symbol: 'BTC',
         size: '0.1',
@@ -4269,7 +4306,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
     });
 
-    it('should fail validation when order value is below minimum', async () => {
+    it('fails validation when order value is below minimum', async () => {
       const params: OrderParams = {
         symbol: 'BTC',
         size: '0.00001', // Very small size
@@ -4285,7 +4322,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
-    it('should fail validation when basic params are invalid', async () => {
+    it('fails validation when basic params are invalid', async () => {
       mockValidateOrderParams.mockReturnValue({
         isValid: false,
         error: 'Invalid coin',
@@ -4306,7 +4343,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBe('Invalid coin');
     });
 
-    it('should validate limit order with price', async () => {
+    it('validates limit order with price', async () => {
       const params: OrderParams = {
         symbol: 'ETH',
         size: '1',
@@ -4328,7 +4365,7 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    it('should handle validation errors gracefully', async () => {
+    it('handles validation errors gracefully', async () => {
       mockValidateOrderParams.mockImplementation(() => {
         throw new Error('Unexpected error');
       });
@@ -4462,7 +4499,7 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    it('should include builder fee and referral setup in order placement', async () => {
+    it('includes builder fee and referral setup in order placement', async () => {
       // Mock builder fee not approved to trigger approval call
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         maxBuilderFee: jest
@@ -4565,7 +4602,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should include builder fee and referral setup in TP/SL updates', async () => {
+    it('includes builder fee and referral setup in TP/SL updates', async () => {
       // Mock builder fee not approved to trigger approval call
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         maxBuilderFee: jest
@@ -4660,7 +4697,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should skip referral setup when user is the builder', async () => {
+    it('skips referral setup when user is the builder', async () => {
       // Mock user address to be the same as builder address
       mockWalletService.getUserAddressWithDefault.mockResolvedValue(
         '0xe95a5e31904e005066614247d309e00d8ad753aa', // Builder address
@@ -4691,7 +4728,7 @@ describe('HyperLiquidProvider', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('should handle builder fee approval failure', async () => {
+    it('handles builder fee approval failure', async () => {
       // Mock builder fee not approved to trigger approval call
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -4722,7 +4759,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('Builder fee approval failed');
     });
 
-    it('should handle referral code setup failure (non-blocking)', async () => {
+    it('handles referral code setup failure (non-blocking)', async () => {
       // Mock builder fee already approved
       mockClientService.getInfoClient = jest
         .fn()
@@ -4760,7 +4797,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.orderId).toBeDefined();
     });
 
-    it('should skip referral setup when referral code is not ready', async () => {
+    it('skips referral setup when referral code is not ready', async () => {
       // Mock referral code not ready
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -4791,7 +4828,7 @@ describe('HyperLiquidProvider', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('should skip referral setup when user already has a referral', async () => {
+    it('skips referral setup when user already has a referral', async () => {
       // Mock user already has a referral by setting referredBy.code
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -4827,7 +4864,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Additional Coverage Tests', () => {
-    it('should handle getUserFills with empty response', async () => {
+    it('handles getUserFills with empty response', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         userFills: jest.fn().mockResolvedValue(null),
       });
@@ -4836,7 +4873,7 @@ describe('HyperLiquidProvider', () => {
       expect(result).toEqual([]);
     });
 
-    it('should handle getOrders with empty response', async () => {
+    it('handles getOrders with empty response', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         historicalOrders: jest.fn().mockResolvedValue(null),
       });
@@ -4845,7 +4882,7 @@ describe('HyperLiquidProvider', () => {
       expect(result).toEqual([]);
     });
 
-    it('should properly transform getOrders with reduceOnly and isTrigger fields', async () => {
+    it('properly transform getOrders with reduceOnly and isTrigger fields', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         maxBuilderFee: jest.fn().mockResolvedValue(1),
         referral: jest.fn().mockResolvedValue({
@@ -4951,7 +4988,7 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    it('should properly transform getOpenOrders with reduceOnly and isTrigger fields', async () => {
+    it('properly transform getOpenOrders with reduceOnly and isTrigger fields', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         maxBuilderFee: jest.fn().mockResolvedValue(1),
         referral: jest.fn().mockResolvedValue({
@@ -5100,7 +5137,7 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    it('should handle getFunding with empty response', async () => {
+    it('handles getFunding with empty response', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         userFunding: jest.fn().mockResolvedValue(null),
       });
@@ -5109,7 +5146,7 @@ describe('HyperLiquidProvider', () => {
       expect(result).toEqual([]);
     });
 
-    it('should handle validateWithdrawal returning true', async () => {
+    it('handles validateWithdrawal returning true', async () => {
       const params = {
         amount: '100',
         destination: '0x123' as Hex,
@@ -5120,13 +5157,13 @@ describe('HyperLiquidProvider', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should handle clearFeeCache with specific user', () => {
+    it('handles clearFeeCache with specific user', () => {
       const userAddress = '0x123';
       provider.clearFeeCache(userAddress);
       // Method should complete without error
     });
 
-    it('should handle isFeeCacheValid with non-existent address', async () => {
+    it('handles isFeeCacheValid with non-existent address', async () => {
       // Access private method for edge case testing
       interface ProviderWithPrivateMethods {
         isFeeCacheValid(userAddress: string): boolean;

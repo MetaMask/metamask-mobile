@@ -1212,7 +1212,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         );
 
         const controller = Engine.context.PerpsController;
-        const provider = controller.getActiveProvider();
+        const provider = controller.getActiveProviderOrNull();
+        if (!provider) {
+          DevLogger.log(
+            'PerpsStreamManager: Provider not ready, skipping fetch',
+          );
+          return;
+        }
         const data = await provider.getMarketDataWithPrices();
         const fetchTime = Date.now() - fetchStartTime;
 
