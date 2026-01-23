@@ -182,10 +182,7 @@ export default class SelectComponent extends PureComponent {
           backdropOpacity={1}
         >
           <View style={styles.modalView}>
-            <HeaderCenter
-              title={this.props.label}
-              onClose={this.hidePicker}
-            />
+            <HeaderCenter title={this.props.label} onClose={this.hidePicker} />
             <ScrollView style={styles.list} ref={this.scrollView}>
               <View style={styles.listWrapper}>
                 {this.props.options.map((option) => (

@@ -204,106 +204,109 @@ class AppInformation extends PureComponent {
           style={styles.wrapper}
           testID={AboutMetaMaskSelectorsIDs.CONTAINER}
         >
-          <ScrollView contentContainerStyle={styles.wrapperContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={styles.wrapperContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.logoWrapper}>
-            <TouchableOpacity
-              delayLongPress={10 * 1000} // 10 seconds
-              onLongPress={this.handleLongPressFox}
-              activeOpacity={1}
-            >
-              <Image
-                source={foxImage}
-                style={styles.image}
-                resizeMethod={'auto'}
-              />
-            </TouchableOpacity>
-            <Text style={styles.versionInfo}>
-              {getFullVersion(this.state.appInfo)}
-            </Text>
-            {isQa ? (
-              <Text style={styles.branchInfo}>
-                {`Branch: ${process.env['GIT_BRANCH']}`}
+              <TouchableOpacity
+                delayLongPress={10 * 1000} // 10 seconds
+                onLongPress={this.handleLongPressFox}
+                activeOpacity={1}
+              >
+                <Image
+                  source={foxImage}
+                  style={styles.image}
+                  resizeMethod={'auto'}
+                />
+              </TouchableOpacity>
+              <Text style={styles.versionInfo}>
+                {getFullVersion(this.state.appInfo)}
               </Text>
-            ) : null}
+              {isQa ? (
+                <Text style={styles.branchInfo}>
+                  {`Branch: ${process.env['GIT_BRANCH']}`}
+                </Text>
+              ) : null}
 
-            {this.state.showEnvironmentInfo && (
-              <>
-                <Text style={styles.branchInfo}>
-                  {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
-                </Text>
-                <Text style={styles.branchInfo}>
-                  {`Remote Feature Flag Env: ${getFeatureFlagAppEnvironment()}`}
-                </Text>
-                <Text style={styles.branchInfo}>
-                  {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
-                </Text>
-                <Text style={styles.branchInfo}>
-                  {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
-                </Text>
-                {isOTAUpdatesEnabled && (
-                  <>
-                    <Text style={styles.branchInfo}>
-                      {`Update ID: ${updateId || 'N/A'}`}
-                    </Text>
-                    <Text style={styles.branchInfo}>
-                      {`OTA Update Channel: ${channel}`}
-                    </Text>
-                    <Text style={styles.branchInfo}>
-                      {`OTA Update runtime version: ${runtimeVersion}`}
-                    </Text>
-                    <Text style={styles.branchInfo}>
-                      {`Check Automatically: ${checkAutomatically}`}
-                    </Text>
-                    <Text style={styles.branchInfo}>
-                      {`OTA Update status: ${otaUpdateMessage}`}
-                    </Text>
-                  </>
-                )}
-
-                {this.props.preinstalledSnaps.map((snap) => (
-                  <Text key={snap.name} style={styles.branchInfo}>
-                    {snap.name}: {snap.version} ({snap.status})
+              {this.state.showEnvironmentInfo && (
+                <>
+                  <Text style={styles.branchInfo}>
+                    {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
                   </Text>
-                ))}
-              </>
-            )}
-          </View>
-          <Text style={styles.title}>{strings('app_information.links')}</Text>
-          <View style={styles.links}>
-            <TouchableOpacity onPress={this.onPrivacyPolicy}>
-              <Text style={styles.link}>
-                {strings('app_information.privacy_policy')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onTermsOfUse}>
-              <Text style={styles.link}>
-                {strings('app_information.terms_of_use')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onAttributions}>
-              <Text style={styles.link}>
-                {strings('app_information.attributions')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.division} />
-          <View style={styles.links}>
-            <TouchableOpacity onPress={this.onSupportCenter}>
-              <Text style={styles.link}>
-                {strings('app_information.support_center')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onWebSite}>
-              <Text style={styles.link}>
-                {strings('app_information.web_site')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onContactUs}>
-              <Text style={styles.link}>
-                {strings('app_information.contact_us')}
-              </Text>
-            </TouchableOpacity>
-          </View>
+                  <Text style={styles.branchInfo}>
+                    {`Remote Feature Flag Env: ${getFeatureFlagAppEnvironment()}`}
+                  </Text>
+                  <Text style={styles.branchInfo}>
+                    {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
+                  </Text>
+                  <Text style={styles.branchInfo}>
+                    {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
+                  </Text>
+                  {isOTAUpdatesEnabled && (
+                    <>
+                      <Text style={styles.branchInfo}>
+                        {`Update ID: ${updateId || 'N/A'}`}
+                      </Text>
+                      <Text style={styles.branchInfo}>
+                        {`OTA Update Channel: ${channel}`}
+                      </Text>
+                      <Text style={styles.branchInfo}>
+                        {`OTA Update runtime version: ${runtimeVersion}`}
+                      </Text>
+                      <Text style={styles.branchInfo}>
+                        {`Check Automatically: ${checkAutomatically}`}
+                      </Text>
+                      <Text style={styles.branchInfo}>
+                        {`OTA Update status: ${otaUpdateMessage}`}
+                      </Text>
+                    </>
+                  )}
+
+                  {this.props.preinstalledSnaps.map((snap) => (
+                    <Text key={snap.name} style={styles.branchInfo}>
+                      {snap.name}: {snap.version} ({snap.status})
+                    </Text>
+                  ))}
+                </>
+              )}
+            </View>
+            <Text style={styles.title}>{strings('app_information.links')}</Text>
+            <View style={styles.links}>
+              <TouchableOpacity onPress={this.onPrivacyPolicy}>
+                <Text style={styles.link}>
+                  {strings('app_information.privacy_policy')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={this.onTermsOfUse}>
+                <Text style={styles.link}>
+                  {strings('app_information.terms_of_use')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={this.onAttributions}>
+                <Text style={styles.link}>
+                  {strings('app_information.attributions')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.division} />
+            <View style={styles.links}>
+              <TouchableOpacity onPress={this.onSupportCenter}>
+                <Text style={styles.link}>
+                  {strings('app_information.support_center')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={this.onWebSite}>
+                <Text style={styles.link}>
+                  {strings('app_information.web_site')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={this.onContactUs}>
+                <Text style={styles.link}>
+                  {strings('app_information.contact_us')}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         </SafeAreaView>
       </>

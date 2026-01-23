@@ -399,93 +399,93 @@ const Settings: React.FC = () => {
         ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
       >
-      <View style={styles.inner}>
-        <Heading first>{strings('app_settings.security_heading')}</Heading>
-        <ProtectYourWallet
-          srpBackedup={seedphraseBackedUp}
-          hintText={hintText}
-          toggleHint={toggleHint}
-        />
-        <ChangePassword />
-        <AutoLock />
-        <LoginOptionsSettings />
-        <View style={styles.setting}>
-          <RememberMeOptionSection />
-        </View>
-        <BlockaidSettings />
-        <Heading>{strings('app_settings.privacy_heading')}</Heading>
-        <View>
+        <View style={styles.inner}>
+          <Heading first>{strings('app_settings.security_heading')}</Heading>
+          <ProtectYourWallet
+            srpBackedup={seedphraseBackedUp}
+            hintText={hintText}
+            toggleHint={toggleHint}
+          />
+          <ChangePassword />
+          <AutoLock />
+          <LoginOptionsSettings />
+          <View style={styles.setting}>
+            <RememberMeOptionSection />
+          </View>
+          <BlockaidSettings />
+          <Heading>{strings('app_settings.privacy_heading')}</Heading>
+          <View>
+            <Text
+              variant={TextVariant.BodyLGMedium}
+              color={TextColor.Alternative}
+              style={{ ...styles.subHeading, ...styles.firstSetting }}
+            >
+              {strings('app_settings.general_heading')}
+            </Text>
+            <BasicFunctionalityComponent
+              handleSwitchToggle={toggleBasicFunctionality}
+            />
+          </View>
           <Text
             variant={TextVariant.BodyLGMedium}
             color={TextColor.Alternative}
             style={{ ...styles.subHeading, ...styles.firstSetting }}
           >
-            {strings('app_settings.general_heading')}
+            {strings('app_settings.privacy_browser_subheading')}
           </Text>
-          <BasicFunctionalityComponent
-            handleSwitchToggle={toggleBasicFunctionality}
-          />
+          {renderSDKSettings()}
+          <ClearPrivacy />
+          {renderClearBrowserHistorySection()}
+          <ClearCookiesSection />
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            color={TextColor.Alternative}
+            style={styles.subHeading}
+          >
+            {strings('app_settings.network_provider')}
+          </Text>
+          <NetworkDetailsCheckSettings />
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            color={TextColor.Alternative}
+            style={styles.subHeading}
+          >
+            {strings('app_settings.transactions_subheading')}
+          </Text>
+          <BatchAccountBalanceSettings />
+          {renderHistoryModal()}
+          {renderUseTransactionSimulations()}
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            color={TextColor.Alternative}
+            style={styles.subHeading}
+          >
+            {strings('app_settings.token_nft_ens_subheading')}
+          </Text>
+          <DisplayNFTMediaSettings />
+          {isMainnet && (
+            <View ref={detectNftComponentRef}>
+              <AutoDetectNFTSettings />
+            </View>
+          )}
+          <IPFSGatewaySettings />
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            color={TextColor.Alternative}
+            style={styles.subHeading}
+          >
+            {strings('app_settings.analytics_subheading')}
+          </Text>
+          <MetaMetricsAndDataCollectionSection />
+          <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
+          <DeleteWalletData />
+          {renderHint()}
         </View>
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
-          style={{ ...styles.subHeading, ...styles.firstSetting }}
-        >
-          {strings('app_settings.privacy_browser_subheading')}
-        </Text>
-        {renderSDKSettings()}
-        <ClearPrivacy />
-        {renderClearBrowserHistorySection()}
-        <ClearCookiesSection />
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
-          style={styles.subHeading}
-        >
-          {strings('app_settings.network_provider')}
-        </Text>
-        <NetworkDetailsCheckSettings />
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
-          style={styles.subHeading}
-        >
-          {strings('app_settings.transactions_subheading')}
-        </Text>
-        <BatchAccountBalanceSettings />
-        {renderHistoryModal()}
-        {renderUseTransactionSimulations()}
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
-          style={styles.subHeading}
-        >
-          {strings('app_settings.token_nft_ens_subheading')}
-        </Text>
-        <DisplayNFTMediaSettings />
-        {isMainnet && (
-          <View ref={detectNftComponentRef}>
-            <AutoDetectNFTSettings />
-          </View>
-        )}
-        <IPFSGatewaySettings />
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
-          style={styles.subHeading}
-        >
-          {strings('app_settings.analytics_subheading')}
-        </Text>
-        <MetaMetricsAndDataCollectionSection />
-        <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
-        <DeleteWalletData />
-        {renderHint()}
-      </View>
-      <SwitchLoadingModal
-        loading={modalLoading}
-        loadingText=""
-        error={modalError}
-      />
+        <SwitchLoadingModal
+          loading={modalLoading}
+          loadingText=""
+          error={modalError}
+        />
       </ScrollView>
     </>
   );

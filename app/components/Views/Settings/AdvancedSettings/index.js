@@ -378,7 +378,10 @@ class AdvancedSettings extends PureComponent {
           onBack={() => this.props.navigation.goBack()}
           includesTopInset
         />
-        <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
+        <SafeAreaView
+          edges={{ bottom: 'additive' }}
+          style={baseStyles.flexGrow}
+        >
           <KeyboardAwareScrollView
             style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
@@ -386,141 +389,144 @@ class AdvancedSettings extends PureComponent {
             ref={this.scrollView}
             showsVerticalScrollIndicator={false}
           >
-          <View
-            style={styles.inner}
-            testID={AdvancedViewSelectorsIDs.CONTAINER}
-          >
-            <ResetAccountModal
-              resetModalVisible={resetModalVisible}
-              cancelResetAccount={this.cancelResetAccount}
-              styles={styles}
-            />
-            <View style={[styles.setting, styles.firstSetting]}>
-              <Text variant={TextVariant.BodyLGMedium}>
-                {strings('app_settings.reset_account')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.desc}
-              >
-                {strings('app_settings.reset_desc')}
-              </Text>
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                onPress={this.displayResetAccountModal}
-                label={strings('app_settings.reset_account_button')}
-                style={styles.accessory}
+            <View
+              style={styles.inner}
+              testID={AdvancedViewSelectorsIDs.CONTAINER}
+            >
+              <ResetAccountModal
+                resetModalVisible={resetModalVisible}
+                cancelResetAccount={this.cancelResetAccount}
+                styles={styles}
               />
-            </View>
+              <View style={[styles.setting, styles.firstSetting]}>
+                <Text variant={TextVariant.BodyLGMedium}>
+                  {strings('app_settings.reset_account')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  style={styles.desc}
+                >
+                  {strings('app_settings.reset_desc')}
+                </Text>
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  onPress={this.displayResetAccountModal}
+                  label={strings('app_settings.reset_account_button')}
+                  style={styles.accessory}
+                />
+              </View>
 
-            <SettingsRow
-              heading={strings('app_settings.use_smart_account_heading')}
-              description={
-                <>
-                  {strings('app_settings.use_smart_account_desc')}{' '}
-                  <Text
-                    color={TextColor.Primary}
-                    link
-                    onPress={this.openLinkAboutSmartAccount}
-                  >
-                    {strings('app_settings.use_smart_account_learn_more')}
-                  </Text>
-                </>
-              }
-              value={smartAccountOptIn}
-              onValueChange={this.toggleSmartAccountOptIn}
-              testId={AdvancedViewSelectorsIDs.SMART_ACCOUNT_OPT_IN}
-              styles={styles}
-            />
-
-            <SettingsRow
-              heading={strings(
-                'app_settings.dismiss_smart_account_update_heading',
-              )}
-              description={strings(
-                'app_settings.dismiss_smart_account_update_desc',
-              )}
-              value={dismissSmartAccountSuggestionEnabled}
-              onValueChange={this.toggleDismissSmartAccountSuggestionEnabled}
-              testId={AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE}
-              styles={styles}
-            />
-
-            <SettingsRow
-              heading={strings(
-                'app_settings.smart_transactions_opt_in_heading',
-              )}
-              description={
-                <>
-                  {strings(
-                    'app_settings.smart_transactions_opt_in_desc_supported_networks',
-                  )}{' '}
-                  <Text
-                    color={TextColor.Primary}
-                    link
-                    onPress={this.openLinkAboutStx}
-                  >
-                    {strings('app_settings.smart_transactions_learn_more')}
-                  </Text>
-                </>
-              }
-              value={smartTransactionsOptInStatus}
-              onValueChange={this.toggleSmartTransactionsOptInStatus}
-              testId={AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH}
-              styles={styles}
-            />
-
-            <SettingsRow
-              heading={strings('app_settings.show_hex_data')}
-              description={strings('app_settings.hex_desc')}
-              value={showHexData}
-              onValueChange={setShowHexData}
-              styles={styles}
-            />
-
-            <AutoDetectTokensSettings />
-
-            <SettingsRow
-              heading={strings('app_settings.show_fiat_on_testnets')}
-              description={strings('app_settings.show_fiat_on_testnets_desc')}
-              value={showFiatOnTestnets}
-              onValueChange={(showFiatOnTestnets) => {
-                if (showFiatOnTestnets) {
-                  this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                    screen: Routes.SHEET.FIAT_ON_TESTNETS_FRICTION,
-                  });
-                } else {
-                  setShowFiatOnTestnets(false);
+              <SettingsRow
+                heading={strings('app_settings.use_smart_account_heading')}
+                description={
+                  <>
+                    {strings('app_settings.use_smart_account_desc')}{' '}
+                    <Text
+                      color={TextColor.Primary}
+                      link
+                      onPress={this.openLinkAboutSmartAccount}
+                    >
+                      {strings('app_settings.use_smart_account_learn_more')}
+                    </Text>
+                  </>
                 }
-              }}
-              testId={AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS}
-              styles={styles}
-            />
-
-            <View style={styles.setting}>
-              <Text variant={TextVariant.BodyLGMedium}>
-                {strings('app_settings.state_logs')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.desc}
-              >
-                {strings('app_settings.state_logs_desc')}
-              </Text>
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                onPress={this.downloadStateLogs}
-                label={strings('app_settings.state_logs_button')}
-                style={styles.accessory}
+                value={smartAccountOptIn}
+                onValueChange={this.toggleSmartAccountOptIn}
+                testId={AdvancedViewSelectorsIDs.SMART_ACCOUNT_OPT_IN}
+                styles={styles}
               />
+
+              <SettingsRow
+                heading={strings(
+                  'app_settings.dismiss_smart_account_update_heading',
+                )}
+                description={strings(
+                  'app_settings.dismiss_smart_account_update_desc',
+                )}
+                value={dismissSmartAccountSuggestionEnabled}
+                onValueChange={this.toggleDismissSmartAccountSuggestionEnabled}
+                testId={AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE}
+                styles={styles}
+              />
+
+              <SettingsRow
+                heading={strings(
+                  'app_settings.smart_transactions_opt_in_heading',
+                )}
+                description={
+                  <>
+                    {strings(
+                      'app_settings.smart_transactions_opt_in_desc_supported_networks',
+                    )}{' '}
+                    <Text
+                      color={TextColor.Primary}
+                      link
+                      onPress={this.openLinkAboutStx}
+                    >
+                      {strings('app_settings.smart_transactions_learn_more')}
+                    </Text>
+                  </>
+                }
+                value={smartTransactionsOptInStatus}
+                onValueChange={this.toggleSmartTransactionsOptInStatus}
+                testId={AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH}
+                styles={styles}
+              />
+
+              <SettingsRow
+                heading={strings('app_settings.show_hex_data')}
+                description={strings('app_settings.hex_desc')}
+                value={showHexData}
+                onValueChange={setShowHexData}
+                styles={styles}
+              />
+
+              <AutoDetectTokensSettings />
+
+              <SettingsRow
+                heading={strings('app_settings.show_fiat_on_testnets')}
+                description={strings('app_settings.show_fiat_on_testnets_desc')}
+                value={showFiatOnTestnets}
+                onValueChange={(showFiatOnTestnets) => {
+                  if (showFiatOnTestnets) {
+                    this.props.navigation.navigate(
+                      Routes.MODAL.ROOT_MODAL_FLOW,
+                      {
+                        screen: Routes.SHEET.FIAT_ON_TESTNETS_FRICTION,
+                      },
+                    );
+                  } else {
+                    setShowFiatOnTestnets(false);
+                  }
+                }}
+                testId={AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS}
+                styles={styles}
+              />
+
+              <View style={styles.setting}>
+                <Text variant={TextVariant.BodyLGMedium}>
+                  {strings('app_settings.state_logs')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  style={styles.desc}
+                >
+                  {strings('app_settings.state_logs_desc')}
+                </Text>
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  onPress={this.downloadStateLogs}
+                  label={strings('app_settings.state_logs_button')}
+                  style={styles.accessory}
+                />
+              </View>
             </View>
-          </View>
           </KeyboardAwareScrollView>
         </SafeAreaView>
       </>
