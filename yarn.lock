@@ -34810,7 +34810,6 @@ __metadata:
     ganache: "npm:^7.9.2"
     he: "npm:^1.2.0"
     https-browserify: "npm:0.0.1"
-    human-standard-token-abi: "npm:^2.0.0"
     humanize-duration: "npm:^3.27.2"
     husky: "npm:^9.1.7"
     is-url: "npm:^1.2.4"

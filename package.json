@@ -388,7 +388,6 @@
     "fuse.js": "3.4.4",
     "he": "^1.2.0",
     "https-browserify": "0.0.1",
-    "human-standard-token-abi": "^2.0.0",
     "humanize-duration": "^3.27.2",
     "is-url": "^1.2.4",
     "js-sha3": "0.9.3",
