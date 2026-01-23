@@ -259,6 +259,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const hasShownSubmittedToastRef = useRef(false);
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
+  const handlePlaceOrderRef = useRef<() => Promise<void>>();
 
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
@@ -794,10 +795,51 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInputFocused]);
 
+  // Track deposit status and execute order when funds arrive
+  const { handleDepositConfirm } = usePerpsOrderDepositTracking({
+    onDepositComplete: () => {
+      // Place order after deposit completes
+      handlePlaceOrderRef.current?.();
+    },
+    activeTransactionMeta,
+  });
+
+  // Setup transaction confirmation for deposit (no navigation, uses callback)
+  // Only works when activeTransactionMeta exists
+  const { onConfirm: onDepositConfirm } = useTransactionConfirm({
+    skipNavigation: true,
+    onConfirmCallback: handleDepositConfirm,
+  });
+
   const handlePlaceOrder = useCallback(async () => {
     if (isSubmittingRef.current) {
       return;
     }
+
+    // Check if deposit is needed first (when custom token is selected)
+    const needsDeposit =
+      isTradeWithAnyTokenEnabled &&
+      depositAmount &&
+      depositAmount.trim() !== '' &&
+      activeTransactionMeta &&
+      hasCustomTokenSelected;
+
+    if (needsDeposit) {
+      // Deposit first, then order will be placed automatically via handleDepositConfirm callback
+      if (marginRequired === undefined || marginRequired === null) {
+        return;
+      }
+
+      if (!activeTransactionMeta) {
+        console.error('No active transaction to confirm');
+        return;
+      }
+
+      await onDepositConfirm();
+      return;
+    }
+
+    // No deposit needed, place order directly
     isSubmittingRef.current = true;
 
     orderStartTimeRef.current = Date.now();
@@ -994,20 +1036,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     source,
     isButtonColorTestEnabled,
     buttonColorVariant,
+    isTradeWithAnyTokenEnabled,
+    depositAmount,
+    activeTransactionMeta,
+    hasCustomTokenSelected,
+    onDepositConfirm,
   ]);
 
-  // Track deposit status and execute order when funds arrive
-  const { handleDepositConfirm } = usePerpsOrderDepositTracking({
-    onDepositComplete: () => handlePlaceOrder(),
-    activeTransactionMeta,
-  });
-
-  // Setup transaction confirmation for deposit (no navigation, uses callback)
-  // Only works when activeTransactionMeta exists
-  const { onConfirm: onDepositConfirm } = useTransactionConfirm({
-    skipNavigation: true,
-    onConfirmCallback: handleDepositConfirm,
-  });
+  // Store handlePlaceOrder in ref so it can be called from deposit callback
+  useEffect(() => {
+    handlePlaceOrderRef.current = handlePlaceOrder;
+  }, [handlePlaceOrder]);
 
   // Setup transaction custom amount for deposit
   // Note: This hook requires activeTransactionMeta to exist, otherwise it will crash
@@ -1065,20 +1104,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     activeTransactionMeta,
     updateTokenAmountCallback,
   ]);
-
-  // Handle deposit confirmation - confirms existing transaction
-  const handleDepositConfirmPress = useCallback(async () => {
-    if (marginRequired === undefined || marginRequired === null) {
-      return;
-    }
-
-    if (!activeTransactionMeta) {
-      console.error('No active transaction to confirm');
-      return;
-    }
-
-    await onDepositConfirm();
-  }, [marginRequired, activeTransactionMeta, onDepositConfirm]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
   const handleTooltipPress = useCallback(
@@ -1418,14 +1443,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   onCustomTokenSelected={handleCustomTokenSelected}
                 />
                 {hasCustomTokenSelected ? <PerpsDepositFees /> : null}
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={strings('perps.confirm')}
-                  onPress={handleDepositConfirmPress}
-                  testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-                />
               </View>
             )}
 
