@@ -196,6 +196,33 @@ describe('FeatureFlagConfigurationService', () => {
       );
     });
 
+    it('strips quotes from array values', () => {
+      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
+        undefined,
+      );
+      // Mock stripQuotes to actually strip quotes for this test
+      (stripQuotes as jest.Mock).mockImplementation((s: string) =>
+        s.replace(/^["']|["']$/g, ''),
+      );
+      mockRemoteFeatureFlagState.remoteFeatureFlags = {
+        perpsHip3AllowlistMarkets: ['"BTC"', '"ETH"', "'SOL'"],
+      };
+
+      featureFlagConfigurationService.refreshHip3Config({
+        remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
+        context: mockContext,
+      });
+
+      expect(stripQuotes).toHaveBeenCalledWith('"BTC"');
+      expect(stripQuotes).toHaveBeenCalledWith('"ETH"');
+      expect(stripQuotes).toHaveBeenCalledWith("'SOL'");
+      expect(mockContext.setHip3Config).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowlistMarkets: ['BTC', 'ETH', 'SOL'],
+        }),
+      );
+    });
+
     it('skips invalid allowlist markets format', () => {
       (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
         undefined,

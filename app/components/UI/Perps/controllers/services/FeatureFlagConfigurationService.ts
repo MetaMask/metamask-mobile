@@ -83,7 +83,7 @@ export class FeatureFlagConfigurationService {
       remoteValue.every((item) => typeof item === 'string' && item.length > 0)
     ) {
       const validatedMarkets = (remoteValue as string[])
-        .map((s) => s.trim())
+        .map((s) => stripQuotes(s.trim()))
         .filter((s) => s.length > 0);
 
       this.deps.debugLogger.log(
