@@ -20,7 +20,7 @@ import {
 import { trace } from '../../../../util/trace';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { trackEvent } from '../../utils/analytics';
+import { buildAndTrackEvent } from '../../utils/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 
@@ -238,26 +238,6 @@ describe('BridgeController Init', () => {
     it('correctly sets up trackMetaMetricsFn', () => {
       // Arrange
       const requestMock = buildInitRequestMock();
-      const mockBuiltEvent = {
-        name: 'bridge_completed',
-        properties: { property: 'value' },
-        sensitiveProperties: {},
-        saveDataRecording: false,
-        get isAnonymous(): boolean {
-          return false;
-        },
-        get hasProperties(): boolean {
-          return true;
-        },
-      } as unknown as AnalyticsTrackingEvent;
-
-      const mockBuilder = {
-        addProperties: jest.fn().mockReturnThis(),
-        build: jest.fn().mockReturnValue(mockBuiltEvent),
-      };
-      (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
-        mockBuilder,
-      );
 
       // Act
       bridgeControllerInit(requestMock);
@@ -270,45 +250,17 @@ describe('BridgeController Init', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       trackMetaMetricsFn('bridge_completed' as any, { property: 'value' });
 
-      // Assert - verify AnalyticsEventBuilder was called correctly
-      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
-        'bridge_completed',
-      );
-      expect(mockBuilder.addProperties).toHaveBeenCalledWith({
-        property: 'value',
-      });
-      expect(mockBuilder.build).toHaveBeenCalled();
-
-      // Verify trackEvent was called with the built event
-      expect(trackEvent).toHaveBeenCalledWith(
+      // Verify buildAndTrackEvent was called with correct parameters
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
         requestMock.initMessenger,
-        mockBuiltEvent,
+        'bridge_completed',
+        { property: 'value' },
       );
     });
 
     it('handles trackMetaMetricsFn with no properties', () => {
       // Arrange
       const requestMock = buildInitRequestMock();
-      const mockBuiltEvent = {
-        name: 'bridge_completed',
-        properties: {},
-        sensitiveProperties: {},
-        saveDataRecording: false,
-        get isAnonymous(): boolean {
-          return false;
-        },
-        get hasProperties(): boolean {
-          return false;
-        },
-      } as unknown as AnalyticsTrackingEvent;
-
-      const mockBuilder = {
-        addProperties: jest.fn().mockReturnThis(),
-        build: jest.fn().mockReturnValue(mockBuiltEvent),
-      };
-      (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
-        mockBuilder,
-      );
 
       // Act
       bridgeControllerInit(requestMock);
@@ -321,17 +273,11 @@ describe('BridgeController Init', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       trackMetaMetricsFn('bridge_completed' as any, {});
 
-      // Assert - verify AnalyticsEventBuilder was called correctly
-      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
-        'bridge_completed',
-      );
-      expect(mockBuilder.addProperties).toHaveBeenCalledWith({});
-      expect(mockBuilder.build).toHaveBeenCalled();
-
-      // Verify trackEvent was called with the built event
-      expect(trackEvent).toHaveBeenCalledWith(
+      // Verify buildAndTrackEvent was called with correct parameters
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
         requestMock.initMessenger,
-        mockBuiltEvent,
+        'bridge_completed',
+        {},
       );
     });
   });

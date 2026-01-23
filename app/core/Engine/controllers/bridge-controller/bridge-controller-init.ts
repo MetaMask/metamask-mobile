@@ -9,8 +9,7 @@ import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import type { BridgeControllerInitMessenger } from '../../messengers/bridge-controller-messenger';
 import { TransactionParams } from '@metamask/transaction-controller';
 import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
-import { trackEvent } from '../../utils/analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { buildAndTrackEvent } from '../../utils/analytics';
 import {
   ChainId,
   handleFetch,
@@ -66,10 +65,11 @@ export const bridgeControllerInit: ControllerInitFunction<
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
       trackMetaMetricsFn: (event, properties) => {
-        const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
-          .addProperties((properties || {}) as AnalyticsEventProperties)
-          .build();
-        trackEvent(initMessenger, analyticsEvent);
+        buildAndTrackEvent(
+          initMessenger,
+          event,
+          properties as AnalyticsEventProperties | null | undefined,
+        );
       },
       traceFn: trace as TraceCallback,
     });

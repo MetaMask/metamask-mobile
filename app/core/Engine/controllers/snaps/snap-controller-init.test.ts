@@ -16,7 +16,7 @@ import {
 } from '@metamask/keyring-controller';
 import { store, runSaga } from '../../../../store';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { trackEvent } from '../../utils/analytics';
+import { buildAndTrackEvent } from '../../utils/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 
@@ -223,7 +223,7 @@ describe('SnapControllerInit', () => {
   });
 
   describe('trackEvent', () => {
-    it('calls trackEvent utility with correct parameters', () => {
+    it('calls buildAndTrackEvent utility with messenger, event, and properties', () => {
       const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
         namespace: MOCK_ANY_NAMESPACE,
       });
@@ -238,27 +238,6 @@ describe('SnapControllerInit', () => {
         controllerMessenger: getSnapControllerMessenger(baseMessenger),
         initMessenger: mockInitMessenger,
       };
-
-      const mockBuiltEvent = {
-        name: 'test-event',
-        properties: { testProperty: 'test-value' },
-        sensitiveProperties: {},
-        saveDataRecording: false,
-        get isAnonymous(): boolean {
-          return false;
-        },
-        get hasProperties(): boolean {
-          return true;
-        },
-      } as unknown as AnalyticsTrackingEvent;
-
-      const mockBuilder = {
-        addProperties: jest.fn().mockReturnThis(),
-        build: jest.fn().mockReturnValue(mockBuiltEvent),
-      };
-      (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
-        mockBuilder,
-      );
 
       snapControllerInit(requestMock);
 
@@ -274,23 +253,17 @@ describe('SnapControllerInit', () => {
         },
       });
 
-      // Assert - verify AnalyticsEventBuilder was called correctly
-      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
-        'test-event',
-      );
-      expect(mockBuilder.addProperties).toHaveBeenCalledWith({
-        testProperty: 'test-value',
-      });
-      expect(mockBuilder.build).toHaveBeenCalled();
-
-      // Verify trackEvent was called with the built event
-      expect(trackEvent).toHaveBeenCalledWith(
+      // Verify buildAndTrackEvent was called with correct parameters
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
         mockInitMessenger,
-        mockBuiltEvent,
+        'test-event',
+        {
+          testProperty: 'test-value',
+        },
       );
     });
 
-    it('calls trackEvent utility with empty properties when properties are not provided', () => {
+    it('calls buildAndTrackEvent utility with empty properties when properties are not provided', () => {
       const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
         namespace: MOCK_ANY_NAMESPACE,
       });
@@ -306,27 +279,6 @@ describe('SnapControllerInit', () => {
         initMessenger: mockInitMessenger,
       };
 
-      const mockBuiltEvent = {
-        name: 'test-event',
-        properties: {},
-        sensitiveProperties: {},
-        saveDataRecording: false,
-        get isAnonymous(): boolean {
-          return false;
-        },
-        get hasProperties(): boolean {
-          return false;
-        },
-      } as unknown as AnalyticsTrackingEvent;
-
-      const mockBuilder = {
-        addProperties: jest.fn().mockReturnThis(),
-        build: jest.fn().mockReturnValue(mockBuiltEvent),
-      };
-      (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
-        mockBuilder,
-      );
-
       snapControllerInit(requestMock);
 
       const controllerMock = jest.mocked(SnapController);
@@ -338,17 +290,11 @@ describe('SnapControllerInit', () => {
         event: 'test-event',
       });
 
-      // Assert - verify AnalyticsEventBuilder was called correctly
-      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
-        'test-event',
-      );
-      expect(mockBuilder.addProperties).toHaveBeenCalledWith({});
-      expect(mockBuilder.build).toHaveBeenCalled();
-
-      // Verify trackEvent was called with the built event
-      expect(trackEvent).toHaveBeenCalledWith(
+      // Verify buildAndTrackEvent was called with correct parameters
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
         mockInitMessenger,
-        mockBuiltEvent,
+        'test-event',
+        undefined,
       );
     });
   });

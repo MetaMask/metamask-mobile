@@ -7,8 +7,7 @@ import type { UserStorageControllerInitMessenger } from '../../messengers/identi
 import { calculateScryptKey } from './calculate-scrypt-key';
 import { MetaMetricsEvents } from '../../../Analytics';
 import { trace } from '../../../../util/trace';
-import { trackEvent } from '../../utils/analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { buildAndTrackEvent } from '../../utils/analytics';
 
 /**
  * Initialize the user storage controller.
@@ -36,41 +35,38 @@ export const userStorageControllerInit: ControllerInitFunction<
     config: {
       contactSyncing: {
         onContactUpdated: (profileId) => {
-          const event = AnalyticsEventBuilder.createEventBuilder(
+          buildAndTrackEvent(
+            initMessenger,
             MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
-          )
-            .addProperties({
+            {
               profile_id: profileId,
               feature_name: 'Contacts Sync',
               action: 'Contacts Sync Contact Updated',
-            })
-            .build();
-          trackEvent(initMessenger, event);
+            },
+          );
         },
         onContactDeleted: (profileId) => {
-          const event = AnalyticsEventBuilder.createEventBuilder(
+          buildAndTrackEvent(
+            initMessenger,
             MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
-          )
-            .addProperties({
+            {
               profile_id: profileId,
               feature_name: 'Contacts Sync',
               action: 'Contacts Sync Contact Deleted',
-            })
-            .build();
-          trackEvent(initMessenger, event);
+            },
+          );
         },
         onContactSyncErroneousSituation(profileId, situationMessage) {
-          const event = AnalyticsEventBuilder.createEventBuilder(
+          buildAndTrackEvent(
+            initMessenger,
             MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
-          )
-            .addProperties({
+            {
               profile_id: profileId,
               feature_name: 'Contacts Sync',
               action: 'Contacts Sync Erroneous Situation',
               additional_description: situationMessage,
-            })
-            .build();
-          trackEvent(initMessenger, event);
+            },
+          );
         },
       },
     },

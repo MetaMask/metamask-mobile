@@ -21,9 +21,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store, runSaga } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
-import { trackEvent } from '../../utils/analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { buildAndTrackEvent } from '../../utils/analytics';
 import { take } from 'redux-saga/effects';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import {
@@ -173,12 +171,7 @@ export const snapControllerInit: ControllerInitFunction<
       event: string;
       properties?: Record<string, unknown>;
     }) => {
-      const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
-        params.event,
-      )
-        .addProperties((params.properties ?? {}) as AnalyticsEventProperties)
-        .build();
-      trackEvent(initMessenger, analyticsEvent);
+      buildAndTrackEvent(initMessenger, params.event, params.properties);
     },
   });
 

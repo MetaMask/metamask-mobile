@@ -1,6 +1,14 @@
 import type { ControllerMessenger } from '../types';
-import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
+import type {
+  AnalyticsTrackingEvent,
+  AnalyticsEventProperties,
+} from '@metamask/analytics-controller';
+import type {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../core/Analytics/MetaMetrics.types';
 import Logger from '../../../util/Logger';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 /**
  * Track an analytics event using the initMessenger.
@@ -29,5 +37,34 @@ export const trackEvent = (
     // Analytics tracking failures should not break controller functionality
     // Error is logged but not thrown
     Logger.log('Error tracking analytics event', error);
+  }
+};
+
+/**
+ * Build and track an analytics event using the initMessenger.
+ * Handles both event building and tracking with error catching to reduce verbosity
+ * in controller init files.
+ *
+ * Event building and tracking failures should not break controller functionality,
+ * so errors are logged but not thrown.
+ *
+ * @param initMessenger - The controller init messenger instance
+ * @param event - The event name or event object to track
+ * @param properties - Optional properties to add to the event (null is treated as empty object)
+ */
+export const buildAndTrackEvent = (
+  initMessenger: ControllerMessenger,
+  event: string | IMetaMetricsEvent | ITrackingEvent,
+  properties?: AnalyticsEventProperties | null,
+): void => {
+  try {
+    const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
+      .addProperties((properties || {}) as AnalyticsEventProperties)
+      .build();
+    trackEvent(initMessenger, analyticsEvent);
+  } catch (error) {
+    // Event building and tracking failures should not break controller functionality
+    // Error is logged but not thrown
+    Logger.log('Error building or tracking analytics event', error);
   }
 };
