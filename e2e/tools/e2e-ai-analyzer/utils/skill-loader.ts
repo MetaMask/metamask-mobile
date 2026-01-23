@@ -7,20 +7,14 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import { Skill, SkillMetadata } from '../types';
 
-/**
- * Skill quality assessment (internal use only)
- */
 interface SkillQuality {
   warnings: string[];
   score: number; // 0-100
 }
 
-// Removed loadSkills() - no longer used in on-demand skill loading pattern
-
 /**
- * Load a single skill from markdown file
  *
- * Tries to load from skills/ directory
+ * Load from skills/ directory
  *
  * @param name - Skill name (without .md extension)
  * @returns Loaded skill or null if not found
