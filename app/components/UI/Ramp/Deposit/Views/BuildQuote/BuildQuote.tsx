@@ -691,8 +691,10 @@ const BuildQuote = () => {
               <ListItemColumn>
                 {selectedPaymentMethod ? (
                   <TagBase
-                    includesBorder
                     textProps={{ variant: TextVariant.BodySM }}
+                    style={{
+                      backgroundColor: theme.colors.background.subsection,
+                    }}
                   >
                     {strings(
                       `deposit.payment_duration.${selectedPaymentMethod.duration}`,
