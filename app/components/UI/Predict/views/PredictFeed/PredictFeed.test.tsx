@@ -43,6 +43,14 @@ import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 
 const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
 
+jest.mock('../../../../hooks/useDebouncedValue', () => ({
+  useDebouncedValue: jest.fn(),
+}));
+
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+
+const mockUseDebouncedValue = useDebouncedValue as jest.Mock;
+
 jest.mock('../../hooks/useFeedScrollManager', () => ({
   useFeedScrollManager: jest.fn(),
 }));
@@ -232,6 +240,7 @@ describe('PredictFeed', () => {
       refetch: jest.fn(),
       fetchMore: jest.fn(),
     });
+    mockUseDebouncedValue.mockImplementation((value: string) => value);
   });
 
   afterEach(() => {
@@ -443,7 +452,11 @@ describe('PredictFeed', () => {
       fireEvent.changeText(searchInput, 'test query');
       fireEvent.press(getByTestId('clear-button'));
 
-      expect(queryByTestId('predict-search-result-0')).toBeNull();
+      // After clearing search, the clear button should no longer be visible
+      // (only shows when searchQuery.length > 0)
+      expect(queryByTestId('clear-button')).not.toBeOnTheScreen();
+      // Trending results visible when no search query is empty
+      expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
     });
   });
 
@@ -599,6 +612,76 @@ describe('PredictFeed', () => {
         undefined,
         'trending',
       );
+    });
+  });
+
+  describe('search debounce behavior', () => {
+    it('passes debounced search query to usePredictMarketData', () => {
+      mockUseDebouncedValue.mockReturnValue('debounced-query');
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      const searchCalls = mockUsePredictMarketData.mock.calls.filter(
+        (call: [{ q?: string }]) => call[0].q !== undefined,
+      );
+      expect(searchCalls[searchCalls.length - 1][0].q).toBe('debounced-query');
+    });
+
+    it('displays skeleton loaders when debouncing search input', () => {
+      mockUseDebouncedValue.mockReturnValue('');
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
+    });
+
+    it('displays search results after debounce completes', () => {
+      mockUseDebouncedValue.mockReturnValue('bitcoin');
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [
+          { id: '1', title: 'Bitcoin Market 1' },
+          { id: '2', title: 'Bitcoin Market 2' },
+        ],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
+      expect(getByTestId('predict-search-result-1')).toBeOnTheScreen();
+    });
+
+    it('invokes useDebouncedValue with 200ms delay', () => {
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'test');
+
+      expect(mockUseDebouncedValue).toHaveBeenCalledWith('test', 200);
     });
   });
 });

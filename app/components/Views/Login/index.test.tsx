@@ -702,7 +702,7 @@ describe('Login', () => {
       jest.clearAllMocks();
     });
 
-    it('successfully authenticate with biometrics and navigate to home', async () => {
+    it('authenticates with biometrics and navigates to home', async () => {
       mockUnlockWallet.mockResolvedValueOnce(true);
       (StorageWrapper.getItem as jest.Mock).mockReturnValueOnce(null);
       (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');

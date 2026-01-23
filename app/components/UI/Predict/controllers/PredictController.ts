@@ -41,6 +41,7 @@ import {
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
+import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
@@ -86,9 +87,14 @@ import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
+  DEFAULT_MARKET_HIGHLIGHTS_FLAG,
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
-import { PredictFeeCollection, PredictLiveSportsFlag } from '../types/flags';
+import {
+  PredictFeeCollection,
+  PredictLiveSportsFlag,
+  PredictMarketHighlightsFlag,
+} from '../types/flags';
 
 /**
  * State shape for PredictController
@@ -476,6 +482,12 @@ export class PredictController extends BaseController<
         ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
         : [];
 
+      const marketHighlightsFlag =
+        (RemoteFeatureFlagController.state.remoteFeatureFlags
+          .predictMarketHighlights as unknown as
+          | PredictMarketHighlightsFlag
+          | undefined) ?? DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+
       const paramsWithLiveSports = { ...params, liveSportsLeagues };
 
       const allMarkets = await Promise.all(
@@ -484,12 +496,43 @@ export class PredictController extends BaseController<
         ),
       );
 
-      //TODO: We need to sort the markets after merging them
-      const markets = allMarkets
+      let markets = allMarkets
         .flat()
         .filter((market): market is PredictMarket => market !== undefined);
 
-      // Clear any previous errors on successful call
+      const isFirstPage = !params.offset || params.offset === 0;
+      const shouldFetchHighlights =
+        marketHighlightsFlag.enabled &&
+        isFirstPage &&
+        params.category &&
+        !params.q;
+
+      if (shouldFetchHighlights) {
+        const highlightedMarketIds =
+          (marketHighlightsFlag.highlights ?? []).find(
+            (h) => h.category === params.category,
+          )?.markets ?? [];
+
+        if (highlightedMarketIds.length > 0) {
+          const provider = this.providers.get(
+            params.providerId ?? 'polymarket',
+          );
+
+          const highlightedMarkets =
+            (await provider?.getMarketsByIds?.(
+              highlightedMarketIds,
+              liveSportsLeagues,
+            )) ?? [];
+
+          const highlightedIdSet = new Set(highlightedMarkets.map((m) => m.id));
+          markets = markets.filter(
+            (market) => !highlightedIdSet.has(market.id),
+          );
+
+          markets = [...highlightedMarkets, ...markets];
+        }
+      }
+
       this.update((state) => {
         state.lastError = null;
         state.lastUpdateTimestamp = Date.now();
@@ -1830,6 +1873,20 @@ export class PredictController extends BaseController<
       if (!chainId) {
         throw new Error('Chain ID not provided by deposit preparation');
       }
+
+      DevLogger.log('PredictController: depositWithConfirmation transactions', {
+        count: transactions.length,
+        transactions: transactions.map((tx, index) => ({
+          index,
+          type: tx?.type,
+          to: tx?.params?.to,
+          dataLength: tx?.params?.data?.length ?? 0,
+        })),
+      });
+
+      validateDepositTransactions(transactions, {
+        providerId: params.providerId,
+      });
 
       const { NetworkController } = Engine.context;
       const networkClientId =

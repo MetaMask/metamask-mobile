@@ -32,6 +32,7 @@ import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import Authentication from '../../core/Authentication';
 import { MetaMetrics } from '../../core/Analytics';
 import Logger from '../../util/Logger';
+import AppConstants from '../../core/AppConstants';
 
 const mockBioStateMachineId = '123';
 
@@ -56,6 +57,7 @@ jest.mock('../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
     start: jest.fn(),
     pendingDeeplink: null,
+    pendingDeeplinkSource: null,
     clearPendingDeeplink: jest.fn(),
   },
 }));
@@ -364,7 +366,7 @@ describe('startAppServices', () => {
     expect(MetaMetrics.getInstance().configure).not.toHaveBeenCalled();
   });
 
-  it('forks authStateMachine and requests authentication on app start', async () => {
+  it('requests authentication on app start', async () => {
     MetaMetrics.getInstance().configure = jest.fn().mockResolvedValueOnce(true);
 
     await expectSaga(startAppServices)
@@ -375,7 +377,6 @@ describe('startAppServices', () => {
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
       .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
-      .fork(authStateMachine)
       .run();
 
     // Verify authentication is requested
@@ -625,6 +626,57 @@ describe('handleDeeplinkSaga', () => {
 
           expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
+      });
+    });
+
+    describe('source tracking', () => {
+      it('passes pendingDeeplinkSource to parse when set', async () => {
+        const testLink = 'https://link.metamask.io/home';
+        AppStateEventProcessor.pendingDeeplink = testLink;
+        AppStateEventProcessor.pendingDeeplinkSource =
+          AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION;
+        Engine.context.KeyringController.isUnlocked = jest
+          .fn()
+          .mockReturnValue(true);
+
+        await expectSaga(handleDeeplinkSaga)
+          .withState({
+            ...defaultMockState,
+            onboarding: { completedOnboarding: true },
+          })
+          .dispatch(checkForDeeplink())
+          .silentRun();
+
+        expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+          testLink,
+          expect.objectContaining({
+            origin: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+          }),
+        );
+      });
+
+      it('defaults to ORIGIN_DEEPLINK when pendingDeeplinkSource is null', async () => {
+        const testLink = 'https://link.metamask.io/home';
+        AppStateEventProcessor.pendingDeeplink = testLink;
+        AppStateEventProcessor.pendingDeeplinkSource = null;
+        Engine.context.KeyringController.isUnlocked = jest
+          .fn()
+          .mockReturnValue(true);
+
+        await expectSaga(handleDeeplinkSaga)
+          .withState({
+            ...defaultMockState,
+            onboarding: { completedOnboarding: true },
+          })
+          .dispatch(checkForDeeplink())
+          .silentRun();
+
+        expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+          testLink,
+          expect.objectContaining({
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          }),
+        );
       });
     });
   });

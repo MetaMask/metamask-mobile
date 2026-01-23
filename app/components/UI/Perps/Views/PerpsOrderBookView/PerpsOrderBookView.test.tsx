@@ -37,6 +37,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order_book.error': 'Failed to load order book',
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
+      'perps.market.modify': 'Modify',
+      'perps.market.close_long': 'Close Long',
+      'perps.market.close_short': 'Close Short',
       'perps.order_book.depth_band.title': 'Depth Band',
     };
     return translations[key] || key;
@@ -121,12 +124,18 @@ jest.mock('../../hooks/usePerpsMeasurement', () => ({
   usePerpsMeasurement: jest.fn(),
 }));
 
-// Mock usePerpsNavigation and usePerpsMarkets
+// Mock usePerpsNavigation, usePerpsMarkets, and usePositionManagement
 const mockNavigateToOrder = jest.fn();
+const mockNavigateToClosePosition = jest.fn();
+const mockOpenModifySheet = jest.fn();
+const mockCloseModifySheet = jest.fn();
+const mockHandleReversePosition = jest.fn();
+const mockModifyActionSheetRef = { current: null };
 
 jest.mock('../../hooks', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateToOrder: mockNavigateToOrder,
+    navigateToClosePosition: mockNavigateToClosePosition,
   })),
   usePerpsMarkets: jest.fn(() => ({
     markets: [
@@ -138,6 +147,21 @@ jest.mock('../../hooks', () => ({
     ],
     isLoading: false,
     error: null,
+  })),
+  usePositionManagement: jest.fn(() => ({
+    showModifyActionSheet: false,
+    modifyActionSheetRef: mockModifyActionSheetRef,
+    openModifySheet: mockOpenModifySheet,
+    closeModifySheet: mockCloseModifySheet,
+    handleReversePosition: mockHandleReversePosition,
+  })),
+}));
+
+// Mock useHasExistingPosition
+jest.mock('../../hooks/useHasExistingPosition', () => ({
+  useHasExistingPosition: jest.fn(() => ({
+    isLoading: false,
+    existingPosition: null,
   })),
 }));
 
@@ -237,6 +261,15 @@ jest.mock(
     );
   },
 );
+
+// Mock PerpsSelectModifyActionView
+jest.mock('../PerpsSelectModifyActionView', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="perps-select-modify-action-view" />,
+  };
+});
 
 describe('PerpsOrderBookView', () => {
   const initialState = {
@@ -573,6 +606,167 @@ describe('PerpsOrderBookView', () => {
         asset: 'BTC',
       });
       expect(mockTrack).toHaveBeenCalled();
+    });
+  });
+
+  describe('action buttons with existing position', () => {
+    const mockLongPosition = {
+      symbol: 'BTC',
+      size: '1.5',
+      entryPrice: '50000',
+      leverage: { value: 10, type: 'cross' as const },
+      margin: '5000',
+      unrealizedPnl: '100',
+      unrealizedPnlPercent: '2',
+      liquidationPrice: '45000',
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      returnOnEquity: '2',
+    };
+
+    const mockShortPosition = {
+      ...mockLongPosition,
+      size: '-1.5',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('renders Modify and Close buttons when position exists', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsOrderBookViewSelectorsIDs.LONG_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeNull();
+    });
+
+    it('opens modify action sheet when Modify button is pressed', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      const modifyButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON,
+      );
+      fireEvent.press(modifyButton);
+
+      expect(mockOpenModifySheet).toHaveBeenCalled();
+    });
+
+    it('navigates to close position when Close button is pressed', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      const closeButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON,
+      );
+      fireEvent.press(closeButton);
+
+      expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
+        mockLongPosition,
+      );
+    });
+
+    it('displays "Close Long" for long positions', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByText } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(getByText('Close Long')).toBeOnTheScreen();
+    });
+
+    it('displays "Close Short" for short positions', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockShortPosition,
+      });
+
+      const { getByText } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(getByText('Close Short')).toBeOnTheScreen();
+    });
+
+    it('shows Long/Short buttons when no position exists', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: null,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON),
+      ).toBeNull();
     });
   });
 

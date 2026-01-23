@@ -157,12 +157,34 @@ Follow existing test patterns covering:
 
 ## Available Flags Reference
 
+### Version-Gated Boolean Flags
+
 | Redux Property                                     | LaunchDarkly Key                                         | Env Variable                                   | Default | Purpose                   |
 | -------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------- | ------- | ------------------------- |
 | `perpsPerpTradingEnabled`                          | `perps-perp-trading-enabled`                             | `MM_PERPS_ENABLED`                             | false   | Main Perps feature toggle |
 | `perpsPerpTradingServiceInterruptionBannerEnabled` | `perps-perp-trading-service-interruption-banner-enabled` | `MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED` | false   | Service disruption banner |
 | `perpsPerpGtmOnboardingModalEnabled`               | `perps-perp-gtm-onboarding-modal-enabled`                | `MM_PERPS_GTM_MODAL_ENABLED`                   | false   | GTM onboarding modal      |
 | `perpsOrderBookEnabled`                            | `perps-order-book-enabled`                               | `MM_PERPS_ORDER_BOOK_ENABLED`                  | false   | Order Book feature        |
+| `perpsFeedbackEnabled`                             | `perps-feedback-enabled`                                 | `MM_PERPS_FEEDBACK_ENABLED`                    | false   | Feedback button on home   |
+
+### A/B Test Flags
+
+| Redux Property           | LaunchDarkly Key            | Variants                | Purpose                          |
+| ------------------------ | --------------------------- | ----------------------- | -------------------------------- |
+| `perpsAbtestButtonColor` | `perps-abtest-button-color` | `control`, `monochrome` | Button color A/B test (TAT-1937) |
+
+### Configuration Flags
+
+These flags are managed via `FeatureFlagConfigurationService` and control runtime configuration:
+
+| Redux Property                          | LaunchDarkly Key                              | Env Variable                      | Purpose                     |
+| --------------------------------------- | --------------------------------------------- | --------------------------------- | --------------------------- |
+| `perpsHip3Enabled`                      | `perps-hip3-enabled`                          | `MM_PERPS_HIP3_ENABLED`           | HIP-3 markets master switch |
+| `perpsHip3AllowlistMarkets`             | `perps-hip3-allowlist-markets`                | `MM_PERPS_HIP3_ALLOWLIST_MARKETS` | HIP-3 market allowlist      |
+| `perpsHip3BlocklistMarkets`             | `perps-hip3-blocklist-markets`                | `MM_PERPS_HIP3_BLOCKLIST_MARKETS` | HIP-3 market blocklist      |
+| `perpsPerpTradingGeoBlockedCountriesV2` | `perps-perp-trading-geo-blocked-countries-v2` | `MM_PERPS_BLOCKED_REGIONS`        | Geo-blocking regions list   |
+
+> **Note:** `perpsPerpTradingGeoBlockedCountries` (without V2) is deprecated. Use the V2 variant.
 
 ---
 
@@ -241,6 +263,7 @@ The `minimumVersion` field ensures features only activate on compatible app vers
 - **Tests:** `app/components/UI/Perps/selectors/featureFlags/index.test.ts`
 - **Version validation:** `app/util/remoteFeatureFlag/index.ts`
 - **Controller init:** `app/core/Engine/controllers/remote-feature-flag-controller-init.ts`
+- **Configuration service:** `app/components/UI/Perps/controllers/services/FeatureFlagConfigurationService.ts`
 
 ---
 

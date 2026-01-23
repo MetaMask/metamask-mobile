@@ -588,12 +588,12 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
-  it('returns PASSCODE type for components when no previous auth choice exists (new user choosing biometrics)', async () => {
+  it('returns BIOMETRIC type for components when no previous auth choice exists (new user choosing biometrics)', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
     // No storage flags set - represents new user or first-time choice
-    // With new logic, this defaults to PASSCODE when biometryChoice is true
+    // With new logic, this defaults to BIOMETRIC when biometryChoice is true
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -605,7 +605,7 @@ describe('Authentication', () => {
       false,
     );
     expect(result.availableBiometryType).toEqual('Fingerprint');
-    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
   it('returns PASSWORD type when biometryChoice is false', async () => {
@@ -4552,11 +4552,13 @@ describe('Authentication', () => {
     });
 
     it('navigates to the optin metrics flow when metrics are not enabled and UI has not been seen', async () => {
-      // Mock StorageWrapper.getItem to return false for OPTIN_META_METRICS_UI_SEEN.
-      StorageWrapper.getItem = () => Promise.resolve(false);
-      // Mock MetaMetrics.getInstance to return false for isEnabled.
-      MetaMetrics.getInstance = () =>
-        ({ isEnabled: () => false }) as MetaMetrics;
+      // Mock StorageWrapper.getItem to return null for OPTIN_META_METRICS_UI_SEEN.
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
+      // Clear beforeEach mock and set MetaMetrics.getInstance to return false for isEnabled.
+      jest.spyOn(MetaMetrics, 'getInstance').mockReset();
+      jest
+        .spyOn(MetaMetrics, 'getInstance')
+        .mockReturnValue({ isEnabled: () => false } as MetaMetrics);
 
       // Call unlockWallet with a password.
       await Authentication.unlockWallet({ password: passwordToUse });
@@ -4640,6 +4642,43 @@ describe('Authentication', () => {
         reset: false,
         navigateToLogin: false,
       });
+    });
+
+    it('calls lockApp when error is thrown and logs error when lockApp fails', async () => {
+      // Clear any previous mock setup from beforeEach
+      jest.spyOn(Authentication, 'lockApp').mockReset();
+
+      const lockAppSpy = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockRejectedValueOnce(new Error('Failed to lock app'));
+
+      // Mock rehydrateSeedPhrase to reject.
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValueOnce(new Error('Failed to rehydrate seed phrase'));
+
+      // Call unlockWallet and expect it to throw the original error (not the lockApp error).
+      await expect(
+        Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true, // Required to trigger rehydrateSeedPhrase call
+          },
+        }),
+      ).rejects.toThrow('Failed to rehydrate seed phrase');
+
+      // Verify lockApp was called with correct parameters
+      expect(lockAppSpy).toHaveBeenCalledWith({
+        reset: false,
+        navigateToLogin: false,
+      });
+
+      // Verify the lockApp error was logged (not thrown)
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Failed to lock app during unlockWallet error condition.',
+      );
     });
 
     describe('when using seedless onboarding', () => {

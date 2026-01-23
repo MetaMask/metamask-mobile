@@ -23,6 +23,7 @@ import {
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import {
   ActionButtonType,
   ActionLocation,
@@ -222,6 +223,9 @@ jest.mock('../../../core/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
     },
+    SwapsController: {
+      fetchTokenWithCache: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 
@@ -292,6 +296,23 @@ jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   default: () => mockUseRampsUnifiedV1Enabled(),
 }));
 
+const mockUseRampTokens = jest.fn();
+jest.mock('../Ramp/hooks/useRampTokens', () => ({
+  useRampTokens: () => mockUseRampTokens(),
+}));
+
+// Only mock the new hook added in this branch: useScrollToMerklRewards
+// This hook uses useRoute/useNavigation which need proper test setup
+jest.mock('./hooks/useScrollToMerklRewards', () => ({
+  useScrollToMerklRewards: jest.fn(() => ({
+    hasScrolledRef: { current: false },
+  })),
+}));
+
+jest.mock('../../Views/confirmations/hooks/useSendNavigation', () => ({
+  useSendNavigation: jest.fn(),
+}));
+
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -354,6 +375,32 @@ describe('AssetOverview', () => {
 
     // Default mock for unified V1 flag - disabled
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+
+    // Default mock for useRampTokens - return tokens that make the test assets buyable
+    mockUseRampTokens.mockReturnValue({
+      allTokens: [
+        {
+          chainId: 'eip155:1',
+          assetId: 'eip155:1/erc20:0x123',
+          tokenSupported: true,
+        },
+        {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          tokenSupported: true,
+        },
+      ],
+      topTokens: [],
+      isLoading: false,
+      error: null,
+    });
+
+    // Setup useSendNavigation mock to call navigate
+    (useSendNavigation as jest.Mock).mockReturnValue({
+      navigateToSendPage: jest.fn((params) => {
+        mockNavigate('Send', params);
+      }),
+    });
   });
 
   afterEach(() => {
@@ -891,6 +938,18 @@ describe('AssetOverview', () => {
         displayBuyButton={false}
         displaySwapsButton
       />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    expect(buyButton).toBeNull();
+  });
+
+  it('should not render buy button if asset is not supported for buying', async () => {
+    mockUseRampTokens.mockReturnValue({});
+
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
     );
 
@@ -1891,7 +1950,7 @@ describe('getSwapTokens', () => {
     });
   });
 
-  it('returns default pair token as sourceToken and native gas token as destToken when asset is native gas token', () => {
+  it('returns native gas token as sourceToken when asset is native gas token from home page', () => {
     const nativeGasToken = {
       ...asset,
       address: '0x0000000000000000000000000000000000000000',
@@ -1900,18 +1959,8 @@ describe('getSwapTokens', () => {
 
     const result = getSwapTokens(nativeGasToken);
 
-    // sourceToken is the default pair token for mainnet (mUSD)
+    // sourceToken is the native gas token (user wants to swap FROM it)
     expect(result.sourceToken).toEqual({
-      symbol: 'mUSD',
-      name: 'MetaMask USD',
-      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-      decimals: 6,
-      image:
-        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
-      chainId: MOCK_CHAIN_ID,
-    });
-    // destToken is the native gas token
-    expect(result.destToken).toEqual({
       ...nativeGasToken,
       address: '0x0000000000000000000000000000000000000000',
       chainId: MOCK_CHAIN_ID,
@@ -1920,5 +1969,25 @@ describe('getSwapTokens', () => {
       name: nativeGasToken.name,
       image: nativeGasToken.image,
     });
+    // destToken is undefined (will be determined by swap UI)
+    expect(result.destToken).toBeUndefined();
+  });
+
+  it('returns native gas token as destToken when asset is native gas token from trending', () => {
+    const trendingNativeGasToken = {
+      ...asset,
+      address: '0x0000000000000000000000000000000000000000',
+      isETH: true,
+      isFromTrending: true,
+    };
+
+    const result = getSwapTokens(trendingNativeGasToken);
+
+    // When coming from trending with native token, user wants to BUY it (dest position)
+    expect(result.destToken).toBeDefined();
+    expect(result.destToken?.address).toBe(
+      '0x0000000000000000000000000000000000000000',
+    );
+    expect(result.destToken?.symbol).toBe(trendingNativeGasToken.symbol);
   });
 });

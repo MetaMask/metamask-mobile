@@ -56,7 +56,7 @@ jest.mock('../utils/marketUtils', () => ({
 
 describe('usePerpsFlipPosition', () => {
   const mockLongPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',
@@ -126,7 +126,7 @@ describe('usePerpsFlipPosition', () => {
     });
 
     expect(mockFlipPosition).toHaveBeenCalledWith({
-      coin: 'ETH',
+      symbol: 'ETH',
       position: mockLongPosition,
     });
   });
@@ -141,7 +141,7 @@ describe('usePerpsFlipPosition', () => {
     });
 
     expect(mockFlipPosition).toHaveBeenCalledWith({
-      coin: 'ETH',
+      symbol: 'ETH',
       position: mockShortPosition,
     });
   });
@@ -218,7 +218,7 @@ describe('usePerpsFlipPosition', () => {
         }),
         extra: expect.objectContaining({
           positionContext: expect.objectContaining({
-            coin: 'ETH',
+            symbol: 'ETH',
             size: '2.5',
           }),
         }),

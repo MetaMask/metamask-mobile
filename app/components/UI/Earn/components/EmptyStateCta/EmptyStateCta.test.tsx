@@ -9,7 +9,10 @@ import { strings } from '../../../../../../locales/i18n';
 import { act, fireEvent } from '@testing-library/react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../constants/events/earnEvents';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
