@@ -75,6 +75,13 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
   useTokenNetworkInfo: () => mockGetTokenNetworkInfo,
 }));
 
+jest.mock('../PaymentSelectionModal', () => ({
+  createPaymentSelectionModalNavigationDetails: () => [
+    'RampModals',
+    'RampPaymentSelectionModal',
+  ],
+}));
+
 interface MockUserRegion {
   country: {
     currency: string;
@@ -204,6 +211,17 @@ describe('BuildQuote', () => {
 
     expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
     expect(getByText('fiat_on_ramp.debit_card')).toBeOnTheScreen();
+  });
+
+  it('navigates to PaymentSelectionModal when payment method pill is pressed', () => {
+    const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+    fireEvent.press(getByTestId('payment-method-pill'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      'RampPaymentSelectionModal',
+    );
   });
 
   it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
