@@ -165,19 +165,12 @@ export default {
     MULTICHAIN_ACCOUNTS:
       'https://support.metamask.io/configure/accounts/multichain-accounts/',
   },
+  // URL set at build time via builds.yml
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
-  REWARDS_API_URL: {
-    DEV: 'https://rewards.dev-api.cx.metamask.io',
-    UAT: 'https://rewards.uat-api.cx.metamask.io',
-    PRD: 'https://rewards.api.cx.metamask.io',
-  },
-  BAANX_API_URL: {
-    DEV: 'https://foxdev2-ag.foxcard.io',
-    UAT: 'https://dev.api.baanx.com',
-    PRD: 'https://api.baanx.com',
-  },
+  // REWARDS_API_URL - now set at build time via builds.yml (process.env.REWARDS_API_URL)
+  // BAANX_API_URL - now set at build time via builds.yml (process.env.BAANX_API_URL)
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',
