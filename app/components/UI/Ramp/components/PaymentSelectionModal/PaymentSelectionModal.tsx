@@ -23,12 +23,8 @@ import ProviderPill from './ProviderPill';
 import PaymentMethodListItem from './PaymentMethodListItem';
 import type { Provider, PaymentMethod } from '@metamask/ramps-controller';
 
-interface PaymentSelectionModalParams {
-  // No params needed for now, but keeping interface for future use
-}
-
 export const createPaymentSelectionModalNavigationDetails =
-  createNavigationDetails<PaymentSelectionModalParams>(
+  createNavigationDetails(
     Routes.RAMP.MODALS.ID,
     Routes.RAMP.MODALS.PAYMENT_SELECTION,
   );
@@ -117,7 +113,6 @@ const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
 
 function PaymentSelectionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const listRef = useRef<FlatList>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
@@ -168,7 +163,6 @@ function PaymentSelectionModal() {
       </Box>
       <FlatList
         style={styles.list}
-        ref={listRef}
         data={paymentMethods}
         renderItem={renderPaymentMethod}
         keyExtractor={(item) => item.id}

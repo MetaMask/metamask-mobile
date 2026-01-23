@@ -73,7 +73,7 @@ describe('PaymentSelectionModal', () => {
     mockUseParams.mockReturnValue({});
   });
 
-  it('renders correctly and matches snapshot', () => {
+  it('matches snapshot', () => {
     const { toJSON } = renderWithProvider(PaymentSelectionModal);
     expect(toJSON()).toMatchSnapshot();
   });

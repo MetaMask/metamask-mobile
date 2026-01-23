@@ -218,6 +218,7 @@ describe('BuildQuote', () => {
       params: undefined,
     });
   });
+
   it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
     mockTokens = {
       allTokens: [],
