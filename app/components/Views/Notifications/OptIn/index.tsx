@@ -131,3 +131,7 @@ const OptIn = () => {
 };
 
 export default OptIn;
+
+OptIn.navigationOptions = {
+  headerShown: false,
+};

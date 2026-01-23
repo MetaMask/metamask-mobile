@@ -53,7 +53,6 @@ describe('NotificationsSettings', () => {
             setOptions,
           } as unknown as Props['navigation']
         }
-        route={{} as unknown as Props['route']}
       />,
       {
         state: mockInitialState,
