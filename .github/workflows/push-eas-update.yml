@@ -394,11 +394,26 @@ jobs:
       - name: Display configuration
         run: |
           TARGET_RUNTIME_VERSION=$(node -p "require('./package.json').version")
+          TARGET_PROJECT_ID=$(node -p "require('./ota.config.js').PROJECT_ID")
           echo "🔧 Configuration:"
           echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
           echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
           echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
           echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
+          echo "  METAMASK_BUILD_TYPE: ${METAMASK_BUILD_TYPE:-<not set>}"
+          echo "  METAMASK_ENVIRONMENT: ${METAMASK_ENVIRONMENT:-<not set>}"
+          echo ""
+          echo "📱 Project Info:"
+          echo "  Project ID (target branch): ${TARGET_PROJECT_ID}"
+          echo "  EXPO_PROJECT_ID (from secrets): ${EXPO_PROJECT_ID:+SET}"
+          echo "  EXPO_TOKEN (from secrets): ${EXPO_TOKEN:+SET}"
+          echo ""
+          echo "🔐 Social Login Config (first 3 chars):"
+          echo "  IOS_GOOGLE_CLIENT_ID: ${IOS_GOOGLE_CLIENT_ID:0:3}... (length: ${#IOS_GOOGLE_CLIENT_ID})"
+          echo "  IOS_GOOGLE_REDIRECT_URI: ${IOS_GOOGLE_REDIRECT_URI:0:3}... (length: ${#IOS_GOOGLE_REDIRECT_URI})"
+          echo "  ANDROID_APPLE_CLIENT_ID: ${ANDROID_APPLE_CLIENT_ID:0:3}... (length: ${#ANDROID_APPLE_CLIENT_ID})"
+          echo "  ANDROID_GOOGLE_CLIENT_ID: ${ANDROID_GOOGLE_CLIENT_ID:0:3}... (length: ${#ANDROID_GOOGLE_CLIENT_ID})"
+          echo "  ANDROID_GOOGLE_SERVER_CLIENT_ID: ${ANDROID_GOOGLE_SERVER_CLIENT_ID:0:3}... (length: ${#ANDROID_GOOGLE_SERVER_CLIENT_ID})"
 
       - name: Build & Push EAS Update via build.sh
         env:
