@@ -134,10 +134,14 @@ describe('useAssetBalances', () => {
     // Default mock implementations
     mockUseSelector.mockImplementation((selector: any) => {
       if (typeof selector === 'function') {
-        // Mock state structure
+        // Mock state structure - includes TokensController for the refactored useAssetBalances
         const state = {
           engine: {
             backgroundState: {
+              TokensController: {
+                allTokens: {},
+                allDetectedTokens: {},
+              },
               NetworkController: {
                 networkConfigurationsByChainId: {
                   '0xe708': {
@@ -213,6 +217,10 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {},
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -415,7 +423,41 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      // Provide wallet asset in the mock state
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (typeof selector === 'function') {
+          const state = {
+            engine: {
+              backgroundState: {
+                TokensController: {
+                  allTokens: {
+                    '0xe708': {
+                      'mock-account': [walletAsset],
+                    },
+                  },
+                  allDetectedTokens: {},
+                },
+                NetworkController: {
+                  networkConfigurationsByChainId: {
+                    '0xe708': {
+                      nativeCurrency: 'ETH',
+                    },
+                  },
+                },
+                CurrencyRateController: {
+                  currencyRates: {
+                    ETH: {
+                      conversionRate: 2000,
+                    },
+                  },
+                },
+              },
+            },
+          };
+          return selector(state);
+        }
+        return 'USD';
+      });
 
       const { result } = renderHook(() => useAssetBalances([enabledToken]));
 
@@ -478,7 +520,41 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      // Provide wallet asset in the mock state
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (typeof selector === 'function') {
+          const state = {
+            engine: {
+              backgroundState: {
+                TokensController: {
+                  allTokens: {
+                    '0xe708': {
+                      'mock-account': [walletAsset],
+                    },
+                  },
+                  allDetectedTokens: {},
+                },
+                NetworkController: {
+                  networkConfigurationsByChainId: {
+                    '0xe708': {
+                      nativeCurrency: 'ETH',
+                    },
+                  },
+                },
+                CurrencyRateController: {
+                  currencyRates: {
+                    ETH: {
+                      conversionRate: 2000,
+                    },
+                  },
+                },
+              },
+            },
+          };
+          return selector(state);
+        }
+        return 'USD';
+      });
 
       const { result } = renderHook(() =>
         useAssetBalances([mockNotEnabledToken]),
@@ -592,7 +668,41 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      // Provide wallet asset in the mock state
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (typeof selector === 'function') {
+          const state = {
+            engine: {
+              backgroundState: {
+                TokensController: {
+                  allTokens: {
+                    '0xe708': {
+                      'mock-account': [walletAsset],
+                    },
+                  },
+                  allDetectedTokens: {},
+                },
+                NetworkController: {
+                  networkConfigurationsByChainId: {
+                    '0xe708': {
+                      nativeCurrency: 'ETH',
+                    },
+                  },
+                },
+                CurrencyRateController: {
+                  currencyRates: {
+                    ETH: {
+                      conversionRate: 2000,
+                    },
+                  },
+                },
+              },
+            },
+          };
+          return selector(state);
+        }
+        return 'USD';
+      });
 
       const { result } = renderHook(() => useAssetBalances([limitedToken]));
 
@@ -628,6 +738,10 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {},
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -674,6 +788,10 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {},
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -736,6 +854,10 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {},
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {},
                 },
@@ -860,11 +982,29 @@ describe('useAssetBalances', () => {
 
   describe('proportional fiat calculation', () => {
     it('calculates proportional fiat when availableBalance is half of wallet balance', () => {
+      const walletAsset = {
+        address: mockEvmToken.address,
+        chainId: '0xe708',
+        symbol: 'USDC',
+        balance: '1000',
+        balanceFiat: '$1000.00',
+        isETH: false,
+        aggregators: [],
+      };
+
       mockUseSelector.mockImplementation((selector: any) => {
         if (typeof selector === 'function') {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {
+                    '0xe708': {
+                      'mock-account': [walletAsset],
+                    },
+                  },
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -891,17 +1031,6 @@ describe('useAssetBalances', () => {
         '0xe708': {},
       };
 
-      const walletAsset = {
-        address: mockEvmToken.address,
-        chainId: '0xe708',
-        symbol: 'USDC',
-        balance: '1000',
-        balanceFiat: '$1000.00',
-        isETH: false,
-        aggregators: [],
-      };
-
-      mockSelectAsset.mockReturnValue(walletAsset as any);
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '500 USDC',
@@ -925,11 +1054,29 @@ describe('useAssetBalances', () => {
     });
 
     it('calculates proportional fiat when availableBalance equals wallet balance', () => {
+      const walletAsset = {
+        address: mockEvmToken.address,
+        chainId: '0xe708',
+        symbol: 'USDC',
+        balance: '1000',
+        balanceFiat: '$1000.00',
+        isETH: false,
+        aggregators: [],
+      };
+
       mockUseSelector.mockImplementation((selector: any) => {
         if (typeof selector === 'function') {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {
+                    '0xe708': {
+                      'mock-account': [walletAsset],
+                    },
+                  },
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -956,17 +1103,6 @@ describe('useAssetBalances', () => {
         '0xe708': {},
       };
 
-      const walletAsset = {
-        address: mockEvmToken.address,
-        chainId: '0xe708',
-        symbol: 'USDC',
-        balance: '1000',
-        balanceFiat: '$1000.00',
-        isETH: false,
-        aggregators: [],
-      };
-
-      mockSelectAsset.mockReturnValue(walletAsset as any);
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '1000 USDC',
@@ -990,11 +1126,29 @@ describe('useAssetBalances', () => {
     });
 
     it('calculates proportional fiat with comma decimal separator in balance', () => {
+      const walletAsset = {
+        address: mockEvmToken.address,
+        chainId: '0xe708',
+        symbol: 'USDC',
+        balance: '1000',
+        balanceFiat: '$1000.00',
+        isETH: false,
+        aggregators: [],
+      };
+
       mockUseSelector.mockImplementation((selector: any) => {
         if (typeof selector === 'function') {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {
+                    '0xe708': {
+                      'mock-account': [walletAsset],
+                    },
+                  },
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1021,17 +1175,6 @@ describe('useAssetBalances', () => {
         '0xe708': {},
       };
 
-      const walletAsset = {
-        address: mockEvmToken.address,
-        chainId: '0xe708',
-        symbol: 'USDC',
-        balance: '1000',
-        balanceFiat: '$1000.00',
-        isETH: false,
-        aggregators: [],
-      };
-
-      mockSelectAsset.mockReturnValue(walletAsset as any);
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '250 USDC',
@@ -1055,11 +1198,29 @@ describe('useAssetBalances', () => {
     });
 
     it('calculates very small proportional fiat values', () => {
+      const walletAsset = {
+        address: mockEvmToken.address,
+        chainId: '0xe708',
+        symbol: 'USDC',
+        balance: '10000',
+        balanceFiat: '$10000.00',
+        isETH: false,
+        aggregators: [],
+      };
+
       mockUseSelector.mockImplementation((selector: any) => {
         if (typeof selector === 'function') {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {
+                    '0xe708': {
+                      'mock-account': [walletAsset],
+                    },
+                  },
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1086,17 +1247,6 @@ describe('useAssetBalances', () => {
         '0xe708': {},
       };
 
-      const walletAsset = {
-        address: mockEvmToken.address,
-        chainId: '0xe708',
-        symbol: 'USDC',
-        balance: '10000',
-        balanceFiat: '$10000.00',
-        isETH: false,
-        aggregators: [],
-      };
-
-      mockSelectAsset.mockReturnValue(walletAsset as any);
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '0.1 USDC',
@@ -1125,6 +1275,10 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {},
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1186,6 +1340,10 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {},
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1212,17 +1370,6 @@ describe('useAssetBalances', () => {
         '0xe708': {},
       };
 
-      const walletAsset = {
-        address: mockEvmToken.address,
-        chainId: '0xe708',
-        symbol: 'USDC',
-        balance: '1000',
-        balanceFiat: '$1000.00',
-        isETH: false,
-        aggregators: [],
-      };
-
-      mockSelectAsset.mockReturnValue(walletAsset as any);
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '0 USDC',
@@ -1244,11 +1391,29 @@ describe('useAssetBalances', () => {
     });
 
     it('handles walletAsset with special characters in balanceFiat', () => {
+      const walletAsset = {
+        address: mockEvmToken.address,
+        chainId: '0xe708',
+        symbol: 'USDC',
+        balance: '1,000.50',
+        balanceFiat: '$1,000.50',
+        isETH: false,
+        aggregators: [],
+      };
+
       mockUseSelector.mockImplementation((selector: any) => {
         if (typeof selector === 'function') {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {
+                    '0xe708': {
+                      'mock-account': [walletAsset],
+                    },
+                  },
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1275,17 +1440,6 @@ describe('useAssetBalances', () => {
         '0xe708': {},
       };
 
-      const walletAsset = {
-        address: mockEvmToken.address,
-        chainId: '0xe708',
-        symbol: 'USDC',
-        balance: '1,000.50',
-        balanceFiat: '$1,000.50',
-        isETH: false,
-        aggregators: [],
-      };
-
-      mockSelectAsset.mockReturnValue(walletAsset as any);
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '500.25 USDC',
@@ -1307,11 +1461,29 @@ describe('useAssetBalances', () => {
     });
 
     it('falls back to token symbol when walletAsset has missing balance property', () => {
+      const walletAsset = {
+        address: mockEvmToken.address,
+        chainId: '0xe708',
+        symbol: 'USDC',
+        balance: undefined,
+        balanceFiat: '$1000.00',
+        isETH: false,
+        aggregators: [],
+      };
+
       mockUseSelector.mockImplementation((selector: any) => {
         if (typeof selector === 'function') {
           const state = {
             engine: {
               backgroundState: {
+                TokensController: {
+                  allTokens: {
+                    '0xe708': {
+                      'mock-account': [walletAsset],
+                    },
+                  },
+                  allDetectedTokens: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1338,17 +1510,6 @@ describe('useAssetBalances', () => {
         '0xe708': {},
       };
 
-      const walletAsset = {
-        address: mockEvmToken.address,
-        chainId: '0xe708',
-        symbol: 'USDC',
-        balance: undefined,
-        balanceFiat: '$1000.00',
-        isETH: false,
-        aggregators: [],
-      };
-
-      mockSelectAsset.mockReturnValue(walletAsset as any);
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '500 USDC',
@@ -1690,8 +1851,43 @@ describe('useAssetBalances', () => {
           aggregators: [],
         };
 
+        // Provide wallet asset in the mock state instead of using mockSelectAsset
+        mockUseSelector.mockImplementation((selector: any) => {
+          if (typeof selector === 'function') {
+            const state = {
+              engine: {
+                backgroundState: {
+                  TokensController: {
+                    allTokens: {
+                      '0xe708': {
+                        'mock-account': [walletAsset],
+                      },
+                    },
+                    allDetectedTokens: {},
+                  },
+                  NetworkController: {
+                    networkConfigurationsByChainId: {
+                      '0xe708': {
+                        nativeCurrency: 'ETH',
+                      },
+                    },
+                  },
+                  CurrencyRateController: {
+                    currencyRates: {
+                      ETH: {
+                        conversionRate: 2000,
+                      },
+                    },
+                  },
+                },
+              },
+            };
+            return selector(state);
+          }
+          return 'USD';
+        });
+
         mockUseTokensWithBalance.mockReturnValue([]);
-        mockSelectAsset.mockReturnValue(walletAsset as any);
         mockFormatWithThreshold.mockReturnValue('$0.00');
 
         const { result } = renderHook(() =>
@@ -1722,8 +1918,43 @@ describe('useAssetBalances', () => {
           aggregators: [],
         };
 
+        // Provide wallet asset in the mock state instead of using mockSelectAsset
+        mockUseSelector.mockImplementation((selector: any) => {
+          if (typeof selector === 'function') {
+            const state = {
+              engine: {
+                backgroundState: {
+                  TokensController: {
+                    allTokens: {
+                      '0xe708': {
+                        'mock-account': [walletAsset],
+                      },
+                    },
+                    allDetectedTokens: {},
+                  },
+                  NetworkController: {
+                    networkConfigurationsByChainId: {
+                      '0xe708': {
+                        nativeCurrency: 'ETH',
+                      },
+                    },
+                  },
+                  CurrencyRateController: {
+                    currencyRates: {
+                      ETH: {
+                        conversionRate: 2000,
+                      },
+                    },
+                  },
+                },
+              },
+            };
+            return selector(state);
+          }
+          return 'USD';
+        });
+
         mockUseTokensWithBalance.mockReturnValue([]);
-        mockSelectAsset.mockReturnValue(walletAsset as any);
 
         const { result } = renderHook(() =>
           useAssetBalances([notEnabledToken]),
@@ -1755,8 +1986,43 @@ describe('useAssetBalances', () => {
           aggregators: [],
         };
 
+        // Provide wallet asset in the mock state instead of using mockSelectAsset
+        mockUseSelector.mockImplementation((selector: any) => {
+          if (typeof selector === 'function') {
+            const state = {
+              engine: {
+                backgroundState: {
+                  TokensController: {
+                    allTokens: {
+                      '0xe708': {
+                        'mock-account': [walletAsset],
+                      },
+                    },
+                    allDetectedTokens: {},
+                  },
+                  NetworkController: {
+                    networkConfigurationsByChainId: {
+                      '0xe708': {
+                        nativeCurrency: 'ETH',
+                      },
+                    },
+                  },
+                  CurrencyRateController: {
+                    currencyRates: {
+                      ETH: {
+                        conversionRate: 2000,
+                      },
+                    },
+                  },
+                },
+              },
+            };
+            return selector(state);
+          }
+          return 'USD';
+        });
+
         mockUseTokensWithBalance.mockReturnValue([]);
-        mockSelectAsset.mockReturnValue(walletAsset as any);
         mockFormatWithThreshold.mockReturnValue('$15.62');
 
         const { result } = renderHook(() =>
@@ -1787,8 +2053,43 @@ describe('useAssetBalances', () => {
           aggregators: [],
         };
 
+        // Provide wallet asset in the mock state instead of using mockSelectAsset
+        mockUseSelector.mockImplementation((selector: any) => {
+          if (typeof selector === 'function') {
+            const state = {
+              engine: {
+                backgroundState: {
+                  TokensController: {
+                    allTokens: {
+                      '0xe708': {
+                        'mock-account': [walletAsset],
+                      },
+                    },
+                    allDetectedTokens: {},
+                  },
+                  NetworkController: {
+                    networkConfigurationsByChainId: {
+                      '0xe708': {
+                        nativeCurrency: 'ETH',
+                      },
+                    },
+                  },
+                  CurrencyRateController: {
+                    currencyRates: {
+                      ETH: {
+                        conversionRate: 2000,
+                      },
+                    },
+                  },
+                },
+              },
+            };
+            return selector(state);
+          }
+          return 'USD';
+        });
+
         mockUseTokensWithBalance.mockReturnValue([]);
-        mockSelectAsset.mockReturnValue(walletAsset as any);
         mockFormatWithThreshold.mockReturnValue('R$ 15,62');
 
         const { result } = renderHook(() =>
