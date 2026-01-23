@@ -249,8 +249,8 @@ jobs:
       needs.approval.result == 'success'
     env:
       ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
-      METAMASK_BUILD_TYPE: ${{ env.METAMASK_BUILD_TYPE }}
-      METAMASK_ENVIRONMENT: ${{ env.METAMASK_ENVIRONMENT }}
+      METAMASK_BUILD_TYPE: 'main'
+      METAMASK_ENVIRONMENT: ${{ inputs.channel }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
