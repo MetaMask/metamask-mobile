@@ -26,6 +26,13 @@ async function loadSingleSkill(name: string): Promise<Skill | null> {
     const rawContent = await readFile(skillPath, 'utf-8');
     const { metadata, content } = parseSkillFile(rawContent, name);
 
+    // CRITICAL: Validate that frontmatter name matches filename
+    if (metadata.name !== name) {
+      throw new Error(
+        `Skill filename/frontmatter mismatch: File is '${name}.md' but frontmatter says 'name: ${metadata.name}'. These must match for skill loading to work correctly.`,
+      );
+    }
+
     const skill = { name, metadata, content };
 
     // Validate structure (non-blocking - warns but doesn't fail)

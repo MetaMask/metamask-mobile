@@ -1,5 +1,5 @@
 ---
-name: select-tags
+name: test-selection
 description: Analyzes code changes in pull requests to determine which E2E tests should run. Examines file modifications, checks dependencies, and picks test tags based on what could actually break. Aims for good coverage without running the entire test suite on every pull request.
 tools: find_related_files get_git_diff grep_codebase read_file list_directory finalize_tag_selection
 ---
