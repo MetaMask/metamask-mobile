@@ -1,17 +1,7 @@
-import {
-  fork,
-  take,
-  cancel,
-  put,
-  call,
-  all,
-  select,
-  cancelled,
-} from 'redux-saga/effects';
+import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
-  lockApp,
   setAppServicesReady,
   UserActionType,
   LoginAction,
@@ -68,7 +58,7 @@ export function* appStateListenerTask() {
 
   try {
     while (true) {
-      let appState: AppStateStatus = yield take(channel);
+      const appState: AppStateStatus = yield take(channel);
       if (appState === 'active') {
         yield call(async () => {
           // This is in a try catch since errors are not propogated in event channels.
@@ -147,19 +137,6 @@ export function* authStateMachine() {
     // Cancels appLockStateMachineTask, which also cancels nested sagas once logged out.
     yield cancel(appLockStateMachineTask);
   }
-}
-
-/**
- * Locks the KeyringController and dispatches LOCK_APP.
- */
-function* lockKeyringAndApp() {
-  const { KeyringController } = Engine.context;
-  try {
-    yield call(KeyringController.setLocked);
-  } catch (e) {
-    Logger.log('Failed to lock KeyringController', e);
-  }
-  yield put(lockApp());
 }
 
 export function* basicFunctionalityToggle() {
