@@ -316,849 +316,1099 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                       style={
                         [
                           {
-                            "alignItems": "center",
                             "display": "flex",
-                            "flexDirection": "row",
-                            "justifyContent": "space-between",
-                            "paddingBottom": 12,
-                            "paddingLeft": 16,
-                            "paddingRight": 16,
-                            "paddingTop": 12,
+                            "overflow": "hidden",
+                            "position": "relative",
                           },
-                          undefined,
+                          {
+                            "minHeight": 667,
+                          },
                         ]
                       }
                     >
-                      <Text
-                        accessibilityRole="text"
+                      <View
                         style={
-                          {
-                            "color": "#121314",
-                            "fontFamily": "Geist-Bold",
-                            "fontSize": 18,
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                          }
+                          [
+                            {
+                              "left": 0,
+                              "position": "absolute",
+                              "top": 0,
+                              "width": 750,
+                            },
+                            {
+                              "transform": [
+                                {
+                                  "translateX": 0,
+                                },
+                              ],
+                            },
+                          ]
                         }
-                      >
-                        fiat_on_ramp.pay_with
-                      </Text>
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={[Function]}
                       >
                         <View
                           style={
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderRadius": 8,
                                 "display": "flex",
                                 "flexDirection": "row",
-                                "gap": 8,
-                                "paddingBottom": 8,
-                                "paddingLeft": 12,
-                                "paddingRight": 12,
-                                "paddingTop": 8,
+                                "justifyContent": "space-between",
+                                "paddingBottom": 12,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 12,
                               },
                               undefined,
                             ]
                           }
                         >
-                          <SvgMock
-                            color="#121314"
-                            fill="currentColor"
-                            height={16}
-                            name="ArrowDown"
+                          <Text
+                            accessibilityRole="text"
                             style={
                               {
-                                "height": 16,
-                                "width": 16,
+                                "color": "#121314",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
                               }
                             }
-                            width={16}
-                          />
+                          >
+                            fiat_on_ramp.pay_with
+                          </Text>
+                          <TouchableOpacity
+                            activeOpacity={0.7}
+                            onPress={[Function]}
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderRadius": 8,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "gap": 8,
+                                    "paddingBottom": 8,
+                                    "paddingLeft": 12,
+                                    "paddingRight": 12,
+                                    "paddingTop": 8,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <SvgMock
+                                color="#121314"
+                                fill="currentColor"
+                                height={16}
+                                name="ArrowDown"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </View>
+                          </TouchableOpacity>
                         </View>
-                      </TouchableOpacity>
-                    </View>
-                    <View
-                      style={
-                        [
-                          {
-                            "display": "flex",
-                            "paddingBottom": 16,
-                            "paddingLeft": 16,
-                            "paddingRight": 16,
-                          },
-                          undefined,
-                        ]
-                      }
-                    >
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#686e7d",
-                            "fontFamily": "Geist-Regular",
-                            "fontSize": 14,
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
+                        <View
+                          style={
+                            [
+                              {
+                                "display": "flex",
+                                "paddingBottom": 16,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              undefined,
+                            ]
                           }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#686e7d",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            fiat_on_ramp.debit_card_payments_more_likely
+                          </Text>
+                        </View>
+                        <RCTScrollView
+                          collapsable={false}
+                          data={
+                            [
+                              {
+                                "delay": "5 to 10 minutes.",
+                                "disclaimer": "Credit card purchases may incur your bank's cash advance fees.",
+                                "icon": "card",
+                                "id": "/payments/debit-credit-card-1",
+                                "name": "Debit or Credit",
+                                "paymentType": "debit-credit-card",
+                                "pendingOrderDescription": "Card purchases may take a few minutes to complete.",
+                                "score": 90,
+                              },
+                              {
+                                "delay": "5 to 10 minutes.",
+                                "disclaimer": "Credit card purchases may incur your bank's cash advance fees.",
+                                "icon": "card",
+                                "id": "/payments/debit-credit-card-2",
+                                "name": "Debit or Credit",
+                                "paymentType": "debit-credit-card",
+                                "pendingOrderDescription": "Card purchases may take a few minutes to complete.",
+                                "score": 90,
+                              },
+                            ]
+                          }
+                          getItem={[Function]}
+                          getItemCount={[Function]}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
+                          keyExtractor={[Function]}
+                          keyboardDismissMode="none"
+                          keyboardShouldPersistTaps="always"
+                          onContentSizeChange={[Function]}
+                          onGestureHandlerEvent={[Function]}
+                          onGestureHandlerStateChange={[Function]}
+                          onLayout={[Function]}
+                          onMomentumScrollBegin={[Function]}
+                          onMomentumScrollEnd={[Function]}
+                          onScroll={[Function]}
+                          onScrollBeginDrag={[Function]}
+                          onScrollEndDrag={[Function]}
+                          removeClippedSubviews={false}
+                          renderItem={[Function]}
+                          renderScrollComponent={[Function]}
+                          scrollEventThrottle={0.0001}
+                          stickyHeaderIndices={[]}
+                          style={
+                            {
+                              "maxHeight": 667,
+                            }
+                          }
+                          viewabilityConfigCallbackPairs={[]}
+                        >
+                          <View>
+                            <View
+                              onFocusCapture={[Function]}
+                              onLayout={[Function]}
+                              style={null}
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "backgroundColor": "#ffffff",
+                                    "borderRadius": 4,
+                                    "opacity": 1,
+                                    "position": "relative",
+                                  }
+                                }
+                              >
+                                <View
+                                  accessibilityRole="none"
+                                  accessible={true}
+                                  style={
+                                    {
+                                      "padding": 16,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View>
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Card"
+                                          style={
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
+                                          }
+                                          width={20}
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 18,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Debit or Credit
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#686e7d",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 14,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        5 to 10 minutes.
+                                      </Text>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "flex-end",
+                                              "display": "flex",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          0.10596 ETH
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#686e7d",
+                                              "fontFamily": "Geist-Regular",
+                                              "fontSize": 14,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          ~ $499.97
+                                        </Text>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </View>
+                              </TouchableOpacity>
+                            </View>
+                            <View
+                              onFocusCapture={[Function]}
+                              onLayout={[Function]}
+                              style={null}
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "backgroundColor": "#ffffff",
+                                    "borderRadius": 4,
+                                    "opacity": 1,
+                                    "position": "relative",
+                                  }
+                                }
+                              >
+                                <View
+                                  accessibilityRole="none"
+                                  accessible={true}
+                                  style={
+                                    {
+                                      "padding": 16,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View>
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Card"
+                                          style={
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
+                                          }
+                                          width={20}
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 18,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Debit or Credit
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#686e7d",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 14,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        5 to 10 minutes.
+                                      </Text>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "flex-end",
+                                              "display": "flex",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          0.10596 ETH
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#686e7d",
+                                              "fontFamily": "Geist-Regular",
+                                              "fontSize": 14,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          ~ $499.97
+                                        </Text>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </View>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </RCTScrollView>
+                      </View>
+                      <View
+                        style={
+                          [
+                            {
+                              "left": 0,
+                              "position": "absolute",
+                              "top": 0,
+                              "width": 750,
+                            },
+                            {
+                              "transform": [
+                                {
+                                  "translateX": 750,
+                                },
+                              ],
+                            },
+                          ]
                         }
                       >
-                        fiat_on_ramp.debit_card_payments_more_likely
-                      </Text>
-                    </View>
-                    <RCTScrollView
-                      collapsable={false}
-                      data={
-                        [
-                          {
-                            "delay": "5 to 10 minutes.",
-                            "disclaimer": "Credit card purchases may incur your bank's cash advance fees.",
-                            "icon": "card",
-                            "id": "/payments/debit-credit-card-1",
-                            "name": "Debit or Credit",
-                            "paymentType": "debit-credit-card",
-                            "pendingOrderDescription": "Card purchases may take a few minutes to complete.",
-                            "score": 90,
-                          },
-                          {
-                            "delay": "5 to 10 minutes.",
-                            "disclaimer": "Credit card purchases may incur your bank's cash advance fees.",
-                            "icon": "card",
-                            "id": "/payments/debit-credit-card-2",
-                            "name": "Debit or Credit",
-                            "paymentType": "debit-credit-card",
-                            "pendingOrderDescription": "Card purchases may take a few minutes to complete.",
-                            "score": 90,
-                          },
-                          {
-                            "delay": "5 to 10 minutes.",
-                            "disclaimer": "Credit card purchases may incur your bank's cash advance fees.",
-                            "icon": "card",
-                            "id": "/payments/debit-credit-card-3",
-                            "name": "Debit or Credit",
-                            "paymentType": "debit-credit-card",
-                            "pendingOrderDescription": "Card purchases may take a few minutes to complete.",
-                            "score": 90,
-                          },
-                          {
-                            "delay": "5 to 10 minutes.",
-                            "disclaimer": "Credit card purchases may incur your bank's cash advance fees.",
-                            "icon": "card",
-                            "id": "/payments/debit-credit-card-4",
-                            "name": "Debit or Credit",
-                            "paymentType": "debit-credit-card",
-                            "pendingOrderDescription": "Card purchases may take a few minutes to complete.",
-                            "score": 90,
-                          },
-                        ]
-                      }
-                      getItem={[Function]}
-                      getItemCount={[Function]}
-                      handlerTag={-1}
-                      handlerType="NativeViewGestureHandler"
-                      keyExtractor={[Function]}
-                      keyboardDismissMode="none"
-                      keyboardShouldPersistTaps="always"
-                      onContentSizeChange={[Function]}
-                      onGestureHandlerEvent={[Function]}
-                      onGestureHandlerStateChange={[Function]}
-                      onLayout={[Function]}
-                      onMomentumScrollBegin={[Function]}
-                      onMomentumScrollEnd={[Function]}
-                      onScroll={[Function]}
-                      onScrollBeginDrag={[Function]}
-                      onScrollEndDrag={[Function]}
-                      removeClippedSubviews={false}
-                      renderItem={[Function]}
-                      renderScrollComponent={[Function]}
-                      scrollEventThrottle={0.0001}
-                      stickyHeaderIndices={[]}
-                      style={
-                        {
-                          "maxHeight": 667,
-                        }
-                      }
-                      viewabilityConfigCallbackPairs={[]}
-                    >
-                      <View>
                         <View
-                          onFocusCapture={[Function]}
-                          onLayout={[Function]}
-                          style={null}
-                        >
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            disabled={false}
-                            onPress={[Function]}
-                            style={
+                          style={
+                            [
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderRadius": 4,
-                                "opacity": 1,
-                                "position": "relative",
-                              }
-                            }
-                          >
-                            <View
-                              accessibilityRole="none"
-                              accessible={true}
-                              style={
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              [
                                 {
-                                  "padding": 16,
-                                }
-                              }
-                            >
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "gap": 16,
+                                  "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
+                                },
+                                false,
+                                undefined,
+                              ]
+                            }
+                            testID="header"
+                          >
+                            <View>
                               <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
+                                onLayout={[Function]}
                               >
                                 <View
                                   style={
-                                    {
-                                      "flex": -1,
-                                    }
-                                  }
-                                  testID="listitemcolumn"
-                                >
-                                  <View>
-                                    <SvgMock
-                                      color="#121314"
-                                      fill="currentColor"
-                                      height={20}
-                                      name="Card"
-                                      style={
-                                        {
-                                          "height": 20,
-                                          "width": 20,
-                                        }
-                                      }
-                                      width={20}
-                                    />
-                                  </View>
-                                </View>
-                                <View
-                                  accessible={false}
-                                  style={
-                                    {
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="listitem-gap"
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "flex": 1,
-                                    }
-                                  }
-                                  testID="listitemcolumn"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
+                                    [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 18,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Debit or Credit
-                                  </Text>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
                                       {
-                                        "color": "#686e7d",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    5 to 10 minutes.
-                                  </Text>
-                                </View>
-                                <View
-                                  accessible={false}
-                                  style={
-                                    {
-                                      "width": 16,
-                                    }
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
                                   }
-                                  testID="listitem-gap"
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "flex": -1,
-                                    }
-                                  }
-                                  testID="listitemcolumn"
                                 >
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "alignItems": "flex-end",
-                                          "display": "flex",
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
+                                    testID="button-icon"
                                   >
-                                    <Text
-                                      accessibilityRole="text"
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="ArrowLeft"
                                       style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
                                       }
-                                    >
-                                      0.10596 ETH
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
-                                      }
-                                    >
-                                      ~ $499.97
-                                    </Text>
+                                    />
                                   </View>
                                 </View>
                               </View>
                             </View>
-                          </TouchableOpacity>
-                        </View>
-                        <View
-                          onFocusCapture={[Function]}
-                          onLayout={[Function]}
-                          style={null}
-                        >
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            disabled={false}
-                            onPress={[Function]}
-                            style={
-                              {
-                                "backgroundColor": "#ffffff",
-                                "borderRadius": 4,
-                                "opacity": 1,
-                                "position": "relative",
-                              }
-                            }
-                          >
                             <View
-                              accessibilityRole="none"
-                              accessible={true}
                               style={
-                                {
-                                  "padding": 16,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <View
                                 style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "display": "flex",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
-                                    {
-                                      "flex": -1,
-                                    }
-                                  }
-                                  testID="listitemcolumn"
-                                >
-                                  <View>
-                                    <SvgMock
-                                      color="#121314"
-                                      fill="currentColor"
-                                      height={20}
-                                      name="Card"
-                                      style={
-                                        {
-                                          "height": 20,
-                                          "width": 20,
-                                        }
-                                      }
-                                      width={20}
-                                    />
-                                  </View>
-                                </View>
-                                <View
-                                  accessible={false}
-                                  style={
-                                    {
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="listitem-gap"
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "flex": 1,
-                                    }
-                                  }
-                                  testID="listitemcolumn"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
+                                    [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 18,
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Debit or Credit
-                                  </Text>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#686e7d",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    5 to 10 minutes.
-                                  </Text>
-                                </View>
-                                <View
-                                  accessible={false}
-                                  style={
-                                    {
-                                      "width": 16,
-                                    }
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="listitem-gap"
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "flex": -1,
-                                    }
-                                  }
-                                  testID="listitemcolumn"
                                 >
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "alignItems": "flex-end",
-                                          "display": "flex",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      0.10596 ETH
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
-                                      }
-                                    >
-                                      ~ $499.97
-                                    </Text>
-                                  </View>
-                                </View>
+                                  fiat_on_ramp_aggregator.providers
+                                </Text>
                               </View>
                             </View>
-                          </TouchableOpacity>
-                        </View>
-                        <View
-                          onFocusCapture={[Function]}
-                          onLayout={[Function]}
-                          style={null}
-                        >
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            disabled={false}
-                            onPress={[Function]}
+                            <View>
+                              <View
+                                onLayout={[Function]}
+                              />
+                            </View>
+                          </View>
+                          <RCTScrollView
+                            collapsable={false}
+                            data={
+                              [
+                                {
+                                  "description": "Test provider",
+                                  "environmentType": "PRODUCTION",
+                                  "hqAddress": "Test Address",
+                                  "id": "/providers/transak",
+                                  "links": [],
+                                  "logos": {
+                                    "dark": "https://example.com/logo-dark.png",
+                                    "height": 24,
+                                    "light": "https://example.com/logo-light.png",
+                                    "width": 90,
+                                  },
+                                  "name": "Transak",
+                                },
+                                {
+                                  "description": "Test provider 2",
+                                  "environmentType": "PRODUCTION",
+                                  "hqAddress": "Test Address 2",
+                                  "id": "/providers/moonpay",
+                                  "links": [],
+                                  "logos": {
+                                    "dark": "https://example.com/moonpay-dark.png",
+                                    "height": 24,
+                                    "light": "https://example.com/moonpay-light.png",
+                                    "width": 90,
+                                  },
+                                  "name": "MoonPay",
+                                },
+                              ]
+                            }
+                            getItem={[Function]}
+                            getItemCount={[Function]}
+                            handlerTag={-1}
+                            handlerType="NativeViewGestureHandler"
+                            keyExtractor={[Function]}
+                            keyboardDismissMode="none"
+                            keyboardShouldPersistTaps="always"
+                            onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
+                            onLayout={[Function]}
+                            onMomentumScrollBegin={[Function]}
+                            onMomentumScrollEnd={[Function]}
+                            onScroll={[Function]}
+                            onScrollBeginDrag={[Function]}
+                            onScrollEndDrag={[Function]}
+                            removeClippedSubviews={false}
+                            renderItem={[Function]}
+                            renderScrollComponent={[Function]}
+                            scrollEventThrottle={0.0001}
+                            stickyHeaderIndices={[]}
                             style={
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderRadius": 4,
-                                "opacity": 1,
-                                "position": "relative",
+                                "maxHeight": 667,
                               }
                             }
+                            viewabilityConfigCallbackPairs={[]}
                           >
-                            <View
-                              accessibilityRole="none"
-                              accessible={true}
-                              style={
-                                {
-                                  "padding": 16,
-                                }
-                              }
-                            >
+                            <View>
                               <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
+                                onFocusCapture={[Function]}
+                                onLayout={[Function]}
+                                style={null}
                               >
-                                <View
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
                                     {
-                                      "flex": -1,
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
                                     }
                                   }
-                                  testID="listitemcolumn"
-                                >
-                                  <View>
-                                    <SvgMock
-                                      color="#121314"
-                                      fill="currentColor"
-                                      height={20}
-                                      name="Card"
-                                      style={
-                                        {
-                                          "height": 20,
-                                          "width": 20,
-                                        }
-                                      }
-                                      width={20}
-                                    />
-                                  </View>
-                                </View>
-                                <View
-                                  accessible={false}
-                                  style={
-                                    {
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="listitem-gap"
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "flex": 1,
-                                    }
-                                  }
-                                  testID="listitemcolumn"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 18,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Debit or Credit
-                                  </Text>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#686e7d",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    5 to 10 minutes.
-                                  </Text>
-                                </View>
-                                <View
-                                  accessible={false}
-                                  style={
-                                    {
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="listitem-gap"
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "flex": -1,
-                                    }
-                                  }
-                                  testID="listitemcolumn"
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "flex-end",
-                                          "display": "flex",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
-                                    <Text
-                                      accessibilityRole="text"
+                                    <View
                                       style={
                                         {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
                                     >
-                                      0.10596 ETH
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
                                         }
-                                      }
-                                    >
-                                      ~ $499.97
-                                    </Text>
+                                        testID="listitemcolumn"
+                                      />
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 18,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          Transak
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#686e7d",
+                                              "fontFamily": "Geist-Regular",
+                                              "fontSize": 14,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          temporary description
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "alignItems": "flex-end",
+                                                "display": "flex",
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            0.10596 ETH
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 14,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              }
+                                            }
+                                          >
+                                            ~ $499.97
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
                                   </View>
-                                </View>
+                                  <View
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "bottom": 0,
+                                        "flexDirection": "row",
+                                        "left": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  />
+                                </TouchableOpacity>
                               </View>
-                            </View>
-                          </TouchableOpacity>
-                        </View>
-                        <View
-                          onFocusCapture={[Function]}
-                          onLayout={[Function]}
-                          style={null}
-                        >
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            disabled={false}
-                            onPress={[Function]}
-                            style={
-                              {
-                                "backgroundColor": "#ffffff",
-                                "borderRadius": 4,
-                                "opacity": 1,
-                                "position": "relative",
-                              }
-                            }
-                          >
-                            <View
-                              accessibilityRole="none"
-                              accessible={true}
-                              style={
-                                {
-                                  "padding": 16,
-                                }
-                              }
-                            >
                               <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
+                                onFocusCapture={[Function]}
+                                onLayout={[Function]}
+                                style={null}
                               >
-                                <View
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
                                     {
-                                      "flex": -1,
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
                                     }
                                   }
-                                  testID="listitemcolumn"
-                                >
-                                  <View>
-                                    <SvgMock
-                                      color="#121314"
-                                      fill="currentColor"
-                                      height={20}
-                                      name="Card"
-                                      style={
-                                        {
-                                          "height": 20,
-                                          "width": 20,
-                                        }
-                                      }
-                                      width={20}
-                                    />
-                                  </View>
-                                </View>
-                                <View
-                                  accessible={false}
-                                  style={
-                                    {
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="listitem-gap"
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "flex": 1,
-                                    }
-                                  }
-                                  testID="listitemcolumn"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 18,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Debit or Credit
-                                  </Text>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#686e7d",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    5 to 10 minutes.
-                                  </Text>
-                                </View>
-                                <View
-                                  accessible={false}
-                                  style={
-                                    {
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="listitem-gap"
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "flex": -1,
-                                    }
-                                  }
-                                  testID="listitemcolumn"
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "flex-end",
-                                          "display": "flex",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
-                                    <Text
-                                      accessibilityRole="text"
+                                    <View
                                       style={
                                         {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
                                     >
-                                      0.10596 ETH
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
                                         }
-                                      }
-                                    >
-                                      ~ $499.97
-                                    </Text>
+                                        testID="listitemcolumn"
+                                      />
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 18,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          MoonPay
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#686e7d",
+                                              "fontFamily": "Geist-Regular",
+                                              "fontSize": 14,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          temporary description
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "alignItems": "flex-end",
+                                                "display": "flex",
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            0.10596 ETH
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 14,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              }
+                                            }
+                                          >
+                                            ~ $499.97
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
                                   </View>
-                                </View>
+                                </TouchableOpacity>
                               </View>
                             </View>
-                          </TouchableOpacity>
+                          </RCTScrollView>
                         </View>
                       </View>
-                    </RCTScrollView>
+                    </View>
                   </View>
                 </View>
               </View>

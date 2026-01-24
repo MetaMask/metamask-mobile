@@ -4,6 +4,7 @@ import {
   type UserRegion,
   type Provider,
   type Country,
+  type PaymentMethodsResponse,
   type RampsControllerState,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
@@ -49,6 +50,38 @@ export const selectProviders = createSelector(
 export const selectTokens = createSelector(
   selectRampsControllerState,
   (rampsControllerState) => rampsControllerState?.tokens ?? null,
+);
+
+/**
+ * Selects the list of payment methods available for the current region.
+ */
+export const selectPaymentMethods = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => {
+    const paymentMethods = rampsControllerState?.paymentMethods ?? [];
+    console.log('[selectPaymentMethods] Selector called:', {
+      hasRampsControllerState: !!rampsControllerState,
+      paymentMethodsCount: paymentMethods.length,
+      paymentMethods: paymentMethods.map((pm) => ({ id: pm.id, name: pm.name })),
+    });
+    return paymentMethods;
+  },
+);
+
+/**
+ * Selects the currently selected payment method from state.
+ */
+export const selectSelectedPaymentMethod = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.selectedPaymentMethod ?? null,
+);
+
+/**
+ * Selects the currently selected token from state.
+ */
+export const selectSelectedToken = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.selectedToken ?? null,
 );
 
 /**
@@ -115,3 +148,30 @@ export const selectProvidersRequest = (
       options?.payments,
     ],
   );
+
+/**
+ * Selects the payment methods request state for a given context.
+ *
+ * @param region - The region code (e.g., "us", "fr", "us-ny").
+ * @param fiat - The fiat currency code (e.g., "usd").
+ * @param assetId - The CAIP-19 cryptocurrency identifier.
+ * @param provider - The provider ID path.
+ * @returns Request selector for payment methods.
+ */
+export const selectPaymentMethodsRequest = (
+  region: string,
+  fiat: string,
+  assetId: string,
+  provider: string,
+) =>
+  createRequestSelector<RootState, PaymentMethodsResponse>(
+    selectRampsControllerState,
+    'getPaymentMethods',
+    [
+      region.toLowerCase().trim(),
+      fiat.toLowerCase().trim(),
+      assetId,
+      provider,
+    ],
+  );
+

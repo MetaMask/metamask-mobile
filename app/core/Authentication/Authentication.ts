@@ -249,6 +249,15 @@ class AuthenticationService {
   };
 
   private postLoginAsyncOperations = async (): Promise<void> => {
+    try {
+      const { RampsController } = Engine.context;
+      if (RampsController.state.userRegion?.regionCode) {
+        RampsController.hydrateState();
+      }
+    } catch (error) {
+      console.warn('Failed to hydrate ramps state:', error);
+    }
+
     if (isMultichainAccountsState2Enabled()) {
       // READ THIS CAREFULLY:
       // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To

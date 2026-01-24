@@ -12,9 +12,11 @@ import {
   selectPreferredProvider,
   selectProviders,
   selectTokens,
+  selectPaymentMethods,
   selectCountriesRequest,
   selectTokensRequest,
   selectProvidersRequest,
+  selectPaymentMethodsRequest,
   selectRampsControllerState,
 } from './index';
 
@@ -104,6 +106,20 @@ const mockTokens = {
     },
   ],
 };
+
+const mockPaymentMethods = [
+  {
+    id: '/payments/debit-credit-card',
+    paymentType: 'debit-credit-card',
+    name: 'Debit or Credit',
+    score: 90,
+    icon: 'card',
+    disclaimer: "Credit card purchases may incur your bank's cash advance fees.",
+    delay: '5 to 10 minutes.',
+    pendingOrderDescription:
+      'Card purchases may take a few minutes to complete.',
+  },
+];
 
 describe('RampsController Selectors', () => {
   describe('selectUserRegion', () => {
@@ -255,6 +271,26 @@ describe('RampsController Selectors', () => {
       const state = createMockState();
 
       expect(selectTokens(state)).toBeNull();
+    });
+  });
+
+  describe('selectPaymentMethods', () => {
+    it('returns payment methods from state', () => {
+      const state = createMockState({ paymentMethods: mockPaymentMethods });
+
+      expect(selectPaymentMethods(state)).toEqual(mockPaymentMethods);
+    });
+
+    it('returns empty array when paymentMethods is empty', () => {
+      const state = createMockState({ paymentMethods: [] });
+
+      expect(selectPaymentMethods(state)).toEqual([]);
+    });
+
+    it('returns empty array when paymentMethods is undefined', () => {
+      const state = createMockState();
+
+      expect(selectPaymentMethods(state)).toEqual([]);
     });
   });
 
@@ -458,6 +494,125 @@ describe('RampsController Selectors', () => {
       const state = createMockState();
 
       const result = selectProvidersRequest('us-ca')(state);
+
+      expect(result).toEqual({
+        data: null,
+        isFetching: false,
+        error: null,
+      });
+    });
+  });
+
+  describe('selectPaymentMethodsRequest', () => {
+    it('returns request state for context', () => {
+      const state = createMockState({
+        requests: {
+          'getPaymentMethods:["us-ca","usd","eip155:1/slip44:60","/providers/transak"]':
+            {
+              status: RequestStatus.SUCCESS,
+              data: { payments: mockPaymentMethods },
+              error: null,
+              timestamp: Date.now(),
+              lastFetchedAt: Date.now(),
+            },
+        },
+      });
+
+      const result = selectPaymentMethodsRequest(
+        'us-ca',
+        'usd',
+        'eip155:1/slip44:60',
+        '/providers/transak',
+      )(state);
+
+      expect(result).toEqual({
+        data: { payments: mockPaymentMethods },
+        isFetching: false,
+        error: null,
+      });
+    });
+
+    it('normalizes region and fiat to lowercase and trims', () => {
+      const state = createMockState({
+        requests: {
+          'getPaymentMethods:["us-ca","usd","eip155:1/slip44:60","/providers/transak"]':
+            {
+              status: RequestStatus.SUCCESS,
+              data: { payments: mockPaymentMethods },
+              error: null,
+              timestamp: Date.now(),
+              lastFetchedAt: Date.now(),
+            },
+        },
+      });
+
+      const result = selectPaymentMethodsRequest(
+        '  US-CA  ',
+        '  USD  ',
+        'eip155:1/slip44:60',
+        '/providers/transak',
+      )(state);
+
+      expect(result.data).toEqual({ payments: mockPaymentMethods });
+    });
+
+    it('returns isFetching true when request is loading', () => {
+      const state = createMockState({
+        requests: {
+          'getPaymentMethods:["us-ca","usd","eip155:1/slip44:60","/providers/transak"]':
+            {
+              status: RequestStatus.LOADING,
+              data: null,
+              error: null,
+              timestamp: Date.now(),
+              lastFetchedAt: Date.now(),
+            },
+        },
+      });
+
+      const result = selectPaymentMethodsRequest(
+        'us-ca',
+        'usd',
+        'eip155:1/slip44:60',
+        '/providers/transak',
+      )(state);
+
+      expect(result.isFetching).toBe(true);
+    });
+
+    it('returns error when request failed', () => {
+      const state = createMockState({
+        requests: {
+          'getPaymentMethods:["us-ca","usd","eip155:1/slip44:60","/providers/transak"]':
+            {
+              status: RequestStatus.ERROR,
+              data: null,
+              error: 'Network error',
+              timestamp: Date.now(),
+              lastFetchedAt: Date.now(),
+            },
+        },
+      });
+
+      const result = selectPaymentMethodsRequest(
+        'us-ca',
+        'usd',
+        'eip155:1/slip44:60',
+        '/providers/transak',
+      )(state);
+
+      expect(result.error).toBe('Network error');
+    });
+
+    it('returns default state when request does not exist', () => {
+      const state = createMockState();
+
+      const result = selectPaymentMethodsRequest(
+        'us-ca',
+        'usd',
+        'eip155:1/slip44:60',
+        '/providers/transak',
+      )(state);
 
       expect(result).toEqual({
         data: null,

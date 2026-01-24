@@ -23,6 +23,10 @@ export function determinePreferredProvider(
   orders: FiatOrder[],
   availableProviders: Provider[],
 ): Provider | null {
+  console.log('[determinePreferredProvider] determinePreferredProvider:', {
+    orders: orders.length,
+    availableProviders: availableProviders.map((provider) => provider.id)
+  });
   if (availableProviders.length === 0) {
     return null;
   }
@@ -63,15 +67,30 @@ export function determinePreferredProvider(
     }
   }
 
+  console.log('[determinePreferredProvider] No found provider:', {
+    orders: orders.length,
+    availableProviders: availableProviders.length,
+  });
+
   const transakProvider = availableProviders.find(
     (provider) =>
       provider.id?.toLowerCase().includes('transak') ||
       provider.name?.toLowerCase().includes('transak'),
   );
 
+  console.log('[determinePreferredProvider] No transak provider:', {
+    orders: orders.length,
+    availableProviders: availableProviders.length,
+  });
+
   if (transakProvider) {
     return transakProvider;
   }
+
+  console.log('[determinePreferredProvider] No available providers:', {
+    orders: orders.length,
+    availableProviders: availableProviders.length,
+  });
 
   return availableProviders[0];
 }

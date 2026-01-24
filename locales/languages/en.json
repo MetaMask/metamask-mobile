@@ -4788,6 +4788,7 @@
     "previously_used": "Previously used",
     "best_rate": "Best rate",
     "most_reliable": "Most reliable",
+    "providers": "Providers",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
     "terms_of_service": "Terms of Service",

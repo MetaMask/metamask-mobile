@@ -6,6 +6,7 @@ import { useRampsController } from './useRampsController';
 import { useRampsProviders } from './useRampsProviders';
 import { useRampsTokens } from './useRampsTokens';
 import { useRampsCountries } from './useRampsCountries';
+import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
@@ -27,19 +28,14 @@ jest.mock('./useRampsUserRegion', () => ({
   })),
 }));
 
-jest.mock('./useRampsPreferredProvider', () => ({
-  useRampsPreferredProvider: jest.fn(() => ({
-    preferredProvider: null,
-    setPreferredProvider: jest.fn(),
-  })),
-}));
-
 jest.mock('./useRampsProviders', () => ({
   useRampsProviders: jest.fn(() => ({
     providers: [],
+    preferredProvider: null,
     isLoading: false,
     error: null,
     fetchProviders: jest.fn(),
+    setPreferredProvider: jest.fn(),
   })),
 }));
 
@@ -61,9 +57,15 @@ jest.mock('./useRampsCountries', () => ({
   })),
 }));
 
-jest.mock('./useRampsPreferredProviderAutoSet', () => ({
-  useRampsPreferredProviderAutoSet: jest.fn(),
+jest.mock('./useRampsPaymentMethods', () => ({
+  useRampsPaymentMethods: jest.fn(() => ({
+    paymentMethods: [],
+    isLoading: false,
+    error: null,
+    fetchPaymentMethods: jest.fn(),
+  })),
 }));
+
 
 const createMockStore = () =>
   configureStore({
@@ -119,6 +121,9 @@ describe('useRampsController', () => {
       countries: null,
       countriesLoading: false,
       countriesError: null,
+      paymentMethods: [],
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     expect(typeof result.current.fetchUserRegion).toBe('function');
@@ -127,6 +132,7 @@ describe('useRampsController', () => {
     expect(typeof result.current.fetchProviders).toBe('function');
     expect(typeof result.current.fetchTokens).toBe('function');
     expect(typeof result.current.fetchCountries).toBe('function');
+    expect(typeof result.current.fetchPaymentMethods).toBe('function');
   });
 
   it('passes options to child hooks', () => {
@@ -152,6 +158,7 @@ describe('useRampsController', () => {
     });
     expect(useRampsTokens).toHaveBeenCalledWith('us-ny', 'sell');
     expect(useRampsCountries).toHaveBeenCalled();
+    expect(useRampsPaymentMethods).toHaveBeenCalled();
   });
 
   it('passes undefined options when not provided', () => {
@@ -163,5 +170,6 @@ describe('useRampsController', () => {
     expect(useRampsProviders).toHaveBeenCalledWith(undefined, undefined);
     expect(useRampsTokens).toHaveBeenCalledWith(undefined, undefined);
     expect(useRampsCountries).toHaveBeenCalled();
+    expect(useRampsPaymentMethods).toHaveBeenCalled();
   });
 });

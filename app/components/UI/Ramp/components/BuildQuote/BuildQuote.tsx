@@ -46,7 +46,7 @@ function BuildQuote() {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
   // Get user region, preferred provider, and tokens from RampsController
-  const { userRegion, preferredProvider, tokens } = useRampsController();
+  const { userRegion, preferredProvider, tokens, selectedPaymentMethod } = useRampsController();
 
   // Get currency and quick amounts from user's region
   const currency = userRegion?.country?.currency || 'USD';
@@ -120,7 +120,7 @@ function BuildQuote() {
                 })}
               </Text>
               <PaymentMethodPill
-                label={strings('fiat_on_ramp.debit_card')}
+                label={selectedPaymentMethod?.name || strings('fiat_on_ramp.select_payment_method')}
                 onPress={() => {
                   navigation.navigate(
                     ...createPaymentSelectionModalNavigationDetails(),

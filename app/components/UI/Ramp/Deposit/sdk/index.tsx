@@ -36,6 +36,8 @@ import Logger from '../../../../../util/Logger';
 import I18n, { I18nEvents, strings } from '../../../../../../locales/i18n';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { DepositNavigationParams } from '../types';
+import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
+import Engine from '../../../../../core/Engine';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -92,6 +94,7 @@ export const DepositSDKProvider = ({
 }: Partial<ProviderProps<DepositSDK>>) => {
   const dispatch = useDispatch();
   const providerApiKey = useSelector(selectDepositProviderApiKey);
+  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
 
   const [sdk, setSdk] = useState<NativeRampsSdk>();
   const [sdkError, setSdkError] = useState<Error>();
@@ -132,10 +135,39 @@ export const DepositSDKProvider = ({
 
   const setSelectedCryptoCurrencyCallback = useCallback(
     (cryptoCurrency: DepositCryptoCurrency | null) => {
+      console.log('[DepositSDK] setSelectedCryptoCurrencyCallback called:', {
+        assetId: cryptoCurrency?.assetId ?? null,
+        symbol: cryptoCurrency?.symbol ?? null,
+        chainId: cryptoCurrency?.chainId ?? null,
+        isRampsUnifiedV2Enabled,
+      });
       setSelectedCryptoCurrency(cryptoCurrency);
       dispatch(setFiatOrdersCryptoCurrencyDeposit(cryptoCurrency));
+
+      if (isRampsUnifiedV2Enabled) {
+        console.log(
+          '[DepositSDK] V2 enabled - calling RampsController.setSelectedToken',
+        );
+        Engine.context.RampsController.setSelectedToken(
+          cryptoCurrency
+            ? {
+                assetId: cryptoCurrency.assetId,
+                symbol: cryptoCurrency.symbol,
+                name: cryptoCurrency.name,
+                decimals: cryptoCurrency.decimals,
+                chainId: cryptoCurrency.chainId,
+                iconUrl: cryptoCurrency.iconUrl,
+              }
+            : null,
+        ).catch((error: Error) => {
+          console.log(
+            '[DepositSDK] Error calling RampsController.setSelectedToken:',
+            error,
+          );
+        });
+      }
     },
-    [dispatch],
+    [dispatch, isRampsUnifiedV2Enabled],
   );
 
   const setSelectedPaymentMethodCallback = useCallback(

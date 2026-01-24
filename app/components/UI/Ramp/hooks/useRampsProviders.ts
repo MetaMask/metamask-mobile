@@ -1,10 +1,13 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
   selectProviders,
   selectProvidersRequest,
+  selectPreferredProvider,
 } from '../../../../selectors/rampsController';
+import { getOrders } from '../../../../reducers/fiatOrders';
+import { determinePreferredProvider } from '../utils/determinePreferredProvider';
 import {
   ExecuteRequestOptions,
   RequestSelectorResult,
@@ -19,6 +22,10 @@ export interface UseRampsProvidersResult {
    * The list of providers available for the current region.
    */
   providers: Provider[];
+  /**
+   * The user's preferred/selected provider, or null if not set.
+   */
+  preferredProvider: Provider | null;
   /**
    * Whether the providers request is currently loading.
    */
@@ -39,6 +46,10 @@ export interface UseRampsProvidersResult {
       payments?: string | string[];
     },
   ) => Promise<{ providers: Provider[] }>;
+  /**
+   * Set the user's preferred/selected provider.
+   */
+  setPreferredProvider: (provider: Provider | null) => void;
 }
 
 /**
@@ -59,6 +70,8 @@ export function useRampsProviders(
   },
 ): UseRampsProvidersResult {
   const providers = useSelector(selectProviders);
+  const preferredProvider = useSelector(selectPreferredProvider);
+  const orders = useSelector(getOrders);
   const userRegion = useSelector(
     (state: Parameters<typeof selectProviders>[0]) =>
       state.engine.backgroundState.RampsController?.userRegion,
@@ -95,11 +108,44 @@ export function useRampsProviders(
     [regionCode],
   );
 
+  const setPreferredProvider = useCallback((provider: Provider | null) => {
+    Engine.context.RampsController.setPreferredProvider(provider);
+  }, []);
+
+  useEffect(() => {
+    console.log('[useRampsProviders] useEffect:', {
+      orders: orders.length,
+      providers: providers.length,
+      preferredProvider,
+    });
+
+    if (preferredProvider) {
+      console.log('[useRampsProviders] Provider already set, skipping auto-selection');
+      return;
+    }
+
+    if (providers.length === 0) {
+      return;
+    }
+
+    const determinedProvider = determinePreferredProvider(orders, providers);
+
+    console.log('[useRampsProviders] determinedProvider:', {
+      determinedProvider,
+    });
+
+    if (determinedProvider) {
+      setPreferredProvider(determinedProvider);
+    }
+  }, [orders, providers, setPreferredProvider, preferredProvider]);
+
   return {
     providers,
+    preferredProvider,
     isLoading: isFetching,
     error,
     fetchProviders,
+    setPreferredProvider,
   };
 }
 

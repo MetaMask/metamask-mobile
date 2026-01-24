@@ -1,11 +1,8 @@
+import { useSelector } from 'react-redux';
 import {
   useRampsUserRegion,
   type UseRampsUserRegionResult,
 } from './useRampsUserRegion';
-import {
-  useRampsPreferredProvider,
-  type UseRampsPreferredProviderResult,
-} from './useRampsPreferredProvider';
 import {
   useRampsProviders,
   type UseRampsProvidersResult,
@@ -15,7 +12,12 @@ import {
   useRampsCountries,
   type UseRampsCountriesResult,
 } from './useRampsCountries';
-import { useRampsPreferredProviderAutoSet } from './useRampsPreferredProviderAutoSet';
+import {
+  useRampsPaymentMethods,
+  type UseRampsPaymentMethodsResult
+} from './useRampsPaymentMethods';
+import { selectSelectedToken } from '../../../../selectors/rampsController';
+import type { RampsToken } from '@metamask/ramps-controller';
 
 /**
  * Options for the useRampsController hook.
@@ -54,9 +56,9 @@ export interface UseRampsControllerResult {
   fetchUserRegion: UseRampsUserRegionResult['fetchUserRegion'];
   setUserRegion: UseRampsUserRegionResult['setUserRegion'];
 
-  // Preferred provider
-  preferredProvider: UseRampsPreferredProviderResult['preferredProvider'];
-  setPreferredProvider: UseRampsPreferredProviderResult['setPreferredProvider'];
+  // Preferred provider (selected provider)
+  preferredProvider: UseRampsProvidersResult['preferredProvider'];
+  setPreferredProvider: UseRampsProvidersResult['setPreferredProvider'];
 
   // Providers
   providers: UseRampsProvidersResult['providers'];
@@ -75,6 +77,17 @@ export interface UseRampsControllerResult {
   countriesLoading: UseRampsCountriesResult['isLoading'];
   countriesError: UseRampsCountriesResult['error'];
   fetchCountries: UseRampsCountriesResult['fetchCountries'];
+
+  // Payment methods
+  paymentMethods: UseRampsPaymentMethodsResult['paymentMethods'];
+  paymentMethodsLoading: UseRampsPaymentMethodsResult['isLoading'];
+  paymentMethodsError: UseRampsPaymentMethodsResult['error'];
+  setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
+  selectedPaymentMethod: UseRampsPaymentMethodsResult['selectedPaymentMethod'];
+  fetchPaymentMethods: UseRampsPaymentMethodsResult['fetchPaymentMethods'];
+
+  // Selected token
+  selectedToken: RampsToken | null;
 }
 
 /**
@@ -116,6 +129,14 @@ export interface UseRampsControllerResult {
  *   countriesError,
  *   fetchCountries,
  *
+ *   // Payment methods
+ *   paymentMethods,
+ *   selectedPaymentMethod,
+ *   paymentMethodsLoading,
+ *   paymentMethodsError,
+ *   fetchPaymentMethods,
+ *   setSelectedPaymentMethod,
+ *
  * } = useRampsController({ action: 'buy' });
  * ```
  */
@@ -130,15 +151,16 @@ export function useRampsController(
     setUserRegion,
   } = useRampsUserRegion();
 
-  const { preferredProvider, setPreferredProvider } =
-    useRampsPreferredProvider();
-
   const {
     providers,
+    preferredProvider,
     isLoading: providersLoading,
     error: providersError,
     fetchProviders,
+    setPreferredProvider,
   } = useRampsProviders(options?.region, options?.providerFilters);
+
+  console.log('[useRampsController] preferredProvider:', preferredProvider);
 
   const {
     tokens,
@@ -154,7 +176,16 @@ export function useRampsController(
     fetchCountries,
   } = useRampsCountries();
 
-  useRampsPreferredProviderAutoSet();
+  const {
+    paymentMethods,
+    selectedPaymentMethod,
+    isLoading: paymentMethodsLoading,
+    error: paymentMethodsError,
+    fetchPaymentMethods,
+    setSelectedPaymentMethod,
+  } = useRampsPaymentMethods();
+
+  const selectedToken = useSelector(selectSelectedToken);
 
   return {
     // User region
@@ -185,6 +216,17 @@ export function useRampsController(
     countriesLoading,
     countriesError,
     fetchCountries,
+
+    // Payment methods
+    paymentMethods,
+    selectedPaymentMethod,
+    paymentMethodsLoading,
+    paymentMethodsError,
+    fetchPaymentMethods,
+    setSelectedPaymentMethod,
+
+    // Selected token
+    selectedToken,
   };
 }
 

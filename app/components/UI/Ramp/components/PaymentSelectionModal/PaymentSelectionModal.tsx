@@ -1,6 +1,11 @@
-import React, { useCallback, useRef } from 'react';
-import { useWindowDimensions } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { ActivityIndicator, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -21,7 +26,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import ProviderPill from './ProviderPill';
 import PaymentMethodListItem from './PaymentMethodListItem';
-import type { Provider, PaymentMethod } from '@metamask/ramps-controller';
+import ProviderSelection from './ProviderSelection';
+import type { PaymentMethod, Provider } from '@metamask/ramps-controller';
+import { useRampsController } from '../../hooks/useRampsController';
+import { useRampsPaymentMethods } from '../../hooks/useRampsPaymentMethods';
+import { useTheme } from '../../../../../util/theme';
 
 export const createPaymentSelectionModalNavigationDetails =
   createNavigationDetails(
@@ -29,108 +38,106 @@ export const createPaymentSelectionModalNavigationDetails =
     Routes.RAMP.MODALS.PAYMENT_SELECTION,
   );
 
-// Mock data - TODO: Replace with actual data from controller
-const MOCK_PROVIDER: Provider = {
-  id: '/providers/transak',
-  name: 'Transak',
-  environmentType: 'PRODUCTION',
-  description:
-    'Per Transak: "The fastest and securest way to buy 100+ cryptocurrencies on 75+ blockchains. Pay via Apple Pay, UPI, bank transfer or use your debit or credit card. Trusted by 2+ million global users. Transak empowers wallets, gaming, DeFi, NFTs, Exchanges, and DAOs across 125+ countries."',
-  hqAddress: '35 Shearing Street, Bury St. Edmunds, IP32 6FE, United Kingdom',
-  links: [
-    {
-      name: 'Homepage',
-      url: 'https://www.transak.com/',
-    },
-    {
-      name: 'Privacy Policy',
-      url: 'https://transak.com/privacy-policy',
-    },
-    {
-      name: 'Support',
-      url: 'https://support.transak.com/hc/en-us',
-    },
-  ],
-  logos: {
-    light:
-      'https://on-ramp.dev-api.cx.metamask.io/assets/providers/transak_light.png',
-    dark: 'https://on-ramp.dev-api.cx.metamask.io/assets/providers/transak_dark.png',
-    height: 24,
-    width: 90,
-  },
-};
-
-const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
-  {
-    id: '/payments/debit-credit-card-1',
-    paymentType: 'debit-credit-card',
-    name: 'Debit or Credit',
-    score: 90,
-    icon: 'card',
-    disclaimer:
-      "Credit card purchases may incur your bank's cash advance fees.",
-    delay: '5 to 10 minutes.',
-    pendingOrderDescription:
-      'Card purchases may take a few minutes to complete.',
-  },
-  {
-    id: '/payments/debit-credit-card-2',
-    paymentType: 'debit-credit-card',
-    name: 'Debit or Credit',
-    score: 90,
-    icon: 'card',
-    disclaimer:
-      "Credit card purchases may incur your bank's cash advance fees.",
-    delay: '5 to 10 minutes.',
-    pendingOrderDescription:
-      'Card purchases may take a few minutes to complete.',
-  },
-  {
-    id: '/payments/debit-credit-card-3',
-    paymentType: 'debit-credit-card',
-    name: 'Debit or Credit',
-    score: 90,
-    icon: 'card',
-    disclaimer:
-      "Credit card purchases may incur your bank's cash advance fees.",
-    delay: '5 to 10 minutes.',
-    pendingOrderDescription:
-      'Card purchases may take a few minutes to complete.',
-  },
-  {
-    id: '/payments/debit-credit-card-4',
-    paymentType: 'debit-credit-card',
-    name: 'Debit or Credit',
-    score: 90,
-    icon: 'card',
-    disclaimer:
-      "Credit card purchases may incur your bank's cash advance fees.",
-    delay: '5 to 10 minutes.',
-    pendingOrderDescription:
-      'Card purchases may take a few minutes to complete.',
-  },
-];
+const ANIMATION_DURATION = 300;
 
 function PaymentSelectionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { height: screenHeight } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
+  const { colors } = useTheme();
 
-  const provider = MOCK_PROVIDER;
-  const paymentMethods = MOCK_PAYMENT_METHODS;
+  const {
+    preferredProvider,
+    providers,
+    paymentMethods: controllerPaymentMethods,
+    setSelectedPaymentMethod,
+    setPreferredProvider,
+    selectedToken,
+  } = useRampsController();
+
+  const assetId = selectedToken?.assetId;
+
+  const { fetchPaymentMethods } = useRampsPaymentMethods();
+
+  const [currentPage, setCurrentPage] = useState<'payment' | 'provider'>('payment');
+  const translateX = useSharedValue(0);
+
+  const [tmpProvider, setTmpProvider] = useState<Provider | null>(null);
+  const [tmpPaymentMethods, setTmpPaymentMethods] = useState<PaymentMethod[] | null>(null);
+  const [tmpLoading, setTmpLoading] = useState(false);
+  const [tmpError, setTmpError] = useState<string | null>(null);
+
+  const displayProvider = tmpProvider ?? preferredProvider;
+  const displayPaymentMethods = tmpPaymentMethods ?? controllerPaymentMethods;
+  const isLoading = tmpLoading;
+  const error = tmpError;
+
+  const paymentPageStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const providerPageStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value + screenWidth }],
+  }));
 
   const handleProviderPillPress = useCallback(() => {
-    // TODO: Handle provider selection
-  }, []);
+    translateX.value = withTiming(-screenWidth, { duration: ANIMATION_DURATION });
+    setCurrentPage('provider');
+  }, [screenWidth, translateX]);
+
+  const handleProviderBack = useCallback(() => {
+    setTmpProvider(null);
+    setTmpPaymentMethods(null);
+    setTmpError(null);
+    translateX.value = withTiming(0, { duration: ANIMATION_DURATION });
+    setCurrentPage('payment');
+  }, [translateX]);
+
+  const handleProviderSelect = useCallback(
+    async (provider: Provider) => {
+      if (!assetId) {
+        setTmpError('No token selected');
+        return;
+      }
+
+      setTmpProvider(provider);
+      setTmpLoading(true);
+      setTmpError(null);
+
+      translateX.value = withTiming(0, { duration: ANIMATION_DURATION });
+      setCurrentPage('payment');
+
+      try {
+        console.log('[PaymentSelectionModal] handleProviderSelect - fetching payment methods:', {
+          assetId,
+          provider: provider.id,
+        });
+        const response = await fetchPaymentMethods({
+          assetId,
+          provider: provider.id,
+          doNotUpdateState: true,
+        });
+        setTmpPaymentMethods(response.payments);
+      } catch (err) {
+        setTmpError(err instanceof Error ? err.message : 'Failed to fetch payment methods');
+      } finally {
+        setTmpLoading(false);
+      }
+    },
+    [fetchPaymentMethods, assetId, translateX],
+  );
 
   const handlePaymentMethodPress = useCallback(
     (_paymentMethod: PaymentMethod) => {
-      // TODO: Handle payment method selection
+      if (tmpProvider) {
+        setPreferredProvider(tmpProvider);
+      }
+      setSelectedPaymentMethod(_paymentMethod);
       sheetRef.current?.onCloseBottomSheet();
     },
-    [],
+    [tmpProvider, setPreferredProvider, setSelectedPaymentMethod],
   );
 
   const renderPaymentMethod = useCallback(
@@ -143,32 +150,79 @@ function PaymentSelectionModal() {
     [handlePaymentMethodPress],
   );
 
-  return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 py-3"
-      >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp.pay_with')}
-        </Text>
-        <ProviderPill provider={provider} onPress={handleProviderPillPress} />
-      </Box>
-      <Box twClassName="px-4 pb-4">
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {strings('fiat_on_ramp.debit_card_payments_more_likely')}
-        </Text>
-      </Box>
+  const renderListContent = () => {
+    if (isLoading) {
+      return (
+        <Box twClassName="flex-1 items-center justify-center py-8">
+          <ActivityIndicator size="large" color={colors.primary.default} />
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Box twClassName="flex-1 items-center justify-center py-8 px-4">
+          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+            {error}
+          </Text>
+        </Box>
+      );
+    }
+
+    return (
       <FlatList
         style={styles.list}
-        data={paymentMethods}
+        data={displayPaymentMethods}
         renderItem={renderPaymentMethod}
         keyExtractor={(item) => item.id}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
       />
+    );
+  };
+
+  return (
+    <BottomSheet ref={sheetRef} shouldNavigateBack>
+      <Box twClassName="overflow-hidden relative" style={{ minHeight: screenHeight * 0.5 }}>
+        <Animated.View
+          style={[
+            { position: 'absolute', width: screenWidth, top: 0, left: 0 },
+            paymentPageStyle,
+          ]}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="px-4 py-3"
+          >
+            <Text variant={TextVariant.HeadingMD}>
+              {strings('fiat_on_ramp.pay_with')}
+            </Text>
+            <ProviderPill provider={displayProvider} onPress={handleProviderPillPress} />
+          </Box>
+          <Box twClassName="px-4 pb-4">
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {strings('fiat_on_ramp.debit_card_payments_more_likely')}
+            </Text>
+          </Box>
+          {renderListContent()}
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            { position: 'absolute', width: screenWidth, top: 0, left: 0 },
+            providerPageStyle,
+          ]}
+        >
+          <ProviderSelection
+            providers={providers}
+            selectedProvider={displayProvider}
+            onProviderSelect={handleProviderSelect}
+            onBack={handleProviderBack}
+          />
+        </Animated.View>
+      </Box>
     </BottomSheet>
   );
 }

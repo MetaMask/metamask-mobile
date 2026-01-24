@@ -25,6 +25,8 @@ interface ProviderPillProps {
 const ProviderPill: React.FC<ProviderPillProps> = ({ provider, onPress }) => {
   const { themeAppearance } = useTheme();
 
+  console.log('[ProviderPill] provider:', provider);
+
   if (!provider) {
     return null;
   }
