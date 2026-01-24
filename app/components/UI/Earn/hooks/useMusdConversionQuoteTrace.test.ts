@@ -114,7 +114,7 @@ describe('useMusdConversionQuoteTrace', () => {
   });
 
   describe('trace end - success', () => {
-    it('ends trace when quotes arrive', () => {
+    it('ends trace when loading finishes with quotes', () => {
       const { result, rerender } = renderHook(() =>
         useMusdConversionQuoteTrace(),
       );
@@ -123,6 +123,12 @@ describe('useMusdConversionQuoteTrace', () => {
         result.current.startQuoteTrace();
       });
 
+      // Loading starts
+      mockUseIsTransactionPayQuoteLoading.mockReturnValue(true);
+      rerender();
+
+      // Loading finishes with quotes
+      mockUseIsTransactionPayQuoteLoading.mockReturnValue(false);
       mockUseTransactionPayQuotes.mockReturnValue([
         createMockQuote(TransactionPayStrategy.Relay),
       ]);
@@ -148,6 +154,12 @@ describe('useMusdConversionQuoteTrace', () => {
         result.current.startQuoteTrace();
       });
 
+      // Loading starts
+      mockUseIsTransactionPayQuoteLoading.mockReturnValue(true);
+      rerender();
+
+      // Loading finishes with bridge quote
+      mockUseIsTransactionPayQuoteLoading.mockReturnValue(false);
       mockUseTransactionPayQuotes.mockReturnValue([
         createMockQuote(TransactionPayStrategy.Bridge),
       ]);
@@ -158,6 +170,45 @@ describe('useMusdConversionQuoteTrace', () => {
           data: expect.objectContaining({ strategy: 'bridge' }),
         }),
       );
+    });
+
+    it('does not end trace while loading is in progress', () => {
+      const { result, rerender } = renderHook(() =>
+        useMusdConversionQuoteTrace(),
+      );
+
+      act(() => {
+        result.current.startQuoteTrace();
+      });
+
+      // Loading starts, quotes arrive but loading not finished
+      mockUseIsTransactionPayQuoteLoading.mockReturnValue(true);
+      mockUseTransactionPayQuotes.mockReturnValue([
+        createMockQuote(TransactionPayStrategy.Relay),
+      ]);
+      rerender();
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('does not end trace immediately with stale quotes', () => {
+      // Simulate existing quotes from previous fetch
+      mockUseTransactionPayQuotes.mockReturnValue([
+        createMockQuote(TransactionPayStrategy.Relay),
+      ]);
+
+      const { result, rerender } = renderHook(() =>
+        useMusdConversionQuoteTrace(),
+      );
+
+      act(() => {
+        result.current.startQuoteTrace();
+      });
+
+      // Rerender without loading starting - should not end
+      rerender();
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
   });
 

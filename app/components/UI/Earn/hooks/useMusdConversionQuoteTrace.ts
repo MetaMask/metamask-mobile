@@ -55,18 +55,22 @@ export function useMusdConversionQuoteTrace() {
     payToken?.chainId,
   ]);
 
-  // End trace when quotes arrive or loading finishes without quotes
+  // End trace when loading finishes (with or without quotes)
   useEffect(() => {
     if (!traceIdRef.current) return;
 
-    // Track loading transition
+    // Track when loading starts
     if (isLoading) {
       wasLoadingRef.current = true;
+      return; // Don't check end conditions while loading
     }
 
+    // Wait until we've seen loading start
+    if (!wasLoadingRef.current) return;
+
+    // Loading finished - check result
     const hasQuotes = (quotes?.length ?? 0) > 0;
 
-    // Success: quotes arrived
     if (hasQuotes) {
       endTrace({
         name: TraceName.MusdConversionQuote,
@@ -77,11 +81,7 @@ export function useMusdConversionQuoteTrace() {
           strategy: quotes?.[0]?.strategy ?? 'unknown',
         },
       });
-      traceIdRef.current = null;
-      wasLoadingRef.current = false;
-    }
-    // Failure: loading finished (true → false) with no quotes
-    else if (wasLoadingRef.current && !isLoading) {
+    } else {
       endTrace({
         name: TraceName.MusdConversionQuote,
         id: traceIdRef.current,
@@ -90,9 +90,10 @@ export function useMusdConversionQuoteTrace() {
           reason: 'no_quotes',
         },
       });
-      traceIdRef.current = null;
-      wasLoadingRef.current = false;
     }
+
+    traceIdRef.current = null;
+    wasLoadingRef.current = false;
   }, [isLoading, quotes]);
 
   return { startQuoteTrace };
