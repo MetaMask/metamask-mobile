@@ -16,15 +16,14 @@ import { retryWithExponentialDelay } from '../../../../util/exponential-retry';
  * - Address-based: 1 request per 1 USDC traded (lifetime) + 10,000 initial buffer
  * - When rate limited: addresses receive 1 request every 10 seconds (drip recovery)
  *
- * Strategy: Use longer delays to allow rate limit to "drip" back capacity.
- * With base 3s and 4 retries: 3s → 6s → 12s → 24s = ~45s total window
- * This gives multiple 10-second drip cycles to recover request capacity.
+ * Strategy: Retry with exponential backoff, but fail fast (~14s total) to avoid
+ * leaving the user waiting too long. Sequence: 2s → 4s → 8s = ~14s total.
  *
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/rate-limits
  */
-const TPSL_UPDATE_MAX_RETRIES = 4;
-const TPSL_UPDATE_BASE_DELAY_MS = 3000;
-const TPSL_UPDATE_MAX_DELAY_MS = 30000;
+const TPSL_UPDATE_MAX_RETRIES = 3;
+const TPSL_UPDATE_BASE_DELAY_MS = 2000;
+const TPSL_UPDATE_MAX_DELAY_MS = 10000;
 
 interface UseTPSLUpdateOptions {
   onSuccess?: () => void;
