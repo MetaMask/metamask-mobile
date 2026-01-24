@@ -303,7 +303,10 @@ describe('usePerpsHomeData', () => {
 
     // Set default return values for the selectors
     mockSelectPerpsWatchlistMarkets.mockReturnValue(['BTC', 'ETH']);
-    mockSelectPerpsMarketFilterPreferences.mockReturnValue('volume');
+    mockSelectPerpsMarketFilterPreferences.mockReturnValue({
+      optionId: 'volume',
+      direction: 'desc',
+    });
   });
 
   describe('Initial state and data loading', () => {
@@ -502,9 +505,10 @@ describe('usePerpsHomeData', () => {
     });
 
     it('uses default direction when sort option not found', () => {
-      mockSelectPerpsMarketFilterPreferences.mockReturnValue(
-        'unknown-sort-option' as never,
-      );
+      mockSelectPerpsMarketFilterPreferences.mockReturnValue({
+        optionId: 'unknown-sort-option' as never,
+        direction: 'desc',
+      });
 
       renderHook(() => usePerpsHomeData());
 

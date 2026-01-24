@@ -1419,6 +1419,7 @@
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
       "failed_to_toggle_network": "Failed to toggle network",
+      "failed_to_switch_provider": "Failed to switch provider",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1814,7 +1815,11 @@
       "price_change_low_to_high": "Price change: low to high",
       "past_hour": "Past hour",
       "past_24_hours": "Past 24 hours",
-      "time": "Time"
+      "time": "Time",
+      "apply": "Apply"
+    },
+    "market_type": {
+      "filter_by": "Filter by"
     },
     "perps_markets": "Perps markets",
     "volume": "Volume",
@@ -1831,6 +1836,7 @@
     "mainnet": "Mainnet",
     "developer_options": {
       "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "provider_mode_toggle": "Provider Mode",
       "simulate_connection_error": "Simulate connection error"
     },
     "transactions": {
@@ -4620,6 +4626,10 @@
   "fiat_on_ramp": {
     "buy_eth": "Buy ETH",
     "buy": "Buy {{ticker}}",
+    "on_network": "on {{networkName}}",
+    "debit_card": "Debit card",
+    "continue": "Continue",
+    "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
     "network_not_supported": "Current network not supported",
     "switch_network": "Please switch to Mainnet",
@@ -5633,6 +5643,7 @@
     "claimable_bonus_tooltip": "An annual bonus claimable daily from your wallet.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
+    "claim_bonus": "Claim bonus",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
@@ -5726,7 +5737,7 @@
         "failed": "mUSD conversion failed"
       },
       "education": {
-        "heading": "GET {{percentage}}% ON STABLECOINS",
+        "heading": "GET {{percentage}}% ON\nSTABLECOINS",
         "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus. Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now"
@@ -6192,6 +6203,8 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
     "select_network": "Select network",
     "all_networks": "All networks",
     "num_networks": "{{numNetworks}} networks",
@@ -6199,6 +6212,7 @@
     "select_all_networks": "Select all",
     "deselect_all_networks": "Deselect all",
     "see_all": "See all",
+    "all": "All",
     "apply": "Apply",
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
@@ -6728,6 +6742,7 @@
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
       "enable_card_error": "Failed to enable card. Please try again later.",
+      "view_card_details_error": "Unable to load card details. Please try again.",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6756,6 +6771,12 @@
           "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
         }
       },
+      "messages": {
+        "card_provisioning": {
+          "title": "Card being created",
+          "description": "Your card is being created. This may take a few moments."
+        }
+      },
       "kyc_status": {
         "pending": {
           "title": "Verification in progress",
@@ -6777,13 +6798,16 @@
         "ok_button": "OK"
       },
       "manage_card_options": {
+        "view_card_details": "View card details",
+        "hide_card_details": "Hide card details",
+        "view_card_details_description": "Card number, expiration and CVV",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Manage card",
         "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
-        "travel_description": "Travel the world, earn points, live life",
+        "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions"
       }
     },

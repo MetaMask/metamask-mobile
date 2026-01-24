@@ -157,6 +157,7 @@ function mapContentfulEntriesToSlides(
       variableName,
       mobileMinimumVersionNumber,
       mobileMaximumVersionNumber,
+      metadata,
     } = entry.fields;
 
     const slide: CarouselSlide = {
@@ -176,6 +177,7 @@ function mapContentfulEntriesToSlides(
       endDate,
       cardPlacement,
       variableName,
+      metadata,
     };
 
     if (!isValidMinimumVersion(mobileMinimumVersionNumber)) {

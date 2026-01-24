@@ -390,6 +390,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                 [
                                   {
                                     "display": "flex",
+                                    "flexShrink": 0,
                                     "gap": 16,
                                     "marginBottom": 8,
                                     "marginTop": 8,

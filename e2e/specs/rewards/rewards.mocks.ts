@@ -1,7 +1,7 @@
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupMockRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
+import { DEFAULT_FIXTURE_ACCOUNT } from '../../../tests/framework/fixtures/FixtureBuilder';
 
 const REWARDS_API_BASE_URL =
   /https:\/\/rewards\.(uat|dev)-api\.cx\.metamask\.io/;

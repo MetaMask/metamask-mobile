@@ -7,7 +7,7 @@ import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
 import { acceptTermOfUse } from '../../viewHelper';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 
 const PASSWORD = '12345678';
 
