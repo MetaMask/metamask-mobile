@@ -1,24 +1,18 @@
+import { AppState } from 'react-native';
 import { Action } from 'redux';
 import { take, fork, cancel } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
-import {
-  UserActionType,
-  authError,
-  authSuccess,
-  checkForDeeplink,
-  interruptBiometrics,
-} from '../../actions/user';
+import { UserActionType, checkForDeeplink } from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
 import {
-  biometricsStateMachine,
   authStateMachine,
   appLockStateMachine,
-  lockKeyringAndApp,
   startAppServices,
   initializeSDKServices,
   handleDeeplinkSaga,
   handleSnapsRegistry,
   requestAuthOnAppStart,
+  appStateListenerTask,
 } from './';
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
@@ -33,8 +27,7 @@ import Authentication from '../../core/Authentication';
 import { MetaMetrics } from '../../core/Analytics';
 import Logger from '../../util/Logger';
 import AppConstants from '../../core/AppConstants';
-
-const mockBioStateMachineId = '123';
+import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -162,6 +155,11 @@ jest.mock('../../core/LockManagerService', () => ({
   },
 }));
 
+// Add this mock with the other mocks (around line 151)
+jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
+  jest.fn(),
+);
+
 const defaultMockState = {
   onboarding: { completedOnboarding: false },
   user: { existingUser: true },
@@ -223,84 +221,99 @@ describe('authStateMachine', () => {
   });
 });
 
+// Add these tests (after the appLockStateMachine describe block)
+describe('appStateListenerTask', () => {
+  let appStateCallback: (state: string) => void;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Capture the AppState callback when addEventListener is called
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, callback) => {
+        appStateCallback = callback;
+        return { remove: jest.fn() };
+      },
+    );
+  });
+
+  it('creates event channel to listen to app state changes', async () => {
+    await expectSaga(appStateListenerTask).silentRun(50);
+
+    expect(AppState.addEventListener).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function),
+    );
+  });
+
+  it('calls unlockWallet when app becomes active', async () => {
+    // Simulate app state change to 'active' after saga starts
+    setTimeout(() => {
+      appStateCallback('active');
+    }, 10);
+
+    await expectSaga(appStateListenerTask).silentRun(100);
+
+    expect(Authentication.unlockWallet).toHaveBeenCalled();
+  });
+
+  it('does not call unlockWallet when app is in background', async () => {
+    // Simulate app state change to 'background'
+    setTimeout(() => {
+      appStateCallback('background');
+    }, 10);
+
+    await expectSaga(appStateListenerTask).silentRun(100);
+
+    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
+  });
+
+  it('does not call unlockWallet when app is inactive', async () => {
+    // Simulate app state change to 'inactive'
+    setTimeout(() => {
+      appStateCallback('inactive');
+    }, 10);
+
+    await expectSaga(appStateListenerTask).silentRun(100);
+
+    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
+  });
+
+  it('calls lockApp and tracks error when unlockWallet fails', async () => {
+    const mockError = new Error('Authentication failed');
+    (Authentication.unlockWallet as jest.Mock).mockRejectedValueOnce(mockError);
+
+    // Simulate app becoming active
+    setTimeout(() => {
+      appStateCallback('active');
+    }, 10);
+
+    await expectSaga(appStateListenerTask).silentRun(100);
+
+    expect(Authentication.unlockWallet).toHaveBeenCalled();
+    expect(Authentication.lockApp).toHaveBeenCalledWith({ reset: false });
+    expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+      'Lockscreen: Authentication failed',
+      'Authentication failed',
+    );
+  });
+});
+
 describe('appLockStateMachine', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
     mockReset.mockClear();
   });
 
-  it('forks biometricsStateMachine when app is locked', async () => {
-    const generator = appLockStateMachine();
-    expect(generator.next().value).toEqual(take(UserActionType.LOCKED_APP));
-    // Fork biometrics listener.
-    expect(generator.next().value).toEqual(
-      fork(biometricsStateMachine, mockBioStateMachineId),
-    );
-  });
+  it('forks appStateListenerTask and navigates to LockScreen when app is locked', async () => {
+    await expectSaga(appLockStateMachine)
+      .dispatch({ type: UserActionType.LOCKED_APP })
+      // Verify appStateListenerTask is forked
+      .fork(appStateListenerTask)
+      .run();
 
-  it('navigates to LockScreen when app is locked', async () => {
-    const generator = appLockStateMachine();
-    // Lock app.
-    generator.next();
-    // Fork biometricsStateMachine
-    generator.next();
-    // Move to next step
-    generator.next();
-    expect(mockNavigate).toBeCalledWith(Routes.LOCK_SCREEN, {
-      bioStateMachineId: mockBioStateMachineId,
-    });
-  });
-});
-
-describe('biometricsStateMachine', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
-    mockReset.mockClear();
-  });
-
-  it('locks app if biometrics is interrupted', async () => {
-    const generator = biometricsStateMachine(mockBioStateMachineId);
-    // Take next step
-    expect(generator.next().value).toEqual(
-      take([
-        UserActionType.AUTH_SUCCESS,
-        UserActionType.AUTH_ERROR,
-        UserActionType.INTERRUPT_BIOMETRICS,
-      ]),
-    );
-    // Dispatch interrupt biometrics
-    const nextFork = generator.next(interruptBiometrics() as Action).value;
-    expect(nextFork).toEqual(fork(lockKeyringAndApp));
-  });
-
-  it('navigates to Wallet when authenticating without interruptions via biometrics', async () => {
-    const generator = biometricsStateMachine(mockBioStateMachineId);
-    // Take next step
-    generator.next();
-    // Dispatch interrupt biometrics
-    generator.next(authSuccess(mockBioStateMachineId) as Action);
-    // Move to next step
-    expect(mockNavigate).toBeCalledWith(Routes.ONBOARDING.HOME_NAV);
-  });
-
-  it('does not navigate to Wallet when authentication succeeds with different bioStateMachineId', async () => {
-    const generator = biometricsStateMachine(mockBioStateMachineId);
-    // Take next step
-    generator.next();
-    // Dispatch interrupt biometrics
-    generator.next(authSuccess('wrongBioStateMachineId') as Action);
-    // Move to next step
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('does not do anything when AUTH_ERROR is encountered', async () => {
-    const generator = biometricsStateMachine(mockBioStateMachineId);
-    // Take next step
-    generator.next();
-    // Dispatch interrupt biometrics
-    generator.next(authError(mockBioStateMachineId) as Action);
-    // Move to next step
-    expect(mockNavigate).not.toHaveBeenCalled();
+    // Verify navigation to LockScreen
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
   });
 });
 

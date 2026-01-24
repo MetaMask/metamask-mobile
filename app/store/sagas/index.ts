@@ -60,7 +60,7 @@ function appStateListenerChannel() {
 /**
  * Listens to app state changes and prompts authentication when the app is foregrounded.
  */
-function* appStateListenerTask() {
+export function* appStateListenerTask() {
   // Create channel to listen to app state changes.
   const channel: EventChannel<AppStateStatus> = yield call(
     appStateListenerChannel,
@@ -155,7 +155,7 @@ export function* authStateMachine() {
 /**
  * Locks the KeyringController and dispatches LOCK_APP.
  */
-export function* lockKeyringAndApp() {
+function* lockKeyringAndApp() {
   const { KeyringController } = Engine.context;
   try {
     yield call(KeyringController.setLocked);
