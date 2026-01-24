@@ -593,6 +593,28 @@ describe('hyperLiquidOrderBookProcessor', () => {
       expect(mockNotifySubscribers).not.toHaveBeenCalled();
     });
 
+    it('returns early when bbo is a truthy non-array value', () => {
+      const data = {
+        coin: 'BTC',
+        time: Date.now(),
+        bbo: {},
+      } as unknown as BboWsEvent;
+
+      const params: ProcessBboDataParams = {
+        symbol: 'BTC',
+        data,
+        orderBookCache: mockOrderBookCache,
+        cachedPriceData: mockCachedPriceData,
+        createPriceUpdate: mockCreatePriceUpdate,
+        notifySubscribers: mockNotifySubscribers,
+      };
+
+      expect(() => processBboData(params)).not.toThrow();
+      expect(mockOrderBookCache.size).toBe(0);
+      expect(mockCreatePriceUpdate).not.toHaveBeenCalled();
+      expect(mockNotifySubscribers).not.toHaveBeenCalled();
+    });
+
     it('updates order book cache but does not notify when no cached price exists', () => {
       const data: BboWsEvent = {
         coin: 'BTC',

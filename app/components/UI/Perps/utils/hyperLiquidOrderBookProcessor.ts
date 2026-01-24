@@ -113,7 +113,7 @@ export function processBboData(params: ProcessBboDataParams): void {
     notifySubscribers,
   } = params;
 
-  if (data?.coin !== symbol || !data?.bbo) {
+  if (data?.coin !== symbol || !Array.isArray(data?.bbo)) {
     return;
   }
 
