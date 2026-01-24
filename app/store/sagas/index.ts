@@ -89,11 +89,8 @@ export function* appStateListenerTask() {
       }
     }
   } finally {
-    // Cancel channel if saga is cancelled.
-    const isCancelled: boolean = yield cancelled();
-    if (isCancelled) {
-      channel.close();
-    }
+    // Unconditionally close channel to prevent memory leaks.
+    channel.close();
   }
 }
 
