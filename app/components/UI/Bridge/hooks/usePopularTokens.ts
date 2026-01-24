@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
-import {
-  BRIDGE_DEV_API_BASE_URL,
-  BRIDGE_PROD_API_BASE_URL,
-} from '@metamask/bridge-controller';
+import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 
 export interface PopularToken {
   assetId: CaipAssetType;
@@ -138,7 +135,7 @@ export const usePopularTokens = ({
         const parsedIncludeAssets: IncludeAsset[] = JSON.parse(includeAssets);
 
         const response = await fetch(
-          `${process.env.BRIDGE_USE_DEV_APIS === 'true' ? BRIDGE_DEV_API_BASE_URL : BRIDGE_PROD_API_BASE_URL}/getTokens/popular`,
+          `${BRIDGE_API_BASE_URL}/getTokens/popular`,
           {
             method: 'POST',
             headers: {

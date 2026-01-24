@@ -22,7 +22,7 @@ import AddContactView from '../../pages/Settings/Contacts/AddContactView';
 import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import { LocalNode } from '../../../tests/framework/types';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 
 const TEST_CONTACT = {
