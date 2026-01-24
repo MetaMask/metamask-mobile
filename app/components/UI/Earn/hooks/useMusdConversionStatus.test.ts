@@ -1056,5 +1056,107 @@ describe('useMusdConversionStatus', () => {
 
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
+
+    it('ends confirmation trace when transaction is rejected', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.rejected,
+        'test-trace-rejected',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        id: 'test-trace-rejected',
+        data: {
+          success: false,
+          status: TransactionStatus.rejected,
+        },
+      });
+    });
+
+    it('ends confirmation trace when transaction is dropped', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.dropped,
+        'test-trace-dropped',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        id: 'test-trace-dropped',
+        data: {
+          success: false,
+          status: TransactionStatus.dropped,
+        },
+      });
+    });
+
+    it('ends confirmation trace when transaction is cancelled', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.cancelled,
+        'test-trace-cancelled',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        id: 'test-trace-cancelled',
+        data: {
+          success: false,
+          status: TransactionStatus.cancelled,
+        },
+      });
+    });
+
+    it('completes full trace lifecycle from approved to confirmed', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionId = 'test-lifecycle-tx';
+
+      // Transaction approved - starts trace
+      handler({
+        transactionMeta: createTransactionMeta(
+          TransactionStatus.approved,
+          transactionId,
+        ),
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.MusdConversionConfirm,
+          id: transactionId,
+        }),
+      );
+
+      // Transaction confirmed - ends trace
+      handler({
+        transactionMeta: createTransactionMeta(
+          TransactionStatus.confirmed,
+          transactionId,
+        ),
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        id: transactionId,
+        data: {
+          success: true,
+          status: TransactionStatus.confirmed,
+        },
+      });
+    });
   });
 });

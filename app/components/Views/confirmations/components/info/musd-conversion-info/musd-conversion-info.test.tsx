@@ -20,8 +20,9 @@ jest.mock('../../../../../../util/trace', () => ({
     MusdConversionNavigation: 'mUSD Conversion Navigation',
   },
 }));
+const mockStartQuoteTrace = jest.fn();
 jest.mock('../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace', () => ({
-  useMusdConversionQuoteTrace: jest.fn(),
+  useMusdConversionQuoteTrace: () => ({ startQuoteTrace: mockStartQuoteTrace }),
 }));
 
 jest.mock('../custom-amount-info', () => ({

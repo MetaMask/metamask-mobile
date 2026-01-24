@@ -22,13 +22,6 @@ import {
 } from '../../../../util/trace';
 import { store } from '../../../../store';
 import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
-import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
-
-function getStrategyName(strategy: TransactionPayStrategy | undefined): string {
-  if (strategy === TransactionPayStrategy.Bridge) return 'bridge';
-  if (strategy === TransactionPayStrategy.Relay) return 'relay';
-  return 'unknown';
-}
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -161,7 +154,6 @@ export const useMusdConversionStatus = () => {
             state,
             transactionId,
           );
-          const strategyName = getStrategyName(quotes?.[0]?.strategy);
 
           // Start confirmation trace (approved fires immediately after user confirms)
           trace({
@@ -171,7 +163,7 @@ export const useMusdConversionStatus = () => {
             tags: {
               transactionId,
               chainId: transactionMeta.chainId ?? 'unknown',
-              strategy: strategyName,
+              strategy: quotes?.[0]?.strategy ?? 'unknown',
             },
           });
           break;
@@ -221,6 +213,19 @@ export const useMusdConversionStatus = () => {
               `${transactionId}-${TransactionStatus.failed}`,
             );
           }, 5000);
+          break;
+        case TransactionStatus.rejected:
+        case TransactionStatus.dropped:
+        case TransactionStatus.cancelled:
+          // End confirmation trace for terminal statuses (no toast needed)
+          endTrace({
+            name: TraceName.MusdConversionConfirm,
+            id: transactionId,
+            data: {
+              success: false,
+              status,
+            },
+          });
           break;
         default:
           break;

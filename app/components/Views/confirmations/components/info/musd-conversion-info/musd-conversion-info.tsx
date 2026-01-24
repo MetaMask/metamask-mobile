@@ -58,7 +58,7 @@ export const MusdConversionInfo = () => {
   }
 
   useMusdConversionNavbar(outputChainId);
-  useMusdConversionQuoteTrace();
+  const { startQuoteTrace } = useMusdConversionQuoteTrace();
 
   // End navigation trace on first paint
   useEffect(() => {
@@ -89,6 +89,7 @@ export const MusdConversionInfo = () => {
       overrideContent={renderOverrideContent}
       footerText={strings('earn.musd_conversion.powered_by_relay')}
       hasMax
+      onAmountSubmit={startQuoteTrace}
     />
   );
 };
