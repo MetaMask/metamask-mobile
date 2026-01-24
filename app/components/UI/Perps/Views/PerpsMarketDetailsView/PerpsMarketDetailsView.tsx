@@ -399,9 +399,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       loadOnMount: true,
     });
 
-  // Fetch order fills to get position opened timestamp
+  // Get order fills to derive position opened timestamp
+  // skipInitialFetch: true - rely on WebSocket fills channel which is pre-warmed and cached
+  // This avoids REST API calls on mount that can deplete rate limits
   const { orderFills } = usePerpsOrderFills({
-    skipInitialFetch: false,
+    skipInitialFetch: true,
   });
 
   // Get position opened timestamp from fills data
