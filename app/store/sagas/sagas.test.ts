@@ -1,5 +1,4 @@
 import { AppState } from 'react-native';
-import { Action } from 'redux';
 import { take, fork, cancel } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import { UserActionType, checkForDeeplink } from '../../actions/user';
