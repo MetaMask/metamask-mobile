@@ -50,6 +50,22 @@ export default class AppwrightGestures {
   }
 
   /**
+   *
+   * @param x - The x coordinate to tap
+   * @param y - The y coordinate to tap
+   */
+  static async tapByCoordinates(
+    testDevice: Device,
+    { x, y }: { x: number; y: number },
+    options: { delay?: number } = {},
+  ): Promise<void> {
+    if (options.delay) {
+      await new Promise((resolve) => setTimeout(resolve, options.delay));
+    }
+    await testDevice.tap({ x, y });
+  }
+
+  /**
    * Type text into an element with retry logic
    * @param elem - The element promise to type into
    * @param text - The text to type

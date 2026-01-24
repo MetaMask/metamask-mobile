@@ -1698,19 +1698,20 @@ export function getDepositNavbarOptions(
   theme,
   onClose = undefined,
 ) {
-  const handleClose = () => {
-    navigation.dangerouslyGetParent()?.pop();
-    onClose?.();
-  };
-
-  let startButtonIconProps;
-  if (showBack) {
+  let startButtonIconProps, closeButtonProps;
+  if (showBack || showClose) {
     startButtonIconProps = {
       iconName: IconName.ArrowLeft,
-      onPress: () => navigation.pop(),
+      onPress: () => {
+        navigation.pop();
+        onClose?.();
+      },
+      testID: 'deposit-back-navbar-button',
     };
-  } else if (showConfiguration) {
-    startButtonIconProps = {
+  }
+
+  if (showConfiguration) {
+    closeButtonProps = {
       iconName: IconName.Setting,
       onPress: onConfigurationPress,
       testID: 'deposit-configuration-menu-button',
@@ -1720,9 +1721,7 @@ export function getDepositNavbarOptions(
   return getHeaderCenterNavbarOptions({
     title,
     startButtonIconProps,
-    closeButtonProps: showClose
-      ? { onPress: handleClose, testID: 'deposit-close-navbar-button' }
-      : undefined,
+    closeButtonProps,
     includesTopInset: true,
   });
 }
