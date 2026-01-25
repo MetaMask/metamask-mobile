@@ -560,7 +560,7 @@ async function handleUniversalLink({
         url: SHIELD_WEBSITE_URL,
         callback: browserCallBack,
       });
-      break;
+      return;
     }
     case SUPPORTED_ACTIONS.WC: {
       const { params: wcParams } = extractURLParams(urlObj.href);
