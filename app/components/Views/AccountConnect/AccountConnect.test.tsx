@@ -189,6 +189,13 @@ const { isUUID: mockIsUUID } = jest.requireMock(
   '../../../core/SDKConnect/utils/isUUID',
 );
 
+jest.mock('@metamask/snaps-utils', () => ({
+  ...jest.requireActual('@metamask/snaps-utils'),
+  isSnapId: jest.fn(() => false),
+}));
+
+const { isSnapId: mockIsSnapId } = jest.requireMock('@metamask/snaps-utils');
+
 // Mock useAccounts to return test accounts
 jest.mock('../../hooks/useAccounts', () => ({
   useAccounts: jest.fn(() => ({
@@ -752,6 +759,11 @@ describe('AccountConnect', () => {
 
   describe('Phishing detection', () => {
     describe('dapp scanning is enabled', () => {
+      beforeEach(() => {
+        mockIsSnapId.mockReset();
+        mockIsSnapId.mockReturnValue(false);
+      });
+
       it('displays phishing modal when origin is flagged as phishing', async () => {
         const { findByText } = renderWithProvider(
           <AccountConnect
@@ -814,6 +826,74 @@ describe('AccountConnect', () => {
         expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
           'https://safe-site.com',
         );
+      });
+
+      it('should prefix URL with protocol when origin is not a snap ID', async () => {
+        mockIsSnapId.mockReturnValue(false);
+
+        renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'regular-dapp.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
+                  },
+                },
+                permissionRequestId: 'test',
+              },
+            }}
+          />,
+          { state: mockInitialState },
+        );
+
+        await waitFor(() => {
+          expect(mockIsSnapId).toHaveBeenCalledWith('regular-dapp.com');
+          expect(
+            Engine.context.PhishingController.scanUrl,
+          ).toHaveBeenCalledWith('https://regular-dapp.com');
+        });
+      });
+
+      it('should not prefix URL with protocol when origin is a snap ID', async () => {
+        const snapId = 'npm:@metamask/example-snap';
+        mockIsSnapId.mockReturnValue(true);
+
+        renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: snapId,
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
+                  },
+                },
+                permissionRequestId: 'test',
+              },
+            }}
+          />,
+          { state: mockInitialState },
+        );
+
+        await waitFor(() => {
+          expect(mockIsSnapId).toHaveBeenCalledWith(snapId);
+          // When origin is a snap ID, the URL should NOT be prefixed with protocol
+          expect(
+            Engine.context.PhishingController.scanUrl,
+          ).toHaveBeenCalledWith(snapId);
+        });
       });
     });
   });
