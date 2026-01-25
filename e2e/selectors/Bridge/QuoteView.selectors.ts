@@ -1,5 +1,5 @@
-import { toSentenceCase } from '../../../util/string';
-import enContent from '../../../../locales/languages/en.json';
+import { toSentenceCase } from '../../../app/util/string';
+import enContent from '../../../locales/languages/en.json';
 
 export const QuoteViewSelectorText = {
   NETWORK_FEE: toSentenceCase(enContent.bridge.network_fee),
