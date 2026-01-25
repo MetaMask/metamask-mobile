@@ -2,15 +2,15 @@
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import fs from 'fs';
 import path from 'path';
-import { createAnvilClients } from './anvil-clients';
-import { AnvilPort } from '../../tests/framework/fixtures/FixtureUtils';
+import { createAnvilClients } from './anvil-clients.ts';
+import { AnvilPort } from '../framework/fixtures/FixtureUtils.ts';
 import {
   AnvilNodeOptions,
   ServerStatus,
   Resource,
-} from '../../tests/framework/types';
-import { createLogger } from '../../tests/framework/logger';
-import PortManager, { ResourceType } from '../../tests/framework/PortManager';
+} from '../framework/types.ts';
+import { createLogger } from '../framework/logger.ts';
+import PortManager, { ResourceType } from '../framework/PortManager.ts';
 import { Block } from 'viem';
 
 const logger = createLogger({

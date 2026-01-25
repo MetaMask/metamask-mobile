@@ -58,21 +58,6 @@ const styleSheet = (params: { theme: Theme }) => {
     listContainerWithTabBar: {
       flex: 1,
     },
-    tabsContainer: {
-      flex: 1,
-      paddingTop: 12,
-    },
-    tabScrollView: {
-      flex: 1,
-    },
-    tabContentContainer: {},
-    tabBarContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-    },
-
     listHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
