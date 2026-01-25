@@ -96,8 +96,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
 jest.mock(
   '../../../../../component-library/components-temp/HeaderCenter',
   () => {
-    const React = require('react');
-    const { View, Text, TouchableOpacity } = require('react-native');
+    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: ({
@@ -108,34 +107,37 @@ jest.mock(
       }: {
         title: string;
         onBack: () => void;
-        endButtonIconProps?: Array<{
+        endButtonIconProps?: {
           iconName: string;
           onPress: () => void;
           testID?: string;
-        }>;
+        }[];
         testID?: string;
-      }) =>
-        React.createElement(
-          View,
-          { testID },
-          React.createElement(
-            TouchableOpacity,
-            { testID: testID ? `${testID}-back-button` : undefined, onPress: onBack },
-            React.createElement(Text, null, 'Back'),
-          ),
-          React.createElement(Text, null, title),
-          endButtonIconProps?.map(
+      }) => (
+        <View testID={testID}>
+          <TouchableOpacity
+            testID={testID ? `${testID}-back-button` : undefined}
+            onPress={onBack}
+          >
+            <Text>Back</Text>
+          </TouchableOpacity>
+          <Text>{title}</Text>
+          {endButtonIconProps?.map(
             (
               props: { iconName: string; onPress: () => void; testID?: string },
               index: number,
-            ) =>
-              React.createElement(
-                TouchableOpacity,
-                { key: index, testID: props.testID, onPress: props.onPress },
-                React.createElement(Text, null, props.iconName),
-              ),
-          ),
-        ),
+            ) => (
+              <TouchableOpacity
+                key={index}
+                testID={props.testID}
+                onPress={props.onPress}
+              >
+                <Text>{props.iconName}</Text>
+              </TouchableOpacity>
+            ),
+          )}
+        </View>
+      ),
     };
   },
 );
