@@ -31,7 +31,6 @@ import {
 } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
-import getHeaderCenterNavbarOptions from '../../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_VAULT_RESPONSE,
@@ -118,11 +117,6 @@ jest.mock('../../hooks/useEarnTokens', () => ({
 }));
 
 jest.mock('../../../../hooks/useMetrics/useMetrics');
-
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions',
-  () => jest.fn((config) => config),
-);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -369,9 +363,6 @@ describe('EarnInputView', () => {
   };
   const mockTrackEvent = jest.fn();
   const useMetricsMock = jest.mocked(useMetrics);
-  const mockGetHeaderCenterNavbarOptions = jest.mocked(
-    getHeaderCenterNavbarOptions,
-  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -540,11 +531,8 @@ describe('EarnInputView', () => {
         name: 'params',
       });
 
-      expect(mockGetHeaderCenterNavbarOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: 'Supply USDC',
-        }),
-      );
+      // Verify the title is rendered in the HeaderCenter component
+      expect(getByText('Supply USDC')).toBeTruthy();
 
       // "0" in the input display and on the keypad
       expect(getAllByText('0').length).toBe(2);
@@ -1247,22 +1235,11 @@ describe('EarnInputView', () => {
 
   describe('title bar', () => {
     it('displays "Stake <token name>" for staking', () => {
-      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      // Default mock returns ETH with POOLED_STAKING experience
+      const { getByText } = renderComponent();
 
-      render(EarnInputView, {
-        params: {
-          ...baseProps.route.params,
-          token: MOCK_USDC_MAINNET_ASSET,
-        },
-        key: Routes.STAKING.STAKE,
-        name: 'params',
-      });
-
-      expect(mockGetHeaderCenterNavbarOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: 'Stake ETH',
-        }),
-      );
+      // Verify the title is rendered in the HeaderCenter component
+      expect(getByText('Stake ETH')).toBeTruthy();
     });
   });
 
