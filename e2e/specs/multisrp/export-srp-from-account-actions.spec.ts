@@ -1,9 +1,9 @@
 import { SmokeWalletPlatform } from '../../tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import { goToAccountActions, completeSrpQuiz } from './utils';
-import { defaultOptions } from '../../seeder/anvil-manager';
+import { defaultOptions } from '../../../tests/seeder/anvil-manager';
 
 const FIRST_DEFAULT_HD_KEYRING_ACCOUNT = 0;
 const FIRST_IMPORTED_HD_KEYRING_ACCOUNT = 2;

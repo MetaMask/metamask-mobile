@@ -1,6 +1,6 @@
-import { ProtectWalletModalSelectorsIDs } from '../../selectors/Onboarding/ProtectWalletModal.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import { ProtectWalletModalSelectorsIDs } from '../../../app/components/UI/ProtectYourWalletModal/ProtectWalletModal.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class ProtectYourWalletModal {
   get container(): DetoxElement {

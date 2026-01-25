@@ -1,10 +1,10 @@
 import {
   ConnectedAccountModalSelectorsText,
   ConnectedAccountsSelectorsIDs,
-} from '../../selectors/Browser/ConnectedAccountModal.selectors';
-import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+} from '../../../app/components/Views/AccountConnect/ConnectedAccountModal.testIds';
+import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import { waitFor } from 'detox';
 import type {
   IndexableNativeElement,

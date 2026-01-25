@@ -1,9 +1,9 @@
 import {
   ActivitiesViewSelectorsIDs,
   ActivitiesViewSelectorsText,
-} from '../../selectors/Transactions/ActivitiesView.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+} from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class ActivitiesView {
   get title(): DetoxElement {

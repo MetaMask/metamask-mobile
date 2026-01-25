@@ -436,12 +436,12 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -465,64 +465,120 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 700,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "display": "flex",
                                     },
-                                    {
-                                      "textAlign": "center",
-                                    },
+                                    undefined,
                                   ]
                                 }
-                                testID="header-title"
                               >
-                                Select a region
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Select a region
+                                </Text>
+                              </View>
                             </View>
                             <View>
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
                                   }
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                  <View
+                                    accessibilityState={
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -626,7 +682,6 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                       "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",
@@ -1148,12 +1203,12 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -1177,64 +1232,120 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 700,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "display": "flex",
                                     },
-                                    {
-                                      "textAlign": "center",
-                                    },
+                                    undefined,
                                   ]
                                 }
-                                testID="header-title"
                               >
-                                Select a region
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Select a region
+                                </Text>
+                              </View>
                             </View>
                             <View>
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
                                   }
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                  <View
+                                    accessibilityState={
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -1338,7 +1449,6 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                       "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",
@@ -2056,12 +2166,12 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -2085,64 +2195,120 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 700,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "display": "flex",
                                     },
-                                    {
-                                      "textAlign": "center",
-                                    },
+                                    undefined,
                                   ]
                                 }
-                                testID="header-title"
                               >
-                                Select a region
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Select a region
+                                </Text>
+                              </View>
                             </View>
                             <View>
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
                                   }
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                  <View
+                                    accessibilityState={
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -2246,7 +2412,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",
@@ -3196,12 +3361,12 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -3225,64 +3390,120 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 700,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "display": "flex",
                                     },
-                                    {
-                                      "textAlign": "center",
-                                    },
+                                    undefined,
                                   ]
                                 }
-                                testID="header-title"
                               >
-                                Select a region
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Select a region
+                                </Text>
+                              </View>
                             </View>
                             <View>
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
                                   }
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                  <View
+                                    accessibilityState={
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -3386,7 +3607,6 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                       "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",
@@ -3949,12 +4169,12 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -3978,64 +4198,120 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 700,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "display": "flex",
                                     },
-                                    {
-                                      "textAlign": "center",
-                                    },
+                                    undefined,
                                   ]
                                 }
-                                testID="header-title"
                               >
-                                Select a region
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Select a region
+                                </Text>
+                              </View>
                             </View>
                             <View>
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
                                   }
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                  <View
+                                    accessibilityState={
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -4139,7 +4415,6 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                       "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",
@@ -4790,12 +5065,12 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -4819,64 +5094,120 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 700,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "display": "flex",
                                     },
-                                    {
-                                      "textAlign": "center",
-                                    },
+                                    undefined,
                                   ]
                                 }
-                                testID="header-title"
                               >
-                                Select a region
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Select a region
+                                </Text>
+                              </View>
                             </View>
                             <View>
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
                                   }
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                  <View
+                                    accessibilityState={
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -4980,7 +5311,6 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                       "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",
@@ -5930,12 +6260,12 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -5959,64 +6289,120 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 700,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "display": "flex",
                                     },
-                                    {
-                                      "textAlign": "center",
-                                    },
+                                    undefined,
                                   ]
                                 }
-                                testID="header-title"
                               >
-                                Select a region
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Select a region
+                                </Text>
+                              </View>
                             </View>
                             <View>
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
                                   }
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                  <View
+                                    accessibilityState={
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -6120,7 +6506,6 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                       "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",
@@ -7070,12 +7455,12 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -7099,64 +7484,120 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 700,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "display": "flex",
                                     },
-                                    {
-                                      "textAlign": "center",
-                                    },
+                                    undefined,
                                   ]
                                 }
-                                testID="header-title"
                               >
-                                Select a region
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Select a region
+                                </Text>
+                              </View>
                             </View>
                             <View>
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
                                   }
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                  <View
+                                    accessibilityState={
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -7260,7 +7701,6 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",

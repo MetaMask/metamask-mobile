@@ -1,7 +1,7 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
-import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsOrderProvider } from '../../contexts/PerpsOrderContext';
 import {

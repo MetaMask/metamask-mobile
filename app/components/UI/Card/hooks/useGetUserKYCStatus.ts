@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useCardSDK } from '../sdk';
 import Logger from '../../../../util/Logger';
 import { CardVerificationState } from '../types';
@@ -50,20 +50,10 @@ const useGetUserKYCStatus = (
 
   const cacheResult = useWrapWithCache('kyc-status', fetchKYCStatusInternal, {
     cacheDuration: 60 * 1000, // 60 seconds cache
-    fetchOnMount: false, // Disable auto-fetch, we'll manually control it below
+    fetchOnMount: false, // Disabled - fetchAllData orchestrates fetching
   });
 
   const { data, isLoading, error, fetchData } = cacheResult;
-
-  // Manually trigger fetch when all prerequisites are ready
-  // This avoids the race condition where SDK isn't available on first render
-  useEffect(() => {
-    if (sdk && isAuthenticated && !isLoading && !error && !data) {
-      fetchData();
-    }
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sdk, isAuthenticated, isLoading, error, data]);
 
   return {
     kycStatus: data,

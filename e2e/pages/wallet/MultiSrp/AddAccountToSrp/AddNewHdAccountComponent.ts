@@ -1,6 +1,6 @@
-import { AddNewAccountIds } from '../../../../selectors/MultiSRP/AddHdAccount.selectors';
-import Matchers from '../../../../framework/Matchers.ts';
-import Gestures from '../../../../framework/Gestures.ts';
+import { AddNewAccountIds } from '../../../../../app/components/Views/AddNewAccount/AddHdAccount.testIds';
+import Matchers from '../../../../../tests/framework/Matchers.ts';
+import Gestures from '../../../../../tests/framework/Gestures.ts';
 import { IndexableNativeElement } from 'detox/detox';
 
 class AddNewHdAccountComponent {

@@ -1,8 +1,8 @@
-import { Gestures, Matchers } from '../../framework';
+import { Gestures, Matchers } from '../../../tests/framework';
 import {
   PredictMarketListSelectorsIDs,
   getPredictMarketListSelector,
-} from '../../selectors/Predict/Predict.selectors';
+} from '../../../app/components/UI/Predict/Predict.testIds';
 
 // Type for category tabs
 type CategoryTab = 'trending' | 'new' | 'sports' | 'crypto' | 'politics';

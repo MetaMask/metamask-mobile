@@ -54,9 +54,16 @@ export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
   testnet: 'wss://api.hyperliquid-testnet.xyz/ws',
 };
 
-// Asset icons base URL
+// Asset icons base URL (HyperLiquid CDN - fallback source)
 export const HYPERLIQUID_ASSET_ICONS_BASE_URL =
   'https://app.hyperliquid.xyz/coins/';
+
+// MetaMask-hosted Perps asset icons (primary source)
+// Assets uploaded to: https://github.com/MetaMask/contract-metadata/tree/master/icons/eip155:999
+// HIP-3 assets use format: hip3:dex_SYMBOL.svg (e.g., hip3:xyz_AAPL.svg)
+// Regular assets use format: SYMBOL.svg (e.g., BTC.svg)
+export const METAMASK_PERPS_ICONS_BASE_URL =
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/';
 
 // Asset configurations for multichain abstraction
 export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
@@ -319,6 +326,9 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
 
   // xyz DEX - Commodities
   'xyz:GOLD': 'commodity',
+  'xyz:SILVER': 'commodity',
+  'xyz:CL': 'commodity',
+  'xyz:COPPER': 'commodity',
 
   // Future asset mappings as xyz adds more markets
 } as const;

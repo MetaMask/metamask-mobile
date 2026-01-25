@@ -22,6 +22,9 @@ const HeaderWithTitleLeftScrollableMeta = {
     title: {
       control: 'text',
     },
+    subtitle: {
+      control: 'text',
+    },
     twClassName: {
       control: 'text',
     },
@@ -144,6 +147,68 @@ export const WithBottomLabel = {
   ),
 };
 
+export const WithSubtitle = {
+  render: () => (
+    <ScrollableStoryContainer>
+      {({ scrollYValue, setExpandedHeight }) => (
+        <HeaderWithTitleLeftScrollable
+          title="Send"
+          subtitle="0.002 ETH"
+          onBack={() => console.log('Back pressed')}
+          titleLeftProps={{
+            topLabel: 'Send',
+            title: '$4.42',
+            endAccessory: <SampleNFTImage />,
+          }}
+          scrollY={scrollYValue}
+          onExpandedHeightChange={setExpandedHeight}
+        />
+      )}
+    </ScrollableStoryContainer>
+  ),
+};
+
+export const OnClose = {
+  render: () => (
+    <ScrollableStoryContainer>
+      {({ scrollYValue, setExpandedHeight }) => (
+        <HeaderWithTitleLeftScrollable
+          title="Send"
+          onClose={() => console.log('Close pressed')}
+          titleLeftProps={{
+            topLabel: 'Send',
+            title: '$4.42',
+            endAccessory: <SampleNFTImage />,
+          }}
+          scrollY={scrollYValue}
+          onExpandedHeightChange={setExpandedHeight}
+        />
+      )}
+    </ScrollableStoryContainer>
+  ),
+};
+
+export const BackAndClose = {
+  render: () => (
+    <ScrollableStoryContainer>
+      {({ scrollYValue, setExpandedHeight }) => (
+        <HeaderWithTitleLeftScrollable
+          title="Send"
+          onBack={() => console.log('Back pressed')}
+          onClose={() => console.log('Close pressed')}
+          titleLeftProps={{
+            topLabel: 'Send',
+            title: '$4.42',
+            endAccessory: <SampleNFTImage />,
+          }}
+          scrollY={scrollYValue}
+          onExpandedHeightChange={setExpandedHeight}
+        />
+      )}
+    </ScrollableStoryContainer>
+  ),
+};
+
 export const EndButtonIconProps = {
   render: () => (
     <ScrollableStoryContainer>
@@ -207,46 +272,6 @@ export const TitleLeft = {
             </Box>
           }
           scrollY={scrollYValue}
-          onExpandedHeightChange={setExpandedHeight}
-        />
-      )}
-    </ScrollableStoryContainer>
-  ),
-};
-
-export const NoBackButton = {
-  render: () => (
-    <ScrollableStoryContainer>
-      {({ scrollYValue, setExpandedHeight }) => (
-        <HeaderWithTitleLeftScrollable
-          title="Account Balance"
-          titleLeftProps={{
-            topLabel: 'Account Balance',
-            title: '$12,345.67',
-            bottomLabel: '+$123.45 (1.2%)',
-          }}
-          scrollY={scrollYValue}
-          onExpandedHeightChange={setExpandedHeight}
-        />
-      )}
-    </ScrollableStoryContainer>
-  ),
-};
-
-export const FastCollapse = {
-  render: () => (
-    <ScrollableStoryContainer hookOptions={{ scrollTriggerPosition: 60 }}>
-      {({ scrollYValue, setExpandedHeight }) => (
-        <HeaderWithTitleLeftScrollable
-          title="Fast Collapse"
-          onBack={() => console.log('Back pressed')}
-          titleLeftProps={{
-            topLabel: 'Send',
-            title: '$4.42',
-            endAccessory: <SampleNFTImage />,
-          }}
-          scrollY={scrollYValue}
-          scrollTriggerPosition={60}
           onExpandedHeightChange={setExpandedHeight}
         />
       )}

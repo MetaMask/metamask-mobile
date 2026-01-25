@@ -1,16 +1,16 @@
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeCard } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { testSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { testSpecificMock } from '../../../tests/api-mocking/mock-responses/cardholder-mocks';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import CardHomeView from '../../pages/Card/CardHomeView';
-import SoftAssert from '../../framework/SoftAssert';
+import SoftAssert from '../../../tests/framework/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
-describe.skip(SmokeCard('CardHome - Manage Card'), () => {
+describe(SmokeCard('CardHome - Manage Card'), () => {
   const eventsToCheck: EventPayload[] = [];
 
   const setupCardTest = async (testFunction: () => Promise<void>) => {

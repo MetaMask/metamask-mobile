@@ -416,7 +416,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -1012,7 +1012,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {

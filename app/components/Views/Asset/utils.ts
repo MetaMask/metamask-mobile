@@ -2,12 +2,11 @@
 import { SolScope, TrxScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps,tron)
 import { isAssetFromSearch } from '../../../selectors/tokenSearchDiscoveryDataController';
-import { isSwapsAllowed } from '../../UI/Swaps/utils';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
 
 export const getIsSwapsAssetAllowed = ({
   asset,
   searchDiscoverySwapsTokens,
-  swapsTokens,
 }: {
   asset: {
     isETH: boolean;
@@ -17,18 +16,18 @@ export const getIsSwapsAssetAllowed = ({
     isFromSearch?: boolean;
   };
   searchDiscoverySwapsTokens: string[];
-  swapsTokens: Record<string, unknown>;
 }) => {
   let isSwapsAssetAllowed;
   if (asset.isETH || asset.isNative) {
-    const isChainAllowed = isSwapsAllowed(asset.chainId);
+    const isChainAllowed = isBridgeAllowed(asset.chainId);
     isSwapsAssetAllowed = isChainAllowed;
   } else if (isAssetFromSearch(asset)) {
     isSwapsAssetAllowed = searchDiscoverySwapsTokens?.includes(
       asset.address?.toLowerCase(),
     );
   } else {
-    isSwapsAssetAllowed = asset.address?.toLowerCase() in swapsTokens;
+    // show Swaps CTA for EVM assets as tokens on Trending list will not be in SwapsController.swapsTokens
+    isSwapsAssetAllowed = true;
   }
 
   // Solana Swaps

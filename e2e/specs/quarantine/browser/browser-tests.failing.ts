@@ -1,12 +1,11 @@
 import { SmokeWalletPlatform } from '../../../tags.js';
-import { loginToApp } from '../../../viewHelper.ts';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper.ts';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper.ts';
 import ExternalSites from '../../../resources/externalsites.json';
 import Browser from '../../../pages/Browser/BrowserView.ts';
 import EnsWebsite from '../../../pages/Browser/ExternalWebsites/EnsWebsite.ts';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
-import Assertions from '../../../framework/Assertions.ts';
+import Assertions from '../../../../tests/framework/Assertions.ts';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet.ts';
 import RedirectWebsite from '../../../pages/Browser/ExternalWebsites/RedirectWebsite.ts';
 import UniswapWebsite from '../../../pages/Browser/ExternalWebsites/UniswapWebsite.ts';
@@ -37,7 +36,7 @@ const withBrowser = async (fn: () => Promise<void>) => {
     },
     async () => {
       await loginToApp();
-      await TabBarComponent.tapBrowser();
+      await navigateToBrowserView();
       await fn();
     },
   );

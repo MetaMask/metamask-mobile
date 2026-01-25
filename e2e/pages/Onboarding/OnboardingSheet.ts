@@ -1,6 +1,6 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import { OnboardingSheetSelectorIDs } from '../../selectors/Onboarding/OnboardingSheet.selectors';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import { OnboardingSheetSelectorIDs } from '../../../app/components/Views/OnboardingSheet/OnboardingSheet.testIds';
 
 class OnboardingSheet {
   get container(): DetoxElement {

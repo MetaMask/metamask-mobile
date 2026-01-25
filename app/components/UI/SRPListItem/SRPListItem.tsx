@@ -13,11 +13,10 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
-import { getInternalAccountByAddress } from '../../../util/address';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import { SRPListItemSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPListItem.selectors';
+import { SRPListItemSelectorsIDs } from './SRPListItem.testIds';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -26,6 +25,43 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { selectAvatarAccountType } from '../../../selectors/settings';
+import { selectAccountGroupsByKeyringId } from '../../../selectors/multisrp';
+import { RootState } from '../../../reducers';
+import { selectIconSeedAddressByAccountGroupId } from '../../../selectors/multichainAccounts/accounts';
+import { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
+
+/**
+ * Renders an individual account group item with avatar and name.
+ * Used in the expanded account list within SRPListItem.
+ */
+const AccountGroupItem = ({
+  accountGroup,
+  accountAvatarType,
+}: {
+  accountGroup: AccountGroupWithInternalAccounts;
+  accountAvatarType: ReturnType<typeof selectAvatarAccountType>;
+}) => {
+  const { styles } = useStyles(styleSheet, {});
+  const selectSeedAddress = useMemo(
+    () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
+    [accountGroup.id],
+  );
+  const seedAddress = useSelector(selectSeedAddress);
+
+  return (
+    <View style={styles.accountItem}>
+      <Avatar
+        variant={AvatarVariant.Account}
+        type={accountAvatarType}
+        accountAddress={seedAddress}
+        size={AvatarSize.Sm}
+      />
+      <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+        {accountGroup.metadata.name}
+      </Text>
+    </View>
+  );
+};
 
 const SRPListItem = ({
   name,
@@ -37,14 +73,11 @@ const SRPListItem = ({
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const [showAccounts, setShowAccounts] = useState(false);
-  const accountsToBeShown = useMemo(
-    () =>
-      keyring.accounts.map((accountAddress) =>
-        getInternalAccountByAddress(accountAddress),
-      ),
-    [keyring],
-  );
   const accountAvatarType = useSelector(selectAvatarAccountType);
+
+  const accountGroups = useSelector((state: RootState) =>
+    selectAccountGroupsByKeyringId(state, keyring.metadata.id),
+  );
 
   const handleSRPSelection = () => {
     trackEvent(
@@ -118,9 +151,7 @@ const SRPListItem = ({
                     !showAccounts
                       ? 'accounts.show_accounts'
                       : 'accounts.hide_accounts',
-                  )} ${keyring.accounts.length} ${strings(
-                    'accounts.accounts',
-                  )}`}
+                  )} ${accountGroups.length} ${strings('accounts.accounts')}`}
                 </Text>
               }
             />
@@ -132,29 +163,14 @@ const SRPListItem = ({
                 <FlatList
                   testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_ACCOUNTS_LIST}-${keyring.metadata.id}`}
                   contentContainerStyle={styles.accountsListContentContainer}
-                  data={accountsToBeShown}
-                  keyExtractor={(item) => `address-${item?.address}`}
-                  renderItem={({ item }) => {
-                    if (!item) {
-                      return null;
-                    }
-                    return (
-                      <View style={styles.accountItem}>
-                        <Avatar
-                          variant={AvatarVariant.Account}
-                          type={accountAvatarType}
-                          accountAddress={item.address}
-                          size={AvatarSize.Sm}
-                        />
-                        <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Default}
-                        >
-                          {item.metadata.name}
-                        </Text>
-                      </View>
-                    );
-                  }}
+                  data={accountGroups}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => (
+                    <AccountGroupItem
+                      accountGroup={item}
+                      accountAvatarType={accountAvatarType}
+                    />
+                  )}
                   removeClippedSubviews={false}
                   scrollEnabled
                   nestedScrollEnabled

@@ -23,6 +23,7 @@ import {
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
 jest.mock('../../../Earn/hooks/useEarnings', () => ({
@@ -133,13 +134,12 @@ jest.mock('../../hooks/usePooledStakes', () => ({
 
 jest.mock('../../hooks/useStakingEligibility', () => ({
   __esModule: true,
-  default: () => ({
-    isEligible: true,
-    loading: false,
-    error: null,
-    refreshPooledStakingEligibility: jest.fn(),
-  }),
+  default: jest.fn(),
 }));
+
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
 
 jest.mock('../../hooks/useVaultMetadata', () => ({
   __esModule: true,
@@ -191,6 +191,12 @@ afterEach(() => {
 describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
     (
       selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
     ).mockReturnValue(true);
@@ -225,6 +231,30 @@ describe('StakingBalance', () => {
     (
       earnSelectors.selectEarnOutputToken as unknown as jest.Mock
     ).mockImplementation((_token: TokenI) => mockEarnTokenPair.outputToken);
+  });
+
+  it('renders claim and unstake banners when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      { state: mockInitialState },
+    );
+
+    // Assert: component renders
+    expect(getByTestId('staking-balance-container')).toBeDefined();
+
+    // Assert: claim/unstake banners remain visible even if ineligible
+    expect(getByTestId('unstaking-banner')).toBeDefined();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
+
+    // Assert: deposit action is gated off when ineligible
+    expect(queryByText(strings('stake.stake_more'))).toBeNull();
   });
 
   it('render matches snapshot', () => {

@@ -1,6 +1,6 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class SnapSettingsView {
   get enabledToggle(): DetoxElement {

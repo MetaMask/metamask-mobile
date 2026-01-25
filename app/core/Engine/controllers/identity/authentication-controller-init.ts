@@ -3,7 +3,6 @@ import {
   Controller as AuthenticationController,
   type AuthenticationControllerMessenger,
 } from '@metamask/profile-sync-controller/auth';
-import { MetaMetrics } from '../../../Analytics';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 
 /**
@@ -16,7 +15,7 @@ import { Platform } from '@metamask/profile-sync-controller/sdk';
 export const authenticationControllerInit: ControllerInitFunction<
   AuthenticationController,
   AuthenticationControllerMessenger
-> = ({ controllerMessenger, persistedState }) => {
+> = ({ controllerMessenger, persistedState, analyticsId }) => {
   const controller = new AuthenticationController({
     messenger: controllerMessenger,
 
@@ -25,8 +24,7 @@ export const authenticationControllerInit: ControllerInitFunction<
 
     metametrics: {
       agent: Platform.MOBILE,
-      getMetaMetricsId: async () =>
-        (await MetaMetrics.getInstance().getMetaMetricsId()) ?? '',
+      getMetaMetricsId: async () => analyticsId ?? '',
     },
   });
 

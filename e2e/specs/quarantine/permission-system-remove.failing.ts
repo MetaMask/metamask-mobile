@@ -3,10 +3,10 @@ import { SmokeNetworkAbstractions } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../framework/Assertions';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
+import Assertions from '../../../tests/framework/Assertions';
 
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
@@ -18,7 +18,7 @@ import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryB
 import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import { DappVariants } from '../../framework/Constants';
+import { DappVariants } from '../../../tests/framework/Constants';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
@@ -43,7 +43,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
       async () => {
         // Setup: Navigate to browser and login
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         // Connect to DApp and configure network permissions
@@ -65,7 +65,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await NetworkListModal.tapDeleteButton();
 
         // Verify permission cleanup
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(
           PermissionSummaryBottomSheet.addNetworkPermissionContainer,
         );

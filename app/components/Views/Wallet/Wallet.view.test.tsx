@@ -1,6 +1,6 @@
 import '../../../util/test/component-view/mocks';
 import { renderWalletView } from '../../../util/test/component-view/renderers/wallet';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { describeForPlatforms } from '../../../util/test/platform';
 
 describeForPlatforms('Wallet', () => {

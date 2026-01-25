@@ -1,15 +1,15 @@
 import { RegressionWalletUX } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import Assertions from '../../framework/Assertions';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import Assertions from '../../../tests/framework/Assertions';
 import ClearPrivacyModal from '../../pages/Settings/SecurityAndPrivacy/ClearPrivacyModal';
 import BrowserView from '../../pages/Browser/BrowserView';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import { DappVariants } from '../../framework/Constants';
+import { DappVariants } from '../../../tests/framework/Constants';
 
 describe(RegressionWalletUX('Clear Privacy data'), () => {
   beforeAll(async () => {
@@ -32,7 +32,7 @@ describe(RegressionWalletUX('Clear Privacy data'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await BrowserView.navigateToTestDApp();
         await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
@@ -47,7 +47,7 @@ describe(RegressionWalletUX('Clear Privacy data'), () => {
         await Assertions.expectElementToBeVisible(ClearPrivacyModal.container);
         await ClearPrivacyModal.tapClearButton();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectElementToNotBeVisible(
           ConnectedAccountsModal.title,

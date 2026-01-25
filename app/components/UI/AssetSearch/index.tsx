@@ -9,7 +9,7 @@ import {
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import Icon, {
   IconName,
   IconSize,
@@ -20,6 +20,7 @@ import ButtonIcon, {
 import { BridgeToken } from '../Bridge/types';
 import { useTokenSearch } from '../Bridge/hooks/useTokenSearch';
 import { Colors } from '../../../util/theme/models';
+
 const createStyles = (colors: Colors) => {
   const commonSearchStyles = {
     flexDirection: 'row',
@@ -42,6 +43,7 @@ const createStyles = (colors: Colors) => {
     textInput: {
       ...fontStyles.normal,
       color: colors.text.default,
+      height: 42,
     } as TextStyle,
     icon: {
       position: 'absolute',
@@ -55,7 +57,6 @@ const createStyles = (colors: Colors) => {
     },
     input: {
       width: '100%',
-      paddingVertical: 12,
       paddingHorizontal: 42,
       color: colors.icon.alternative,
       borderColor: colors.primary.alternative,

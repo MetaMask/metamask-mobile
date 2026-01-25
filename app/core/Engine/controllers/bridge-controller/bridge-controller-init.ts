@@ -6,15 +6,16 @@ import {
 import { fetch as expoFetch } from 'expo/fetch';
 
 import { ControllerInitFunction, ControllerInitRequest } from '../../types';
-import { MetaMetrics } from '../../../Analytics';
+import type { BridgeControllerInitMessenger } from '../../messengers/bridge-controller-messenger';
 import { TransactionParams } from '@metamask/transaction-controller';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import {
   ChainId,
   handleFetch,
   TraceCallback,
 } from '@metamask/controller-utils';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 import packageJSON from '../../../../../package.json';
@@ -34,9 +35,10 @@ export const handleBridgeFetch = async (
 
 export const bridgeControllerInit: ControllerInitFunction<
   BridgeController,
-  BridgeControllerMessenger
+  BridgeControllerMessenger,
+  BridgeControllerInitMessenger
 > = (request) => {
-  const { controllerMessenger } = request;
+  const { controllerMessenger, initMessenger } = request;
   const { transactionController } = getControllers(request);
 
   try {
@@ -63,15 +65,22 @@ export const bridgeControllerInit: ControllerInitFunction<
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
       trackMetaMetricsFn: (event, properties) => {
-        const metricsEvent = MetricsEventBuilder.createEventBuilder({
-          // category property here maps to event name
-          category: event,
-        })
-          .addProperties({
-            ...(properties ?? {}),
-          })
-          .build();
-        MetaMetrics.getInstance().trackEvent(metricsEvent);
+        // Use AnalyticsEventBuilder to create proper event structure
+        // Call AnalyticsController directly via initMessenger
+        try {
+          const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
+          if (properties) {
+            eventBuilder.addProperties(properties as AnalyticsEventProperties);
+          }
+          const analyticsEvent = eventBuilder.build();
+
+          initMessenger.call('AnalyticsController:trackEvent', analyticsEvent);
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'BridgeController: Failed to track analytics event',
+          );
+        }
       },
       traceFn: trace as TraceCallback,
     });
@@ -84,7 +93,10 @@ export const bridgeControllerInit: ControllerInitFunction<
 };
 
 function getControllers(
-  request: ControllerInitRequest<BridgeControllerMessenger>,
+  request: ControllerInitRequest<
+    BridgeControllerMessenger,
+    BridgeControllerInitMessenger
+  >,
 ) {
   return {
     transactionController: request.getController('TransactionController'),

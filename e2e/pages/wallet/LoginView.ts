@@ -1,6 +1,6 @@
-import { LoginViewSelectors } from '../../selectors/wallet/LoginView.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginView.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class LoginView {
   get container(): DetoxElement {

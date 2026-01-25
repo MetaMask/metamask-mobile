@@ -12,7 +12,7 @@ import Skeleton from '../../../../../component-library/components/Skeleton/Skele
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
 import type { CandleData } from '../../types/perps-types';
-import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { TradingViewChartSelectorsIDs } from '../../Perps.testIds';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
@@ -352,7 +352,7 @@ const TradingViewChart = React.forwardRef<
     const candleDataVersion = useMemo(() => {
       if (!candleData?.candles) return null;
       return {
-        coin: candleData.coin,
+        symbol: candleData.symbol,
         interval: candleData.interval,
         candlesCount: candleData.candles.length,
         firstTime: candleData.candles[0]?.time,
@@ -366,7 +366,7 @@ const TradingViewChart = React.forwardRef<
       if (!isChartReady) {
         if (candleData?.candles && candleData.candles.length > 0) {
           // Validate before buffering
-          if (!symbol || candleData.coin === symbol) {
+          if (!symbol || candleData.symbol === symbol) {
             pendingCandleDataRef.current = {
               data: candleData,
               timestamp: Date.now(),
@@ -403,10 +403,10 @@ const TradingViewChart = React.forwardRef<
 
       if (dataToUse?.candles && dataToUse.candles.length > 0) {
         // DEFENSIVE: Validate candle data matches expected symbol
-        if (symbol && dataToUse.coin !== symbol) {
+        if (symbol && dataToUse.symbol !== symbol) {
           DevLogger.log(
             'TradingViewChart: Ignoring mismatched candleData',
-            `Expected: ${symbol}, Got: ${dataToUse.coin}`,
+            `Expected: ${symbol}, Got: ${dataToUse.symbol}`,
           );
           return;
         }

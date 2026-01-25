@@ -6,11 +6,11 @@ import {
   PerpsPositionDetailsViewSelectorsIDs,
   PerpsMarketDetailsViewSelectorsIDs,
   getPerpsTPSLViewSelector,
-} from '../../selectors/Perps/Perps.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import Assertions from '../../framework/Assertions';
-import Utilities from '../../framework/Utilities';
+} from '../../../app/components/UI/Perps/Perps.testIds';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Assertions from '../../../tests/framework/Assertions';
+import Utilities from '../../../tests/framework/Utilities';
 
 class PerpsView {
   get closePositionButton() {

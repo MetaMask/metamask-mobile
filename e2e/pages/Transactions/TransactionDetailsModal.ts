@@ -2,10 +2,10 @@ import {
   TransactionDetailsModalSelectorsText,
   TransactionDetailsModalSelectorsIDs,
   TransactionDetailsSelectorIDs,
-} from '../../selectors/Transactions/TransactionDetailsModal.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import { Assertions, logger } from '../../framework';
+} from '../../../app/components/Views/confirmations/components/activity/TransactionDetailsModal.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import { Assertions, logger } from '../../../tests/framework';
 
 class TransactionDetailsModal {
   get closeIcon(): DetoxElement {

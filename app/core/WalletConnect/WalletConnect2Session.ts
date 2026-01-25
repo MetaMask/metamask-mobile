@@ -20,6 +20,7 @@ import { addTransaction } from '../../util/transaction-controller';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import { Minimizer } from '../NativeModules';
 import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { INTERNAL_ORIGINS } from '../../constants/transaction';
 import getRpcMethodMiddleware, {
   getRpcMethodMiddlewareHooks,
 } from '../RPCMethods/RPCMethodMiddleware';
@@ -794,6 +795,14 @@ class WalletConnect2Session {
     origin: string,
   ) {
     try {
+      // Prevent external transactions from using internal origins
+      // This is an external connection (WalletConnect), so block any internal origin
+      if (INTERNAL_ORIGINS.includes(origin)) {
+        throw rpcErrors.invalidParams({
+          message: 'External transactions cannot use internal origins',
+        });
+      }
+
       const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,

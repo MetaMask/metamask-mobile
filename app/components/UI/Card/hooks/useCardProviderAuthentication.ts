@@ -37,6 +37,8 @@ const getErrorMessage = (error: unknown): string => {
         return error.message;
       case CardErrorType.SERVER_ERROR:
         return strings('card.card_authentication.errors.server_error');
+      case CardErrorType.INVALID_OTP_CODE:
+        return strings('card.card_authentication.errors.invalid_otp_code');
       case CardErrorType.UNKNOWN_ERROR:
       default:
         return strings('card.card_authentication.errors.unknown_error');

@@ -1,11 +1,11 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
-} from '../../selectors/Settings/SettingsView.selectors';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
-import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
+} from '../../../app/components/Views/Settings/SettingsView.testIds';
+import { CommonSelectorsText } from '../../../app/util/Common.testIds';
+import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 
 class SettingsView {
   get title(): DetoxElement {
