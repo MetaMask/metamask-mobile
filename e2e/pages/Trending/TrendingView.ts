@@ -1,4 +1,4 @@
-import { Matchers, Gestures, Assertions } from '../../framework';
+import { Matchers, Gestures, Assertions } from '../../../tests/framework';
 import {
   TrendingViewSelectorsIDs,
   SECTION_BACK_BUTTONS,

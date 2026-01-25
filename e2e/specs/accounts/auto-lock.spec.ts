@@ -1,15 +1,15 @@
 import { RegressionAccounts } from '../../tags.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import AutoLockModal from '../../pages/Settings/SecurityAndPrivacy/AutoLockModal';
 import WalletView from '../../pages/wallet/WalletView';
 import LoginView from '../../pages/wallet/LoginView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import TestHelpers from '../../helpers.js';
-import { logger } from '../../framework/logger';
+import { logger } from '../../../tests/framework/logger';
 import { loginToApp } from '../../viewHelper';
 
 const isIOS = device.getPlatform() === 'ios';

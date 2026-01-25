@@ -1818,6 +1818,9 @@
       "time": "Time",
       "apply": "Apply"
     },
+    "market_type": {
+      "filter_by": "Filter by"
+    },
     "perps_markets": "Perps markets",
     "volume": "Volume",
     "price_24h_change": "Price / 24h change",
@@ -4623,6 +4626,10 @@
   "fiat_on_ramp": {
     "buy_eth": "Buy ETH",
     "buy": "Buy {{ticker}}",
+    "on_network": "on {{networkName}}",
+    "debit_card": "Debit card",
+    "continue": "Continue",
+    "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
     "network_not_supported": "Current network not supported",
     "switch_network": "Please switch to Mainnet",
@@ -5730,7 +5737,7 @@
         "failed": "mUSD conversion failed"
       },
       "education": {
-        "heading": "GET {{percentage}}% ON STABLECOINS",
+        "heading": "GET {{percentage}}% ON\nSTABLECOINS",
         "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus. Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now"
@@ -6196,6 +6203,8 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
     "select_network": "Select network",
     "all_networks": "All networks",
     "num_networks": "{{numNetworks}} networks",
@@ -6203,6 +6212,7 @@
     "select_all_networks": "Select all",
     "deselect_all_networks": "Deselect all",
     "see_all": "See all",
+    "all": "All",
     "apply": "Apply",
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",

@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 
 // Import useAuthentication
-import { useAuthentication } from './useAuthentication';
+import useAuthentication from './useAuthentication';
 import { Authentication } from '../Authentication';
 
 // Create mock function for lockApp
