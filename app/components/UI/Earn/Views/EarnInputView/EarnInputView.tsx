@@ -270,7 +270,13 @@ const EarnInputView = () => {
         params: { asset: earnToken },
       });
     }
-  }, [earnToken, navigation]);
+  }, [
+    earnToken,
+    navigation,
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronNative,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
 
   const handleQuickAmountPressWithTracking = useCallback(
     ({ value }: { value: number }) => {
@@ -839,7 +845,7 @@ const EarnInputView = () => {
   );
 
   const handleBackPress = useCallback(() => {
-    if (isStablecoinLendingEnabled) {
+    if (shouldLogStablecoinEvent()) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_INPUT_BACK_BUTTON_CLICKED)
           .addProperties({
@@ -850,10 +856,21 @@ const EarnInputView = () => {
           })
           .build(),
       );
+    } else if (shouldLogStakingEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_CANCEL_CLICKED)
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
+          })
+          .build(),
+      );
     }
     navigation.goBack();
   }, [
-    isStablecoinLendingEnabled,
+    shouldLogStablecoinEvent,
+    shouldLogStakingEvent,
     trackEvent,
     createEventBuilder,
     token.symbol,
