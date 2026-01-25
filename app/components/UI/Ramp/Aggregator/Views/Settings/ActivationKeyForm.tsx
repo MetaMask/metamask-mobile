@@ -71,11 +71,7 @@ function ActivationKeyForm() {
 
   return (
     <>
-      <HeaderCenter
-        title={title}
-        onBack={() => navigation.goBack()}
-        includesTopInset
-      />
+      <HeaderCenter title={title} onBack={handleCancel} includesTopInset />
       <View style={style.container}>
         <View style={style.content}>
           <Row>

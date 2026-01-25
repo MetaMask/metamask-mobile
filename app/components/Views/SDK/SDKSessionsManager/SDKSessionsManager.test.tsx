@@ -25,9 +25,17 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-jest.mock('../../../UI/Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({})),
-}));
+jest.mock('../../../../component-library/components-temp/HeaderCenter', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(({ title }) => (
+      <View testID="header-center">
+        <Text>{title}</Text>
+      </View>
+    )),
+  };
+});
 
 jest.mock('../../../../constants/navigation/Routes', () => ({
   MODAL: {
@@ -57,7 +65,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import SDKSessionsManager from './SDKSessionsManager';
 import Routes from '../../../../constants/navigation/Routes';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 
 describe('SDKSessionsManager', () => {
   const mockNavigation = {
@@ -127,11 +135,11 @@ describe('SDKSessionsManager', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render(<SDKSessionsManager navigation={mockNavigation as any} />);
 
-      expect(mockSetOptions).toHaveBeenCalled();
-      expect(getNavigationOptionsTitle).toHaveBeenCalledWith(
-        'app_settings.manage_sdk_connections_title',
-        mockNavigation,
-        false,
+      expect(mockSetOptions).toHaveBeenCalledWith({ headerShown: false });
+      expect(HeaderCenter).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'app_settings.manage_sdk_connections_title',
+        }),
         expect.any(Object),
       );
     });
