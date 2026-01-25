@@ -40,7 +40,7 @@ import styleSheet from './ListHeaderWithSearch.styles';
  * - Back button with default or custom navigation handler
  * - Centered title with custom text support
  * - Search toggle button that changes icon based on visibility
- * - Keyboard dismiss on header press
+ * - Keyboard dismiss on header press when search is visible
  * - Configurable search placeholder and cancel text
  *
  * @example
