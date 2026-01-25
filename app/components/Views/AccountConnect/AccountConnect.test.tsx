@@ -828,7 +828,7 @@ describe('AccountConnect', () => {
         );
       });
 
-      it('should prefix URL with protocol when origin is not a snap ID', async () => {
+      it('prefix URL with protocol when origin is not a snap ID', async () => {
         mockIsSnapId.mockReturnValue(false);
 
         renderWithProvider(
