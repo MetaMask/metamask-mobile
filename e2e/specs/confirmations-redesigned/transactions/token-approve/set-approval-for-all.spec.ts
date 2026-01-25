@@ -137,7 +137,7 @@ describe(
 
           // Check activity tab
           await TabBarComponent.tapActivity();
-          await Assertions.expectTextDisplayed('Set Approval For All');
+          await Assertions.expectTextDisplayed('Set approval for all');
           await Assertions.expectTextDisplayed('Confirmed');
         },
       );
@@ -206,7 +206,7 @@ describe(
 
           // Check activity tab
           await TabBarComponent.tapActivity();
-          await Assertions.expectTextDisplayed('Set Approval For All');
+          await Assertions.expectTextDisplayed('Set approval for all');
           await Assertions.expectTextDisplayed('Confirmed');
         },
       );
@@ -277,7 +277,7 @@ describe(
 
             // Check activity tab
             await TabBarComponent.tapActivity();
-            await Assertions.expectTextDisplayed('Set Approval For All');
+            await Assertions.expectTextDisplayed('Set approval for all');
             await Assertions.expectTextDisplayed('Confirmed');
           },
         );

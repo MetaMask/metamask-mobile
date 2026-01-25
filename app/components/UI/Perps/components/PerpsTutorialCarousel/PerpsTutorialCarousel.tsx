@@ -26,6 +26,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
+import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
@@ -118,7 +119,6 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
     id: 'ready_to_trade',
     title: strings('perps.tutorial.ready_to_trade.title'),
     description: strings('perps.tutorial.ready_to_trade.description'),
-    footerText: strings('perps.tutorial.ready_to_trade.footer_text'),
     riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.READY,
   };
 
@@ -357,6 +357,18 @@ const PerpsTutorialCarousel: React.FC = () => {
     navigateToMarketsList,
   ]);
 
+  const handleLearnMore = useCallback(() => {
+    NavigationService.navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: 'https://support.metamask.io/manage-crypto/trade/perps',
+        linkType: EXTERNAL_LINK_TYPE,
+        timestamp: Date.now(),
+        fromPerps: true,
+      },
+    });
+  }, []);
+
   const renderTabBar = () => <View />;
 
   const buttonLabel = useMemo(() => {
@@ -472,20 +484,32 @@ const PerpsTutorialCarousel: React.FC = () => {
             testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
             style={styles.continueButton}
           />
-          <View style={styles.skipButton}>
-            <TouchableOpacity
-              onPress={handleSkip}
-              disabled={isLastScreen && !isEligible}
-              testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
-            >
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
+          {isLastScreen && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              label={strings('perps.tutorial.learn_more')}
+              onPress={handleLearnMore}
+              size={ButtonSize.Lg}
+              style={styles.continueButton}
+              testID={PerpsTutorialSelectorsIDs.LEARN_MORE_BUTTON}
+            />
+          )}
+          {!isLastScreen && (
+            <View style={styles.skipButton}>
+              <TouchableOpacity
+                onPress={handleSkip}
+                disabled={isLastScreen && !isEligible}
+                testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
               >
-                {strings('perps.tutorial.skip')}
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.tutorial.skip')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </View>

@@ -319,11 +319,11 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             "alignItems": "center",
                             "flexDirection": "row",
                             "gap": 16,
-                            "height": 48,
+                            "height": 56,
                           },
                           false,
                           {
-                            "padding": 16,
+                            "paddingHorizontal": 16,
                           },
                         ]
                       }
@@ -360,7 +360,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             }
                           }
                         >
-                          Eligibility Check Failed
+                          Eligibility check failed
                         </Text>
                       </View>
                       <View>
@@ -470,7 +470,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             }
                           }
                         >
-                          Contact Support
+                          Contact support
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -506,7 +506,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             }
                           }
                         >
-                          Got It
+                          Got it
                         </Text>
                       </TouchableOpacity>
                     </View>

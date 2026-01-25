@@ -555,6 +555,7 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
   CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
+  CARD_DEEPLINK_HANDLED = 'Card Deeplink Handled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -594,6 +595,10 @@ enum EVENT_NAME {
   // QR Scanner
   QR_SCANNER_OPENED = 'QR Scanner Opened',
   QR_SCANNED = 'QR Scanned',
+
+  // OTA Updates Modal
+  OTA_UPDATES_MODAL_VIEWED = 'OTA Updates Modal Viewed',
+  OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED = 'OTA Updates Modal Primary Action Clicked',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -1467,6 +1472,7 @@ const events = {
   CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
   ),
+  CARD_DEEPLINK_HANDLED: generateOpt(EVENT_NAME.CARD_DEEPLINK_HANDLED),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -1529,6 +1535,12 @@ const events = {
 
   // Privacy Notice
   NOTICE_UPDATE_DISPLAYED: generateOpt(EVENT_NAME.NOTICE_UPDATE_DISPLAYED),
+
+  // OTA Updates Modal
+  OTA_UPDATES_MODAL_VIEWED: generateOpt(EVENT_NAME.OTA_UPDATES_MODAL_VIEWED),
+  OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED: generateOpt(
+    EVENT_NAME.OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED,
+  ),
 };
 
 /**

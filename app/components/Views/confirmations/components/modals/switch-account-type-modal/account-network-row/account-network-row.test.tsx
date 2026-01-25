@@ -99,7 +99,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    expect(getByText('Standard Account')).toBeTruthy();
+    expect(getByText('Standard account')).toBeTruthy();
     expect(getByText('Switch')).toBeTruthy();
   });
 

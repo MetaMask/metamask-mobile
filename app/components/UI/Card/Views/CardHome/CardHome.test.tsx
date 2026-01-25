@@ -43,9 +43,7 @@ import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
 import { cardDefaultNavigationOptions } from '../../routes';
-import renderWithProvider, {
-  renderScreen,
-} from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -117,7 +115,8 @@ const mockSelectedInternalAccount = {
 // Mock hooks
 const mockFetchPriorityToken = jest.fn().mockResolvedValue(mockPriorityToken);
 const mockFetchCardDetails = jest.fn();
-const mockFetchAllData = jest.fn();
+const mockFetchAllData = jest.fn().mockResolvedValue(undefined);
+const mockRefetchAllData = jest.fn().mockResolvedValue(undefined);
 const mockPollCardStatusUntilProvisioned = jest.fn().mockResolvedValue(true);
 const mockNavigateToCardPage = jest.fn();
 const mockGoToSwaps = jest.fn();
@@ -394,16 +393,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.kyc_status.pending.title': 'Verification in Progress',
       'card.card_home.kyc_status.pending.description':
         'Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card.',
-      'card.card_home.kyc_status.rejected.title': 'Verification Not Approved',
+      'card.card_home.kyc_status.rejected.title': 'Verification not approved',
       'card.card_home.kyc_status.rejected.description':
         'We were unable to verify your identity. Please contact support for assistance.',
       'card.card_home.kyc_status.rejected.support_description':
         "We were unable to verify your identity at this time. Please contact our support team for assistance and we'll help you resolve this issue.",
-      'card.card_home.kyc_status.unverified.title': 'Verification Required',
+      'card.card_home.kyc_status.unverified.title': 'Verification required',
       'card.card_home.kyc_status.unverified.description':
         'You need to complete identity verification before enabling your card. Please complete the onboarding process.',
       'card.card_home.kyc_status.error.title':
-        'Verification Status Unavailable',
+        'Verification status unavailable',
       'card.card_home.kyc_status.error.description':
         "We couldn't check your verification status. Please try again later or contact support if the issue persists.",
       'card.card_home.kyc_status.ok_button': 'OK',
@@ -531,6 +530,7 @@ function setupLoadCardDataMock(
     fetchPriorityToken: mockFetchPriorityToken,
     fetchCardDetails: mockFetchCardDetails,
     fetchAllData: mockFetchAllData,
+    refetchAllData: mockRefetchAllData,
     pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
     isLoadingPollCardStatusUntilProvisioned: false,
   });
@@ -616,6 +616,7 @@ describe('CardHome Component', () => {
       fetchPriorityToken: mockFetchPriorityToken,
       fetchCardDetails: mockFetchCardDetails,
       fetchAllData: mockFetchAllData,
+      refetchAllData: mockRefetchAllData,
       pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
       isLoadingPollCardStatusUntilProvisioned: false,
     });
@@ -1957,6 +1958,7 @@ describe('CardHome Component', () => {
         fetchPriorityToken: mockFetchPriorityToken,
         fetchCardDetails: mockFetchCardDetails,
         fetchAllData: mockFetchAllData,
+        refetchAllData: mockRefetchAllData,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoadingPollCardStatusUntilProvisioned: true,
       });
@@ -2497,7 +2499,7 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('does nothing when no error exists', async () => {
+    it('does nothing when no error exists', () => {
       // Given: authenticated user without error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(false);
@@ -2510,7 +2512,6 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should not trigger authentication error handling
-      await new Promise((r) => setTimeout(r, 100));
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockClearAllCache).not.toHaveBeenCalled();
@@ -2519,7 +2520,7 @@ describe('CardHome Component', () => {
       );
     });
 
-    it('does nothing when user is not authenticated', async () => {
+    it('does nothing when user is not authenticated', () => {
       // Given: non-authenticated user with error
       setupMockSelectors({ isAuthenticated: false });
       mockIsAuthenticationError.mockReturnValue(false);
@@ -2532,13 +2533,12 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should not trigger authentication error handling
-      await new Promise((r) => setTimeout(r, 100));
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockClearAllCache).not.toHaveBeenCalled();
     });
 
-    it('does nothing when error is not an authentication error', async () => {
+    it('does nothing when error is not an authentication error', () => {
       // Given: authenticated user with non-authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(false);
@@ -2551,7 +2551,6 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should not trigger authentication error handling
-      await new Promise((r) => setTimeout(r, 100));
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockClearAllCache).not.toHaveBeenCalled();
@@ -2668,8 +2667,8 @@ describe('CardHome Component', () => {
       // Given: authenticated user with persistent authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
-      const WrappedCardHome = withCardSDK(CardHome);
 
+      // Setup mock to return same error for multiple renders
       setupLoadCardDataMock({
         error: 'First auth error',
         isAuthenticated: true,
@@ -2684,24 +2683,10 @@ describe('CardHome Component', () => {
         priorityToken: mockPriorityToken,
       });
 
-      // When: component renders twice with the same authentication error
-      const { rerender } = renderWithProvider(<WrappedCardHome />, {
-        state: {
-          engine: {
-            backgroundState,
-          },
-        },
-      });
+      // When: component renders with authentication error
+      render();
 
       // Then: cleanup runs once on initial render
-      await waitFor(() => {
-        expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
-      });
-
-      // When: component re-renders with same error
-      rerender(<WrappedCardHome />);
-
-      // Then: cleanup does not run again for unchanged error
       await waitFor(() => {
         expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
       });
@@ -3000,7 +2985,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            'Verification Not Approved',
+            'Verification not approved',
             "We were unable to verify your identity at this time. Please contact our support team for assistance and we'll help you resolve this issue.",
             [{ text: 'OK', style: 'default' }],
           );
@@ -3021,7 +3006,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            'Verification Required',
+            'Verification required',
             'You need to complete identity verification before enabling your card. Please complete the onboarding process.',
             [{ text: 'OK', style: 'default' }],
           );
@@ -3130,7 +3115,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            'Verification Status Unavailable',
+            'Verification status unavailable',
             "We couldn't check your verification status. Please try again later or contact support if the issue persists.",
             [{ text: 'OK', style: 'default' }],
           );
@@ -3152,7 +3137,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).not.toHaveBeenCalledWith(
-            'Verification Status Unavailable',
+            'Verification status unavailable',
             expect.any(String),
             expect.any(Array),
           );
@@ -3174,7 +3159,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).not.toHaveBeenCalledWith(
-            'Verification Status Unavailable',
+            'Verification status unavailable',
             expect.any(String),
             expect.any(Array),
           );
@@ -3236,7 +3221,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            expect.stringContaining('Not Approved'),
+            expect.stringContaining('Verification not approved'),
             expect.stringContaining('contact our support team'),
             expect.any(Array),
           );
@@ -3257,7 +3242,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            expect.stringContaining('Required'),
+            expect.stringContaining('Verification required'),
             expect.stringContaining('complete identity verification'),
             expect.any(Array),
           );

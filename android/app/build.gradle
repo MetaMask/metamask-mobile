@@ -188,7 +188,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionName "7.62.0"
-        versionCode 3092
+        versionCode 3418
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
@@ -371,7 +371,6 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation(files("../libs/ecies.aar"))
-    implementation(files("../libs/nativesdk.aar"))
     implementation("com.facebook.react:react-android")
     implementation 'org.apache.commons:commons-compress:1.22'
     androidTestImplementation 'androidx.test:core:1.5.0'

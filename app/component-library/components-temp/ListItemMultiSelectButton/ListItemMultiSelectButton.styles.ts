@@ -43,9 +43,9 @@ const styleSheet = (params: {
       flexDirection: 'column',
       alignItems: 'flex-start',
       paddingRight: 0,
+      paddingLeft: 0,
       paddingTop: 0,
       paddingBottom: 0,
-      paddingLeft: 0,
       zIndex: 2,
     },
     containerRow: {
@@ -72,7 +72,7 @@ const styleSheet = (params: {
       paddingTop: 32,
     },
     buttonIcon: {
-      paddingRight: 20,
+      paddingRight: 8,
     },
   });
 };

@@ -388,7 +388,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                 onBlur={[Function]}
                                 onChangeText={[Function]}
                                 onFocus={[Function]}
-                                placeholder="Search Tokens"
+                                placeholder="Search tokens"
                                 placeholderTextColor="#b7bbc8"
                                 style={
                                   {

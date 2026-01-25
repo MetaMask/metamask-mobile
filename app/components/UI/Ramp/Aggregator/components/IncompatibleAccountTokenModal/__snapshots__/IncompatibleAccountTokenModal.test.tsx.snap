@@ -436,11 +436,11 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -478,7 +478,7 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                                   }
                                 }
                               >
-                                Incompatible Account
+                                Incompatible account
                               </Text>
                             </View>
                             <View>

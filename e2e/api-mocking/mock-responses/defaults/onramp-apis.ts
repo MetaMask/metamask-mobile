@@ -40,5 +40,11 @@ export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
         orderId: null,
       },
     },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-content\.uat-api\.cx\.metamask\.io\/regions\/countries(\/.*)?$/,
+      responseCode: 200,
+      response: [],
+    },
   ],
 };

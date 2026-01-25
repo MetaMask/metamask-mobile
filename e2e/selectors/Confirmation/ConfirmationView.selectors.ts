@@ -31,16 +31,21 @@ export const ConfirmationRowComponentIDs = {
   ACCOUNT_NETWORK: 'account-network',
   ADVANCED_DETAILS: 'advanced-details',
   APPROVE_ROW: 'approve-row',
+  BRIDGE_TIME: 'bridge-time',
   FROM_TO: 'from-to',
   GAS_FEES_DETAILS: 'gas-fees-details',
+  GAS_FEE_TOKEN_PILL: 'selected-gas-fee-token',
   MESSAGE: 'message',
   NETWORK: 'network',
   ORIGIN_INFO: 'origin-info',
+  PAID_BY_METAMASK: 'paid-by-metamask',
+  PAY_WITH: 'pay-with',
   SIMULATION_DETAILS: 'simulation-details',
   SIWE_SIGNING_ACCOUNT_INFO: 'siwe-signing-account-info',
   STAKING_DETAILS: 'staking-details',
   TOKEN_HERO: 'token-hero',
-  PAID_BY_METAMASK: 'paid-by-metamask',
+  TOTAL: 'total',
+  TRANSACTION_FEE: 'transaction-fee',
 } as const;
 
 export const ConfirmationFooterSelectorIDs = {
@@ -73,3 +78,24 @@ export const ApproveComponentIDs = {
   EDIT_SPENDING_CAP_INPUT: 'edit-spending-cap-input',
   EDIT_SPENDING_CAP_SAVE_BUTTON: 'edit-spending-cap-save-button',
 } as const;
+
+export const GasFeeTokenSelectorIDs = {
+  SELECTED_GAS_FEE_TOKEN_SYMBOL: 'selected-gas-fee-token-symbol',
+  SELECTED_GAS_FEE_TOKEN_ARROW: 'selected-gas-fee-token-arrow',
+} as const;
+
+export const GasFeeTokenModalSelectorsText = {
+  GAS_FEE_TOKEN_ITEM: 'gas-fee-token-list-item',
+  GAS_FEE_TOKEN_AMOUNT: 'gas-fee-token-list-item-amount-token',
+  GAS_FEE_TOKEN_BALANCE: 'gas-fee-token-list-item-balance',
+  GAS_FEE_TOKEN_SYMBOL: 'gas-fee-token-list-item-symbol',
+  GAS_FEE_TOKEN_AMOUNT_FIAT: 'gas-fee-token-list-item-amount-fiat',
+} as const;
+
+export const TransactionPayComponentIDs = {
+  CLOSE_MODAL_BUTTON: 'bridge-token-selector-close-button',
+  KEYBOARD_CONTINUE_BUTTON: 'deposit-keyboard-done-button',
+  PAY_WITH_BALANCE: 'pay-with-balance',
+  PAY_WITH_FIAT: 'pay-with-fiat',
+  PAY_WITH_SYMBOL: 'pay-with-symbol',
+};

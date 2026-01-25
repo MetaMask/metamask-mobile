@@ -21,7 +21,7 @@ import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { strings } from '../../../../../locales/i18n';
-import { getAddressListNavbarOptions } from '../../../UI/Navbar';
+import getHeaderCenterNavbarOptions from '../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -89,11 +89,12 @@ export const AddressList = () => {
   useLayoutEffect(() => {
     if (title) {
       navigation.setOptions({
-        ...getAddressListNavbarOptions(
-          navigation,
+        ...getHeaderCenterNavbarOptions({
           title,
-          AddressListIds.GO_BACK,
-        ),
+          onBack: () => navigation.goBack(),
+          backButtonProps: { testID: AddressListIds.GO_BACK },
+          includesTopInset: true,
+        }),
         headerShown: true,
       });
     }

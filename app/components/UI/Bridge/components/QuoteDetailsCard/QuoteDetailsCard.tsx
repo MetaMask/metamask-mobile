@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -30,7 +30,7 @@ import {
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
-import { getIntlNumberFormatter } from '../../../../../util/intl';
+import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { useRewards } from '../../hooks/useRewards';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -54,11 +54,6 @@ const QuoteDetailsCard: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
-
-  const locale = I18n.locale;
-  const intlNumberFormatter = getIntlNumberFormatter(locale, {
-    maximumSignificantDigits: 8,
-  });
 
   const {
     formattedQuoteData,
@@ -142,8 +137,8 @@ const QuoteDetailsCard: React.FC = () => {
   const gasIncluded7702 = !!activeQuote?.quote.gasIncluded7702;
   const isGasless = gasIncluded7702 || gasIncluded;
 
-  const formattedMinToTokenAmount = intlNumberFormatter.format(
-    parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
+  const formattedMinToTokenAmount = formatMinimumReceived(
+    activeQuote?.minToTokenAmount?.amount || '0',
   );
 
   return (
@@ -200,6 +195,7 @@ const QuoteDetailsCard: React.FC = () => {
                   nativeToken: nativeTokenName,
                 }),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{

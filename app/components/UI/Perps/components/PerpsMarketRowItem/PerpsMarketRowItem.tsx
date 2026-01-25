@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -144,6 +145,26 @@ const PerpsMarketRowItem = ({
     }
   }, [displayMetric, displayMarket]);
 
+  // Helper to get shortcut label for the metric indicator
+  const getMetricLabel = useMemo(() => {
+    switch (displayMetric) {
+      case 'priceChange':
+        return ''; // Price change doesn't need label (% suffix indicates metric)
+      case 'openInterest':
+        return strings('perps.sort.open_interest_short');
+      case 'fundingRate':
+        return strings('perps.sort.funding_rate_short');
+      case 'volume':
+      default:
+        return strings('perps.sort.volume_short');
+    }
+  }, [displayMetric]);
+
+  // Combine value and label for display (e.g., "$1.2B Vol")
+  const displayText = getMetricLabel
+    ? `${getDisplayValue} ${getMetricLabel}`
+    : getDisplayValue;
+
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
   const badgeType = getMarketBadgeType(displayMarket);
@@ -174,8 +195,12 @@ const PerpsMarketRowItem = ({
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
           <View style={styles.secondRow}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {getDisplayValue}
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              numberOfLines={1}
+            >
+              {displayText}
             </Text>
             {showBadge && badgeType && (
               <PerpsBadge

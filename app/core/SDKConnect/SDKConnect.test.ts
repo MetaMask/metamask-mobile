@@ -1,8 +1,5 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import AppConstants from '../AppConstants';
-import addDappConnection from './AndroidSDK/addDappConnection';
-import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
-import loadDappConnections from './AndroidSDK/loadDappConnections';
 import { Connection, ConnectionProps } from './Connection';
 import {
   approveHost,
@@ -53,10 +50,6 @@ jest.mock('../NavigationService', () => ({
 jest.mock('./Connection');
 jest.mock('@react-navigation/native');
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('./AndroidSDK/AndroidService');
-jest.mock('./AndroidSDK/addDappConnection');
-jest.mock('./AndroidSDK/bindAndroidSDK');
-jest.mock('./AndroidSDK/loadDappConnections');
 jest.mock('./ConnectionManagement');
 jest.mock('./InitializationManagement');
 jest.mock('./RPCQueueManager');
@@ -120,18 +113,6 @@ describe('SDKConnect', () => {
 
   const mockDisapproveChannel = disapproveChannel as jest.MockedFunction<
     typeof disapproveChannel
-  >;
-
-  const mockBindAndroidSDK = bindAndroidSDK as jest.MockedFunction<
-    typeof bindAndroidSDK
-  >;
-
-  const mockLoadDappConnections = loadDappConnections as jest.MockedFunction<
-    typeof loadDappConnections
-  >;
-
-  const mockAddDappConnection = addDappConnection as jest.MockedFunction<
-    typeof addDappConnection
   >;
 
   beforeEach(() => {
@@ -317,36 +298,39 @@ describe('SDKConnect', () => {
     });
   });
 
-  describe('Android SDK Management', () => {
+  describe('Android SDK Management (Disabled)', () => {
+    // Android SDK disabled for security reasons (pm-security #532, #534)
     describe('bindAndroidSDK', () => {
-      it('should bind the Android SDK', async () => {
-        await sdkConnect.bindAndroidSDK();
+      it('should be a no-op (Android SDK disabled)', async () => {
+        const result = await sdkConnect.bindAndroidSDK();
+        expect(result).toBeUndefined();
+      });
+    });
 
-        expect(mockBindAndroidSDK).toHaveBeenCalledTimes(1);
-        expect(mockBindAndroidSDK).toHaveBeenCalledWith(sdkConnect);
+    describe('isAndroidSDKBound', () => {
+      it('should always return false (Android SDK disabled)', () => {
+        expect(sdkConnect.isAndroidSDKBound()).toBe(false);
       });
     });
 
     describe('loadDappConnections', () => {
-      it('should load Android connections', async () => {
-        await sdkConnect.loadDappConnections();
+      it('should return empty object (Android SDK disabled)', async () => {
+        const result = await sdkConnect.loadDappConnections();
+        expect(result).toEqual({});
+      });
+    });
 
-        expect(mockLoadDappConnections).toHaveBeenCalledTimes(1);
-        expect(mockLoadDappConnections).toHaveBeenCalledWith();
+    describe('getAndroidConnections', () => {
+      it('should return undefined (Android SDK disabled)', () => {
+        expect(sdkConnect.getAndroidConnections()).toBeUndefined();
       });
     });
 
     describe('addDappConnection', () => {
-      it('should add an Android connection', async () => {
+      it('should be a no-op (Android SDK disabled)', async () => {
         const testConnection = {} as ConnectionProps;
-
-        await sdkConnect.addDappConnection(testConnection);
-
-        expect(mockAddDappConnection).toHaveBeenCalledTimes(1);
-        expect(mockAddDappConnection).toHaveBeenCalledWith(
-          testConnection,
-          sdkConnect,
-        );
+        const result = await sdkConnect.addDappConnection(testConnection);
+        expect(result).toBeUndefined();
       });
     });
   });

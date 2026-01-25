@@ -823,7 +823,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   }
                 }
               >
-                Buy & Sell Crypto
+                Buy & sell crypto
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1011,7 +1011,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   }
                 }
               >
-                AES Crypto - Test Form
+                AES crypto - test form
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1184,7 +1184,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   }
                 }
               >
-                Feature Flag Override
+                Feature flag override
               </Text>
               <Text
                 accessibilityRole="text"

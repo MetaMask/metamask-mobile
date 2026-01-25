@@ -416,11 +416,11 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -452,7 +452,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                   }
                                 }
                               >
-                                Region Not Supported
+                                Region not supported
                               </Text>
                             </View>
                           </View>
@@ -532,7 +532,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                   }
                                 }
                               >
-                                Visit Support Article
+                                Visit support article
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -1012,11 +1012,11 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -1048,7 +1048,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                   }
                                 }
                               >
-                                Region Not Supported
+                                Region not supported
                               </Text>
                             </View>
                           </View>
@@ -1128,7 +1128,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                   }
                                 }
                               >
-                                Visit Support Article
+                                Visit support article
                               </Text>
                             </TouchableOpacity>
                           </View>

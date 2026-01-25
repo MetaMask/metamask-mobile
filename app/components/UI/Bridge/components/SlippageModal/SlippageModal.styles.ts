@@ -1,31 +1,21 @@
-import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../../../styles/common';
+import { Platform, StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const createStyles = ({ colors }: Theme) =>
+const createStyles = (_params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      padding: 24,
-      paddingBottom: 21,
-      alignItems: 'center',
-    },
-    title: {
-      textAlign: 'center',
-    },
-    description: {
-      fontSize: 14,
-      lineHeight: 20,
-      color: colors.text.default,
-      ...fontStyles.normal,
+      paddingHorizontal: 16,
     },
     optionsContainer: {
-      alignItems: 'center',
-      marginBottom: 12,
-      paddingHorizontal: 24,
-      paddingVertical: 16,
+      marginTop: 16,
     },
     segmentedControl: {
       gap: 8,
+    },
+    footer: {
+      paddingHorizontal: 0,
+      paddingTop: 24,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
   });
 

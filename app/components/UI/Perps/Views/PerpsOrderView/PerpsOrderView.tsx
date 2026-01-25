@@ -750,6 +750,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           [PerpsEventProperties.ERROR_TYPE]:
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]: firstError,
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
         });
 
         isSubmittingRef.current = false; // Reset flag on early return
@@ -767,6 +771,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]:
             'Cross margin position detected',
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
         });
 
         isSubmittingRef.current = false;
@@ -999,7 +1007,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {!isInputFocused && (
           <View style={styles.detailsWrapper}>
             {/* Leverage */}
-            <View style={[styles.detailItem, styles.detailItemOnly]}>
+            <View
+              style={[
+                styles.detailItem,
+                // If there are items below (limit price or TP/SL), only round top corners
+                // Otherwise, round all corners
+                orderForm.type === 'limit' || !hideTPSL
+                  ? styles.detailItemFirst
+                  : styles.detailItemOnly,
+              ]}
+            >
               <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -1037,7 +1054,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
             {/* Limit price - only show for limit orders */}
             {orderForm.type === 'limit' && (
-              <View style={styles.detailItem}>
+              <View
+                style={[
+                  styles.detailItem,
+                  // If TP/SL is hidden, this is the last item so round bottom corners
+                  hideTPSL && styles.detailItemLast,
+                ]}
+              >
                 <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                   <ListItem style={styles.detailItemWrapper}>
                     <ListItemColumn widthType={WidthType.Fill}>

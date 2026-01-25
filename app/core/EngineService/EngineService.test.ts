@@ -13,6 +13,7 @@ import {
 } from '../../store/persistConfig';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import { getPersistentState } from '../../store/getPersistentState/getPersistentState';
+import { setExistingUser } from '../../actions/user';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -278,6 +279,23 @@ describe('EngineService', () => {
       {
         hasState: false, // Correctly detects no persisted state now that the bug is fixed
       },
+    );
+
+    // Restore fake timers for other tests
+    jest.useFakeTimers();
+  });
+
+  it('sets existingUser flag after successful vault recovery', async () => {
+    // Arrange
+    jest.useRealTimers();
+
+    // Act
+    await engineService.start();
+    await engineService.initializeVaultFromBackup();
+
+    // Assert
+    expect(ReduxService.store.dispatch).toHaveBeenCalledWith(
+      setExistingUser(true),
     );
 
     // Restore fake timers for other tests

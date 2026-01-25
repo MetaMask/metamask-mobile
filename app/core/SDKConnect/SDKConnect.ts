@@ -6,10 +6,6 @@ import AppConstants from '../AppConstants';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import Engine from '../../core/Engine';
-import AndroidService from './AndroidSDK/AndroidService';
-import addDappConnection from './AndroidSDK/addDappConnection';
-import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
-import loadDappConnections from './AndroidSDK/loadDappConnections';
 import { Connection, ConnectionProps } from './Connection';
 import {
   approveHost,
@@ -72,7 +68,6 @@ export interface SDKConnectState {
   connections: SDKSessions;
   androidSDKStarted: boolean;
   androidSDKBound: boolean;
-  androidService?: AndroidService;
   deeplinkingServiceStarted: boolean;
   deeplinkingService?: DeeplinkProtocolService;
   dappConnections: SDKSessions;
@@ -109,7 +104,6 @@ export class SDKConnect {
     androidSDKStarted: false,
     androidSDKBound: false,
     deeplinkingServiceStarted: false,
-    androidService: undefined,
     deeplinkingService: undefined,
     connecting: {},
     approvedHosts: {},
@@ -222,26 +216,28 @@ export class SDKConnect {
     return pause(this);
   }
 
+  // Android SDK disabled for security reasons (pm-security #532, #534)
   public async bindAndroidSDK() {
-    return bindAndroidSDK(this);
+    return;
   }
 
   public isAndroidSDKBound() {
-    return this.state.androidSDKBound;
+    return false;
   }
 
   async loadDappConnections(): Promise<{
     [id: string]: ConnectionProps;
   }> {
-    return loadDappConnections();
+    return {};
   }
 
   getAndroidConnections() {
-    return this.state.androidService?.getConnections();
+    return undefined;
   }
 
-  async addDappConnection(connection: ConnectionProps) {
-    return addDappConnection(connection, this);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async addDappConnection(_connection: ConnectionProps) {
+    return;
   }
 
   public async refreshChannel({ channelId }: { channelId: string }) {

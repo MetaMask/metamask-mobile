@@ -23,6 +23,8 @@ const newOverrides = [
       'app/components/UI/Ramp/Deposit/sdk/getSdkEnvironment.test.ts',
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.ts',
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.test.ts',
+      'app/core/Engine/controllers/ramps-controller/ramps-service-init.ts',
+      'app/core/Engine/controllers/ramps-controller/ramps-service-init.test.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.test.ts',
       'app/components/UI/Ramp/hooks/useRampsSmartRouting.ts',

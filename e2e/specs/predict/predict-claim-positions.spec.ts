@@ -157,7 +157,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
   });
 
   // Disabling this test as it is currently blocking CI
-  it.skip('claim winnings via market details', async () => {
+  it('claim winnings via market details', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -194,6 +194,13 @@ describe(SmokePredictions('Claim winnings:'), () => {
         await PredictDetailsPage.tapBackButton();
 
         await WalletView.tapPredictPosition(positions.Won);
+
+        await Assertions.expectElementToBeVisible(
+          PredictDetailsPage.container,
+          {
+            description: 'Winning position details page should be visible',
+          },
+        );
 
         await PredictDetailsPage.tapClaimWinningsButton();
 

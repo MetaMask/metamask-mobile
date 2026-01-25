@@ -316,6 +316,7 @@ const ConfirmPhoneNumber = () => {
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
       isDisabled={isDisabled}
+      loading={verifyLoading}
       testID="confirm-phone-number-continue-button"
     />
   );

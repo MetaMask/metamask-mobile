@@ -6,7 +6,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import { strings } from '../../../../../locales/i18n';
 import { FlexDirection, AlignItems } from '../../Box/box.types';
 import { useTokenSearch } from '../hooks/useTokenSearch';
@@ -226,14 +226,13 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> =
           isFullscreen
           keyboardAvoidingViewEnabled={false}
         >
-          <BottomSheetHeader
+          <HeaderCenter
+            title={title ?? strings('bridge.select_token')}
             onClose={dismissModal}
             closeButtonProps={{
               testID: 'bridge-token-selector-close-button',
             }}
-          >
-            {title ?? strings('bridge.select_token')}
-          </BottomSheetHeader>
+          />
 
           <Box style={styles.buttonContainer} gap={20}>
             {networksBar}

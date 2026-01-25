@@ -10,6 +10,8 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnTokenDetails } from '../types/lending.types';
 import type { TronStakeResult, TronUnstakeResult } from './tron-staking-snap';
 import { TokenI } from '../../Tokens/types';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 
 interface TronResource {
   symbol?: string;
@@ -120,14 +122,50 @@ const TRON_STAKING_COPY: Record<
   },
 };
 
+/**
+ * Maps known TRON error codes to localization keys.
+ * Falls back to the raw error message for unrecognized errors.
+ */
+const TRON_ERROR_LOCALIZATION_KEYS: Record<string, string> = {
+  InsufficientBalance: 'stake.tron.errors.insufficient_balance',
+};
+
+export const getLocalizedErrorMessage = (errors?: string[]): string => {
+  if (!errors || errors.length === 0) {
+    return '';
+  }
+
+  const localizedMessages = errors.map((error) => {
+    const localizationKey = TRON_ERROR_LOCALIZATION_KEYS[error];
+    return localizationKey ? strings(localizationKey) : error;
+  });
+
+  return localizedMessages.join('\n');
+};
+
 export const handleTronStakingNavigationResult = (
   navigation: NavigationProp<ParamListBase>,
   result: TronStakingNavigationResult,
   action: TronStakingAction,
+  accountId?: string,
 ) => {
   const copy = TRON_STAKING_COPY[action];
 
   if (result?.valid && (!result.errors || result.errors.length === 0)) {
+    // Refreshes the multichain balance after successful stake/unstake
+    // to make sure that the asset overview displays the updated staked balance right away
+    if (accountId) {
+      const { MultichainBalancesController } = Engine.context;
+      MultichainBalancesController.updateBalance(accountId).catch(
+        (error: Error) => {
+          Logger.error(
+            error,
+            `[Tron ${action}] Failed to refresh multichain balance`,
+          );
+        },
+      );
+    }
+
     navigation.goBack();
     requestAnimationFrame(() => {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -145,7 +183,7 @@ export const handleTronStakingNavigationResult = (
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
         title: strings(copy.errorTitleKey),
-        description: result?.errors?.join('\n') ?? '',
+        description: getLocalizedErrorMessage(result?.errors),
         type: 'error',
       },
     });

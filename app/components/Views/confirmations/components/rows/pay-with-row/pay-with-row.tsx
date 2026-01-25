@@ -27,12 +27,18 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import {
+  ConfirmationRowComponentIDs,
+  TransactionPayComponentIDs,
+} from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
+  const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const {
     txParams: { from },
@@ -42,9 +48,13 @@ export function PayWithRow() {
 
   const handleClick = useCallback(() => {
     if (!canEdit) return;
-
+    setConfirmationMetric({
+      properties: {
+        mm_pay_token_list_opened: true,
+      },
+    });
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [canEdit, navigation]);
+  }, [canEdit, navigation, setConfirmationMetric]);
 
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
@@ -56,7 +66,11 @@ export function PayWithRow() {
   }
 
   return (
-    <TouchableOpacity onPress={handleClick} disabled={!canEdit}>
+    <TouchableOpacity
+      onPress={handleClick}
+      disabled={!canEdit}
+      testID={ConfirmationRowComponentIDs.PAY_WITH}
+    >
       <Box
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
@@ -65,10 +79,18 @@ export function PayWithRow() {
         style={styles.container}
       >
         <TokenIcon address={payToken.address} chainId={payToken.chainId} />
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Default}
+          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+        >
           {`${strings('confirm.label.pay_with')} ${payToken.symbol}`}
         </Text>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Alternative}
+          testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+        >
           {balanceUsdFormatted}
         </Text>
         {canEdit && from && (

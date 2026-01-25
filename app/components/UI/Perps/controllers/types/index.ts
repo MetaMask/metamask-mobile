@@ -102,6 +102,10 @@ export interface TPSLTrackingData {
   direction: 'long' | 'short'; // Position direction
   source: string; // Source of the TP/SL update (e.g., 'tp_sl_view', 'position_card')
   positionSize: number; // Unsigned position size for metrics
+  takeProfitPercentage?: number; // Take profit percentage from entry
+  stopLossPercentage?: number; // Stop loss percentage from entry
+  isEditingExistingPosition?: boolean; // true = editing existing position, false = creating for new order
+  entryPrice?: number; // Entry price for percentage calculations
 }
 
 // MetaMask Perps API order parameters for PerpsController
@@ -773,6 +777,7 @@ export interface Order {
   detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
+  triggerPrice?: string; // Trigger condition price for trigger orders (e.g., TP/SL trigger level)
 }
 
 export interface Funding {

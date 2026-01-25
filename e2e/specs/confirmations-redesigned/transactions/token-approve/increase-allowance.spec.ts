@@ -128,7 +128,7 @@ describe(
 
           // Check activity tab
           await TabBarComponent.tapActivity();
-          await Assertions.expectTextDisplayed('Increase Allowance');
+          await Assertions.expectTextDisplayed('Increase allowance');
           await Assertions.expectTextDisplayed('Confirmed');
         },
       );

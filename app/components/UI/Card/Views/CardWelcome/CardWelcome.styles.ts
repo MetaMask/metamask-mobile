@@ -1,9 +1,6 @@
-import { Platform, StyleSheet, Dimensions } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../../../styles/common';
 import { Theme } from '@metamask/design-tokens';
-
-// Responsive scaling utilities
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Platform-specific base dimensions
 const BASE_WIDTH = 375;
@@ -16,28 +13,49 @@ const MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES = 750;
 const isIOS = Platform.OS === 'ios';
 const baseHeight = isIOS ? BASE_HEIGHT_IOS : BASE_HEIGHT_ANDROID;
 
-const widthScale = screenWidth / BASE_WIDTH;
-const heightScale = screenHeight / baseHeight;
+export interface WindowDimensions {
+  width: number;
+  height: number;
+}
 
-// Use more conservative scaling to prevent excessive padding
-const scale = Math.min(widthScale, heightScale);
-const conservativeScale = Math.min(scale, 1.2); // Cap scaling at 120%
+// Platform-aware responsive scaling functions that accept current dimensions
+const createScalingFunctions = (dimensions: WindowDimensions) => {
+  const { width: screenWidth, height: screenHeight } = dimensions;
 
-// Platform-aware responsive scaling functions
-const scaleSize = (size: number) => Math.ceil(size * conservativeScale);
-const scaleFont = (size: number) => Math.ceil(size * conservativeScale);
+  const widthScale = screenWidth / BASE_WIDTH;
+  const heightScale = screenHeight / baseHeight;
 
-// For vertical spacing, use percentage of available height instead of pure scaling
-const scaleVertical = (size: number) => {
-  // Use percentage of screen height for more consistent spacing
-  const percentage = size / baseHeight;
-  return Math.ceil(screenHeight * percentage);
+  // Use more conservative scaling to prevent excessive padding
+  const scale = Math.min(widthScale, heightScale);
+  const conservativeScale = Math.min(scale, 1.2); // Cap scaling at 120%
+
+  const scaleSize = (size: number) => Math.ceil(size * conservativeScale);
+  const scaleFont = (size: number) => Math.ceil(size * conservativeScale);
+
+  // For vertical spacing, use percentage of available height instead of pure scaling
+  const scaleVertical = (size: number) => {
+    // Use percentage of screen height for more consistent spacing
+    const percentage = size / baseHeight;
+    return Math.ceil(screenHeight * percentage);
+  };
+
+  const scaleHorizontal = (size: number) => Math.ceil(size * widthScale);
+
+  return {
+    screenWidth,
+    screenHeight,
+    scaleSize,
+    scaleFont,
+    scaleVertical,
+    scaleHorizontal,
+  };
 };
 
-const scaleHorizontal = (size: number) => Math.ceil(size * widthScale);
+const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
+  const { screenHeight, scaleSize, scaleFont, scaleVertical, scaleHorizontal } =
+    createScalingFunctions(dimensions);
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+  return StyleSheet.create({
     pageContainer: {
       flex: 1,
       position: 'relative',
@@ -117,5 +135,6 @@ const createStyles = (theme: Theme) =>
       fontSize: scaleFont(16),
     },
   });
+};
 
 export default createStyles;

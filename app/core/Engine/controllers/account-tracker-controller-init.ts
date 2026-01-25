@@ -1,4 +1,4 @@
-import { ControllerInitFunction, EngineState } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   AccountTrackerController,
   AccountTrackerControllerMessenger,
@@ -30,9 +30,7 @@ export const accountTrackerControllerInit: ControllerInitFunction<
         assetsContractController,
       ),
     accountsApiChainIds: () =>
-      selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: persistedState as EngineState },
-      }) as `0x${string}`[],
+      selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
   });
 

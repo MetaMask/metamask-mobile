@@ -1076,7 +1076,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                               }
                             }
                           >
-                            View Data
+                            View data
                           </Text>
                         </TouchableOpacity>
                       </View>

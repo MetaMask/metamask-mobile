@@ -61,7 +61,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     selectIsMusdConversionFlowEnabledFlag,
   );
 
-  const { isConversionToken } = useMusdConversionTokens();
+  const { isTokenWithCta } = useMusdConversionTokens();
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -176,19 +176,26 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     }
   };
 
-  if (!isStablecoinLendingEnabled) return null;
+  const renderMusdConversionCta = () => (
+    <View style={styles.musdConversionCta}>
+      <MusdConversionAssetOverviewCta asset={asset} />
+    </View>
+  );
+
+  const hasMusdConversionCta =
+    isMusdConversionFlowEnabled && isTokenWithCta(asset);
+
+  if (!isStablecoinLendingEnabled) {
+    if (hasMusdConversionCta) {
+      return renderMusdConversionCta();
+    }
+    return null;
+  }
 
   const renderCta = () => {
     // Favour the mUSD Conversion CTA over the lending empty state CTA
-    const shouldRenderMusdConversionAssetOverviewCta =
-      isMusdConversionFlowEnabled && isConversionToken(asset);
-
-    if (shouldRenderMusdConversionAssetOverviewCta) {
-      return (
-        <View style={styles.musdConversionCta}>
-          <MusdConversionAssetOverviewCta asset={asset} />
-        </View>
-      );
+    if (hasMusdConversionCta) {
+      return renderMusdConversionCta();
     }
 
     const shouldRenderLendingEmptyStateCta =

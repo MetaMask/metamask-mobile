@@ -675,10 +675,12 @@ describe('useWithdrawalRequests', () => {
       expect(mockController.updateWithdrawalStatus).not.toHaveBeenCalled();
     });
 
-    it('does not match withdrawals with different timestamps', async () => {
+    it('matches withdrawals even with very different timestamps (bridging can take hours)', async () => {
+      // This test verifies that withdrawals match regardless of timestamp differences
+      // because HyperLiquid -> Arbitrum bridging can take hours, not just minutes
       const pendingWithdrawal = {
-        id: 'withdrawal-no-match',
-        timestamp: 1640995200000,
+        id: 'withdrawal-long-bridge',
+        timestamp: 1640995200000, // When withdrawal was initiated
         amount: '100',
         asset: 'USDC',
         accountAddress: mockAddress,
@@ -701,7 +703,7 @@ describe('useWithdrawalRequests', () => {
             nonce: 456,
           },
           hash: '0xledger1',
-          time: 1640995200000 + 1000000, // 16+ minutes later
+          time: 1640995200000 + 3600000, // 1 hour later (bridging took time)
         },
       ] as unknown as unknown[]);
 
@@ -714,12 +716,18 @@ describe('useWithdrawalRequests', () => {
       });
 
       const withdrawalRequests = result.current.withdrawalRequests;
-      const pendingWithdrawalResult = withdrawalRequests.find(
-        (w) => w.id === 'withdrawal-no-match',
+      const matchedWithdrawal = withdrawalRequests.find(
+        (w) => w.id === 'withdrawal-long-bridge',
       );
 
-      expect(pendingWithdrawalResult?.status).toBe('pending');
-      expect(mockController.updateWithdrawalStatus).not.toHaveBeenCalled();
+      // Should match and be marked completed even though timestamps differ significantly
+      expect(matchedWithdrawal?.status).toBe('completed');
+      expect(matchedWithdrawal?.txHash).toBe('0xledger1');
+      expect(mockController.updateWithdrawalStatus).toHaveBeenCalledWith(
+        'withdrawal-long-bridge',
+        'completed',
+        '0xledger1',
+      );
     });
 
     it('does not match withdrawals with different assets', async () => {

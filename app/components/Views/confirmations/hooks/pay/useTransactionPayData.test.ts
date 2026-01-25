@@ -8,6 +8,7 @@ import {
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   useIsTransactionPayLoading,
+  useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
@@ -100,6 +101,30 @@ describe('useTransactionPayData', () => {
       renderHookWithProvider(useIsTransactionPayLoading, { state }).result
         .current,
     ).toBe(true);
+  });
+
+  it('returns quote loading state from controller only', () => {
+    expect(
+      renderHookWithProvider(useIsTransactionPayQuoteLoading, { state }).result
+        .current,
+    ).toBe(true);
+  });
+
+  it('returns false for quote loading when controller is not loading', () => {
+    useConfirmationContextMock.mockReturnValue({
+      isTransactionDataUpdating: true,
+    } as ConfirmationContextParams);
+
+    const updatedState = cloneDeep(state);
+    updatedState.engine.backgroundState.TransactionPayController.transactionData[
+      transactionIdMock
+    ].isLoading = false;
+
+    expect(
+      renderHookWithProvider(useIsTransactionPayQuoteLoading, {
+        state: updatedState,
+      }).result.current,
+    ).toBe(false);
   });
 
   it('returns loading if data updating', () => {

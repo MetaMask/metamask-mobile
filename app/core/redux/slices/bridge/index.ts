@@ -291,35 +291,6 @@ export const selectIsBridgeEnabledSourceFactory = createSelector(
   },
 );
 
-export const selectIsBridgeEnabledSource = createSelector(
-  selectIsBridgeEnabledSourceFactory,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
-);
-
-export const selectIsBridgeEnabledDest = createSelector(
-  selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (bridgeFeatureFlags, chainId) => {
-    const caipChainId = formatChainIdToCaip(chainId);
-
-    return (
-      bridgeFeatureFlags.support &&
-      bridgeFeatureFlags.chains[caipChainId]?.isActiveDest
-    );
-  },
-);
-
-export const selectIsSwapsLive = createSelector(
-  [
-    (state: RootState, chainId: Hex | CaipChainId) =>
-      selectIsBridgeEnabledSource(state, chainId),
-    (state: RootState, chainId: Hex | CaipChainId) =>
-      selectIsBridgeEnabledDest(state, chainId),
-  ],
-  (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
-);
-
 /**
  * Selector that determines if swap functionality is enabled
  * Combines all the conditions needed for swap functionality to be available

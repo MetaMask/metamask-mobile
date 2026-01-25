@@ -502,22 +502,28 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                         >
                           $3,000.00
                         </Text>
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#686e7d",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 14,
-                              "letterSpacing": 0,
-                              "lineHeight": 22,
-                              "paddingHorizontal": 0,
-                            }
-                          }
-                          testID="secondary-balance-test-id"
+                        <TouchableOpacity
+                          disabled={true}
+                          onPress={[Function]}
+                          testID="secondary-balance-button-test-id"
                         >
-                          1000000000000000000 ETH
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#686e7d",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                                "paddingHorizontal": 0,
+                              }
+                            }
+                            testID="secondary-balance-test-id"
+                          >
+                            1000000000000000000 ETH
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -978,22 +984,28 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                         >
                           $3,000.00
                         </Text>
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#686e7d",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 14,
-                              "letterSpacing": 0,
-                              "lineHeight": 22,
-                              "paddingHorizontal": 0,
-                            }
-                          }
-                          testID="secondary-balance-test-id"
+                        <TouchableOpacity
+                          disabled={true}
+                          onPress={[Function]}
+                          testID="secondary-balance-button-test-id"
                         >
-                          1000000000000000000 USDC
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#686e7d",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                                "paddingHorizontal": 0,
+                              }
+                            }
+                            testID="secondary-balance-test-id"
+                          >
+                            1000000000000000000 USDC
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -1449,22 +1461,28 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                         >
                           $3,000.00
                         </Text>
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#686e7d",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 14,
-                              "letterSpacing": 0,
-                              "lineHeight": 22,
-                              "paddingHorizontal": 0,
-                            }
-                          }
-                          testID="secondary-balance-test-id"
+                        <TouchableOpacity
+                          disabled={true}
+                          onPress={[Function]}
+                          testID="secondary-balance-button-test-id"
                         >
-                          1000000000000000000 ETH
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#686e7d",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                                "paddingHorizontal": 0,
+                              }
+                            }
+                            testID="secondary-balance-test-id"
+                          >
+                            1000000000000000000 ETH
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -1920,22 +1938,28 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                         >
                           •••••••••
                         </Text>
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#686e7d",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 14,
-                              "letterSpacing": 0,
-                              "lineHeight": 22,
-                              "paddingHorizontal": 0,
-                            }
-                          }
-                          testID="secondary-balance-test-id"
+                        <TouchableOpacity
+                          disabled={true}
+                          onPress={[Function]}
+                          testID="secondary-balance-button-test-id"
                         >
-                          ••••••
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#686e7d",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                                "paddingHorizontal": 0,
+                              }
+                            }
+                            testID="secondary-balance-test-id"
+                          >
+                            ••••••
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -2391,22 +2415,28 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                         >
                           $3,000.00
                         </Text>
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#686e7d",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 14,
-                              "letterSpacing": 0,
-                              "lineHeight": 22,
-                              "paddingHorizontal": 0,
-                            }
-                          }
-                          testID="secondary-balance-test-id"
+                        <TouchableOpacity
+                          disabled={true}
+                          onPress={[Function]}
+                          testID="secondary-balance-button-test-id"
                         >
-                          1000000000000000000 ETH
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#686e7d",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                                "paddingHorizontal": 0,
+                              }
+                            }
+                            testID="secondary-balance-test-id"
+                          >
+                            1000000000000000000 ETH
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </TouchableOpacity>
                   </View>

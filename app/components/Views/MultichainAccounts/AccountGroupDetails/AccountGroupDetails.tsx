@@ -58,16 +58,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import Routes from '../../../../constants/navigation/Routes';
-import { createMultichainAccountDetailActionsModalNavigationDetails } from '../sheets/MultichainAccountActions/MultichainAccountActions';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
-
-const createEditAccountNameNavigationDetails = (
-  accountGroup: AccountGroupObject,
-) =>
-  createMultichainAccountDetailActionsModalNavigationDetails({
-    screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
-    params: { accountGroup },
-  });
 
 interface AccountGroupDetailsProps {
   route: {
@@ -161,7 +152,10 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
 
   const handleEditAccountName = useCallback(() => {
     navigation.navigate(
-      ...createEditAccountNameNavigationDetails(accountGroup),
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+      {
+        accountGroup,
+      },
     );
   }, [navigation, accountGroup]);
 

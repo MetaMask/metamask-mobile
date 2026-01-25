@@ -93,7 +93,7 @@ const TronStakingButtons = ({
         label={
           hasStakedPositions
             ? strings('stake.stake_more')
-            : strings('stake.stake')
+            : strings('stake.stake_your_trx_cta.earn_button')
         }
         onPress={onStakePress}
       />

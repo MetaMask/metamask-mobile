@@ -658,6 +658,7 @@ exports[`Cell should render CellMultiSelectWithMenu given the type MultiSelectWi
         <View
           style={
             {
+              "alignItems": "center",
               "flexDirection": "row",
             }
           }
@@ -1225,6 +1226,7 @@ exports[`Cell should render CellSelectWithMenu given the type SelectWithMenu 1`]
         <View
           style={
             {
+              "alignItems": "center",
               "flexDirection": "row",
             }
           }
@@ -1474,7 +1476,7 @@ exports[`Cell should render CellSelectWithMenu given the type SelectWithMenu 1`]
   <View
     style={
       {
-        "paddingRight": 20,
+        "paddingRight": 8,
       }
     }
   >

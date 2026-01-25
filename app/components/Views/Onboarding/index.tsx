@@ -295,8 +295,7 @@ const Onboarding = () => {
       await Authentication.resetVault();
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } else {
-      await Authentication.lockApp();
-      navigation.replace(Routes.ONBOARDING.LOGIN);
+      await Authentication.lockApp({ navigateToLogin: true });
     }
   }, [navigation, passwordSet]);
 

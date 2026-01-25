@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useContext } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -26,12 +26,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../util/theme';
+
 import { Platform, TextInputProps } from 'react-native';
 
 const CODE_LENGTH = 6;
@@ -48,12 +44,9 @@ const ConfirmEmail = () => {
   const selectedCountry = useSelector(selectSelectedCountry);
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { toastRef } = useContext(ToastContext);
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
-
-  const theme = useTheme();
 
   const { email, password } = useParams<{
     email: string;
@@ -146,7 +139,7 @@ const ConfirmEmail = () => {
         password,
         verificationCode: confirmCode,
         contactVerificationId,
-        countryOfResidence: selectedCountry,
+        countryOfResidence: selectedCountry?.key || '',
         allowMarketing: true,
         allowSms: true,
       });
@@ -155,20 +148,26 @@ const ConfirmEmail = () => {
         dispatch(setOnboardingId(onboardingId));
         navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
       } else if (hasAccount) {
-        navigation.navigate(Routes.CARD.AUTHENTICATION);
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          hasNoTimeout: false,
-          iconName: IconName.Info,
-          iconColor: theme.colors.info.default,
-          labelOptions: [
-            {
+        navigation.navigate(Routes.CARD.MODALS.ID, {
+          screen: Routes.CARD.MODALS.CONFIRM_MODAL,
+          params: {
+            title: strings('card.card_onboarding.account_exists.title'),
+            description: strings(
+              'card.card_onboarding.account_exists.description',
+              {
+                email,
+              },
+            ),
+            confirmAction: {
               label: strings(
-                'card.card_onboarding.confirm_email.account_exists',
+                'card.card_onboarding.account_exists.confirm_button',
               ),
-              isBold: true,
+              onPress: () => {
+                navigation.navigate(Routes.CARD.AUTHENTICATION);
+              },
             },
-          ],
+            icon: IconName.UserCheck,
+          },
         });
         dispatch(resetOnboardingState());
       }
@@ -188,13 +187,11 @@ const ConfirmEmail = () => {
     dispatch,
     email,
     navigation,
-    theme,
     password,
     selectedCountry,
     verifyEmailVerification,
     trackEvent,
     createEventBuilder,
-    toastRef,
   ]);
 
   // Cooldown timer effect
@@ -314,6 +311,7 @@ const ConfirmEmail = () => {
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
       isDisabled={isDisabled}
+      loading={verifyLoading}
       testID="confirm-email-continue-button"
     />
   );

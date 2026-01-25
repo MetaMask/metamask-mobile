@@ -36,7 +36,7 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Engine from '../../../core/Engine';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectFullPageAccountListEnabledFlag } from '../../../selectors/featureFlagController/fullPageAccountList';
 import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
@@ -95,8 +95,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const routeParams = useMemo(() => route?.params, [route?.params]);
 
   // Feature flag for full-page account list
-  const isFullPageAccountList = useFeatureFlag(
-    FeatureFlagNames.fullPageAccountList,
+  const isFullPageAccountList = useSelector(
+    selectFullPageAccountListEnabledFlag,
   );
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -105,6 +105,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     disablePrivacyMode,
     navigateToAddAccountActions,
     isEvmOnly,
+    disableAddAccountButton,
   } = routeParams || {};
 
   const reloadAccounts = useSelector(
@@ -143,6 +144,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const accountsParams = useMemo(
     () => ({
       isLoading: reloadAccounts,
+      fetchENS: false,
     }),
     [reloadAccounts],
   );
@@ -350,6 +352,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             selectedAccountGroups={[selectedAccountGroup]}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
             setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
+            showFooter={!disableAddAccountButton}
           />
         ) : (
           <EvmAccountSelectorList
@@ -362,24 +365,27 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
         )}
-        <BottomSheetFooter
-          buttonPropsArray={addAccountButtonProps}
-          style={styles.sheet}
-        />
+        {!disableAddAccountButton && (
+          <BottomSheetFooter
+            buttonPropsArray={addAccountButtonProps}
+            style={styles.sheet}
+          />
+        )}
       </Fragment>
     ),
     [
       isMultichainAccountsState2Enabled,
       selectedAccountGroup,
       _onSelectMultichainAccount,
-      accounts,
+      disableAddAccountButton,
       _onSelectAccount,
-      ensByAccountAddress,
       onRemoveImportedAccount,
+      accounts,
+      ensByAccountAddress,
       privacyMode,
       disablePrivacyMode,
-      styles.sheet,
       addAccountButtonProps,
+      styles.sheet,
     ],
   );
 

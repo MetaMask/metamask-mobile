@@ -180,9 +180,14 @@ const useLoadCardData = () => {
   }, [priorityTokenWarning, cardDetailsWarning]);
 
   // Manual fetch function to refresh all data
+  // Note: fetchExternalWalletDetails depends on delegationSettings, so we must
+  // ensure delegation settings is available first before fetching wallet details
   const fetchAllData = useMemo(
     () => async () => {
       if (isAuthenticated) {
+        // First, fetch delegation settings (required for external wallet details)
+        await fetchDelegationSettings();
+        // Then fetch all other data in parallel
         await Promise.all([
           fetchPriorityToken(),
           fetchCardDetails(),
@@ -199,6 +204,7 @@ const useLoadCardData = () => {
       isAuthenticated,
       fetchExternalWalletDetails,
       fetchKYCStatus,
+      fetchDelegationSettings,
     ],
   );
 
@@ -206,8 +212,12 @@ const useLoadCardData = () => {
   const refetchAllData = useMemo(
     () => async () => {
       if (isAuthenticated) {
+        // First, refetch delegation settings (required for external wallet details)
+        // fetchExternalWalletDetails reads delegation settings from a ref, so it must
+        // run after delegation settings is available to avoid returning null.
+        await fetchDelegationSettings();
+
         await Promise.all([
-          fetchDelegationSettings(),
           fetchExternalWalletDetails(),
           fetchCardDetails(),
           fetchPriorityToken(),

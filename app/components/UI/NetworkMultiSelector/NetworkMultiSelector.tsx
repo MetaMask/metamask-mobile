@@ -7,6 +7,7 @@ import {
   Hex,
 } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // external dependencies
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -47,10 +48,7 @@ import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constant
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell/index.ts';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar/index.ts';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/index.ts';
 import { IconName } from '../../../component-library/components/Icons/Icon/Icon.types';
 
 interface ModalState {
@@ -81,6 +79,7 @@ const NetworkMultiSelector = ({
   dismissModal,
   openRpcModal,
 }: NetworkMultiSelectorProps) => {
+  const insets = useSafeAreaInsets();
   const { styles } = useStyles(stylesheet, {});
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
@@ -425,17 +424,21 @@ const NetworkMultiSelector = ({
         avatarProps={{
           variant: AvatarVariant.Icon,
           name: IconName.Global,
-          size: AvatarSize.Sm,
         }}
+        style={styles.selectAllPopularNetworksCell}
       />
     ),
-    [areAllNetworksSelectedCombined, onSelectAllPopularNetworks],
+    [
+      areAllNetworksSelectedCombined,
+      onSelectAllPopularNetworks,
+      styles.selectAllPopularNetworksCell,
+    ],
   );
 
   return (
     <ScrollView
       style={styles.bodyContainer}
-      contentContainerStyle={styles.scrollContentContainer}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       testID={NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER}
     >
       <NetworkMultiSelectorList

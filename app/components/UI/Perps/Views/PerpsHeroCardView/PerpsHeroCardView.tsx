@@ -84,8 +84,9 @@ const PerpsHeroCardView: React.FC = () => {
   const params = route.params as {
     position: Position;
     marketPrice?: string;
+    source?: string;
   };
-  const { position, marketPrice } = params;
+  const { position, marketPrice, source } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
 
@@ -133,6 +134,29 @@ const PerpsHeroCardView: React.FC = () => {
   const handleTabChange = useCallback((obj: { i: number }) => {
     setCurrentTab(obj.i);
   }, []);
+
+  // Track PnL hero card screen viewed
+  // Determine entry point: asset_screen or close_toast
+  const entryPoint =
+    source === PerpsEventValues.SOURCE.CLOSE_TOAST
+      ? PerpsEventValues.SOURCE.CLOSE_TOAST
+      : PerpsEventValues.SOURCE.PERP_ASSET_SCREEN;
+
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.PNL_HERO_CARD,
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.DIRECTION]:
+        data.direction === 'long'
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.SOURCE]: entryPoint,
+      [PerpsEventProperties.PNL_DOLLAR]: data.pnl,
+      [PerpsEventProperties.PNL_PERCENT]: data.roe,
+    },
+  });
 
   const { styles } = useStyles(styleSheet, {
     isLong: data.isLong,

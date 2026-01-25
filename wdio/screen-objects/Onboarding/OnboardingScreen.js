@@ -39,7 +39,7 @@ class OnBoardingScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.existingWalletButton);
     } else {
-      await AppwrightGestures.tap(this.existingWalletButton); 
+      await AppwrightGestures.tap(await this.existingWalletButton); 
     }
   }
 
@@ -47,7 +47,7 @@ class OnBoardingScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.createNewWalletButton);
     } else {
-      await AppwrightGestures.tap(this.createNewWalletButton); 
+      await AppwrightGestures.tap(await this.createNewWalletButton); 
     }
   }
 

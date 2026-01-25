@@ -67,9 +67,9 @@ const AlertRow = ({
   const alertRowProps = {
     ...props,
     variant: getAlertTextColors(alertSelected?.severity),
-    tooltipColor: isSmall
-      ? getAlertIconColors(alertSelected?.severity)
-      : undefined,
+    tooltipColor:
+      props.tooltipColor ??
+      (isSmall ? getAlertIconColors(alertSelected?.severity) : undefined),
     onLabelClick:
       alertSelected && !disableAlertInteraction ? handleLabelClick : undefined,
   };

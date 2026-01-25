@@ -413,6 +413,7 @@ export const Browser = (props) => {
               isInTabsView={shouldShowTabs}
               homePageUrl={homePageUrl()}
               fromTrending={route.params?.fromTrending}
+              fromPerps={route.params?.fromPerps}
             />
           ) : (
             <DiscoveryTab
@@ -433,6 +434,7 @@ export const Browser = (props) => {
       showTabsView,
       activeTabId,
       route.params?.fromTrending,
+      route.params?.fromPerps,
     ],
   );
 

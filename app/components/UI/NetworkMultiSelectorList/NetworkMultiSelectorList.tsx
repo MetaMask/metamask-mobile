@@ -23,10 +23,7 @@ import { debounce } from 'lodash';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks/index.ts';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar/index.ts';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/index.ts';
 import { IconName } from '../../../component-library/components/Icons/Icon/index.ts';
 import Cell, {
   CellVariant,
@@ -36,7 +33,6 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
-import Device from '../../../util/device/index.js';
 import { selectChainId } from '../../../selectors/networkController';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -53,7 +49,6 @@ import {
 import styleSheet from './NetworkMultiSelectorList.styles';
 import {
   MAIN_CHAIN_IDS,
-  DEVICE_HEIGHT_MULTIPLIER,
   ADDITIONAL_NETWORK_SECTION_ID,
   ITEM_TYPE_ADDITIONAL_SECTION,
   ITEM_TYPE_NETWORK,
@@ -164,15 +159,6 @@ const NetworkMultiSelectList = ({
     isMultichainAccountsState2Enabled,
   ]);
 
-  const contentContainerStyle = useMemo(
-    () => ({
-      paddingBottom:
-        safeAreaInsets.bottom +
-        Device.getDeviceHeight() * DEVICE_HEIGHT_MULTIPLIER,
-    }),
-    [safeAreaInsets.bottom],
-  );
-
   const debouncedSelectNetwork = useMemo(
     () =>
       debounce(
@@ -236,7 +222,6 @@ const NetworkMultiSelectList = ({
       variant: AvatarVariant.Network as const,
       name: network.name,
       imageSource: network.imageSource as ImageSourcePropType,
-      size: AvatarSize.Md,
     }),
     [],
   );
@@ -364,7 +349,9 @@ const NetworkMultiSelectList = ({
       renderItem={renderNetworkItem}
       getItemType={getItemType}
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={contentContainerStyle}
+      contentContainerStyle={{
+        paddingBottom: safeAreaInsets.bottom,
+      }}
       removeClippedSubviews
       viewabilityConfig={{
         waitForInteraction: true,

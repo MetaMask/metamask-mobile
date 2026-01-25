@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import QRCode from 'react-native-qrcode-svg';
 import { RouteProp, ParamListBase } from '@react-navigation/native';
@@ -18,7 +17,6 @@ import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
 import { store } from '../../../store';
-import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
@@ -34,19 +32,13 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { showAlert } from '../../../actions/alert';
 import { recordSRPRevealTimestamp } from '../../../actions/privacy';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
-import {
-  KEEP_SRP_SAFE_URL,
-  NON_CUSTODIAL_WALLET_URL,
-  SRP_GUIDE_URL,
-} from '../../../constants/urls';
+import { KEEP_SRP_SAFE_URL, SRP_GUIDE_URL } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
-import Engine from '../../../core/Engine';
-import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { passwordRequirementsMet } from '../../../util/password';
-import { Authentication } from '../../../core/';
+import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
+import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 
 import { isTest } from '../../../util/test/utils';
 import Device from '../../../util/device';
@@ -122,16 +114,13 @@ const RevealPrivateCredential = ({
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const passwordInputRef = useRef<TextInput>(null);
+  const { reauthenticate, revealSRP, revealPrivateKey } = useAuthentication();
 
   const keyringId = route?.params?.keyringId;
 
   const checkSummedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const dispatch = useDispatch();
 
@@ -144,8 +133,14 @@ const RevealPrivateCredential = ({
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
 
-  // Address will always be defined because checkSummedAddress is the selectedAccount's address
-  const account = getInternalAccountByAddress(selectedAddress as string);
+  const [account, setAccount] = useState<InternalAccount | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    const acc = getInternalAccountByAddress(selectedAddress as string);
+    setAccount(acc);
+  }, [selectedAddress]);
 
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
@@ -164,36 +159,38 @@ const RevealPrivateCredential = ({
     );
   };
 
-  const tryUnlockWithPassword = useCallback(
-    async (pswd: string, privCredentialName?: string) => {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { KeyringController } = Engine.context as any;
+  const revealCredential = useCallback(
+    async (pswd?: string) => {
+      setIsModalVisible(false);
+      const privCredentialName = credentialName || route?.params.credentialName;
       const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
-
-      // This will trigger after the user hold-pressed the button, we want to trace the actual
-      // keyring operation of extracting the credential
       const traceName = isPrivateKeyReveal
         ? TraceName.RevealPrivateKey
         : TraceName.RevealSrp;
-      trace({
-        name: traceName,
-        op: TraceOperation.RevealPrivateCredential,
-        tags: getTraceTags(store.getState()),
-      });
+
+      let passwordToUse = pswd;
 
       try {
+        if (!passwordToUse) {
+          const { password: verifiedPassword } = await reauthenticate();
+          passwordToUse = verifiedPassword;
+        }
+
+        // This will trigger after the user has been authenticated, we want to trace the actual
+        // keyring operation of extracting the credential.
+        trace({
+          name: traceName,
+          op: TraceOperation.RevealPrivateCredential,
+          tags: getTraceTags(store.getState()),
+        });
+
         let privateCredential;
         if (!isPrivateKeyReveal) {
-          const uint8ArraySeed = await KeyringController.exportSeedPhrase(
-            pswd,
-            keyringId,
-          );
-          privateCredential = uint8ArrayToMnemonic(uint8ArraySeed, wordlist);
+          privateCredential = await revealSRP(passwordToUse, keyringId);
         } else {
-          privateCredential = await KeyringController.exportAccount(
-            pswd,
-            selectedAddress,
+          privateCredential = await revealPrivateKey(
+            passwordToUse,
+            selectedAddress as string,
           );
         }
 
@@ -209,6 +206,14 @@ const RevealPrivateCredential = ({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
+        // we should not show the error message if the error is because password is not set with biometrics
+        if (
+          e.message.includes(
+            ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+          )
+        ) {
+          return;
+        }
         let msg = strings('reveal_credential.warning_incorrect_password');
         if (selectedAddress && isHardwareAccount(selectedAddress)) {
           msg = strings('reveal_credential.hardware_error');
@@ -223,8 +228,20 @@ const RevealPrivateCredential = ({
         setWarningIncorrectPassword(msg);
       }
     },
-    [selectedAddress, keyringId],
+    [
+      selectedAddress,
+      keyringId,
+      credentialName,
+      route?.params.credentialName,
+      reauthenticate,
+      revealSRP,
+      revealPrivateKey,
+    ],
   );
+
+  const revealCredentialWithPassword = () => {
+    revealCredential(password);
+  };
 
   useEffect(() => {
     updateNavBar();
@@ -235,23 +252,7 @@ const RevealPrivateCredential = ({
       );
     }
 
-    const unlockWithBiometrics = async () => {
-      // Try to use biometrics to unlock
-      const { availableBiometryType } = await Authentication.getType();
-      if (!passwordSet) {
-        tryUnlockWithPassword('');
-      } else if (availableBiometryType) {
-        const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-        if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
-          const credentials = await Authentication.getPassword();
-          if (credentials) {
-            tryUnlockWithPassword(credentials.password);
-          }
-        }
-      }
-    };
-
-    unlockWithBiometrics();
+    revealCredential();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -286,11 +287,8 @@ const RevealPrivateCredential = ({
   };
 
   const tryUnlock = async () => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController } = Engine.context as any;
     try {
-      await KeyringController.verifyPassword(password);
+      await reauthenticate(password);
     } catch {
       const msg = strings('reveal_credential.warning_incorrect_password');
       setWarningIncorrectPassword(msg);
@@ -359,17 +357,6 @@ const RevealPrivateCredential = ({
     );
   };
 
-  const revealCredential = useCallback(() => {
-    const credential = credentialName || route?.params.credentialName;
-    tryUnlockWithPassword(password, credential);
-    setIsModalVisible(false);
-  }, [
-    credentialName,
-    password,
-    route?.params.credentialName,
-    tryUnlockWithPassword,
-  ]);
-
   const renderTabBar = () => <TabBar />;
 
   const onTabBarChange = (event: { i: number }) => {
@@ -427,9 +414,6 @@ const RevealPrivateCredential = ({
           tabLabel={strings(`reveal_credential.text`)}
           testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
         >
-          <Text style={styles.boldText}>
-            {strings(`reveal_credential.${privCredentialName}`)}
-          </Text>
           <View style={styles.seedPhraseView}>
             <TextInput
               value={clipboardPrivateCredential}
@@ -572,7 +556,7 @@ const RevealPrivateCredential = ({
               })}
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
-              onPress={revealCredential}
+              onPress={revealCredentialWithPassword}
               style={styles.revealButton}
               testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID}
             />
@@ -583,7 +567,7 @@ const RevealPrivateCredential = ({
                   ? strings('reveal_credential.private_key_text')
                   : strings('reveal_credential.srp_abbreviation_text'),
               })}
-              onLongPress={revealCredential}
+              onLongPress={revealCredentialWithPassword}
             />
           )}
         </>
@@ -602,15 +586,6 @@ const RevealPrivateCredential = ({
       </Text>{' '}
       {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
       <Text>{strings('reveal_credential.seed_phrase_explanation')[3]}</Text>
-      {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
-      <Text
-        color={colors.primary.default}
-        onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
-      >
-        {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
-      </Text>
-      {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
-      <Text>{strings('reveal_credential.seed_phrase_explanation')[7]}</Text>
     </Text>
   );
 

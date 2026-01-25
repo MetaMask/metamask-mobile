@@ -11,11 +11,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           "alignItems": "center",
           "flexDirection": "row",
           "gap": 16,
-          "height": 48,
+          "height": 56,
         },
         false,
         {
-          "padding": 16,
+          "paddingHorizontal": 16,
         },
       ]
     }
@@ -550,11 +550,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           "alignItems": "center",
           "flexDirection": "row",
           "gap": 16,
-          "height": 48,
+          "height": 56,
         },
         false,
         {
-          "padding": 16,
+          "paddingHorizontal": 16,
         },
       ]
     }

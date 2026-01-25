@@ -30,8 +30,10 @@ const mockInfoClientHttp = {
 const mockWsTransportReady = jest.fn().mockResolvedValue(undefined);
 const mockSubscriptionClient = {
   initialized: true,
-  transport: {
-    ready: mockWsTransportReady,
+  config_: {
+    transport: {
+      ready: mockWsTransportReady,
+    },
   },
 };
 const mockWsTransport = {

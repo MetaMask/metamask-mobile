@@ -629,7 +629,6 @@ describe('Onboarding', () => {
       });
 
       expect(Authentication.lockApp).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN);
     });
   });
 

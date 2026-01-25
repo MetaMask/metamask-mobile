@@ -253,9 +253,8 @@ describe('RevealPrivateCredential', () => {
       />,
     );
 
-    // Should render SRP explanation instead of AccountInfo
+    // Renders SRP explanation instead of AccountInfo
     expect(getByText('Secret Recovery Phrase')).toBeTruthy();
-    expect(getByText('non-custodial wallet.')).toBeTruthy();
   });
 
   it('shows warning message on incorrect password', async () => {

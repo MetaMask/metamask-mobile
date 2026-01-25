@@ -443,6 +443,7 @@ export interface SeasonRewardDto {
   isEndOfSeasonReward?: boolean;
   endOfSeasonName?: string;
   endOfSeasonShortDescription?: string;
+  claimEndDate?: string;
 }
 
 export enum SeasonRewardType {
@@ -450,6 +451,7 @@ export enum SeasonRewardType {
   PERPS_DISCOUNT = 'PERPS_DISCOUNT',
   POINTS_BOOST = 'POINTS_BOOST',
   ALPHA_FOX_INVITE = 'ALPHA_FOX_INVITE',
+  METAL_CARD = 'METAL_CARD',
 }
 
 export interface SeasonDto {
@@ -564,6 +566,7 @@ export type SeasonRewardDtoState = {
   isEndOfSeasonReward?: boolean;
   endOfSeasonName?: string;
   endOfSeasonShortDescription?: string;
+  claimEndDate?: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

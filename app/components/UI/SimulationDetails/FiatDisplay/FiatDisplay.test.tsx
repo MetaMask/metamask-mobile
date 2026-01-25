@@ -45,7 +45,7 @@ const mockStateWithHideFiatOnTestnets = merge({}, mockStateWithTestnet, {
 describe('FiatDisplay', () => {
   describe('IndividualFiatDisplay', () => {
     it.each([
-      [FIAT_UNAVAILABLE, 'Not Available'],
+      [FIAT_UNAVAILABLE, 'Not available'],
       [new BigNumber(100), '$100'],
       [new BigNumber(-100), '$100'],
       [new BigNumber(-100.5), '$100.50'],
@@ -69,8 +69,8 @@ describe('FiatDisplay', () => {
 
   describe('TotalFiatDisplay', () => {
     it.each([
-      [[FIAT_UNAVAILABLE, FIAT_UNAVAILABLE], 'Not Available'],
-      [[], 'Not Available'],
+      [[FIAT_UNAVAILABLE, FIAT_UNAVAILABLE], 'Not available'],
+      [[], 'Not available'],
       [
         [
           new BigNumber(100),

@@ -50,7 +50,7 @@ const FromToRow = () => {
 
         <View style={styles.iconContainer}>
           <Icon
-            size={IconSize.Xs}
+            size={IconSize.Sm}
             name={IconName.ArrowRight}
             color={IconColor.Alternative}
           />

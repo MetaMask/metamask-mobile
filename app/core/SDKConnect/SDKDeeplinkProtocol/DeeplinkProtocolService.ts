@@ -2,14 +2,18 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import {
+  ORIGIN_METAMASK,
+  toChecksumHexAddress,
+} from '@metamask/controller-utils';
 import { Linking } from 'react-native';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import { DappClient, DappConnections } from '../AndroidSDK/dapp-sdk-types';
-import getDefaultBridgeParams from '../AndroidSDK/getDefaultBridgeParams';
+import { DappClient, DappConnections } from '../dapp-sdk-types';
+import getDefaultBridgeParams from '../getDefaultBridgeParams';
 import BatchRPCManager from '../BatchRPCManager';
 import RPCQueueManager from '../RPCQueueManager';
 import SDKConnect from '../SDKConnect';
@@ -23,7 +27,6 @@ import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 import { AccountsController } from '@metamask/accounts-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -32,6 +35,8 @@ import {
   getDefaultCaip25CaveatValue,
   getPermittedAccounts,
 } from '../../Permissions';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { rpcErrors } from '@metamask/rpc-errors';
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 
 export default class DeeplinkProtocolService {
@@ -98,6 +103,15 @@ export default class DeeplinkProtocolService {
 
     if (this.bridgeByClientId[clientInfo.clientId]) {
       return;
+    }
+
+    if (
+      (clientInfo.originatorInfo.url &&
+        clientInfo.originatorInfo.url === ORIGIN_METAMASK) ||
+      (clientInfo.originatorInfo.title &&
+        clientInfo.originatorInfo.title === ORIGIN_METAMASK)
+    ) {
+      throw new Error('Connections from metamask origin are not allowed');
     }
 
     const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
@@ -480,7 +494,6 @@ export default class DeeplinkProtocolService {
 
       return;
     }
-
     await SDKConnect.getInstance().addDappConnection({
       id: clientInfo.clientId,
       lastAuthorized: Date.now(),
@@ -520,6 +533,16 @@ export default class DeeplinkProtocolService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params: any;
     };
+
+    // Prevent external transactions from using internal origins
+    // This is an external connection (SDK), so block any internal origin
+    if (requestObject.method === 'eth_sendTransaction') {
+      if (INTERNAL_ORIGINS.includes(params.url)) {
+        throw rpcErrors.invalidParams({
+          message: 'External transactions cannot use internal origins',
+        });
+      }
+    }
 
     // Handle custom rpc method
     const processedRpc = await handleCustomRpcCalls({

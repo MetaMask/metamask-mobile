@@ -31,6 +31,9 @@ export const PERPS_CONSTANTS = {
   ZERO_AMOUNT_DETAILED_DISPLAY: '$0.00', // Display for zero dollar amounts with decimals
 
   RECENT_ACTIVITY_LIMIT: 3,
+
+  // Historical data fetching constants
+  FILLS_LOOKBACK_MS: 90 * 24 * 60 * 60 * 1000, // 3 months in milliseconds - limits REST API fills fetch
 } as const;
 
 /**
@@ -219,15 +222,15 @@ export const TP_SL_VIEW_CONFIG = {
  */
 export const LIMIT_PRICE_CONFIG = {
   // Preset percentage options for quick selection
-  PRESET_PERCENTAGES: [1, 2, 5, 10], // Available as both positive and negative
+  PRESET_PERCENTAGES: [1, 2], // Available as both positive and negative
 
   // Modal opening delay when switching to limit order (milliseconds)
   // Allows order type modal to close smoothly before opening limit price modal
   MODAL_OPEN_DELAY: 300,
 
-  // Direction-specific preset configurations
-  LONG_PRESETS: [-1, -2, -5, -10], // Buy below market for long orders
-  SHORT_PRESETS: [1, 2, 5, 10], // Sell above market for short orders
+  // Direction-specific preset configurations (Mid/Bid/Ask buttons handled separately)
+  LONG_PRESETS: [-1, -2], // Buy below market for long orders
+  SHORT_PRESETS: [1, 2], // Sell above market for short orders
 } as const;
 
 /**
@@ -331,6 +334,9 @@ export const DECIMAL_PRECISION_CONFIG = {
   // Maximum decimal places for price input (matches Hyperliquid limit)
   // Used in TP/SL forms, limit price inputs, and price validation
   MAX_PRICE_DECIMALS: 6,
+  // Maximum significant figures allowed by HyperLiquid API
+  // Orders with more than 5 significant figures will be rejected
+  MAX_SIGNIFICANT_FIGURES: 5,
   // Defensive fallback for size decimals when market data fails to load
   // Real szDecimals should always come from market data API (varies by asset)
   // Using 6 as safe maximum to prevent crashes (covers most assets)

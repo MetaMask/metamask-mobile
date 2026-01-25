@@ -21,6 +21,7 @@ import {
   TransactionPaymentToken,
   TransactionPayRequiredToken,
 } from '@metamask/transaction-pay-controller';
+import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../transactions/useUpdateTokenAmount');
@@ -29,6 +30,7 @@ jest.mock('../pay/useTransactionPayData');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../util/navigation/navUtils');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
+jest.mock('../metrics/useConfirmationMetricEvents');
 
 jest.useFakeTimers();
 
@@ -85,10 +87,15 @@ describe('useTransactionCustomAmount', () => {
   const useTransactionRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
+  const useConfirmationMetricEventsMock = jest.mocked(
+    useConfirmationMetricEvents,
+  );
 
   const updateTokenAmountMock: ReturnType<
     typeof useUpdateTokenAmount
   >['updateTokenAmount'] = jest.fn();
+
+  const setConfirmationMetricMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -110,6 +117,9 @@ describe('useTransactionCustomAmount', () => {
     useParamsMock.mockReturnValue({});
     useTransactionRequiredTokensMock.mockReturnValue([]);
     usePredictBalanceMock.mockReturnValue({ balance: 0 } as never);
+    useConfirmationMetricEventsMock.mockReturnValue({
+      setConfirmationMetric: setConfirmationMetricMock,
+    } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -242,6 +252,34 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(result.current.isInputChanged).toBe(true);
+  });
+
+  it('sets manual metric when updatePendingAmount is called', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: {
+        mm_pay_amount_input_type: 'manual',
+      },
+    });
+  });
+
+  it('sets percentage metric when updatePendingAmountPercentage is called', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmountPercentage(50);
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: {
+        mm_pay_amount_input_type: '50%',
+      },
+    });
   });
 
   it('returns hasInput as true after amount changed and debounce', async () => {

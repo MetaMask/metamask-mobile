@@ -95,6 +95,9 @@ jest.mock('../../hooks/stream', () => ({
     },
     isInitialLoading: false,
   })),
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+  })),
 }));
 
 // Use real BigNumber library - mocking it causes issues with module initialization
@@ -103,12 +106,16 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
-      build: jest.fn(),
+      addProperties: jest.fn((props: Record<string, unknown>) => ({
+        build: jest.fn(() => props),
+      })),
+      build: jest.fn(() => ({})),
     })),
   }),
   MetaMetricsEvents: {
     NAVIGATION_TAPS_GET_HELP: 'NAVIGATION_TAPS_GET_HELP',
     PERPS_SCREEN_VIEWED: 'PERPS_SCREEN_VIEWED',
+    PERPS_UI_INTERACTION: 'PERPS_UI_INTERACTION',
   },
 }));
 
@@ -193,14 +200,31 @@ jest.mock('../../constants/eventNames', () => ({
   PerpsEventProperties: {
     SCREEN_TYPE: 'screen_type',
     SOURCE: 'source',
+    BUTTON_CLICKED: 'button_clicked',
+    BUTTON_LOCATION: 'button_location',
+    INTERACTION_TYPE: 'interaction_type',
   },
   PerpsEventValues: {
     SCREEN_TYPE: {
       MARKETS: 'markets',
+      HOMESCREEN: 'homescreen',
     },
     SOURCE: {
       MAIN_ACTION_BUTTON: 'main_action_button',
       HOMESCREEN_TAB: 'homescreen_tab',
+    },
+    BUTTON_LOCATION: {
+      PERPS_HOME: 'perps_home',
+      PERPS_HOME_EMPTY_STATE: 'perps_home_empty_state',
+      PERPS_TAB: 'perps_tab',
+      PERPS_ASSET_SCREEN: 'perps_asset_screen',
+    },
+    BUTTON_CLICKED: {
+      TUTORIAL: 'tutorial',
+      MAGNIFYING_GLASS: 'magnifying_glass',
+    },
+    INTERACTION_TYPE: {
+      BUTTON_CLICKED: 'button_clicked',
     },
   },
 }));
@@ -476,6 +500,8 @@ describe('PerpsHomeView', () => {
       defaultSearchVisible: true,
       source: 'homescreen_tab',
       fromHome: true,
+      button_clicked: 'magnifying_glass',
+      button_location: 'perps_home',
     });
     // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
     expect(queryByTestId('perps-home-search-bar')).toBeNull();

@@ -360,7 +360,7 @@ describe('CustomNetworkSelector', () => {
       expect(mockUseSafeAreaInsets).toHaveBeenCalled();
     });
 
-    it('calls useStyles with theme colors', () => {
+    it('calls useStyles with createStyles', () => {
       renderWithProvider(
         <CustomNetworkSelector
           openModal={mockOpenModal}
@@ -368,12 +368,7 @@ describe('CustomNetworkSelector', () => {
         />,
       );
 
-      expect(mockUseStyles).toHaveBeenCalledWith(expect.any(Function), {
-        colors: expect.objectContaining({
-          icon: expect.any(Object),
-          text: expect.any(Object),
-        }),
-      });
+      expect(mockUseStyles).toHaveBeenCalledWith(expect.any(Function), {});
     });
   });
 

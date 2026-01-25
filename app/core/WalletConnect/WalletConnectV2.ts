@@ -1,5 +1,8 @@
 import { AccountsController } from '@metamask/accounts-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+import {
+  toChecksumHexAddress,
+  ORIGIN_METAMASK,
+} from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
@@ -7,6 +10,7 @@ import { IWalletKit, WalletKit, WalletKitTypes } from '@reown/walletkit';
 import { Core } from '@walletconnect/core';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
+import { rpcErrors } from '@metamask/rpc-errors';
 
 import { updateWC2Metadata } from '../../../app/actions/sdk';
 import { selectEvmChainId } from '../../selectors/networkController';
@@ -20,6 +24,7 @@ import {
   getPermittedAccounts,
   updatePermittedChains,
 } from '../Permissions';
+import { INTERNAL_ORIGINS } from '../../constants/transaction';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
@@ -119,6 +124,13 @@ export class WC2Manager {
 
     if (activeSessions) {
       activeSessions.forEach(async (session) => {
+        if (session.peer.metadata.url === ORIGIN_METAMASK) {
+          console.warn(
+            `WC2::init skipping session with invalid url: ${session.topic}`,
+          );
+          return;
+        }
+
         const sessionKey = session.topic;
         const pairingTopic = session.pairingTopic;
         try {
@@ -432,6 +444,15 @@ export class WC2Manager {
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
 
+    if (url === ORIGIN_METAMASK) {
+      console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
+      await this.web3Wallet.rejectSession({
+        id: proposal.id,
+        reason: getSdkError('USER_REJECTED_METHODS'),
+      });
+      return;
+    }
+
     // Extract the hostname to ensure we're consistent with permission checks
     const hostname = getHostname(url);
     // Keep the full url for logging and UI display
@@ -449,6 +470,18 @@ export class WC2Manager {
     const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
 
     try {
+      // Prevent external connections from using internal origins
+      // This is an external connection (WalletConnect), so block any internal origin
+      if (INTERNAL_ORIGINS.includes(origin)) {
+        await this.web3Wallet.rejectSession({
+          id: proposal.id,
+          reason: getSdkError('USER_REJECTED_METHODS'),
+        });
+        throw rpcErrors.invalidParams({
+          message: 'External transactions cannot use internal origins',
+        });
+      }
+
       // Create a modified CAIP-25 caveat value that includes the current chain
       const caveatValue = getDefaultCaip25CaveatValue();
 

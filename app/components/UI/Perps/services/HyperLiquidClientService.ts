@@ -42,7 +42,9 @@ export class HyperLiquidClientService {
   private exchangeClient?: ExchangeClient;
   private infoClient?: InfoClient; // WebSocket transport (default)
   private infoClientHttp?: InfoClient; // HTTP transport (fallback)
-  private subscriptionClient?: SubscriptionClient<WebSocketTransport>;
+  private subscriptionClient?: SubscriptionClient<{
+    transport: WebSocketTransport;
+  }>;
   private wsTransport?: WebSocketTransport;
   private httpTransport?: HttpTransport;
   private isTestnet: boolean;
@@ -281,7 +283,7 @@ export class HyperLiquidClientService {
    * Get the subscription client
    */
   public getSubscriptionClient():
-    | SubscriptionClient<WebSocketTransport>
+    | SubscriptionClient<{ transport: WebSocketTransport }>
     | undefined {
     if (!this.subscriptionClient) {
       DevLogger.log('SubscriptionClient not initialized');
@@ -744,7 +746,9 @@ export class HyperLiquidClientService {
 
       try {
         // Use transport.ready() to check if WebSocket is actually connected
-        await this.subscriptionClient.transport.ready(controller.signal);
+        await this.subscriptionClient.config_.transport.ready(
+          controller.signal,
+        );
       } catch {
         // Connection appears to be dead - trigger reconnection
         await this.handleConnectionDrop();

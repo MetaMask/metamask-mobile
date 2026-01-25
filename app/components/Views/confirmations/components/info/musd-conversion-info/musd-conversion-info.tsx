@@ -11,6 +11,7 @@ import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { PayWithRow } from '../../rows/pay-with-row';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
 
 interface MusdOverrideContentProps {
   amountHuman: string;
@@ -52,6 +53,8 @@ export const MusdConversionInfo = () => {
       `mUSD token address not found for chain ID: ${outputChainId}`,
     );
   }
+
+  useMusdConversionNavbar(outputChainId);
 
   useAddToken({
     chainId: outputChainId,

@@ -22,7 +22,7 @@ import { useTheme } from '../../../../../util/theme';
 import { View } from 'react-native';
 import { CardTokenAllowance } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
-import { isSwapsAllowed } from '../../../Swaps/utils';
+import { isBridgeAllowed } from '../../../Bridge/utils';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
@@ -39,6 +39,7 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
+import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 
 interface AddFundsModalNavigationDetails {
   priorityToken?: CardTokenAllowance;
@@ -131,13 +132,16 @@ const AddFundsBottomSheet: React.FC = () => {
       label: strings('card.add_funds_bottomsheet.swap'),
       description: strings('card.add_funds_bottomsheet.swap_description', {
         symbol: priorityToken?.symbol,
+        chainName: mapCaipChainIdToChainName(
+          priorityToken?.caipChainId ?? 'eip155:59144',
+        ),
       }),
       icon: IconName.SwapHorizontal,
       onPress: handleOpenSwaps,
       testID: CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
       enabled:
-        AppConstants.SWAPS.ACTIVE &&
-        isSwapsAllowed(
+        AppConstants.BRIDGE.ACTIVE &&
+        isBridgeAllowed(
           safeFormatChainIdToHex(priorityToken?.caipChainId ?? ''),
         ),
     },

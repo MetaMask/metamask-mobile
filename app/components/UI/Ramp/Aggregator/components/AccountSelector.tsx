@@ -37,15 +37,14 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   );
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
-  const openAccountSelector = useCallback(
-    () =>
-      navigation.navigate(
-        ...createAccountSelectorNavDetails({
-          isEvmOnly,
-        }),
-      ),
-    [isEvmOnly, navigation],
-  );
+  const openAccountSelector = useCallback(() => {
+    navigation.navigate(
+      ...createAccountSelectorNavDetails({
+        isEvmOnly,
+        disableAddAccountButton: true,
+      }),
+    );
+  }, [isEvmOnly, navigation]);
 
   return (
     <SelectorButton

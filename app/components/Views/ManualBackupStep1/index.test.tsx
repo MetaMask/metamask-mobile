@@ -401,7 +401,7 @@ describe('ManualBackupStep1', () => {
       expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep2', {
         words: mockWords,
         steps: [
-          'Create Password',
+          'Create password',
           'Secure wallet',
           'Confirm Secret Recovery Phrase',
         ],

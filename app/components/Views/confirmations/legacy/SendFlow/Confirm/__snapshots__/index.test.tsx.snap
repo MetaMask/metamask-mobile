@@ -1686,7 +1686,7 @@ exports[`Confirm should render correctly 1`] = `
                                   ]
                                 }
                               >
-                                Hex Data
+                                Hex data
                               </Text>
                             </TouchableOpacity>
                           </View>

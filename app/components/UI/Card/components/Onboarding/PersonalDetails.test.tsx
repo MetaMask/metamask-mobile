@@ -46,6 +46,16 @@ jest.mock('@metamask/design-system-react-native', () => {
     HeadingMd: 'HeadingMd',
   };
 
+  const IconName = {
+    ArrowDown: 'arrow-down',
+  };
+
+  const IconSize = {
+    Sm: 'sm',
+    Md: 'md',
+    Lg: 'lg',
+  };
+
   return {
     Box: ({
       children,
@@ -63,7 +73,11 @@ jest.mock('@metamask/design-system-react-native', () => {
       children: React.ReactNode;
       testID?: string;
     }) => React.createElement(Text, { testID, ...props }, children),
+    Icon: ({ name, size, ...props }: { name: string; size: string }) =>
+      React.createElement(View, { testID: 'icon', ...props }),
     TextVariant,
+    IconName,
+    IconSize,
   };
 });
 
@@ -189,50 +203,39 @@ jest.mock('../../../../../component-library/components/Form/Label', () => {
   }) => React.createElement(Text, { testID }, children);
 });
 
-jest.mock('../../../SelectComponent', () => {
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return ({
-    testID,
-    options,
-    selectedValue,
-    onValueChange,
-    ...props
-  }: {
-    testID?: string;
-    options?: { label: string; value: string }[];
-    selectedValue?: string;
-    onValueChange?: (value: string) => void;
-  }) =>
-    React.createElement(
-      View,
-      { testID, ...props },
-      React.createElement(Text, {}, `Selected: ${selectedValue || 'None'}`),
-    );
-});
-
 jest.mock('../../../Ramp/Deposit/components/DepositDateField', () => {
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
 
   return ({
-    testID,
     onChangeText,
     value,
     ...props
   }: {
-    testID?: string;
     onChangeText?: (text: string) => void;
     value?: string;
   }) =>
     React.createElement(TextInput, {
-      testID,
+      testID: 'personal-details-date-of-birth-input',
       onChangeText,
       value,
       ...props,
     });
 });
+
+// Mock RegionSelectorModal - setOnValueChange should immediately invoke the callback
+const mockSetOnValueChange = jest.fn(
+  (callback: (region: { key: string }) => void) => {
+    // Immediately invoke with a mock region
+    callback({ key: 'US' });
+  },
+);
+jest.mock('./RegionSelectorModal', () => ({
+  setOnValueChange: (callback: (region: { key: string }) => void) =>
+    mockSetOnValueChange(callback),
+  clearOnValueChange: jest.fn(),
+  createRegionSelectorModalNavigationDetails: jest.fn(() => ['MockRoute', {}]),
+}));
 
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: (value: string) => value,
@@ -324,6 +327,7 @@ const mockReset = jest.fn();
 const mockDispatch = jest.fn();
 const mockRegisterPersonalDetails = jest.fn();
 const mockSetUser = jest.fn();
+const mockFetchUserData = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -343,7 +347,12 @@ const mockCreateEventBuilder = jest.fn(() => ({
     card: {
       onboarding: {
         onboardingId: 'test-onboarding-id',
-        selectedCountry: 'US',
+        selectedCountry: {
+          key: 'US',
+          name: 'United States',
+          emoji: '🇺🇸',
+          areaCode: '1',
+        },
       },
     },
   };
@@ -361,8 +370,8 @@ const mockCreateEventBuilder = jest.fn(() => ({
 (useRegistrationSettings as jest.Mock).mockReturnValue({
   data: {
     countries: [
-      { code: 'US', name: 'United States' },
-      { code: 'CA', name: 'Canada' },
+      { iso3166alpha2: 'US', name: 'United States', callingCode: '1' },
+      { iso3166alpha2: 'CA', name: 'Canada', callingCode: '1' },
     ],
   },
 });
@@ -372,6 +381,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
   isLoading: false,
   user: null,
   setUser: mockSetUser,
+  fetchUserData: mockFetchUserData,
   logoutFromProvider: jest.fn(),
 });
 
@@ -408,6 +418,12 @@ describe('PersonalDetails Component', () => {
       expect(queryByTestId('personal-details-ssn-error')).toBeNull();
       expect(queryByTestId('personal-details-error')).toBeNull();
     });
+
+    it('calls fetchUserData on mount', () => {
+      render(<PersonalDetails />);
+
+      expect(mockFetchUserData).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Conditional SSN Field Rendering', () => {
@@ -417,7 +433,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -435,7 +456,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'CA',
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -489,7 +515,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -558,12 +589,13 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '2002-06-07T00:00:00.000Z',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -580,12 +612,13 @@ describe('PersonalDetails Component', () => {
         firstName: 'Jane',
         lastName: 'Smith',
         dateOfBirth: '1995-03-15T00:00:00.000Z',
-        countryOfResidence: 'CA',
+        countryOfNationality: 'CA',
         ssn: '987654321',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -603,12 +636,13 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: null,
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -623,12 +657,13 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -643,12 +678,13 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: 'invalid-date',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -663,12 +699,13 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: 1234567890000,
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -683,12 +720,13 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '1990-12-25T00:00:00.000Z',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -703,7 +741,7 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '1990-01-01T00:00:00.000Z',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useSelector as jest.Mock).mockImplementation((selector) => {
@@ -711,7 +749,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -720,6 +763,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -737,7 +781,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -754,10 +803,18 @@ describe('PersonalDetails Component', () => {
 
       const firstNameInput = getByTestId('personal-details-first-name-input');
       const lastNameInput = getByTestId('personal-details-last-name-input');
+      const dateOfBirthInput = getByTestId(
+        'personal-details-date-of-birth-input',
+      );
+      const nationalitySelect = getByTestId(
+        'personal-details-nationality-select',
+      );
       const ssnInput = getByTestId('personal-details-ssn-input');
 
       fireEvent.changeText(firstNameInput, 'John');
       fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(dateOfBirthInput, '631152000000'); // Valid timestamp for 1990-01-01
+      fireEvent.press(nationalitySelect); // Triggers setOnValueChange which sets nationalityKey
       fireEvent.changeText(ssnInput, '123456789');
 
       const continueButton = getByTestId('personal-details-continue-button');
@@ -784,10 +841,18 @@ describe('PersonalDetails Component', () => {
 
       const firstNameInput = getByTestId('personal-details-first-name-input');
       const lastNameInput = getByTestId('personal-details-last-name-input');
+      const dateOfBirthInput = getByTestId(
+        'personal-details-date-of-birth-input',
+      );
+      const nationalitySelect = getByTestId(
+        'personal-details-nationality-select',
+      );
       const ssnInput = getByTestId('personal-details-ssn-input');
 
       fireEvent.changeText(firstNameInput, 'John');
       fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(dateOfBirthInput, '631152000000'); // Valid timestamp for 1990-01-01
+      fireEvent.press(nationalitySelect); // Triggers setOnValueChange which sets nationalityKey
       fireEvent.changeText(ssnInput, '123456789');
 
       const continueButton = getByTestId('personal-details-continue-button');
@@ -805,6 +870,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: null,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -824,7 +890,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: null,
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -871,12 +942,13 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '1990-01-01T00:00:00.000Z',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -922,10 +994,18 @@ describe('PersonalDetails Component', () => {
 
       const firstNameInput = getByTestId('personal-details-first-name-input');
       const lastNameInput = getByTestId('personal-details-last-name-input');
+      const dateOfBirthInput = getByTestId(
+        'personal-details-date-of-birth-input',
+      );
+      const nationalitySelect = getByTestId(
+        'personal-details-nationality-select',
+      );
       const ssnInput = getByTestId('personal-details-ssn-input');
 
       fireEvent.changeText(firstNameInput, 'John');
       fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(dateOfBirthInput, '631152000000'); // Valid timestamp for 1990-01-01
+      fireEvent.press(nationalitySelect); // Triggers setOnValueChange which sets nationalityKey
       fireEvent.changeText(ssnInput, '123456789');
 
       const continueButton = getByTestId('personal-details-continue-button');
@@ -939,6 +1019,7 @@ describe('PersonalDetails Component', () => {
           onboardingId: 'test-onboarding-id',
           firstName: 'John',
           lastName: 'Doe',
+          dateOfBirth: expect.any(String),
         }),
       );
     });
@@ -949,7 +1030,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'CA',
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
             },
           },
         };

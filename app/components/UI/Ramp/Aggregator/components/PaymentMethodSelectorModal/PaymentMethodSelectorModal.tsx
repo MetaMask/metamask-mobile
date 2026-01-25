@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import { View, ScrollView, useWindowDimensions } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { Payment } from '@consensys/on-ramp-sdk';
 
 import Text, {

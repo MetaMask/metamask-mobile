@@ -55,12 +55,12 @@ export class BrowserStackConfigBuilder {
           osVersion: device.osVersion,
           platformName,
           deviceOrientation: device.orientation,
-          buildName: `${projectName} ${platformName}`,
+          buildName:
+            process.env.BROWSERSTACK_BUILD_NAME ||
+            `${projectName} ${platformName}`,
           sessionName: `${projectName} ${platformName} test`,
           buildIdentifier:
-            process.env.GITHUB_ACTIONS === 'true'
-              ? `CI ${process.env.GITHUB_RUN_ID}`
-              : process.env.USER,
+            process.env.GITHUB_ACTIONS === 'true' ? '' : process.env.USER,
           appProfiling: 'true',
           selfHeal: 'true',
           networkProfile: '4g-lte-advanced-good',
@@ -70,14 +70,24 @@ export class BrowserStackConfigBuilder {
         'appium:app': appBsUrl,
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': true,
+        'appium:settings[actionAcknowledgmentTimeout]': 3000,
+        'appium:settings[ignoreUnimportantViews]': true,
         'appium:settings[snapshotMaxDepth]': 62,
+        'appium:settings[waitForSelectorTimeout]': 1000,
         'appium:includeSafariInWebviews': true,
         'appium:chromedriverAutodownload': true,
+        'appium:waitForQuiescence': false, // Don't wait for app idle
+        'appium:animationCoolOffTimeout': 0, // Skip animation wait
+        'appium:reduceMotion': true, // Reduce iOS animations
+        'appium:customSnapshotTimeout': 15, // Snapshot timeout in seconds"
+        'appium:waitForIdleTimeout': 0, // Don't wait for idle
+        'appium:disableWindowAnimation': true, // Disable animations
+        'appium:skipDeviceInitialization': true, // Skip init (faster startup)
         'appium:bstackPageSource': {
           enable: true,
-          samplesX: 15,
-          samplesY: 15,
-          maxDepth: 75,
+          samplesX: 3,
+          samplesY: 3,
+          maxDepth: 15,
         },
       },
     };

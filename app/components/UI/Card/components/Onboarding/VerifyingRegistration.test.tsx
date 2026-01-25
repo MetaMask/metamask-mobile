@@ -450,7 +450,7 @@ describe('VerifyingRegistration Component', () => {
       });
     });
 
-    it('navigates to Card Home when continue button is pressed', async () => {
+    it('navigates to COMPLETE when continue button is pressed', async () => {
       mockGetUserDetails.mockResolvedValueOnce(
         createMockUserResponse({ verificationState: 'VERIFIED' }),
       );
@@ -466,7 +466,12 @@ describe('VerifyingRegistration Component', () => {
       });
 
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.ROOT,
+          {
+            screen: Routes.CARD.ONBOARDING.COMPLETE,
+          },
+        );
       });
     });
 
@@ -487,14 +492,17 @@ describe('VerifyingRegistration Component', () => {
 
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ routeName: Routes.CARD.HOME }),
+          expect.objectContaining({
+            routeName: Routes.CARD.ONBOARDING.ROOT,
+            type: 'REPLACE',
+          }),
         );
       });
     });
   });
 
   describe('REJECTED State', () => {
-    it('displays rejected title when verification is rejected', async () => {
+    it('navigates to KYC_FAILED when verification is rejected', async () => {
       mockGetUserDetails.mockResolvedValueOnce(
         createMockUserResponse({ verificationState: 'REJECTED' }),
       );
@@ -502,40 +510,28 @@ describe('VerifyingRegistration Component', () => {
       render(<VerifyingRegistration />);
 
       await waitFor(() => {
-        const title = screen.getByTestId('onboarding-step-title');
-
-        expect(title.props.children).toBe('Verification incomplete');
-      });
-    });
-
-    it('displays rejected description when verification is rejected', async () => {
-      mockGetUserDetails.mockResolvedValueOnce(
-        createMockUserResponse({ verificationState: 'REJECTED' }),
-      );
-
-      render(<VerifyingRegistration />);
-
-      await waitFor(() => {
-        const description = screen.getByTestId('onboarding-step-description');
-
-        expect(description.props.children).toBe(
-          'We need a bit more information to complete your verification.',
+        expect(mockStackReplace).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.ROOT,
+          {
+            screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+          },
         );
       });
     });
 
-    it('displays support contact message when verification is rejected', async () => {
+    it('dispatches replace action when rejected', async () => {
       mockGetUserDetails.mockResolvedValueOnce(
         createMockUserResponse({ verificationState: 'REJECTED' }),
       );
-      const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
       render(<VerifyingRegistration />);
 
       await waitFor(() => {
-        expect(strings).toHaveBeenCalledWith(
-          'card.card_onboarding.verifying_registration.rejected_message',
-          { email: CARD_SUPPORT_EMAIL },
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            routeName: Routes.CARD.ONBOARDING.ROOT,
+            type: 'REPLACE',
+          }),
         );
       });
     });
@@ -826,52 +822,6 @@ describe('VerifyingRegistration Component', () => {
       await waitFor(() => {
         expect(strings).toHaveBeenCalledWith(
           'card.card_onboarding.verifying_registration.timeout_description',
-          { email: CARD_SUPPORT_EMAIL },
-        );
-      });
-    });
-
-    it('uses correct translation key for rejected title', async () => {
-      mockGetUserDetails.mockResolvedValueOnce(
-        createMockUserResponse({ verificationState: 'REJECTED' }),
-      );
-      const { strings } = jest.requireMock('../../../../../../locales/i18n');
-
-      render(<VerifyingRegistration />);
-
-      await waitFor(() => {
-        expect(strings).toHaveBeenCalledWith(
-          'card.card_onboarding.verifying_registration.rejected_title',
-        );
-      });
-    });
-
-    it('uses correct translation key for rejected description', async () => {
-      mockGetUserDetails.mockResolvedValueOnce(
-        createMockUserResponse({ verificationState: 'REJECTED' }),
-      );
-      const { strings } = jest.requireMock('../../../../../../locales/i18n');
-
-      render(<VerifyingRegistration />);
-
-      await waitFor(() => {
-        expect(strings).toHaveBeenCalledWith(
-          'card.card_onboarding.verifying_registration.rejected_description',
-        );
-      });
-    });
-
-    it('uses correct translation key for rejected message with email', async () => {
-      mockGetUserDetails.mockResolvedValueOnce(
-        createMockUserResponse({ verificationState: 'REJECTED' }),
-      );
-      const { strings } = jest.requireMock('../../../../../../locales/i18n');
-
-      render(<VerifyingRegistration />);
-
-      await waitFor(() => {
-        expect(strings).toHaveBeenCalledWith(
-          'card.card_onboarding.verifying_registration.rejected_message',
           { email: CARD_SUPPORT_EMAIL },
         );
       });

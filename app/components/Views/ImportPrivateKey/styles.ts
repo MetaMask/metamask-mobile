@@ -1,19 +1,16 @@
 /* eslint-disable import/prefer-default-export */
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
+import { Colors } from '../../../util/theme/models';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     mainWrapper: {
       flex: 1,
-      backgroundColor: colors.background.default,
+      marginTop: 48,
     },
     topOverlay: {
       flex: 1,
-      backgroundColor: colors.primary.muted,
     },
     wrapper: {
       flexGrow: 1,
@@ -47,8 +44,7 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.background.default,
     },
     top: {
-      paddingTop: 0,
-      padding: 24,
+      paddingHorizontal: 16,
       width: '100%',
     },
     bottom: {
@@ -58,7 +54,7 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.background.default,
     },
     input: {
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.background.section,
       fontSize: 14,
       borderRadius: 6,
       height: 120,
@@ -68,12 +64,7 @@ const createStyles = (colors: any) =>
       color: colors.text.muted,
       paddingHorizontal: 16,
       paddingVertical: 12,
-      marginVertical: 16,
-    },
-    navbarRightButton: {
-      alignSelf: 'flex-end',
-      marginRight: 16,
-      marginTop: Device.isIphoneX() ? 40 : 24,
+      marginVertical: 8,
     },
     textContainer: {
       width: '90%',
@@ -81,9 +72,8 @@ const createStyles = (colors: any) =>
       flexDirection: 'column',
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
-      rowGap: 24,
+      rowGap: 8,
       marginTop: 16,
-      paddingLeft: 12,
     },
   });
 

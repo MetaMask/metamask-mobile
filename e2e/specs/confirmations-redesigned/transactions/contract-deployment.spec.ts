@@ -98,7 +98,7 @@ describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Contract Deployment');
+        await Assertions.expectTextDisplayed('Contract deployment');
         await Assertions.expectTextDisplayed('Confirmed');
       },
     );

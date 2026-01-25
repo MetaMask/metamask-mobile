@@ -21,7 +21,7 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
+import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -71,6 +71,7 @@ import {
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
 import CardButton from '../Card/components/CardButton';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -983,7 +984,9 @@ export function getWalletNavbarOptions(
             text: strings('wallet.yes'),
             onPress: async () => {
               try {
-                await importAccountFromPrivateKey(data.private_key);
+                await Authentication.importAccountFromPrivateKey(
+                  data.private_key,
+                );
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });
@@ -1737,19 +1740,6 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 }
 
 export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
-  const innerStyles = StyleSheet.create({
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: 14,
-      ...fontStyles.normal,
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-  });
-
   let title = `${strings('swaps.title')}/${strings('bridge.title')}`;
   if (bridgeViewMode === BridgeViewMode.Bridge) {
     title = strings('bridge.title');
@@ -1760,39 +1750,11 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     title = strings('swaps.title');
   }
 
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        title={title}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    // Render an empty left header action that matches the dimensions of the close button.
-    // This allows us to center align the title on Android devices.
-    headerLeft: Device.isAndroid()
-      ? () => (
-          <View style={[styles.closeButton, styles.hidden]}>
-            <Icon
-              name={IconName.Close}
-              size={IconSize.Lg}
-              color={IconColor.Muted}
-            />
-          </View>
-        )
-      : null,
-    headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
-        style={styles.closeButton}
-      >
-        <Icon name={IconName.Close} size={IconSize.Lg} />
-      </TouchableOpacity>
-    ),
-    headerStyle: innerStyles.headerStyle,
-  };
+  return getHeaderCenterNavbarOptions({
+    title,
+    onClose: () => navigation.dangerouslyGetParent()?.pop(),
+    includesTopInset: true,
+  });
 }
 
 export function getBridgeTransactionDetailsNavbar(navigation) {
@@ -2125,9 +2087,11 @@ export function getStakingNavbar(
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const parsedOverride = aprOverride ? parseFloat(aprOverride) : 0;
   const apr =
-    aprOverride ??
-    `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
+    parsedOverride > 0
+      ? aprOverride
+      : `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
   ///: END:ONLY_INCLUDE_IF
 
   return {
@@ -2217,53 +2181,21 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
 }
 
 /**
- * Function that returns the navigation options for the Address List screen
- *
- * @param {Object} navigation - Navigation object required to push new views
- * @param {string} title - Title in string format
- * @param {string} testID - Test ID for the back button
- * @returns {Object} - Corresponding navbar options
- */
-export function getAddressListNavbarOptions(navigation, title, testID) {
-  const innerStyles = StyleSheet.create({
-    headerLeft: {
-      marginHorizontal: 8,
-    },
-  });
-  return {
-    headerTitleAlign: 'center',
-    headerTitle: () => (
-      <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
-    ),
-    headerLeft: () => (
-      <View style={innerStyles.headerLeft}>
-        <ButtonIcon
-          testID={testID}
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          iconProps={{ color: MMDSIconColor.IconDefault }}
-          onPress={() => navigation.goBack()}
-        />
-      </View>
-    ),
-  };
-}
-
-/**
  * Generic navbar with only a close button on the right
  * @param {Object} navigation - Navigation object
  * @param {Object} themeColors - Theme colors object
  * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
  * @returns {Object} - Navigation options
  */
-export function getCloseOnlyNavbar(
+export function getCloseOnlyNavbar({
   navigation,
   themeColors,
+  backgroundColor = themeColors.background.default,
   onClose = undefined,
-) {
+}) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },

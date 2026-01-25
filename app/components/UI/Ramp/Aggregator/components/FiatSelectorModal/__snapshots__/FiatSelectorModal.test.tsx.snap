@@ -436,11 +436,11 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -477,7 +477,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                   }
                                 }
                               >
-                                Select Region Currency
+                                Select region currency
                               </Text>
                             </View>
                             <View>
@@ -1372,11 +1372,11 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -1413,7 +1413,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   }
                                 }
                               >
-                                Select Region Currency
+                                Select region currency
                               </Text>
                             </View>
                             <View>
@@ -2308,11 +2308,11 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -2349,7 +2349,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   }
                                 }
                               >
-                                Select Region Currency
+                                Select region currency
                               </Text>
                             </View>
                             <View>
@@ -3244,11 +3244,11 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -3285,7 +3285,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                   }
                                 }
                               >
-                                Select Region Currency
+                                Select region currency
                               </Text>
                             </View>
                             <View>

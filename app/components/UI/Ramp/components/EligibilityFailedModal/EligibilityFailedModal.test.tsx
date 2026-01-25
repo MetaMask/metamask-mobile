@@ -61,7 +61,7 @@ describe('EligibilityFailedModal', () => {
   });
   it('navigates to contact support when the contact support button is pressed', () => {
     const { getByText } = render(EligibilityFailedModal);
-    const contactSupportButton = getByText('Contact Support');
+    const contactSupportButton = getByText('Contact support');
 
     fireEvent.press(contactSupportButton);
 
@@ -79,7 +79,7 @@ describe('EligibilityFailedModal', () => {
 
   it('closes the modal when the got it button is pressed', () => {
     const { getByText } = render(EligibilityFailedModal);
-    const gotItButton = getByText('Got It');
+    const gotItButton = getByText('Got it');
 
     fireEvent.press(gotItButton);
 

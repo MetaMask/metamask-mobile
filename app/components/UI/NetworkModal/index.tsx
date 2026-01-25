@@ -32,7 +32,10 @@ import NetworkVerificationInfo from '../NetworkVerificationInfo';
 import createNetworkModalStyles from './index.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
-import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
+import {
+  rpcIdentifierUtility,
+  SafeChain,
+} from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
@@ -49,13 +52,6 @@ import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-
-export interface SafeChain {
-  chainId: string;
-  name: string;
-  nativeCurrency: { symbol: string };
-  rpc: string[];
-}
 
 export type NetworkConfigurationOptions = Omit<Network, 'rpcPrefs'> & {
   formattedRpcUrl?: string | null;

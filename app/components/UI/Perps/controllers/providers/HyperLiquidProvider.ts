@@ -15,6 +15,7 @@ import {
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   REFERRAL_CONFIG,
+  TESTNET_HIP3_CONFIG,
   TRADING_DEFAULTS,
   USDC_DECIMALS,
   USDH_CONFIG,
@@ -133,6 +134,13 @@ import type {
   ExtendedPerpDex,
 } from '../../types/perps-types';
 import { getStreamManagerInstance } from '../../providers/PerpsStreamManager';
+
+/**
+ * Type guard to check if a status is an object (not a string literal like "waitingForFill")
+ * The SDK returns status as a union of object types and string literals.
+ */
+const isStatusObject = (status: unknown): status is Record<string, unknown> =>
+  typeof status === 'object' && status !== null;
 
 // Helper method parameter interfaces (module-level for class-dependent methods only)
 interface GetAssetInfoParams {
@@ -635,8 +643,50 @@ export class HyperLiquidProvider implements IPerpsProvider {
       },
     );
 
-    // Return all DEXs - market filtering is applied at subscription data layer
-    // webData3 automatically connects to ALL DEXs
+    // Testnet-specific filtering: Limit DEXs to avoid subscription overload
+    // On testnet, there are many HIP-3 DEXs (test deployments) that cause instability
+    if (this.clientService.isTestnetMode()) {
+      const { ENABLED_DEXS, AUTO_DISCOVER_ALL } = TESTNET_HIP3_CONFIG;
+
+      if (!AUTO_DISCOVER_ALL) {
+        if (ENABLED_DEXS.length === 0) {
+          // Main DEX only - no HIP-3 DEXs on testnet
+          DevLogger.log(
+            'HyperLiquidProvider: Testnet - using main DEX only (HIP-3 DEXs filtered)',
+            {
+              availableHip3Dexs: availableHip3Dexs.length,
+              reason: 'TESTNET_HIP3_CONFIG.ENABLED_DEXS is empty',
+            },
+          );
+          this.cachedValidatedDexs = [null];
+          return this.cachedValidatedDexs;
+        }
+
+        // Filter to specific allowed DEXs on testnet
+        const filteredDexs = availableHip3Dexs.filter((dex) =>
+          ENABLED_DEXS.includes(dex),
+        );
+        DevLogger.log(
+          'HyperLiquidProvider: Testnet - filtered to allowed DEXs',
+          {
+            allowedDexs: ENABLED_DEXS,
+            filteredDexs,
+            availableHip3Dexs: availableHip3Dexs.length,
+          },
+        );
+        this.cachedValidatedDexs = [null, ...filteredDexs];
+        return this.cachedValidatedDexs;
+      }
+
+      // AUTO_DISCOVER_ALL is true - proceed with all DEXs (not recommended for testnet)
+      DevLogger.log(
+        'HyperLiquidProvider: Testnet - AUTO_DISCOVER_ALL enabled, using all DEXs',
+        { totalDexCount: availableHip3Dexs.length + 1 },
+      );
+    }
+
+    // Mainnet (or testnet with AUTO_DISCOVER_ALL): Return all DEXs
+    // Market filtering is applied at subscription data layer
     DevLogger.log(
       'HyperLiquidProvider: All DEXs enabled (market filtering at data layer)',
       {
@@ -1138,12 +1188,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Check order status
       const status = result.response?.data?.statuses?.[0];
-      if (status && 'error' in status) {
+      if (isStatusObject(status) && 'error' in status) {
         return { success: false, error: String(status.error) };
       }
 
       const filledSize =
-        status && 'filled' in status
+        isStatusObject(status) && 'filled' in status
           ? parseFloat(status.filled?.totalSz || '0')
           : 0;
 
@@ -2399,8 +2449,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const status = result.response?.data?.statuses?.[0];
       const restingOrder =
-        status && 'resting' in status ? status.resting : null;
-      const filledOrder = status && 'filled' in status ? status.filled : null;
+        isStatusObject(status) && 'resting' in status ? status.resting : null;
+      const filledOrder =
+        isStatusObject(status) && 'filled' in status ? status.filled : null;
 
       // Success - auto-rebalance excess funds
       if (isHip3Order && transferInfo && dexName) {
@@ -3112,7 +3163,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Parse response statuses (one per order)
       const statuses = result.response.data.statuses;
       const successCount = statuses.filter(
-        (s) => 'filled' in s || 'resting' in s,
+        (s) => isStatusObject(s) && ('filled' in s || 'resting' in s),
       ).length;
       const failureCount = statuses.length - successCount;
 
@@ -3120,7 +3171,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       if (!this.useDexAbstraction) {
         for (let i = 0; i < statuses.length; i++) {
           const status = statuses[i];
-          const isSuccess = 'filled' in status || 'resting' in status;
+          const isSuccess =
+            isStatusObject(status) &&
+            ('filled' in status || 'resting' in status);
 
           if (isSuccess && hip3Transfers[i]) {
             const { sourceDex, freedMargin } = hip3Transfers[i];
@@ -3144,9 +3197,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
         failureCount,
         results: statuses.map((status, index) => ({
           coin: positionsToClose[index].coin,
-          success: 'filled' in status || 'resting' in status,
+          success:
+            isStatusObject(status) &&
+            ('filled' in status || 'resting' in status),
           error:
-            'error' in status ? (status as { error: string }).error : undefined,
+            isStatusObject(status) && 'error' in status
+              ? String(status.error)
+              : undefined,
         })),
       };
     } catch (error) {
@@ -3779,7 +3836,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
                 },
               );
 
-              parentOrder.children.forEach((childOrder: FrontendOrder) => {
+              parentOrder.children.forEach((childOrderUnknown) => {
+                const childOrder = childOrderUnknown as FrontendOrder;
                 if (childOrder.isTrigger && childOrder.reduceOnly) {
                   if (
                     childOrder.orderType === 'Take Profit Market' ||
@@ -3843,10 +3901,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
-      const rawFills = await infoClient.userFills({
-        user: userAddress,
-        aggregateByTime: params?.aggregateByTime || false,
-      });
+      // Use userFillsByTime when startTime is provided for time-filtered queries,
+      // otherwise use userFills for backward compatibility
+      const rawFills = params?.startTime
+        ? await infoClient.userFillsByTime({
+            user: userAddress,
+            startTime: params.startTime,
+            endTime: params.endTime,
+            aggregateByTime: params?.aggregateByTime || false,
+          })
+        : await infoClient.userFills({
+            user: userAddress,
+            aggregateByTime: params?.aggregateByTime || false,
+          });
 
       DevLogger.log('User fills received:', rawFills);
 
@@ -6088,7 +6155,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       // Use SDK's built-in ready() method which checks socket.readyState === OPEN
       // This is much more efficient than creating a subscription just for health check
-      await subscriptionClient.transport.ready(controller.signal);
+      await subscriptionClient.config_.transport.ready(controller.signal);
 
       DevLogger.log('HyperLiquid: WebSocket health check ping succeeded');
     } catch (error) {

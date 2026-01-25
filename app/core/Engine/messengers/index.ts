@@ -111,7 +111,10 @@ import {
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
+import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
+import { getRampsControllerMessenger } from './ramps-controller-messenger';
+import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import {
@@ -219,6 +222,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   SignatureController: {
     getMessenger: getSignatureControllerMessenger,
+    getInitMessenger: noop,
+  },
+  StorageService: {
+    getMessenger: getStorageServiceMessenger,
     getInitMessenger: noop,
   },
   DeFiPositionsController: {
@@ -361,6 +368,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   RewardsDataService: {
     getMessenger: getRewardsDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  RampsController: {
+    getMessenger: getRampsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  RampsService: {
+    getMessenger: getRampsServiceMessenger,
     getInitMessenger: noop,
   },
   TokenBalancesController: {

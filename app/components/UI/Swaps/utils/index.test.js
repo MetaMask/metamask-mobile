@@ -4,7 +4,6 @@ import {
   isSwapsAllowed,
 } from './index';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SWAPS_TESTNET_CHAIN_ID } from '../../../../constants/bridge';
 
 // Mock AppConstants
 const mockSwapsConstantsGetter = jest.fn(() => ({
@@ -220,25 +219,5 @@ describe('isSwapsAllowed', () => {
   it('should return false for unsupported chain IDs', () => {
     const unsupportedChainId = '0x9999';
     expect(isSwapsAllowed(unsupportedChainId)).toBe(false);
-  });
-
-  describe('testnet chain IDs', () => {
-    it('should return true for testnet chain IDs in development when ONLY_MAINNET is true', () => {
-      global.__DEV__ = true;
-      mockSwapsConstantsGetter.mockReturnValue({
-        ...mockSwapsConstantsGetter(),
-        ONLY_MAINNET: true,
-      });
-      expect(isSwapsAllowed(SWAPS_TESTNET_CHAIN_ID)).toBe(true);
-    });
-
-    it('should return true for testnet chain IDs when ONLY_MAINNET is false', () => {
-      global.__DEV__ = false;
-      mockSwapsConstantsGetter.mockReturnValue({
-        ...mockSwapsConstantsGetter(),
-        ONLY_MAINNET: false,
-      });
-      expect(isSwapsAllowed(SWAPS_TESTNET_CHAIN_ID)).toBe(true);
-    });
   });
 });

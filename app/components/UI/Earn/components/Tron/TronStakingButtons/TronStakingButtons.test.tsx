@@ -84,7 +84,7 @@ describe('TronStakingButtons', () => {
       <TronStakingButtons asset={baseAsset} showUnstake={false} />,
     );
 
-    expect(getByText('stake.stake')).toBeTruthy();
+    expect(getByText('stake.stake_your_trx_cta.earn_button')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('stake-more-button'));
 

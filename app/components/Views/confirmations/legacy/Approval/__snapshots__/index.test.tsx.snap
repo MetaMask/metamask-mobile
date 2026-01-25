@@ -1148,7 +1148,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                               }
                                                             }
                                                           >
-                                                            View Data
+                                                            View data
                                                           </Text>
                                                         </TouchableOpacity>
                                                       </View>

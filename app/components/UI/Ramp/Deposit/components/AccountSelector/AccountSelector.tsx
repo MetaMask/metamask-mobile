@@ -42,6 +42,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       navigation.navigate(
         ...createAccountSelectorNavDetails({
           disablePrivacyMode: true,
+          disableAddAccountButton: true,
           isEvmOnly,
         }),
       ),

@@ -31,6 +31,7 @@ import {
  */
 const useAccounts = ({
   isLoading = false,
+  fetchENS = true,
 }: UseAccountsParams = {}): UseAccounts => {
   const isMountedRef = useRef(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -141,8 +142,15 @@ const useAccounts = ({
     setEVMAccounts(
       flattenedAccounts.filter((account) => !isNonEvmAddress(account.address)),
     );
-    fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
-  }, [internalAccounts, fetchENSNames, selectedInternalAccount?.address]);
+    if (fetchENS) {
+      fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
+    }
+  }, [
+    internalAccounts,
+    fetchENS,
+    fetchENSNames,
+    selectedInternalAccount?.address,
+  ]);
 
   useEffect(() => {
     if (!isMountedRef.current) {

@@ -29,11 +29,12 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # lg runner: 16 vCPUs, 48GB RAM
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # Optimized for lg runner (48GB) with conservative memory settings
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
+      YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -51,6 +52,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Setup Android Build Environment
+        timeout-minutes: 15
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: android
@@ -108,9 +110,6 @@ jobs:
           # - "Cache Gradle dependencies"
           # - "Cache build artifacts"
           key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-
-            android-apk-
 
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4
@@ -130,8 +129,7 @@ jobs:
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
-          export NODE_OPTIONS="--max-old-space-size=8192"
-          # Use E2E gradle properties for GitHub Actions builds (gradle.properties.github)
+          export NODE_OPTIONS="--max-old-space-size=4096"
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:${{ inputs.build_type }}:e2e
         shell: bash
@@ -144,12 +142,15 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          # Limit Metro workers to prevent OOM (each worker uses ~3GB)
+          METRO_MAX_WORKERS: '4'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_POOLED_STAKING_ENABLED: 'true'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -193,12 +194,14 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          METRO_MAX_WORKERS: '4'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_POOLED_STAKING_ENABLED: 'true'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}

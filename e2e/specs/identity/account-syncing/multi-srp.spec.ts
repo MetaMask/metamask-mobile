@@ -117,6 +117,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         // Create second account for SRP 2
         await AccountListBottomSheet.tapAddAccountButtonV2({
           srpIndex: 1,
+          shouldWait: true,
         });
 
         await waitUntilSyncedAccountsNumberEquals(4);
@@ -131,7 +132,10 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           },
         );
 
-        await AccountListBottomSheet.tapAccountEllipsisButtonV2(3);
+        // We need to explicitly wait here to avoid having the "Account" added toast appear on top of the EllipsisButton
+        await AccountListBottomSheet.tapAccountEllipsisButtonV2(3, {
+          shouldWait: true,
+        });
         await AccountDetails.tapEditAccountName();
         await EditAccountName.updateAccountName(SRP_2_SECOND_ACCOUNT);
         await EditAccountName.tapSave();

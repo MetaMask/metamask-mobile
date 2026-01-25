@@ -9,11 +9,11 @@ exports[`LendingMaxWithdrawalModal should render correctly 1`] = `
           "alignItems": "center",
           "flexDirection": "row",
           "gap": 16,
-          "height": 48,
+          "height": 56,
         },
         false,
         {
-          "padding": 16,
+          "paddingHorizontal": 16,
         },
       ]
     }
@@ -139,7 +139,7 @@ exports[`LendingMaxWithdrawalModal should render correctly 1`] = `
           }
         }
       >
-        • Pool Liquidity:
+        • Pool liquidity:
       </Text>
        
       Not enough funds available in the lending pool right now.
@@ -168,7 +168,7 @@ exports[`LendingMaxWithdrawalModal should render correctly 1`] = `
           }
         }
       >
-        • Existing Borrow Positions:
+        • Existing borrow positions:
       </Text>
        
       Withdrawing could put your existing loan positions at risk of liquidation.

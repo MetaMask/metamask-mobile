@@ -180,6 +180,30 @@ pipelines:
       build_ios_main_rc:
         depends_on:
         - bump_version_code
+  exp_builds_to_testflight_pipeline:
+    workflows:
+      bump_version_code: {}
+      build_android_main_exp:
+        depends_on:
+        - bump_version_code
+      build_ios_main_exp:
+        depends_on:
+        - bump_version_code
+      upload_ios_main_to_testflight:
+        depends_on:
+        - build_ios_main_exp    
+  rc_builds_to_testflight_pipeline:
+    workflows:
+      bump_version_code: {}
+      build_android_main_rc:
+        depends_on:
+        - bump_version_code
+      build_ios_main_rc:
+        depends_on:
+        - bump_version_code
+      upload_ios_main_to_testflight:
+        depends_on:
+        - build_ios_main_rc
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
@@ -3321,6 +3345,50 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_flask_apps.json
           title: Bitrise Deploy Browserstack Uploaded Flask Apps
+  upload_ios_main_to_testflight:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull iOS build artifacts
+      - script@1:
+          title: Setup App Store Connect API Key
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                
+                ./scripts/setup-app-store-connect-api-key.sh \
+                  "$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
+                  "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID" \
+                  "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
+      - script@1:
+          title: Upload to TestFlight via Fastlane
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                
+                bash ./scripts/upload-to-testflight.sh \
+                  "${BITRISEIO_PIPELINE_TITLE:-Unknown}" \
+                  "${BITRISE_GIT_BRANCH:-Unknown}" \
+                  "${BITRISE_APP_STORE_IPA_PATH:-}"
+      - script@1:
+          title: Cleanup API Key
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                rm -f ios/AuthKey.p8
+                echo "🧹 Cleaned up API key file"
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.3.x
+        machine_type_id: g2.mac.4large
   set_main_target_workflow:
     steps:
       - share-pipeline-variable@1:
@@ -3406,13 +3474,13 @@ app:
       VERSION_NAME: 7.62.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 3168
+      VERSION_NUMBER: 3418
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.62.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 3168
+      FLASK_VERSION_NUMBER: 3418
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

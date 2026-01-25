@@ -1455,6 +1455,10 @@ export class TradingService {
     const positionSize = params.trackingData?.positionSize;
     const source =
       params.trackingData?.source || PerpsEventValues.SOURCE.TP_SL_VIEW;
+    const takeProfitPercentage = params.trackingData?.takeProfitPercentage;
+    const stopLossPercentage = params.trackingData?.stopLossPercentage;
+    const isEditingExistingPosition =
+      params.trackingData?.isEditingExistingPosition ?? false;
 
     try {
       const traceSpan = trace({
@@ -1506,6 +1510,15 @@ export class TradingService {
     } finally {
       const completionDuration = performance.now() - startTime;
 
+      // Determine screen type based on whether editing existing position
+      const screenType = isEditingExistingPosition
+        ? PerpsEventValues.SCREEN_TYPE.EDIT_TPSL
+        : PerpsEventValues.SCREEN_TYPE.CREATE_TPSL;
+
+      // Determine if TP/SL are set
+      const hasTakeProfit = !!params.takeProfitPrice;
+      const hasStopLoss = !!params.stopLossPrice;
+
       // Build comprehensive event properties
       const eventProperties = {
         [PerpsEventProperties.STATUS]: result?.success
@@ -1514,6 +1527,9 @@ export class TradingService {
         [PerpsEventProperties.ASSET]: params.coin,
         [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
         [PerpsEventProperties.SOURCE]: source,
+        [PerpsEventProperties.SCREEN_TYPE]: screenType,
+        [PerpsEventProperties.HAS_TAKE_PROFIT]: hasTakeProfit,
+        [PerpsEventProperties.HAS_STOP_LOSS]: hasStopLoss,
         ...(direction && {
           [PerpsEventProperties.DIRECTION]:
             direction === 'long'
@@ -1532,6 +1548,12 @@ export class TradingService {
           [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
             params.stopLossPrice,
           ),
+        }),
+        ...(takeProfitPercentage !== undefined && {
+          [PerpsEventProperties.TAKE_PROFIT_PERCENTAGE]: takeProfitPercentage,
+        }),
+        ...(stopLossPercentage !== undefined && {
+          [PerpsEventProperties.STOP_LOSS_PERCENTAGE]: stopLossPercentage,
         }),
         ...(errorMessage && {
           [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,

@@ -3,13 +3,8 @@ import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
-import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import {
-  NATIVE_SWAPS_TOKEN_ADDRESS,
-  SWAPS_TESTNET_CHAIN_ID,
-} from '../../../../constants/bridge';
 import { isSwapsNativeAsset } from '../../../../util/bridge';
 
 const allowedChainIds = [
@@ -24,24 +19,11 @@ const allowedChainIds = [
   CHAIN_IDS.BASE,
   CHAIN_IDS.SEI,
   CHAIN_IDS.MONAD,
-  SWAPS_TESTNET_CHAIN_ID,
 ];
-
-export const allowedTestnetChainIds = [
-  NETWORKS_CHAIN_ID.GOERLI,
-  NETWORKS_CHAIN_ID.SEPOLIA,
-];
-
-if (__DEV__) {
-  allowedChainIds.push(...allowedTestnetChainIds);
-}
 
 export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ACTIVE) {
     return false;
-  }
-  if (!AppConstants.SWAPS.ONLY_MAINNET) {
-    allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
   }
 
   if (

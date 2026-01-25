@@ -13,7 +13,6 @@ import Button, {
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
-import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
 import type { Position } from '../../controllers/types';
 import styleSheet from './PerpsAdjustMarginView.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -27,14 +26,10 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../utils/perpsErrorHandler';
-import {
-  calculateMaxRemovableMargin,
-  calculateNewLiquidationPrice,
-} from '../../utils/marginUtils';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
@@ -45,7 +40,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { MARGIN_ADJUSTMENT_CONFIG } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 interface AdjustMarginRouteParams {
   position: Position;
@@ -56,10 +51,9 @@ const PerpsAdjustMarginView: React.FC = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: AdjustMarginRouteParams }, 'params'>>();
-  const { position, mode } = route.params || {};
+  const { position: routePosition, mode } = route.params || {};
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
-  const { account } = usePerpsLiveAccount();
 
   const [marginAmountString, setMarginAmountString] = useState('0');
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -72,26 +66,28 @@ const PerpsAdjustMarginView: React.FC = () => {
     [marginAmountString],
   );
 
-  const isAddMode = mode === 'add';
-
   // Use margin adjustment hook for handling margin operations
   const { handleAddMargin, handleRemoveMargin, isAdjusting } =
     usePerpsMarginAdjustment({
       onSuccess: () => navigation.goBack(),
     });
 
-  // Get market info for max leverage (needed for remove mode)
-  // Each token has different max leverage limits - must look up from markets
-  const { markets } = usePerpsMarkets();
-  const marketInfo = useMemo(
-    () =>
-      position?.coin ? markets.find((m) => m.symbol === position.coin) : null,
-    [position?.coin, markets],
-  );
-  // maxLeverage in PerpsMarketData is a formatted string (e.g., '40x'), parse to number
-  const maxLeverage = marketInfo?.maxLeverage
-    ? parseInt(marketInfo.maxLeverage, 10)
-    : MARGIN_ADJUSTMENT_CONFIG.FALLBACK_MAX_LEVERAGE;
+  // Get all margin data from dedicated hook (uses live subscriptions)
+  const {
+    position,
+    isLoading,
+    currentMargin,
+    maxAmount,
+    currentLiquidationPrice,
+    newLiquidationPrice,
+    currentLiquidationDistance,
+    newLiquidationDistance,
+    isAddMode,
+  } = usePerpsAdjustMarginData({
+    coin: routePosition?.coin || '',
+    mode: mode || 'add',
+    inputAmount: marginAmount,
+  });
 
   // Add performance measurement for this view
   usePerpsMeasurement({
@@ -100,137 +96,16 @@ const PerpsAdjustMarginView: React.FC = () => {
     debugContext: { mode },
   });
 
-  // Get live prices for liquidation distance calculation
-  const livePrices = usePerpsLivePrices({
-    symbols: position?.coin ? [position.coin] : [],
-    throttleMs: 1000,
-  });
-  const currentPrice = useMemo(
-    () => parseFloat(livePrices?.[position?.coin]?.price || '0'),
-    [livePrices, position?.coin],
-  );
-
-  // Current position data
-  const currentMargin = useMemo(
-    () => parseFloat(position?.marginUsed || '0'),
-    [position],
-  );
-
-  const currentLiquidationPrice = useMemo(
-    () => parseFloat(position?.liquidationPrice || '0'),
-    [position],
-  );
-
-  const positionSize = useMemo(
-    () => Math.abs(parseFloat(position?.size || '0')),
-    [position],
-  );
-
-  const entryPrice = useMemo(
-    () => parseFloat(position?.entryPrice || '0'),
-    [position],
-  );
-
-  const isLong = useMemo(
-    () => parseFloat(position?.size || '0') > 0,
-    [position],
-  );
-
-  // Available balance for add mode
-  const availableBalance = useMemo(
-    () => parseFloat(account?.availableBalance || '0'),
-    [account],
-  );
-
-  // Calculate maximum amount based on mode
-  const maxAmount = useMemo(() => {
-    if (isAddMode) {
-      return Math.max(0, availableBalance);
-    }
-    return calculateMaxRemovableMargin({
-      currentMargin,
-      positionSize,
-      entryPrice,
-      currentPrice,
-      maxLeverage,
-    });
-  }, [
-    isAddMode,
-    availableBalance,
-    currentMargin,
-    positionSize,
-    entryPrice,
-    currentPrice,
-    maxLeverage,
-  ]);
-
-  // Calculate new values after adjustment
-  const newMargin = useMemo(() => {
-    if (isAddMode) {
-      return currentMargin + marginAmount;
-    }
-    return Math.max(0, currentMargin - marginAmount);
-  }, [isAddMode, currentMargin, marginAmount]);
-
-  // Calculate new liquidation price
-  const newLiquidationPrice = useMemo(() => {
-    if (newMargin === 0 || positionSize === 0) return currentLiquidationPrice;
-
-    // For add mode, use simplified calculation
-    if (isAddMode) {
-      const marginPerUnit = newMargin / positionSize;
-      if (isLong) {
-        return Math.max(0, entryPrice - marginPerUnit);
-      }
-      return entryPrice + marginPerUnit;
-    }
-
-    // For remove mode, use utility function
-    return calculateNewLiquidationPrice({
-      newMargin,
-      positionSize,
-      entryPrice,
-      isLong,
-      currentLiquidationPrice,
-    });
-  }, [
-    isAddMode,
-    newMargin,
-    positionSize,
-    entryPrice,
-    isLong,
-    currentLiquidationPrice,
-  ]);
-
-  // Calculate liquidation distance percentage
-  const calculateLiquidationDistance = useCallback(
-    (liquidationPrice: number) => {
-      if (currentPrice === 0 || !currentPrice || liquidationPrice === 0) {
-        return 0;
-      }
-      return (Math.abs(currentPrice - liquidationPrice) / currentPrice) * 100;
-    },
-    [currentPrice],
-  );
-
-  const currentLiquidationDistance = useMemo(
-    () => calculateLiquidationDistance(currentLiquidationPrice),
-    [calculateLiquidationDistance, currentLiquidationPrice],
-  );
-
-  const newLiquidationDistance = useMemo(
-    () => calculateLiquidationDistance(newLiquidationPrice),
-    [calculateLiquidationDistance, newLiquidationPrice],
-  );
-
   const handleSliderChange = useCallback((value: number) => {
-    // Keep 2 decimal places for precision with small amounts
-    setMarginAmountString(value.toFixed(2));
+    // Floor to 2 decimal places to match Hyperliquid behavior
+    const flooredValue = Math.floor(value * 100) / 100;
+    setMarginAmountString(flooredValue.toFixed(2));
   }, []);
 
   const handleMaxPress = useCallback(() => {
-    // Keep 2 decimal places for precision with small amounts
-    setMarginAmountString(maxAmount.toFixed(2));
+    // Floor maxAmount to 2 decimal places
+    const flooredMax = Math.floor(maxAmount * 100) / 100;
+    setMarginAmountString(flooredMax.toFixed(2));
   }, [maxAmount]);
 
   // Keypad handlers
@@ -242,8 +117,9 @@ const PerpsAdjustMarginView: React.FC = () => {
     ({ value }: { value: string }) => {
       const numValue = parseFloat(value) || 0;
       // Clamp to maxAmount for remove mode to prevent invalid submissions
-      if (!isAddMode && numValue > maxAmount) {
-        setMarginAmountString(maxAmount.toFixed(2));
+      const flooredMax = Math.floor(maxAmount * 100) / 100;
+      if (!isAddMode && numValue > flooredMax) {
+        setMarginAmountString(flooredMax.toFixed(2));
       } else {
         setMarginAmountString(value || '0');
       }
@@ -257,9 +133,10 @@ const PerpsAdjustMarginView: React.FC = () => {
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
-      // Keep 2 decimal places for precision with small amounts
+      // Floor the percentage result
       const amount = maxAmount * percentage;
-      setMarginAmountString(amount.toFixed(2));
+      const flooredAmount = Math.floor(amount * 100) / 100;
+      setMarginAmountString(flooredAmount.toFixed(2));
     },
     [maxAmount],
   );
@@ -276,11 +153,23 @@ const PerpsAdjustMarginView: React.FC = () => {
     setSelectedTooltip(null);
   }, []);
 
+  // Helper to format liquidation distance with fallback when liquidation price is unavailable
+  const formatLiquidationDistance = useCallback(
+    (distance: number, liquidationPrice: number): string => {
+      if (liquidationPrice === 0) {
+        return PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY;
+      }
+      return `${distance.toFixed(0)}%`;
+    },
+    [],
+  );
+
   const handleConfirm = useCallback(async () => {
     if (marginAmount <= 0 || !position) return;
 
     // Prevent submission if amount exceeds max removable (extra safety for remove mode)
-    if (!isAddMode && marginAmount > maxAmount) {
+    const flooredMax = Math.floor(maxAmount * 100) / 100;
+    if (!isAddMode && marginAmount > flooredMax) {
       return;
     }
 
@@ -306,7 +195,8 @@ const PerpsAdjustMarginView: React.FC = () => {
     handleRemoveMargin,
   ]);
 
-  if (!position || !mode) {
+  // Show error if no position found (either from route or live data)
+  if ((!routePosition && !position) || !mode) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
@@ -325,6 +215,9 @@ const PerpsAdjustMarginView: React.FC = () => {
   const buttonLabel = isAddMode
     ? strings('perps.adjust_margin.add_margin')
     : strings('perps.adjust_margin.reduce_margin');
+
+  // Floor maxAmount for display and comparison
+  const flooredMaxAmount = Math.floor(maxAmount * 100) / 100;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -349,7 +242,7 @@ const PerpsAdjustMarginView: React.FC = () => {
             onPress={handleAmountPress}
             isActive={isInputFocused}
             hasError={false}
-            isLoading={false}
+            isLoading={isLoading}
           />
         </View>
 
@@ -360,7 +253,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               value={marginAmount}
               onValueChange={handleSliderChange}
               minimumValue={0}
-              maximumValue={maxAmount}
+              maximumValue={flooredMaxAmount}
               step={0.01}
               showPercentageLabels
               disabled={false}
@@ -370,15 +263,13 @@ const PerpsAdjustMarginView: React.FC = () => {
 
         {/* Info Section - Always visible */}
         <View style={styles.infoSection}>
-          {/* First row: Perps balance or Margin in position */}
+          {/* First row: Current margin */}
           <View style={styles.infoRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {isAddMode
-                ? strings('perps.adjust_margin.perps_balance')
-                : strings('perps.adjust_margin.margin_in_position')}
+              {strings('perps.adjust_margin.margin_in_position')}
             </Text>
             <Text variant={TextVariant.BodyMD}>
-              {formatPerpsFiat(isAddMode ? availableBalance : currentMargin, {
+              {formatPerpsFiat(currentMargin, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}
             </Text>
@@ -392,13 +283,13 @@ const PerpsAdjustMarginView: React.FC = () => {
                 : strings('perps.adjust_margin.margin_available_to_remove')}
             </Text>
             <Text variant={TextVariant.BodyMD}>
-              {formatPerpsFiat(maxAmount, {
+              {formatPerpsFiat(flooredMaxAmount, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}
             </Text>
           </View>
 
-          {/* Liquidation price with transition */}
+          {/* Third row: Liquidation price with transition */}
           <View style={styles.infoRow}>
             <View style={styles.labelWithIcon}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -445,7 +336,7 @@ const PerpsAdjustMarginView: React.FC = () => {
             )}
           </View>
 
-          {/* Liquidation distance with transition */}
+          {/* Fourth row: Liquidation distance with transition */}
           <View style={styles.infoRow}>
             <View style={styles.labelWithIcon}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -468,7 +359,10 @@ const PerpsAdjustMarginView: React.FC = () => {
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  {currentLiquidationDistance.toFixed(0)}%
+                  {formatLiquidationDistance(
+                    currentLiquidationDistance,
+                    currentLiquidationPrice,
+                  )}
                 </Text>
                 <Icon
                   name={IconName.Arrow2Right}
@@ -476,12 +370,18 @@ const PerpsAdjustMarginView: React.FC = () => {
                   color={colors.icon.alternative}
                 />
                 <Text variant={TextVariant.BodyMD}>
-                  {newLiquidationDistance.toFixed(0)}%
+                  {formatLiquidationDistance(
+                    newLiquidationDistance,
+                    newLiquidationPrice,
+                  )}
                 </Text>
               </View>
             ) : (
               <Text variant={TextVariant.BodyMD}>
-                {currentLiquidationDistance.toFixed(0)}%
+                {formatLiquidationDistance(
+                  currentLiquidationDistance,
+                  currentLiquidationPrice,
+                )}
               </Text>
             )}
           </View>
@@ -500,7 +400,7 @@ const PerpsAdjustMarginView: React.FC = () => {
             isDisabled={
               marginAmount <= 0 ||
               isAdjusting ||
-              (!isAddMode && marginAmount > maxAmount)
+              (!isAddMode && marginAmount > flooredMaxAmount)
             }
             loading={isAdjusting}
           />

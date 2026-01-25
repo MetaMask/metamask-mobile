@@ -16,6 +16,22 @@ export interface PerpsHomeSectionProps {
    */
   title: string;
   /**
+   * Optional subtitle text (e.g., P&L value and percentage)
+   */
+  subtitle?: string;
+  /**
+   * Color for subtitle text (e.g., Success for profit, Error for loss)
+   */
+  subtitleColor?: TextColor;
+  /**
+   * Optional suffix for subtitle (rendered in default color, e.g., "Unrealized PnL")
+   */
+  subtitleSuffix?: string;
+  /**
+   * Test ID for subtitle element
+   */
+  subtitleTestID?: string;
+  /**
    * Whether the section is loading
    */
   isLoading: boolean;
@@ -51,13 +67,15 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  headerContainer: {
     paddingHorizontal: 16,
     marginBottom: 8,
     marginTop: 12,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   content: {
     // Content styling handled by children
@@ -89,6 +107,10 @@ const styles = StyleSheet.create({
  */
 const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   title,
+  subtitle,
+  subtitleColor = TextColor.Alternative,
+  subtitleSuffix,
+  subtitleTestID,
   isLoading,
   isEmpty,
   showWhenEmpty = false,
@@ -104,7 +126,8 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
 
   const showAction = onActionPress && !isLoading && !isEmpty;
 
-  const headerContent = (
+  // Title row content (pressable when action is available)
+  const titleRowContent = (
     <>
       <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
         {title}
@@ -122,13 +145,37 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   return (
     <View style={styles.section} testID={testID}>
       {/* Section Header */}
-      {showAction ? (
-        <TouchableOpacity style={styles.header} onPress={onActionPress}>
-          {headerContent}
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.header}>{headerContent}</View>
-      )}
+      <View style={styles.headerContainer}>
+        {/* Title row - only this is pressable */}
+        {showAction ? (
+          <TouchableOpacity style={styles.titleRow} onPress={onActionPress}>
+            {titleRowContent}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.titleRow}>{titleRowContent}</View>
+        )}
+
+        {/* Subtitle - NOT pressable */}
+        {subtitle && (
+          <Text
+            variant={TextVariant.BodySM}
+            color={subtitleColor}
+            testID={subtitleTestID}
+          >
+            {subtitle}
+            {subtitleSuffix && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                testID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
+              >
+                {' '}
+                {subtitleSuffix}
+              </Text>
+            )}
+          </Text>
+        )}
+      </View>
 
       {/* Section Content */}
       <View style={styles.content}>

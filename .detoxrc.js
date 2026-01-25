@@ -21,6 +21,12 @@ module.exports = {
     args: {
       $0: 'jest',
       config: 'e2e/jest.e2e.config.js',
+      // CI only: Force Jest to exit after all tests complete, preventing indefinite hangs
+      // from open handles (sockets, timers). Also detect what's keeping Jest open.
+      ...(process.env.CI && {
+        forceExit: true,
+        detectOpenHandles: true,
+      }),
     },
     detached: process.env.CI ? true : false,
     jest: {

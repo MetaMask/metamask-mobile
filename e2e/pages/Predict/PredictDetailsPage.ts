@@ -127,8 +127,11 @@ class PredictDetailsPage {
   }
 
   async tapClaimWinningsButton(): Promise<void> {
+    // Claim button is animated - use delay instead of checkStability
+    // checkStability would timeout if animation is continuous
     await Gestures.waitAndTap(this.claimButton, {
-      elemDescription: 'Claim winnings button',
+      elemDescription: 'Tap claim winnings button on market details page',
+      delay: 3000,
     });
   }
 }

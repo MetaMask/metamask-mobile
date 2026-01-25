@@ -43,7 +43,7 @@ jest.mock(
 );
 
 // Mock sections.config to avoid complex Perps dependencies
-jest.mock('../../TrendingView/config/sections.config', () => ({
+jest.mock('../../TrendingView/sections.config', () => ({
   SECTIONS_CONFIG: {
     tokens: {
       getSearchableText: (item: { name?: string; symbol?: string }) =>
@@ -241,7 +241,7 @@ describe('TrendingTokensFullView', () => {
       false, // Exclude NavigationContainer since we're mocking navigation
     );
 
-    expect(getByText('Trending Tokens')).toBeOnTheScreen();
+    expect(getByText('Trending tokens')).toBeOnTheScreen();
     expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
   });
 

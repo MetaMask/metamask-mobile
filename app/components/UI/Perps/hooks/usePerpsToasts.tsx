@@ -20,6 +20,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { PerpsEventValues } from '../constants/eventNames';
 import { OrderDirection } from '../types/perps-types';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
@@ -294,6 +295,7 @@ const usePerpsToasts = (): {
         navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
           position,
           marketPrice,
+          source: PerpsEventValues.SOURCE.CLOSE_TOAST,
         });
       },
     }),

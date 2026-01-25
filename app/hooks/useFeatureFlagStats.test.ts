@@ -4,7 +4,7 @@ import {
   FeatureFlagOverrideContextType,
   useFeatureFlagOverride,
 } from '../contexts/FeatureFlagOverrideContext';
-import { FeatureFlagInfo } from '../util/feature-flags';
+import { FeatureFlagInfo, FeatureFlagType } from '../util/feature-flags';
 
 jest.mock('../contexts/FeatureFlagOverrideContext', () => ({
   useFeatureFlagOverride: jest.fn(),
@@ -30,7 +30,6 @@ describe('useFeatureFlagStats', () => {
     value,
     originalValue: value,
     type,
-    description: `Description for ${key}`,
     isOverridden,
   });
 
@@ -48,12 +47,17 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('returns correct stats for single boolean flag', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag', 'boolean', true),
+      createMockFeatureFlag(
+        'testFlag',
+        FeatureFlagType.FeatureFlagBoolean,
+        true,
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -69,12 +73,17 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('returns correct stats for single string flag', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag', 'string', 'test value'),
+      createMockFeatureFlag(
+        'testFlag',
+        FeatureFlagType.FeatureFlagString,
+        'test value',
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -90,12 +99,13 @@ describe('useFeatureFlagStats', () => {
       string: 1,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('returns correct stats for single number flag', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag', 'number', 42),
+      createMockFeatureFlag('testFlag', FeatureFlagType.FeatureFlagNumber, 42),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -111,12 +121,16 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 1,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('returns correct stats for single array flag', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag', 'array', ['item1', 'item2']),
+      createMockFeatureFlag('testFlag', FeatureFlagType.FeatureFlagArray, [
+        'item1',
+        'item2',
+      ]),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -132,12 +146,15 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 1,
+      abTest: 0,
     });
   });
 
   it('returns correct stats for single object flag', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag', 'object', { key: 'value' }),
+      createMockFeatureFlag('testFlag', FeatureFlagType.FeatureFlagObject, {
+        key: 'value',
+      }),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -153,15 +170,20 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('counts "boolean with minimumVersion" as boolean type', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag', 'boolean with minimumVersion', {
-        enabled: true,
-        minimumVersion: '1.0.0',
-      }),
+      createMockFeatureFlag(
+        'testFlag',
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+        {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -177,15 +199,20 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('counts "boolean nested" type as boolean type', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag', 'boolean nested', {
-        value: true,
-        otherProp: 'test',
-      }),
+      createMockFeatureFlag(
+        'testFlag',
+        FeatureFlagType.FeatureFlagBooleanNested,
+        {
+          value: true,
+          otherProp: 'test',
+        },
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -201,20 +228,41 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('returns correct stats for mixed feature flag types with known types only', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('booleanFlag', 'boolean', true),
-      createMockFeatureFlag('stringFlag', 'string', 'test'),
-      createMockFeatureFlag('numberFlag', 'number', 42),
-      createMockFeatureFlag('arrayFlag', 'array', ['item']),
-      createMockFeatureFlag('objectFlag', 'object', { key: 'value' }),
-      createMockFeatureFlag('versionFlag', 'boolean with minimumVersion', {
-        enabled: true,
-        minimumVersion: '1.0.0',
+      createMockFeatureFlag(
+        'booleanFlag',
+        FeatureFlagType.FeatureFlagBoolean,
+        true,
+      ),
+      createMockFeatureFlag(
+        'stringFlag',
+        FeatureFlagType.FeatureFlagString,
+        'test',
+      ),
+      createMockFeatureFlag(
+        'numberFlag',
+        FeatureFlagType.FeatureFlagNumber,
+        42,
+      ),
+      createMockFeatureFlag('arrayFlag', FeatureFlagType.FeatureFlagArray, [
+        'item',
+      ]),
+      createMockFeatureFlag('objectFlag', FeatureFlagType.FeatureFlagObject, {
+        key: 'value',
       }),
+      createMockFeatureFlag(
+        'versionFlag',
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+        {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -230,16 +278,37 @@ describe('useFeatureFlagStats', () => {
       string: 1,
       number: 1,
       array: 1,
+      abTest: 0,
     });
   });
 
   it('returns correct stats for multiple flags of same type', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('booleanFlag1', 'boolean', true),
-      createMockFeatureFlag('booleanFlag2', 'boolean', false),
-      createMockFeatureFlag('stringFlag1', 'string', 'test1'),
-      createMockFeatureFlag('stringFlag2', 'string', 'test2'),
-      createMockFeatureFlag('stringFlag3', 'string', ''),
+      createMockFeatureFlag(
+        'booleanFlag1',
+        FeatureFlagType.FeatureFlagBoolean,
+        true,
+      ),
+      createMockFeatureFlag(
+        'booleanFlag2',
+        FeatureFlagType.FeatureFlagBoolean,
+        false,
+      ),
+      createMockFeatureFlag(
+        'stringFlag1',
+        FeatureFlagType.FeatureFlagString,
+        'test1',
+      ),
+      createMockFeatureFlag(
+        'stringFlag2',
+        FeatureFlagType.FeatureFlagString,
+        'test2',
+      ),
+      createMockFeatureFlag(
+        'stringFlag3',
+        FeatureFlagType.FeatureFlagString,
+        '',
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -255,13 +324,19 @@ describe('useFeatureFlagStats', () => {
       string: 3,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('handles large number of feature flags correctly', () => {
     const mockFlags: FeatureFlagInfo[] = Array.from(
       { length: 100 },
-      (_, index) => createMockFeatureFlag(`flag${index}`, 'boolean', true),
+      (_, index) =>
+        createMockFeatureFlag(
+          `flag${index}`,
+          FeatureFlagType.FeatureFlagBoolean,
+          true,
+        ),
     );
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -277,12 +352,17 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('memoizes result and does not recalculate when featureFlagsList reference is same', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag', 'boolean', true),
+      createMockFeatureFlag(
+        'testFlag',
+        FeatureFlagType.FeatureFlagBoolean,
+        true,
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -302,7 +382,11 @@ describe('useFeatureFlagStats', () => {
 
   it('recalculates when featureFlagsList changes', () => {
     const initialFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag', 'boolean', true),
+      createMockFeatureFlag(
+        'testFlag',
+        FeatureFlagType.FeatureFlagBoolean,
+        true,
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -316,8 +400,16 @@ describe('useFeatureFlagStats', () => {
 
     // Change the feature flags list
     const newFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag1', 'boolean', true),
-      createMockFeatureFlag('testFlag2', 'string', 'test'),
+      createMockFeatureFlag(
+        'testFlag1',
+        FeatureFlagType.FeatureFlagBoolean,
+        true,
+      ),
+      createMockFeatureFlag(
+        'testFlag2',
+        FeatureFlagType.FeatureFlagString,
+        'test',
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -333,8 +425,18 @@ describe('useFeatureFlagStats', () => {
 
   it('handles flags with isOverridden property correctly', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('overriddenFlag', 'boolean', true, true),
-      createMockFeatureFlag('normalFlag', 'string', 'test', false),
+      createMockFeatureFlag(
+        'overriddenFlag',
+        FeatureFlagType.FeatureFlagBoolean,
+        true,
+        true,
+      ),
+      createMockFeatureFlag(
+        'normalFlag',
+        FeatureFlagType.FeatureFlagString,
+        'test',
+        false,
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -350,17 +452,42 @@ describe('useFeatureFlagStats', () => {
       string: 1,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('handles flags with different value types but same flag type', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('stringFlag1', 'string', 'hello'),
-      createMockFeatureFlag('stringFlag2', 'string', ''),
-      createMockFeatureFlag('stringFlag3', 'string', '123'),
-      createMockFeatureFlag('numberFlag1', 'number', 0),
-      createMockFeatureFlag('numberFlag2', 'number', -5),
-      createMockFeatureFlag('numberFlag3', 'number', 3.14),
+      createMockFeatureFlag(
+        'stringFlag1',
+        FeatureFlagType.FeatureFlagString,
+        'hello',
+      ),
+      createMockFeatureFlag(
+        'stringFlag2',
+        FeatureFlagType.FeatureFlagString,
+        '',
+      ),
+      createMockFeatureFlag(
+        'stringFlag3',
+        FeatureFlagType.FeatureFlagString,
+        '123',
+      ),
+      createMockFeatureFlag(
+        'numberFlag1',
+        FeatureFlagType.FeatureFlagNumber,
+        0,
+      ),
+      createMockFeatureFlag(
+        'numberFlag2',
+        FeatureFlagType.FeatureFlagNumber,
+        -5,
+      ),
+      createMockFeatureFlag(
+        'numberFlag3',
+        FeatureFlagType.FeatureFlagNumber,
+        3.14,
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -376,22 +503,31 @@ describe('useFeatureFlagStats', () => {
       string: 3,
       number: 3,
       array: 0,
+      abTest: 0,
     });
   });
 
   it('handles complex objects and arrays correctly', () => {
     const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('complexObject', 'object', {
-        nested: { deep: 'value' },
-        array: [1, 2, 3],
-        boolean: true,
-      }),
-      createMockFeatureFlag('complexArray', 'array', [
+      createMockFeatureFlag(
+        'complexObject',
+        FeatureFlagType.FeatureFlagObject,
+        {
+          nested: { deep: 'value' },
+          array: [1, 2, 3],
+          boolean: true,
+        },
+      ),
+      createMockFeatureFlag('complexArray', FeatureFlagType.FeatureFlagArray, [
         { id: 1, name: 'item1' },
         { id: 2, name: 'item2' },
       ]),
-      createMockFeatureFlag('emptyArray', 'array', []),
-      createMockFeatureFlag('emptyObject', 'object', {}),
+      createMockFeatureFlag('emptyArray', FeatureFlagType.FeatureFlagArray, []),
+      createMockFeatureFlag(
+        'emptyObject',
+        FeatureFlagType.FeatureFlagObject,
+        {},
+      ),
     ];
 
     mockUseFeatureFlagOverride.mockReturnValue({
@@ -407,6 +543,7 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 2,
+      abTest: 0,
     });
   });
 });

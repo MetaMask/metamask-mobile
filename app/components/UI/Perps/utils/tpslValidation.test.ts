@@ -18,6 +18,9 @@ import {
   sanitizePercentageInput,
 } from './tpslValidation';
 
+// Note: countSignificantFigures, hasExceededSignificantFigures, and roundToSignificantFigures
+// tests have been moved to formatUtils.test.ts since the implementations now live in formatUtils.ts
+
 describe('TPSL Validation Utilities', () => {
   describe('isValidTakeProfitPrice', () => {
     describe('Long positions', () => {

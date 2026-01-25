@@ -388,13 +388,9 @@ describe('AccountGroupDetails', () => {
     const accountNameLink = getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK);
     fireEvent.press(accountNameLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'MultichainAccountDetailActions',
-      {
-        screen: 'EditMultichainAccountName',
-        params: { accountGroup: mockAccountGroup },
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('EditMultichainAccountName', {
+      accountGroup: mockAccountGroup,
+    });
   });
 
   it('uses the group icon seed address to render the avatar', () => {

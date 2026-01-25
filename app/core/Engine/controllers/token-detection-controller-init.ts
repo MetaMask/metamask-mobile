@@ -27,8 +27,6 @@ export const tokenDetectionControllerInit: ControllerInitFunction<
 
   const controller = new TokenDetectionController({
     messenger: controllerMessenger,
-    platform: 'mobile',
-    useAccountsAPI: true,
     disabled: false,
     getBalancesInSingleCall: initMessenger.call.bind(
       initMessenger,

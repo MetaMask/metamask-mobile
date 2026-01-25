@@ -125,11 +125,11 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
               "alignItems": "center",
               "flexDirection": "row",
               "gap": 16,
-              "height": 48,
+              "height": 56,
             },
             false,
             {
-              "padding": 16,
+              "paddingHorizontal": 16,
             },
           ]
         }

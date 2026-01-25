@@ -483,9 +483,7 @@ describe('PerpsController', () => {
     it('initializes with default state', () => {
       // Constructor no longer auto-starts initialization (moved to Engine.ts)
       expect(controller.state.activeProvider).toBe('hyperliquid');
-      expect(controller.state.positions).toEqual([]);
       expect(controller.state.accountState).toBeNull();
-      expect(controller.state.connectionStatus).toBe('disconnected');
       expect(controller.state.initializationState).toBe('uninitialized'); // Waits for explicit initialization
       expect(controller.state.initializationError).toBeNull();
       expect(controller.state.initializationAttempts).toBe(0); // Not started yet
@@ -1480,18 +1478,6 @@ describe('PerpsController', () => {
       await controller.disconnect();
 
       expect(mockProvider.disconnect).toHaveBeenCalled();
-      expect(controller.state.connectionStatus).toBe('disconnected');
-    });
-
-    it('handles connection status from state', () => {
-      // Test that we can access connection status from controller state
-      expect(controller.state.connectionStatus).toBe('disconnected');
-
-      // Test that the state is accessible and has the expected default value
-      expect(typeof controller.state.connectionStatus).toBe('string');
-      expect(['connected', 'disconnected', 'connecting']).toContain(
-        controller.state.connectionStatus,
-      );
     });
   });
 

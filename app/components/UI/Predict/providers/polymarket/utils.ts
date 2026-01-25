@@ -386,7 +386,9 @@ export const submitClobOrder = async ({
 };
 
 export const isSportEvent = (event: PolymarketApiEvent): boolean =>
-  event.tags.some((tag) => tag.slug === 'sports');
+  (Array.isArray(event.tags) ? event.tags : []).some(
+    (tag) => tag.slug === 'sports',
+  );
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
@@ -562,7 +564,8 @@ export const sortMarkets = (
   event: PolymarketApiEvent,
   sortBy?: 'price' | 'ascending' | 'descending',
 ): PolymarketApiMarket[] => {
-  const { markets, sortBy: eventSortBy } = event;
+  const markets = Array.isArray(event.markets) ? event.markets : [];
+  const eventSortBy = event.sortBy;
 
   if (sortBy) {
     return sortMarketsByField(markets, sortBy);
@@ -605,28 +608,32 @@ export const parsePolymarketEvents = (
   sortMarketsBy?: 'price' | 'ascending' | 'descending',
 ): PredictMarket[] => {
   const parsedMarkets: PredictMarket[] = events.map(
-    (event: PolymarketApiEvent) => ({
-      id: event.id,
-      slug: event.slug,
-      providerId: 'polymarket',
-      title: event.title,
-      description: event.description,
-      image: event.icon,
-      status: event.closed
-        ? PredictMarketStatus.CLOSED
-        : PredictMarketStatus.OPEN,
-      recurrence: getRecurrence(event.series),
-      endDate: event.endDate,
-      category,
-      tags: event.tags.map((t) => t.label),
-      outcomes: sortMarkets(event, sortMarketsBy)
-        .filter((market: PolymarketApiMarket) => market.active !== false)
-        .map((market: PolymarketApiMarket) =>
-          parsePolymarketMarket(market, event),
-        ),
-      liquidity: event.liquidity,
-      volume: event.volume,
-    }),
+    (event: PolymarketApiEvent) => {
+      const tags = Array.isArray(event.tags) ? event.tags : [];
+
+      return {
+        id: event.id,
+        slug: event.slug,
+        providerId: 'polymarket',
+        title: event.title,
+        description: event.description,
+        image: event.icon,
+        status: event.closed
+          ? PredictMarketStatus.CLOSED
+          : PredictMarketStatus.OPEN,
+        recurrence: getRecurrence(event.series),
+        endDate: event.endDate,
+        category,
+        tags: tags.map((t) => t.label),
+        outcomes: sortMarkets(event, sortMarketsBy)
+          .filter((market: PolymarketApiMarket) => market?.active !== false)
+          .map((market: PolymarketApiMarket) =>
+            parsePolymarketMarket(market, event),
+          ),
+        liquidity: event.liquidity,
+        volume: event.volume,
+      };
+    },
   );
   return parsedMarkets;
 };
@@ -759,20 +766,20 @@ export const getParsedMarketsFromPolymarketApi = async (
   }
   const data = await response.json();
 
-  DevLogger.log('Polymarket response data:', data);
-
-  // Handle different response structures
-  const events = q ? data?.events : data?.data;
-
-  if (!events || !Array.isArray(events)) {
-    return [];
-  }
+  const eventsData = q ? data?.events : data?.data;
+  const events: PolymarketApiEvent[] = Array.isArray(eventsData)
+    ? eventsData
+    : [];
 
   const parsedMarkets: PredictMarket[] = parsePolymarketEvents(
     events,
     category,
     'price',
   );
+
+  if (q) {
+    return parsedMarkets.filter((m) => m.outcomes.length > 0);
+  }
 
   return parsedMarkets;
 };

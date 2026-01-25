@@ -1,4 +1,4 @@
-import { SmokeCore } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import AmountView from '../../pages/Send/AmountView';
@@ -21,7 +21,9 @@ const SHORTHAND_ADDRESS = '0x37Cc...FACE';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(
-  SmokeCore('Send ETH to the correct address after editing the recipient'),
+  SmokeWalletPlatform(
+    'Send ETH to the correct address after editing the recipient',
+  ),
   () => {
     beforeAll(async () => {
       jest.setTimeout(2500000);

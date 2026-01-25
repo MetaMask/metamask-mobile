@@ -92,6 +92,7 @@ const EarnWithdrawInputView = () => {
     preview: tronPreview,
     validateUnstakeAmount: tronValidateUnstakeAmount,
     confirmUnstake: tronConfirmUnstake,
+    tronAccountId,
   } = useTronUnstake({ token });
   const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
@@ -346,7 +347,7 @@ const EarnWithdrawInputView = () => {
         navBarEventOptions,
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         receiptTokenToUse,
-        tronApyPercent,
+        isTronEnabled ? tronApyPercent : null,
         ///: END:ONLY_INCLUDE_IF
       ),
     );
@@ -358,6 +359,7 @@ const EarnWithdrawInputView = () => {
     isLending,
     tokenLabel,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronEnabled,
     receiptTokenToUse,
     tronApyPercent,
     ///: END:ONLY_INCLUDE_IF
@@ -579,7 +581,12 @@ const EarnWithdrawInputView = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronEnabled) {
       const result = await tronConfirmUnstake?.(amountToken);
-      handleTronStakingNavigationResult(navigation, result, 'unstake');
+      handleTronStakingNavigationResult(
+        navigation,
+        result,
+        'unstake',
+        tronAccountId,
+      );
       return;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -598,6 +605,7 @@ const EarnWithdrawInputView = () => {
     tronConfirmUnstake,
     amountToken,
     navigation,
+    tronAccountId,
     ///: END:ONLY_INCLUDE_IF
     withdrawalToken?.experience?.type,
     handleLendingWithdrawalFlow,

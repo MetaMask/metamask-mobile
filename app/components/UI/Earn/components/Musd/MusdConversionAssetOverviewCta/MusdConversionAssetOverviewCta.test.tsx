@@ -4,6 +4,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import MusdConversionAssetOverviewCta from '.';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
+import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import Logger from '../../../../../../util/Logger';
@@ -12,18 +13,7 @@ import { TokenI } from '../../../../Tokens/types';
 
 jest.mock('../../../hooks/useMusdConversion');
 jest.mock('../../../../../../util/Logger');
-
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-    }),
-  };
-});
+jest.mock('../../../hooks/useMusdConversionTokens');
 
 const createMockToken = (overrides: Partial<TokenI> = {}): TokenI => ({
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -50,6 +40,18 @@ describe('MusdConversionAssetOverviewCta', () => {
       initiateConversion: mockInitiateConversion,
       error: null,
       hasSeenConversionEducationScreen: true,
+    });
+
+    jest.mocked(useMusdConversionTokens).mockReturnValue({
+      isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+      isConversionToken: jest.fn().mockReturnValue(false),
+      isTokenWithCta: jest.fn().mockReturnValue(false),
+      tokens: [],
+      tokensWithCTAs: [],
+      filterAllowedTokens: jest.fn(),
+      getMusdOutputChainId: jest
+        .fn()
+        .mockImplementation((chainId) => chainId || CHAIN_IDS.MAINNET),
     });
   });
 
@@ -97,78 +99,6 @@ describe('MusdConversionAssetOverviewCta', () => {
       expect(getByText(/Earn rewards when/)).toBeOnTheScreen();
       expect(getByText(/you convert to/)).toBeOnTheScreen();
       expect(getByText('mUSD')).toBeOnTheScreen();
-    });
-  });
-
-  describe('press handler - education screen path', () => {
-    beforeEach(() => {
-      jest.mocked(useMusdConversion).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
-        error: null,
-        hasSeenConversionEducationScreen: false,
-      });
-    });
-
-    it('navigates to education screen when user has not seen it', async () => {
-      const mockToken = createMockToken();
-
-      const { getByText } = renderWithProvider(
-        <MusdConversionAssetOverviewCta asset={mockToken} />,
-        { state: initialRootState },
-      );
-
-      await act(async () => {
-        fireEvent.press(getByText('mUSD'));
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.EARN.ROOT,
-        expect.objectContaining({
-          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        }),
-      );
-    });
-
-    it('passes correct route params to education screen', async () => {
-      const mockToken = createMockToken({
-        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-        chainId: '0x1',
-      });
-
-      const { getByText } = renderWithProvider(
-        <MusdConversionAssetOverviewCta asset={mockToken} />,
-        { state: initialRootState },
-      );
-
-      await act(async () => {
-        fireEvent.press(getByText('mUSD'));
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        params: {
-          preferredPaymentToken: {
-            address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-            chainId: '0x1',
-          },
-          outputChainId: CHAIN_IDS.MAINNET,
-        },
-      });
-    });
-
-    it('does not call initiateConversion when navigating to education screen', async () => {
-      const mockToken = createMockToken();
-
-      const { getByText } = renderWithProvider(
-        <MusdConversionAssetOverviewCta asset={mockToken} />,
-        { state: initialRootState },
-      );
-
-      await act(async () => {
-        fireEvent.press(getByText('mUSD'));
-      });
-
-      expect(mockInitiateConversion).not.toHaveBeenCalled();
     });
   });
 

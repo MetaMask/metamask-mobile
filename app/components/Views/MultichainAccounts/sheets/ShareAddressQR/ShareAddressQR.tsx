@@ -4,7 +4,7 @@ import { AccountGroupId } from '@metamask/account-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ParamListBase,
@@ -71,9 +71,11 @@ export const ShareAddressQR = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader onBack={handleOnBack}>
-        {`${accountGroupName} / ${networkName}`}
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={`${accountGroupName} / ${networkName}`}
+        onClose={handleOnBack}
+        closeButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}
+      />
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}

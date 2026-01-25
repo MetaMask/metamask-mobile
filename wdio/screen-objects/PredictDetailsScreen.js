@@ -89,7 +89,7 @@ class PredictDetailsScreen {
       const backButton = await this.backButton;
       await Gestures.waitAndTap(backButton);
     } else {
-      await AppwrightGestures.tap(this.backButton);
+      await AppwrightGestures.tap(await this.backButton);
     }
   }
 
@@ -107,7 +107,7 @@ class PredictDetailsScreen {
       const positionsTab = await this.positionsTab;
       await Gestures.waitAndTap(positionsTab);
     } else {
-      await AppwrightGestures.tap(this.positionsTab);
+      await AppwrightGestures.tap(await this.positionsTab);
     }
   }
 
@@ -116,7 +116,7 @@ class PredictDetailsScreen {
       const outcomesTab = await this.outcomesTab;
       await Gestures.waitAndTap(outcomesTab);
     } else {
-      await AppwrightGestures.tap(this.outcomesTab);
+      await AppwrightGestures.tap(await this.outcomesTab);
     }
   }
 

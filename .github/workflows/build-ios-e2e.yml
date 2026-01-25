@@ -32,6 +32,8 @@ jobs:
       SEEDLESS_ONBOARDING_ENABLED: 'true'
       MM_NOTIFICATIONS_UI_ENABLED: 'true'
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
+      YARN_ENABLE_GLOBAL_CACHE: 'true'
+      MM_POOLED_STAKING_ENABLED: 'true'
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -67,6 +69,7 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
+        timeout-minutes: 15
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: ios
@@ -116,9 +119,6 @@ jobs:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-          restore-keys: |
-            ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-            ios-app-
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
