@@ -59,6 +59,11 @@ const PerpsFundingTransactionView: React.FC = () => {
   if (!transaction) {
     return (
       <ScreenView>
+        <HeaderCenter
+          includesTopInset
+          title={strings('perps.transactions.not_found')}
+          onBack={() => navigation.goBack()}
+        />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>

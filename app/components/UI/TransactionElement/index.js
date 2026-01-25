@@ -772,6 +772,8 @@ class TransactionElement extends PureComponent {
               <HeaderCenter
                 title={transactionElement?.actionKey}
                 onClose={this.onCloseDetailsModal}
+                titleProps={{ testID: 'details-modal-title' }}
+                closeButtonProps={{ testID: 'details-modal-close-icon' }}
               />
               <TransactionDetails
                 transactionObject={tx}
@@ -796,6 +798,8 @@ class TransactionElement extends PureComponent {
             <HeaderCenter
               title={strings('transactions.import_wallet_label')}
               onClose={this.onCloseImportWalletModal}
+              titleProps={{ testID: 'details-modal-title' }}
+              closeButtonProps={{ testID: 'details-modal-close-icon' }}
             />
             <View style={styles.summaryWrapper}>
               <Text style={styles.fromDeviceText}>

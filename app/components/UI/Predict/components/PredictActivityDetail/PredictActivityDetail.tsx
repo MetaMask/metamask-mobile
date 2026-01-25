@@ -380,7 +380,9 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
             strings('predict.transactions.activity_details')
           }
           onBack={handleBackPress}
-          testID={PredictActivityDetailsSelectorsIDs.BACK_BUTTON}
+          backButtonProps={{
+            testID: PredictActivityDetailsSelectorsIDs.BACK_BUTTON,
+          }}
           includesTopInset
         />
         <Box twClassName="px-4">
