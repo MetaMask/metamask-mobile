@@ -5,10 +5,8 @@ import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
 import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
-import TransactionTypes from '../TransactionTypes';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -47,18 +45,6 @@ import Engine from '../Engine';
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
 };
-
-/**
- * Internal MetaMask origins that should never be used by external WalletConnect sessions.
- * These origins trigger auto-sign behavior for swaps/bridges and must be blocked
- * to prevent malicious dApps from spoofing internal transactions.
- */
-const BLOCKED_INTERNAL_ORIGINS = [
-  ORIGIN_METAMASK, // 'metamask' - used for unified swaps/bridge
-  process.env.MM_FOX_CODE, // legacy swaps origin
-  TransactionTypes.MMM, // 'MetaMask Mobile' - internal mobile transactions
-  TransactionTypes.MM, // 'metamask' - alternative internal origin
-].filter(Boolean) as string[];
 
 const RPC_WALLET_SWITCHETHEREUMCHAIN = 'wallet_switchEthereumChain';
 const RPC_WALLET_ADDETHEREUMCHAIN = 'wallet_addEthereumChain';
@@ -633,32 +619,6 @@ class WalletConnect2Session {
     const origin = getRequestOrigin(requestEvent, this.origin);
     const method = requestEvent.params.request.method;
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
-
-    // Security: Block internal MetaMask origins from WalletConnect sessions
-    // These origins trigger auto-sign behavior for swaps/bridges and could be
-    // exploited by malicious dApps to execute transactions without user confirmation
-    if (
-      origin &&
-      BLOCKED_INTERNAL_ORIGINS.some(
-        (blockedOrigin) => origin.toLowerCase() === blockedOrigin.toLowerCase(),
-      )
-    ) {
-      DevLogger.log(
-        `WC2::handleRequest blocked internal origin attempt: ${origin}`,
-      );
-      this._isHandlingRequest = false;
-      return this.web3Wallet.respondSessionRequest({
-        topic: this.session.topic,
-        response: {
-          id: requestEvent.id,
-          jsonrpc: '2.0',
-          error: {
-            code: 4100,
-            message: 'Unauthorized: Invalid origin for WalletConnect session',
-          },
-        },
-      });
-    }
 
     let caip2ChainId: CaipChainId;
     let hexChainId: Hex;
