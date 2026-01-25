@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, fireEvent } from '@testing-library/react-native';
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
 import {
   createMockNotificationEthSent,
@@ -21,6 +21,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import * as UseNotificationsModule from '../../../util/notifications/hooks/useNotifications';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
+import Routes from '../../../constants/navigation/Routes';
 
 const navigationMock = {
   navigate: jest.fn(),
@@ -56,6 +57,40 @@ const mockInitialState: DeepPartial<RootState> = {
 describe('NotificationsView - navigationOptions', () => {
   it('has navigationOptions with headerShown set to false', () => {
     expect(NotificationsView.navigationOptions).toEqual({ headerShown: false });
+  });
+});
+
+describe('NotificationsView - header interactions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('navigates to wallet home when back button is pressed', () => {
+    const { getAllByTestId } = renderWithProvider(
+      <NotificationsView navigation={navigationMock} />,
+      { state: mockInitialState },
+    );
+
+    const buttons = getAllByTestId('button-icon');
+    const backButton = buttons[0];
+    fireEvent.press(backButton);
+
+    expect(navigationMock.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+  });
+
+  it('navigates to notifications settings when settings button is pressed', () => {
+    const { getAllByTestId } = renderWithProvider(
+      <NotificationsView navigation={navigationMock} />,
+      { state: mockInitialState },
+    );
+
+    const buttons = getAllByTestId('button-icon');
+    const settingsButton = buttons[buttons.length - 1];
+    fireEvent.press(settingsButton);
+
+    expect(navigationMock.navigate).toHaveBeenCalledWith(
+      Routes.SETTINGS.NOTIFICATIONS,
+    );
   });
 });
 
