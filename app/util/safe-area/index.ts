@@ -1,0 +1,1 @@
+export { getSafeAreaEdges } from './getSafeAreaEdges';

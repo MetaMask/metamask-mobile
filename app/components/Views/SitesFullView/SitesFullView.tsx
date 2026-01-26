@@ -1,12 +1,11 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { Platform, StyleSheet, View, RefreshControl } from 'react-native';
+import { StyleSheet, View, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 // eslint-disable-next-line no-duplicate-imports
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
-  type Edge,
 } from 'react-native-safe-area-context';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { Theme } from '../../../util/theme/models';
@@ -16,6 +15,7 @@ import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import SitesSearchFooter from '../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../locales/i18n';
 import ListHeaderWithSearch from '../../UI/shared/ListHeaderWithSearch/ListHeaderWithSearch';
+import { getSafeAreaEdges } from '../../../util/safe-area';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -32,9 +32,6 @@ const createStyles = (theme: Theme) =>
       paddingRight: 16,
     },
   });
-
-const safeAreaEdges: Edge[] =
-  Platform.OS === 'android' ? ['left', 'right', 'bottom'] : ['left', 'right'];
 
 const SitesFullView: React.FC = () => {
   const theme = useAppThemeFromContext();
@@ -93,7 +90,7 @@ const SitesFullView: React.FC = () => {
   }, [isSearchActive, searchQuery]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
+    <SafeAreaView style={styles.safeArea} edges={getSafeAreaEdges()}>
       <View
         style={[
           styles.headerContainer,

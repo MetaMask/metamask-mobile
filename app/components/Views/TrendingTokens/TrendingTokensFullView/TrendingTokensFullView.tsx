@@ -4,10 +4,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import {
   SafeAreaView,
   useSafeAreaInsets,
-  type Edge,
 } from 'react-native-safe-area-context';
 import {
-  Platform,
   StyleSheet,
   View,
   TouchableOpacity,
@@ -45,6 +43,7 @@ import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingToken
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
+import { getSafeAreaEdges } from '../../../../util/safe-area';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -120,9 +119,6 @@ const createStyles = (theme: Theme) =>
       opacity: 0.5,
     },
   });
-
-const safeAreaEdges: Edge[] =
-  Platform.OS === 'android' ? ['left', 'right', 'bottom'] : ['left', 'right'];
 
 const TrendingTokensFullView = () => {
   const navigation =
@@ -306,7 +302,7 @@ const TrendingTokensFullView = () => {
   }, [selectedPriceChangeOption]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
+    <SafeAreaView style={styles.safeArea} edges={getSafeAreaEdges()}>
       <View
         style={[
           styles.headerContainer,
