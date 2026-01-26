@@ -17,6 +17,8 @@ import { DappVariants } from '../../../tests/framework/Constants';
 import ToastModal from '../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeWalletPlatform('EVM Provider Events'), () => {
   beforeAll(async () => {
@@ -89,6 +91,12 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           })
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(false),
+          );
+        },
       },
       async () => {
         await loginToApp();
@@ -167,6 +175,12 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           })
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(false),
+          );
+        },
       },
       async () => {
         await loginToApp();

@@ -1147,7 +1147,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         return { success: true };
       }
 
-      return { success: false, error: `Transfer failed: ${result.status}` };
+      return { success: false, error: PERPS_ERROR_CODES.TRANSFER_FAILED };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.deps.debugLogger.log(
@@ -1181,7 +1181,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     if (!usdhToken || !usdcToken) {
       return {
         success: false,
-        error: 'USDH or USDC token not found in spot metadata',
+        error: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND,
       };
     }
 
@@ -1193,7 +1193,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     );
 
     if (!usdhUsdcPair) {
-      return { success: false, error: 'USDH/USDC spot pair not found' };
+      return { success: false, error: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND };
     }
 
     const spotAssetId = 10000 + usdhUsdcPair.index;
@@ -1217,7 +1217,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     if (usdhPrice === 0) {
       return {
         success: false,
-        error: `No price available for USDH/USDC pair (${pairKey})`,
+        error: PERPS_ERROR_CODES.PRICE_UNAVAILABLE,
       };
     }
 
@@ -1280,7 +1280,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       if (result.status !== 'ok') {
         return {
           success: false,
-          error: `Swap failed: ${JSON.stringify(result)}`,
+          error: PERPS_ERROR_CODES.SWAP_FAILED,
         };
       }
 
@@ -3156,7 +3156,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
           orderId: order.orderId,
           symbol: order.symbol,
           success: false,
-          error: error instanceof Error ? error.message : 'Batch cancel failed',
+          error:
+            error instanceof Error
+              ? error.message
+              : PERPS_ERROR_CODES.BATCH_CANCEL_FAILED,
         })),
       };
     }
@@ -3378,7 +3381,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         results: positionsToClose.map((position) => ({
           symbol: position.symbol,
           success: false,
-          error: error instanceof Error ? error.message : 'Batch close failed',
+          error:
+            error instanceof Error
+              ? error.message
+              : PERPS_ERROR_CODES.BATCH_CLOSE_FAILED,
         })),
       };
     }
@@ -5641,7 +5647,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         };
       }
 
-      throw new Error(`Transfer failed: ${result.status}`);
+      throw new Error(PERPS_ERROR_CODES.TRANSFER_FAILED);
     } catch (error) {
       this.deps.debugLogger.log('❌ HyperLiquidProvider: TRANSFER FAILED', {
         error: error instanceof Error ? error.message : String(error),
