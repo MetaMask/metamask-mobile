@@ -1,40 +1,37 @@
 import SendView from '../../pages/Send/RedesignedSendView';
-import SolanaTestDApp from '../../pages/Browser/SolanaTestDApp';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeConfirmationsRedesigned } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import { Mockttp } from 'mockttp';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagTronAccounts,
+  remoteFeatureMultichainAccountsAccountDetailsV2,
+} from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { loginToApp } from '../../viewHelper';
+import { Mockttp } from 'mockttp';
 
-const RECIPIENT = '4Nd1mZyJY5ZqzR3n8bQF7h5L2Q9gY1yTtM6nQhc7P1Dp';
-
-describe(SmokeConfirmationsRedesigned('Send SOL token'), () => {
-  it('should send solana to an address', async () => {
+describe(SmokeConfirmationsRedesigned('Send TRX token'), () => {
+  it('shows insufficient funds', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagTronAccounts(true),
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          });
         },
       },
       async () => {
         await loginToApp();
         await device.disableSynchronization();
-        await WalletView.tapOnToken('Solana');
+        await WalletView.tapOnToken('Tron');
         await TokenOverview.tapSendButton();
         await SendView.enterZeroAmount();
-        await SendView.pressContinueButton();
-        await SendView.inputRecipientAddress(RECIPIENT);
-        await SendView.pressReviewButton();
-        await SolanaTestDApp.tapCancelButton();
+        await SendView.checkInsufficientFundsError();
       },
     );
   });
