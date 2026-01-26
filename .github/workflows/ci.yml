@@ -546,6 +546,7 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
     needs:
       [
         check-diff,
@@ -561,7 +562,32 @@ jobs:
     steps:
       - name: Set jobs passed status
         id: jobs-passed-status
-        run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
+        env:
+          NEEDS_CONTEXT: ${{ toJSON(needs) }}
+        run: |
+          # Check results of all required jobs dynamically
+          # Jobs must either succeed or be skipped (skipped is OK for merge_group events)
+
+          FAILED="false"
+
+          # Use process substitution to iterate over all jobs in needs context
+          while read -r job_name result; do
+            if [[ "$result" == "failure" ]] || [[ "$result" == "cancelled" ]]; then
+              echo "::error::Job '$job_name' failed with result: $result"
+              FAILED="true"
+            elif [[ "$result" == "skipped" ]]; then
+              echo "Job '$job_name' was skipped (OK for merge_group events)"
+            else
+              echo "Job '$job_name' passed"
+            fi
+          done < <(echo "$NEEDS_CONTEXT" | jq -r 'to_entries[] | "\(.key) \(.value.result)"')
+
+          if [[ "$FAILED" == "true" ]]; then
+            echo "Some required jobs failed"
+            exit 1
+          fi
+
+          echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
   check-all-jobs-pass:
     name: Check all jobs pass
     if: ${{ !cancelled() }}
