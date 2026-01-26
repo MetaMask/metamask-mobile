@@ -210,7 +210,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     expect(mockOnDismiss).toHaveBeenCalledTimes(1);
   });
 
-  it('renders CTA when asset is not in allowlist', () => {
+  it('renders CTA component regardless of allowlist status', () => {
     const mockAssetNotInAllowlist = {
       ...mockAsset,
       symbol: 'USDT', // Not in allowlist
@@ -242,8 +242,9 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       { state },
     );
 
-    // Component always renders, but visibility is controlled by parent
-    // The parent would hide it based on shouldShowAssetOverviewCta hook
+    // Component always renders when called - it's a presentational component
+    // Visibility logic (including allowlist checks) is handled by the parent
+    // component via shouldShowAssetOverviewCta hook, not by this component itself
     expect(
       queryByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
     ).toBeOnTheScreen();

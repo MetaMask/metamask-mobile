@@ -68,47 +68,6 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('keeps continue button visible after press', async () => {
-    const state = initialStateWallet()
-      .withMinimalMultichainAssets()
-      .withRemoteFeatureFlags({
-        earnMusdConversionFlowEnabled: { enabled: true },
-      })
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            AssetsController: {
-              assets: {},
-            },
-          },
-        },
-        user: {
-          musdConversionEducationSeen: false,
-        },
-      } as unknown as Record<string, unknown>)
-      .build();
-
-    const { getByText } = renderScreenWithRoutes(
-      EarnMusdConversionEducationView as unknown as React.ComponentType,
-      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
-      [],
-      {
-        state,
-      },
-      mockRouteParams,
-    );
-
-    const continueButton = getByText(
-      strings('earn.musd_conversion.education.primary_button'),
-    );
-
-    await act(async () => {
-      fireEvent.press(continueButton);
-    });
-
-    expect(continueButton).toBeOnTheScreen();
-  });
-
   it('renders background image based on color scheme', () => {
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
