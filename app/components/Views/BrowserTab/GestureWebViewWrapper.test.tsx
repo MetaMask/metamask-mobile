@@ -3,22 +3,8 @@
  *
  * COVERAGE: ~96% statement coverage, 100% function coverage
  *
- * be verified through manual testing or E2E tests when available.
- * This test file achieves high coverage by:
- * 1. Capturing gesture handler callbacks (onTouchesDown, onUpdate, onEnd, onFinalize)
- *    via mocks and invoking them directly with simulated touch events
- * 2. Testing the full gesture flow: activation → update → end → finalize
- * 3. Validating all edge cases and error conditions
- *
- * Tests cover:
- * - Component rendering and prop handling
- * - Gesture setup (Pan, Native, Race composition)
- * - Constants validation (edge threshold, swipe threshold, pull threshold)
- * - Business logic calculations (edge detection, thresholds, progress)
- * - Enablement conditions (gestures disabled when URL bar focused, etc.)
- * - Shared value synchronization from props
- * - Complete gesture flows for back, forward, and refresh gestures
- * - Edge cases (wrong direction swipes, upward pull cancellation, over-pull)
+ * This test file achieves high coverage by capturing gesture handler callbacks
+ * and invoking them directly with simulated touch events.
  *
  * NOTE: ~4% uncovered code is handleSwipeNavigation callback chain invoked via
  * runOnJS, which requires the actual navigation callbacks to be called.
@@ -48,14 +34,14 @@ const capturedCallbacks: {
 } = {};
 
 // Mock react-native-gesture-handler
-// Define the type explicitly to avoid circular reference TypeScript error
-type MockPanGestureType = {
+// Define the interface explicitly to avoid circular reference TypeScript error
+interface MockPanGestureType {
   manualActivation: jest.Mock;
   onTouchesDown: jest.Mock;
   onUpdate: jest.Mock;
   onEnd: jest.Mock;
   onFinalize: jest.Mock;
-};
+}
 
 const mockPanGesture: MockPanGestureType = {
   manualActivation: jest.fn(function (this: MockPanGestureType) {
@@ -136,7 +122,6 @@ jest.mock('react-native-reanimated', () => ({
 }));
 
 // Mock expo-haptics
-const mockImpactAsync = jest.fn().mockResolvedValue(undefined);
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn().mockResolvedValue(undefined),
   ImpactFeedbackStyle: {
@@ -645,7 +630,10 @@ describe('GestureWebViewWrapper', () => {
         const stateManager = createStateManager();
 
         // Touch down on left edge
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(10, 200), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(10, 200),
+          stateManager,
+        );
         expect(stateManager.activate).toHaveBeenCalled();
 
         // Update with positive translation (swiping right)
@@ -694,7 +682,10 @@ describe('GestureWebViewWrapper', () => {
         const stateManager = createStateManager();
 
         // Touch down in pull zone
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(200, 25), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(200, 25),
+          stateManager,
+        );
         expect(stateManager.activate).toHaveBeenCalled();
 
         // Update with positive Y translation (pulling down)
@@ -712,7 +703,10 @@ describe('GestureWebViewWrapper', () => {
         renderComponent({ backEnabled: true, onGoBack });
         const stateManager = createStateManager();
 
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(10, 200), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(10, 200),
+          stateManager,
+        );
         capturedCallbacks.onUpdate?.(createUpdateEvent(20, 0)); // Small translation
         capturedCallbacks.onEnd?.(createEndEvent(20, 0)); // Below threshold
 
@@ -746,7 +740,10 @@ describe('GestureWebViewWrapper', () => {
         renderComponent({ scrollY, isRefreshing, onReload });
         const stateManager = createStateManager();
 
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(200, 25), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(200, 25),
+          stateManager,
+        );
         capturedCallbacks.onUpdate?.(createUpdateEvent(0, 30)); // Small pull
         capturedCallbacks.onEnd?.(createEndEvent(0, 30)); // Below threshold
       });
@@ -757,7 +754,10 @@ describe('GestureWebViewWrapper', () => {
         renderComponent({ backEnabled: true });
         const stateManager = createStateManager();
 
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(10, 200), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(10, 200),
+          stateManager,
+        );
         capturedCallbacks.onUpdate?.(createUpdateEvent(0, 0));
       });
 
@@ -765,7 +765,10 @@ describe('GestureWebViewWrapper', () => {
         renderComponent({ backEnabled: true });
         const stateManager = createStateManager();
 
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(10, 200), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(10, 200),
+          stateManager,
+        );
         capturedCallbacks.onUpdate?.(createUpdateEvent(-50, 0)); // Wrong direction
       });
 
@@ -792,7 +795,10 @@ describe('GestureWebViewWrapper', () => {
         renderComponent({ scrollY, isRefreshing });
         const stateManager = createStateManager();
 
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(200, 25), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(200, 25),
+          stateManager,
+        );
         capturedCallbacks.onUpdate?.(createUpdateEvent(0, -10)); // Upward movement
       });
 
@@ -802,7 +808,10 @@ describe('GestureWebViewWrapper', () => {
         renderComponent({ scrollY, isRefreshing });
         const stateManager = createStateManager();
 
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(200, 25), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(200, 25),
+          stateManager,
+        );
         capturedCallbacks.onUpdate?.(createUpdateEvent(0, 150)); // Large pull (1.5x threshold)
       });
     });
@@ -828,7 +837,9 @@ describe('GestureWebViewWrapper', () => {
         // Swipe left far enough to trigger navigation (threshold is 30% of screen)
         const swipeThreshold = SCREEN_WIDTH * SWIPE_THRESHOLD;
         expect(() =>
-          capturedCallbacks.onUpdate?.(createUpdateEvent(-swipeThreshold - 10, 0)),
+          capturedCallbacks.onUpdate?.(
+            createUpdateEvent(-swipeThreshold - 10, 0),
+          ),
         ).not.toThrow();
         expect(() =>
           capturedCallbacks.onEnd?.(createEndEvent(-swipeThreshold - 10, 0)),
@@ -841,13 +852,18 @@ describe('GestureWebViewWrapper', () => {
         const stateManager = createStateManager();
 
         // Touch down on left edge
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(10, 200), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(10, 200),
+          stateManager,
+        );
         expect(stateManager.activate).toHaveBeenCalled();
 
         // Swipe right far enough to trigger navigation (threshold is 30% of screen)
         const swipeThreshold = SCREEN_WIDTH * SWIPE_THRESHOLD;
         expect(() =>
-          capturedCallbacks.onUpdate?.(createUpdateEvent(swipeThreshold + 10, 0)),
+          capturedCallbacks.onUpdate?.(
+            createUpdateEvent(swipeThreshold + 10, 0),
+          ),
         ).not.toThrow();
         expect(() =>
           capturedCallbacks.onEnd?.(createEndEvent(swipeThreshold + 10, 0)),
@@ -864,12 +880,17 @@ describe('GestureWebViewWrapper', () => {
         const stateManager = createStateManager();
 
         // Touch down in pull zone
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(200, 25), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(200, 25),
+          stateManager,
+        );
         expect(stateManager.activate).toHaveBeenCalled();
 
         // Pull down enough to trigger refresh (threshold is 80px)
         expect(() =>
-          capturedCallbacks.onUpdate?.(createUpdateEvent(0, PULL_THRESHOLD + 10)),
+          capturedCallbacks.onUpdate?.(
+            createUpdateEvent(0, PULL_THRESHOLD + 10),
+          ),
         ).not.toThrow();
         expect(() =>
           capturedCallbacks.onEnd?.(createEndEvent(0, PULL_THRESHOLD + 10)),
@@ -884,7 +905,10 @@ describe('GestureWebViewWrapper', () => {
         const stateManager = createStateManager();
 
         // Touch down should fail because already refreshing
-        capturedCallbacks.onTouchesDown?.(createTouchEvent(200, 25), stateManager);
+        capturedCallbacks.onTouchesDown?.(
+          createTouchEvent(200, 25),
+          stateManager,
+        );
 
         expect(stateManager.fail).toHaveBeenCalled();
       });
