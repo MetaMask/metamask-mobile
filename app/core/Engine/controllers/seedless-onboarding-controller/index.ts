@@ -7,7 +7,7 @@ import {
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
-import { EncryptionKey } from '../../../Encryptor/types';
+import { EncryptionKey, KeyDerivationOptions } from '../../../Encryptor/types';
 import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
 
@@ -47,7 +47,12 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
       // Typing issue
       decryptWithKey: encryptor.decryptWithKey as unknown as (
         key: EncryptionKey,
-        encryptedString: string,
+        encryptedObject: {
+          data: string;
+          iv: string;
+          salt?: string;
+          keyMetadata?: KeyDerivationOptions;
+        },
       ) => Promise<unknown>,
     },
     network: web3AuthNetwork as Web3AuthNetwork,
