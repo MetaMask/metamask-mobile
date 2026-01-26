@@ -835,7 +835,7 @@ export class HyperLiquidSubscriptionService {
       }
     });
 
-    this.clientService.ensureSubscriptionClient(
+    await this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
 

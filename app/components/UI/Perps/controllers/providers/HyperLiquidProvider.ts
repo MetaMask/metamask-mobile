@@ -26,7 +26,10 @@ import {
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
-import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
+import {
+  HyperLiquidClientService,
+  WebSocketConnectionState,
+} from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import {
@@ -386,16 +389,32 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const wallet = this.walletService.createWalletAdapter();
       await this.clientService.initialize(wallet);
 
-      // Set reconnection callback to restore subscriptions when WebSocket reconnects
+      // Set termination callback for logging when WebSocket terminates
+      // Note: Do NOT restore subscriptions here - termination means connection failed permanently
+      this.clientService.setOnTerminateCallback((error: Error) => {
+        this.deps.debugLogger.log(
+          '[HyperLiquidProvider] WebSocket terminated',
+          {
+            error: error.message,
+          },
+        );
+      });
+
+      // Set reconnection callback to restore subscriptions after successful reconnection
+      // This is called in handleConnectionDrop() after the WebSocket reconnects successfully
       this.clientService.setOnReconnectCallback(async () => {
         try {
-          // Restore subscription service subscriptions
+          this.deps.debugLogger.log(
+            '[HyperLiquidProvider] WebSocket reconnected, restoring subscriptions',
+          );
           await this.subscriptionService.restoreSubscriptions();
-
           const streamManager = getStreamManagerInstance();
           streamManager.clearAllChannels();
-        } catch {
-          // Ignore errors during reconnection
+        } catch (restoreError) {
+          this.deps.debugLogger.log(
+            '[HyperLiquidProvider] Failed to restore subscriptions',
+            restoreError,
+          );
         }
       });
 
@@ -6458,6 +6477,40 @@ export class HyperLiquidProvider implements IPerpsProvider {
     } finally {
       clearTimeout(timeoutId);
     }
+  }
+
+  /**
+   * Get the current WebSocket connection state from the client service.
+   * Used by the UI to monitor connection health and show notifications.
+   *
+   * @returns The current WebSocket connection state
+   */
+  getWebSocketConnectionState(): WebSocketConnectionState {
+    return this.clientService.getConnectionState();
+  }
+
+  /**
+   * Subscribe to WebSocket connection state changes.
+   * The listener will be called immediately with the current state and whenever the state changes.
+   *
+   * @param listener - Callback function that receives the new connection state and reconnection attempt
+   * @returns Unsubscribe function to remove the listener
+   */
+  subscribeToConnectionState(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void {
+    return this.clientService.subscribeToConnectionState(listener);
+  }
+
+  /**
+   * Manually trigger a WebSocket reconnection attempt.
+   * Used by the UI retry button when connection is lost.
+   */
+  async reconnect(): Promise<void> {
+    return this.clientService.reconnect();
   }
 
   /**

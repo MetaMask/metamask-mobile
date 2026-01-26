@@ -104,7 +104,7 @@ describe('ExploreSearchResults', () => {
     );
 
     expect(getByTestId('trending-search-results-list')).toBeDefined();
-    expect(getByText('Tokens')).toBeDefined();
+    expect(getByText('Trending tokens')).toBeDefined();
     expect(getByText('Perps')).toBeDefined();
     expect(getByText('Predictions')).toBeDefined();
   });
@@ -129,7 +129,7 @@ describe('ExploreSearchResults', () => {
       <ExploreSearchResults searchQuery="btc" />,
     );
 
-    expect(getByText('Tokens')).toBeDefined();
+    expect(getByText('Trending tokens')).toBeDefined();
     expect(queryByText('Perps')).toBeNull();
     expect(queryByText('Predictions')).toBeNull();
   });
