@@ -254,7 +254,7 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   },
   {
     enableMultichainAccountsState2: {
-      enabled: false,
+      enabled: true,
       featureVersion: '2',
       minimumVersion: '7.53.0',
     },
