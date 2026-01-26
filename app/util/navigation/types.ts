@@ -22,6 +22,14 @@ import type { EarnParamList } from '../../components/UI/Earn/routes/types';
 import type { BridgeParamList } from '../../components/UI/Bridge/types';
 import type { CardParamList } from '../../components/UI/Card/routes/types';
 import type { RampParamList } from '../../components/UI/Ramp/types';
+import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+import type { PredictNavigationParamList } from '../../components/UI/Predict/types/navigation';
+import type {
+  RootModalFlowParamList,
+  MultichainAccountDetailActionsParamList,
+  RewardsBottomSheetModalParamList,
+  WalletTabHomeParamList,
+} from '../../components/Nav/App/types';
 
 // Re-export child param lists for external use
 export type { StakeParamList } from '../../components/UI/Stake/routes/types';
@@ -29,6 +37,14 @@ export type { EarnParamList } from '../../components/UI/Earn/routes/types';
 export type { BridgeParamList } from '../../components/UI/Bridge/types';
 export type { CardParamList } from '../../components/UI/Card/routes/types';
 export type { RampParamList } from '../../components/UI/Ramp/types';
+export type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+export type { PredictNavigationParamList } from '../../components/UI/Predict/types/navigation';
+export type {
+  RootModalFlowParamList,
+  MultichainAccountDetailActionsParamList,
+  RewardsBottomSheetModalParamList,
+  WalletTabHomeParamList,
+} from '../../components/Nav/App/types';
 
 /**
  * Root navigation param list for the entire app.
@@ -78,7 +94,7 @@ export type RootParamList = {
   WalletView:
     | { shouldSelectPerpsTab?: boolean; initialTab?: string }
     | undefined;
-  WalletTabHome: undefined;
+  WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
   WalletHome: undefined;
 
   // Asset Screens
@@ -361,7 +377,7 @@ export type RootParamList = {
   CardConfirmModal: undefined;
 
   // Perps Flow
-  Perps: undefined;
+  Perps: NavigatorScreenParams<PerpsNavigationParamList> | undefined;
   PerpsRoot: undefined;
   PerpsTradingView: undefined;
   PerpsTutorial: undefined;
@@ -396,15 +412,38 @@ export type RootParamList = {
   PerpsCrossMarginWarning: undefined;
 
   // Predict Flow
-  Predict: undefined;
+  Predict: NavigatorScreenParams<PredictNavigationParamList> | undefined;
   PredictRoot: undefined;
   PredictModalsRoot: undefined;
-  PredictModals: undefined;
-  PredictMarketList: undefined;
-  PredictMarketDetails: undefined;
-  PredictActivityDetail: undefined;
-  PredictBuyPreview: undefined;
-  PredictSellPreview: undefined;
+  PredictModals: NavigatorScreenParams<PredictNavigationParamList> | undefined;
+  PredictMarketList: { entryPoint?: string } | undefined;
+  PredictMarketDetails:
+    | {
+        marketId?: string;
+        entryPoint?: string;
+        title?: string;
+        image?: string;
+        isGame?: boolean;
+        headerShown?: boolean;
+      }
+    | undefined;
+  PredictActivityDetail: { activity: object } | undefined;
+  PredictBuyPreview:
+    | {
+        market: object;
+        outcome: object;
+        outcomeToken: object;
+        entryPoint?: string;
+      }
+    | undefined;
+  PredictSellPreview:
+    | {
+        market: object;
+        position: object;
+        outcome: object;
+        entryPoint?: string;
+      }
+    | undefined;
   PredictUnavailable: undefined;
   PredictAddFundsSheet: undefined;
   PredictGTMModal: undefined;
@@ -420,7 +459,9 @@ export type RootParamList = {
   RewardsOnboarding2: undefined;
   RewardsOnboarding3: undefined;
   RewardsOnboarding4: undefined;
-  RewardsBottomSheetModal: undefined;
+  RewardsBottomSheetModal:
+    | NavigatorScreenParams<RewardsBottomSheetModalParamList>
+    | undefined;
   RewardsClaimBottomSheetModal: undefined;
   RewardsIntroModal: undefined;
   RewardOptInAccountGroupModal: undefined;
@@ -455,7 +496,9 @@ export type RootParamList = {
   ImportPrivateKey: undefined;
   ImportPrivateKeyView: undefined;
   ImportPrivateKeySuccess: undefined;
-  MultichainAccountDetailActions: undefined;
+  MultichainAccountDetailActions:
+    | NavigatorScreenParams<MultichainAccountDetailActionsParamList>
+    | undefined;
   MultichainAccountsIntroModal: undefined;
   MultichainAccountsLearnMoreBottomSheet: undefined;
   AccountDetails: object | undefined;
@@ -475,7 +518,7 @@ export type RootParamList = {
 
   // Modals
   DeleteWalletModal: undefined;
-  RootModalFlow: undefined;
+  RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
   ModalConfirmation: object | undefined;
   ModalMandatory: object | undefined;
   WhatsNewModal: undefined;

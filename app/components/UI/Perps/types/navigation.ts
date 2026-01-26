@@ -208,6 +208,20 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   // Root perps view
   Perps: undefined;
+
+  // Trending view (market list variant)
+  PerpsTrendingView: {
+    defaultMarketTypeFilter?:
+      | 'crypto'
+      | 'equity'
+      | 'commodity'
+      | 'forex'
+      | 'all'
+      | 'stocks_and_commodities';
+  };
+
+  // Debug view (development only)
+  PerpsHIP3Debug: undefined;
 }
 
 /**
