@@ -11,7 +11,7 @@ import Browser from '../../pages/Browser/BrowserView';
 import TestDApp from '../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import { CustomNetworks } from '../../resources/networks.e2e';
+import { CustomNetworks } from '../../../tests/resources/networks.e2e';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 

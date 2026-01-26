@@ -17,8 +17,8 @@ These are replaced with minimal, no-op implementations that preserve the public 
 
 ## Where the Mocks Live
 
-- `e2e/module-mocking/sentry/react-native.ts`
-- `e2e/module-mocking/sentry/core.ts`
+- `tests/module-mocking/sentry/react-native.ts`
+- `tests/module-mocking/sentry/core.ts`
 
 Both files include safe no-ops and lightweight console logs for debugging (prefixed with `[E2E Sentry Mock]`).
 
@@ -28,7 +28,7 @@ Metro resolver is configured to alias Sentry packages to the E2E mocks when the 
 
 - `IS_TEST === 'true'` or `METAMASK_ENVIRONMENT === 'e2e'`
 
-This logic resides in `metro.config.js` via a custom `resolveRequest` that redirects requests for `@sentry/react-native` and `@sentry/core` to the mock files under `e2e/module-mocking/sentry/`.
+This logic resides in `metro.config.js` via a custom `resolveRequest` that redirects requests for `@sentry/react-native` and `@sentry/core` to the mock files under `tests/module-mocking/sentry/`.
 
 ## When to Use (Scope)
 
@@ -36,7 +36,7 @@ Use module-level aliasing sparingly. It is intended only for cross‑cutting, fr
 
 ## Extending Module Mocks
 
-- Add new mock files under `e2e/module-mocking/<lib>/`.
+- Add new mock files under `tests/module-mocking/<lib>/`.
 - Update `metro.config.js` `resolveRequest` to redirect the target module specifier to your mock file when E2E.
 - Keep APIs minimal; only implement members referenced by the app code to reduce maintenance.
 
