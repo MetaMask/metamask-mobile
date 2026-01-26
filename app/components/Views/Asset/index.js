@@ -185,6 +185,7 @@ const AssetInlineHeader = ({
         size={ButtonIconSize.Lg}
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
+        testID="back-arrow-button"
       />
       <View style={inlineHeaderStyles.titleWrapper}>
         <Text variant={TextVariant.HeadingSM} numberOfLines={1}>

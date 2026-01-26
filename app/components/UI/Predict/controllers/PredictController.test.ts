@@ -222,6 +222,7 @@ describe('PredictController', () => {
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
+      getMarketsByIds: jest.fn(),
       getPositions: jest.fn(),
       getMarketDetails: jest.fn(),
       getActivity: jest.fn(),
@@ -1786,6 +1787,403 @@ describe('PredictController', () => {
     });
   });
 
+  describe('getMarkets with market highlights', () => {
+    const createMockMarket = (id: string, category = 'trending') => ({
+      id,
+      providerId: 'polymarket',
+      title: `Market ${id}`,
+      category,
+      outcomes: ['YES', 'NO'],
+    });
+
+    const setMarketHighlightsFlag = (flag: {
+      enabled: boolean;
+      highlights: { category: string; markets: string[] }[];
+    }) => {
+      (
+        Engine.context.RemoteFeatureFlagController as any
+      ).state.remoteFeatureFlags.predictMarketHighlights = flag;
+    };
+
+    const clearMarketHighlightsFlag = () => {
+      delete (Engine.context.RemoteFeatureFlagController as any).state
+        .remoteFeatureFlags.predictMarketHighlights;
+    };
+
+    afterEach(() => {
+      clearMarketHighlightsFlag();
+    });
+
+    it('prepends highlighted markets when flag is enabled and offset is 0', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [
+          { category: 'trending', markets: ['highlight-1', 'highlight-2'] },
+        ],
+      });
+
+      const regularMarkets = [
+        createMockMarket('regular-1'),
+        createMockMarket('regular-2'),
+      ];
+      const highlightedMarkets = [
+        createMockMarket('highlight-1'),
+        createMockMarket('highlight-2'),
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          highlightedMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(4);
+        expect(result[0].id).toBe('highlight-1');
+        expect(result[1].id).toBe('highlight-2');
+        expect(result[2].id).toBe('regular-1');
+        expect(result[3].id).toBe('regular-2');
+        expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalledWith(
+          ['highlight-1', 'highlight-2'],
+          [],
+        );
+      });
+    });
+
+    it('skips highlights when offset is greater than 0', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 10,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('skips highlights when flag is disabled', async () => {
+      setMarketHighlightsFlag({
+        enabled: false,
+        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('skips highlights when category is not provided', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+        });
+
+        expect(result).toHaveLength(1);
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('skips highlights when category has no configured highlights', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'crypto', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('filters duplicates from regular results when highlighted market appears in both', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: ['duplicate-market'] }],
+      });
+
+      const regularMarkets = [
+        createMockMarket('regular-1'),
+        createMockMarket('duplicate-market'),
+        createMockMarket('regular-2'),
+      ];
+      const highlightedMarkets = [createMockMarket('duplicate-market')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          highlightedMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(3);
+        expect(result[0].id).toBe('duplicate-market');
+        expect(result[1].id).toBe('regular-1');
+        expect(result[2].id).toBe('regular-2');
+      });
+    });
+
+    it('handles empty highlights array gracefully', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: [] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('handles getMarketsByIds failure gracefully', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue([]);
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+      });
+    });
+
+    it('uses default flag when predictMarketHighlights is not in remote config', async () => {
+      clearMarketHighlightsFlag();
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('fetches highlights for first page when offset is undefined', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+      const highlightedMarkets = [createMockMarket('highlight-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          highlightedMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].id).toBe('highlight-1');
+        expect(result[1].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalled();
+      });
+    });
+
+    it('preserves order of highlighted markets from config', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [
+          { category: 'trending', markets: ['third', 'first', 'second'] },
+        ],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+      const highlightedMarkets = [
+        createMockMarket('third'),
+        createMockMarket('first'),
+        createMockMarket('second'),
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          highlightedMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result[0].id).toBe('third');
+        expect(result[1].id).toBe('first');
+        expect(result[2].id).toBe('second');
+      });
+    });
+
+    it('handles missing highlights array in flag gracefully', async () => {
+      (
+        Engine.context.RemoteFeatureFlagController as any
+      ).state.remoteFeatureFlags.predictMarketHighlights = { enabled: true };
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('keeps market in regular results when highlight fetch fails for that market', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [
+          { category: 'trending', markets: ['highlight-1', 'highlight-2'] },
+        ],
+      });
+
+      const regularMarketsIncludingFailedHighlight = [
+        createMockMarket('highlight-1'),
+        createMockMarket('regular-1'),
+      ];
+      const onlySuccessfullyFetchedHighlights = [
+        createMockMarket('highlight-2'),
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarketsIncludingFailedHighlight as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          onlySuccessfullyFetchedHighlights as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(3);
+        expect(result[0].id).toBe('highlight-2');
+        expect(result[1].id).toBe('highlight-1');
+        expect(result[2].id).toBe('regular-1');
+      });
+    });
+  });
+
   describe('updateStateForTesting', () => {
     it('update state using provided updater function', () => {
       withController(({ controller }) => {
@@ -2589,14 +2987,14 @@ describe('PredictController', () => {
       const mockTransactions = [
         {
           params: {
-            to: '0xToken' as `0x${string}`,
-            data: '0xapprove' as `0x${string}`,
+            to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+            data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
           },
         },
         {
           params: {
-            to: '0xSafe' as `0x${string}`,
-            data: '0xdeposit' as `0x${string}`,
+            to: '0x9876543210987654321098765432109876543210' as `0x${string}`,
+            data: '0xa9059cbb000000000000000000000000' as `0x${string}`,
           },
         },
       ];
@@ -2717,8 +3115,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -2750,8 +3148,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -2792,8 +3190,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -2826,8 +3224,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -2856,8 +3254,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -2930,8 +3328,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -2959,8 +3357,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -2986,8 +3384,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3006,6 +3404,141 @@ describe('PredictController', () => {
             providerId: 'polymarket',
           }),
         ).rejects.toThrow('Value must be a hexadecimal string.');
+      });
+    });
+
+    it('throws error when transaction is missing params object', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [{ type: 'contractInteraction' } as never],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction: transaction at index 0 is missing params object',
+        );
+      });
+    });
+
+    it('throws error when transaction is missing to address', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+            },
+          } as never,
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          "Invalid transaction: transaction at index 0 is missing 'to' address",
+        );
+      });
+    });
+
+    it('throws error when transaction to address has invalid format', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xshort' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          "Invalid transaction: transaction at index 0 has invalid 'to' address format",
+        );
+      });
+    });
+
+    it('throws error when transaction data is missing', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+            },
+          } as never,
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction: transaction at index 0 is missing data',
+        );
+      });
+    });
+
+    it('throws error when transaction data has invalid hex format', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: 'not-hex-data' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction: transaction at index 0 has invalid data format (must be hex string starting with 0x)',
+        );
+      });
+    });
+
+    it('throws error when transaction data is too short', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x1234' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction: transaction at index 0 has insufficient data (length: 6, minimum: 10)',
+        );
       });
     });
   });
@@ -3090,9 +3623,9 @@ describe('PredictController', () => {
           hash: '0xabc',
           status: 'confirmed',
           txParams: {
-            from: '0x1',
-            to: '0xToken',
-            data: '0xapprove',
+            from: '0x1234567890123456789012345678901234567890',
+            to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+            data: '0x095ea7b3000000000000000000000000',
             value: '0x0',
           },
         };
@@ -3117,8 +3650,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3154,8 +3687,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],

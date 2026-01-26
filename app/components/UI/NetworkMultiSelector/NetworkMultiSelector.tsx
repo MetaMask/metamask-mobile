@@ -25,6 +25,7 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
+import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { useSelector } from 'react-redux';
 import {
   selectEvmNetworkConfigurationsByChainId,
@@ -147,6 +148,18 @@ const NetworkMultiSelector = ({
       networks: networksToUse,
     });
 
+  const { addPopularNetwork } = useAddPopularNetwork();
+
+  /**
+   * Handler for adding a popular network directly without confirmation.
+   */
+  const handleAddPopularNetwork = useCallback(
+    async (networkConfiguration: ExtendedNetwork) => {
+      await addPopularNetwork(networkConfiguration);
+    },
+    [addPopularNetwork],
+  );
+
   const selectedChainIds = useMemo(
     () =>
       Object.keys(enabledNetworksByNamespace[namespace] || {}).filter(
@@ -198,6 +211,8 @@ const NetworkMultiSelector = ({
       toggleWarningModal,
       showNetworkModal,
       customNetworksList: PopularList,
+      skipConfirmation: true,
+      onNetworkAdd: handleAddPopularNetwork,
     }),
     [
       modalState.showPopularNetworkModal,
@@ -205,6 +220,7 @@ const NetworkMultiSelector = ({
       onCancel,
       toggleWarningModal,
       showNetworkModal,
+      handleAddPopularNetwork,
     ],
   );
 

@@ -13,9 +13,12 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
 import Accounts from '../../../wdio/helpers/Accounts';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import {
+  importWalletWithRecoveryPhrase,
+  navigateToBrowserView,
+} from '../../viewHelper';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 
 const SEPOLIA = 'Sepolia';
@@ -38,7 +41,7 @@ describe(
 
     it('should navigate to browser', async () => {
       await TestHelpers.delay(2000);
-      await TabBarComponent.tapBrowser();
+      await navigateToBrowserView();
       await Assertions.checkIfVisible(Browser.browserScreenID);
     });
 
@@ -110,7 +113,7 @@ describe(
     it('should return to browser', async () => {
       //await AccountListView.swipeToDimssAccountsModal();
       await TestHelpers.delay(4500);
-      await TabBarComponent.tapBrowser();
+      await navigateToBrowserView();
       // Check that we are on the browser screen
       await Assertions.expectElementToBeVisible(Browser.browserScreenID);
     });

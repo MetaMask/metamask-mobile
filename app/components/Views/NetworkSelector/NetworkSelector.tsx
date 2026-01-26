@@ -66,6 +66,7 @@ import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNe
 import { NetworksSelectorSelectorsIDs } from '../Settings/NetworksSettings/NetworksView.testIds';
 import { PopularList } from '../../../util/networks/customNetworks';
 import NetworkSearchTextInput from './NetworkSearchTextInput';
+import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AccountAction from '../AccountAction';
@@ -183,6 +184,8 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
+
+  const { addPopularNetwork } = useAddPopularNetwork();
 
   const isSendFlow =
     route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
@@ -317,6 +320,16 @@ const NetworkSelector = () => {
         : hideKeyFromUrl(networkConfiguration.rpcUrl),
     });
   };
+
+  /**
+   * Handler for adding a popular network directly without confirmation.
+   */
+  const handleAddPopularNetwork = useCallback(
+    async (networkConfiguration: ExtendedNetwork) => {
+      await addPopularNetwork(networkConfiguration);
+    },
+    [addPopularNetwork],
+  );
 
   const onCancel = () => {
     setShowPopularNetworkModal(false);
@@ -805,6 +818,8 @@ const NetworkSelector = () => {
           showCompletionMessage={false}
           showPopularNetworkModal
           hideWarningIcons
+          skipConfirmation
+          onNetworkAdd={handleAddPopularNetwork}
         />
       </View>
     );

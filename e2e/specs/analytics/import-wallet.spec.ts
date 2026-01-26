@@ -2,7 +2,7 @@
 import { SmokeWalletPlatform } from '../../tags';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TestHelpers from '../../helpers';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import {
   EventPayload,
   findEvent,
@@ -13,12 +13,12 @@ import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
 } from '../identity/utils/constants';
-import SoftAssert from '../../framework/SoftAssert';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import SoftAssert from '../../../tests/framework/SoftAssert';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
   beforeAll(async () => {

@@ -1,17 +1,16 @@
 import TestHelpers from '../../../../helpers';
 import Browser from '../../../../pages/Browser/BrowserView';
 import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
-import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ToastModal from '../../../../pages/wallet/ToastModal';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
-import { loginToApp } from '../../../../viewHelper';
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import Assertions from '../../../../framework/Assertions';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
+import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
+import Assertions from '../../../../../tests/framework/Assertions';
 import { RegressionNetworkExpansion } from '../../../../tags';
 import AddNewAccountSheet from '../../../../pages/wallet/AddNewAccountSheet';
-import { DappVariants } from '../../../../framework/Constants';
+import { DappVariants } from '../../../../../tests/framework/Constants';
 
 const AccountTwoText = 'Account 2';
 
@@ -37,7 +36,7 @@ describe(RegressionNetworkExpansion('Account Permission Management'), () => {
       async () => {
         //should navigate to browser
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         //TODO: should re add connecting to an external swap step after detox has been updated

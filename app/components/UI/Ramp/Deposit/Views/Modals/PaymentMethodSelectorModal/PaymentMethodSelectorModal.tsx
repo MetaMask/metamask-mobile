@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
@@ -91,16 +91,14 @@ function PaymentMethodSelectorModal() {
         accessible
       >
         <ListItemColumn widthType={WidthType.Auto}>
-          <View style={styles.iconContainer}>
-            <Icon
-              name={paymentMethod.icon as IconName}
-              color={
-                typeof paymentMethod.iconColor === 'object'
-                  ? paymentMethod.iconColor[themeAppearance]
-                  : (paymentMethod.iconColor ?? IconColor.Primary)
-              }
-            />
-          </View>
+          <Icon
+            name={paymentMethod.icon as IconName}
+            color={
+              typeof paymentMethod.iconColor === 'object'
+                ? paymentMethod.iconColor[themeAppearance]
+                : (paymentMethod.iconColor ?? IconColor.Default)
+            }
+          />
         </ListItemColumn>
         <ListItemColumn widthType={WidthType.Fill}>
           <Text variant={TextVariant.BodyLGMedium}>{paymentMethod.name}</Text>
@@ -115,7 +113,6 @@ function PaymentMethodSelectorModal() {
     [
       handleSelectPaymentMethodIdCallback,
       selectedPaymentMethod?.id,
-      styles.iconContainer,
       themeAppearance,
     ],
   );

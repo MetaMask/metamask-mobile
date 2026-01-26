@@ -8,19 +8,12 @@ import {
 import { Order, OrderParams } from '../controllers/types';
 import { Position } from '../hooks';
 
-// Mock i18n strings
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
-}));
-
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
 }));
-
-import { strings } from '../../../../../locales/i18n';
 
 describe('orderUtils', () => {
   describe('formatOrderLabel', () => {
@@ -290,50 +283,24 @@ describe('orderUtils', () => {
   });
 
   describe('getOrderDirection', () => {
-    const mockStrings = strings as jest.MockedFunction<typeof strings>;
-
     it('should return long for buy with no position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('buy', undefined);
-      expect(result).toBe('Long');
+      expect(result).toBe('long');
     });
 
     it('should return short for sell with no position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('sell', undefined);
-      expect(result).toBe('Short');
+      expect(result).toBe('short');
     });
 
     it('should return long for positive position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('sell', '1.5');
-      expect(result).toBe('Long');
+      expect(result).toBe('long');
     });
 
     it('should return short for negative position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('buy', '-1.5');
-      expect(result).toBe('Short');
+      expect(result).toBe('short');
     });
   });
 
@@ -344,7 +311,7 @@ describe('orderUtils', () => {
       unrealizedPnl: '100',
       liquidationPrice: '40000',
       leverage: { type: 'isolated', value: 2 },
-      coin: 'BTC',
+      symbol: 'BTC',
       positionValue: '100000',
       marginUsed: '2500',
       maxLeverage: 20,
@@ -359,7 +326,7 @@ describe('orderUtils', () => {
     };
 
     const mockOrderParams: OrderParams = {
-      coin: 'BTC',
+      symbol: 'BTC',
       isBuy: false,
       size: '150',
       orderType: 'market',
@@ -400,7 +367,7 @@ describe('orderUtils', () => {
 
     it('returns false when order size equals position size', () => {
       const currentPosition: Position = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
         entryPrice: '45000',
         positionValue: '22500',
@@ -420,7 +387,7 @@ describe('orderUtils', () => {
       };
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: false,
         size: '0.5',
         orderType: 'market',
@@ -432,7 +399,7 @@ describe('orderUtils', () => {
 
     it('handles negative position sizes correctly', () => {
       const currentPosition: Position = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '-0.5',
         entryPrice: '45000',
         positionValue: '22500',
@@ -452,7 +419,7 @@ describe('orderUtils', () => {
       };
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '1.0',
         orderType: 'market',
@@ -472,7 +439,7 @@ describe('orderUtils', () => {
           limitPrice: '50000',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);
@@ -487,7 +454,7 @@ describe('orderUtils', () => {
           limitPrice: '50100',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);
@@ -500,7 +467,7 @@ describe('orderUtils', () => {
           limitPrice: '50001',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);
@@ -513,7 +480,7 @@ describe('orderUtils', () => {
           limitPrice: '49500',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(true);
@@ -528,7 +495,7 @@ describe('orderUtils', () => {
           limitPrice: '49900',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);
@@ -541,7 +508,7 @@ describe('orderUtils', () => {
           limitPrice: '49999',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);
@@ -554,7 +521,7 @@ describe('orderUtils', () => {
           limitPrice: '50500',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(true);
@@ -568,7 +535,7 @@ describe('orderUtils', () => {
           direction: 'long',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);
@@ -581,7 +548,7 @@ describe('orderUtils', () => {
           limitPrice: '',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);
@@ -594,7 +561,7 @@ describe('orderUtils', () => {
           limitPrice: 'invalid',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);
@@ -607,7 +574,7 @@ describe('orderUtils', () => {
           limitPrice: '0',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);
@@ -620,7 +587,7 @@ describe('orderUtils', () => {
           limitPrice: '-1000',
           bestAsk: 50001,
           bestBid: 49999,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);
@@ -631,7 +598,7 @@ describe('orderUtils', () => {
           orderType: 'limit',
           direction: 'long',
           limitPrice: '49500',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBe(false);

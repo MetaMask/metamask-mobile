@@ -13,7 +13,6 @@ import {
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
-import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { getGlobalChainId } from '../../../../util/networks/global-network';
 import { submitSmartTransactionHook } from '../../../../util/smart-transactions/smart-publish-hook';
@@ -124,9 +123,6 @@ describe('Transaction Controller Init', () => {
   const submitSmartTransactionHookMock = jest.mocked(
     submitSmartTransactionHook,
   );
-  const selectSwapsChainFeatureFlagsMock = jest.mocked(
-    selectSwapsChainFeatureFlags,
-  );
   const getGlobalChainIdMock = jest.mocked(getGlobalChainId);
   const handleTransactionApprovedEventForMetricsMock = jest.mocked(
     handleTransactionApprovedEventForMetrics,
@@ -174,7 +170,6 @@ describe('Transaction Controller Init', () => {
     jest.resetAllMocks();
 
     selectShouldUseSmartTransactionMock.mockReturnValue(true);
-    selectSwapsChainFeatureFlagsMock.mockReturnValue({});
     getGlobalChainIdMock.mockReturnValue('0x1');
     isSendBundleSupportedMock.mockResolvedValue(true);
 
@@ -306,7 +301,6 @@ describe('Transaction Controller Init', () => {
         undefined,
         MOCK_TRANSACTION_META.chainId,
       );
-      expect(selectSwapsChainFeatureFlagsMock).toHaveBeenCalledTimes(1);
       expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
         expect.objectContaining({
           transactionMeta: MOCK_TRANSACTION_META,

@@ -84,6 +84,12 @@ import {
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
 import {
+  ConnectivityController,
+  ConnectivityControllerActions,
+  ConnectivityControllerEvents,
+  ConnectivityControllerState,
+} from '@metamask/connectivity-controller';
+import {
   KeyringController,
   KeyringControllerActions,
   KeyringControllerEvents,
@@ -249,7 +255,6 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
-import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
@@ -424,14 +429,6 @@ type OptionalControllers = Pick<
   | 'StorageService'
 >;
 
-/**
- * Controllers that are defined with state.
- */
-export type StatefulControllers = Omit<
-  Controllers,
-  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
->;
-
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
@@ -458,6 +455,7 @@ type GlobalActions =
   | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
+  | ConnectivityControllerActions
   | CurrencyRateControllerActions
   | GasFeeControllerActions
   | GatorPermissionsControllerActions
@@ -529,12 +527,12 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
-  | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
+  | ConnectivityControllerEvents
   | CurrencyRateControllerEvents
   | GasFeeControllerEvents
   | GatorPermissionsControllerEvents
@@ -641,6 +639,7 @@ export type Controllers = {
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
+  ConnectivityController: ConnectivityController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   CurrencyRateController: CurrencyRateController;
@@ -731,6 +730,7 @@ export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
   AppMetadataController: AppMetadataControllerState;
+  ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -825,6 +825,7 @@ export type ControllersToInitialize =
   | 'AccountTrackerController'
   | 'AddressBookController'
   | 'AssetsContractController'
+  | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'
   | 'CronjobController'

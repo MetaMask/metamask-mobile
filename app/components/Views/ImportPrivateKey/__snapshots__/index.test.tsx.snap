@@ -316,7 +316,6 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                       style={
                         {
                           "flex": 1,
-                          "marginTop": 48,
                         }
                       }
                     >
@@ -739,7 +738,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    or Scan a QR Code
+                                    or scan a QR code
                                   </Text>
                                 </TouchableOpacity>
                               </View>
