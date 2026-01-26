@@ -1,26 +1,26 @@
 import { RegressionConfirmations } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ContractApprovalBottomSheetSelectorsText } from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import {
   buildPermissions,
   AnvilPort,
-} from '../../framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../framework/Constants';
+} from '../../../tests/framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../../tests/framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../framework/types';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../tests/framework/types';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const EXPECTED_TOKEN_AMOUNT = '7';
@@ -72,7 +72,7 @@ describe(RegressionConfirmations('ERC20 tokens'), () => {
           await contractRegistry?.getContractAddress(HST_CONTRACT);
         await loginToApp();
         // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });

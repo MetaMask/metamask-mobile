@@ -1,14 +1,14 @@
 import { CaipChainId } from '@metamask/utils';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
-import Utilities from '../../framework/Utilities';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Assertions from '../../../tests/framework/Assertions';
+import Utilities from '../../../tests/framework/Utilities';
 import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
-} from '../../selectors/wallet/NetworkManager.selectors';
+} from '../../../app/components/UI/NetworkMultiSelector/NetworkManager.testIds';
 import TestHelpers from '../../helpers';
-import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 
 class NetworkManager {
   /**

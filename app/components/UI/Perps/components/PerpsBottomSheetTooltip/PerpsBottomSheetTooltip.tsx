@@ -21,7 +21,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 import createStyles from './PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from './content/contentRegistry';
-import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import {
   PerpsEventValues,
   PerpsEventProperties,

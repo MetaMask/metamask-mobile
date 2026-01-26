@@ -1,21 +1,21 @@
 import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { RegressionTrade } from '../../tags';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { PerpsHelpers } from './helpers/perps-helpers';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { PERPS_ARBITRUM_MOCKS } from '../../../tests/api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 import PerpsHomeView from '../../pages/Perps/PerpsHomeView';
 import PerpsView from '../../pages/Perps/PerpsView';
-import { createLogger, LogLevel } from '../../framework/logger';
+import { createLogger, LogLevel } from '../../../tests/framework/logger';
 import PerpsE2EModifiers from './helpers/perps-modifiers';
-import Assertions from '../../framework/Assertions';
-import Matchers from '../../framework/Matchers';
-import { PerpsPositionsViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
-import { TestSuiteParams } from '../../framework/types';
+import Assertions from '../../../tests/framework/Assertions';
+import Matchers from '../../../tests/framework/Matchers';
+import { PerpsPositionsViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
+import { TestSuiteParams } from '../../../tests/framework/types';
 
 const logger = createLogger({
   name: 'PerpsPositionSpec',

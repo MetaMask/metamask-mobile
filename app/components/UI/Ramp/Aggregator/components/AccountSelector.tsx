@@ -14,7 +14,7 @@ import Avatar, {
 
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 

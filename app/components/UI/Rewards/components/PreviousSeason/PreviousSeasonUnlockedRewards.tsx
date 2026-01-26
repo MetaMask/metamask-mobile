@@ -18,6 +18,7 @@ import {
 } from '../../../../../reducers/rewards/selectors';
 import { useSelector } from 'react-redux';
 import {
+  EndOfSeasonUrlData,
   RewardDto,
   SeasonRewardDto,
   SeasonRewardType,
@@ -42,16 +43,63 @@ const PreviousSeasonUnlockedRewards = () => {
   const unlockedRewardsError = useSelector(selectUnlockedRewardError);
   const seasonTiers = useSelector(selectSeasonTiers);
   const currentTier = useSelector(selectCurrentTier);
-  const handleRewardPress = useCallback(
-    (rewardId: string, seasonReward: SeasonRewardDto) => {
-      if (seasonReward.rewardType === SeasonRewardType.METAL_CARD) {
-        navigation.navigate(
-          Routes.MODAL.REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET,
-          {
-            rewardId,
-            seasonRewardId: seasonReward.id,
-          },
-        );
+
+  // Requires special modal actions for end of season reward claims
+  const handleEndOfSeasonClaim = useCallback(
+    (reward: RewardDto, seasonReward: SeasonRewardDto) => {
+      switch (seasonReward.rewardType) {
+        case SeasonRewardType.METAL_CARD:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              description: strings('rewards.metal_card_claim.description'),
+              contactInfo: strings('rewards.metal_card_claim.contact_info'),
+              rewardType: SeasonRewardType.METAL_CARD,
+              showEmail: 'required',
+              showTelegram: 'optional',
+            },
+          );
+          break;
+        case SeasonRewardType.NANSEN:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              description: seasonReward.longUnlockedDescription,
+              url: (reward.claim?.data as EndOfSeasonUrlData)?.url,
+              rewardType: SeasonRewardType.NANSEN,
+            },
+          );
+          break;
+        case SeasonRewardType.OTHERSIDE:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              description: seasonReward.longUnlockedDescription,
+              url: (reward.claim?.data as EndOfSeasonUrlData)?.url,
+              rewardType: SeasonRewardType.OTHERSIDE,
+            },
+          );
+          break;
+        case SeasonRewardType.LINEA_TOKENS:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              rewardType: SeasonRewardType.LINEA_TOKENS,
+              showAccount: true,
+            },
+          );
       }
     },
     [navigation],
@@ -129,8 +177,19 @@ const PreviousSeasonUnlockedRewards = () => {
                       ?.find(
                         (sr) => sr.id === unlockedReward.seasonRewardId,
                       ) as SeasonRewardDto;
-                    const isClaimable =
-                      seasonReward?.rewardType === SeasonRewardType.METAL_CARD;
+
+                    const claimIsRedeem =
+                      seasonReward?.rewardType ===
+                        SeasonRewardType.METAL_CARD ||
+                      seasonReward?.rewardType ===
+                        SeasonRewardType.LINEA_TOKENS;
+
+                    const rewardUrl = (
+                      unlockedReward.claim?.data as
+                        | EndOfSeasonUrlData
+                        | undefined
+                    )?.url;
+
                     return (
                       <RewardItem
                         key={unlockedReward.id}
@@ -138,9 +197,17 @@ const PreviousSeasonUnlockedRewards = () => {
                         seasonReward={seasonReward}
                         isLast={unlockedReward === endOfSeasonRewards.at(-1)}
                         isEndOfSeasonReward
+                        endOfSeasonClaimedDescription={
+                          claimIsRedeem
+                            ? strings(
+                                'rewards.end_of_season_rewards.arriving_soon',
+                              )
+                            : undefined
+                        }
                         compact
-                        isLocked={!isClaimable}
-                        onPress={isClaimable ? handleRewardPress : undefined}
+                        // Can't do anything if we don't have reward url allocated yet
+                        isLocked={!rewardUrl && !claimIsRedeem}
+                        onPress={handleEndOfSeasonClaim}
                       />
                     );
                   })}

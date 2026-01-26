@@ -1,12 +1,11 @@
-import { DappVariants } from '../../../framework/Constants';
+import { DappVariants } from '../../../../tests/framework/Constants';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+} from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import TestHelpers from '../../../helpers';
 import { RegressionNetworkExpansion } from '../../../tags';
-import { loginToApp } from '../../../viewHelper';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import { requestPermissions } from './helpers';
@@ -17,8 +16,8 @@ import {
 } from '../solana-wallet-standard/testHelpers';
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMultiSelector';
-import Assertions from '../../../framework/Assertions';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import Assertions from '../../../../tests/framework/Assertions';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 
 describe(
   RegressionNetworkExpansion('Multiple Provider Connections [Regression]'),
@@ -46,7 +45,7 @@ describe(
           await TestHelpers.reverseServerPort();
           await loginToApp();
 
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await Browser.navigateToTestDApp();
 
           await requestPermissions({
@@ -105,7 +104,7 @@ describe(
           dappVariant: DappVariants.TEST_DAPP,
         },
         async () => {
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await Browser.navigateToTestDApp();
 
           //Request only Ethereum Mainnet

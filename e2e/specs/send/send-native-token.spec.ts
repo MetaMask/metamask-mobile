@@ -1,16 +1,22 @@
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../pages/Send/RedesignedSendView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
-import { Assertions } from '../../framework';
-import { DappVariants } from '../../framework/Constants';
+import { Assertions } from '../../../tests/framework';
+import {
+  DappVariants,
+  LOCAL_NODE_RPC_URL,
+} from '../../../tests/framework/Constants';
 import { SmokeConfirmationsRedesigned } from '../../tags';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNode } from '../../framework/types';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { LocalNode } from '../../../tests/framework/types';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagExtensionUxPna25 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
+import { validateTransactionHashInTransactionFinalizedEvent } from './metricsValidationHelper';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
@@ -23,28 +29,43 @@ describe(SmokeConfirmationsRedesigned('Send native asset'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          const rpcPort =
-            node instanceof AnvilManager
-              ? (node.getPort() ?? AnvilPort())
-              : undefined;
+        fixture: new FixtureBuilder()
+          .withNetworkController({
+            providerConfig: {
+              chainId: '0x539',
+              rpcUrl: LOCAL_NODE_RPC_URL,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
+            },
+          })
+          .withMetaMetricsOptIn()
+          .withPreferencesController({})
+          .build(),
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureFlagExtensionUxPna25(true),
+          );
 
-          return new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
-            })
-            .build();
+          await setupMockRequest(mockServer, {
+            requestMethod: 'PUT',
+            url: /https:\/\/authentication\.api\.cx\.metamask\.io\/api\/v2\/profile\/accounts/i,
+            response: {
+              message: 'OK',
+            },
+            responseCode: 200,
+          });
         },
         restartDevice: true,
       },
-      async () => {
+      async ({
+        localNodes,
+        mockServer,
+      }: {
+        localNodes?: LocalNode[];
+        mockServer?: Mockttp;
+      }) => {
         await loginToApp();
         await device.disableSynchronization();
         // send 5 ETH
@@ -57,6 +78,13 @@ describe(SmokeConfirmationsRedesigned('Send native asset'), () => {
         await FooterActions.tapConfirmButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
+
+        // Validate txHash in Transaction Finalized Event.
+        // Makes the test fail if the txHash is not matching with the latest transaction on the local node.
+        await validateTransactionHashInTransactionFinalizedEvent(
+          localNodes,
+          mockServer,
+        );
 
         // send 50% ETH
         await TabBarComponent.tapWallet();

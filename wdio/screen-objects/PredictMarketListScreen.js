@@ -1,8 +1,8 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
-import { PredictMarketListSelectorsIDs, getPredictMarketListSelector, PredictBalanceSelectorsIDs } from '../../e2e/selectors/Predict/Predict.selectors';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
+import { PredictMarketListSelectorsIDs, getPredictMarketListSelector, PredictBalanceSelectorsIDs } from '../../app/components/UI/Predict/Predict.testIds';
 import { expect as appwrightExpect } from 'appwright';
 
 class PredictMarketListScreen {

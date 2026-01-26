@@ -1,12 +1,12 @@
 import enContent from '../../../locales/languages/en.json';
 
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import { getTestDappLocalUrl } from '../../../tests/framework/fixtures/FixtureUtils';
+import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from '../Browser/BrowserView';
-import { Assertions, TapOptions, Utilities } from '../../framework';
+import { Assertions, TapOptions, Utilities } from '../../../tests/framework';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;

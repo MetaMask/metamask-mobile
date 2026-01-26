@@ -16,7 +16,7 @@ import {
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
@@ -64,7 +64,6 @@ const PredictSellPreview = () => {
   );
   const outcomeSideText = outcomeToken?.title ?? position.outcome;
 
-  // Prepare analytics properties for sell/cash-out action
   const analyticsProperties = useMemo(
     () => ({
       marketId: market?.id,
@@ -77,13 +76,18 @@ const PredictSellPreview = () => {
       liquidity: market?.liquidity,
       volume: outcome?.volume,
       sharePrice: position?.price,
-      // Market type: binary if 1 outcome group, multi-outcome otherwise
       marketType:
         market?.outcomes?.length === 1
           ? PredictEventValues.MARKET_TYPE.BINARY
           : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
-      // Outcome: use actual outcome text (e.g., "Yes", "No", "Trump", "Biden", etc.)
       outcome: position?.outcome?.toLowerCase(),
+      marketSlug: market?.slug,
+      gameId: market?.game?.id,
+      gameStartTime: market?.game?.startTime,
+      gameLeague: market?.game?.league,
+      gameStatus: market?.game?.status,
+      gamePeriod: market?.game?.period,
+      gameClock: market?.game?.elapsed,
     }),
     [market, position, outcome, entryPoint],
   );

@@ -1,9 +1,8 @@
 import React from 'react';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
-import { Authentication } from '../../../core';
 import Engine from '../../../core/Engine';
 import OAuthRehydration from './index';
 import OAuthService from '../../../core/OAuthService/OAuthService';
@@ -19,8 +18,31 @@ import {
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useNetInfo } from '@react-native-community/netinfo';
 import Logger from '../../../util/Logger';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 
 const mockEngine = jest.mocked(Engine);
+
+const mockGetAuthType = jest.fn();
+const mockComponentAuthenticationType = jest.fn();
+const mockUnlockWallet = jest.fn();
+const mockLockApp = jest.fn();
+const mockReauthenticate = jest.fn();
+const mockRevealSRP = jest.fn();
+const mockRevealPrivateKey = jest.fn();
+
+jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
+  __esModule: true,
+  default: () => ({
+    getAuthType: mockGetAuthType,
+    componentAuthenticationType: mockComponentAuthenticationType,
+    unlockWallet: mockUnlockWallet,
+    lockApp: mockLockApp,
+    reauthenticate: mockReauthenticate,
+    revealSRP: mockRevealSRP,
+    revealPrivateKey: mockRevealPrivateKey,
+  }),
+}));
 
 jest.mock('../../../util/Logger');
 
@@ -43,11 +65,6 @@ jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
 jest.mock('../../../util/errorHandling', () => ({
   containsErrorMessage: (error: Error, message: string) =>
     error.message.includes(message),
-}));
-
-jest.mock('../../../util/password', () => ({
-  passwordRequirementsMet: (password: string) =>
-    password && password.length >= 8,
 }));
 
 // Mock useMetrics
@@ -130,14 +147,10 @@ describe('OAuthRehydration', () => {
     mockEngine.context.KeyringController.submitPassword.mockResolvedValue(
       undefined,
     );
-    (Authentication.userEntryAuth as jest.Mock) = jest
-      .fn()
-      .mockResolvedValue(undefined);
-    (Authentication.componentAuthenticationType as jest.Mock) = jest
-      .fn()
-      .mockResolvedValue({
-        currentAuthType: 'password',
-      });
+    mockUnlockWallet.mockResolvedValue(undefined);
+    mockComponentAuthenticationType.mockResolvedValue({
+      currentAuthType: 'password',
+    });
     mockUseNetInfo.mockReturnValue({
       isConnected: true,
       isInternetReachable: true,
@@ -146,6 +159,10 @@ describe('OAuthRehydration', () => {
 
   describe('Successful login flow', () => {
     it('navigates to home after successful password login', async () => {
+      mockUnlockWallet.mockImplementationOnce(async () => {
+        mockReplace(Routes.ONBOARDING.HOME_NAV);
+      });
+
       // Arrange
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -184,9 +201,7 @@ describe('OAuthRehydration', () => {
   describe('Password validation', () => {
     it('displays error for wrong password', async () => {
       // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Error: Decrypt failed'),
-      );
+      mockUnlockWallet.mockRejectedValue(new Error('Error: Decrypt failed'));
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -205,9 +220,7 @@ describe('OAuthRehydration', () => {
 
     it('clears error when user types new password', async () => {
       // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Error: Decrypt failed'),
-      );
+      mockUnlockWallet.mockRejectedValue(new Error('Error: Decrypt failed'));
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -235,9 +248,7 @@ describe('OAuthRehydration', () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
       );
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        seedlessError,
-      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -260,9 +271,7 @@ describe('OAuthRehydration', () => {
           SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
           { remainingTime: 300, numberOfAttempts: 5 },
         );
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        tooManyAttemptsError,
-      );
+      mockUnlockWallet.mockRejectedValue(tooManyAttemptsError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -284,9 +293,7 @@ describe('OAuthRehydration', () => {
         SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
         'Password was recently updated',
       );
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        passwordUpdatedError,
-      );
+      mockUnlockWallet.mockRejectedValue(passwordUpdatedError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -311,9 +318,7 @@ describe('OAuthRehydration', () => {
       const seedlessError = new Error(
         'SeedlessOnboardingController - Network error',
       );
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        seedlessError,
-      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -401,28 +406,8 @@ describe('OAuthRehydration', () => {
   describe('Error edge cases', () => {
     it('handles Android BAD_DECRYPT error', async () => {
       // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+      mockUnlockWallet.mockRejectedValue(
         new Error('Error: Error: BAD_DECRYPT'),
-      );
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
-      });
-    });
-
-    it('handles password requirements not met error', async () => {
-      // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Error: password requirement not met'),
       );
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -443,7 +428,7 @@ describe('OAuthRehydration', () => {
   describe('Component lifecycle', () => {
     it('prevents state updates after unmount', async () => {
       // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockImplementation(
+      mockUnlockWallet.mockImplementation(
         () =>
           new Promise((resolve) => setTimeout(() => resolve(undefined), 1000)),
       );
@@ -468,7 +453,7 @@ describe('OAuthRehydration', () => {
   describe('Error Handling and Validation', () => {
     it('handles DoCipher error for Android', async () => {
       // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+      mockUnlockWallet.mockRejectedValue(
         new Error('Error: Error: Error: DoCipher'),
       );
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
@@ -491,9 +476,7 @@ describe('OAuthRehydration', () => {
       const seedlessError = new Error(
         'SeedlessOnboardingController - Something went wrong',
       );
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        seedlessError,
-      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -511,9 +494,7 @@ describe('OAuthRehydration', () => {
 
     it('tracks analytics when password error occurs', async () => {
       // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Error: Decrypt failed'),
-      );
+      mockUnlockWallet.mockRejectedValue(new Error('Error: Decrypt failed'));
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -548,9 +529,7 @@ describe('OAuthRehydration', () => {
     it('handles generic error and logs it', async () => {
       // Arrange
       const genericError = new Error('Some unexpected error');
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        genericError,
-      );
+      mockUnlockWallet.mockRejectedValue(genericError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -573,9 +552,7 @@ describe('OAuthRehydration', () => {
           SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
           { numberOfAttempts: 5, remainingTime: 0 },
         );
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        tooManyAttemptsError,
-      );
+      mockUnlockWallet.mockRejectedValue(tooManyAttemptsError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -593,9 +570,7 @@ describe('OAuthRehydration', () => {
 
     it('tracks analytics for wrong password errors', async () => {
       // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Error: Wrong password'),
-      );
+      mockUnlockWallet.mockRejectedValue(new Error('Error: Wrong password'));
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -628,9 +603,7 @@ describe('OAuthRehydration', () => {
           SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
           { numberOfAttempts: 0, remainingTime: 0 },
         );
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        tooManyAttemptsError,
-      );
+      mockUnlockWallet.mockRejectedValue(tooManyAttemptsError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -666,9 +639,7 @@ describe('OAuthRehydration', () => {
 
     it('clears password field on error', async () => {
       // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Invalid password'),
-      );
+      mockUnlockWallet.mockRejectedValue(new Error('Invalid password'));
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -691,9 +662,7 @@ describe('OAuthRehydration', () => {
           SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
           { numberOfAttempts: 5, remainingTime: 3661 },
         );
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        tooManyAttemptsError,
-      );
+      mockUnlockWallet.mockRejectedValue(tooManyAttemptsError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -721,8 +690,6 @@ describe('OAuthRehydration', () => {
         },
       });
 
-      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue();
-
       // Act
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
 
@@ -734,9 +701,60 @@ describe('OAuthRehydration', () => {
           strings('login.seedless_password_outdated'),
         );
       });
+    });
+  });
+
+  describe('biometric cancellation', () => {
+    it('does not track REHYDRATION_PASSWORD_FAILED when Android biometric is cancelled', async () => {
+      // Arrange
+      mockUnlockWallet.mockRejectedValue(new Error('Cancel'));
+      mockTrackOnboarding.mockClear();
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
 
       // Assert
-      expect(Authentication.resetPassword).toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
+      const rehydrationFailedCalls = mockTrackOnboarding.mock.calls.filter(
+        (call) =>
+          call[0]?.properties?.name ===
+          MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+      );
+      expect(rehydrationFailedCalls).toHaveLength(0);
+    });
+
+    it('does not track REHYDRATION_PASSWORD_FAILED when iOS biometric is cancelled', async () => {
+      // Arrange
+      mockUnlockWallet.mockRejectedValue(
+        new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
+      );
+      mockTrackOnboarding.mockClear();
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      expect(Logger.error).not.toHaveBeenCalled();
+      const rehydrationFailedCalls = mockTrackOnboarding.mock.calls.filter(
+        (call) =>
+          call[0]?.properties?.name ===
+          MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+      );
+      expect(rehydrationFailedCalls).toHaveLength(0);
     });
   });
 });

@@ -11,7 +11,7 @@ import Tag from '../../../component-library/components/Tags/Tag';
 // Internal dependencies.
 import styleSheet from './CellSelectWithMenu.styles';
 import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';
-import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../components/Cells/Cell/CellComponent.testIds';
 import ListItemMultiSelectButton from '../ListItemMultiSelectButton/ListItemMultiSelectButton';
 import Avatar from '../../../component-library/components/Avatars/Avatar';
 import Text from '../../../component-library/components/Texts/Text';

@@ -6,6 +6,14 @@ AI-powered analysis system for E2E tests. Uses an agentic approach to make intel
 
 It is designed to be used in different **modes**, being each mode responsible for a different aspect of the analysis.
 
+```bash
+# Run with default provider (uses priority order from config)
+node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345
+
+# Run with a specific provider
+node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345 --provider <provider-name>
+```
+
 ### Modes
 
 - `select-tags`: Analyzes PR code changes and selects which E2E smoke test tags to run in CI. Output Example:
@@ -21,15 +29,15 @@ It is designed to be used in different **modes**, being each mode responsible fo
 
 Source code in `modes/select-tags/`.
 
-It only needs a Claude API key to be set in as an environment variable:
+### Providers
 
-> E2E_CLAUDE_API_KEY=sk-...
+The analyzer supports multiple AI providers with automatic fallback. Available providers, models, and their environment variables are configured in `LLM_CONFIG` within `config.ts`. The first available provider with a valid API key will be used based on the configured priority order.
 
 ## Configuration
 
 The system configuration is placed in the `config.ts` file. It is divided into the following sections:
 
-- `CLAUDE_CONFIG`: Configuration for the Claude Agent.
+- `LLM_CONFIG`: Configuration for AI providers (Anthropic, OpenAI, Google).
 - `APP_CONFIG`: Configuration for the System Under Test (App).
 - `TOOL_LIMITS`: Configuration for the AI Tools.
 

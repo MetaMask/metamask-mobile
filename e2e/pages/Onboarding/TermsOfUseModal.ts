@@ -1,6 +1,6 @@
-import { TermsOfUseModalSelectorsIDs } from '../../selectors/Onboarding/TermsOfUseModal.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import { TermsOfUseModalSelectorsIDs } from '../../../app/util/termsOfUse/TermsOfUseModal.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class TermsOfUseModal {
   get container(): DetoxElement {

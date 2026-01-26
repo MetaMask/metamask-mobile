@@ -2521,6 +2521,7 @@
     "billion_abbreviation": "Mrd",
     "trillion_abbreviation": "B",
     "million_abbreviation": "M",
+    "thousand_abbreviation": "k",
     "token_details": "Détails du jeton",
     "contract_address": "Adresse du contrat",
     "token_list": "Liste des jetons",
@@ -5695,9 +5696,7 @@
       },
       "earn_points_daily": "Earn points daily",
       "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
-      "earn_rewards_when": "Gagnez des récompenses lorsque",
-      "you_convert_to": "you convert to"
+      "get_musd": "Get mUSD"
     },
     "rewards": {
       "rewards_tag_label": "Récompenses",

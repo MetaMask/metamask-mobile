@@ -5,10 +5,10 @@ import renderWithProvider, {
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
+import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { strings } from '../../../../locales/i18n';
 import { Authentication } from '../../../core';
-import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
@@ -334,14 +334,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
     });
 
-    it('on enter key press, the new input field value is created', async () => {
-      const { getByPlaceholderText, getByTestId } = renderScreen(
+    it('on submit editing, keyboard dismisses without creating new input', async () => {
+      const { getByPlaceholderText, getByTestId, queryByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // Enter a valid 12-word seed phrase
+      // Enter a word
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
@@ -367,11 +367,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent(firstGridInput, 'onSubmitEditing');
       });
 
+      // Verify no new input was created (keyboard just dismisses)
       await waitFor(() => {
-        const secondInput = getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
-        );
-        expect(secondInput).toBeOnTheScreen();
+        expect(
+          queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
+        ).toBeNull();
       });
     });
 
@@ -575,7 +575,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('on entering an invalid seed phrase, spellcheck error message is shown', async () => {
-      const { getByPlaceholderText, getByText } = renderScreen(
+      const { getByPlaceholderText, getAllByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
@@ -595,10 +595,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const errorMessage = getByText(
+        const errorMessages = getAllByText(
           strings('import_from_seed.spellcheck_error'),
         );
-        expect(errorMessage).toBeOnTheScreen();
+        expect(errorMessages.length).toBeGreaterThan(0);
+        expect(errorMessages[0]).toBeOnTheScreen();
       });
     });
 

@@ -1,24 +1,23 @@
 import { RegressionWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
-import AmountView from '../../pages/Send/AmountView';
-import SendView from '../../pages/Send/SendView';
+import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 import { loginToApp } from '../../viewHelper';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
-import Assertions from '../../framework/Assertions';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import Assertions from '../../../tests/framework/Assertions';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { Mockttp } from 'mockttp';
-import { LocalNode } from '../../framework/types';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { LocalNode } from '../../../tests/framework/types';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -94,12 +93,9 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         await WalletView.tapOnToken('100 TST');
         await Assertions.expectElementToBeVisible(TokenOverview.tokenPrice);
         await TokenOverview.tapSendButton();
-        await SendView.inputAddress(SEND_ADDRESS);
-        await TestHelpers.delay(1000);
-        await SendView.tapNextButton();
-        await AmountView.typeInTransactionAmount('0.000001');
-        await TestHelpers.delay(5000);
-        await AmountView.tapNextButton();
+        await RedesignedSendView.inputRecipientAddress(SEND_ADDRESS);
+        await RedesignedSendView.typeInTransactionAmount('0.000001');
+        await RedesignedSendView.pressReviewButton();
         await TransactionConfirmationView.tapConfirmButton();
         await Assertions.expectTextDisplayed('Confirmed', {
           timeout: 30000,

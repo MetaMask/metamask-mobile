@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, act } from '@testing-library/react-native';
-import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
+import { ImportSRPIDs } from '../../Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SrpInputGrid from './index';
 
@@ -133,7 +133,7 @@ describe('SrpInputGrid', () => {
       expect(mockOnSeedPhraseChange).toHaveBeenCalled();
     });
 
-    it('handles enter key press to move to next input', () => {
+    it('dismisses keyboard on submit editing', () => {
       const seedPhrase = ['wallet', ''];
       const { getByTestId } = renderWithProvider(
         <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,

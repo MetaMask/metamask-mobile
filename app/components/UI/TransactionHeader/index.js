@@ -16,7 +16,7 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
-import { TransactionReviewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/TransactionReview.selectors';
+import { TransactionReviewSelectorsIDs } from './TransactionReview.testIds';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 

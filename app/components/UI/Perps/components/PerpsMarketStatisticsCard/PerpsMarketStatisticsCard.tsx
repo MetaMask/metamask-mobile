@@ -17,7 +17,7 @@ import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsOrderBookViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import FundingCountdown from '../FundingCountdown';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {

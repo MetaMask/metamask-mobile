@@ -1,9 +1,9 @@
 import {
   DeleteWalletModalSelectorsIDs,
   DeleteWalletModalSelectorsText,
-} from '../../../selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
-import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
+} from '../../../../app/components/UI/DeleteWalletModal/DeleteWalletModal.testIds';
+import Matchers from '../../../../tests/framework/Matchers';
+import Gestures from '../../../../tests/framework/Gestures';
 
 class DeleteWalletModal {
   get container(): DetoxElement {

@@ -1,9 +1,9 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import {
   NetworkNonPemittedBottomSheetSelectorsIDs,
   NetworkNonPemittedBottomSheetSelectorsText,
-} from '../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+} from '../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 
 class NetworkNonPemittedBottomSheet {
   get addThisNetworkTitle(): DetoxElement {

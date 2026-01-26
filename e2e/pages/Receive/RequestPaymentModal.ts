@@ -1,6 +1,6 @@
-import { RequestPaymentModalSelectorsIDs } from '../../selectors/Receive/RequestPaymentModal.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import { RequestPaymentModalSelectorsIDs } from '../../../app/components/UI/ReceiveRequest/RequestPaymentModal.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class RequestPaymentModal {
   get requestPaymentButton(): DetoxElement {

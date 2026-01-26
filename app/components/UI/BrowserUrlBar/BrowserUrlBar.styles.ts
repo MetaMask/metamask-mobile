@@ -69,6 +69,25 @@ const styleSheet = ({
     closeButton: {
       marginRight: 16,
     },
+    tabsButton: {
+      height: 50,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingTop: 12,
+      paddingBottom: 12,
+    },
+    tabsButtonAndroid: {
+      paddingLeft: 7,
+      paddingRight: 7,
+    },
+    tabsButtonIOS: {
+      paddingLeft: 8,
+      paddingRight: 8,
+    },
+    tabIcon: {
+      width: 30,
+      height: 30,
+    },
   });
 
 export default styleSheet;
