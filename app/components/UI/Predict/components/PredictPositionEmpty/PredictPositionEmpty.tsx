@@ -1,40 +1,65 @@
-import { Box } from '@metamask/design-system-react-native';
+import React, { useCallback } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import Section from '../../../../Views/TrendingView/components/Sections/Section';
+import { SECTIONS_CONFIG } from '../../../../Views/TrendingView/sections.config';
 import { strings } from '../../../../../../locales/i18n';
-import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
-import { useStyles } from '../../../../../component-library/hooks';
-import Routes from '../../../../../constants/navigation/Routes';
-import PredictionsDark from '../../../../../images/predictions-dark.svg';
-import PredictionsLight from '../../../../../images/predictions-light.svg';
-import { useAssetFromTheme } from '../../../../../util/theme';
-import { PredictEventValues } from '../../constants/eventNames';
-import styleSheet from './PredictPositionEmpty.styles';
 
 interface PredictPositionEmptyProps {}
 
 const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
+  const tw = useTailwind();
   const navigation = useNavigation();
-  const { styles } = useStyles(styleSheet, {});
-  const ThemedPredictions = useAssetFromTheme(
-    PredictionsLight,
-    PredictionsDark,
-  );
+  const section = SECTIONS_CONFIG.predictions;
+
+  const handleToggleEmptyState = useCallback((_isEmpty: boolean) => {
+    // TODO: Toggle empty state
+  }, []);
+
+  const handleToggleLoadingState = useCallback((_isLoading: boolean) => {
+    // TODO: Toggle loading state
+  }, []);
 
   return (
-    <Box testID="predict-position-empty" style={styles.emptyState}>
-      <TabEmptyState
-        icon={<ThemedPredictions testID="icon" width={72} height={72} />}
-        description={strings('predict.tab.no_predictions_description')}
-        actionButtonText={strings('predict.tab.explore')}
-        onAction={() =>
-          navigation.navigate(Routes.PREDICT.ROOT, {
-            screen: Routes.PREDICT.MARKET_LIST,
-            params: {
-              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-            },
-          })
-        }
+    <Box testID="predict-position-empty">
+      <TouchableOpacity
+        testID="predict-position-empty-section-header"
+        style={tw.style('flex-row items-center mb-2')}
+        onPress={() => section.viewAllAction(navigation)}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+        >
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+            {strings('predict.category.trending')}
+          </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Box>
+      </TouchableOpacity>
+      <Section
+        sectionId={section.id}
+        refreshConfig={{ trigger: 0, silentRefresh: true }}
+        toggleSectionEmptyState={handleToggleEmptyState}
+        toggleSectionLoadingState={handleToggleLoadingState}
       />
     </Box>
   );
