@@ -1509,6 +1509,38 @@ class FixtureBuilder {
   }
 
   /**
+   * Merges provided data into the SmartTransactionsController's state.
+   * @param {Object} data - The data to merge into SmartTransactionsController.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withSmartTransactionsController(data: Record<string, unknown>) {
+    if (
+      !this.fixture.state.engine.backgroundState.SmartTransactionsController
+    ) {
+      this.fixture.state.engine.backgroundState.SmartTransactionsController =
+        {};
+    }
+    merge(
+      this.fixture.state.engine.backgroundState.SmartTransactionsController,
+      data,
+    );
+    return this;
+  }
+
+  /**
+   * Merges provided data into the RemoteFeatureFlagController's state.
+   * @param {Object} data - The data to merge into RemoteFeatureFlagController.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withRemoteFeatureFlagController(data: Record<string, unknown>) {
+    merge(
+      this.fixture.state.engine.backgroundState.RemoteFeatureFlagController,
+      data,
+    );
+    return this;
+  }
+
+  /**
    * Merges provided data into the KeyringController's state with a random imported account.
    * and also includes the default HD Key Tree fixture account.
    *
