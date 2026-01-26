@@ -16,8 +16,6 @@ import {
   IconName,
   Icon,
   IconSize,
-  IconColor,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -209,22 +207,13 @@ export const ExploreFeed: React.FC = () => {
           onPress={handleBrowserPress}
           testID="trending-view-browser-button"
         >
-          <Box twClassName="rounded-lg items-center justify-center bg-muted min-h-[44px] min-w-[44px]">
-            {browserTabsCount > 0 ? (
-              <Text
-                variant={TextVariant.BodyLg}
-                color={TextColor.TextAlternative}
-              >
-                {browserTabsCount}
-              </Text>
-            ) : (
-              <Icon
-                name={IconName.Explore}
-                size={IconSize.Lg}
-                color={IconColor.IconAlternative}
-              />
-            )}
-          </Box>
+          {browserTabsCount > 0 ? (
+            <Box twClassName="rounded-md items-center justify-center h-8 w-8 border-2 border-text-default">
+              <Text variant={TextVariant.BodyLg}>{browserTabsCount}</Text>
+            </Box>
+          ) : (
+            <Icon name={IconName.Explore} size={IconSize.Xl} />
+          )}
         </TouchableOpacity>
       </Box>
 

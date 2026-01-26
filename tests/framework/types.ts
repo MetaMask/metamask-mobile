@@ -2,7 +2,7 @@
 
 import { LanguageAndLocale } from 'detox/detox';
 import { DappVariants } from './Constants.ts';
-import { AnvilManager, Hardfork } from '../../e2e/seeder/anvil-manager.ts';
+import { AnvilManager, Hardfork } from '../seeder/anvil-manager.ts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
 import Ganache from '../../app/util/test/ganache';
 import { Mockttp } from 'mockttp';

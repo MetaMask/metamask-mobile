@@ -29,7 +29,7 @@ import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../../../tests/api-mocking/helpers/mockHelpers';
 import { confirmationsRedesignedFeatureFlags } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { AnvilManager } from '../../../../seeder/anvil-manager';
+import { AnvilManager } from '../../../../../tests/seeder/anvil-manager';
 
 const LOCAL_CHAIN_NAME = 'Local RPC';
 

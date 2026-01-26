@@ -18,6 +18,7 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    AMOUNT_INPUT: 'RampAmountInput',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
