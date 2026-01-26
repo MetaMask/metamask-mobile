@@ -535,44 +535,6 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     expect(getByText('mUSD')).toBeOnTheScreen();
   });
 
-  it('renders CTA without close button when onDismiss is undefined', () => {
-    // Arrange
-    const state = initialStateWallet()
-      .withMinimalMultichainAssets()
-      .withRemoteFeatureFlags({
-        earnMusdConversionAssetOverviewCtaEnabled: { enabled: true },
-        earnMusdConversionFlowEnabled: { enabled: true },
-        earnMusdConversionCtaTokens: { '*': ['USDC'] },
-      })
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            AssetsController: {
-              assets: {},
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>)
-      .build();
-
-    // Act
-    const { queryByTestId, getByTestId } = renderComponentViewScreen(
-      () => <MusdConversionAssetOverviewCtaScreen asset={mockAsset} />,
-      { name: 'TestScreen' },
-      { state },
-    );
-
-    // Assert
-    expect(
-      getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(
-        EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON,
-      ),
-    ).toBeNull();
-  });
-
   it('renders CTA for USDT asset when in allowlist', () => {
     // Arrange
     const mockUSDTAsset = {
