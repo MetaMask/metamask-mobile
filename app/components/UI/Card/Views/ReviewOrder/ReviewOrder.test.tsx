@@ -175,12 +175,36 @@ describe('ReviewOrder', () => {
         getByTestId(ReviewOrderSelectors.SHIPPING_ADDRESS_CARD),
       ).toBeTruthy();
       expect(getByTestId(ReviewOrderSelectors.ADDRESS_LINE_1)).toBeTruthy();
+      expect(getByTestId(ReviewOrderSelectors.ADDRESS_LINE_2)).toBeTruthy();
       expect(
         getByTestId(ReviewOrderSelectors.ADDRESS_CITY_STATE_ZIP),
       ).toBeTruthy();
       expect(
         getByText(strings('card.review_order.shipping_address')),
       ).toBeTruthy();
+    });
+
+    it('displays line2 address when provided', () => {
+      const { getByTestId } = render(<ReviewOrder />);
+
+      const line2Element = getByTestId(ReviewOrderSelectors.ADDRESS_LINE_2);
+
+      expect(line2Element).toBeTruthy();
+      expect(line2Element).toHaveTextContent('Apt 4');
+    });
+
+    it('displays complete shipping address with line1, line2, and city/state/zip', () => {
+      const { getByTestId } = render(<ReviewOrder />);
+
+      expect(
+        getByTestId(ReviewOrderSelectors.ADDRESS_LINE_1),
+      ).toHaveTextContent('123 Main St');
+      expect(
+        getByTestId(ReviewOrderSelectors.ADDRESS_LINE_2),
+      ).toHaveTextContent('Apt 4');
+      expect(
+        getByTestId(ReviewOrderSelectors.ADDRESS_CITY_STATE_ZIP),
+      ).toHaveTextContent('San Francisco, CA 94102');
     });
 
     it('displays metal card order items', () => {
@@ -252,5 +276,38 @@ describe('ReviewOrder', () => {
         params: { payId: 'test-pay-id', fromUpgrade: false },
       });
     });
+  });
+});
+
+describe('ReviewOrder without line2', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Override useParams mock for this test suite
+    jest
+      .spyOn(
+        jest.requireMock('../../../../../util/navigation/navUtils'),
+        'useParams',
+      )
+      .mockReturnValue({
+        shippingAddress: {
+          line1: '456 Oak Ave',
+          city: 'Los Angeles',
+          state: 'CA',
+          zip: '90001',
+        },
+        fromUpgrade: false,
+      });
+  });
+
+  it('does not render line2 element when line2 is not provided', () => {
+    const { queryByTestId, getByTestId } = render(<ReviewOrder />);
+
+    expect(getByTestId(ReviewOrderSelectors.ADDRESS_LINE_1)).toHaveTextContent(
+      '456 Oak Ave',
+    );
+    expect(queryByTestId(ReviewOrderSelectors.ADDRESS_LINE_2)).toBeNull();
+    expect(
+      getByTestId(ReviewOrderSelectors.ADDRESS_CITY_STATE_ZIP),
+    ).toHaveTextContent('Los Angeles, CA 90001');
   });
 });

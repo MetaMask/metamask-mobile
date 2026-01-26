@@ -247,6 +247,16 @@ const ReviewOrder = () => {
           >
             {shippingAddress.line1}
           </Text>
+          {shippingAddress.line2 ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              twClassName="text-alternative"
+              testID={ReviewOrderSelectors.ADDRESS_LINE_2}
+            >
+              {shippingAddress.line2}
+            </Text>
+          ) : null}
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Regular}
