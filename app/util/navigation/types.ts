@@ -16,6 +16,20 @@ import type { AddressSelectorParams } from '../../components/Views/AddressSelect
 import type { AccountConnectParams } from '../../components/Views/AccountConnect/AccountConnect.types';
 import type { SecuritySettingsParams } from '../../components/Views/Settings/SecuritySettings/SecuritySettings.types';
 
+// Import child navigator param lists
+import type { StakeParamList } from '../../components/UI/Stake/routes/types';
+import type { EarnParamList } from '../../components/UI/Earn/routes/types';
+import type { BridgeParamList } from '../../components/UI/Bridge/types';
+import type { CardParamList } from '../../components/UI/Card/routes/types';
+import type { RampParamList } from '../../components/UI/Ramp/types';
+
+// Re-export child param lists for external use
+export type { StakeParamList } from '../../components/UI/Stake/routes/types';
+export type { EarnParamList } from '../../components/UI/Earn/routes/types';
+export type { BridgeParamList } from '../../components/UI/Bridge/types';
+export type { CardParamList } from '../../components/UI/Card/routes/types';
+export type { RampParamList } from '../../components/UI/Ramp/types';
+
 /**
  * Root navigation param list for the entire app.
  * This provides type safety for navigation.navigate() calls.
@@ -178,7 +192,7 @@ export type RootParamList = {
   SwapsQuotesView: undefined;
 
   // Ramp Flow
-  Ramp: undefined;
+  Ramp: NavigatorScreenParams<RampParamList> | undefined;
   RampBuy: object | undefined;
   RampSell: object | undefined;
   GetStarted: undefined;
@@ -247,7 +261,7 @@ export type RootParamList = {
   DepositErrorDetailsModal: undefined;
 
   // Bridge Flow
-  Bridge: undefined;
+  Bridge: NavigatorScreenParams<BridgeParamList> | undefined;
   BridgeRoot: undefined;
   BridgeModalsRoot: undefined;
   BridgeModals: undefined;
@@ -265,7 +279,7 @@ export type RootParamList = {
   RecipientSelectorModal: undefined;
 
   // Staking/Earn Flow
-  StakeScreens: undefined;
+  StakeScreens: NavigatorScreenParams<StakeParamList> | undefined;
   Stake: object | undefined;
   StakeConfirmation: {
     amountWei: string;
@@ -294,7 +308,7 @@ export type RootParamList = {
     chainId?: string;
   };
   EarningsHistory: { asset: TokenI };
-  EarnScreens: undefined;
+  EarnScreens: NavigatorScreenParams<EarnParamList> | undefined;
   EarnTokenList: {
     tokenFilter: {
       includeNativeTokens?: boolean;
@@ -314,8 +328,8 @@ export type RootParamList = {
   StakeModals: undefined;
 
   // Card Flow
-  CardRoutes: undefined;
-  CardScreens: undefined;
+  CardRoutes: NavigatorScreenParams<CardParamList> | undefined;
+  CardScreens: NavigatorScreenParams<CardParamList> | undefined;
   CardMainRoutes: undefined;
   CardHome: undefined;
   CardWelcome: undefined;

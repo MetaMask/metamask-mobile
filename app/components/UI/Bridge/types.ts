@@ -36,3 +36,32 @@ export enum BridgeViewMode {
   Bridge = 'Bridge',
   Unified = 'Unified',
 }
+
+// ========== Navigation Types ==========
+
+/**
+ * Param list for the Bridge screen stack navigator.
+ */
+export interface BridgeScreenParamList {
+  BridgeView: undefined;
+}
+
+/**
+ * Param list for the Bridge modal stack navigator.
+ */
+export interface BridgeModalParamList {
+  BridgeSourceTokenSelector: undefined;
+  BridgeDestTokenSelector: undefined;
+  BridgeSourceNetworkSelector: undefined;
+  BridgeDestNetworkSelector: undefined;
+  SlippageModal: undefined;
+  TransactionDetailsBlockExplorer: undefined;
+  QuoteExpiredModal: undefined;
+  BlockaidModal: undefined;
+  RecipientSelectorModal: undefined;
+}
+
+/**
+ * Combined param list for all Bridge-related navigation.
+ */
+export type BridgeParamList = BridgeScreenParamList & BridgeModalParamList;

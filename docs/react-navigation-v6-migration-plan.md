@@ -626,6 +626,25 @@ yarn start:android
 4. ✅ Reduced TS2769 errors from 102 → 2 (98% reduction)
 5. ✅ Total errors reduced from 632 → ~410 (35% reduction)
 
+### Child Navigator ParamLists Created (Jan 2026)
+
+Created typed param lists for child navigators following best practices:
+
+| Navigator | Types File                                | Param List Types                                                      |
+| --------- | ----------------------------------------- | --------------------------------------------------------------------- |
+| Stake     | `app/components/UI/Stake/routes/types.ts` | `StakeScreenParamList`, `StakeModalParamList`                         |
+| Earn      | `app/components/UI/Earn/routes/types.ts`  | `EarnScreenParamList`, `EarnModalParamList`                           |
+| Bridge    | `app/components/UI/Bridge/types.ts`       | `BridgeScreenParamList`, `BridgeModalParamList`                       |
+| Card      | `app/components/UI/Card/routes/types.ts`  | `CardMainParamList`, `CardModalsParamList`, `CardOnboardingParamList` |
+| Ramp      | `app/components/UI/Ramp/types.ts`         | `RampMainParamList`, `RampModalsParamList`                            |
+
+**Benefits:**
+
+- Each navigator now uses `createStackNavigator<ParamList>()` for type-safe screen definitions
+- Child param lists are re-exported from main `types.ts`
+- Main `RootParamList` uses `NavigatorScreenParams<ChildParamList>` for nested navigators
+- Exported route param interfaces from component files (e.g., `StakeConfirmationViewRouteParams`)
+
 ---
 
 ## Status

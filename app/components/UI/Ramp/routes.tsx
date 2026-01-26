@@ -3,10 +3,15 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './components/TokenSelection';
 import UnsupportedTokenModal from './components/UnsupportedTokenModal';
+import type {
+  RampTokenListParamList,
+  RampMainParamList,
+  RampModalsParamList,
+} from './types';
 
-const RootStack = createStackNavigator();
-const Stack = createStackNavigator();
-const ModalsStack = createStackNavigator();
+const RootStack = createStackNavigator<RampTokenListParamList>();
+const Stack = createStackNavigator<RampMainParamList>();
+const ModalsStack = createStackNavigator<RampModalsParamList>();
 
 const clearStackNavigatorOptions = {
   headerShown: false,

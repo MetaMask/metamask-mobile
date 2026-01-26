@@ -11,6 +11,7 @@ import BlockExplorersModal from './components/TransactionDetails/BlockExplorersM
 import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
+import type { BridgeScreenParamList, BridgeModalParamList } from './types';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -20,7 +21,7 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<BridgeScreenParamList>();
 export const BridgeScreenStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -31,7 +32,7 @@ export const BridgeScreenStack = () => (
   </Stack.Navigator>
 );
 
-const ModalStack = createStackNavigator();
+const ModalStack = createStackNavigator<BridgeModalParamList>();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}

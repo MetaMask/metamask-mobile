@@ -1,6 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
+import type { StakeScreenParamList, StakeModalParamList } from './types';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
 import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeConfirmationView';
@@ -17,8 +18,8 @@ import EarnInputView from '../../Earn/Views/EarnInputView/EarnInputView';
 import EarnWithdrawInputView from '../../Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createStackNavigator<StakeScreenParamList>();
+const ModalStack = createStackNavigator<StakeModalParamList>();
 
 const clearStackNavigatorOptions = {
   headerShown: false,
