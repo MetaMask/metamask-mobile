@@ -26,6 +26,7 @@ import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
+import type { ShippingAddress } from '../../Views/ReviewOrder';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -542,9 +543,16 @@ const PhysicalAddress = () => {
 
             if (currentVerificationState === 'VERIFIED') {
               if (location === 'us') {
+                const shippingAddress: ShippingAddress = {
+                  line1: addressLine1,
+                  line2: addressLine2 || undefined,
+                  city,
+                  state,
+                  zip: zipCode,
+                };
                 stopPollingAndNavigate({
                   name: Routes.CARD.CHOOSE_YOUR_CARD,
-                  params: { flow: 'onboarding' },
+                  params: { flow: 'onboarding', shippingAddress },
                 });
               } else {
                 stopPollingAndNavigate({

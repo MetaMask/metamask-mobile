@@ -833,7 +833,16 @@ describe('PhysicalAddress Component', () => {
             routes: [
               {
                 name: Routes.CARD.CHOOSE_YOUR_CARD,
-                params: { flow: 'onboarding' },
+                params: {
+                  flow: 'onboarding',
+                  shippingAddress: {
+                    line1: '123 Main St',
+                    line2: undefined,
+                    city: 'San Francisco',
+                    state: 'CA',
+                    zip: '12345',
+                  },
+                },
               },
             ],
           });
@@ -1126,7 +1135,16 @@ describe('PhysicalAddress Component', () => {
             routes: [
               {
                 name: Routes.CARD.CHOOSE_YOUR_CARD,
-                params: { flow: 'onboarding' },
+                params: {
+                  flow: 'onboarding',
+                  shippingAddress: {
+                    line1: '123 Main St',
+                    line2: undefined,
+                    city: 'San Francisco',
+                    state: 'CA',
+                    zip: '12345',
+                  },
+                },
               },
             ],
           });

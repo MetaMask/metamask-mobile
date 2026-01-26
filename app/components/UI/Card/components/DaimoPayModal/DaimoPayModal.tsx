@@ -190,6 +190,11 @@ const DaimoPayModal: React.FC = () => {
           .build(),
       );
 
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+
       setError(
         errorMessage || strings('card.daimo_pay_modal.payment_bounced_error'),
       );
