@@ -878,16 +878,13 @@ class AuthenticationService {
 
   /**
    * Attempts to use biometric/pin code/remember me to login
-   * @param bioStateMachineId - ID associated with each biometric session.
    * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
    */
   appTriggeredAuth = async (
     options: {
-      bioStateMachineId?: string;
       disableAutoLogout?: boolean;
     } = {},
   ): Promise<void> => {
-    const bioStateMachineId = options?.bioStateMachineId;
     const disableAutoLogout = options?.disableAutoLogout;
     try {
       // TODO: Replace "any" with type
@@ -1661,15 +1658,18 @@ class AuthenticationService {
     const { authType, password } = options;
     // Password found or provided. Validate and update the auth preference.
     try {
+      console.log('updateAuthPreference', password);
       const passwordToUse = await this.reauthenticate(password);
 
       // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
-      await this.resetPassword();
+      // await this.resetPassword();
 
       // storePassword handles all storage flag management internally
       await this.storePassword(passwordToUse.password, authType);
     } catch (e) {
       const errorWithMessage = e as { message: string };
+
+      console.log('errorWithMessage', errorWithMessage);
 
       // Check if the error is because password is not set with biometrics
       // Convert it to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS so UI can handle it
