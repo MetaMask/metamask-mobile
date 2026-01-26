@@ -1,4 +1,4 @@
-import { merge, getOr } from 'lodash/fp';
+import { mergeWith, getOr } from 'lodash/fp';
 import AppConstants from '../../../../../core/AppConstants';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -13,10 +13,17 @@ export const useSlippageConfig = (
     return defaultConfig;
   }
 
-  // Merge default config to each network and return the result.
-  // Note that this will also merge default with itself but
-  // it does not cause issues so we allow it for simpler semantics.
-  return merge(
+  // Merge default config with network-specific overrides.
+  // Arrays are replaced, not merged by index.
+  const customizer = (_objValue: unknown, srcValue: unknown) => {
+    if (Array.isArray(srcValue)) {
+      return srcValue; // Replace array entirely
+    }
+    return undefined; // Use default merge behavior for other types
+  };
+
+  return mergeWith(
+    customizer,
     defaultConfig,
     getOr(
       {},
