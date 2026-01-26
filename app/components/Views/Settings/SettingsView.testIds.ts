@@ -19,6 +19,7 @@ export const SettingsViewSelectorsIDs = {
   CONTACT: 'contact-settings',
   LOCK: 'lock-settings',
   NOTIFICATIONS: 'notifications-settings',
+  PROFILE: 'profile-settings',
   AES_CRYPTO_TEST_FORM: 'aes-crypto-settings',
   PERMISSIONS: 'permissions',
   BACKUP_AND_SYNC: 'backup-and-sync-settings',

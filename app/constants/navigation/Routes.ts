@@ -117,6 +117,7 @@ const Routes = {
     REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
+    USER_PROFILE_OPT_IN: 'UserProfileOptInModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -348,6 +349,12 @@ const Routes = {
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
+  },
+  USER_PROFILE: {
+    ROOT: 'UserProfileRoot',
+    OPT_IN: 'UserProfileOptIn',
+    CLAIM_USERNAME: 'UserProfileClaimUsername',
+    SETTINGS: 'UserProfileSettings',
   },
   MULTI_SRP: {
     IMPORT: 'ImportSRPView',

@@ -133,6 +133,7 @@ import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroModal';
 import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
+import UserProfileOptIn from '../../Views/UserProfile/OptIn';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 import Pna25BottomSheet from '../../Views/Pna25BottomSheet';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
@@ -572,6 +573,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
       component={LearnMoreBottomSheet}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.USER_PROFILE_OPT_IN}
+      component={UserProfileOptIn}
       options={{ headerShown: false }}
     />
     <Stack.Screen

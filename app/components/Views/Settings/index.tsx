@@ -86,6 +86,10 @@ const Settings = () => {
     navigation.navigate(Routes.SETTINGS.BACKUP_AND_SYNC);
   };
 
+  const onPressProfile = () => {
+    navigation.navigate(Routes.USER_PROFILE.SETTINGS);
+  };
+
   const onPressSecurity = () => {
     trackEvent(
       createEventBuilder(
@@ -257,6 +261,12 @@ const Settings = () => {
             testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
           />
         )}
+        <SettingsDrawer
+          description={strings('user_profile.settings.drawer_description')}
+          onPress={onPressProfile}
+          title={strings('user_profile.settings.drawer_title')}
+          testID={SettingsViewSelectorsIDs.PROFILE}
+        />
         {isPermissionsSettingsV1Enabled && (
           <SettingsDrawer
             description={strings('app_settings.permissions_desc')}
