@@ -4466,7 +4466,7 @@ describe('HyperLiquidSubscriptionService', () => {
   });
 
   describe('Position hash change detection', () => {
-    it('should notify subscribers when liquidationPrice or marginUsed changes', async () => {
+    it('notifies subscribers when liquidationPrice or marginUsed changes', async () => {
       const mockCallback = jest.fn();
       const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
       let callCount = 0;
