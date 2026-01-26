@@ -254,21 +254,9 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   },
   {
     enableMultichainAccountsState2: {
-      enabled: true,
+      enabled: false,
       featureVersion: '2',
-      minimumVersion: '0.0.0',
-    },
-  },
-  {
-    bitcoinAccounts: {
-      enabled: true,
-      minimumVersion: '0.0.0',
-    },
-  },
-  {
-    tronAccounts: {
-      enabled: true,
-      minimumVersion: '0.0.0',
+      minimumVersion: '7.53.0',
     },
   },
   {
