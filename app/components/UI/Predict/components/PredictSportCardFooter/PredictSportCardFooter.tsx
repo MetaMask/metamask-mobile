@@ -155,6 +155,14 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           testID={testID ? `${testID}-picks` : undefined}
         />
       )}
+      {hasClaimablePositions && (
+        <PredictPicksForCard
+          marketId={market.id}
+          positions={claimablePositions}
+          showSeparator
+          testID={testID ? `${testID}-picks` : undefined}
+        />
+      )}
 
       {showClaimButton && (
         <PredictActionButtons
