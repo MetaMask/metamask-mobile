@@ -163,14 +163,12 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     skipSetSelectedAccountStep,
     skipApprovalFlow,
     onceSaved,
-    _accountName,
   }: {
     address: string;
     snapId: SnapId;
     skipSetSelectedAccountStep: boolean;
     skipApprovalFlow: boolean;
     onceSaved: Promise<string>;
-    _accountName?: string;
   }) {
     const finalizeFn = async () => {
       try {
