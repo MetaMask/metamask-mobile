@@ -41,43 +41,52 @@ const MerklRewards: React.FC<MerklRewardsProps> = ({ asset }) => {
 
   // Update navigation params with new balance, fetching directly from RPC with retry
   const updateAssetBalanceWithRetry = useCallback(async () => {
-    if (!selectedAddress || !asset.address || !asset.chainId) return;
+    try {
+      if (!selectedAddress || !asset.address || !asset.chainId) return;
 
-    // Use current displayed balance as baseline for comparison
-    const initialBalance = asset.balance;
-    const maxRetries = 5;
-    const delayMs = 2000;
+      // Use current displayed balance as baseline for comparison
+      const initialBalance = asset.balance;
+      const maxRetries = 5;
+      const delayMs = 2000;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-
-      // Fetch balance directly from RPC (bypasses controller cache)
+      // Get provider once outside loop - if unavailable, exit early
       const web3Provider = getProviderByChainId(asset.chainId as Hex);
-      const atomicBalance = await fetchEvmAtomicBalance(
-        web3Provider,
-        selectedAddress,
-        asset.address,
-        asset.chainId as Hex,
-      );
+      if (!web3Provider) {
+        return;
+      }
 
-      if (atomicBalance) {
-        const newBalance = formatUnits(atomicBalance, asset.decimals ?? 18);
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
 
-        // Strip commas from initial balance (e.g., "5,000" -> "5000") before comparing
-        const initialValue = parseFloat(
-          (initialBalance ?? '0').replace(/,/g, ''),
+        // Fetch balance directly from RPC (bypasses controller cache)
+        const atomicBalance = await fetchEvmAtomicBalance(
+          web3Provider,
+          selectedAddress,
+          asset.address,
+          asset.chainId as Hex,
         );
-        const newValue = parseFloat(newBalance);
 
-        // Check if balance actually changed
-        if (newValue !== initialValue) {
-          // Update route params directly - asset IS route.params in Asset/index.js
-          navigation.setParams({
-            balance: newBalance,
-          } as never);
-          return;
+        if (atomicBalance) {
+          const newBalance = formatUnits(atomicBalance, asset.decimals ?? 18);
+
+          // Strip commas from initial balance (e.g., "5,000" -> "5000") before comparing
+          const initialValue = parseFloat(
+            (initialBalance ?? '0').replace(/,/g, ''),
+          );
+          const newValue = parseFloat(newBalance);
+
+          // Check if balance actually changed
+          if (newValue !== initialValue) {
+            // Update route params directly - asset IS route.params in Asset/index.js
+            navigation.setParams({
+              balance: newBalance,
+            } as never);
+            return;
+          }
         }
       }
+    } catch {
+      // Silently fail - balance update is best-effort, user can refresh manually
     }
   }, [selectedAddress, asset, navigation]);
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import MerklRewards from './MerklRewards';
 import { TokenI } from '../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -33,10 +33,17 @@ jest.mock('../../../Bridge/hooks/useLatestBalance', () => ({
   fetchEvmAtomicBalance: jest.fn(),
 }));
 
-// Mock getProviderByChainId
+// Mock getProviderByChainId - return a mock provider object that satisfies type checking
+const mockProvider = {} as ReturnType<
+  typeof import('../../../../../util/notifications/methods/common').getProviderByChainId
+>;
 jest.mock('../../../../../util/notifications/methods/common', () => ({
-  getProviderByChainId: jest.fn(() => ({})),
+  getProviderByChainId: jest.fn(() => mockProvider),
 }));
+
+// Import after mock to get the mocked version
+import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
+const mockGetProviderByChainId = getProviderByChainId as jest.Mock;
 
 jest.mock('../../../../../util/Logger', () => ({
   log: jest.fn(),
@@ -143,6 +150,7 @@ describe('MerklRewards', () => {
     capturedOnClaimSuccess = null;
     mockUseSelector.mockReturnValue(mockSelectedAddress);
     mockedFetchEvmAtomicBalance.mockResolvedValue(undefined);
+    mockGetProviderByChainId.mockReturnValue({});
   });
 
   afterEach(() => {
@@ -308,8 +316,6 @@ describe('MerklRewards', () => {
     });
 
     it('updates navigation params when balance changes', async () => {
-      jest.useRealTimers();
-
       // Mock fetchEvmAtomicBalance to return a new balance (different from asset.balance)
       // asset.balance is '1000', so new balance should be different
       const newBalanceAtomic = BigNumber.from('2000000000000000000000'); // 2000 tokens
@@ -331,15 +337,12 @@ describe('MerklRewards', () => {
       // Trigger claim success
       capturedOnClaimSuccess?.();
 
-      // Wait for the balance update retry to complete
-      await waitFor(
-        () => {
-          expect(mockSetParams).toHaveBeenCalledWith({
-            balance: '2000.0',
-          });
-        },
-        { timeout: 5000 },
-      );
+      // Advance timers past the first delay to trigger the balance fetch
+      await jest.advanceTimersByTimeAsync(2500);
+
+      expect(mockSetParams).toHaveBeenCalledWith({
+        balance: '2000.0',
+      });
     });
 
     it('does not update navigation params when balance has not changed', async () => {
@@ -391,6 +394,50 @@ describe('MerklRewards', () => {
       await jest.advanceTimersByTimeAsync(2000 * 5);
 
       // Should not call setParams since balance is undefined
+      expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when getProviderByChainId returns undefined', async () => {
+      mockGetProviderByChainId.mockReturnValue(undefined);
+      mockUseSelector.mockReturnValue(mockSelectedAddress);
+
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      mockUseMerklRewards.mockReturnValue(
+        createMockUseMerklRewardsReturn('1.5'),
+      );
+
+      render(<MerklRewards asset={mockAsset} />);
+
+      // Trigger claim success - should not throw
+      capturedOnClaimSuccess?.();
+
+      // Advance timers
+      await jest.advanceTimersByTimeAsync(2000);
+
+      // Should not attempt to fetch balance when provider is unavailable
+      expect(mockedFetchEvmAtomicBalance).not.toHaveBeenCalled();
+      expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when fetchEvmAtomicBalance rejects', async () => {
+      mockGetProviderByChainId.mockReturnValue({});
+      mockedFetchEvmAtomicBalance.mockRejectedValue(new Error('Network error'));
+
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      mockUseMerklRewards.mockReturnValue(
+        createMockUseMerklRewardsReturn('1.5'),
+      );
+
+      render(<MerklRewards asset={mockAsset} />);
+
+      // Trigger claim success - should not throw unhandled promise rejection
+      capturedOnClaimSuccess?.();
+
+      // Advance timers past the first delay to trigger the balance fetch
+      await jest.advanceTimersByTimeAsync(2500);
+
+      // Verify it tried to fetch but handled the error gracefully
+      expect(mockedFetchEvmAtomicBalance).toHaveBeenCalled();
       expect(mockSetParams).not.toHaveBeenCalled();
     });
   });
