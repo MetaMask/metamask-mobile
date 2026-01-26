@@ -277,6 +277,14 @@ module.exports = {
       previewBuildConfiguration,
       packageName,
     ) {
+      if (
+        typeof previewBuildConfiguration !== 'object' ||
+        previewBuildConfiguration === null ||
+        Array.isArray(previewBuildConfiguration)
+      ) {
+        return `Invalid preview build configuration for \`${packageName}\`: Expected an object`;
+      }
+
       const { type, previewVersion } = previewBuildConfiguration;
       const subErrors = [];
 
