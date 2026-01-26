@@ -29,14 +29,17 @@ export const useMerklClaim = ({
   const [error, setError] = useState<string | null>(null);
   const onTransactionConfirmedRef = useRef(onTransactionConfirmed);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const unsubscribeRefs = useRef<(() => void)[]>([]);
 
   // Keep the callback ref updated
   onTransactionConfirmedRef.current = onTransactionConfirmed;
 
-  // Cleanup: abort any pending fetch on unmount
+  // Cleanup: abort any pending fetch and unsubscribe from transaction events on unmount
   useEffect(
     () => () => {
       abortControllerRef.current?.abort();
+      unsubscribeRefs.current.forEach((unsub) => unsub?.());
+      unsubscribeRefs.current = [];
     },
     [],
   );
@@ -118,7 +121,8 @@ export const useMerklClaim = ({
 
       // Set up listeners BEFORE awaiting result to avoid race condition
       // where transaction confirms before listeners are set up
-      Engine.controllerMessenger.subscribeOnceIf(
+      // Store unsubscribe functions for cleanup on unmount
+      const unsubConfirmed = Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionConfirmed',
         () => {
           setIsClaiming(false);
@@ -127,7 +131,7 @@ export const useMerklClaim = ({
         (txMeta) => txMeta.id === transactionId,
       );
 
-      Engine.controllerMessenger.subscribeOnceIf(
+      const unsubFailed = Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionFailed',
         ({ transactionMeta: txMeta }) => {
           setIsClaiming(false);
@@ -138,7 +142,7 @@ export const useMerklClaim = ({
 
       // Also listen for dropped transactions - on some networks/RPC providers,
       // a successful transaction might be marked as "dropped" instead of "confirmed"
-      Engine.controllerMessenger.subscribeOnceIf(
+      const unsubDropped = Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionDropped',
         () => {
           // Transaction was dropped but might still be successful on-chain
@@ -148,6 +152,14 @@ export const useMerklClaim = ({
         },
         ({ transactionMeta: txMeta }) => txMeta.id === transactionId,
       );
+
+      // Store unsubscribe functions for cleanup if component unmounts before tx completes
+      // Cast to () => void since unsubscribe functions don't need arguments when called
+      unsubscribeRefs.current = [
+        unsubConfirmed as () => void,
+        unsubFailed as () => void,
+        unsubDropped as () => void,
+      ];
 
       // Wait for transaction hash (indicates tx is submitted to network)
       const txHash = await result;

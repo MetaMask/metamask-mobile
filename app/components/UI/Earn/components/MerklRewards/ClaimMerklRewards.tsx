@@ -17,7 +17,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
 
 interface ClaimMerklRewardsProps {
   asset: TokenI;
@@ -55,8 +55,7 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
           token: asset.symbol,
           chain_id: asset.chainId,
           network: network?.name,
-          location: 'asset_details',
-          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW,
         })
         .build(),
     );
