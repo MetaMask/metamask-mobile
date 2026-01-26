@@ -8,12 +8,10 @@ import React, {
 import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { IconName as DSIconName } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../util/theme';
 import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
