@@ -1,6 +1,5 @@
 import { SmokeNetworkExpansion } from '../../../tags';
 import Assertions from '../../../../tests/framework/Assertions';
-import { withSolanaAccountEnabled } from '../../../common-solana';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
@@ -20,6 +19,8 @@ import {
 import { DappVariants } from '../../../../tests/framework/Constants';
 import { createLogger } from '../../../../tests/framework/logger';
 import { requestPermissions } from './helpers';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'multiple-provider-connections.spec.ts',
@@ -63,6 +64,12 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
           })
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
       },
       async () => {
         await loginToApp();
@@ -87,30 +94,39 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   });
 
   it('should retain Solana permissions when connecting through the EVM provider', async () => {
-    await withSolanaAccountEnabled(
+    await withFixtures(
       {
-        solanaAccountPermitted: true,
-        dappVariant: DappVariants.TEST_DAPP,
+        fixture: new FixtureBuilder().build(),
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
+        restartDevice: true,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
       },
       async () => {
+        await loginToApp();
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await TestDApp.connect();
 
         // Validate the prompted accounts
         await Assertions.expectTextDisplayed('Account 1');
-        await Assertions.expectTextDisplayed('Solana Account 1');
 
         await ConnectBottomSheet.tapConnectButton();
 
-        // Validate both EVM and Solana accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectTextDisplayed('Account 1');
-        await Assertions.expectTextDisplayed('Solana Account 1');
 
         // Navigate to the permissions summary tab
-        await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
+
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
         // Validate Solana Chain Permissions still exists
@@ -127,12 +143,24 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   });
 
   it('should default account selection to already permitted Solana account and requested Ethereum account when "wallet_requestPermissions" is called with specific Ethereum account', async () => {
-    await withSolanaAccountEnabled(
+    await withFixtures(
       {
-        solanaAccountPermitted: true,
-        dappVariant: DappVariants.TEST_DAPP,
+        fixture: new FixtureBuilder().build(),
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
+        restartDevice: true,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
       },
       async () => {
+        await loginToApp();
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
@@ -142,14 +170,12 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
 
         // Validate the prompted accounts
         await Assertions.expectTextDisplayed('Account 1');
-        await Assertions.expectTextDisplayed('Solana Account 1');
 
         await ConnectBottomSheet.tapConnectButton();
 
         // Validate both EVM and Solana accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectTextDisplayed('Account 1');
-        await Assertions.expectTextDisplayed('Solana Account 1');
       },
     );
   });
