@@ -1,4 +1,4 @@
-import { RegressionConfirmations } from '../../tags';
+import { SmokeConfirmationsRedesigned } from '../../tags';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
@@ -22,7 +22,7 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { LocalNode } from '../../../tests/framework/types';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
-describe(RegressionConfirmations('ERC1155 token'), () => {
+describe(SmokeConfirmationsRedesigned('ERC1155 token'), () => {
   const ERC1155_CONTRACT = SMART_CONTRACTS.ERC1155;
 
   it('batch transfer ERC1155 tokens', async () => {

@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -11,7 +11,7 @@ import { CustomNetworks } from '../../../tests/resources/networks.e2e';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 
-describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
+describe(SmokeWalletPlatform('Balance Empty State'), (): void => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });

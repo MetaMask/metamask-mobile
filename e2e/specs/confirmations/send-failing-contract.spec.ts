@@ -1,4 +1,4 @@
-import { RegressionConfirmations } from '../../tags';
+import { SmokeConfirmationsRedesigned } from '../../tags';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
@@ -18,7 +18,7 @@ import { oldConfirmationsRemoteFeatureFlags } from '../../../tests/api-mocking/m
 import { LocalNode } from '../../../tests/framework/types';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
-describe.skip(RegressionConfirmations('Failing contracts'), () => {
+describe.skip(SmokeConfirmationsRedesigned('Failing contracts'), () => {
   const FAILING_CONTRACT = SMART_CONTRACTS.FAILING;
 
   it('sends a failing contract transaction', async () => {

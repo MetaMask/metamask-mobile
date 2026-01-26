@@ -1,4 +1,4 @@
-import { RegressionWalletUX } from '../../tags';
+import { SmokeWalletUX } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
@@ -8,7 +8,7 @@ import { Mockttp } from 'mockttp';
 import { setupContentfulPromotionalBannersMock } from '../../../tests/api-mocking/helpers/contentfulHelper';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
-describe(RegressionWalletUX('Carousel Tests'), () => {
+describe(SmokeWalletUX('Carousel Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });

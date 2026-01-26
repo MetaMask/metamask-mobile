@@ -1,4 +1,4 @@
-import { RegressionAccounts } from '../../tags.js';
+import { SmokeAccounts } from '../../tags.js';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import Matchers from '../../../tests/framework/Matchers';
 import Assertions from '../../../tests/framework/Assertions';
@@ -13,7 +13,7 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import ToastModal from '../../pages/wallet/ToastModal';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 
-describe(RegressionAccounts('change password'), () => {
+describe(SmokeAccounts('change password'), () => {
   const PASSWORD = '123123123';
   const NEWPASSWORD = '123412341234';
 

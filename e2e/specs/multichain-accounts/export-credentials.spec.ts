@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../tags.js';
+import { SmokeWalletPlatform } from '../../tags.js';
 import {
   HD_ACCOUNT,
   goToAccountDetails,
@@ -14,18 +14,15 @@ const exportSrp = async () => {
   await completeSrpQuiz(defaultOptions.mnemonic);
 };
 
-describe(
-  RegressionWalletPlatform('Multichain Accounts: Account Details'),
-  () => {
-    beforeEach(async () => {
-      await TestHelpers.reverseServerPort();
-    });
+describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
+  beforeEach(async () => {
+    await TestHelpers.reverseServerPort();
+  });
 
-    it('exports SRP', async () => {
-      await withMultichainAccountDetailsEnabledFixtures(async () => {
-        await goToAccountDetails(HD_ACCOUNT);
-        await exportSrp();
-      });
+  it('exports SRP', async () => {
+    await withMultichainAccountDetailsEnabledFixtures(async () => {
+      await goToAccountDetails(HD_ACCOUNT);
+      await exportSrp();
     });
-  },
-);
+  });
+});

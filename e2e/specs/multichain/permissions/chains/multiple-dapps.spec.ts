@@ -1,20 +1,20 @@
-import TestHelpers from '../../../../../helpers';
-import { RegressionNetworkExpansion } from '../../../../../tags';
-import Browser from '../../../../../pages/Browser/BrowserView';
-import TabBarComponent from '../../../../../pages/wallet/TabBarComponent';
-import NetworkListModal from '../../../../../pages/Network/NetworkListModal';
-import ConnectedAccountsModal from '../../../../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../../../tests/framework/fixtures/FixtureHelper';
-import { loginToApp, navigateToBrowserView } from '../../../../../viewHelper';
-import Assertions from '../../../../../../tests/framework/Assertions';
-import WalletView from '../../../../../pages/wallet/WalletView';
-import NetworkNonPemittedBottomSheet from '../../../../../pages/Network/NetworkNonPemittedBottomSheet';
-import NetworkConnectMultiSelector from '../../../../../pages/Browser/NetworkConnectMultiSelector';
-import NetworkEducationModal from '../../../../../pages/Network/NetworkEducationModal';
-import PermissionSummaryBottomSheet from '../../../../../pages/Browser/PermissionSummaryBottomSheet';
-import { DappVariants } from '../../../../../../tests/framework/Constants';
-import TestDApp from '../../../../../pages/Browser/TestDApp';
+import TestHelpers from '../../../../helpers';
+import { SmokeNetworkExpansion } from '../../../../tags';
+import Browser from '../../../../pages/Browser/BrowserView';
+import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import NetworkListModal from '../../../../pages/Network/NetworkListModal';
+import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
+import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
+import Assertions from '../../../../../tests/framework/Assertions';
+import WalletView from '../../../../pages/wallet/WalletView';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
+import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
+import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
+import { DappVariants } from '../../../../../tests/framework/Constants';
+import TestDApp from '../../../../pages/Browser/TestDApp';
 
 /*
 Test Steps:
@@ -27,7 +27,7 @@ Test Steps:
 7. Check Dapp 1 is still on Linea Sepolia
 8. Check Dapp 2 is still on ETH Mainnet
 */
-describe(RegressionNetworkExpansion('Per Dapp Management'), (): void => {
+describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
   beforeAll(async (): Promise<void> => {
     jest.setTimeout(300000);
     await TestHelpers.reverseServerPort();

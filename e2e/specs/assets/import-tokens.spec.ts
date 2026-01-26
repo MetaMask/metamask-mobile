@@ -1,4 +1,4 @@
-import { RegressionAssets } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
@@ -9,7 +9,7 @@ import Assertions from '../../../tests/framework/Assertions';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
 
-describe(RegressionAssets('Import Tokens'), () => {
+describe(SmokeAssets('Import Tokens'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockRequest(mockServer, {
       url: 'https://token.api.cx.metamask.io/token/1?address=0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F',

@@ -1,4 +1,4 @@
-import { RegressionNetworkAbstractions } from '../../../tags';
+import { SmokeNetworkAbstractions } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import Assertions from '../../../../tests/framework/Assertions';
 import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
@@ -14,7 +14,7 @@ import {
 } from '../../../../tests/api-mocking/mock-responses/defi-api-mocks';
 import NetworkManager from '../../../pages/wallet/NetworkManager';
 
-describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
+describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
   it('open the DeFi tab with an address that has no positions', async () => {
     await withFixtures(
       {

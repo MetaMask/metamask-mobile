@@ -1,27 +1,27 @@
-import TestHelpers from '../../helpers';
-import { RegressionNetworkAbstractions } from '../../tags';
-import OnboardingView from '../../pages/Onboarding/OnboardingView';
-import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
-import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
-import WalletView from '../../pages/wallet/WalletView';
-import Browser from '../../pages/Browser/BrowserView';
-import SettingsView from '../../pages/Settings/SettingsView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
-import LoginView from '../../pages/wallet/LoginView';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
-import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
-import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
-import Assertions from '../../../tests/framework/Assertions';
-import ToastModal from '../../pages/wallet/ToastModal';
-import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
-import { DappVariants } from '../../../tests/framework/Constants';
+import TestHelpers from '../../../helpers';
+import { SmokeNetworkAbstractions } from '../../../tags';
+import OnboardingView from '../../../pages/Onboarding/OnboardingView';
+import ProtectYourWalletView from '../../../pages/Onboarding/ProtectYourWalletView';
+import CreatePasswordView from '../../../pages/Onboarding/CreatePasswordView';
+import WalletView from '../../../pages/wallet/WalletView';
+import Browser from '../../../pages/Browser/BrowserView';
+import SettingsView from '../../../pages/Settings/SettingsView';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import SkipAccountSecurityModal from '../../../pages/Onboarding/SkipAccountSecurityModal';
+import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
+import DeleteWalletModal from '../../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
+import LoginView from '../../../pages/wallet/LoginView';
+import NetworkListModal from '../../../pages/Network/NetworkListModal';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
+import MetaMetricsOptIn from '../../../pages/Onboarding/MetaMetricsOptInView';
+import ProtectYourWalletModal from '../../../pages/Onboarding/ProtectYourWalletModal';
+import OnboardingSuccessView from '../../../pages/Onboarding/OnboardingSuccessView';
+import Assertions from '../../../../tests/framework/Assertions';
+import ToastModal from '../../../pages/wallet/ToastModal';
+import OnboardingSheet from '../../../pages/Onboarding/OnboardingSheet';
+import { DappVariants } from '../../../../tests/framework/Constants';
 
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
@@ -29,7 +29,7 @@ const SEEDLESS_ONBOARDING_ENABLED =
 const PASSWORD = '12345678';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(RegressionNetworkAbstractions('Permission System'), () => {
+describe(SmokeNetworkAbstractions('Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

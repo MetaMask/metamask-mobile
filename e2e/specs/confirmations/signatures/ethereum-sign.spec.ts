@@ -10,14 +10,14 @@ import {
   AnvilPort,
 } from '../../../../tests/framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../../tests/framework/Constants';
-import { RegressionConfirmations } from '../../../tags';
+import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../../tests/framework/types';
 import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
 
-describe(RegressionConfirmations('Ethereum Sign'), () => {
+describe(SmokeConfirmationsRedesigned('Ethereum Sign'), () => {
   it('Sign in with Ethereum', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(

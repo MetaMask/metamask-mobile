@@ -8,13 +8,13 @@ import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
 import Assertions from '../../../../../tests/framework/Assertions';
-import { RegressionNetworkExpansion } from '../../../../tags';
+import { SmokeNetworkExpansion } from '../../../../tags';
 import AddNewAccountSheet from '../../../../pages/wallet/AddNewAccountSheet';
 import { DappVariants } from '../../../../../tests/framework/Constants';
 
 const AccountTwoText = 'Account 2';
 
-describe(RegressionNetworkExpansion('Account Permission Management'), () => {
+describe(SmokeNetworkExpansion('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

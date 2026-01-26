@@ -4,7 +4,7 @@ import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../../tests/resources/networks.e2e';
-import { RegressionTrade } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import Assertions from '../../../tests/framework/Assertions';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import SelectCurrencyView from '../../pages/Ramps/SelectCurrencyView';
@@ -53,7 +53,7 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
   );
 };
 
-describe.skip(RegressionTrade('On-Ramp Parameters'), () => {
+describe.skip(SmokeTrade('On-Ramp Parameters'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });

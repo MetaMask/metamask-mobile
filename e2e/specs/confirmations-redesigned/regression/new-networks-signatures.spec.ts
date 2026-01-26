@@ -6,7 +6,7 @@ import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import { RegressionConfirmations } from '../../../tags';
+import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { buildPermissions } from '../../../../tests/framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../../tests/framework/Constants';
@@ -46,7 +46,7 @@ const SIGNATURE_LIST = [
   },
 ];
 
-describe.skip(RegressionConfirmations('Signature Requests'), () => {
+describe.skip(SmokeConfirmationsRedesigned('Signature Requests'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });

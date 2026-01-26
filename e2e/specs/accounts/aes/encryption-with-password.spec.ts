@@ -1,4 +1,4 @@
-import { RegressionAccounts } from '../../../tags';
+import { SmokeAccounts } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../../tests/framework/Assertions';
 import type { IndexableNativeElement } from 'detox/detox';
@@ -10,7 +10,7 @@ import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder'
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 
 describe(
-  RegressionAccounts('AES Crypto - Encryption and decryption with password'),
+  SmokeAccounts('AES Crypto - Encryption and decryption with password'),
   (): void => {
     const PASSWORD_ONE: string = '123123123';
     const PASSWORD_TWO: string = '456456456';

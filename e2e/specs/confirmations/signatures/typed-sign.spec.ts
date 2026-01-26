@@ -13,11 +13,11 @@ import { DappVariants } from '../../../../tests/framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { RegressionConfirmations } from '../../../tags';
+import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { LocalNode } from '../../../../tests/framework/types';
 import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
 
-describe(RegressionConfirmations('Typed Sign'), () => {
+describe(SmokeConfirmationsRedesigned('Typed Sign'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,

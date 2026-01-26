@@ -1,4 +1,4 @@
-import { RegressionAccounts } from '../../tags.js';
+import { SmokeAccounts } from '../../tags.js';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -13,7 +13,7 @@ import { logger } from '../../../tests/framework/logger';
 import { loginToApp } from '../../viewHelper';
 
 const isIOS = device.getPlatform() === 'ios';
-(isIOS ? describe : describe.skip)(RegressionAccounts('Auto-Lock'), () => {
+(isIOS ? describe : describe.skip)(SmokeAccounts('Auto-Lock'), () => {
   it('backgrounds then relaunches without needing password on default auto-lock setting', async () => {
     await withFixtures(
       {

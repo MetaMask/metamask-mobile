@@ -1,4 +1,4 @@
-import { RegressionConfirmations } from '../../tags';
+import { SmokeConfirmationsRedesigned } from '../../tags';
 import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
@@ -19,7 +19,7 @@ import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-describe.skip(RegressionConfirmations('Send to contract address'), () => {
+describe.skip(SmokeConfirmationsRedesigned('Send to contract address'), () => {
   it('should send ETH to a contract from inside the wallet', async () => {
     const AMOUNT = '12';
 

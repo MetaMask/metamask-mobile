@@ -1,6 +1,6 @@
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { RegressionTrade } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { PerpsHelpers } from './helpers/perps-helpers';
@@ -19,7 +19,7 @@ const logger = createLogger({
   level: LogLevel.INFO,
 });
 
-describe(RegressionTrade('Perps Position'), () => {
+describe(SmokeTrade('Perps Position'), () => {
   it('opens a long position with custom profit and closes it', async () => {
     await withFixtures(
       {

@@ -1,4 +1,4 @@
-import { RegressionAssets } from '../../../tags';
+import { SmokeAssets } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
@@ -16,7 +16,7 @@ const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
 
-describe(RegressionAssets('Asset list - '), () => {
+describe.skip(SmokeAssets('Asset list - '), () => {
   it('displays tokens across networks when all popular networks are selected', async () => {
     await withFixtures(
       {

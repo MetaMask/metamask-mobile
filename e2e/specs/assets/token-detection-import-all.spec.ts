@@ -1,6 +1,6 @@
 'use strict';
 import { loginToApp } from '../../viewHelper';
-import { RegressionAssets } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import Assertions from '../../../tests/framework/Assertions';
 import TestHelpers from '../../helpers';
@@ -10,7 +10,7 @@ import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 const ETHEREUM_NAME = 'Ethereum';
 const USDC_NAME = 'USDCoin';
 
-describe(RegressionAssets('Import all tokens detected'), () => {
+describe(SmokeAssets('Import all tokens detected'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

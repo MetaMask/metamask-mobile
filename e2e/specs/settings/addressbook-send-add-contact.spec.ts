@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -65,7 +65,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-describe(RegressionWalletPlatform('Addressbook Tests'), () => {
+describe(SmokeWalletPlatform('Addressbook Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

@@ -1,23 +1,20 @@
-import {
-  RegressionNetworkExpansion,
-  SmokeNetworkExpansion,
-} from '../../../../../tags';
-import { loginToApp, navigateToBrowserView } from '../../../../../viewHelper';
-import Assertions from '../../../../../../tests/framework/Assertions';
-import TestHelpers from '../../../../../helpers';
-import FixtureBuilder from '../../../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../../../tests/framework/fixtures/FixtureHelper';
-import { CustomNetworks } from '../../../../../../tests/resources/networks.e2e';
-import Browser from '../../../../../pages/Browser/BrowserView';
-import TabBarComponent from '../../../../../pages/wallet/TabBarComponent';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import ConnectedAccountsModal from '../../../../../pages/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../../../../pages/Browser/NetworkConnectMultiSelector';
-import { DappVariants } from '../../../../../../tests/framework/Constants';
-import WalletView from '../../../../../pages/wallet/WalletView';
-import NetworkListModal from '../../../../../pages/Network/NetworkListModal';
-import TestDApp from '../../../../../pages/Browser/TestDApp';
-import ConnectBottomSheet from '../../../../../pages/Browser/ConnectBottomSheet';
+import { SmokeNetworkExpansion } from '../../../../tags';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
+import Assertions from '../../../../../tests/framework/Assertions';
+import TestHelpers from '../../../../helpers';
+import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
+import { CustomNetworks } from '../../../../../tests/resources/networks.e2e';
+import Browser from '../../../../pages/Browser/BrowserView';
+import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
+import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import { DappVariants } from '../../../../../tests/framework/Constants';
+import WalletView from '../../../../pages/wallet/WalletView';
+import NetworkListModal from '../../../../pages/Network/NetworkListModal';
+import TestDApp from '../../../../pages/Browser/TestDApp';
+import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 const ETHEREUM_MAIN_NET_NETWORK_NAME =
@@ -120,7 +117,7 @@ describe(
 );
 
 describe(
-  RegressionNetworkExpansion('Chain Permission System, non-permitted chain, '),
+  SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();

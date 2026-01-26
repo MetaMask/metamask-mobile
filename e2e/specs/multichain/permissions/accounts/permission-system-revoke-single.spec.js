@@ -1,5 +1,5 @@
 import TestHelpers from '../../../../helpers';
-import { RegressionNetworkExpansion } from '../../../../tags';
+import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
@@ -9,7 +9,7 @@ import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import Assertions from '../../../../../tests/framework/Assertions';
 import { DappVariants } from '../../../../../tests/framework/Constants';
 
-describe(RegressionNetworkExpansion('Account Permission Management'), () => {
+describe(SmokeNetworkExpansion('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

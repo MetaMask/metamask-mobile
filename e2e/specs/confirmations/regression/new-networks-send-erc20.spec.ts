@@ -1,4 +1,4 @@
-import { RegressionConfirmations } from '../../../tags';
+import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
@@ -12,7 +12,7 @@ import { DappVariants } from '../../../../tests/framework/Constants';
 import TestHelpers from '../../../helpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-describe.skip(RegressionConfirmations('ERC20 tokens'), () => {
+describe.skip(SmokeConfirmationsRedesigned('ERC20 tokens'), () => {
   // Table-driven tests for all networks
   for (const networkConfig of NETWORK_TEST_CONFIGS) {
     it(`send an ERC20 token from a dapp using ${networkConfig.name} (local)`, async () => {

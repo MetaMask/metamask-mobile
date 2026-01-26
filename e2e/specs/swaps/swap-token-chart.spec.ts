@@ -7,7 +7,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import TestHelpers from '../../helpers';
-import { RegressionTrade } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import Assertions from '../../../tests/framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
@@ -17,7 +17,7 @@ import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironme
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
-describe(RegressionTrade('Swap from Token view'), (): void => {
+describe(SmokeTrade('Swap from Token view'), (): void => {
   jest.setTimeout(120000);
 
   it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {

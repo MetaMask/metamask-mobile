@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import Assertions from '../../../tests/framework/Assertions';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
@@ -23,26 +23,23 @@ const editName = async (newName: string) => {
   await Assertions.expectTextDisplayed(newName);
 };
 
-describe(
-  RegressionWalletPlatform('Multichain Accounts: Account Details'),
-  () => {
-    beforeEach(async () => {
-      await TestHelpers.reverseServerPort();
-    });
+describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
+  beforeEach(async () => {
+    await TestHelpers.reverseServerPort();
+  });
 
-    it('renames the account', async () => {
-      await withMultichainAccountDetailsEnabledFixtures(async () => {
-        await goToAccountDetails(HD_ACCOUNT);
-        await editName('Account 1-edited');
-      });
+  it('renames the account', async () => {
+    await withMultichainAccountDetailsEnabledFixtures(async () => {
+      await goToAccountDetails(HD_ACCOUNT);
+      await editName('Account 1-edited');
     });
+  });
 
-    it.skip('copies the account address', async () => {
-      await checkAddress(HD_ACCOUNT.address);
-    });
+  it.skip('copies the account address', async () => {
+    await checkAddress(HD_ACCOUNT.address);
+  });
 
-    it.skip('renames the wallet', async () => {
-      // TODO: implement
-    });
-  },
-);
+  it.skip('renames the wallet', async () => {
+    // TODO: implement
+  });
+});

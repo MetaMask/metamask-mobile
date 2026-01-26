@@ -1,4 +1,4 @@
-import { RegressionAssets } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
@@ -12,7 +12,7 @@ import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { LocalNode } from '../../../tests/framework/types';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
-describe(RegressionAssets('Import custom token'), () => {
+describe(SmokeAssets('Import custom token'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();

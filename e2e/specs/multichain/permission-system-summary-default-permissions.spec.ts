@@ -1,4 +1,4 @@
-import { RegressionNetworkAbstractions } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
@@ -10,7 +10,7 @@ import { DappVariants } from '../../../tests/framework/Constants';
 import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/AccountConnect/PermissionSummaryBottomSheet.testIds';
 
 describe(
-  RegressionNetworkAbstractions('Permission System - Default Permissions'),
+  SmokeNetworkAbstractions('Permission System - Default Permissions'),
   () => {
     it('should display default account and chain permissions in permission summary', async () => {
       // Test setup with fixtures

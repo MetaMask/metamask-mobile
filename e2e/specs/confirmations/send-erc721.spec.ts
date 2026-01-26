@@ -1,4 +1,4 @@
-import { RegressionConfirmations } from '../../tags';
+import { SmokeConfirmationsRedesigned } from '../../tags';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
@@ -20,7 +20,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import { LocalNode } from '../../../tests/framework/types';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
-describe(RegressionConfirmations('ERC721 tokens'), () => {
+describe(SmokeConfirmationsRedesigned('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   it('send an ERC721 token from a dapp', async () => {

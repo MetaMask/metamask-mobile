@@ -1,4 +1,4 @@
-import { RegressionConfirmations } from '../../tags';
+import { SmokeConfirmationsRedesigned } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
@@ -23,7 +23,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 };
 
 describe(
-  RegressionConfirmations('Advanced Gas Fees and Priority Tests'),
+  SmokeConfirmationsRedesigned('Advanced Gas Fees and Priority Tests'),
   () => {
     it('should edit priority gas settings and send ETH', async () => {
       await withFixtures(

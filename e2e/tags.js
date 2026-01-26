@@ -125,16 +125,6 @@ const flaskTags = {
 
 // Other tags to run on demand or for specific purposes.
 const otherTags = {
-  regressionAccounts: 'RegressionAccounts:',
-  regressionConfirmations: 'RegressionConfirmations:',
-  regressionConfirmationsRedesigned: 'RegressionConfirmationsRedesigned:',
-  regressionIdentity: 'RegressionIdentity:',
-  regressionNetworkAbstractions: 'RegressionNetworkAbstractions:',
-  regressionWalletPlatform: 'RegressionWalletPlatform:',
-  regressionNetworkExpansion: 'RegressionNetworkExpansion:',
-  regressionAssets: 'RegressionAssets:',
-  regressionWalletUX: 'RegressionWalletUX:',
-  regressionTrade: 'RegressionTrade:',
   regressionSampleFeature: 'RegressionSampleFeature:',
   performance: 'Performance:',
 };
@@ -174,26 +164,6 @@ const SmokeMultiChainAPI = (testName) =>
 const SmokePredictions = (testName) =>
   `${smokeTags.smokePredictions.tag} ${testName}`;
 // Other test tags functions.
-const RegressionAccounts = (testName) =>
-  `${otherTags.regressionAccounts} ${testName}`;
-const RegressionConfirmations = (testName) =>
-  `${otherTags.regressionConfirmations} ${testName}`;
-const RegressionConfirmationsRedesigned = (testName) =>
-  `${otherTags.regressionConfirmationsRedesigned} ${testName}`;
-const RegressionIdentity = (testName) =>
-  `${otherTags.regressionIdentity} ${testName}`;
-const RegressionNetworkAbstractions = (testName) =>
-  `${otherTags.regressionNetworkAbstractions} ${testName}`;
-const RegressionWalletPlatform = (testName) =>
-  `${otherTags.regressionWalletPlatform} ${testName}`;
-const RegressionNetworkExpansion = (testName) =>
-  `${otherTags.regressionNetworkExpansion} ${testName}`;
-const RegressionAssets = (testName) =>
-  `${otherTags.regressionAssets} ${testName}`;
-const RegressionWalletUX = (testName) =>
-  `${otherTags.regressionWalletUX} ${testName}`;
-const RegressionTrade = (testName) =>
-  `${otherTags.regressionTrade} ${testName}`;
 const RegressionSampleFeature = (testName) =>
   `${otherTags.regressionSampleFeature} ${testName}`;
 const FlaskBuildTests = (testName) =>
@@ -224,16 +194,6 @@ export {
   SmokeAnalytics,
   SmokeMultiChainAPI,
   SmokePredictions,
-  RegressionAccounts,
-  RegressionConfirmations,
-  RegressionConfirmationsRedesigned,
-  RegressionIdentity,
-  RegressionNetworkAbstractions,
-  RegressionWalletPlatform,
-  RegressionNetworkExpansion,
-  RegressionAssets,
-  RegressionWalletUX,
-  RegressionTrade,
   RegressionSampleFeature,
   FlaskBuildTests,
   SmokePerformance,

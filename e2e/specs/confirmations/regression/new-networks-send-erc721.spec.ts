@@ -1,4 +1,4 @@
-import { RegressionConfirmations } from '../../../tags';
+import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
@@ -12,7 +12,7 @@ import { NETWORK_TEST_CONFIGS } from '../../../../tests/resources/mock-configs';
 import { DappVariants } from '../../../../tests/framework/Constants';
 import TestHelpers from '../../../helpers';
 
-describe.skip(RegressionConfirmations('ERC721 tokens'), () => {
+describe.skip(SmokeConfirmationsRedesigned('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   // Table-driven tests for all networks

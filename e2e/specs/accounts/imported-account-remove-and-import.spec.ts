@@ -1,6 +1,6 @@
 'use strict';
 
-import { RegressionAccounts } from '../../tags.js';
+import { SmokeAccounts } from '../../tags.js';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -21,7 +21,7 @@ const TEST_PRIVATE_KEY =
 const ACCOUNT_INDEX = 1;
 
 describe(
-  RegressionAccounts('removes and reimports an account using a private key'),
+  SmokeAccounts('removes and reimports an account using a private key'),
   () => {
     it('removes an imported account and imports it again using a private key', async () => {
       await withFixtures(

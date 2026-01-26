@@ -8,7 +8,7 @@ import {
   defaultGanacheOptions,
 } from '../../../tests/framework/Constants';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { RegressionAccounts } from '../../tags';
+import { SmokeAccounts } from '../../tags';
 import TestHelpers from '../../helpers';
 import Assertions from '../../../tests/framework/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
@@ -29,7 +29,7 @@ import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const PASSWORD = '123123123';
 
-describe(RegressionAccounts('Error Boundary Screen'), () => {
+describe(SmokeAccounts('Error Boundary Screen'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();

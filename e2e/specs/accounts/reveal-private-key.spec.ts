@@ -1,4 +1,4 @@
-import { RegressionAccounts } from '../../tags.js';
+import { SmokeAccounts } from '../../tags.js';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -9,7 +9,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 
-describe(RegressionAccounts('Account details private key'), () => {
+describe(SmokeAccounts('Account details private key'), () => {
   const PASSWORD = '123123123';
   const INCORRECT_PASSWORD = 'wrongpassword';
   const IMPORTED_ACCOUNT_INDEX = 1;

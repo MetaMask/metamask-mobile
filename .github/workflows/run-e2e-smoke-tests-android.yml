@@ -23,7 +23,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeTrade')
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -31,7 +31,7 @@ jobs:
       platform: android
       test_suite_tag: 'SmokeTrade'
       split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: 2
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -55,7 +55,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform')
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -63,7 +63,7 @@ jobs:
       platform: android
       test_suite_tag: 'SmokeWalletPlatform'
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -87,7 +87,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeAccounts')
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -95,7 +95,7 @@ jobs:
       platform: android
       test_suite_tag: 'SmokeAccounts'
       split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: 2
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -103,7 +103,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions')
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -111,7 +111,7 @@ jobs:
       platform: android
       test_suite_tag: 'SmokeNetworkAbstractions'
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -119,7 +119,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeNetworkExpansion')
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -127,7 +127,7 @@ jobs:
       platform: android
       test_suite_tag: 'SmokeNetworkExpansion'
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -135,7 +135,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeConfirmationsRedesigned')
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2, 3, 4]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -143,7 +143,7 @@ jobs:
       platform: android
       test_suite_tag: 'SmokeConfirmationsRedesigned'
       split_number: ${{ matrix.split }}
-      total_splits: 3
+      total_splits: 4
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -199,13 +199,45 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeRamps')
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: ramps-android-smoke-${{ matrix.split }}
       platform: android
       test_suite_tag: 'SmokeRamps'
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
+    secrets: inherit
+
+  assets-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeAssets')
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: assets-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'SmokeAssets'
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
+    secrets: inherit
+
+  wallet-ux-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeWalletUX')
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: wallet-ux-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'SmokeWalletUX'
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
@@ -228,6 +260,8 @@ jobs:
       - rewards-android-smoke
       - card-android-smoke
       - ramps-android-smoke
+      - assets-android-smoke
+      - wallet-ux-android-smoke
     steps:
       - name: Checkout
         uses: actions/checkout@v4

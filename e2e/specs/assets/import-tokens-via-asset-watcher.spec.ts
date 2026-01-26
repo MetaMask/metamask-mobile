@@ -1,4 +1,4 @@
-import { RegressionNetworkAbstractions } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder, {
@@ -28,7 +28,7 @@ const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
 // TODO: Fix this test and remove the skip
 // More info: https://github.com/MetaMask/metamask-mobile/issues/12501
-describe(RegressionNetworkAbstractions('Asset Watch:'), () => {
+describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

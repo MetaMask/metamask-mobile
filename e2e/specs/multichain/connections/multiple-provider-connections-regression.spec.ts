@@ -4,7 +4,7 @@ import FixtureBuilder, {
 } from '../../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import TestHelpers from '../../../helpers';
-import { RegressionNetworkExpansion } from '../../../tags';
+import { SmokeNetworkExpansion } from '../../../tags';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
@@ -21,7 +21,7 @@ import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tes
 import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(
-  RegressionNetworkExpansion('Multiple Provider Connections [Regression]'),
+  SmokeNetworkExpansion('Multiple Provider Connections [Regression]'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);

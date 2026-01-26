@@ -1,25 +1,25 @@
-import TestHelpers from '../../helpers';
-import { RegressionNetworkAbstractions } from '../../tags';
-import WalletView from '../../pages/wallet/WalletView';
-import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import TestHelpers from '../../../helpers';
+import { SmokeNetworkAbstractions } from '../../../tags';
+import WalletView from '../../../pages/wallet/WalletView';
+import ImportAccountView from '../../../pages/importAccount/ImportAccountView';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 
-import Browser from '../../pages/Browser/BrowserView';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import Browser from '../../../pages/Browser/BrowserView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 
-import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
+import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
+import NetworkListModal from '../../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
 
-import Accounts from '../../../wdio/helpers/Accounts';
+import Accounts from '../../../../wdio/helpers/Accounts';
 import {
   importWalletWithRecoveryPhrase,
   navigateToBrowserView,
-} from '../../viewHelper';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import Assertions from '../../../tests/framework/Assertions';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
+} from '../../../viewHelper';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+import Assertions from '../../../../tests/framework/Assertions';
+import SuccessImportAccountView from '../../../pages/importAccount/SuccessImportAccountView';
 
 const SEPOLIA = 'Sepolia';
 
@@ -27,7 +27,7 @@ const accountPrivateKey = Accounts.getAccountPrivateKey();
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(
-  RegressionNetworkAbstractions(
+  SmokeNetworkAbstractions(
     'Permission System Test: Revoking accounts after connecting to a dapp',
   ),
   () => {

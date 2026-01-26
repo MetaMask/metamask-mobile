@@ -1,4 +1,4 @@
-import { RegressionConfirmations } from '../../tags';
+import { SmokeConfirmationsRedesigned } from '../../tags';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
@@ -22,7 +22,7 @@ import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(RegressionConfirmations('ERC20 tokens'), () => {
+describe(SmokeConfirmationsRedesigned('ERC20 tokens'), () => {
   it('approve custom ERC20 token amount from a dapp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(

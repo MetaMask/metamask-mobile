@@ -1,4 +1,4 @@
-import { RegressionAssets } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import SortModal from '../../pages/wallet/TokenSortBottomSheet';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
@@ -63,7 +63,7 @@ const TOKEN_RESPONSE: MockApiEndpoint = {
   responseCode: 200,
 };
 
-describe(RegressionAssets('Import Tokens'), () => {
+describe(SmokeAssets('Import Tokens'), () => {
   it('should add a aave token', async () => {
     await withFixtures(
       {

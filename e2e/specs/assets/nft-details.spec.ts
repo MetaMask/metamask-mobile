@@ -1,4 +1,4 @@
-import { RegressionAssets } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
@@ -16,7 +16,7 @@ import { DappVariants } from '../../../tests/framework/Constants';
 import { LocalNode } from '../../../tests/framework/types';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
-describe.skip(RegressionAssets('NFT Details page'), () => {
+describe.skip(SmokeAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const TEST_DAPP_CONTRACT = 'TestDappNFTs';
   beforeAll(async () => {

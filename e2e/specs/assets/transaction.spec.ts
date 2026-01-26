@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { RegressionAssets } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
@@ -18,7 +18,7 @@ import { LocalNode } from '../../../tests/framework/types';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
-describe(RegressionAssets('Transaction'), () => {
+describe(SmokeAssets('Transaction'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();

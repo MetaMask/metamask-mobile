@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -11,7 +11,7 @@ import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const EXPECTED_HIDDEN_BALANCE: string = '••••••••••••';
 
-describe(RegressionWalletPlatform('Balance Privacy Toggle'), (): void => {
+describe(SmokeWalletPlatform('Balance Privacy Toggle'), (): void => {
   beforeAll(async (): Promise<void> => {
     jest.setTimeout(150000);
   });

@@ -1,4 +1,4 @@
-import { RegressionAssets } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import NetworkView from '../../pages/Settings/NetworksView';
 import WalletView from '../../pages/wallet/WalletView';
 import ToastModal from '../../pages/wallet/ToastModal';
@@ -11,7 +11,7 @@ import Assertions from '../../../tests/framework/Assertions';
 import { CustomNetworks } from '../../../tests/resources/networks.e2e';
 import TestHelpers from '../../helpers';
 
-describe.skip(RegressionAssets('Custom RPC Tests'), () => {
+describe.skip(SmokeAssets('Custom RPC Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

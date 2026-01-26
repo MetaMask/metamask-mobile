@@ -1,6 +1,6 @@
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { RegressionTrade } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import { PERPS_ARBITRUM_MOCKS } from '../../../tests/api-mocking/mock-responses/perps-arbitrum-mocks';
 import { PerpsHelpers } from './helpers/perps-helpers';
@@ -14,7 +14,7 @@ import PerpsView from '../../pages/Perps/PerpsView';
 import PerpsE2EModifiers from './helpers/perps-modifiers';
 import { TestSuiteParams } from '../../../tests/framework/types';
 
-describe(RegressionTrade('Perps - ETH limit long fill'), () => {
+describe(SmokeTrade('Perps - ETH limit long fill'), () => {
   it('creates ETH limit long at Mid, shows open order, then fills after -15%', async () => {
     await withFixtures(
       {

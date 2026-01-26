@@ -1,5 +1,5 @@
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { RegressionAccounts } from '../../tags.js';
+import { SmokeAccounts } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
 import Assertions from '../../../tests/framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -20,7 +20,7 @@ const IMPORTED_ACCOUNT_INDEX = 1;
 
 // TODO: With this migration we also removed the need for ganache options and everything is simplified.
 describe(
-  RegressionAccounts('Change Account Name - Multichain Account Details V2'),
+  SmokeAccounts('Change Account Name - Multichain Account Details V2'),
   () => {
     it('renames an account and verifies the new name persists after locking and unlocking the wallet with multichain account details V2 enabled', async () => {
       await withFixtures(
@@ -87,7 +87,7 @@ describe(
       );
     });
 
-    it.skip('import an account, edits the name, and verifies the new name persists after locking and unlocking the wallet with multichain account details V2 enabled', async () => {
+    it('import an account, edits the name, and verifies the new name persists after locking and unlocking the wallet with multichain account details V2 enabled', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()

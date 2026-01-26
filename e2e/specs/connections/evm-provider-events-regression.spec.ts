@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import Assertions from '../../../tests/framework/Assertions';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
@@ -15,7 +15,7 @@ import { DappVariants } from '../../../tests/framework/Constants';
 import ToastModal from '../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 
-describe(RegressionWalletPlatform('EVM Provider Events'), () => {
+describe(SmokeWalletPlatform('EVM Provider Events'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });

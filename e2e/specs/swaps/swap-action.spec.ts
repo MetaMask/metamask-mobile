@@ -3,7 +3,7 @@ import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
-import { RegressionTrade } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import {
   submitSwapUnifiedUI,
   checkSwapActivity,
@@ -14,7 +14,7 @@ import { testSpecificMock } from '../swaps/helpers/swap-mocks';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
-describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
+describe(SmokeTrade('Multiple Swaps from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(120000);
   });

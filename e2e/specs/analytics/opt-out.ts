@@ -2,7 +2,7 @@
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import Assertions from '../../../tests/framework/Assertions';
-import { RegressionWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import { loginToApp } from '../../viewHelper';
@@ -17,7 +17,7 @@ import {
 import SoftAssert from '../../../tests/framework/SoftAssert';
 
 describe(
-  RegressionWalletPlatform(
+  SmokeWalletPlatform(
     'Regression - metametrics opt out from settings WITH ANALYTICS',
   ),
   (): void => {

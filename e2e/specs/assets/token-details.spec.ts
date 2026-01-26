@@ -1,4 +1,4 @@
-import { RegressionTrade } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import {
@@ -10,7 +10,7 @@ import CommonView from '../../pages/CommonView';
 import TestHelpers from '../../helpers';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(RegressionTrade('Token Chart Tests'), () => {
+describe(SmokeTrade('Token Chart Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();

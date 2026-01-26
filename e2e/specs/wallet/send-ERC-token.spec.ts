@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import RedesignedSendView from '../../pages/Send/RedesignedSendView';
@@ -21,7 +21,7 @@ import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-describe(RegressionWalletPlatform('Send ERC Token'), () => {
+describe(SmokeWalletPlatform('Send ERC Token'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();

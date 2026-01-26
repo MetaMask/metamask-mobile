@@ -1,4 +1,4 @@
-import { RegressionAccounts } from '../../../tags.js';
+import { SmokeAccounts } from '../../../tags.js';
 import TestHelpers from '../../../helpers.js';
 import Assertions from '../../../../tests/framework/Assertions';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -9,9 +9,7 @@ import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder'
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 
 describe(
-  RegressionAccounts(
-    'AES Crypto - Encryption and decryption with encryption key',
-  ),
+  SmokeAccounts('AES Crypto - Encryption and decryption with encryption key'),
   () => {
     const PASSWORD_ONE = '123123123';
     const PASSWORD_TWO = '456456456';
