@@ -108,10 +108,10 @@ describeForPlatforms('MusdConversionAssetListCta', () => {
     );
 
     // Assert
-    // Component may or may not render depending on hook logic
-    // This test verifies the component handles the case gracefully
+    // Component returns null when visibility conditions are not met
+    // This test verifies the component handles the case gracefully without crashing
     const cta = queryByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA);
-    // Component either renders or returns null - both are valid behaviors
-    expect(cta === null || cta).toBeTruthy();
+    // When conditions aren't met, component should return null
+    expect(cta).toBeNull();
   });
 });

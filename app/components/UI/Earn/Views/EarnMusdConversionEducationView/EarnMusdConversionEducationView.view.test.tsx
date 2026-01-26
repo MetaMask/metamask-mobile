@@ -71,7 +71,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders background image based on color scheme', () => {
+  it('renders education screen heading', () => {
     // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
@@ -101,7 +101,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     );
 
     // Assert
-    // Verify screen renders with heading (image is rendered as part of component tree)
+    // Verify screen renders with heading
     expect(
       getByText(
         strings('earn.musd_conversion.education.heading', {
@@ -111,7 +111,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('keeps go back button visible after press', () => {
+  it('keeps go back button visible after press', async () => {
     // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
@@ -144,7 +144,9 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     );
 
     // Act
-    fireEvent.press(goBackButton);
+    await act(async () => {
+      fireEvent.press(goBackButton);
+    });
 
     // Assert
     // Button should still be on screen after press
@@ -321,58 +323,6 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders all required UI elements on education screen', () => {
-    // Arrange
-    const state = initialStateWallet()
-      .withMinimalMultichainAssets()
-      .withRemoteFeatureFlags({
-        earnMusdConversionFlowEnabled: { enabled: true },
-      })
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            AssetsController: {
-              assets: {},
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>)
-      .build();
-
-    // Act
-    const { getByText } = renderScreenWithRoutes(
-      EarnMusdConversionEducationView as unknown as React.ComponentType,
-      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
-      [],
-      {
-        state,
-      },
-      mockRouteParams,
-    );
-
-    // Assert
-    expect(
-      getByText(
-        strings('earn.musd_conversion.education.heading', {
-          percentage: MUSD_CONVERSION_APY,
-        }),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings('earn.musd_conversion.education.description', {
-          percentage: MUSD_CONVERSION_APY,
-        }),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('earn.musd_conversion.education.primary_button')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('earn.musd_conversion.education.secondary_button')),
-    ).toBeOnTheScreen();
-  });
-
   it('renders education screen with correct APY percentage in heading', () => {
     // Arrange
     const state = initialStateWallet()
@@ -409,7 +359,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       }),
     );
     expect(heading).toBeOnTheScreen();
-    expect(heading.props.children).toContain('3%');
+    expect(heading.props.children).toContain(`${MUSD_CONVERSION_APY}%`);
   });
 
   it('renders education screen with correct APY percentage in description', () => {
@@ -448,7 +398,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       }),
     );
     expect(description).toBeOnTheScreen();
-    expect(description.props.children).toContain('3%');
+    expect(description.props.children).toContain(`${MUSD_CONVERSION_APY}%`);
   });
 
   it('renders education screen when education has been seen', () => {
