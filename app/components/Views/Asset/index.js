@@ -157,9 +157,9 @@ const createStyles = (colors) =>
 
 const staticStyles = StyleSheet.create({
   tokenAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
 });
 
@@ -224,7 +224,7 @@ const TokenAvatar = ({ asset }) => {
     <AvatarToken
       name={asset.symbol}
       imageSource={{ uri: asset.image }}
-      size={AvatarSize.Lg}
+      size={AvatarSize.Xl}
     />
   );
 };
@@ -301,6 +301,14 @@ class Asset extends PureComponent {
      * Expanded height of the header for content padding
      */
     expandedHeight: PropTypes.number,
+    /**
+     * Current time period for price chart
+     */
+    timePeriod: PropTypes.string,
+    /**
+     * Callback when time period changes
+     */
+    onTimePeriodChange: PropTypes.func,
   };
 
   state = {
@@ -682,6 +690,8 @@ class Asset extends PureComponent {
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
                   hidePrice
+                  timePeriod={this.props.timePeriod}
+                  onTimePeriodChange={this.props.onTimePeriodChange}
                 />
                 <ActivityHeader asset={asset} />
               </View>
@@ -707,6 +717,8 @@ class Asset extends PureComponent {
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
                   hidePrice
+                  timePeriod={this.props.timePeriod}
+                  onTimePeriodChange={this.props.onTimePeriodChange}
                 />
                 <ActivityHeader asset={asset} />
               </View>
@@ -905,6 +917,7 @@ const AssetWithScrollableHeader = (props) => {
   const { colors } = useTheme();
   const asset = route.params;
   const chainId = asset?.chainId;
+  const [timePeriod, setTimePeriod] = React.useState('1d');
 
   // Get network configurations
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -934,7 +947,7 @@ const AssetWithScrollableHeader = (props) => {
     asset,
     address: asset?.address,
     chainId,
-    timePeriod: '1d',
+    timePeriod,
     vsCurrency: currentCurrency,
   });
 
@@ -978,7 +991,7 @@ const AssetWithScrollableHeader = (props) => {
         conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? undefined,
       prices,
       multichainAssetRates: convertedMultichainAssetRates,
-      timePeriod: '1d',
+      timePeriod,
     });
   }, [
     asset,
@@ -989,6 +1002,7 @@ const AssetWithScrollableHeader = (props) => {
     prices,
     convertedMultichainAssetRates,
     tokenResult,
+    timePeriod,
   ]);
 
   const { currentPrice, priceDiff, comparePrice } = priceData;
@@ -1023,6 +1037,10 @@ const AssetWithScrollableHeader = (props) => {
     navigation.pop();
   }, [navigation]);
 
+  const handleTimePeriodChange = useCallback((newTimePeriod) => {
+    setTimePeriod(newTimePeriod);
+  }, []);
+
   // Build header props
   const endButtonIconProps = useMemo(() => {
     if (!shouldShowMoreOptionsInNavBar) return undefined;
@@ -1049,7 +1067,7 @@ const AssetWithScrollableHeader = (props) => {
             diff={priceDiff}
             comparePrice={comparePrice}
             currentCurrency={currentCurrency}
-            date={strings('asset_overview.chart_time_period.1d')}
+            date={strings(`asset_overview.chart_time_period.${timePeriod}`)}
           />
         ) : null,
       endAccessory: asset ? <TokenAvatar asset={asset} /> : null,
@@ -1062,6 +1080,7 @@ const AssetWithScrollableHeader = (props) => {
       priceDiff,
       comparePrice,
       asset,
+      timePeriod,
     ],
   );
 
@@ -1088,6 +1107,8 @@ const AssetWithScrollableHeader = (props) => {
         {...props}
         onScrollEvent={onScroll}
         expandedHeight={expandedHeight}
+        timePeriod={timePeriod}
+        onTimePeriodChange={handleTimePeriodChange}
       />
     </SafeAreaView>
   );

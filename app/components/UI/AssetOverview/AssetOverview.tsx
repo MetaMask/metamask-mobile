@@ -114,6 +114,8 @@ interface AssetOverviewProps {
   displaySwapsButton?: boolean;
   networkName?: string;
   hidePrice?: boolean;
+  timePeriod?: TimePeriod;
+  onTimePeriodChange?: (timePeriod: TimePeriod) => void;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
@@ -122,12 +124,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   displaySwapsButton,
   networkName,
   hidePrice = false,
+  timePeriod: timePeriodProp,
+  onTimePeriodChange,
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
   const navigation = useNavigation();
-  const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
+  const [timePeriodInternal, setTimePeriodInternal] =
+    React.useState<TimePeriod>('1d');
+  const timePeriod = timePeriodProp ?? timePeriodInternal;
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedInternalAccountAddress = selectedInternalAccount?.address;
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
@@ -415,9 +421,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     [isNonEvmAsset],
   );
 
-  const handleSelectTimePeriod = useCallback((_timePeriod: TimePeriod) => {
-    setTimePeriod(_timePeriod);
-  }, []);
+  const handleSelectTimePeriod = useCallback(
+    (_timePeriod: TimePeriod) => {
+      if (onTimePeriodChange) {
+        onTimePeriodChange(_timePeriod);
+      } else {
+        setTimePeriodInternal(_timePeriod);
+      }
+    },
+    [onTimePeriodChange],
+  );
 
   const renderChartNavigationButton = useCallback(
     () =>

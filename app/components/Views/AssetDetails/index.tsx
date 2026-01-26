@@ -8,16 +8,8 @@ import {
   InteractionManager,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-} from '@metamask/design-system-react-native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import { fontStyles } from '../../../styles/common';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { strings } from '../../../../locales/i18n';
@@ -64,27 +56,6 @@ import { Hex } from '@metamask/utils';
 import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
 import { TokenI } from '../../UI/Tokens/types';
 import { areAddressesEqual } from '../../../util/address';
-
-// Inline header styles
-const inlineHeaderStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 48,
-    gap: 16,
-  },
-  leftButton: {
-    marginLeft: 16,
-  },
-  titleWrapper: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  rightPlaceholder: {
-    marginRight: 16,
-    width: 24,
-  },
-});
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -207,8 +178,11 @@ const AssetDetails = (props: InnerProps) => {
     return name;
   }, [isAllNetworks, tokenNetworkConfig, providerConfig]);
 
-  const insets = useSafeAreaInsets();
   const networkName = getNetworkName();
+
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const copyAddressToClipboard = async () => {
     await ClipboardManager.setString(address);
@@ -398,36 +372,12 @@ const AssetDetails = (props: InnerProps) => {
   );
 
   return (
-    <View style={styles.wrapper}>
-      {/* Inline header for instant rendering */}
-      <View
-        style={[
-          inlineHeaderStyles.container,
-          { marginTop: insets.top, backgroundColor: colors.background.default },
-        ]}
-      >
-        <ButtonIcon
-          style={inlineHeaderStyles.leftButton}
-          onPress={() => navigation.goBack()}
-          size={ButtonIconSize.Lg}
-          iconName={IconName.ArrowLeft}
-        />
-        <View style={inlineHeaderStyles.titleWrapper}>
-          <Text variant={TextVariant.HeadingSM} numberOfLines={1}>
-            {strings('asset_details.options.token_details')}
-          </Text>
-          {networkName ? (
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              numberOfLines={1}
-            >
-              {networkName}
-            </Text>
-          ) : null}
-        </View>
-        <View style={inlineHeaderStyles.rightPlaceholder} />
-      </View>
+    <SafeAreaView style={styles.wrapper} edges={['top']}>
+      <HeaderCenter
+        title={strings('asset_details.options.token_details')}
+        subtitle={networkName}
+        onBack={handleBack}
+      />
       <ScrollView contentContainerStyle={styles.container}>
         {renderSectionTitle(strings('asset_details.token'), true)}
         {renderTokenSymbol()}
@@ -447,7 +397,7 @@ const AssetDetails = (props: InnerProps) => {
         )}
         {renderHideButton()}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
