@@ -96,7 +96,7 @@ import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
-import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -311,10 +311,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         containsErrorMessage(loginError, VAULT_ERROR) ||
         containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN);
 
-      const isSeedlessPasswordOutdated = containsErrorMessage(
-        loginError,
-        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
-      );
+      const isSeedlessOnboardingControllerError =
+        loginError instanceof SeedlessOnboardingControllerError;
 
       if (containsErrorMessage(loginError, PASSCODE_NOT_SET_ERROR)) {
         Alert.alert(
@@ -330,7 +328,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           oauth_login: false,
         });
         await handleVaultCorruption();
-      } else if (isSeedlessPasswordOutdated) {
+      } else if (isSeedlessOnboardingControllerError) {
+        // Detected seedless onboarding error. Defer to OAuthRehydration screen to handle subsequent log in attempts.
         navigation.replace(Routes.ONBOARDING.REHYDRATE, {
           isSeedlessPasswordOutdated: true,
         });
