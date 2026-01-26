@@ -99,6 +99,10 @@ const mockSnapKeyring = {
   },
 };
 
+// Derived wallet IDs (entropy wallets are prefixed with 'entropy:')
+const mockWalletId1 = `entropy:${mockHDKeyring.metadata.id}`;
+const mockWalletId2 = `entropy:${mockHDKeyring2.metadata.id}`;
+
 // Account groups representing multichain accounts
 const mockAccountGroup1 = {
   id: `entropy:${mockHDKeyring.metadata.id}/0`,
@@ -139,8 +143,8 @@ const mockAccountGroup3 = {
 const mockAccountTreeControllerState = {
   accountTree: {
     wallets: {
-      [`entropy:${mockHDKeyring.metadata.id}`]: {
-        id: `entropy:${mockHDKeyring.metadata.id}`,
+      [mockWalletId1]: {
+        id: mockWalletId1,
         type: AccountWalletType.Entropy,
         metadata: {
           name: 'Wallet 1',
@@ -151,8 +155,8 @@ const mockAccountTreeControllerState = {
           [mockAccountGroup2.id]: mockAccountGroup2,
         },
       },
-      [`entropy:${mockHDKeyring2.metadata.id}`]: {
-        id: `entropy:${mockHDKeyring2.metadata.id}`,
+      [mockWalletId2]: {
+        id: mockWalletId2,
         type: AccountWalletType.Entropy,
         metadata: {
           name: 'Wallet 2',
@@ -250,8 +254,8 @@ describe('multisrp selectors', () => {
       );
 
       expect(result).toHaveLength(2);
-      expect(result[0].metadata.name).toBe('Account 1');
-      expect(result[1].metadata.name).toBe('Account 2');
+      expect(result[0].metadata.name).toBe(mockAccountGroup1.metadata.name);
+      expect(result[1].metadata.name).toBe(mockAccountGroup2.metadata.name);
     });
 
     it('returns account groups for a different keyring', () => {
@@ -261,7 +265,7 @@ describe('multisrp selectors', () => {
       );
 
       expect(result).toHaveLength(1);
-      expect(result[0].metadata.name).toBe('Account 3');
+      expect(result[0].metadata.name).toBe(mockAccountGroup3.metadata.name);
     });
 
     it('returns empty array when keyringId is not found', () => {

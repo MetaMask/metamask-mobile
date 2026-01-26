@@ -1834,6 +1834,9 @@
       "time": "Time",
       "apply": "Apply"
     },
+    "market_type": {
+      "filter_by": "Filter by"
+    },
     "perps_markets": "Perps markets",
     "volume": "Volume",
     "price_24h_change": "Price / 24h change",
@@ -4639,6 +4642,10 @@
   "fiat_on_ramp": {
     "buy_eth": "Buy ETH",
     "buy": "Buy {{ticker}}",
+    "on_network": "on {{networkName}}",
+    "debit_card": "Debit card",
+    "continue": "Continue",
+    "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
     "network_not_supported": "Current network not supported",
     "switch_network": "Please switch to Mainnet",

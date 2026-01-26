@@ -14,7 +14,7 @@ import { AnvilPort } from '../../../../tests/framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
+import { AnvilManager, Hardfork } from '../../../../tests/seeder/anvil-manager';
 import {
   setupMockRequest,
   setupMockPostRequest,
