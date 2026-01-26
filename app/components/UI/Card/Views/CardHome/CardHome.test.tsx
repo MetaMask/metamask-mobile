@@ -3448,6 +3448,21 @@ describe('CardHome Component', () => {
       mailingUsState: null,
     };
 
+    // Partially populated mailing address - should fall back to physical, not mix
+    const mockUserDetailsWithPartialMailingAddress = {
+      id: 'user-123',
+      addressLine1: '123 Physical St',
+      addressLine2: 'Apt 1',
+      city: 'Physical City',
+      zip: '12345',
+      usState: 'CA',
+      mailingAddressLine1: '456 Mailing Ave', // Only line1 set
+      mailingAddressLine2: null,
+      mailingCity: null, // Missing required field
+      mailingZip: null, // Missing required field
+      mailingUsState: null,
+    };
+
     it('navigates to choose your card with mailing address when available', async () => {
       // Given: US user with mailing address and virtual card
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
@@ -3595,6 +3610,54 @@ describe('CardHome Component', () => {
           CardHomeSelectors.ORDER_METAL_CARD_ITEM,
         );
         expect(orderMetalCardItem).toBeNull();
+      });
+    });
+
+    it('uses physical address when mailing address is partially populated (no field mixing)', async () => {
+      // Given: US user with partial mailing address (only line1 set) and complete physical address
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsWithPartialMailingAddress,
+        },
+      });
+
+      // When: component renders and order metal card item is pressed
+      render();
+
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeTruthy();
+      });
+
+      const orderMetalCardItem = screen.getByTestId(
+        CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+      );
+      fireEvent.press(orderMetalCardItem);
+
+      // Then: should navigate with complete physical address (not mixing mailing line1 with physical city/zip)
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.CHOOSE_YOUR_CARD,
+          {
+            flow: 'upgrade',
+            shippingAddress: {
+              line1: '123 Physical St',
+              line2: 'Apt 1',
+              city: 'Physical City',
+              state: 'CA',
+              zip: '12345',
+            },
+          },
+        );
       });
     });
 

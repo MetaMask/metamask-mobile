@@ -417,37 +417,42 @@ const CardHome = () => {
     );
   }, [logoutFromProvider, navigation]);
 
-  // Build shipping address from user data for metal card order
   const userShippingAddress: ShippingAddress | undefined = useMemo(() => {
-    if (!kycStatus?.userDetails) {
+    const userDetails = kycStatus?.userDetails;
+    if (!userDetails) {
       return undefined;
     }
 
-    // Use mailing address if available, otherwise fall back to physical address
-    const line1 =
-      kycStatus.userDetails.mailingAddressLine1 ??
-      kycStatus.userDetails.addressLine1;
-    const line2 =
-      kycStatus.userDetails.mailingAddressLine2 ??
-      kycStatus.userDetails.addressLine2;
-    const city =
-      kycStatus.userDetails.mailingCity ?? kycStatus.userDetails.city;
-    const state =
-      kycStatus.userDetails.mailingUsState ?? kycStatus.userDetails.usState;
-    const zip = kycStatus.userDetails.mailingZip ?? kycStatus.userDetails.zip;
+    const mailingLine1 = userDetails.mailingAddressLine1;
+    const mailingCity = userDetails.mailingCity;
+    const mailingZip = userDetails.mailingZip;
 
-    if (!line1 || !city || !zip) {
-      return undefined;
+    if (mailingLine1 && mailingCity && mailingZip) {
+      return {
+        line1: mailingLine1,
+        line2: userDetails.mailingAddressLine2 ?? undefined,
+        city: mailingCity,
+        state: userDetails.mailingUsState ?? '',
+        zip: mailingZip,
+      };
     }
 
-    return {
-      line1,
-      line2: line2 ?? undefined,
-      city,
-      state: state ?? '',
-      zip,
-    };
-  }, [kycStatus?.userDetails]);
+    const physicalLine1 = userDetails.addressLine1;
+    const physicalCity = userDetails.city;
+    const physicalZip = userDetails.zip;
+
+    if (physicalLine1 && physicalCity && physicalZip) {
+      return {
+        line1: physicalLine1,
+        line2: userDetails.addressLine2 ?? undefined,
+        city: physicalCity,
+        state: userDetails.usState ?? '',
+        zip: physicalZip,
+      };
+    }
+
+    return undefined;
+  }, [kycStatus]);
 
   const orderMetalCardAction = useCallback(() => {
     trackEvent(
