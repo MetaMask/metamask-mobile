@@ -627,7 +627,7 @@ const defaultMockHooks = {
   },
   usePerpsTrading: {
     placeOrder: jest.fn(),
-    depositWithConfirmation: jest.fn(),
+    depositWithConfirmation: jest.fn().mockResolvedValue(undefined),
     withdrawWithConfirmation: jest.fn(),
     getMarkets: jest.fn().mockResolvedValue([
       {
