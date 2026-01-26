@@ -194,6 +194,9 @@ export const BridgeTokenSelector: React.FC = () => {
             ...token,
             assetId: normalizedAssetId,
             name: token.name ?? '',
+            symbol: token.symbol,
+            decimals: token.decimals,
+            rwaData: token.rwaData,
           });
         }
         return acc;
