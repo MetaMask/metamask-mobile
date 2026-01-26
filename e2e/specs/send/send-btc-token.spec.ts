@@ -1,16 +1,13 @@
 import SendView from '../../pages/Send/RedesignedSendView';
-import SolanaTestDApp from '../../pages/Browser/SolanaTestDApp';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeConfirmationsRedesigned } from '../../tags';
-import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { loginToApp } from '../../viewHelper';
 
-const RECIPIENT = '4Nd1mZyJY5ZqzR3n8bQF7h5L2Q9gY1yTtM6nQhc7P1Dp';
-
-describe(SmokeConfirmationsRedesigned('Send SOL token'), () => {
-  it('should send solana to an address', async () => {
+describe(SmokeConfirmationsRedesigned('Send Bitcoin'), () => {
+  it('shows insufficient funds', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -19,13 +16,10 @@ describe(SmokeConfirmationsRedesigned('Send SOL token'), () => {
       async () => {
         await loginToApp();
         await device.disableSynchronization();
-        await WalletView.tapOnToken('Solana');
+        await WalletView.tapOnToken('Bitcoin');
         await TokenOverview.tapSendButton();
         await SendView.enterZeroAmount();
-        await SendView.pressContinueButton();
-        await SendView.inputRecipientAddress(RECIPIENT);
-        await SendView.pressReviewButton();
-        await SolanaTestDApp.tapCancelButton();
+        await SendView.checkInsufficientFundsError();
       },
     );
   });
