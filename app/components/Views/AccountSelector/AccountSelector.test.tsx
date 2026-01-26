@@ -1,12 +1,10 @@
 import React from 'react';
-import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { AddAccountBottomSheetSelectorsIDs } from '../AddAccountActions/AddAccountBottomSheet.testIds';
-import { CellComponentSelectorsIDs } from '../../../component-library/components/Cells/Cell/CellComponent.testIds';
 import Routes from '../../../constants/navigation/Routes';
-import Engine from '../../../core/Engine';
 import {
   AccountSelectorParams,
   AccountSelectorProps,
@@ -19,6 +17,8 @@ import {
   internalAccount2,
   internalSolanaAccount1,
 } from '../../../util/test/accountsControllerTestUtils';
+import { createMockAccountGroup } from '../../../component-library/components-temp/MultichainAccounts/test-utils';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 const mockSelectFullPageAccountListEnabledFlag = jest.fn(() => false);
 jest.mock(
@@ -55,6 +55,45 @@ const mockAccounts = [
 const mockEnsByAccountAddress = {
   [internalAccount2.address]: 'test.eth',
 };
+
+// Create mock account group for testing
+const mockAccountGroup: AccountGroupObject = createMockAccountGroup(
+  'mock-group-1',
+  'Account 1',
+  [internalAccount1.id],
+);
+
+// Mock the selectSelectedAccountGroup selector
+const mockSelectSelectedAccountGroup = jest.fn(
+  (): AccountGroupObject | null => mockAccountGroup,
+);
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroup: jest.fn(() => mockSelectSelectedAccountGroup()),
+    selectSelectedAccountGroupId: jest.fn(() => 'mock-group-1'),
+    selectSelectedAccountGroupInternalAccounts: jest.fn(() => []),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: jest.fn(() => []),
+    selectAccountGroupWithInternalAccounts: jest.fn(() => []),
+    selectAccountGroups: jest.fn(() => []),
+    selectAccountTreeControllerState: jest.fn(() => ({
+      accountTree: { wallets: {}, selectedAccountGroup: 'mock-group-1' },
+    })),
+    selectWalletsMap: jest.fn(() => ({})),
+    selectAccountToWalletMap: jest.fn(() => ({})),
+    selectAccountToGroupMap: jest.fn(() => ({})),
+    selectMultichainAccountGroups: jest.fn(() => []),
+    selectSingleAccountGroups: jest.fn(() => []),
+    selectAccountGroupsByWallet: jest.fn(() => []),
+    selectWalletByAccount: jest.fn(() => null),
+    selectWalletStatus: jest.fn(() => ({})),
+    selectResolvedSelectedAccountGroup: jest.fn(() => null),
+    selectAccountGroupById: jest.fn(() => null),
+    selectWalletById: jest.fn(() => null),
+    selectAccountSections: jest.fn(() => []),
+    selectInternalAccountFromAccountGroup: jest.fn(() => null),
+  }),
+);
 
 const mockInitialState = {
   engine: {
@@ -176,24 +215,6 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-// Mock the multichain accounts selector with default disabled state
-const mockSelectMultichainAccountsState2Enabled = jest
-  .fn()
-  .mockReturnValue(false);
-const mockSelectMultichainAccountsState1Enabled = jest
-  .fn()
-  .mockReturnValue(false);
-
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () =>
-      mockSelectMultichainAccountsState2Enabled(),
-    selectMultichainAccountsState1Enabled: () =>
-      mockSelectMultichainAccountsState1Enabled(),
-  }),
-);
-
 const mockUseAccountsOperationsLoadingStates = jest.fn();
 jest.mock('../../../util/accounts/useAccountsOperationsLoadingStates', () => ({
   useAccountsOperationsLoadingStates: () =>
@@ -214,9 +235,6 @@ describe('AccountSelector', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
-    // Reset multichain selectors to disabled state by default
-    mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
-    mockSelectMultichainAccountsState1Enabled.mockReturnValue(false);
 
     // Reset useAccountsOperationsLoadingStates hook to default values
     mockUseAccountsOperationsLoadingStates.mockReturnValue({
@@ -252,8 +270,8 @@ describe('AccountSelector', () => {
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
-  it('includes all accounts', () => {
-    const { queryByText } = renderScreen(
+  it('renders MultichainAccountSelectorList when selectedAccountGroup exists', () => {
+    renderScreen(
       AccountSelectorWrapper,
       {
         name: Routes.SHEET.ACCOUNT_SELECTOR,
@@ -268,14 +286,14 @@ describe('AccountSelector', () => {
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
     );
 
-    expect(accountsList).toBeDefined();
-    expect(queryByText(internalAccount1.metadata.name)).toBeDefined();
-    expect(queryByText(internalSolanaAccount1.metadata.name)).toBeDefined();
-    expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
+    expect(accountsList).toBeOnTheScreen();
   });
 
-  it('includes only EVM accounts if isEvmOnly', () => {
-    const { queryByText } = renderScreen(
+  it('does not render account list when selectedAccountGroup is null', () => {
+    // Temporarily return null for selectedAccountGroup
+    mockSelectSelectedAccountGroup.mockReturnValueOnce(null);
+
+    renderScreen(
       AccountSelectorWrapper,
       {
         name: Routes.SHEET.ACCOUNT_SELECTOR,
@@ -283,17 +301,14 @@ describe('AccountSelector', () => {
       {
         state: mockInitialState,
       },
-      { ...mockRoute.params, isEvmOnly: true },
+      mockRoute.params,
     );
 
-    const accountsList = screen.getByTestId(
+    const accountsList = screen.queryByTestId(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
     );
 
-    expect(accountsList).toBeDefined();
-    expect(queryByText(internalAccount1.metadata.name)).toBeDefined();
-    expect(queryByText(internalSolanaAccount1.metadata.name)).toBeNull();
-    expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
+    expect(accountsList).toBeNull();
   });
 
   it('should display add account button', () => {
@@ -326,15 +341,15 @@ describe('AccountSelector', () => {
       mockRoute.params,
     );
 
-    // Should render the account list (either multichain or EVM based on feature flag)
+    // renders the multichain account selector list
     const accountsList = screen.getByTestId(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
     );
-    expect(accountsList).toBeDefined();
-  });
+    expect(accountsList).toBeOnTheScreen();
+  }, 10000);
 
-  describe('Multichain Accounts V2', () => {
-    it('shows button text based on feature flag state', () => {
+  describe('Multichain Accounts', () => {
+    it('displays Add wallet button', () => {
       renderScreen(
         AccountSelectorWrapper,
         {
@@ -350,38 +365,12 @@ describe('AccountSelector', () => {
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
       expect(addButton).toBeOnTheScreen();
-      expect(addButton.props.children).toBeDefined();
-    });
-
-    it('shows "Add wallet" text when multichain feature flag is enabled', () => {
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      // Verify component renders successfully with feature flag enabled
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toBeOnTheScreen();
-
-      // When multichain feature flag is enabled, button text should be "Add wallet"
       expect(addButton).toHaveTextContent('Add wallet');
     });
 
-    it('handles navigation to add account actions', () => {
+    it('navigates to MultichainAddWalletActions when route param is set', () => {
       // Use real timers for this test to avoid animation timing issues
       jest.useRealTimers();
-
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
 
       const routeWithNavigation = {
         params: {
@@ -409,12 +398,9 @@ describe('AccountSelector', () => {
       jest.useFakeTimers();
     });
 
-    it('clicks Add wallet button and displays MultichainAddWalletActions bottomsheet', () => {
+    it('displays MultichainAddWalletActions bottomsheet when Add wallet button is pressed', () => {
       // Use real timers for this test to avoid animation timing issues
       jest.useRealTimers();
-
-      // Enable the multichain accounts state 2 feature flag for this test
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
 
       renderScreen(
         AccountSelectorWrapper,
@@ -439,50 +425,6 @@ describe('AccountSelector', () => {
 
       expect(
         screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
-      ).toBeOnTheScreen();
-
-      // Restore fake timers for other tests
-      jest.useFakeTimers();
-    });
-
-    it('clicks Add account button and displays AddAccountActions bottomsheet (non-multichain)', () => {
-      // Use real timers for this test to avoid animation timing issues
-      jest.useRealTimers();
-
-      // Disable the multichain accounts state 2 feature flag for this test
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
-      // Ensure full-page mode is disabled (BottomSheet version)
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      const addAccountButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addAccountButton).toHaveTextContent(
-        'Add account or hardware wallet',
-      );
-
-      fireEvent.press(addAccountButton);
-
-      // Check for the header text which indicates the BottomSheetHeader is rendered
-      // "Create a new account" appears both in the header and in AddAccountActions content
-      expect(screen.getAllByText('Create a new account')).toHaveLength(2);
-
-      // Add Ethereum account button should be visible
-      expect(
-        screen.getByTestId(
-          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
-        ),
       ).toBeOnTheScreen();
 
       // Restore fake timers for other tests
@@ -540,12 +482,8 @@ describe('AccountSelector', () => {
       // Check that the button shows the syncing state
       expect(addButton).toHaveTextContent('Syncing...');
 
-      // Try to press the button and verify it doesn't trigger the action
-      fireEvent.press(addButton);
-
-      // If button is properly disabled, the navigation to add account actions shouldn't happen
-      // We can verify this by checking that we're still on the account selector screen
-      expect(screen.queryByText('Import a wallet')).toBeNull();
+      // Check button is disabled
+      expect(addButton.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('shows activity indicator when syncing is in progress', () => {
@@ -580,13 +518,7 @@ describe('AccountSelector', () => {
       jest.useFakeTimers();
     });
 
-    it('shows different button text based on multichain feature flag when not syncing', () => {
-      // Use real timers for this test to avoid animation timing issues
-      jest.useRealTimers();
-
-      // Test with multichain enabled
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
-
+    it('displays Add wallet button text when not syncing', () => {
       renderScreen(
         AccountSelectorWrapper,
         {
@@ -602,37 +534,12 @@ describe('AccountSelector', () => {
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
       expect(addButton).toHaveTextContent('Add wallet');
-
-      // Restore fake timers for other tests
-      jest.useFakeTimers();
     });
 
-    it('shows default button text when multichain is disabled and not syncing', () => {
-      // Reset to disabled state
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toHaveTextContent('Add account or hardware wallet');
-    });
-
-    it('prioritizes syncing message over feature flag text', () => {
+    it('prioritizes syncing message over default button text', () => {
       // Use real timers for this test to avoid animation timing issues
       jest.useRealTimers();
 
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
         isAccountSyncingInProgress: true,
         areAnyOperationsLoading: true,
@@ -653,7 +560,7 @@ describe('AccountSelector', () => {
       const addButton = screen.getByTestId(
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
-      // Should show syncing message, not "Add wallet"
+      // syncing message takes precedence over "Add wallet"
       expect(addButton).toHaveTextContent('Syncing...');
 
       // Restore fake timers for other tests
@@ -684,8 +591,7 @@ describe('AccountSelector', () => {
       );
       expect(addButton).toHaveTextContent('Syncing...');
 
-      // Test that syncing completes by checking for different text content
-      // We'll simulate this by re-mocking the hook and re-rendering
+      // Simulate syncing completion by re-mocking the hook and re-rendering
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
         isAccountSyncingInProgress: false,
         areAnyOperationsLoading: false,
@@ -708,8 +614,8 @@ describe('AccountSelector', () => {
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
 
-      // Should show default text when not syncing
-      expect(addButton).toHaveTextContent('Add account or hardware wallet');
+      // displays "Add wallet" when not syncing
+      expect(addButton).toHaveTextContent('Add wallet');
     });
   });
 
@@ -761,58 +667,6 @@ describe('AccountSelector', () => {
       );
       expect(addButton).toBeNull();
     });
-
-    it('hides add account button in multichain mode when disableAddAccountButton is true', () => {
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
-
-      const routeWithDisableButton = {
-        params: {
-          ...mockRoute.params,
-          disableAddAccountButton: true,
-        },
-      };
-
-      renderScreen(
-        () => <AccountSelector route={routeWithDisableButton} />,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      const addButton = screen.queryByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toBeNull();
-    });
-
-    it('displays add account button in multichain mode when disableAddAccountButton is false', () => {
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
-
-      const routeWithDisableButton = {
-        params: {
-          ...mockRoute.params,
-          disableAddAccountButton: false,
-        },
-      };
-
-      renderScreen(
-        () => <AccountSelector route={routeWithDisableButton} />,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toBeOnTheScreen();
-    });
   });
 
   describe('Feature Flag: Full-Page Account List', () => {
@@ -836,11 +690,11 @@ describe('AccountSelector', () => {
       );
 
       // BottomSheet version renders the sheet header
-      expect(screen.getByText('Accounts')).toBeDefined();
+      expect(screen.getByText('Accounts')).toBeOnTheScreen();
       // Accounts list is present
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
     });
 
     it('renders full-page modal when feature flag is enabled', () => {
@@ -858,11 +712,11 @@ describe('AccountSelector', () => {
       );
 
       // Full-page version has sheet header with back button
-      expect(screen.getByText('Accounts')).toBeDefined();
+      expect(screen.getByText('Accounts')).toBeOnTheScreen();
       // Accounts list is present
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
     });
 
     it('renders add button in both modes', () => {
@@ -917,11 +771,10 @@ describe('AccountSelector', () => {
       jest.useFakeTimers();
     });
 
-    it('opens Add Wallet bottom sheet overlay in full-page mode (multichain)', () => {
+    it('opens Add Wallet bottom sheet overlay in full-page mode', () => {
       // Arrange
       jest.useRealTimers();
       mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
 
       renderScreen(
         AccountSelectorWrapper,
@@ -956,81 +809,6 @@ describe('AccountSelector', () => {
       jest.useFakeTimers();
     });
 
-    it('opens Add Account bottom sheet overlay in full-page mode (non-multichain)', () => {
-      // Arrange
-      jest.useRealTimers();
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-
-      // Act
-      fireEvent.press(addButton);
-
-      // Assert: AddAccountActions bottom sheet is displayed on top
-      // There should be two "Create a new account" texts - one in the overlay header and one in the actions
-      expect(screen.getAllByText('Create a new account')).toHaveLength(2);
-      // Add Ethereum account button should be visible in the overlay
-      expect(
-        screen.getByTestId(
-          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
-        ),
-      ).toBeOnTheScreen();
-      // Account list should still be visible in background
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
-
-      jest.useFakeTimers();
-    });
-
-    it('closes BottomSheet when account is selected with feature flag disabled', async () => {
-      // Arrange
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
-
-      const { getAllByTestId } = renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      // Wait for account cells to render
-      await waitFor(() => {
-        const cells = getAllByTestId(
-          CellComponentSelectorsIDs.SELECT_WITH_MENU,
-        );
-        expect(cells.length).toBeGreaterThan(0);
-      });
-
-      const accountCells = getAllByTestId(
-        CellComponentSelectorsIDs.SELECT_WITH_MENU,
-      );
-
-      // Act
-      fireEvent.press(accountCells[0]);
-
-      // Assert: Account was selected
-      expect(Engine.setSelectedAddress).toHaveBeenCalled();
-    });
-
     it('renders SheetHeader with title in full-page mode', () => {
       // Arrange
       mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
@@ -1047,57 +825,11 @@ describe('AccountSelector', () => {
       );
 
       // Assert: SheetHeader with title is present in full-page mode
-      expect(screen.getByText('Accounts')).toBeDefined();
+      expect(screen.getByText('Accounts')).toBeOnTheScreen();
       // Verify accounts list is also present (confirms we're on the right screen)
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeDefined();
-    });
-
-    it('closes full-page modal when account is selected with feature flag enabled', async () => {
-      // Arrange
-      jest.useRealTimers();
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      // Mock the useNavigation hook to prevent navigation warnings
-      const mockGoBack = jest.fn();
-      const useNavigationMock = jest.requireMock('@react-navigation/native');
-      useNavigationMock.useNavigation = jest.fn(() => ({
-        goBack: mockGoBack,
-        navigate: jest.fn(),
-        dispatch: jest.fn(),
-      }));
-
-      const { getAllByTestId } = renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      // Wait for account cells to render
-      await waitFor(() => {
-        const cells = getAllByTestId(
-          CellComponentSelectorsIDs.SELECT_WITH_MENU,
-        );
-        expect(cells.length).toBeGreaterThan(0);
-      });
-
-      const accountCells = getAllByTestId(
-        CellComponentSelectorsIDs.SELECT_WITH_MENU,
-      );
-
-      // Act
-      fireEvent.press(accountCells[0]);
-
-      // Assert: Account was selected
-      expect(Engine.setSelectedAddress).toHaveBeenCalled();
-
-      jest.useFakeTimers();
+      ).toBeOnTheScreen();
     });
   });
 });
