@@ -98,8 +98,23 @@ export type RootParamList = {
   WalletHome: undefined;
 
   // Asset Screens
-  Asset: (TokenI & { chainId?: string; isFromSearch?: boolean }) | undefined;
-  AssetDetails: { address?: string; chainId?: string } | undefined;
+  Asset:
+    | (TokenI & {
+        chainId?: string;
+        isFromSearch?: boolean;
+        isFromTrending?: boolean;
+        pricePercentChange1d?: number;
+        isNative?: boolean;
+        isETH?: boolean;
+      })
+    | undefined;
+  AssetDetails:
+    | {
+        address?: string;
+        chainId?: string;
+        asset?: object;
+      }
+    | undefined;
   AddAsset:
     | { assetType?: string; collectibleContract?: { address: string } }
     | undefined;
@@ -126,7 +141,17 @@ export type RootParamList = {
   NftOptions: { collectible?: object } | undefined;
 
   // Browser Flow
-  BrowserTabHome: undefined;
+  BrowserTabHome:
+    | {
+        screen?: string;
+        params?: {
+          showTabsView?: boolean;
+          newTabUrl?: string;
+          timestamp?: number;
+          fromTrending?: boolean;
+        };
+      }
+    | undefined;
   BrowserView:
     | {
         url?: string;
@@ -147,7 +172,15 @@ export type RootParamList = {
   // Settings Flow
   SettingsFlow: undefined;
   Settings: undefined;
-  SettingsView: undefined;
+  SettingsView:
+    | {
+        screen?: string;
+        params?: {
+          scrollToBottom?: boolean;
+          isFullScreenModal?: boolean;
+        };
+      }
+    | undefined;
   GeneralSettings: undefined;
   AdvancedSettings: undefined;
   SecuritySettings: SecuritySettingsParams | undefined;
@@ -170,7 +203,12 @@ export type RootParamList = {
   RampSettings: undefined;
   RampActivationKeyForm: object | undefined;
   RevealPrivateCredentialView:
-    | { credentialName?: string; cancel?: () => void }
+    | {
+        credentialName?: string;
+        cancel?: () => void;
+        shouldUpdateNav?: boolean;
+        keyringId?: string | object;
+      }
     | undefined;
   ResetPassword: undefined;
   EnterPasswordSimple: { onPasswordSet: (password: string) => void };
@@ -182,15 +220,31 @@ export type RootParamList = {
   SnapSettings: { snap: Snap };
 
   // Transaction Flow
-  TransactionsView: undefined;
-  TransactionDetails: { transactionObject?: object } | undefined;
+  TransactionsView:
+    | {
+        screen?: string;
+        initial?: boolean;
+        params?: {
+          orderId?: string;
+          redirectToSendTransaction?: boolean;
+          redirectToOrders?: boolean;
+          redirectToPerpsTransactions?: boolean;
+        };
+      }
+    | undefined;
+  TransactionDetails:
+    | {
+        transactionObject?: object;
+        transactionId?: string;
+      }
+    | undefined;
   SendView: undefined;
   SendAsset: undefined;
   SendFlowView: undefined;
   SendTo: undefined;
   Amount: undefined;
   Confirm: undefined;
-  Send: undefined;
+  Send: { screen?: string } | undefined;
   Recipient: undefined;
 
   // Swap Flow
@@ -217,7 +271,7 @@ export type RootParamList = {
   Quotes: object | undefined;
   Checkout: undefined;
   OrderDetails: { orderId?: string } | undefined;
-  SendTransaction: undefined;
+  SendTransaction: { orderId?: string } | undefined;
   RampTokenSelection: undefined;
   RampModals: undefined;
   RampTokenSelectorModal: undefined;
@@ -280,7 +334,12 @@ export type RootParamList = {
   Bridge: NavigatorScreenParams<BridgeParamList> | undefined;
   BridgeRoot: undefined;
   BridgeModalsRoot: undefined;
-  BridgeModals: undefined;
+  BridgeModals:
+    | {
+        screen?: string;
+        params?: object;
+      }
+    | undefined;
   BridgeView: undefined;
   BridgeSettings: undefined;
   BridgeTransactionDetails: object | undefined;
@@ -338,7 +397,14 @@ export type RootParamList = {
   EarnLendingWithdrawalConfirmation: object | undefined;
   EarnLendingMaxWithdrawalModal: undefined;
   EarnLendingLearnMoreModal: { asset: EarnTokenDetails };
-  EarnModals: undefined;
+  EarnModals:
+    | {
+        screen?: string;
+        params?: {
+          asset?: object;
+        };
+      }
+    | undefined;
   EarnMusdConversionEducation: undefined;
   StakeModalStack: undefined;
   StakeModals: undefined;
@@ -370,7 +436,12 @@ export type RootParamList = {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingWebview: { url: string };
-  CardModals: undefined;
+  CardModals:
+    | {
+        screen?: string;
+        params?: object;
+      }
+    | undefined;
   CardAddFundsModal: undefined;
   CardAssetSelectionModal: undefined;
   CardRegionSelectionModal: undefined;
@@ -449,7 +520,14 @@ export type RootParamList = {
   PredictGTMModal: undefined;
 
   // Rewards Flow
-  RewardsView: undefined;
+  RewardsView:
+    | {
+        screen?: string;
+        params?: {
+          screen?: string;
+        };
+      }
+    | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
@@ -462,11 +540,48 @@ export type RootParamList = {
   RewardsBottomSheetModal:
     | NavigatorScreenParams<RewardsBottomSheetModalParamList>
     | undefined;
-  RewardsClaimBottomSheetModal: undefined;
+  RewardsClaimBottomSheetModal:
+    | {
+        title?: string;
+        icon?: string;
+        description?: string;
+        claimUrl?: string;
+        showInput?: boolean;
+        inputPlaceholder?: string;
+        rewardId?: string;
+        seasonRewardId?: string;
+        rewardType?: string;
+        isLocked?: boolean;
+        hasClaimed?: boolean;
+      }
+    | undefined;
   RewardsIntroModal: undefined;
-  RewardOptInAccountGroupModal: undefined;
+  RewardOptInAccountGroupModal:
+    | {
+        accountGroupId?: string;
+        addressData?: {
+          address: string;
+          hasOptedIn: boolean;
+          scopes: string[];
+          isSupported: boolean;
+        }[];
+      }
+    | undefined;
   RewardsReferralBottomSheetModal: undefined;
-  EndOfSeasonClaimBottomSheet: undefined;
+  EndOfSeasonClaimBottomSheet:
+    | {
+        rewardId?: string;
+        seasonRewardId?: string;
+        title?: string;
+        description?: string;
+        contactInfo?: object;
+        rewardType?: string;
+        showEmail?: string;
+        showTelegram?: string;
+        url?: string;
+        showAccount?: boolean;
+      }
+    | undefined;
 
   // Notifications Flow
   NotificationsView: undefined;
@@ -513,7 +628,17 @@ export type RootParamList = {
   ImportSRPView: undefined;
 
   // QR Scanner
-  QRTabSwitcher: QRTabSwitcherParams | undefined;
+  QRTabSwitcher:
+    | (QRTabSwitcherParams & {
+        initialScreen?: string;
+        disableTabber?: boolean;
+        onScanSuccess?: (
+          data: object,
+          content?: string,
+        ) => void | Promise<void>;
+        onScanError?: (error: unknown) => void;
+      })
+    | undefined;
   QRScanner: undefined;
 
   // Modals
@@ -552,7 +677,14 @@ export type RootParamList = {
   ReturnToAppNotification: undefined;
   PayWithModal: object | undefined;
   ConfirmationRequestModal: undefined;
-  ConfirmationSwitchAccountType: undefined;
+  ConfirmationSwitchAccountType:
+    | {
+        screen?: string;
+        params?: {
+          address?: string;
+        };
+      }
+    | undefined;
   SmartAccountOptIn: undefined;
 
   // SDK
@@ -563,8 +695,21 @@ export type RootParamList = {
   NetworkSelector: object | undefined;
   DeprecatedNetworkDetails: undefined;
   NetworkManager: undefined;
-  AddNetwork: undefined;
-  EditNetwork: undefined;
+  AddNetwork:
+    | {
+        shouldNetworkSwitchPopToWallet?: boolean;
+        shouldShowPopularNetworks?: boolean;
+        network?: string;
+      }
+    | undefined;
+  EditNetwork:
+    | {
+        network?: string;
+        shouldNetworkSwitchPopToWallet?: boolean;
+        shouldShowPopularNetworks?: boolean;
+        trackRpcUpdateFromBanner?: boolean;
+      }
+    | undefined;
 
   // Vault Recovery
   RestoreWallet: object | undefined;
@@ -574,7 +719,19 @@ export type RootParamList = {
 
   // Confirmations
   RedesignedConfirmations:
-    | { amountWei: string; amountFiat: string }
+    | {
+        amountWei?: string;
+        amountFiat?: string;
+        params?: {
+          maxValueMode?: boolean;
+        };
+        loader?: object;
+        preferredPaymentToken?: {
+          address: string;
+          chainId: string;
+        };
+        outputChainId?: string;
+      }
     | undefined;
   NoHeaderConfirmations: undefined;
 
@@ -602,25 +759,47 @@ export type RootParamList = {
 
   // Miscellaneous
   Webview: undefined;
-  SetPasswordFlow: undefined;
+  SetPasswordFlow:
+    | {
+        screen?: string;
+        params?: {
+          backupFlow?: boolean;
+        };
+      }
+    | undefined;
   FeatureFlagOverride: undefined;
   ProfilerManager: undefined;
   LockScreen: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithNetworkModal: undefined;
-  EditAccountName: undefined;
+  EditAccountName: { selectedAccount?: object } | undefined;
   ReturnToDappToast: undefined;
   SampleFeature: undefined;
   AssetsSettings: undefined;
   WalletTabStackFlow: undefined;
   NftFullView: undefined;
   MultichainAddressList: undefined;
-  MultichainAccountDetails: undefined;
-  MultichainAccountGroupDetails: undefined;
-  MultichainWalletDetails: undefined;
+  MultichainAccountDetails: { account?: object } | undefined;
+  MultichainAccountGroupDetails:
+    | {
+        accountGroup?: object;
+        screen?: string;
+        params?: object;
+      }
+    | undefined;
+  MultichainWalletDetails:
+    | {
+        walletId?: string;
+      }
+    | undefined;
 
   // Sheet Routes
-  AddAccount: undefined;
+  AddAccount:
+    | {
+        scope?: string;
+        clientType?: string;
+      }
+    | undefined;
   AmbiguousAddress: undefined;
   BasicFunctionality: undefined;
   ResetNotifications: undefined;
@@ -646,17 +825,21 @@ export type RootParamList = {
 
   // Multichain Account Details
   MultichainAccountActions: undefined;
-  EditMultichainAccountName: undefined;
-  LegacyEditMultichainAccountName: undefined;
+  EditMultichainAccountName: { accountGroup?: object } | undefined;
+  LegacyEditMultichainAccountName: { accountGroup?: object } | undefined;
   EditWalletName: undefined;
   ShareAddress: undefined;
   ShareAddressQR: undefined;
   DeleteAccount: undefined;
   RevealPrivateCredential: object | undefined;
   RevealSRPCredential: undefined;
-  SRPRevealQuizInMultichainAccountDetails: undefined;
+  SRPRevealQuizInMultichainAccountDetails:
+    | {
+        keyringId?: string | object;
+      }
+    | undefined;
   SmartAccount: undefined;
-  SmartAccountDetails: undefined;
+  SmartAccountDetails: { account?: object } | undefined;
 
   // Browser
   AssetView: undefined;
