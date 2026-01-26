@@ -29,6 +29,7 @@ export interface PredictBetButtonsProps {
   noTeamColor?: string;
   disabled?: boolean;
   testID?: string;
+  isCarousel?: boolean;
 }
 
 export interface PredictClaimButtonProps {
@@ -46,4 +47,5 @@ export interface PredictActionButtonsProps {
   claimableAmount?: number;
   isLoading?: boolean;
   testID?: string;
+  isCarousel?: boolean;
 }
