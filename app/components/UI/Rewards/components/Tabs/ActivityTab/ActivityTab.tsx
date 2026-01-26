@@ -213,7 +213,7 @@ export const ActivityTab: React.FC = () => {
   // Render content based on state
   const renderContent = () => {
     if (isInitialLoading || shouldShowLoadingSkeleton) {
-      return <Skeleton style={tw.style('h-32 rounded-lg')} />;
+      return <Skeleton style={tw.style('flex-1 rounded-lg')} />;
     }
 
     if (hasError) {
