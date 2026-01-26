@@ -25,6 +25,10 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+
+const mockDevLoggerLog = DevLogger.log as jest.Mock;
+
 // Mock usePredictNetworkManagement
 const mockEnsurePolygonNetworkExists = jest.fn().mockResolvedValue(undefined);
 jest.mock('./usePredictNetworkManagement', () => ({
@@ -251,6 +255,67 @@ describe('usePredictAccountState', () => {
       // Assert
       expect(result.current.error).toBeNull();
       expect(result.current.address).toEqual(mockAccountState.address);
+    });
+
+    it('calls ensurePolygonNetworkExists before loading account state', async () => {
+      // Arrange
+      mockGetAccountState.mockResolvedValue(mockAccountState);
+
+      // Act
+      const { result } = renderHook(() =>
+        usePredictAccountState({ loadOnMount: false }),
+      );
+
+      await act(async () => {
+        await result.current.loadAccountState();
+      });
+
+      // Assert
+      expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
+      expect(mockGetAccountState).toHaveBeenCalled();
+    });
+
+    it('continues loading account state when ensurePolygonNetworkExists fails', async () => {
+      // Arrange
+      const networkError = new Error('Failed to add Polygon network');
+      mockEnsurePolygonNetworkExists.mockRejectedValue(networkError);
+      mockGetAccountState.mockResolvedValue(mockAccountState);
+
+      // Act
+      const { result } = renderHook(() =>
+        usePredictAccountState({ loadOnMount: false }),
+      );
+
+      await act(async () => {
+        await result.current.loadAccountState();
+      });
+
+      // Assert - account state should still be loaded despite network error
+      expect(result.current.address).toEqual(mockAccountState.address);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeNull();
+    });
+
+    it('logs error when ensurePolygonNetworkExists fails', async () => {
+      // Arrange
+      const networkError = new Error('Failed to add Polygon network');
+      mockEnsurePolygonNetworkExists.mockRejectedValue(networkError);
+      mockGetAccountState.mockResolvedValue(mockAccountState);
+
+      // Act
+      const { result } = renderHook(() =>
+        usePredictAccountState({ loadOnMount: false }),
+      );
+
+      await act(async () => {
+        await result.current.loadAccountState();
+      });
+
+      // Assert - DevLogger should have been called with network error
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        'usePredictAccountState: Failed to ensure Polygon network exists',
+        networkError,
+      );
     });
   });
 
