@@ -378,7 +378,7 @@ Common user flows are in `utils/Flows.js`:
 Standard login flow with optional modal dismissal:
 
 ```javascript
-import { login } from '../../../utils/Flows.js';
+import { login } from '../../../utils/flows/Flows.js';
 
 // Simple login
 await login(device);
@@ -395,7 +395,7 @@ await login(device, { scenarioType: 'onboarding' });
 Complete onboarding flow for importing a wallet:
 
 ```javascript
-import { onboardingFlowImportSRP } from '../../../utils/Flows.js';
+import { onboardingFlowImportSRP } from '../../../utils/flows/Flows.js';
 
 await onboardingFlowImportSRP(device, process.env.TEST_SRP);
 ```
@@ -405,7 +405,7 @@ await onboardingFlowImportSRP(device, process.env.TEST_SRP);
 Import additional SRP for logged-in user. Returns array of timers:
 
 ```javascript
-import { importSRPFlow } from '../../../utils/Flows.js';
+import { importSRPFlow } from '../../../utils/flows/Flows.js';
 
 const timers = await importSRPFlow(device, process.env.TEST_SRP_2);
 performanceTracker.addTimers(...timers);
@@ -416,7 +416,7 @@ performanceTracker.addTimers(...timers);
 Dismiss common modals (Multichain, Predictions, etc.):
 
 ```javascript
-import { dissmissAllModals } from '../../../utils/Flows.js';
+import { dissmissAllModals } from '../../../utils/flows/Flows.js';
 
 await dissmissAllModals(device);
 ```
@@ -426,7 +426,7 @@ await dissmissAllModals(device);
 Select account based on device for parallel testing:
 
 ```javascript
-import { selectAccountDevice } from '../../../utils/Flows.js';
+import { selectAccountDevice } from '../../../utils/flows/Flows.js';
 
 await selectAccountDevice(device, testInfo);
 ```
@@ -583,7 +583,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 import { test } from '../../../fixtures/performance-test.js';
 import TimerHelper from '../../../utils/TimersHelper.js';
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
-import { login, dissmissAllModals } from '../../../utils/Flows.js';
+import { login, dissmissAllModals } from '../../../utils/flows/Flows.js';
 
 test('My Performance Test', async ({
   device,

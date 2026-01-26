@@ -18,7 +18,7 @@ import ConfirmationScreen from '../../../../../wdio/screen-objects/ConfirmationS
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../../wdio/screen-objects/AmountScreen.js';
 import MultichainAccountEducationModal from '../../../../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
-import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures';
+import AppwrightGestures from '../../../../../tests/framework/AppwrightGestures';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
 import { PerformanceOnboarding, PerformanceLaunch } from '../../../../tags.js';
 
