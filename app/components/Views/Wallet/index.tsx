@@ -48,6 +48,7 @@ import {
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { OTA_VERSION } from '../../../constants/ota';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import CustomText, {
   TextColor,
@@ -1278,6 +1279,10 @@ const Wallet = ({
             }
           />
         ) : null}
+        <BannerAlert
+          severity={BannerAlertSeverity.Info}
+          title={`this is ota update banner prod ${OTA_VERSION}`}
+        />
         <NetworkConnectionBanner />
       </View>
       <>

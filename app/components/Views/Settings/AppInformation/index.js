@@ -24,8 +24,9 @@ import {
   checkAutomatically,
 } from 'expo-updates';
 import { connect } from 'react-redux';
-import { getFullVersion } from '../../../../constants/ota';
+import { getFullVersion, OTA_VERSION } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
+import { captureException } from '@sentry/react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -192,6 +193,12 @@ class AppInformation extends PureComponent {
     this.setState({ showEnvironmentInfo: true });
   };
 
+  onSendSentryTestError = () => {
+    captureException(
+      new Error(`OTA update Sentry test error production ${OTA_VERSION}`),
+    );
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -271,6 +278,11 @@ class AppInformation extends PureComponent {
             )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
+          <TouchableOpacity onPress={this.onSendSentryTestError}>
+            <Text style={styles.link}>
+              Send Sentry test error production {OTA_VERSION}
+            </Text>
+          </TouchableOpacity>
           <View style={styles.links}>
             <TouchableOpacity onPress={this.onPrivacyPolicy}>
               <Text style={styles.link}>
