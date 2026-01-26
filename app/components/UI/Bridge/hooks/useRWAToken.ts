@@ -6,15 +6,15 @@ import { TrendingAsset } from '@metamask/assets-controllers';
 
 export type DateLike = string | null | undefined | Date;
 
+function toMs(v: DateLike): number | null {
+  if (!v) return null;
+  const ms = new Date(v as string).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
 export function useRWAToken() {
   // Check remote feature flag for RWA token enablement
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
-
-  function toMs(v: DateLike): number | null {
-    if (!v) return null;
-    const ms = new Date(v as string).getTime();
-    return Number.isFinite(ms) ? ms : null;
-  }
 
   // TODO: Borrowed isRwaTokenTradable function from crosschain API src/utils/tokens.ts file.
   // To be removed once `isOpen` flag is also available from token API
