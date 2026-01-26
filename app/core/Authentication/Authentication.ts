@@ -1658,7 +1658,6 @@ class AuthenticationService {
     const { authType, password } = options;
     // Password found or provided. Validate and update the auth preference.
     try {
-      console.log('updateAuthPreference', password);
       const passwordToUse = await this.reauthenticate(password);
 
       // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
@@ -1668,8 +1667,6 @@ class AuthenticationService {
       await this.storePassword(passwordToUse.password, authType);
     } catch (e) {
       const errorWithMessage = e as { message: string };
-
-      console.log('errorWithMessage', errorWithMessage);
 
       // Check if the error is because password is not set with biometrics
       // Convert it to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS so UI can handle it
