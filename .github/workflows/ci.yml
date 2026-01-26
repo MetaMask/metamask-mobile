@@ -370,48 +370,6 @@ jobs:
         }}
     secrets: inherit
 
-  # Performance Tests (Smart Selection)
-
-  performance-tests-android:
-    name: 'Android Performance Tests'
-    if: >-
-      ${{
-        github.event_name != 'merge_group' &&
-        needs.needs_e2e_build.outputs.android_changed == 'true' &&
-        needs.smart-e2e-selection.outputs.ai_confidence >= 80 &&
-        needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
-      }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
-    uses: ./.github/workflows/run-performance-tests.yml
-    with:
-      platform: android
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
-    secrets: inherit
-
-  performance-tests-ios:
-    name: 'iOS Performance Tests'
-    if: >-
-      ${{
-        github.event_name != 'merge_group' &&
-        needs.needs_e2e_build.outputs.ios_changed == 'true' &&
-        needs.smart-e2e-selection.outputs.ai_confidence >= 80 &&
-        needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
-      }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, build-ios-apps, smart-e2e-selection]
-    uses: ./.github/workflows/run-performance-tests.yml
-    with:
-      platform: ios
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
-    secrets: inherit
-
   # Flask E2E tests
 
   e2e-smoke-tests-android-flask:
