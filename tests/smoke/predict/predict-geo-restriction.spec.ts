@@ -1,26 +1,26 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import PredictMarketList from '../../pages/Predict/PredictMarketList';
-import PredictUnavailableView from '../../pages/Predict/PredictUnavailableView';
-import Assertions from '../../../tests/framework/Assertions';
-import WalletView from '../../pages/wallet/WalletView';
-import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
-import PredictCashOutPage from '../../pages/Predict/PredictCashOutPage';
-import { remoteFeatureFlagPredictEnabled } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { SmokePredictions } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
+import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
+import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailableView';
+import Assertions from '../../framework/Assertions';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
+import PredictCashOutPage from '../../page-objects/Predict/PredictCashOutPage';
+import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   POLYMARKET_MARKET_FEEDS_MOCKS,
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_GEO_BLOCKED_MOCKS,
-} from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
-import PredictAddFunds from '../../pages/Predict/PredictAddFunds';
-import { getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../../tests/framework/SoftAssert';
+} from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import PredictAddFunds from '../../page-objects/Predict/PredictAddFunds';
+import { getEventsPayloads } from '../../../e2e/specs/analytics/helpers';
+import SoftAssert from '../../framework/SoftAssert';
 
 //Enable the Predictions feature flag and force Polymarket geoblock
 const setupGeoBlockedBase = async (mockServer: Mockttp) => {

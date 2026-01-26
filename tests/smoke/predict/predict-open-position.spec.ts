@@ -1,26 +1,26 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import PredictMarketList from '../../pages/Predict/PredictMarketList';
-import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
-import Assertions from '../../../tests/framework/Assertions';
-import WalletView from '../../pages/wallet/WalletView';
-import { remoteFeatureFlagPredictEnabled } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { SmokePredictions } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
+import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
+import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
+import Assertions from '../../framework/Assertions';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
-} from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
-import { getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../../tests/framework/SoftAssert';
+} from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../../e2e/pages/Transactions/predictionsActivityDetails';
+import { getEventsPayloads } from '../../../e2e/specs/analytics/helpers';
+import SoftAssert from '../../framework/SoftAssert';
 
 /*
 Test Scenario: Open position on Celtics vs. Nets market

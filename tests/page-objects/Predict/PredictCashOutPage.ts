@@ -1,4 +1,4 @@
-import { Matchers, Gestures } from '../../../tests/framework';
+import { Matchers, Gestures } from '../../framework';
 import { PredictCashOutSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 
 class PredictCashOutPage {
