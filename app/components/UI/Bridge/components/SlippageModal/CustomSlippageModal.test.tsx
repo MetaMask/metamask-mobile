@@ -470,24 +470,6 @@ describe('CustomSlippageModal', () => {
       expect(valueElement.props.children).toBe('100');
     });
 
-    it('sets hasAttemptedToExceedMax when trying to exceed max', () => {
-      mockSelector.mockReturnValue('100');
-
-      const { getByTestId, rerender } = render(<CustomSlippageModal />);
-
-      const keypadButton = getByTestId('keypad-button-5');
-      fireEvent.press(keypadButton);
-
-      rerender(<CustomSlippageModal />);
-
-      // Verify hook was called with hasAttemptedToExceedMax: true
-      const lastCall =
-        mockUseShouldDisableCustomSlippageConfirm.mock.calls[
-          mockUseShouldDisableCustomSlippageConfirm.mock.calls.length - 1
-        ];
-      expect(lastCall[0].hasAttemptedToExceedMax).toBe(true);
-    });
-
     it('rejects input with more decimals than input_max_decimals', () => {
       mockSelector.mockReturnValue('1.23');
 

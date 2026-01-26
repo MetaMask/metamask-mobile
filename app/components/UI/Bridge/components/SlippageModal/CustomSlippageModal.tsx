@@ -35,7 +35,6 @@ export const CustomSlippageModal = () => {
   const shouldDisableConfirm = useShouldDisableCustomSlippageConfirm({
     inputAmount,
     slippageConfig,
-    hasAttemptedToExceedMax,
   });
   const description = useSlippageStepperDescription({
     inputAmount,
