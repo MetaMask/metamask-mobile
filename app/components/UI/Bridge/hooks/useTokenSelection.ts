@@ -8,6 +8,8 @@ import {
   selectDestToken,
 } from '../../../../core/redux/slices/bridge';
 import { BridgeToken, TokenSelectorType } from '../types';
+import Routes from '../../../../constants/navigation/Routes';
+import { useRWAToken } from './useRWAToken';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
@@ -19,9 +21,10 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const navigation = useNavigation();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const { isStockToken, isTokenTradingOpen } = useRWAToken();
 
   const handleTokenPress = useCallback(
-    (token: BridgeToken) => {
+    async (token: BridgeToken) => {
       const isSourcePicker = type === TokenSelectorType.Source;
       const otherToken = isSourcePicker ? destToken : sourceToken;
 
@@ -30,6 +33,15 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         otherToken &&
         token.address === otherToken.address &&
         token.chainId === otherToken.chainId;
+
+      if (isStockToken(token)) {
+        const isTradingOpen = await isTokenTradingOpen(token);
+        if (!isTradingOpen) {
+          // Show market closed bottom sheet
+          navigation.navigate(Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL);
+          return;
+        }
+      }
 
       if (isSelectingOtherToken && sourceToken && destToken) {
         // Swap the tokens: old source becomes dest, old dest becomes source
@@ -42,7 +54,15 @@ export const useTokenSelection = (type: TokenSelectorType) => {
 
       navigation.goBack();
     },
-    [type, sourceToken, destToken, dispatch, navigation],
+    [
+      type,
+      destToken,
+      sourceToken,
+      isStockToken,
+      navigation,
+      isTokenTradingOpen,
+      dispatch,
+    ],
   );
 
   const selectedToken =
