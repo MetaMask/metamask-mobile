@@ -2,16 +2,16 @@ import { SmokeWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
-import Assertions from '../../framework/Assertions';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import Assertions from '../../../tests/framework/Assertions';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
-import { LocalNode, LocalNodeType } from '../../framework/types';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 import TransactionPayConfirmation from '../../pages/Confirmation/TransactionPayConfirmation';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
@@ -116,19 +116,70 @@ const createMusdFixture = (
   });
 
   // Add mUSD balance if requested
+  // Structure: tokenBalances[accountAddress][chainId][tokenAddress]
   if (options.hasMusdBalance) {
-    merge(fixture.state.engine.backgroundState.TokenBalancesController, {
-      contractBalances: {
-        [CHAIN_IDS.MAINNET]: {
-          [toChecksumAddress(MUSD_ADDRESS)]: (
-            (options.musdBalance ?? 10) *
-            10 ** MUSD_DECIMALS
-          )
-            .toString(16)
-            .replace(/^/, '0x'),
+    // Get the selected account address from AccountsController
+    const accountsController =
+      fixture.state.engine.backgroundState.AccountsController;
+    const selectedAccountId =
+      accountsController?.internalAccounts?.selectedAccount;
+    const selectedAccount =
+      accountsController?.internalAccounts?.accounts?.[selectedAccountId];
+    const accountAddress = selectedAccount?.address;
+
+    if (!accountAddress) {
+      throw new Error(
+        'Cannot set mUSD balance: selected account address not found in fixture',
+      );
+    }
+
+    // Ensure tokenBalances structure exists
+    if (!fixture.state.engine.backgroundState.TokenBalancesController) {
+      merge(fixture.state.engine.backgroundState, {
+        TokenBalancesController: {
+          tokenBalances: {},
         },
-      },
-    });
+      });
+    }
+
+    if (
+      !fixture.state.engine.backgroundState.TokenBalancesController
+        .tokenBalances
+    ) {
+      fixture.state.engine.backgroundState.TokenBalancesController.tokenBalances =
+        {};
+    }
+
+    // Set balance in correct structure: tokenBalances[accountAddress][chainId][tokenAddress]
+    // Use address as-is from AccountsController to match selector lookup
+    const accountAddressKey = accountAddress;
+    const chainIdKey = CHAIN_IDS.MAINNET;
+    const tokenAddressKey = toChecksumAddress(MUSD_ADDRESS);
+    const balanceValue = ((options.musdBalance ?? 10) * 10 ** MUSD_DECIMALS)
+      .toString(16)
+      .replace(/^/, '0x');
+
+    if (
+      !fixture.state.engine.backgroundState.TokenBalancesController
+        .tokenBalances[accountAddressKey]
+    ) {
+      fixture.state.engine.backgroundState.TokenBalancesController.tokenBalances[
+        accountAddressKey
+      ] = {};
+    }
+
+    if (
+      !fixture.state.engine.backgroundState.TokenBalancesController
+        .tokenBalances[accountAddressKey][chainIdKey]
+    ) {
+      fixture.state.engine.backgroundState.TokenBalancesController.tokenBalances[
+        accountAddressKey
+      ][chainIdKey] = {};
+    }
+
+    fixture.state.engine.backgroundState.TokenBalancesController.tokenBalances[
+      accountAddressKey
+    ][chainIdKey][tokenAddressKey] = balanceValue;
   }
 
   return fixture;
