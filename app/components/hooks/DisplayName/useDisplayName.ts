@@ -206,7 +206,7 @@ export function useDisplayNames(
       name = trustSignal.label;
     }
 
-    const image = erc20Token?.image || nftCollectionImage;
+    const image = erc20Token?.image;
 
     const isFirstPartyContractName =
       firstPartyContractName !== undefined && firstPartyContractName !== null;
