@@ -62,13 +62,13 @@ export default function StickyBottomBar({
         {buttons.map((buttonProps, index) => (
           <Box key={index} twClassName="flex-1 shrink-0 basis-0 min-w-0">
             <Button
-              {...buttonProps}
               variant={ButtonVariants.Primary}
               style={
                 buttonProps.style
                   ? [tw.style('rounded-xl'), buttonProps.style]
                   : tw.style('rounded-xl')
               }
+              {...buttonProps}
             />
           </Box>
         ))}
