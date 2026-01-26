@@ -2,6 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './components/TokenSelection';
+import BuildQuote from './components/BuildQuote';
 import UnsupportedTokenModal from './components/UnsupportedTokenModal';
 
 const RootStack = createStackNavigator();
@@ -25,6 +26,7 @@ const MainRoutes = () => (
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
     />
+    <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
   </Stack.Navigator>
 );
 
