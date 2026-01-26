@@ -28,6 +28,7 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
     .withMinimalKeyringController()
     .withMinimalTokenRates()
     .withMinimalMultichainAssetsRates()
+    .withMinimalAnalyticsController()
     .withAccountTreeForSelectedAccount()
     .withRemoteFeatureFlags({})
     .withOverrides({

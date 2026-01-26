@@ -148,6 +148,10 @@ export interface StateFixtureBuilder {
   withMinimalMultichainBalances(): StateFixtureBuilder;
   withMinimalMultichainAssets(): StateFixtureBuilder;
   withMinimalMultichainTransactions(): StateFixtureBuilder;
+  withMinimalAnalyticsController(options?: {
+    optedIn?: boolean;
+    analyticsId?: string;
+  }): StateFixtureBuilder;
   withBridgeRecommendedQuoteEvmSimple(params?: {
     srcAmount?: string;
     srcTokenAddress?: string;
@@ -680,6 +684,28 @@ export function createStateFixture(): StateFixtureBuilder {
               AccountTreeController: {
                 ...((bg as PlainObject)?.AccountTreeController as PlainObject),
                 accountTree: normalizedAccountTree,
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState> as PlainObject,
+      );
+      return api;
+    },
+    withMinimalAnalyticsController(options = {}) {
+      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
+        string,
+        unknown
+      >;
+      const { optedIn = false, analyticsId = 'test-analytics-id' } = options;
+      current = deepMerge(
+        current as PlainObject,
+        {
+          engine: {
+            backgroundState: {
+              ...bg,
+              AnalyticsController: {
+                optedIn,
+                analyticsId,
               },
             },
           },
