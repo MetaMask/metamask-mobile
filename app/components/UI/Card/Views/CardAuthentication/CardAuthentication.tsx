@@ -406,14 +406,13 @@ const CardAuthentication = () => {
             <Label>{strings('card.card_authentication.email_label')}</Label>
             <TextField
               autoCapitalize={'none'}
-              autoComplete="email"
+              autoComplete="off"
               onChangeText={handleEmailChange}
               numberOfLines={1}
               size={TextFieldSize.Lg}
               value={email}
               returnKeyType={'next'}
               keyboardType="email-address"
-              textContentType="emailAddress"
               maxLength={255}
               accessibilityLabel={strings(
                 'card.card_authentication.email_label',
@@ -426,7 +425,7 @@ const CardAuthentication = () => {
             <TextField
               autoCapitalize={'none'}
               onChangeText={handlePasswordChange}
-              autoComplete="password"
+              autoComplete="off"
               numberOfLines={1}
               size={TextFieldSize.Lg}
               value={password}
@@ -434,7 +433,6 @@ const CardAuthentication = () => {
               returnKeyType={'done'}
               onSubmitEditing={() => performLogin()}
               secureTextEntry
-              textContentType="password"
               accessibilityLabel={strings(
                 'card.card_authentication.password_label',
               )}
