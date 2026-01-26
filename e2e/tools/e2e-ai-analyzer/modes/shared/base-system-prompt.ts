@@ -7,6 +7,28 @@
 import { APP_CONFIG } from '../../config';
 import { getToolDefinitions } from '../../ai-tools/tool-registry';
 
+export function buildProjectContextSection(): string {
+  return `PROJECT ARCHITECTURE CONTEXT:
+MetaMask Mobile is a React Native crypto wallet. Understand these key architectural layers:
+1. **Engine** (app/core/Engine): The central brain. Coordinates all controllers. Changes here are CRITICAL.
+2. **Controllers** (app/core/*Controller): Domain logic (Keyring, Network, Assets, Transaction).
+   - BaseControllerV2 pattern is used widely.
+   - State flows: Controller -> Redux -> UI.
+3. **Redux Store** (app/store): Global state.
+   - Actions (app/actions) and Reducers (app/reducers).
+   - Sagas (app/sagas) handle side effects.
+4. **Bridge** (app/core/BackgroundBridge): Connects the app to dApps (browser).
+5. **UI Layer**:
+   - Components (component-library/ or components/): Visuals.
+   - Views/Screens: The actual user-facing pages.
+   - Navigation: React Navigation v5.
+
+RELATIONSHIPS:
+- A change in a Controller often affects multiple Views.
+- A change in the Bridge affects dApp interactions.
+- A change in 'package.json' usually implies a dependency update that needs broad regression testing.`;
+}
+
 export function buildCriticalPatternsSection(): string {
   return `CRITICAL FILE PATTERNS (files pre-marked as critical for you):
 - Exact files: ${APP_CONFIG.critical.files.join(', ')}
@@ -29,33 +51,62 @@ export function buildToolsSection(): string {
 ${toolDescriptions}`;
 }
 
+export function buildToolUsageStrategySection(): string {
+  return `TOOL USAGE STRATEGY:
+1. **Explore First**: Don't guess. Use 'get_git_diff' to see the actual code changes.
+2. **Trace Dependencies**:
+   - If a core file changes (e.g., a Controller), use 'find_related_files' with search_type='importers' to see what UI components use it.
+   - If a UI component changes, check if it's shared using 'find_related_files'.
+3. **Verify Context**: Use 'read_file' if the diff is confusing and you need to see the surrounding code.
+4. **Search Usage**: Use 'grep_codebase' to find string references if you suspect dynamic usage (e.g., event names, navigation routes).
+5. **Finalize**: Only call the finalize tool when you have enough evidence to support your confidence score.`;
+}
+
 export function buildReasoningSection(): string {
   return `REASONING APPROACH:
-- Think deeply about change impacts
-- Consider direct and indirect effects
-- Reason about risk levels
-- Evaluate change significance
-- Check if changes can break existing E2E tests by affecting shared components:
-  - Browser/BrowserTab: Snaps, dApp connections, multichain tests
-  - TabBar/Navigation: Most tests navigate between screens
-  - Modals/BottomSheets: Confirmations, permissions, transaction flows
-  - Confirmations: Send, swap, signature tests
-- For CI/workflow/infrastructure changes (.github/workflows/, e2e/fixtures/, e2e/pages/, e2e/utils/, build configs), consider whether tests should run to validate the pipeline still works
-- Investigate thoroughly before finalising - review diffs and trace dependencies`;
+- **Think deeply about change impacts**:
+  - Direct impact: What functionality is explicitly changed?
+  - Indirect impact: What depends on this code? (e.g., a shared hook, a utility function)
+- **Evaluate Risk**:
+  - Crypto/Security risk: Signing, keys, permissions, network switching.
+  - Financial risk: Transactions, swaps, fiat on-ramps.
+  - User Experience risk: Navigation breaking, white screens, untranslated text.
+- **Shared Components Sensitivity**:
+  - Browser/BrowserTab: Affects dApp connections, snapping, phishing detection.
+  - TabBar/Navigation: Critical for app usability.
+  - Modals/BottomSheets: Used for Confirmations (spending money) - HIGH RISK.
+  - Keyring/Accounts: Affects login, import, export, signing.
+- **Investigate thoroughly before finalising** - cite specific files and lines of code in your reasoning.`;
 }
 
 export function buildConfidenceGuidanceSection(): string {
-  return `CONFIDENCE:
-Provide an honest confidence score (0-100) for your decision.
-- Higher confidence: Clear impact, used tools to investigate, straightforward changes
-- Lower confidence: Uncertain impact, couldn't fully investigate, complex changes
-Be truthful about uncertainty - it's okay to have low confidence.`;
+  return `CONFIDENCE SCORING (0-100):
+- **90-100**: You have read the diffs, understood the logic, verified dependencies, and the change is isolated/clear.
+- **70-89**: You understand the change but couldn't verify every single usage, or the change touches a shared component.
+- **30-69**: The change is complex (e.g., refactor of core logic), you are unsure of side effects, or tools failed to provide info.
+- **0-29**: You are guessing. (Avoid this by using tools to investigate).
+
+Be truthful. A low confidence score with good reasoning is better than a fake high score.`;
 }
 
 export function buildRiskAssessmentSection(): string {
-  return `RISK ASSESSMENT:
-- Low: Pure documentation, README, comments
-- Medium: Standard code changes with clear impact assessment
-- High: Core modules, controllers, Engine, critical dependencies, critical paths, security
-Still consider tests for low/medium changes if they affect user flows or testing infrastructure`;
+  return `RISK ASSESSMENT LEVELS:
+- **LOW**:
+  - Documentation, typos, comments.
+  - Unit tests only (files ending in .test.ts, .spec.js).
+  - Unused utility functions.
+  - UI styling changes that don't affect layout flow (e.g., color change).
+
+- **MEDIUM**:
+  - Standard UI feature work.
+  - New non-critical components.
+  - Localized text changes.
+  - Adding a new property to a non-persisted store.
+
+- **HIGH**:
+  - **CORE**: Engine, Controllers, Middleware, Keyring, NetworkController.
+  - **SECURITY**: Authentication, Biometrics, Phishing, Permissions.
+  - **MONEY**: Transactions, Swaps, Gas, Fiat interactions.
+  - **INFRA**: package.json dependencies, Babel/Metro config, CI workflows.
+  - **SHARED**: Navigation, entry point (App.js), Global Styles, Theme changes.`;
 }

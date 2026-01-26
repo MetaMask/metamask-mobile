@@ -9,6 +9,8 @@ import {
   buildReasoningSection,
   buildConfidenceGuidanceSection,
   buildRiskAssessmentSection,
+  buildProjectContextSection,
+  buildToolUsageStrategySection,
 } from '../shared/base-system-prompt';
 import { LLM_CONFIG } from '../../config';
 
@@ -30,8 +32,10 @@ FlaskBuildTests is for MetaMask Snaps functionality. Select this tag when change
   const prompt = [
     role,
     goal,
+    buildProjectContextSection(),
     buildReasoningSection(),
     buildToolsSection(),
+    buildToolUsageStrategySection(),
     buildConfidenceGuidanceSection(),
     buildCriticalPatternsSection(),
     buildRiskAssessmentSection(),
