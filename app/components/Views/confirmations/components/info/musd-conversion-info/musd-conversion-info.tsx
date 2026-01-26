@@ -1,5 +1,5 @@
 import { providerErrors } from '@metamask/rpc-errors';
-import { Hex, createProjectLogger } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
@@ -23,8 +23,6 @@ import { parseStandardTokenTransactionData } from '../../../utils/transaction';
 import { useMusdConversionQuoteTrace } from '../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace';
 import { endTrace, TraceName } from '../../../../../../util/trace';
 import { createMusdConversionTransaction } from '../../../../../UI/Earn/utils/createMusdConversionTransaction';
-
-const log = createProjectLogger('musd-conversion-same-chain');
 
 interface MusdOverrideContentProps {
   amountHuman: string;
@@ -145,11 +143,6 @@ const MusdConversionInfoContent = ({
       selectedPayToken.chainId.toLowerCase() === outputChainId.toLowerCase()
     ) {
       lastSameChainPayToken.current = selectedPayToken;
-      log('Updated last same-chain pay token', {
-        chainId: selectedPayToken.chainId,
-        tokenAddress: selectedPayToken.address,
-        transactionId: transactionMeta.id,
-      });
     }
   }, [outputChainId, selectedPayToken, transactionMeta.id]);
 
@@ -160,20 +153,10 @@ const MusdConversionInfoContent = ({
           '[mUSD Conversion] Missing transaction metadata for replacement',
           { transactionMeta },
         );
-        log('Replacement aborted: missing transaction metadata', {
-          transactionId: transactionMeta?.id,
-          transactionChainId: transactionMeta?.chainId,
-        });
         return;
       }
 
       const newChainId = newPayToken.chainId;
-      log('Starting transaction replacement', {
-        fromTransactionId: transactionMeta.id,
-        fromChainId: transactionMeta.chainId,
-        toChainId: newChainId,
-        selectedPayTokenAddress: newPayToken.address,
-      });
 
       const musdTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[newChainId];
       if (!musdTokenAddress) {
@@ -181,18 +164,9 @@ const MusdConversionInfoContent = ({
           '[mUSD Conversion] mUSD not supported on selected chain',
           { newChainId },
         );
-        log('Replacement aborted: mUSD token address missing for chain', {
-          toChainId: newChainId,
-          fromTransactionId: transactionMeta.id,
-        });
 
         const fallbackPayToken = lastSameChainPayToken.current;
         if (fallbackPayToken) {
-          log('Reverting pay token to last same-chain selection', {
-            chainId: fallbackPayToken.chainId,
-            tokenAddress: fallbackPayToken.address,
-            fromTransactionId: transactionMeta.id,
-          });
           setPayToken(fallbackPayToken);
         }
 
@@ -200,11 +174,6 @@ const MusdConversionInfoContent = ({
       }
 
       const tokenTransferData = getTokenTransferData(transactionMeta);
-      log('Parsed current token transfer data', {
-        hasTokenTransferData: Boolean(tokenTransferData?.data),
-        hasNestedIndex: tokenTransferData?.index !== undefined,
-        fromTransactionId: transactionMeta.id,
-      });
 
       const parsedTokenTransferData = parseStandardTokenTransactionData(
         tokenTransferData?.data,
@@ -217,12 +186,6 @@ const MusdConversionInfoContent = ({
       const amountHex =
         getHexFromEthersBigNumberLike(parsedTokenTransferData?.args?._value) ??
         '0x0';
-      log('Computed replacement calldata params', {
-        recipientAddress,
-        amountHex,
-        fromTransactionId: transactionMeta.id,
-        toChainId: newChainId,
-      });
 
       try {
         const { transactionId: newTransactionId } =
@@ -234,13 +197,6 @@ const MusdConversionInfoContent = ({
             amountHex,
           });
 
-        log('Created replacement transaction', {
-          fromTransactionId: transactionMeta.id,
-          toTransactionId: newTransactionId,
-          toChainId: newChainId,
-          musdTokenAddress,
-        });
-
         const {
           GasFeeController,
           TransactionPayController,
@@ -251,7 +207,6 @@ const MusdConversionInfoContent = ({
         const networkClientId =
           NetworkController.findNetworkClientIdByChainId(newChainId);
 
-        // TODO: Double-check if we can piggy back off of existing setPayToken call which may handle below operations already.
         GasFeeController.fetchGasFeeEstimates({ networkClientId }).catch(
           () => undefined,
         );
@@ -263,38 +218,19 @@ const MusdConversionInfoContent = ({
         });
 
         EngineService.flushState();
-        log('Updated pay token for replacement transaction', {
-          toTransactionId: newTransactionId,
-          payTokenChainId: newPayToken.chainId,
-          payTokenAddress: newPayToken.address,
-        });
 
-        // TODO: Double-check how the MM Pay UI reacts to this (e.g. flickering, loading states, etc).
         ApprovalController.reject(
           transactionMeta.id,
           providerErrors.userRejectedRequest(),
         );
-        log('Rejected old transaction approval after replacement', {
-          fromTransactionId: transactionMeta.id,
-          toTransactionId: newTransactionId,
-        });
       } catch (error) {
         console.error(
           '[mUSD Conversion] Failed to replace transaction on chain change',
           error,
         );
-        log('Replacement failed: exception thrown', {
-          fromTransactionId: transactionMeta.id,
-          toChainId: newChainId,
-        });
 
         const fallbackPayToken = lastSameChainPayToken.current;
         if (fallbackPayToken) {
-          log('Reverting pay token to last same-chain selection', {
-            chainId: fallbackPayToken.chainId,
-            tokenAddress: fallbackPayToken.address,
-            fromTransactionId: transactionMeta.id,
-          });
           setPayToken(fallbackPayToken);
         }
       }
@@ -318,13 +254,6 @@ const MusdConversionInfoContent = ({
     }
 
     replacementAttemptCount.current += 1;
-    log('Detected pay token chain mismatch; scheduling replacement', {
-      attempt: replacementAttemptCount.current,
-      transactionId: transactionMeta.id,
-      transactionChainId: outputChainId,
-      payTokenChainId: selectedPayToken.chainId,
-      payTokenAddress: selectedPayToken.address,
-    });
 
     const runReplacement = async () => {
       isReplacementInFlight.current = true;
@@ -336,18 +265,8 @@ const MusdConversionInfoContent = ({
           '[mUSD Conversion] Unexpected error during chain replacement',
           error,
         );
-        log('Replacement failed: unexpected error', {
-          transactionId: transactionMeta.id,
-          transactionChainId: outputChainId,
-          payTokenChainId: selectedPayToken.chainId,
-          payTokenAddress: selectedPayToken.address,
-        });
       } finally {
         isReplacementInFlight.current = false;
-        log('Replacement attempt finished', {
-          attempt: replacementAttemptCount.current,
-          transactionId: transactionMeta.id,
-        });
       }
     };
 
