@@ -799,24 +799,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInputFocused]);
 
-  // Track deposit status and execute order when funds arrive
-  // This hook listens to TransactionController messenger events to detect:
-  // - Transaction approval (shows "depositing" toast)
-  // - Balance changes (detects when funds arrive)
-  // - Transaction failures (shows error toast)
-  // When funds arrive, it automatically calls onDepositComplete to place the order
   const { handleDepositConfirm } = usePerpsOrderDepositTracking({
     onDepositComplete: () => {
-      // Place order after deposit completes
       handlePlaceOrderRef.current?.();
     },
     activeTransactionMeta,
   });
 
-  // Setup transaction confirmation for deposit
-  // Navigation is handled by useTransactionConfirm based on transaction origin
-  // (transactions created via addTransaction with origin 'metamask' don't navigate)
-  // Deposit completion is handled by usePerpsOrderDepositTracking via messenger events
   const { onConfirm: onDepositConfirm } = useTransactionConfirm({
     skipNavigation: true,
   });

@@ -45,7 +45,6 @@ export const usePerpsOrderDepositTracking = ({
   // Track deposit status and show toast until funds arrive
   const expectingDepositRef = useRef(false);
   const prevAvailableBalanceRef = useRef<string>('0');
-  const depositTransactionIdRef = useRef<string | null>(null);
   const hasShownDepositToastRef = useRef<string | null>(null);
 
   // Keep callback ref up to date
@@ -57,36 +56,36 @@ export const usePerpsOrderDepositTracking = ({
   // Callback to show toast when user confirms the deposit
   const handleDepositConfirm = useCallback(
     (transactionMeta: TransactionMeta) => {
-      // Only handle perps deposit transactions
-      if (transactionMeta.type === TransactionType.perpsDeposit) {
-        const transactionId = transactionMeta.id;
-
-        // Prevent showing toast multiple times for the same transaction
-        if (hasShownDepositToastRef.current === transactionId) {
-          return;
-        }
-
-        // Mark that we're actively handling deposit toasts
-        // This prevents usePerpsDepositStatus from showing duplicate toasts
-        getStreamManagerInstance().setActiveDepositHandler(true);
-
-        // Set up deposit tracking
-        expectingDepositRef.current = true;
-        prevAvailableBalanceRef.current =
-          account?.availableBalance?.toString() || '0';
-        depositTransactionIdRef.current = transactionId;
-        hasShownDepositToastRef.current = transactionId;
-
-        // Show "depositing your funds" toast that stays on screen
-        showToast({
-          ...PerpsToastOptions.accountManagement.deposit.inProgress(
-            0,
-            transactionId,
-          ),
-          labelOptions: [{ label: 'Depositing your funds', isBold: true }],
-          hasNoTimeout: true, // Keep toast visible until funds arrive
-        });
+      if (transactionMeta.type !== TransactionType.perpsDeposit) {
+        return;
       }
+
+      const transactionId = transactionMeta.id;
+
+      // Prevent showing toast multiple times for the same transaction
+      if (hasShownDepositToastRef.current === transactionId) {
+        return;
+      }
+
+      // Mark that we're actively handling deposit toasts
+      // This prevents usePerpsDepositStatus from showing duplicate toasts
+      getStreamManagerInstance().setActiveDepositHandler(true);
+
+      // Set up deposit tracking
+      expectingDepositRef.current = true;
+      prevAvailableBalanceRef.current =
+        account?.availableBalance?.toString() || '0';
+      hasShownDepositToastRef.current = transactionId;
+
+      // Show "depositing your funds" toast that stays on screen
+      showToast({
+        ...PerpsToastOptions.accountManagement.deposit.inProgress(
+          0,
+          transactionId,
+        ),
+        labelOptions: [{ label: 'Depositing your funds', isBold: true }],
+        hasNoTimeout: true, // Keep toast visible until funds arrive
+      });
     },
     [account?.availableBalance, showToast, PerpsToastOptions],
   );
@@ -125,7 +124,6 @@ export const usePerpsOrderDepositTracking = ({
         expectingDepositRef.current = true;
         prevAvailableBalanceRef.current =
           account?.availableBalance?.toString() || '0';
-        depositTransactionIdRef.current = transactionId;
         hasShownDepositToastRef.current = transactionId;
 
         // Show "depositing your funds" toast that stays on screen
@@ -157,7 +155,6 @@ export const usePerpsOrderDepositTracking = ({
           expectingDepositRef.current = false;
           // Unmark active handler so usePerpsDepositStatus can handle it if needed
           getStreamManagerInstance().setActiveDepositHandler(false);
-          depositTransactionIdRef.current = null;
           hasShownDepositToastRef.current = null;
           // Close the depositing toast
           toastRef?.current?.closeToast();
@@ -184,7 +181,6 @@ export const usePerpsOrderDepositTracking = ({
       expectingDepositRef.current = true;
       prevAvailableBalanceRef.current =
         account?.availableBalance?.toString() || '0';
-      depositTransactionIdRef.current = transactionId;
       hasShownDepositToastRef.current = transactionId;
 
       showToast({
@@ -252,7 +248,6 @@ export const usePerpsOrderDepositTracking = ({
         account.availableBalance?.toString() || '0';
       // Unmark active handler since deposit is complete
       getStreamManagerInstance().setActiveDepositHandler(false);
-      depositTransactionIdRef.current = null;
       hasShownDepositToastRef.current = null;
 
       // Execute trade after funds arrive
