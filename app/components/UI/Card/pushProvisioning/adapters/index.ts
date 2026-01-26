@@ -1,21 +1,16 @@
 /**
  * Push Provisioning Adapters
  *
- * Re-exports all adapter interfaces, implementations, and registries.
+ * Re-exports all adapter interfaces and implementations.
  */
 
 // Card provider adapters
 export {
   type ICardProviderAdapter,
-  CardProviderRegistry,
   GalileoCardAdapter,
   MockCardAdapter,
   type MockCardConfig,
 } from './card';
 
 // Wallet provider adapters
-export {
-  type IWalletProviderAdapter,
-  WalletProviderRegistry,
-  GoogleWalletAdapter,
-} from './wallet';
+export { type IWalletProviderAdapter, GoogleWalletAdapter } from './wallet';

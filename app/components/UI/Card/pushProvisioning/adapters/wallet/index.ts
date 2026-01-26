@@ -1,9 +1,8 @@
 /**
  * Wallet Provider Adapters
  *
- * Exports for wallet provider adapter interfaces, implementations, and registry.
+ * Exports for wallet provider adapter interfaces and implementations.
  */
 
 export type { IWalletProviderAdapter } from './IWalletProviderAdapter';
-export { WalletProviderRegistry } from './WalletProviderRegistry';
 export { GoogleWalletAdapter } from './GoogleWalletAdapter';

@@ -2,10 +2,9 @@
  * useWalletAvailability Hook
  *
  * Hook for checking mobile wallet availability and eligibility.
- * Currently only Android (Google Wallet) is supported.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Platform } from 'react-native';
 import {
   WalletType,
@@ -13,7 +12,8 @@ import {
   UseWalletAvailabilityOptions,
   UseWalletAvailabilityReturn,
 } from '../types';
-import { getPushProvisioningService } from '../service';
+import { createPushProvisioningService } from '../service';
+import { getWalletProvider } from '../providers';
 import { strings } from '../../../../../../locales/i18n';
 
 /**
@@ -52,6 +52,15 @@ export function useWalletAvailability(
   const walletType: WalletType | null =
     Platform.OS === 'android' ? 'google_wallet' : null;
 
+  // Create the wallet provider
+  const walletAdapter = useMemo(() => getWalletProvider(), []);
+
+  // Create service with wallet adapter only (no card adapter needed for availability check)
+  const service = useMemo(
+    () => createPushProvisioningService(null, walletAdapter, __DEV__),
+    [walletAdapter],
+  );
+
   /**
    * Check wallet availability and eligibility
    */
@@ -61,8 +70,6 @@ export function useWalletAvailability(
       setError(null);
 
       try {
-        const service = getPushProvisioningService();
-
         // Check basic availability
         const available = await service.isAvailable();
         setIsAvailable(available);
@@ -122,7 +129,7 @@ export function useWalletAvailability(
       } finally {
         setIsLoading(false);
       }
-    }, [lastFourDigits]);
+    }, [lastFourDigits, service]);
 
   // Check availability on mount if requested
   useEffect(() => {

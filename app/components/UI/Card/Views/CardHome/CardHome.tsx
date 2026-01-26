@@ -88,6 +88,11 @@ import {
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import {
+  usePushProvisioning,
+  useWalletAvailability,
+} from '../../pushProvisioning';
+import { AddToWalletButton } from '@expensify/react-native-wallet';
 
 /**
  * Route params for CardHome screen
@@ -203,6 +208,49 @@ const CardHome = () => {
 
     return balanceFiat;
   }, [balanceFiat, balanceFormatted]);
+
+  // Push provisioning hooks for adding card to Google Wallet
+  const { isAvailable: isWalletAvailable, eligibility: walletEligibility } =
+    useWalletAvailability({
+      lastFourDigits: cardDetails?.panLast4,
+      checkOnMount: true,
+    });
+
+  const {
+    initiateProvisioning: initiatePushProvisioning,
+    isProvisioning: isPushProvisioning,
+  } = usePushProvisioning({
+    cardId: cardDetails?.id ?? '',
+    onSuccess: (_result) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('card.push_provisioning.success_message') },
+        ],
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
+        hasNoTimeout: false,
+      });
+    },
+    onError: (error) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label:
+              error.message || strings('card.push_provisioning.error_unknown'),
+          },
+        ],
+        iconName: IconName.Danger,
+        iconColor: theme.colors.error.default,
+        backgroundColor: theme.colors.error.muted,
+        hasNoTimeout: false,
+      });
+    },
+    onCancel: () => {
+      // User canceled - no toast needed
+    },
+  });
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -949,6 +997,15 @@ const CardHome = () => {
           <Box twClassName="w-full mt-4">{ButtonsSection}</Box>
         )}
       </Box>
+
+      {isWalletAvailable && walletEligibility?.canAddCard && (
+        <AddToWalletButton
+          onPress={isPushProvisioning ? undefined : initiatePushProvisioning}
+          buttonStyle="blackOutline"
+          buttonType="badge"
+          borderRadius={4}
+        />
+      )}
 
       <Box style={tw.style(cardSetupState.needsSetup && 'hidden')}>
         {isAuthenticated && !isLoading && cardDetails && (

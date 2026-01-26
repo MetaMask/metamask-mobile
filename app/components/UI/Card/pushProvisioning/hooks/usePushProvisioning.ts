@@ -4,7 +4,8 @@
  * Main hook for push provisioning operations.
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
   ProvisioningStatus,
   ProvisioningResult,
@@ -13,10 +14,12 @@ import {
   UsePushProvisioningReturn,
   CardActivationEvent,
 } from '../types';
-import { getPushProvisioningService, ProvisioningOptions } from '../service';
-import { DEFAULT_CARD_PROVIDER } from '../constants';
+import { createPushProvisioningService, ProvisioningOptions } from '../service';
+import { getCardProvider, getWalletProvider } from '../providers';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useMetrics } from '../../../../hooks/useMetrics';
+import { useCardSDK } from '../../sdk';
+import { selectUserCardLocation } from '../../../../../core/redux/slices/card';
 
 /**
  * Hook for push provisioning cards to mobile wallets
@@ -48,17 +51,29 @@ import { useMetrics } from '../../../../hooks/useMetrics';
 export function usePushProvisioning(
   options: UsePushProvisioningOptions,
 ): UsePushProvisioningReturn {
-  const {
-    cardId,
-    cardProviderId = DEFAULT_CARD_PROVIDER,
-    onSuccess,
-    onError,
-    onCancel,
-  } = options;
+  const { cardId, onSuccess, onError, onCancel } = options;
 
   const [status, setStatus] = useState<ProvisioningStatus>('idle');
   const [error, setError] = useState<ProvisioningError | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  // Get SDK and user location
+  const { sdk: cardSDK } = useCardSDK();
+  const userCardLocation = useSelector(selectUserCardLocation);
+
+  // Create the adapters based on user location and platform
+  const cardAdapter = useMemo(() => {
+    if (!cardSDK) return null;
+    return getCardProvider(userCardLocation, cardSDK);
+  }, [cardSDK, userCardLocation]);
+
+  const walletAdapter = useMemo(() => getWalletProvider(), []);
+
+  // Create service with adapters
+  const service = useMemo(
+    () => createPushProvisioningService(cardAdapter, walletAdapter, __DEV__),
+    [cardAdapter, walletAdapter],
+  );
 
   // Store callbacks in refs to avoid re-renders
   const onSuccessRef = useRef(onSuccess);
@@ -74,7 +89,6 @@ export function usePushProvisioning(
 
   // Set up activation listener
   useEffect(() => {
-    const service = getPushProvisioningService();
     const unsubscribe = service.addActivationListener(
       (event: CardActivationEvent) => {
         if (event.status === 'activated') {
@@ -93,7 +107,7 @@ export function usePushProvisioning(
     );
 
     return unsubscribe;
-  }, []);
+  }, [service]);
 
   /**
    * Track analytics event
@@ -108,7 +122,7 @@ export function usePushProvisioning(
           createEventBuilder(event)
             .addProperties({
               card_id: cardId,
-              card_provider_id: cardProviderId,
+              card_provider_id: cardAdapter?.providerId,
               ...properties,
             })
             .build(),
@@ -117,7 +131,7 @@ export function usePushProvisioning(
         // Silently ignore analytics errors
       }
     },
-    [cardId, cardProviderId, trackEvent, createEventBuilder],
+    [cardId, cardAdapter?.providerId, trackEvent, createEventBuilder],
   );
 
   /**
@@ -131,11 +145,8 @@ export function usePushProvisioning(
       trackAnalyticsEvent(MetaMetricsEvents.CARD_PUSH_PROVISIONING_STARTED);
 
       try {
-        const service = getPushProvisioningService();
-
         const provisioningOptions: ProvisioningOptions = {
           cardId,
-          cardProviderId,
           enableLogs: __DEV__,
         };
 
@@ -195,7 +206,7 @@ export function usePushProvisioning(
           error: provisioningError,
         };
       }
-    }, [cardId, cardProviderId, trackAnalyticsEvent]);
+    }, [cardId, trackAnalyticsEvent, service]);
 
   /**
    * Reset status to idle

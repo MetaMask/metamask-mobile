@@ -33,13 +33,7 @@ export const CARD_NETWORK_DISPLAY_NAMES: Record<string, string> = {
  */
 export const WALLET_TYPE_DISPLAY_NAMES: Record<WalletType, string> = {
   google_wallet: 'Google Wallet',
-};
-
-/**
- * Platform to wallet type mapping
- */
-export const PLATFORM_WALLET_MAP: Record<'android', WalletType> = {
-  android: 'google_wallet',
+  apple_wallet: 'Apple Wallet',
 };
 
 /**
@@ -47,6 +41,7 @@ export const PLATFORM_WALLET_MAP: Record<'android', WalletType> = {
  */
 export const CARD_PROVIDER_DISPLAY_NAMES: Record<CardProviderId, string> = {
   galileo: 'Galileo',
+  monavate: 'Monavate',
   mock: 'Mock (Testing)',
 };
 

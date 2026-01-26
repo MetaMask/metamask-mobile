@@ -7,7 +7,6 @@
 
 import { Platform, PlatformOSType } from 'react-native';
 import {
-  CardProviderId,
   ProvisioningRequest,
   ProvisioningResult,
   ProvisioningError,
@@ -17,8 +16,6 @@ import {
   CardDisplayInfo,
   CardActivationEvent,
 } from '../types';
-import { CardProviderRegistry } from '../adapters/card/CardProviderRegistry';
-import { WalletProviderRegistry } from '../adapters/wallet/WalletProviderRegistry';
 import { ICardProviderAdapter } from '../adapters/card/ICardProviderAdapter';
 import { IWalletProviderAdapter } from '../adapters/wallet/IWalletProviderAdapter';
 import Logger from '../../../../../util/Logger';
@@ -30,8 +27,6 @@ import { strings } from '../../../../../../locales/i18n';
 export interface ProvisioningOptions {
   /** The card ID to provision */
   cardId: string;
-  /** The card provider ID (defaults to 'galileo') */
-  cardProviderId?: CardProviderId;
   /** Skip eligibility check (for resuming provisioning) */
   skipEligibilityCheck?: boolean;
   /** Enable debug logging */
@@ -48,19 +43,17 @@ export interface ProvisioningOptions {
  * 4. Initiating the native provisioning flow
  */
 export class PushProvisioningService {
-  private cardProviderRegistry: CardProviderRegistry;
-  private walletProviderRegistry: WalletProviderRegistry;
+  private cardAdapter: ICardProviderAdapter | null;
+  private walletAdapter: IWalletProviderAdapter | null;
   private enableLogs: boolean;
 
   constructor(
-    cardProviderRegistry?: CardProviderRegistry,
-    walletProviderRegistry?: WalletProviderRegistry,
+    cardAdapter: ICardProviderAdapter | null,
+    walletAdapter: IWalletProviderAdapter | null,
     enableLogs = false,
   ) {
-    this.cardProviderRegistry =
-      cardProviderRegistry ?? CardProviderRegistry.getInstance();
-    this.walletProviderRegistry =
-      walletProviderRegistry ?? WalletProviderRegistry.getInstance();
+    this.cardAdapter = cardAdapter;
+    this.walletAdapter = walletAdapter;
     this.enableLogs = enableLogs;
   }
 
@@ -69,7 +62,7 @@ export class PushProvisioningService {
    */
   private getPlatform(): PlatformOSType {
     const platform = Platform.OS;
-    if (platform !== 'android') {
+    if (platform !== 'android' && platform !== 'ios') {
       throw new ProvisioningError(
         ProvisioningErrorCode.PLATFORM_NOT_SUPPORTED,
         strings('card.push_provisioning.error_platform_not_supported'),
@@ -93,34 +86,23 @@ export class PushProvisioningService {
    */
   async isAvailable(): Promise<boolean> {
     try {
-      // Check if platform is supported first
       this.logDebug('isAvailable: Checking platform', {
         platform: Platform.OS,
       });
 
-      if (Platform.OS !== 'android') {
-        this.logDebug('isAvailable: Platform not supported', {
+      if (!this.walletAdapter) {
+        this.logDebug('isAvailable: No wallet adapter available', {
           platform: Platform.OS,
         });
         return false;
       }
 
-      // Check if adapter is registered
-      this.logDebug('isAvailable: Getting active adapter...', {
-        platform: Platform.OS,
-      });
-      this.logDebug('isAvailable: Registered adapters', {
-        hasGoogleWallet:
-          this.walletProviderRegistry.hasAdapter('google_wallet'),
-      });
-
-      const walletAdapter = this.walletProviderRegistry.getActiveAdapter();
       this.logDebug('isAvailable: Got adapter, checking availability...', {
-        walletType: walletAdapter.walletType,
-        platform: walletAdapter.platform,
+        walletType: this.walletAdapter.walletType,
+        platform: this.walletAdapter.platform,
       });
 
-      const available = await walletAdapter.checkAvailability();
+      const available = await this.walletAdapter.checkAvailability();
       this.logDebug('isAvailable: Result', { available });
       return available;
     } catch (error) {
@@ -138,8 +120,16 @@ export class PushProvisioningService {
    */
   async checkEligibility(lastFourDigits?: string): Promise<WalletEligibility> {
     try {
-      const walletAdapter = this.walletProviderRegistry.getActiveAdapter();
-      return await walletAdapter.getEligibility(lastFourDigits);
+      if (!this.walletAdapter) {
+        return {
+          isAvailable: false,
+          canAddCard: false,
+          ineligibilityReason: strings(
+            'card.push_provisioning.error_wallet_not_available',
+          ),
+        };
+      }
+      return await this.walletAdapter.getEligibility(lastFourDigits);
     } catch (error) {
       this.logDebug('checkEligibility error', error);
       return {
@@ -154,12 +144,14 @@ export class PushProvisioningService {
   /**
    * Get card display information
    */
-  async getCardDisplayInfo(
-    cardId: string,
-    cardProviderId?: CardProviderId,
-  ): Promise<CardDisplayInfo> {
-    const cardAdapter = this.getCardAdapter(cardProviderId);
-    return await cardAdapter.getCardDetails(cardId);
+  async getCardDisplayInfo(cardId: string): Promise<CardDisplayInfo> {
+    if (!this.cardAdapter) {
+      throw new ProvisioningError(
+        ProvisioningErrorCode.CARD_PROVIDER_NOT_FOUND,
+        strings('card.push_provisioning.error_card_provider_not_found'),
+      );
+    }
+    return await this.cardAdapter.getCardDetails(cardId);
   }
 
   /**
@@ -170,18 +162,29 @@ export class PushProvisioningService {
   async initiateProvisioning(
     options: ProvisioningOptions,
   ): Promise<ProvisioningResult> {
-    const { cardId, cardProviderId, skipEligibilityCheck = false } = options;
+    const { cardId, skipEligibilityCheck = false } = options;
 
-    this.logDebug('initiateProvisioning', { cardId, cardProviderId });
+    this.logDebug('initiateProvisioning', { cardId });
 
     try {
-      // 1. Get the appropriate adapters
-      const cardAdapter = this.getCardAdapter(cardProviderId);
-      const walletAdapter = this.walletProviderRegistry.getActiveAdapter();
+      // 1. Validate adapters are available
+      if (!this.cardAdapter) {
+        throw new ProvisioningError(
+          ProvisioningErrorCode.CARD_PROVIDER_NOT_FOUND,
+          strings('card.push_provisioning.error_card_provider_not_found'),
+        );
+      }
+
+      if (!this.walletAdapter) {
+        throw new ProvisioningError(
+          ProvisioningErrorCode.WALLET_NOT_AVAILABLE,
+          strings('card.push_provisioning.error_wallet_not_available'),
+        );
+      }
 
       // 2. Check card eligibility
       if (!skipEligibilityCheck) {
-        const cardEligibility = await cardAdapter.checkEligibility(cardId);
+        const cardEligibility = await this.cardAdapter.checkEligibility(cardId);
         if (!cardEligibility.eligible) {
           throw new ProvisioningError(
             ProvisioningErrorCode.CARD_NOT_ELIGIBLE,
@@ -192,7 +195,7 @@ export class PushProvisioningService {
       }
 
       // 3. Check wallet availability
-      const walletAvailable = await walletAdapter.checkAvailability();
+      const walletAvailable = await this.walletAdapter.checkAvailability();
       if (!walletAvailable) {
         throw new ProvisioningError(
           ProvisioningErrorCode.WALLET_NOT_AVAILABLE,
@@ -201,13 +204,12 @@ export class PushProvisioningService {
       }
 
       // 4. Get card details for provisioning
-      const cardDetails = await cardAdapter.getCardDetails(cardId);
+      const cardDetails = await this.cardAdapter.getCardDetails(cardId);
 
-      // 5. Provision for Google Wallet (only supported platform currently)
-      this.getPlatform(); // Validates platform is Android
-      return await this.provisionForGoogleWallet(
-        cardAdapter,
-        walletAdapter,
+      // 5. Provision the card
+      return await this.provisionCard(
+        this.cardAdapter,
+        this.walletAdapter,
         cardId,
         cardDetails,
       );
@@ -233,20 +235,20 @@ export class PushProvisioningService {
   }
 
   /**
-   * Provision for Google Wallet (Android)
+   * Provision card to wallet
    *
    * Flow:
    * 1. Get wallet data (deviceId, walletAccountId)
    * 2. Get opaque payment card from card provider
    * 3. Call wallet adapter to push tokenize
    */
-  private async provisionForGoogleWallet(
+  private async provisionCard(
     cardAdapter: ICardProviderAdapter,
     walletAdapter: IWalletProviderAdapter,
     cardId: string,
     cardDetails: CardDisplayInfo,
   ): Promise<ProvisioningResult> {
-    this.logDebug('provisionForGoogleWallet', { cardId });
+    this.logDebug('provisionCard', { cardId });
 
     // 1. Get wallet data
     const walletData = await walletAdapter.getWalletData();
@@ -262,7 +264,7 @@ export class PushProvisioningService {
     const deviceInfo = this.getDeviceInfo();
     const request: ProvisioningRequest = {
       cardId,
-      walletType: 'google_wallet',
+      walletType: walletAdapter.walletType,
       deviceInfo,
       walletData,
     };
@@ -287,7 +289,7 @@ export class PushProvisioningService {
   }
 
   /**
-   * Resume provisioning for a card that requires activation (Android only)
+   * Resume provisioning for a card that requires activation
    */
   async resumeProvisioning(
     tokenReferenceId: string,
@@ -295,20 +297,18 @@ export class PushProvisioningService {
     cardholderName?: string,
     lastFourDigits?: string,
   ): Promise<ProvisioningResult> {
-    if (Platform.OS !== 'android') {
+    if (!this.walletAdapter) {
       return {
         status: 'error',
         error: new ProvisioningError(
-          ProvisioningErrorCode.PLATFORM_NOT_SUPPORTED,
-          strings('card.push_provisioning.error_platform_not_supported'),
+          ProvisioningErrorCode.WALLET_NOT_AVAILABLE,
+          strings('card.push_provisioning.error_wallet_not_available'),
         ),
       };
     }
 
     try {
-      const walletAdapter = this.walletProviderRegistry.getActiveAdapter();
-
-      if (!walletAdapter.resumeProvisioning) {
+      if (!this.walletAdapter.resumeProvisioning) {
         return {
           status: 'error',
           error: new ProvisioningError(
@@ -318,7 +318,7 @@ export class PushProvisioningService {
         };
       }
 
-      return await walletAdapter.resumeProvisioning(
+      return await this.walletAdapter.resumeProvisioning(
         tokenReferenceId,
         cardNetwork,
         cardholderName,
@@ -345,23 +345,10 @@ export class PushProvisioningService {
   addActivationListener(
     callback: (event: CardActivationEvent) => void,
   ): () => void {
-    try {
-      const walletAdapter = this.walletProviderRegistry.getActiveAdapter();
-      return walletAdapter.addActivationListener(callback);
-    } catch {
-      // Return a no-op unsubscribe function if adapter is not available
+    if (!this.walletAdapter) {
       return () => undefined;
     }
-  }
-
-  /**
-   * Get the card adapter for a given provider ID
-   */
-  private getCardAdapter(providerId?: CardProviderId): ICardProviderAdapter {
-    if (providerId) {
-      return this.cardProviderRegistry.getAdapter(providerId);
-    }
-    return this.cardProviderRegistry.getDefaultAdapter();
+    return this.walletAdapter.addActivationListener(callback);
   }
 
   /**
@@ -377,27 +364,13 @@ export class PushProvisioningService {
   }
 }
 
-// Export singleton instance
-let provisioningServiceInstance: PushProvisioningService | null = null;
-
 /**
- * Get the singleton instance of PushProvisioningService
+ * Create a PushProvisioningService instance with the given adapters
  */
-export function getPushProvisioningService(): PushProvisioningService {
-  if (!provisioningServiceInstance) {
-    // Enable logs in dev mode
-    provisioningServiceInstance = new PushProvisioningService(
-      undefined,
-      undefined,
-      __DEV__,
-    );
-  }
-  return provisioningServiceInstance;
-}
-
-/**
- * Reset the singleton instance (for testing)
- */
-export function resetPushProvisioningService(): void {
-  provisioningServiceInstance = null;
+export function createPushProvisioningService(
+  cardAdapter: ICardProviderAdapter | null,
+  walletAdapter: IWalletProviderAdapter | null,
+  enableLogs = __DEV__,
+): PushProvisioningService {
+  return new PushProvisioningService(cardAdapter, walletAdapter, enableLogs);
 }

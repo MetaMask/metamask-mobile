@@ -9,10 +9,11 @@
  *
  * @example
  * ```typescript
- * import { CardProviderRegistry, MockCardAdapter } from './pushProvisioning';
+ * import { MockCardAdapter, createPushProvisioningService } from './pushProvisioning';
  *
- * // Register mock adapter for testing
- * CardProviderRegistry.getInstance().register('mock', new MockCardAdapter());
+ * // Create mock adapter for testing
+ * const mockAdapter = new MockCardAdapter();
+ * const service = createPushProvisioningService(mockAdapter, walletAdapter);
  * ```
  */
 

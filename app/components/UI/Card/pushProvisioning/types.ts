@@ -15,12 +15,12 @@ import { PlatformOSType } from 'react-native';
 /**
  * Supported card provider identifiers
  */
-export type CardProviderId = 'galileo' | 'mock';
+export type CardProviderId = 'galileo' | 'monavate' | 'mock';
 
 /**
  * Supported mobile wallet types
  */
-export type WalletType = 'google_wallet';
+export type WalletType = 'google_wallet' | 'apple_wallet';
 
 /**
  * Supported card networks
@@ -322,7 +322,6 @@ export interface CreateProvisioningResponse {
  */
 export interface UsePushProvisioningOptions {
   cardId: string;
-  cardProviderId?: CardProviderId;
   onSuccess?: (result: ProvisioningResult) => void;
   onError?: (error: ProvisioningError) => void;
   onCancel?: () => void;

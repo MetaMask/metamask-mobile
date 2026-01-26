@@ -6,7 +6,6 @@
 
 export {
   PushProvisioningService,
-  getPushProvisioningService,
-  resetPushProvisioningService,
+  createPushProvisioningService,
   type ProvisioningOptions,
 } from './PushProvisioningService';

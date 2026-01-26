@@ -7,8 +7,12 @@
  * ## Architecture
  *
  * The module uses an adapter pattern to support:
- * - Card providers (Galileo)
- * - Wallet providers (Google Wallet, Apple Pay)
+ * - Card providers (Galileo, Monavate)
+ * - Wallet providers (Google Wallet, Apple Wallet)
+ *
+ * Providers are selected automatically based on:
+ * - User location: 'us' -> Galileo, 'international' -> Monavate
+ * - Platform OS: 'android' -> Google Wallet, 'ios' -> Apple Wallet
  *
  * ## Usage
  *
@@ -25,16 +29,10 @@
  * ## Testing with Mock Provider
  *
  * ```tsx
- * import { CardProviderRegistry, MockCardAdapter } from '@app/components/UI/Card/pushProvisioning';
+ * import { MockCardAdapter } from '@app/components/UI/Card/pushProvisioning';
  *
- * // Register mock adapter for local testing
- * CardProviderRegistry.getInstance().register('mock', new MockCardAdapter());
- *
- * // Use with the hook
- * const { initiateProvisioning } = usePushProvisioning({
- *   cardId: 'mock-card-123',
- *   cardProviderId: 'mock',
- * });
+ * // Create mock adapter for local testing
+ * const mockAdapter = new MockCardAdapter();
  * ```
  */
 
@@ -44,25 +42,25 @@ export * from './types';
 // Constants
 export * from './constants';
 
+// Provider factory functions
+export { getCardProvider, getWalletProvider } from './providers';
+
 // Adapters
 export {
   // Card provider adapters
   type ICardProviderAdapter,
-  CardProviderRegistry,
   GalileoCardAdapter,
   MockCardAdapter,
   type MockCardConfig,
   // Wallet provider adapters
   type IWalletProviderAdapter,
-  WalletProviderRegistry,
   GoogleWalletAdapter,
 } from './adapters';
 
 // Service
 export {
   PushProvisioningService,
-  getPushProvisioningService,
-  resetPushProvisioningService,
+  createPushProvisioningService,
   type ProvisioningOptions,
 } from './service';
 
