@@ -133,7 +133,7 @@ AI AGENTIC FLOW:
 2. AI calls tools to investigate (get_git_diff, find_related_files, etc.)
 3. AI thinks deeply about impacts and provides a decision
 
-Usage: node -r esbuild-register e2e/tools/e2e-ai-analyzer [options]
+Usage: node -r esbuild-register tests/tools/e2e-ai-analyzer [options]
 
 Options:
   -m, --mode <mode>             Analysis mode (default: select-tags)
@@ -148,19 +148,19 @@ Output:
 
 Examples:
   # Using Anthropic Claude (default)
-  E2E_CLAUDE_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer
+  E2E_CLAUDE_API_KEY=sk-... node -r esbuild-register tests/tools/e2e-ai-analyzer
 
   # Using OpenAI GPT-4
-  E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer
+  E2E_OPENAI_API_KEY=sk-... node -r esbuild-register tests/tools/e2e-ai-analyzer
 
   # Using Google Gemini
-  E2E_GEMINI_API_KEY=... node -r esbuild-register e2e/tools/e2e-ai-analyzer
+  E2E_GEMINI_API_KEY=... node -r esbuild-register tests/tools/e2e-ai-analyzer
 
   # With multiple keys (uses first available in priority order)
-  E2E_CLAUDE_API_KEY=sk-... E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345
+  E2E_CLAUDE_API_KEY=sk-... E2E_OPENAI_API_KEY=sk-... node -r esbuild-register tests/tools/e2e-ai-analyzer --pr 12345
 
   # Force a specific provider
-  E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --provider openai --pr 12345
+  E2E_OPENAI_API_KEY=sk-... node -r esbuild-register tests/tools/e2e-ai-analyzer --provider openai --pr 12345
 `);
 }
 
