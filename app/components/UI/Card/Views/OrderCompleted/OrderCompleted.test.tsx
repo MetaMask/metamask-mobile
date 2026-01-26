@@ -25,6 +25,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: () => ({
+    fromUpgrade: false,
+  }),
+}));
+
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
@@ -142,6 +148,7 @@ describe('OrderCompleted', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         screen: CardScreens.ORDER_COMPLETED,
+        from_upgrade: false,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });
@@ -156,6 +163,7 @@ describe('OrderCompleted', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         action: CardActions.ORDER_COMPLETED_SET_UP_CARD,
+        from_upgrade: false,
       });
     });
   });

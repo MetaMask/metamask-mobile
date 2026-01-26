@@ -26,6 +26,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: () => ({
+    flow: 'onboarding',
+    shippingAddress: undefined,
+  }),
+}));
+
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
@@ -217,6 +224,7 @@ describe('ChooseYourCard', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         screen: CardScreens.CHOOSE_YOUR_CARD,
+        flow: 'onboarding',
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });
@@ -232,18 +240,19 @@ describe('ChooseYourCard', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         action: CardActions.CHOOSE_CARD_CONTINUE,
         card_type: CardType.VIRTUAL,
+        flow: 'onboarding',
       });
     });
   });
 
   describe('Navigation', () => {
-    it('navigates to review order with virtual card type when continue pressed', () => {
+    it('navigates to spending limit for virtual card in onboarding flow', () => {
       const { getByTestId } = render(<ChooseYourCard />);
 
       fireEvent.press(getByTestId(ChooseYourCardSelectors.CONTINUE_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.REVIEW_ORDER, {
-        cardType: CardType.VIRTUAL,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
+        flow: 'onboarding',
       });
     });
   });

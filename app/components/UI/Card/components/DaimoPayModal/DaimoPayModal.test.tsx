@@ -26,7 +26,21 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({
     payId: 'test-pay-id-123',
+    fromUpgrade: false,
   }),
+}));
+
+jest.mock('../../sdk', () => ({
+  useCardSDK: () => ({
+    cardSDK: {
+      createOrder: jest.fn(),
+      getOrderStatus: jest.fn(),
+    },
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => []),
 }));
 
 jest.mock('../../../../hooks/useMetrics', () => ({

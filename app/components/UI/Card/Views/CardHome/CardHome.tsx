@@ -90,7 +90,6 @@ import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import type { ShippingAddress } from '../ReviewOrder';
-import Logger from '../../../../../util/Logger';
 
 /**
  * Route params for CardHome screen
@@ -481,15 +480,6 @@ const CardHome = () => {
       cardDetails,
     ],
   );
-
-  Logger.log('isUserEligibleForMetalCard', isUserEligibleForMetalCard);
-  Logger.log({
-    isBaanxLoginEnabled,
-    isAuthenticated,
-    userLocation,
-    userShippingAddress,
-    cardDetails,
-  });
 
   const onCardDetailsImageError = useCallback(() => {
     clearCardDetailsImageUrl();

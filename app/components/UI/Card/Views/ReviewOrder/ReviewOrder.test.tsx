@@ -27,6 +27,28 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: () => ({
+    shippingAddress: {
+      line1: '123 Main St',
+      line2: 'Apt 4',
+      city: 'San Francisco',
+      state: 'CA',
+      zip: '94102',
+    },
+    fromUpgrade: false,
+  }),
+}));
+
+jest.mock('../../sdk', () => ({
+  useCardSDK: () => ({
+    sdk: {
+      createOrder: jest.fn(),
+      getOrderStatus: jest.fn(),
+    },
+  }),
+}));
+
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
@@ -227,7 +249,7 @@ describe('ReviewOrder', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.DAIMO_PAY,
-        params: { payId: 'test-pay-id' },
+        params: { payId: 'test-pay-id', fromUpgrade: false },
       });
     });
   });
