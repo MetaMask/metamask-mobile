@@ -157,7 +157,7 @@ source .e2e.env && yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
 source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 ```
 
-To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../e2e/docs/README.md).
+To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../tests/docs/README.md).
 
 ## Flask E2E Testing (Snaps Support)
 
