@@ -33,11 +33,11 @@ export interface StickyBottomBarProps {
 /**
  * StickyBottomBar Component
  */
-const StickyBottomBar: React.FC<StickyBottomBarProps> = ({
+export default function StickyBottomBar({
   buttons,
   style,
   testID = 'sticky-bottom-bar',
-}) => {
+}: StickyBottomBarProps) {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
 
@@ -75,6 +75,4 @@ const StickyBottomBar: React.FC<StickyBottomBarProps> = ({
       </Box>
     </Box>
   );
-};
-
-export default StickyBottomBar;
+}
