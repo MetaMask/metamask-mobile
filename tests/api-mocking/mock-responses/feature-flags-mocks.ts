@@ -165,3 +165,10 @@ export const remoteFeatureFlagTronAccounts = (enabled = true) => ({
     minimumVersion: '0.0.0',
   },
 });
+
+export const remoteFeatureFlagBtcAccounts = (enabled = true) => ({
+  bitcoinAccounts: {
+    enabled,
+    minimumVersion: '0.0.0',
+  },
+});

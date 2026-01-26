@@ -161,4 +161,31 @@ describe(RegressionAssets('Asset list - '), () => {
       },
     );
   });
+  it('opens asset details for Bitcoin', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await WalletView.tapOnToken('Bitcoin');
+        await Assertions.expectElementToBeVisible(TokenOverview.container);
+        await TokenOverview.tapChartPeriod1d();
+        await Assertions.expectElementToBeVisible(TokenOverview.chartPeriod1d);
+        await TokenOverview.tapChartPeriod1w();
+        await Assertions.expectElementToBeVisible(TokenOverview.chartPeriod1w);
+        await TokenOverview.tapChartPeriod1m();
+        await Assertions.expectElementToBeVisible(TokenOverview.chartPeriod1m);
+        await TokenOverview.tapChartPeriod3m();
+        await Assertions.expectElementToBeVisible(TokenOverview.chartPeriod3m);
+        await TokenOverview.tapChartPeriod1y();
+        await Assertions.expectElementToBeVisible(TokenOverview.chartPeriod1y);
+
+        await TokenOverview.scrollOnScreen();
+        await Assertions.expectElementToBeVisible(TokenOverview.receiveButton);
+        await Assertions.expectElementToBeVisible(TokenOverview.sendButton);
+      },
+    );
+  });
 });
