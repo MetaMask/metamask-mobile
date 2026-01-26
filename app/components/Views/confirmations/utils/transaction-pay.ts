@@ -9,7 +9,6 @@ import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
 import {
   TransactionPayRequiredToken,
-  TransactionPayTotals,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
@@ -173,17 +172,4 @@ function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
     }),
     {},
   );
-}
-
-export function getNetworkFeeUsdBN({
-  totals,
-}: {
-  totals?: TransactionPayTotals;
-}): BigNumber | undefined {
-  const sourceNetworkUsd = totals?.fees?.sourceNetwork?.estimate?.usd;
-  const targetNetworkUsd = totals?.fees?.targetNetwork?.usd;
-
-  if (sourceNetworkUsd == null || targetNetworkUsd == null) return undefined;
-
-  return new BigNumber(sourceNetworkUsd).plus(targetNetworkUsd);
 }

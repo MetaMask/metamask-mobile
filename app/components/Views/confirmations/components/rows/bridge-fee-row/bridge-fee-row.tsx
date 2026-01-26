@@ -31,7 +31,6 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import { Json } from '@metamask/utils';
-import { getNetworkFeeUsdBN } from '../../../utils/transaction-pay';
 
 const NETWORK_FEE_ONLY_TYPES = [TransactionType.musdConversion];
 
@@ -121,6 +120,19 @@ function TransactionFeeRow({
       </Text>
     </AlertRow>
   );
+}
+
+function getNetworkFeeUsdBN({
+  totals,
+}: {
+  totals?: TransactionPayTotals;
+}): BigNumber | undefined {
+  const sourceNetworkUsd = totals?.fees?.sourceNetwork?.estimate?.usd;
+  const targetNetworkUsd = totals?.fees?.targetNetwork?.usd;
+
+  if (sourceNetworkUsd == null || targetNetworkUsd == null) return undefined;
+
+  return new BigNumber(sourceNetworkUsd).plus(targetNetworkUsd);
 }
 
 function NetworkFeeRow({
