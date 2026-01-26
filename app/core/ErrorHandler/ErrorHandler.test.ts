@@ -68,4 +68,30 @@ describe('ErrorHandler', () => {
       'DisconnectedDevice',
     );
   });
+
+  it('handles BleError without crashing the app', () => {
+    const mockError = {
+      name: 'BleError',
+      message: 'Device was disconnected',
+    };
+    console.error = jest.fn();
+    handleCustomError(mockError, true);
+    expect(console.error).toHaveBeenCalledWith(
+      'Ledger error: ',
+      'Device was disconnected',
+    );
+  });
+
+  it('handles DisconnectedDeviceDuringOperation error without crashing the app', () => {
+    const mockError = {
+      name: 'DisconnectedDeviceDuringOperation',
+      message: 'Device disconnected during operation',
+    };
+    console.error = jest.fn();
+    handleCustomError(mockError, true);
+    expect(console.error).toHaveBeenCalledWith(
+      'Ledger error: ',
+      'Device disconnected during operation',
+    );
+  });
 });

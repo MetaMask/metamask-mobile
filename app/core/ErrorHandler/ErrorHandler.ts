@@ -15,7 +15,12 @@ export const handleCustomError = (error: Error, isFatal: boolean) => {
   if (
     error.name === 'EthAppPleaseEnableContractData' ||
     error.name === 'TransportStatusError' ||
-    error.name === 'DisconnectedDevice'
+    error.name === 'DisconnectedDevice' ||
+    error.name === 'DisconnectedDeviceDuringOperation' ||
+    error.name === 'BleError' ||
+    error.name === 'TransportError' ||
+    error.name === 'TransportLocked' ||
+    error.name === 'LockedDeviceError'
   ) {
     // dont pass the error to react native error handler to prevent app crash
     console.error('Ledger error: ', error.message);

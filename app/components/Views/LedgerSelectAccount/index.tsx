@@ -43,6 +43,10 @@ import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
+import {
+  useHardwareWalletError,
+  HardwareWalletType,
+} from '../../../core/HardwareWallet';
 
 interface OptionType {
   key: string;
@@ -53,11 +57,13 @@ interface OptionType {
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
   const [selectedDevice, setSelectedDevice] = useState<LedgerDevice>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const dispatch = useDispatch();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
+
+  // Use centralized error handling with bottom sheet
+  const { parseAndShowError } = useHardwareWalletError();
   const ledgerThemedImage = useAssetFromTheme(
     ledgerDeviceLightImage,
     ledgerDeviceDarkImage,
@@ -144,7 +150,6 @@ const LedgerSelectAccount = () => {
   }, [ledgerError]);
 
   const showLoadingModal = () => {
-    setErrorMsg(null);
     setBlockingModalVisible(true);
   };
 
@@ -170,8 +175,6 @@ const LedgerSelectAccount = () => {
   ]);
 
   const onConnectHardware = useCallback(async () => {
-    setErrorMsg(null);
-
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_FIRST_PAGE,
     );
@@ -187,7 +190,7 @@ const LedgerSelectAccount = () => {
           setAccounts(_accounts);
         })
         .catch((e) => {
-          setErrorMsg(e.message);
+          parseAndShowError(e, HardwareWalletType.Ledger);
         })
         .finally(() => {
           setBlockingModalVisible(false);
@@ -278,7 +281,7 @@ const LedgerSelectAccount = () => {
             })
             .build(),
         );
-        setErrorMsg((err as Error).message);
+        parseAndShowError(err, HardwareWalletType.Ledger);
       } finally {
         setBlockingModalVisible(false);
       }
@@ -372,7 +375,6 @@ const LedgerSelectAccount = () => {
           </TouchableOpacity>
         </View>
         <View style-={styles.selectorContainer}>
-          {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
           <Text style={styles.mainTitle}>
             {strings('ledger.select_accounts')}
           </Text>
@@ -397,12 +399,10 @@ const LedgerSelectAccount = () => {
           nextPage={nextPage}
           prevPage={prevPage}
           onUnlock={(accountIndex: number[]) => {
-            setErrorMsg(null);
             setUnlockAccounts({ trigger: true, accountIndexes: accountIndex });
             setBlockingModalVisible(true);
           }}
           onForget={() => {
-            setErrorMsg(null);
             setForgetDevice(true);
             setBlockingModalVisible(true);
           }}

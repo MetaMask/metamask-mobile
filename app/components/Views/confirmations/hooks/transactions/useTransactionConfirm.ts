@@ -115,6 +115,7 @@ export function useTransactionConfirm() {
     }
 
     try {
+      console.log('[DEBUG useTransactionConfirm] Calling onRequestConfirm');
       await onRequestConfirm(
         {
           deleteAfterResult: true,
@@ -124,8 +125,17 @@ export function useTransactionConfirm() {
         },
         { txMeta: updatedMetadata },
       );
+      console.log(
+        '[DEBUG useTransactionConfirm] onRequestConfirm completed successfully',
+      );
     } catch (error) {
+      console.log(
+        '[DEBUG useTransactionConfirm] onRequestConfirm threw error:',
+        error,
+      );
       log('Error confirming transaction', error);
+      // Re-throw so callers (e.g. LedgerSignModal) can handle the error
+      throw error;
     }
 
     if (type === TransactionType.perpsDeposit) {

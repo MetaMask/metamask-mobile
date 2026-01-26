@@ -40,18 +40,36 @@ const useBluetoothDevices = (
   useEffect(() => {
     let subscription: Subscription;
 
+    console.log(
+      '[DEBUG useBluetoothDevices] Starting scan effect, hasBluetoothPermissions:',
+      hasBluetoothPermissions,
+      'bluetoothOn:',
+      bluetoothOn,
+    );
+
     if (hasBluetoothPermissions && bluetoothOn) {
+      console.log(
+        '[DEBUG useBluetoothDevices] Starting TransportBLE.listen subscription',
+      );
       subscription = new Observable(TransportBLE.listen).subscribe({
         next: (e: ObservableEventType) => {
+          console.log(
+            '[DEBUG useBluetoothDevices] Received event:',
+            e.type,
+            e.descriptor?.name,
+            e.descriptor?.id,
+          );
           setObservableEvent(e);
         },
-        error: (_error) => {
+        error: (error) => {
+          console.log('[DEBUG useBluetoothDevices] Scan error:', error);
           setDeviceScanError(true);
         },
       });
     }
 
     return () => {
+      console.log('[DEBUG useBluetoothDevices] Cleaning up subscription');
       subscription?.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -61,8 +79,21 @@ const useBluetoothDevices = (
     if (observableEvent?.descriptor) {
       const btDevice = observableEvent.descriptor;
       const deviceFound = devices[btDevice.id];
+      console.log(
+        '[DEBUG useBluetoothDevices] Processing event:',
+        observableEvent.type,
+        'device:',
+        btDevice.name,
+        'already found:',
+        !!deviceFound,
+      );
 
       if (observableEvent.type === 'add' && !deviceFound) {
+        console.log(
+          '[DEBUG useBluetoothDevices] Adding new device:',
+          btDevice.name,
+          btDevice.id,
+        );
         setDevices((prevValues) => ({
           ...prevValues,
           [btDevice.id]: btDevice,
