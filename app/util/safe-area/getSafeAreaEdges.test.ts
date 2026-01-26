@@ -1,22 +1,24 @@
 import { Platform } from 'react-native';
-import { getSafeAreaEdges } from './getSafeAreaEdges';
 
-describe('getSafeAreaEdges', () => {
+describe('SAFE_AREA_EDGES', () => {
   const originalOS = Platform.OS;
 
   afterEach(() => {
     Platform.OS = originalOS;
+    jest.resetModules();
   });
 
   it('includes bottom edge on Android', () => {
     Platform.OS = 'android';
-    const edges = getSafeAreaEdges();
-    expect(edges).toEqual(['left', 'right', 'bottom']);
+    jest.resetModules();
+    const { SAFE_AREA_EDGES } = require('./getSafeAreaEdges');
+    expect(SAFE_AREA_EDGES).toEqual(['left', 'right', 'bottom']);
   });
 
   it('excludes bottom edge on iOS', () => {
     Platform.OS = 'ios';
-    const edges = getSafeAreaEdges();
-    expect(edges).toEqual(['left', 'right']);
+    jest.resetModules();
+    const { SAFE_AREA_EDGES } = require('./getSafeAreaEdges');
+    expect(SAFE_AREA_EDGES).toEqual(['left', 'right']);
   });
 });

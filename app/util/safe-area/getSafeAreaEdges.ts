@@ -2,9 +2,9 @@ import { Platform } from 'react-native';
 import type { Edge } from 'react-native-safe-area-context';
 
 /**
- * Returns the safe area edges based on platform.
+ * Platform-specific safe area edges.
  * Android includes 'bottom' to handle the navigation bar overlay.
  * iOS excludes 'bottom' to avoid excessive padding.
  */
-export const getSafeAreaEdges = (): Edge[] =>
+export const SAFE_AREA_EDGES: Edge[] =
   Platform.OS === 'android' ? ['left', 'right', 'bottom'] : ['left', 'right'];

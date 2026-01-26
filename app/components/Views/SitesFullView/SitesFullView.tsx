@@ -15,7 +15,7 @@ import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import SitesSearchFooter from '../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../locales/i18n';
 import ListHeaderWithSearch from '../../UI/shared/ListHeaderWithSearch/ListHeaderWithSearch';
-import { getSafeAreaEdges } from '../../../util/safe-area';
+import { SAFE_AREA_EDGES } from '../../../util/safe-area';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -90,7 +90,7 @@ const SitesFullView: React.FC = () => {
   }, [isSearchActive, searchQuery]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={getSafeAreaEdges()}>
+    <SafeAreaView style={styles.safeArea} edges={SAFE_AREA_EDGES}>
       <View
         style={[
           styles.headerContainer,

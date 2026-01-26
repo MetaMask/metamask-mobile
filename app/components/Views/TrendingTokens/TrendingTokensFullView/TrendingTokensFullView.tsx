@@ -43,7 +43,7 @@ import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingToken
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
-import { getSafeAreaEdges } from '../../../../util/safe-area';
+import { SAFE_AREA_EDGES } from '../../../../util/safe-area';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -302,7 +302,7 @@ const TrendingTokensFullView = () => {
   }, [selectedPriceChangeOption]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={getSafeAreaEdges()}>
+    <SafeAreaView style={styles.safeArea} edges={SAFE_AREA_EDGES}>
       <View
         style={[
           styles.headerContainer,
