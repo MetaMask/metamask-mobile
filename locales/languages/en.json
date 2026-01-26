@@ -1973,6 +1973,22 @@
       "referral_code_text": "Use my referral code to earn extra rewards."
     }
   },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "rank": "Rank",
+    "trader": "Trader",
+    "followers": "Followers",
+    "pnl_30d": "PnL (30D)",
+    "win_rate": "Win Rate",
+    "trades_30d": "Trades (30D)",
+    "roi_30d": "ROI (30D)",
+    "empty_title": "No traders found",
+    "empty_description": "Check back later for top traders",
+    "error_title": "Unable to load leaderboard",
+    "retry": "Try again",
+    "loading": "Loading traders...",
+    "close": "Close"
+  },
   "predict": {
     "title": "MetaMask Predictions",
     "prediction_markets": "Prediction markets",
@@ -2290,6 +2306,7 @@
     "collectibles": "NFTs",
     "defi": "DeFi",
     "perps": "Perps",
+    "leaderboard": "Leaderboard",
     "predict": "Predictions",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Don’t see your NFT?",
