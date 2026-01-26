@@ -573,7 +573,7 @@ generateAndroidBinary() {
 		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
 		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
 			# Only build for x86_64 for E2E builds
-			reactNativeArchitecturesArg="-PreactNativeArchitectures=arm64-v8a"
+			reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
 			# Enable verbose logging for E2E builds to help diagnose build failures
 			gradleLoggingFlags="--stacktrace --info"
 		fi
