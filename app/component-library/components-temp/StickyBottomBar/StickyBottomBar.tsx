@@ -63,12 +63,12 @@ export default function StickyBottomBar({
           <Box key={index} twClassName="flex-1 shrink-0 basis-0 min-w-0">
             <Button
               variant={ButtonVariants.Primary}
+              {...buttonProps}
               style={
                 buttonProps.style
                   ? [tw.style('rounded-xl'), buttonProps.style]
                   : tw.style('rounded-xl')
               }
-              {...buttonProps}
             />
           </Box>
         ))}
