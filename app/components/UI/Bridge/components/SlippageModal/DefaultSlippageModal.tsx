@@ -73,7 +73,7 @@ export const DefaultSlippageModal = () => {
     allowCustomSlippage: slippageConfig.has_custom_slippage_option,
     slippage: selectedSlippage,
     onDefaultOptionPress: handleDefaultOptionPress,
-    onCustomOptionpress: handleCustomOptionPress,
+    onCustomOptionPress: handleCustomOptionPress,
   });
 
   return (

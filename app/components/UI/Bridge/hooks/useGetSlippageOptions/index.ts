@@ -3,11 +3,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { SlippageType } from '../../types';
 
 interface Props {
-  allowCustomSlippage: boolean;
+  allowCustomSlippage?: boolean;
   slippageOptions: readonly string[];
   slippage: string;
   onDefaultOptionPress: (value: SlippageType) => () => void;
-  onCustomOptionpress: () => void;
+  onCustomOptionPress?: () => void;
 }
 
 export const useGetSlippageOptions = ({
@@ -15,7 +15,7 @@ export const useGetSlippageOptions = ({
   slippageOptions,
   slippage,
   onDefaultOptionPress,
-  onCustomOptionpress,
+  onCustomOptionPress,
 }: Props) => {
   const options = slippageOptions.map((value) => ({
     id: String(value),
@@ -24,11 +24,11 @@ export const useGetSlippageOptions = ({
     selected: String(value) === String(slippage),
   }));
 
-  if (allowCustomSlippage) {
+  if (allowCustomSlippage && onCustomOptionPress) {
     options.push({
       id: 'custom-slippage',
       label: strings('bridge.custom'),
-      onPress: onCustomOptionpress,
+      onPress: onCustomOptionPress,
       selected: !slippageOptions.some(
         (value) => String(value) === String(slippage),
       ),
