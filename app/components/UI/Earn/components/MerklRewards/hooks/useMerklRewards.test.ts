@@ -481,6 +481,46 @@ describe('useMerklRewards', () => {
     expect(result.current.claimableReward).toBe(null);
   });
 
+  it('converts "< 0.00001" to "< 0.01" for small amounts', async () => {
+    const mockRewardData = [
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '100', // Very small but non-zero amount
+            pending: '0',
+            proofs: [],
+            amount: '100',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockRewardData),
+    });
+
+    // renderFromTokenMinimalUnit returns "< 0.00001" for very small amounts
+    mockRenderFromTokenMinimalUnit.mockReturnValue('< 0.00001');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // Should convert to "< 0.01" for consistency with 2 decimal places
+      expect(result.current.claimableReward).toBe('< 0.01');
+    });
+  });
+
   it('resets claimableReward when switching assets', async () => {
     const mockRewardData1 = {
       token: {

@@ -10,7 +10,7 @@ import { loginToApp } from '../../viewHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { LocalNode } from '../../../tests/framework/types';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 describe(RegressionAssets('Import custom token'), () => {
   beforeAll(async () => {

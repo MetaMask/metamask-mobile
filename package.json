@@ -180,7 +180,8 @@
     "@metamask/key-tree@npm:^10.1.1": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/key-tree@npm:^10.0.2": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/transaction-controller@npm:^62.9.0": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch",
-    "qs": "6.14.1"
+    "qs": "6.14.1",
+    "@playwright/test": "^1.57.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -297,7 +298,7 @@
     "@metamask/token-search-discovery-controller": "^4.0.0",
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch",
     "@metamask/transaction-pay-controller": "^11.0.0",
-    "@metamask/tron-wallet-snap": "^1.19.1",
+    "@metamask/tron-wallet-snap": "^1.19.2",
     "@metamask/utils": "^11.8.1",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.30.2",
@@ -564,6 +565,8 @@
     "@walletconnect/types": "^2.19.2",
     "@welldone-software/why-did-you-render": "^8.0.1",
     "appium": "^2.12.1",
+    "appium-adb": "^9.11.4",
+    "appium-chromium-driver": "^2.0.2",
     "appium-uiautomator2-driver": "4.2.7",
     "appium-xcuitest-driver": "5.16.1",
     "appwright": "patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=3beae4#~/.yarn/patches/appwright-patch-685d6e06a0.patch",
@@ -733,6 +736,7 @@
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/linux-x64": false,
       "react-native-nitro-modules": false,
       "esbuild": false,
+      "appium-chromium-driver>appium-chromedriver>@appium/support>sharp": false,
       "@metamask/transaction-controller>babel-runtime>core-js": false,
       "webdriverio>@wdio/utils>edgedriver": false,
       "webdriverio>@wdio/utils>geckodriver": false
