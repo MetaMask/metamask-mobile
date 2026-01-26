@@ -3458,40 +3458,76 @@ export class HyperLiquidProvider implements IPerpsProvider {
         throw new Error(`No price available for ${symbol}`);
       }
 
-      // Cancel existing TP/SL orders for this position across all DEXs
-      this.deps.debugLogger.log(
-        'Fetching open orders to cancel existing TP/SL...',
-      );
-      const orderResults = await this.queryUserDataAcrossDexs(
-        { user: userAddress },
-        (p) => infoClient.frontendOpenOrders(p),
-      );
+      // Cancel existing TP/SL orders for this position
+      // OPTIMIZATION: Use WebSocket cache first (0 weight), fall back to single-DEX REST (20 weight)
+      // Previously: queryUserDataAcrossDexs queried ALL DEXs (20 weight × N DEXs = 40+ weight)
+      const assetId = this.symbolToAssetId.get(symbol);
+      if (assetId === undefined) {
+        throw new Error(`Asset ID not found for ${symbol}`);
+      }
 
-      // Combine orders from all DEXs
-      const allOrders = orderResults.flatMap((result) => result.data);
+      let cancelRequests: { a: number; o: number }[] = [];
 
-      const tpslOrdersToCancel = allOrders.filter(
-        (order) =>
-          order.coin === symbol &&
-          order.reduceOnly === true &&
-          order.isPositionTpsl === !!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL &&
-          order.isTrigger === true &&
-          (order.orderType.includes('Take Profit') ||
-            order.orderType.includes('Stop')),
-      );
-
-      if (tpslOrdersToCancel.length > 0) {
+      if (this.subscriptionService.isOrdersCacheInitialized()) {
+        // WebSocket cache available - use it (no API call, 0 weight)
+        const cachedOrders = this.subscriptionService.getCachedOrders() || [];
         this.deps.debugLogger.log(
-          `Canceling ${tpslOrdersToCancel.length} existing TP/SL orders for ${symbol}`,
+          'Using WebSocket cache for TP/SL orders lookup',
+          { cachedOrdersCount: cachedOrders.length },
         );
-        const assetId = this.symbolToAssetId.get(symbol);
-        if (assetId === undefined) {
-          throw new Error(`Asset ID not found for ${symbol}`);
-        }
-        const cancelRequests = tpslOrdersToCancel.map((order) => ({
+
+        // Filter using normalized Order type properties
+        // Note: Cached orders don't have isPositionTpsl, but we identify TP/SL orders by:
+        // - isTrigger === true
+        // - reduceOnly === true
+        // - detailedOrderType contains 'Take Profit' or 'Stop'
+        const tpslOrders = cachedOrders.filter(
+          (order) =>
+            order.symbol === symbol &&
+            order.reduceOnly === true &&
+            order.isTrigger === true &&
+            order.detailedOrderType &&
+            (order.detailedOrderType.includes('Take Profit') ||
+              order.detailedOrderType.includes('Stop')),
+        );
+
+        cancelRequests = tpslOrders.map((order) => ({
+          a: assetId,
+          o: parseInt(order.orderId, 10),
+        }));
+      } else {
+        // Fallback: Query only the specific DEX (20 weight instead of 40+)
+        this.deps.debugLogger.log(
+          'WebSocket cache not initialized, falling back to single-DEX REST query',
+          { dex: dexName || 'main' },
+        );
+
+        const orders = await infoClient.frontendOpenOrders({
+          user: userAddress,
+          dex: dexName || undefined,
+        });
+
+        // Filter using raw SDK response properties
+        const tpslOrders = orders.filter(
+          (order) =>
+            order.coin === symbol &&
+            order.reduceOnly === true &&
+            order.isPositionTpsl === !!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL &&
+            order.isTrigger === true &&
+            (order.orderType.includes('Take Profit') ||
+              order.orderType.includes('Stop')),
+        );
+
+        cancelRequests = tpslOrders.map((order) => ({
           a: assetId,
           o: order.oid,
         }));
+      }
+
+      if (cancelRequests.length > 0) {
+        this.deps.debugLogger.log(
+          `Canceling ${cancelRequests.length} existing TP/SL orders for ${symbol}`,
+        );
 
         const cancelResult = await exchangeClient.cancel({
           cancels: cancelRequests,
@@ -3529,10 +3565,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
       }
 
-      const assetId = this.symbolToAssetId.get(symbol);
-      if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${symbol}`);
-      }
+      // assetId already validated above when building cancelRequests
 
       // Build orders array for TP/SL
       const orders: SDKOrderParams[] = [];
