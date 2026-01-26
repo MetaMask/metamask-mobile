@@ -34,6 +34,8 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
+import Authentication from '../../core/Authentication';
+import { MetaMetrics } from '../../core/Analytics';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -49,6 +51,21 @@ export function* appLockStateMachine() {
     );
     NavigationService.navigation?.navigate(Routes.LOCK_SCREEN, {
       bioStateMachineId,
+    });
+  }
+}
+
+/**
+ * Automatically requests authentication on app start.
+ */
+export function* requestAuthOnAppStart() {
+  try {
+    yield call(Authentication.unlockWallet);
+  } catch (_) {
+    // If authentication fails, navigate to login screen
+    // TODO: Consolidate error handling in future PRs. For now, we'll rely on the Login screen to handle triaging specific errors.
+    NavigationService.navigation?.reset({
+      routes: [{ name: Routes.ONBOARDING.LOGIN }],
     });
   }
 }
@@ -272,10 +289,27 @@ export function* startAppServices() {
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
+
+  // Configure MetaMetrics
+  try {
+    yield call(MetaMetrics.getInstance().configure);
+  } catch (err) {
+    Logger.error(err as Error, 'Error configuring MetaMetrics');
+  }
+
+  // Apply vault initialization
   yield call(applyVaultInitialization);
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
+
+  // Wait for the next frame to ensure that navigation stack is rendered.
+  // This is needed to prevent a race condition where the navigation container is ready BUT the navigation stacks are not yet rendered.
+  // TODO: Follow up on pre-rendering the navigation stacks.
+  yield call(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+
+  // Request authentication on app start after the auth state machine is started
+  yield call(requestAuthOnAppStart);
 }
 
 // Main generator function that initializes other sagas in parallel.
