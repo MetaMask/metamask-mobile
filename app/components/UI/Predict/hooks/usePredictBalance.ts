@@ -54,7 +54,8 @@ export function usePredictBalance(
   const { getBalance } = usePredictTrading();
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
 
-  const [isLoading, setIsLoading] = useState(true);
+  // Only start in loading state if we're actually going to load on mount
+  const [isLoading, setIsLoading] = useState(loadOnMount);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isInitialMount = useRef(true);
