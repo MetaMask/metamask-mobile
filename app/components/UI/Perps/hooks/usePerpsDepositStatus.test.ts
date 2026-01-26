@@ -422,7 +422,7 @@ describe('usePerpsDepositStatus', () => {
       ).toHaveBeenCalledWith(60, 'test-tx-id'); // 60 seconds for other tokens
     });
 
-    it('should skip showing toast when active deposit handler exists', () => {
+    it('skips showing toast when active deposit handler exists', () => {
       mockStreamManager.hasActiveDepositHandler.mockReturnValue(true);
       mockShowToast.mockClear();
 
