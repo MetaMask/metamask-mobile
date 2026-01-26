@@ -312,7 +312,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 flex-shrink min-w-0"
+            twClassName="gap-4 flex-shrink min-w-0 ml-2"
           >
             <Text
               variant={TextVariant.BodySm}
