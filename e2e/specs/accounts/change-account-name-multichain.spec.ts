@@ -11,22 +11,12 @@ import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
-import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import Gestures from '../../../tests/framework/Gestures';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
 const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';
 const MAIN_ACCOUNT_INDEX = 0;
 const IMPORTED_ACCOUNT_INDEX = 1;
-
-const testSpecificMock = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureMultichainAccountsAccountDetailsV2(true),
-  );
-};
 
 // TODO: With this migration we also removed the need for ganache options and everything is simplified.
 describe(
@@ -39,7 +29,6 @@ describe(
             .withImportedAccountKeyringController()
             .build(),
           restartDevice: true,
-          testSpecificMock,
         },
         async () => {
           await loginToApp();
@@ -105,7 +94,6 @@ describe(
             .withImportedAccountKeyringController()
             .build(),
           restartDevice: true,
-          testSpecificMock,
         },
         async () => {
           await loginToApp();

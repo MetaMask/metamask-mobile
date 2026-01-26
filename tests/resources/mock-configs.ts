@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { defaultGanacheOptions } from '../../tests/framework/Constants';
+import { defaultGanacheOptions } from '../framework/Constants.ts';
 import { CustomNetworks } from './networks.e2e';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupRemoteFeatureFlagsMock } from '../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
 import {
   confirmationsRedesignedFeatureFlags,
   oldConfirmationsRemoteFeatureFlags,
-} from '../../tests/api-mocking/mock-responses/feature-flags-mocks';
+} from '../api-mocking/mock-responses/feature-flags-mocks.ts';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
