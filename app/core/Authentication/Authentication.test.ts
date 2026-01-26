@@ -210,7 +210,7 @@ const mockTrackEvent = jest.fn();
 
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
-    trackEvent: mockTrackEvent,
+    trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
   },
 }));
 
@@ -237,7 +237,7 @@ jest.mock('../Analytics/MetaMetrics', () => {
 
 const mockCaptureException = jest.fn();
 jest.mock('@sentry/react-native', () => ({
-  captureException: mockCaptureException,
+  captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
 jest.mock('../../components/UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
@@ -2950,6 +2950,8 @@ describe('Authentication', () => {
       Engine.context.SeedlessOnboardingController = {
         addNewSecretData: jest.fn().mockResolvedValue(undefined),
         updateBackupMetadataState: jest.fn(),
+        runMigrations: jest.fn().mockResolvedValue(false),
+        state: { migrationVersion: 1 },
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
       // Mock Engine.setSelectedAddress
@@ -3263,9 +3265,23 @@ describe('Authentication', () => {
       Engine.context.SeedlessOnboardingController = {
         addNewSecretData: jest.fn().mockResolvedValue(undefined),
         updateBackupMetadataState: jest.fn(),
-        runMigrations: jest.fn().mockResolvedValue(undefined),
+        runMigrations: jest.fn().mockResolvedValue(false),
         state: { migrationVersion: 1 },
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      // Setup Redux store mock
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data',
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
     });
 
     it('adds private key backup with social sync', async () => {
