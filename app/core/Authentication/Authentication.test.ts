@@ -1536,9 +1536,49 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
     });
 
-    it('calls dispatchOauthReset and sets migration version on successful backup', async () => {
+    it('calls dispatchOauthReset on successful backup', async () => {
       const Engine = jest.requireMock('../Engine');
       const OAuthService = jest.requireMock('../OAuthService/OAuthService');
+
+      // Mock the required Engine context methods
+      Engine.context.SeedlessOnboardingController = {
+        state: {},
+        createToprfKeyAndBackupSeedPhrase: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        clearState: jest.fn(),
+        exportEncryptionKey: jest.fn(),
+        storeKeyringEncryptionKey: jest.fn(),
+        updateBackupMetadataState: jest.fn(),
+        setLocked: jest.fn().mockResolvedValue(undefined),
+        setMigrationVersion: jest.fn(),
+      };
+      Engine.context.KeyringController.state.keyrings = [
+        { metadata: { id: 'test-keyring' } },
+      ];
+      Engine.context.KeyringController.exportSeedPhrase = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+
+      Engine.context.KeyringController.exportEncryptionKey = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+
+      // Mock createWalletVaultAndKeychain
+      const createWalletSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+        .mockResolvedValue(undefined);
+
+      await Authentication.createAndBackupSeedPhrase('test-password');
+
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+
+      createWalletSpy.mockRestore();
+    });
+
+    it('sets migration version on successful backup', async () => {
+      const Engine = jest.requireMock('../Engine');
 
       const setMigrationVersionMock = jest.fn();
 
@@ -1574,7 +1614,6 @@ describe('Authentication', () => {
 
       await Authentication.createAndBackupSeedPhrase('test-password');
 
-      expect(OAuthService.resetOauthState).toHaveBeenCalled();
       expect(setMigrationVersionMock).toHaveBeenCalledWith(
         SeedlessOnboardingMigrationVersion.V1,
       );
@@ -3810,7 +3849,7 @@ describe('Authentication', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('tracks failure event and re-throws error on migration error', async () => {
+    it('tracks failure event on migration error', async () => {
       const error = new Error('Network error');
       Engine.context.SeedlessOnboardingController = {
         runMigrations: jest.fn().mockRejectedValue(error),
@@ -3823,6 +3862,18 @@ describe('Authentication', () => {
 
       expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('re-throws error on migration error', async () => {
+      const error = new Error('Network error');
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest.fn().mockRejectedValue(error),
+        state: { migrationVersion: 1 },
+      };
+
+      await expect(
+        Authentication.runSeedlessOnboardingMigrations(),
+      ).rejects.toThrow('Network error');
     });
   });
 
