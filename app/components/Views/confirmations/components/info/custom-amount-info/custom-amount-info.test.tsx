@@ -51,9 +51,11 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
     trackAlertRendered: jest.fn(),
   }),
 }));
+
+const mockSetConfirmationMetric = jest.fn();
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: () => ({
-    setConfirmationMetric: jest.fn(),
+    setConfirmationMetric: mockSetConfirmationMetric,
   }),
 }));
 
@@ -146,6 +148,7 @@ describe('CustomAmountInfo', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockSetConfirmationMetric.mockClear();
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
@@ -324,5 +327,19 @@ describe('CustomAmountInfo', () => {
     expect(
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
     ).toBeNull();
+  });
+
+  it('sets mm_pay_quote_requested to true when continue is pressed', async () => {
+    const { getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+      properties: {
+        mm_pay_quote_requested: true,
+      },
+    });
   });
 });

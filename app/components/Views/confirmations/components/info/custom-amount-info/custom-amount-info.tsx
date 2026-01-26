@@ -55,6 +55,7 @@ import EngineService from '../../../../../../core/EngineService';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -87,6 +88,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
     useTransactionPayMetrics();
 
+    const { setConfirmationMetric } = useConfirmationMetricEvents();
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
@@ -118,7 +120,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount();
       EngineService.flushState();
       setIsKeyboardVisible(false);
-    }, [updateTokenAmount]);
+
+      setConfirmationMetric({
+        properties: {
+          mm_pay_quote_requested: true,
+        },
+      });
+    }, [setConfirmationMetric, updateTokenAmount]);
 
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
