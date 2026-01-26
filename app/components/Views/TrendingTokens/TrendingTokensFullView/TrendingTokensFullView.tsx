@@ -125,6 +125,13 @@ const TrendingTokensFullView = () => {
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
+
+  // Memoize safe area style to avoid creating new object on every render
+  const safeAreaStyle = useMemo(
+    () => [styles.safeArea, { paddingBottom: insets.bottom }],
+    [styles.safeArea, insets.bottom],
+  );
+
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
   const [selectedTimeOption, setSelectedTimeOption] = useState<TimeOption>(
     TimeOption.TwentyFourHours,
@@ -301,10 +308,7 @@ const TrendingTokensFullView = () => {
   }, [selectedPriceChangeOption]);
 
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { paddingBottom: insets.bottom }]}
-      edges={['left', 'right']}
-    >
+    <SafeAreaView style={safeAreaStyle} edges={['left', 'right']}>
       <View
         style={[
           styles.headerContainer,

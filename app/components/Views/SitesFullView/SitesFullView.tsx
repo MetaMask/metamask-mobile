@@ -37,6 +37,13 @@ const SitesFullView: React.FC = () => {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
+
+  // Memoize safe area style to avoid creating new object on every render
+  const safeAreaStyle = useMemo(
+    () => [styles.safeArea, { paddingBottom: insets.bottom }],
+    [styles.safeArea, insets.bottom],
+  );
+
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -89,10 +96,7 @@ const SitesFullView: React.FC = () => {
   }, [isSearchActive, searchQuery]);
 
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { paddingBottom: insets.bottom }]}
-      edges={['left', 'right']}
-    >
+    <SafeAreaView style={safeAreaStyle} edges={['left', 'right']}>
       <View
         style={[
           styles.headerContainer,
