@@ -38,7 +38,6 @@ const SitesFullView: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
-  // Memoize safe area style to avoid creating new object on every render
   const safeAreaStyle = useMemo(
     () => [styles.safeArea, { paddingBottom: insets.bottom }],
     [styles.safeArea, insets.bottom],

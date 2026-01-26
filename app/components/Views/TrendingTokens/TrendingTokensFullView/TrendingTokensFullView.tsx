@@ -126,7 +126,6 @@ const TrendingTokensFullView = () => {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
 
-  // Memoize safe area style to avoid creating new object on every render
   const safeAreaStyle = useMemo(
     () => [styles.safeArea, { paddingBottom: insets.bottom }],
     [styles.safeArea, insets.bottom],
