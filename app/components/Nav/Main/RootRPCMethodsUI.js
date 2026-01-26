@@ -14,7 +14,6 @@ import {
   setEtherTransaction,
   setTransactionObject,
 } from '../../../actions/transaction';
-import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
@@ -40,7 +39,6 @@ import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
 import SignatureApproval from '../../Approvals/SignatureApproval';
 import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
-import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
 import ConnectApproval from '../../Approvals/ConnectApproval';
 import {
   TransactionApproval,
@@ -76,10 +74,6 @@ const RootRPCMethodsUI = (props) => {
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
-
-  const initializeWalletConnect = () => {
-    WalletConnect.init();
-  };
 
   const autoSign = useCallback(
     async (transactionMeta) => {
@@ -296,21 +290,17 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
-  useEffect(() => {
-    initializeWalletConnect();
-
-    return function cleanup() {
+  useEffect(() =>
+     function cleanup() {
       Engine.context.TokensController?.hub?.removeAllListeners();
-      WalletConnect?.hub?.removeAllListeners();
-    };
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  , []);
 
   return (
     <React.Fragment>
       <ConfirmRoot />
       <SignatureApproval />
-      <WalletConnectApproval />
       <TransactionApproval
         transactionType={transactionModalType}
         navigation={props.navigation}
