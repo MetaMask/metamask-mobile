@@ -901,9 +901,19 @@ export class HyperLiquidClientService {
    * Resets the reconnection attempt counter to allow retrying after max attempts.
    */
   public async reconnect(): Promise<void> {
+    this.deps.debugLogger.log('[HyperLiquidClientService] reconnect() called', {
+      previousAttempt: this.reconnectionAttempt,
+      currentState: this.connectionState,
+    });
     // Reset attempt counter when user manually triggers retry
     this.reconnectionAttempt = 0;
     await this.handleConnectionDrop();
+    this.deps.debugLogger.log(
+      '[HyperLiquidClientService] reconnect() completed',
+      {
+        newState: this.connectionState,
+      },
+    );
   }
 
   /**

@@ -2216,13 +2216,25 @@ export class PerpsController extends BaseController<
    * Used by the UI retry button when connection is lost.
    */
   async reconnect(): Promise<void> {
+    this.debugLog('[PerpsController] reconnect() called');
     try {
       const provider = this.getActiveProvider();
       if (provider.reconnect) {
+        this.debugLog('[PerpsController] Delegating to provider.reconnect()');
         await provider.reconnect();
+        this.debugLog('[PerpsController] provider.reconnect() completed');
+      } else {
+        this.debugLog(
+          '[PerpsController] Provider does not support reconnect()',
+        );
       }
-    } catch {
-      // If no provider is active, do nothing
+    } catch (error) {
+      this.logError(
+        ensureError(error),
+        this.getErrorContext('reconnect', {
+          operation: 'websocket_reconnect',
+        }),
+      );
     }
   }
 
