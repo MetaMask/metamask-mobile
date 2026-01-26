@@ -168,13 +168,13 @@ describe('SettingsModal', () => {
   it('displays settings title in header', () => {
     const { getByText } = renderWithProvider(SettingsModal);
 
-    expect(getByText('Settings')).toBeTruthy();
+    expect(getByText('Settings')).toBeOnTheScreen();
   });
 
   it('displays view order history menu item', () => {
     const { getByText } = renderWithProvider(SettingsModal);
 
-    expect(getByText('View order history')).toBeTruthy();
+    expect(getByText('View order history')).toBeOnTheScreen();
   });
 
   it('navigates to transactions view when view order history is pressed', () => {
@@ -195,7 +195,7 @@ describe('SettingsModal', () => {
     it('displays contact support menu item when provider has support URL', () => {
       const { getByText } = renderWithProvider(SettingsModal);
 
-      expect(getByText('Contact support')).toBeTruthy();
+      expect(getByText('Contact support')).toBeOnTheScreen();
     });
 
     it('opens support URL when contact support is pressed', () => {
@@ -234,7 +234,7 @@ describe('SettingsModal', () => {
 
       const logoutButton = await findByText('Log out of Transak');
 
-      expect(logoutButton).toBeTruthy();
+      expect(logoutButton).toBeOnTheScreen();
     });
 
     it('clears provider token and shows success toast on logout', async () => {
