@@ -28,6 +28,7 @@ import styleSheet from './BuildQuote.styles';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
+import { createSettingsModalNavDetails } from './Modals/SettingsModal';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -76,7 +77,7 @@ function BuildQuote() {
         networkName: networkInfo?.networkName ?? undefined,
         networkImageSource: networkInfo?.networkImageSource,
         onSettingsPress: () => {
-          // TODO: Implement settings handler
+          navigation.navigate(...createSettingsModalNavDetails());
         },
       }),
     );

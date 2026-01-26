@@ -4735,6 +4735,14 @@
         "subtitle_5": "and see how much gas costs.",
         "cta": "Continue to purchase {{ticker}}"
       }
+    },
+    "build_quote_settings_modal": {
+      "title": "Settings",
+      "view_order_history": "View order history",
+      "contact_support": "Contact support",
+      "log_out": "Log out of {{provider}}",
+      "logged_out_success": "Successfully logged out",
+      "logged_out_error": "Error logging out"
     }
   },
   "fiat_on_ramp_aggregator": {
