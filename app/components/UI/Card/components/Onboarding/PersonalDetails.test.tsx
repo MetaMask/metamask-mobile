@@ -856,13 +856,11 @@ describe('PersonalDetails Component', () => {
         logoutFromProvider: jest.fn(),
       });
 
-      const { getByTestId } = render(<PersonalDetails />);
+      const { getByText, queryByText } = render(<PersonalDetails />);
 
-      const nationalitySelect = getByTestId(
-        'personal-details-nationality-select',
-      );
       // The nationality should show Canada (from countryOfNationality), not US (from countryOfResidence)
-      expect(nationalitySelect).toBeTruthy();
+      expect(getByText('Canada')).toBeTruthy();
+      expect(queryByText('United States')).toBeNull();
     });
 
     it('falls back to countryOfResidence when countryOfNationality is not provided', () => {
@@ -881,13 +879,10 @@ describe('PersonalDetails Component', () => {
         logoutFromProvider: jest.fn(),
       });
 
-      const { getByTestId } = render(<PersonalDetails />);
+      const { getByText } = render(<PersonalDetails />);
 
-      const nationalitySelect = getByTestId(
-        'personal-details-nationality-select',
-      );
       // The nationality should show United States (from countryOfResidence fallback)
-      expect(nationalitySelect).toBeTruthy();
+      expect(getByText('United States')).toBeTruthy();
     });
 
     it('falls back to countryOfResidence when countryOfNationality is empty string', () => {
@@ -906,13 +901,10 @@ describe('PersonalDetails Component', () => {
         logoutFromProvider: jest.fn(),
       });
 
-      const { getByTestId } = render(<PersonalDetails />);
+      const { getByText } = render(<PersonalDetails />);
 
-      const nationalitySelect = getByTestId(
-        'personal-details-nationality-select',
-      );
       // The nationality should show Canada (from countryOfResidence fallback)
-      expect(nationalitySelect).toBeTruthy();
+      expect(getByText('Canada')).toBeTruthy();
     });
 
     it('falls back to countryOfResidence when countryOfNationality is undefined', () => {
@@ -930,13 +922,10 @@ describe('PersonalDetails Component', () => {
         logoutFromProvider: jest.fn(),
       });
 
-      const { getByTestId } = render(<PersonalDetails />);
+      const { getByText } = render(<PersonalDetails />);
 
-      const nationalitySelect = getByTestId(
-        'personal-details-nationality-select',
-      );
       // The nationality should show United States (from countryOfResidence fallback)
-      expect(nationalitySelect).toBeTruthy();
+      expect(getByText('United States')).toBeTruthy();
     });
 
     it('leaves nationality empty when both countryOfNationality and countryOfResidence are not provided', () => {
@@ -953,13 +942,11 @@ describe('PersonalDetails Component', () => {
         logoutFromProvider: jest.fn(),
       });
 
-      const { getByTestId } = render(<PersonalDetails />);
+      const { queryByText } = render(<PersonalDetails />);
 
-      const nationalitySelect = getByTestId(
-        'personal-details-nationality-select',
-      );
-      // The nationality should be empty/not set
-      expect(nationalitySelect).toBeTruthy();
+      // The nationality should be empty - neither country name should appear in the selector
+      expect(queryByText('Canada')).toBeNull();
+      expect(queryByText('United States')).toBeNull();
     });
 
     it('enables continue button when nationality is set via countryOfResidence fallback', async () => {
