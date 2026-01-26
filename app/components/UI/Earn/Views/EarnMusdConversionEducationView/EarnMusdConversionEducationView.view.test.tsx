@@ -42,8 +42,8 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       [],
       {
         state,
-        initialParams: mockRouteParams,
       },
+      mockRouteParams,
     );
 
     expect(
@@ -94,8 +94,8 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       [],
       {
         state,
-        initialParams: mockRouteParams,
       },
+      mockRouteParams,
     );
 
     const continueButton = getByText(
@@ -132,8 +132,8 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       [],
       {
         state,
-        initialParams: mockRouteParams,
       },
+      mockRouteParams,
     );
 
     // Verify screen renders with heading (image is rendered as part of component tree)
@@ -169,8 +169,8 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       [],
       {
         state,
-        initialParams: mockRouteParams,
       },
+      mockRouteParams,
     );
 
     const goBackButton = getByText(
@@ -208,8 +208,8 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       [],
       {
         state,
-        initialParams: mockRouteParams,
       },
+      mockRouteParams,
     );
 
     const continueButton = getByText(
@@ -246,8 +246,8 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       [],
       {
         state,
-        initialParams: {}, // Missing params
       },
+      {}, // Missing params
     );
 
     // Component should still render
@@ -283,10 +283,10 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       [],
       {
         state,
-        initialParams: {
-          preferredPaymentToken: mockRouteParams.preferredPaymentToken,
-          // Missing outputChainId
-        },
+      },
+      {
+        preferredPaymentToken: mockRouteParams.preferredPaymentToken,
+        // Missing outputChainId
       },
     );
 
@@ -323,10 +323,10 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       [],
       {
         state,
-        initialParams: {
-          outputChainId: mockRouteParams.outputChainId,
-          // Missing preferredPaymentToken
-        },
+      },
+      {
+        outputChainId: mockRouteParams.outputChainId,
+        // Missing preferredPaymentToken
       },
     );
 

@@ -7,13 +7,14 @@ import { View } from 'react-native';
 import MusdConversionAssetOverviewCta from './index';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import { fireEvent } from '@testing-library/react-native';
+import { TokenI } from '../../../../Tokens/types';
 
 // Wrapper component to render the CTA in a screen context
 const MusdConversionAssetOverviewCtaScreen = ({
   asset,
   onDismiss,
 }: {
-  asset: { symbol: string; address: string; chainId: string };
+  asset: TokenI;
   onDismiss?: () => void;
 }) => (
   <View>
