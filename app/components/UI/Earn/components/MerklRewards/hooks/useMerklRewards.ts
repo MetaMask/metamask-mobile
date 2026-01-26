@@ -119,16 +119,21 @@ export const useMerklRewards = ({
             tokenDecimals,
             2, // Show 2 decimal places
           );
+          // Handle the "< 0.00001" case from renderFromTokenMinimalUnit
+          // by showing "< 0.01" for consistency with 2 decimal places
+          const displayAmount = unclaimedAmount.startsWith('<')
+            ? '< 0.01'
+            : unclaimedAmount;
           // Double-check that the rendered amount is not '0' or '0.00'
           // This handles edge cases where very small amounts round to zero
           if (
-            unclaimedAmount &&
-            unclaimedAmount !== '0' &&
-            unclaimedAmount !== '0.00'
+            displayAmount &&
+            displayAmount !== '0' &&
+            displayAmount !== '0.00'
           ) {
             // Final check before setting state to ensure effect is still active
             if (!abortController.signal.aborted) {
-              setClaimableReward(unclaimedAmount);
+              setClaimableReward(displayAmount);
             }
           }
         }
