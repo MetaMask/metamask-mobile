@@ -225,7 +225,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     expect(mockOnDismiss).toHaveBeenCalledTimes(1);
   });
 
-  it('renders CTA component regardless of allowlist status', () => {
+  it('renders CTA component as presentational component regardless of allowlist', () => {
     // Arrange
     const mockAssetNotInAllowlist = {
       ...mockAsset,
