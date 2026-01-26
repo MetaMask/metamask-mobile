@@ -1,5 +1,7 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AmountScreen from './AmountScreen';
+import { expect as appwrightExpect } from 'appwright';
 
 class PerpsDepositScreen {
 
@@ -21,7 +23,11 @@ class PerpsDepositScreen {
   }
 
   get amountInput() {
-    return AppwrightSelectors.getElementByID(this._device, 'edit-amount-input');
+    return AppwrightSelectors.getElementByID(this._device, 'custom-amount-input');
+  }
+
+  get backButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'Add funds-navbar-back-button');
   }
 
   get payWithButton() {
@@ -31,30 +37,59 @@ class PerpsDepositScreen {
     );
   }
 
-  async isAmountInputVisible() {
-    const input = await this.amountInput;
-    await input.isVisible({ timeout: 15000 });
+  get addFundsButton() {
+    return AppwrightSelectors.getElementByText(this._device, 'Add funds');
   }
 
-  async selectPayTokenByText(networkId, token) {
-    const networkButton = await AppwrightSelectors.getElementByID(this._device, `asset-${networkId}-${token}`);
-    await AppwrightGestures.tap(networkButton); // Use static tap method with retry logic
+  get totalText() {
+    return AppwrightSelectors.getElementByText(this._device, 'Total');
+  }
+
+  async isAmountInputVisible() {
+    const input = await this.amountInput;
+    await appwrightExpect(input).toBeVisible();
+  }
+
+  async selectPayTokenByText(token) {
+    const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
+    await AppwrightGestures.tap(tokenButton); // Use static tap method with retry logic
   }
 
   async fillUsdAmount(amount) {
-    await AppwrightGestures.typeText(this.amountInput, String(amount));
+    AmountScreen.device = this._device;
+    await AmountScreen.enterAmount(amount);
+    await AmountScreen.tapOnNextButton();
   }
 
   async tapPayWith() {
-    await AppwrightGestures.tap(this.payWithButton); // Use static tap method with retry logic
+    await AppwrightGestures.tap(await this.payWithButton); // Use static tap method with retry logic
   }
 
   async tapContinue() {
-    await AppwrightGestures.tap(this.continueButton); // Use static tap method with retry logic
+    await AppwrightGestures.tap(await this.continueButton); // Use static tap method with retry logic
   }
 
   async tapCancel() {
-    await AppwrightGestures.tap(this.cancelButton); // Use static tap method with retry logic
+    await AppwrightGestures.tap(await this.cancelButton); // Use static tap method with retry logic
+  }
+
+  async tapBackButton() {
+    await AppwrightGestures.tap(await this.backButton); // Use static tap method with retry logic
+  }
+
+  async checkTransactionFeeIsVisible() {
+    const transactionFee = await AppwrightSelectors.getElementByID(this._device, 'bridge-fee-row');
+    await appwrightExpect(transactionFee).toBeVisible();
+  }
+
+  async isAddFundsVisible() {
+    const addFunds = await this.addFundsButton;
+    await appwrightExpect(addFunds).toBeVisible();
+  }
+
+  async isTotalVisible() {
+    const total = await AppwrightSelectors.getElementByText(this._device, 'Total');
+    await appwrightExpect(total).toBeVisible();
   }
 }
 

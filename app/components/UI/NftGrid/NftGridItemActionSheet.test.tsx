@@ -14,11 +14,6 @@ jest.mock('react-native', () => ({
   },
 }));
 
-jest.mock('../../../selectors/networkController', () => ({
-  selectChainId: jest.fn(),
-  selectSelectedNetworkClientId: jest.fn(),
-}));
-
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
     themeAppearance: 'light',
@@ -44,6 +39,9 @@ jest.mock('../../../core/Engine', () => ({
     NftController: {
       removeAndIgnoreNft: jest.fn(),
       addNft: jest.fn(),
+    },
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
     },
   },
 }));
@@ -93,19 +91,7 @@ jest.mock('@metamask/react-native-actionsheet', () => {
   );
 });
 
-import {
-  selectChainId,
-  selectSelectedNetworkClientId,
-} from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
-
-const mockSelectChainId = selectChainId as jest.MockedFunction<
-  typeof selectChainId
->;
-const mockSelectSelectedNetworkClientId =
-  selectSelectedNetworkClientId as jest.MockedFunction<
-    typeof selectSelectedNetworkClientId
-  >;
 
 describe('NftGridItemActionSheet', () => {
   const mockNft: Nft = {
@@ -124,8 +110,6 @@ describe('NftGridItemActionSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectChainId.mockReturnValue('0x1');
-    mockSelectSelectedNetworkClientId.mockReturnValue('mainnet');
   });
 
   it('renders action sheet with correct options', () => {

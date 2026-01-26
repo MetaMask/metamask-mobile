@@ -19,7 +19,6 @@ jest.spyOn(MetaMetrics, 'getInstance').mockReturnValue({
   trackEvent: mockTrackEvent,
   isEnabled: jest.fn(),
   enable: jest.fn(),
-  enableSocialLogin: jest.fn(),
   addTraitsToUser: jest.fn(),
   group: jest.fn(),
   reset: jest.fn(),
@@ -29,6 +28,7 @@ jest.spyOn(MetaMetrics, 'getInstance').mockReturnValue({
   getDeleteRegulationCreationDate: jest.fn(),
   getDeleteRegulationId: jest.fn(),
   isDataRecorded: jest.fn(),
+  updateDataRecordingFlag: jest.fn(),
   configure: jest.fn(),
   getMetaMetricsId: jest.fn(),
 } as IMetaMetrics);

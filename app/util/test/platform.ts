@@ -38,14 +38,14 @@ function resolveTargetPlatforms(filter?: PlatformFilter): RNPlatform[] {
   }
 
   if (typeof filter === 'string' || Array.isArray(filter)) {
-    const only = normalizeArray(filter) as RNPlatform[];
+    const only = normalizeArray(filter);
     return only.length ? only : defaultTargets;
   }
 
-  const only = normalizeArray(filter.only) as RNPlatform[];
-  const skip = new Set(normalizeArray(filter.skip) as RNPlatform[]);
+  const only = normalizeArray(filter.only);
+  const skip = new Set(normalizeArray(filter.skip));
 
-  const base = (only.length ? only : defaultTargets) as RNPlatform[];
+  const base = only.length ? only : defaultTargets;
   return base.filter((p) => !skip.has(p));
 }
 

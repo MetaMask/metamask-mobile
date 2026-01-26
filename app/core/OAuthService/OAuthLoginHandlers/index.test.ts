@@ -69,9 +69,10 @@ describe('OAuth login handlers', () => {
 
   for (const os of ['ios', 'android']) {
     for (const provider of Object.values(AuthConnection)) {
-      it(`should create the correct login handler for ${os} and ${provider}`, async () => {
+      it(`creates the correct login handler for ${os} and ${provider}`, async () => {
         const handler = createLoginHandler(os as Platform['OS'], provider);
         const result = await handler.login();
+
         expect(result?.authConnection).toBe(provider);
 
         switch (os) {
@@ -108,7 +109,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it(`should have correct scope and authServerPath for ${os} ${provider} handler`, async () => {
+      it(`has correct scope and authServerPath for ${os} ${provider} handler`, async () => {
         const handler = createLoginHandler(os as Platform['OS'], provider);
 
         switch (os) {
@@ -179,6 +180,50 @@ describe('OAuth login handlers', () => {
       });
     }
   }
+
+  describe('Android Google with fallback', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('creates browser-based fallback handler when fallback is true', async () => {
+      const handler = createLoginHandler(
+        'android',
+        AuthConnection.Google,
+        true,
+      );
+      const result = await handler.login();
+
+      expect(result?.authConnection).toBe(AuthConnection.Google);
+      expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
+    });
+
+    it('uses ACM handler when fallback is false (default)', async () => {
+      const handler = createLoginHandler(
+        'android',
+        AuthConnection.Google,
+        false,
+      );
+      const result = await handler.login();
+
+      expect(result?.authConnection).toBe(AuthConnection.Google);
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+      expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
+    });
+
+    it('has correct scope and authServerPath for fallback handler', async () => {
+      const handler = createLoginHandler(
+        'android',
+        AuthConnection.Google,
+        true,
+      );
+
+      expect(handler.scope).toEqual(['email', 'profile', 'openid']);
+      // Fallback uses token endpoint (code flow)
+      expect(handler.authServerPath).toBe('api/v1/oauth/token');
+    });
+  });
 
   describe('Error handling', () => {
     describe('iOS Apple handler', () => {
@@ -261,7 +306,7 @@ describe('OAuth login handlers', () => {
           expect(error).toBeInstanceOf(OAuthError);
           expect((error as OAuthError).code).toBe(OAuthErrorType.UserCancelled);
           expect((error as OAuthError).message).toContain(
-            'User cancelled - handleIosGoogleLogin: User cancelled the login process',
+            'User cancelled - IosGoogleLoginHandler: User cancelled the login process',
           );
         }
       });
@@ -278,7 +323,7 @@ describe('OAuth login handlers', () => {
           expect(error).toBeInstanceOf(OAuthError);
           expect((error as OAuthError).code).toBe(OAuthErrorType.UserDismissed);
           expect((error as OAuthError).message).toContain(
-            'User dismissed - handleIosGoogleLogin: User dismissed the login process',
+            'User dismissed - IosGoogleLoginHandler: User dismissed the login process',
           );
         }
       });

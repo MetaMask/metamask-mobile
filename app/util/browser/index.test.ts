@@ -8,6 +8,7 @@ import {
   getHost,
   appendURLParams,
   processUrlForBrowser,
+  buildPortfolioUrl,
 } from '.';
 import { strings } from '../../../locales/i18n';
 
@@ -351,5 +352,69 @@ describe('Browser utils :: appendURLParams', () => {
     const result = appendURLParams(baseUrl, params);
 
     expect(result.toString()).toBe('https://metamask.io/');
+  });
+});
+
+describe('Browser utils :: buildPortfolioUrl', () => {
+  it('should build portfolio URL with metamaskEntry parameter', () => {
+    const baseUrl = 'https://portfolio.metamask.io';
+
+    const result = buildPortfolioUrl(baseUrl);
+
+    expect(result.toString()).toBe(
+      'https://portfolio.metamask.io/?metamaskEntry=mobile',
+    );
+  });
+
+  it('should build portfolio URL with additional parameters', () => {
+    const baseUrl = 'https://portfolio.metamask.io';
+    const additionalParams = {
+      marketingEnabled: true,
+      metricsEnabled: true,
+    };
+
+    const result = buildPortfolioUrl(baseUrl, additionalParams);
+
+    expect(result.toString()).toBe(
+      'https://portfolio.metamask.io/?metamaskEntry=mobile&marketingEnabled=true&metricsEnabled=true',
+    );
+  });
+
+  it('should build portfolio URL with metrics disabled', () => {
+    const baseUrl = 'https://portfolio.metamask.io';
+    const additionalParams = {
+      marketingEnabled: false,
+      metricsEnabled: false,
+    };
+
+    const result = buildPortfolioUrl(baseUrl, additionalParams);
+
+    expect(result.toString()).toBe(
+      'https://portfolio.metamask.io/?metamaskEntry=mobile&marketingEnabled=false&metricsEnabled=false',
+    );
+  });
+
+  it('should build portfolio URL with mixed parameters', () => {
+    const baseUrl = 'https://portfolio.metamask.io/bridge';
+    const additionalParams = {
+      marketingEnabled: true,
+      metricsEnabled: false,
+      srcChain: 1,
+      token: '0x123',
+    };
+
+    const result = buildPortfolioUrl(baseUrl, additionalParams);
+
+    expect(result.toString()).toBe(
+      'https://portfolio.metamask.io/bridge?metamaskEntry=mobile&marketingEnabled=true&metricsEnabled=false&srcChain=1&token=0x123',
+    );
+  });
+
+  it('should return URL object', () => {
+    const baseUrl = 'https://portfolio.metamask.io';
+
+    const result = buildPortfolioUrl(baseUrl);
+
+    expect(result).toBeInstanceOf(URL);
   });
 });

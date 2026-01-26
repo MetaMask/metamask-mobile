@@ -360,6 +360,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "borderColor": "#b7bbc866",
                                   "borderRadius": 16,
                                   "borderWidth": 1,
@@ -435,7 +436,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           }
                         >
                           <View
-                            accessibilityLabel="Request Payment"
+                            accessibilityLabel="Request payment"
                             accessibilityRole="button"
                             accessibilityState={
                               {
@@ -572,7 +573,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                       "flexGrow": 0,
                                       "flexShrink": 1,
                                       "flexWrap": "wrap",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -583,7 +584,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                Request Payment
+                                Request payment
                               </Text>
                             </View>
                           </View>
@@ -963,6 +964,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "borderColor": "#b7bbc866",
                                   "borderRadius": 16,
                                   "borderWidth": 1,
@@ -1038,7 +1040,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           }
                         >
                           <View
-                            accessibilityLabel="Request Payment"
+                            accessibilityLabel="Request payment"
                             accessibilityRole="button"
                             accessibilityState={
                               {
@@ -1175,7 +1177,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                       "flexGrow": 0,
                                       "flexShrink": 1,
                                       "flexWrap": "wrap",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -1186,7 +1188,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                Request Payment
+                                Request payment
                               </Text>
                             </View>
                           </View>
@@ -1566,6 +1568,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "borderColor": "#b7bbc866",
                                   "borderRadius": 16,
                                   "borderWidth": 1,
@@ -1641,7 +1644,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           }
                         >
                           <View
-                            accessibilityLabel="Request Payment"
+                            accessibilityLabel="Request payment"
                             accessibilityRole="button"
                             accessibilityState={
                               {
@@ -1778,7 +1781,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                       "flexGrow": 0,
                                       "flexShrink": 1,
                                       "flexWrap": "wrap",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -1789,7 +1792,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                Request Payment
+                                Request payment
                               </Text>
                             </View>
                           </View>

@@ -79,6 +79,7 @@ const Routes = {
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   TRENDING_VIEW: 'TrendingView',
+  TRENDING_FEED: 'TrendingFeed',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
@@ -113,6 +114,8 @@ const Routes = {
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
+    OTA_UPDATES_MODAL: 'OTAUpdatesModal',
+    REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -185,7 +188,6 @@ const Routes = {
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
-    TOKEN_FILTER: 'TokenFilter',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
@@ -195,7 +197,6 @@ const Routes = {
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
-    TOKEN_INSIGHTS: 'TokenInsights',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
@@ -322,6 +323,7 @@ const Routes = {
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
+      TRX_LEARN_MORE: 'TrxLearnMore',
       MAX_INPUT: 'MaxInput',
       GAS_IMPACT: 'GasImpact',
       EARN_TOKEN_LIST: 'EarnTokenList',
@@ -331,6 +333,9 @@ const Routes = {
     ROOT: 'EarnScreens',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
+    MUSD: {
+      CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+    },
     MODALS: {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
@@ -376,6 +381,7 @@ const Routes = {
   ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
+    CARD_MAIN_ROUTES: 'CardMainRoutes',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
@@ -390,7 +396,7 @@ const Routes = {
       SET_PHONE_NUMBER: 'CardOnboardingSetPhoneNumber',
       CONFIRM_PHONE_NUMBER: 'CardOnboardingConfirmPhoneNumber',
       VERIFY_IDENTITY: 'CardOnboardingVerifyIdentity',
-      VALIDATING_KYC: 'CardOnboardingValidatingKYC',
+      VERIFYING_VERIFF_KYC: 'CardOnboardingVerifyingVeriffKYC',
       PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
@@ -402,6 +408,8 @@ const Routes = {
       ID: 'CardModals',
       ADD_FUNDS: 'CardAddFundsModal',
       ASSET_SELECTION: 'CardAssetSelectionModal',
+      REGION_SELECTION: 'CardRegionSelectionModal',
+      CONFIRM_MODAL: 'CardConfirmModal',
     },
   },
   SEND: {

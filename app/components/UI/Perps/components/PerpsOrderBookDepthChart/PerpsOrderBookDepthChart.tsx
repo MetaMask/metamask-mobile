@@ -8,7 +8,7 @@ import Text, {
 import { useStyles } from '../../../../hooks/useStyles';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import styleSheet from './PerpsOrderBookDepthChart.styles';
-import { PerpsOrderBookDepthChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderBookDepthChartSelectorsIDs } from '../../Perps.testIds';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -204,18 +204,12 @@ const PerpsOrderBookDepthChart: React.FC<PerpsOrderBookDepthChartProps> = ({
             />
           )}
         </Svg>
-
-        {/* Mid price line */}
-        <View style={styles.midPriceContainer} />
       </View>
 
-      {/* Price labels */}
+      {/* Price labels - min and max only, no mid-price */}
       <View style={styles.labelContainer}>
         <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
           {formatPrice(priceRange.min)}
-        </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-          {formatPrice(parseFloat(orderBook.midPrice))}
         </Text>
         <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
           {formatPrice(priceRange.max)}

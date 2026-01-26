@@ -13,18 +13,29 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_SYMBOL,
+} from '../constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
 } from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
-import { MetaMetrics } from '../../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../constants/eventNames';
 import { ensureError } from '../utils/perpsErrorHandler';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
@@ -62,6 +73,7 @@ import type {
   GetAccountStateParams,
   GetAvailableDexsParams,
   GetFundingParams,
+  GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
   GetPositionsParams,
@@ -93,6 +105,7 @@ import type {
   WithdrawResult,
   GetHistoricalPortfolioParams,
   HistoricalPortfolioResult,
+  OrderType,
 } from './types';
 import type {
   RemoteFeatureFlagControllerState,
@@ -122,7 +135,6 @@ export type PerpsControllerState = {
   // Active provider
   activeProvider: string;
   isTestnet: boolean; // Dev toggle for testnet
-  connectionStatus: 'disconnected' | 'connecting' | 'connected';
 
   // Initialization state machine
   initializationState: InitializationState;
@@ -131,9 +143,6 @@ export type PerpsControllerState = {
 
   // Account data (persisted) - using HyperLiquid property names
   accountState: AccountState | null;
-
-  // Current positions
-  positions: Position[];
 
   // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
@@ -161,6 +170,7 @@ export type PerpsControllerState = {
     id: string;
     amount: string;
     asset: string;
+    accountAddress: string; // Account that initiated this withdrawal
     txHash?: string;
     timestamp: number;
     success: boolean;
@@ -184,6 +194,7 @@ export type PerpsControllerState = {
     id: string;
     amount: string;
     asset: string;
+    accountAddress: string; // Account that initiated this deposit
     txHash?: string;
     timestamp: number;
     success: boolean;
@@ -221,11 +232,33 @@ export type PerpsControllerState = {
     testnet: {
       [marketSymbol: string]: {
         leverage?: number; // Last used leverage for this market
+        orderBookGrouping?: number; // Persisted price grouping for order book
+        // Pending trade configuration (temporary, expires after 5 minutes)
+        pendingConfig?: {
+          amount?: string; // Order size in USD
+          leverage?: number; // Leverage
+          takeProfitPrice?: string; // Take profit price
+          stopLossPrice?: string; // Stop loss price
+          limitPrice?: string; // Limit price (for limit orders)
+          orderType?: OrderType; // Market vs limit
+          timestamp: number; // When the config was saved (for expiration check)
+        };
       };
     };
     mainnet: {
       [marketSymbol: string]: {
         leverage?: number;
+        orderBookGrouping?: number; // Persisted price grouping for order book
+        // Pending trade configuration (temporary, expires after 5 minutes)
+        pendingConfig?: {
+          amount?: string; // Order size in USD
+          leverage?: number; // Leverage
+          takeProfitPrice?: string; // Take profit price
+          stopLossPrice?: string; // Stop loss price
+          limitPrice?: string; // Limit price (for limit orders)
+          orderType?: OrderType; // Market vs limit
+          timestamp: number; // When the config was saved (for expiration check)
+        };
       };
     };
   };
@@ -248,12 +281,10 @@ export type PerpsControllerState = {
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false, // Default to mainnet
-  connectionStatus: 'disconnected',
   initializationState: InitializationState.UNINITIALIZED,
   initializationError: null,
   initializationAttempts: 0,
   accountState: null,
-  positions: [],
   perpsBalances: {},
   depositInProgress: false,
   lastDepositResult: null,
@@ -300,12 +331,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  positions: {
-    includeInStateLogs: true,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
   perpsBalances: {
     includeInStateLogs: true,
     persist: true,
@@ -321,12 +346,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
   activeProvider: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  connectionStatus: {
-    includeInStateLogs: true,
-    persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
@@ -554,6 +573,10 @@ export type PerpsControllerActions =
       handler: PerpsController['resetFirstTimeUserState'];
     }
   | {
+      type: 'PerpsController:clearPendingTransactionRequests';
+      handler: PerpsController['clearPendingTransactionRequests'];
+    }
+  | {
       type: 'PerpsController:saveTradeConfiguration';
       handler: PerpsController['saveTradeConfiguration'];
     }
@@ -568,6 +591,26 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:getMarketFilterPreferences';
       handler: PerpsController['getMarketFilterPreferences'];
+    }
+  | {
+      type: 'PerpsController:savePendingTradeConfiguration';
+      handler: PerpsController['savePendingTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:getPendingTradeConfiguration';
+      handler: PerpsController['getPendingTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:clearPendingTradeConfiguration';
+      handler: PerpsController['clearPendingTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:getOrderBookGrouping';
+      handler: PerpsController['getOrderBookGrouping'];
+    }
+  | {
+      type: 'PerpsController:saveOrderBookGrouping';
+      handler: PerpsController['saveOrderBookGrouping'];
     };
 
 /**
@@ -705,6 +748,28 @@ export class PerpsController extends BaseController<
     );
 
     this.providers = new Map();
+
+    // Migrate old persisted data without accountAddress
+    this.migrateRequestsIfNeeded();
+  }
+
+  /**
+   * Clean up old withdrawal/deposit requests that don't have accountAddress
+   * These are from before the accountAddress field was added and can't be displayed
+   * in the UI (which filters by account), so we discard them
+   */
+  private migrateRequestsIfNeeded(): void {
+    this.update((state) => {
+      // Remove withdrawal requests without accountAddress - they can't be attributed to any account
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => !!req.accountAddress,
+      );
+
+      // Remove deposit requests without accountAddress - they can't be attributed to any account
+      state.depositRequests = state.depositRequests.filter(
+        (req) => !!req.accountAddress,
+      );
+    });
   }
 
   protected setBlockedRegionList(
@@ -1301,12 +1366,17 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastDepositResult = null;
 
+        // Get current account address
+        const evmAccount = getEvmAccountFromSelectedAccountGroup();
+        const accountAddress = evmAccount?.address || 'unknown';
+
         // Add deposit request to tracking
         const depositRequest = {
           id: currentDepositId,
           timestamp: Date.now(),
           amount: amount || '0', // Use provided amount or default to '0'
           asset: USDC_SYMBOL,
+          accountAddress, // Track which account initiated deposit
           success: false, // Will be updated when transaction completes
           txHash: undefined,
           status: 'pending' as TransactionStatus,
@@ -1320,6 +1390,14 @@ export class PerpsController extends BaseController<
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(assetChainId);
 
+      const gasFeeToken =
+        transaction.to &&
+        assetChainId.toLowerCase() === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
+        transaction.to.toLowerCase() ===
+          USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()
+          ? (transaction.to as Hex)
+          : undefined;
+
       // addTransaction shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
       const { result, transactionMeta } =
@@ -1328,6 +1406,7 @@ export class PerpsController extends BaseController<
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
           skipInitialGasEstimate: true,
+          gasFeeToken,
         });
 
       // Store the transaction ID and try to get amount from transaction
@@ -1476,6 +1555,8 @@ export class PerpsController extends BaseController<
     status: 'completed' | 'failed',
     txHash?: string,
   ): void {
+    let withdrawalAmount: string | undefined;
+
     this.update((state) => {
       const withdrawalIndex = state.withdrawalRequests.findIndex(
         (request) => request.id === withdrawalId,
@@ -1483,6 +1564,8 @@ export class PerpsController extends BaseController<
 
       if (withdrawalIndex >= 0) {
         const request = state.withdrawalRequests[withdrawalIndex];
+        withdrawalAmount = request.amount;
+        const originalStatus = request.status;
         request.status = status;
         request.success = status === 'completed';
         if (txHash) {
@@ -1496,6 +1579,21 @@ export class PerpsController extends BaseController<
             lastUpdated: Date.now(),
             activeWithdrawalId: null,
           };
+        }
+
+        // Track withdrawal transaction completed/failed (confirmed via HyperLiquid API)
+        if (withdrawalAmount !== undefined && originalStatus !== status) {
+          const eventBuilder = MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+          ).addProperties({
+            [PerpsEventProperties.STATUS]:
+              status === 'completed'
+                ? PerpsEventValues.STATUS.COMPLETED
+                : PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
+              Number.parseFloat(withdrawalAmount),
+          });
+          MetaMetrics.getInstance().trackEvent(eventBuilder.build());
         }
 
         DevLogger.log('PerpsController: Updated withdrawal status', {
@@ -1656,11 +1754,27 @@ export class PerpsController extends BaseController<
   /**
    * Get available markets with optional filtering
    * Thin delegation to MarketDataService
+   *
+   * For readOnly mode, bypasses getActiveProvider() to allow market discovery
+   * without full perps initialization (e.g., for discovery banners on spot screens)
    */
-  async getMarkets(params?: {
-    symbols?: string[];
-    dex?: string;
-  }): Promise<MarketInfo[]> {
+  async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
+    // For readOnly mode, access provider directly without initialization check
+    // This allows discovery use cases (checking if market exists) without full perps setup
+    if (params?.readOnly) {
+      // Try to get existing provider, or create a temporary one for readOnly queries
+      let provider = this.providers.get(this.state.activeProvider);
+      // Create a temporary provider instance for readOnly queries
+      // The readOnly path in provider creates a standalone InfoClient without full init
+      provider ??= new HyperLiquidProvider({
+        isTestnet: this.state.isTestnet,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.hip3AllowlistMarkets,
+        blocklistMarkets: this.hip3BlocklistMarkets,
+      });
+      return provider.getMarkets(params);
+    }
+
     const provider = this.getActiveProvider();
     return MarketDataService.getMarkets({
       provider,
@@ -1803,7 +1917,6 @@ export class PerpsController extends BaseController<
 
       this.update((state) => {
         state.isTestnet = !state.isTestnet;
-        state.connectionStatus = 'disconnected';
       });
 
       const newNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -1854,7 +1967,6 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.activeProvider = providerId;
-      state.connectionStatus = 'disconnected';
     });
 
     return { success: true, providerId };
@@ -2223,6 +2335,36 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Clear pending/bridging withdrawal and deposit requests
+   * This is useful when users want to clear stuck pending indicators
+   * Called by Reset Account feature in settings
+   */
+  clearPendingTransactionRequests(): void {
+    DevLogger.log('PerpsController: Clearing pending transaction requests', {
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      // Filter out pending/bridging withdrawals, keep completed/failed for history
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => req.status !== 'pending' && req.status !== 'bridging',
+      );
+
+      // Filter out pending deposits, keep completed/failed for history
+      state.depositRequests = state.depositRequests.filter(
+        (req) => req.status !== 'pending' && req.status !== 'bridging',
+      );
+
+      // Reset withdrawal progress
+      state.withdrawalProgress = {
+        progress: 0,
+        lastUpdated: Date.now(),
+        activeWithdrawalId: null,
+      };
+    });
+  }
+
+  /**
    * Get saved trade configuration for a market
    */
   getTradeConfiguration(coin: string): { leverage?: number } | undefined {
@@ -2260,9 +2402,130 @@ export class PerpsController extends BaseController<
         state.tradeConfigurations[network] = {};
       }
 
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
       state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
         leverage,
       };
+    });
+  }
+
+  /**
+   * Save pending trade configuration for a market
+   * This is a temporary configuration that expires after 5 minutes
+   * @param coin - Market symbol
+   * @param config - Pending trade configuration
+   */
+  savePendingTradeConfiguration(
+    coin: string,
+    config: {
+      amount?: string;
+      leverage?: number;
+      takeProfitPrice?: string;
+      stopLossPrice?: string;
+      limitPrice?: string;
+      orderType?: OrderType;
+    },
+  ): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Saving pending trade configuration', {
+      coin,
+      network,
+      config,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (!state.tradeConfigurations[network]) {
+        state.tradeConfigurations[network] = {};
+      }
+
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
+      state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
+        pendingConfig: {
+          ...config,
+          timestamp: Date.now(),
+        },
+      };
+    });
+  }
+
+  /**
+   * Get pending trade configuration for a market
+   * Returns undefined if config doesn't exist or has expired (more than 5 minutes old)
+   * @param coin - Market symbol
+   * @returns Pending trade configuration or undefined
+   */
+  getPendingTradeConfiguration(coin: string):
+    | {
+        amount?: string;
+        leverage?: number;
+        takeProfitPrice?: string;
+        stopLossPrice?: string;
+        limitPrice?: string;
+        orderType?: OrderType;
+      }
+    | undefined {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const config =
+      this.state.tradeConfigurations[network]?.[coin]?.pendingConfig;
+
+    if (!config) {
+      return undefined;
+    }
+
+    // Check if config has expired (5 minutes = 300,000 milliseconds)
+    const FIVE_MINUTES_MS = 5 * 60 * 1000;
+    const now = Date.now();
+    const age = now - config.timestamp;
+
+    if (age > FIVE_MINUTES_MS) {
+      DevLogger.log('PerpsController: Pending trade config expired', {
+        coin,
+        network,
+        age,
+        timestamp: config.timestamp,
+      });
+      // Clear expired config
+      this.update((state) => {
+        if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
+          delete state.tradeConfigurations[network][coin].pendingConfig;
+        }
+      });
+      return undefined;
+    }
+
+    DevLogger.log('PerpsController: Retrieved pending trade config', {
+      coin,
+      network,
+      config,
+      age,
+    });
+
+    // Return config without timestamp
+    const { timestamp, ...configWithoutTimestamp } = config;
+    return configWithoutTimestamp;
+  }
+
+  /**
+   * Clear pending trade configuration for a market
+   * @param coin - Market symbol
+   */
+  clearPendingTradeConfiguration(coin: string): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Clearing pending trade configuration', {
+      coin,
+      network,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
+        delete state.tradeConfigurations[network][coin].pendingConfig;
+      }
     });
   }
 
@@ -2288,6 +2551,55 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.marketFilterPreferences = optionId;
+    });
+  }
+
+  /**
+   * Get saved order book grouping for a market
+   * @param coin - Market symbol
+   * @returns The saved grouping value or undefined if not set
+   */
+  getOrderBookGrouping(coin: string): number | undefined {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const grouping =
+      this.state.tradeConfigurations[network]?.[coin]?.orderBookGrouping;
+
+    if (grouping !== undefined) {
+      DevLogger.log('PerpsController: Retrieved order book grouping', {
+        coin,
+        network,
+        grouping,
+      });
+    }
+
+    return grouping;
+  }
+
+  /**
+   * Save order book grouping for a market
+   * @param coin - Market symbol
+   * @param grouping - Price grouping value
+   */
+  saveOrderBookGrouping(coin: string, grouping: number): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Saving order book grouping', {
+      coin,
+      network,
+      grouping,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (!state.tradeConfigurations[network]) {
+        state.tradeConfigurations[network] = {};
+      }
+
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
+      state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
+        orderBookGrouping: grouping,
+      };
     });
   }
 

@@ -12,6 +12,7 @@ import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { TransactionType } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
 
 /**
  * Configuration for mUSD conversion
@@ -32,6 +33,10 @@ export interface MusdConversionConfig {
    * Optional navigation stack to use (defaults to Routes.EARN.ROOT)
    */
   navigationStack?: string;
+  /**
+   * Skip the education screen check. Used when calling from the education view itself
+   */
+  skipEducationCheck?: boolean;
 }
 
 /**
@@ -65,17 +70,70 @@ export const useMusdConversion = () => {
 
   const selectedAddress = selectedAccount?.address;
 
+  const hasSeenConversionEducationScreen = useSelector(
+    selectMusdConversionEducationSeen,
+  );
+
+  const navigateToConversionScreen = useCallback(
+    ({
+      outputChainId,
+      preferredPaymentToken,
+      navigationStack = Routes.EARN.ROOT,
+    }: MusdConversionConfig) => {
+      navigation.navigate(navigationStack, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: {
+          loader: ConfirmationLoader.CustomAmount,
+          preferredPaymentToken,
+          outputChainId,
+        },
+      });
+    },
+    [navigation],
+  );
+
   /**
-   * Creates a placeholder transaction and navigates to confirmation.
-   * Navigation happens immediately. Transaction creation and gas estimation happen asynchronously.
+   * Checks if user needs to see education screen and redirects if so.
+   * @returns true if redirected to education, false if user can proceed
    */
-  const initiateConversion = useCallback(
-    async (config: MusdConversionConfig): Promise<string> => {
+  const handleEducationRedirectIfNeeded = useCallback(
+    (config: MusdConversionConfig): boolean => {
+      if (config.skipEducationCheck || hasSeenConversionEducationScreen) {
+        return false;
+      }
+
       const {
         outputChainId,
         preferredPaymentToken,
         navigationStack = Routes.EARN.ROOT,
       } = config;
+
+      navigation.navigate(navigationStack, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: {
+          preferredPaymentToken,
+          outputChainId,
+        },
+      });
+
+      return true;
+    },
+    [hasSeenConversionEducationScreen, navigation],
+  );
+
+  /**
+   * Creates a placeholder transaction and navigates to confirmation.
+   * Navigation happens immediately. Transaction creation and gas estimation happen asynchronously.
+   *
+   * If the user has not seen the education screen, they will be redirected there first.
+   */
+  const initiateConversion = useCallback(
+    async (config: MusdConversionConfig): Promise<string | void> => {
+      if (handleEducationRedirectIfNeeded(config)) {
+        return;
+      }
+
+      const { outputChainId, preferredPaymentToken } = config;
 
       try {
         setError(null);
@@ -105,14 +163,7 @@ export const useMusdConversion = () => {
          * since there can be a delay between the user's button press and
          * transaction creation in the background.
          */
-        navigation.navigate(navigationStack, {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params: {
-            loader: ConfirmationLoader.CustomAmount,
-            preferredPaymentToken,
-            outputChainId,
-          },
-        });
+        navigateToConversionScreen(config);
 
         try {
           const ZERO_HEX_VALUE = '0x0';
@@ -154,20 +205,10 @@ export const useMusdConversion = () => {
                 networkClientId,
                 origin: MMM_ORIGIN,
                 type: TransactionType.musdConversion,
-                // Important: Nested transaction is required for Relay to work. This will be fixed in a future iteration.
-                nestedTransactions: [
-                  {
-                    to: mUSDTokenAddress,
-                    data: transferData as Hex,
-                    value: ZERO_HEX_VALUE,
-                  },
-                ],
               },
             );
 
-          const newTransactionId = transactionMeta.id;
-
-          return newTransactionId;
+          return transactionMeta.id;
         } catch (err) {
           // Prevent the user from being stuck on the confirmation screen without a transaction.
           navigation.goBack();
@@ -189,11 +230,17 @@ export const useMusdConversion = () => {
         throw err;
       }
     },
-    [navigation, selectedAddress],
+    [
+      handleEducationRedirectIfNeeded,
+      navigateToConversionScreen,
+      navigation,
+      selectedAddress,
+    ],
   );
 
   return {
     initiateConversion,
+    hasSeenConversionEducationScreen,
     error,
   };
 };

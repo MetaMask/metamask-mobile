@@ -2,6 +2,9 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -14,10 +17,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -29,9 +28,10 @@ import {
   PredictNavigationParamList,
   PredictEntryPoint,
 } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
+import { PredictEventValues } from '../../constants/eventNames';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 
 interface SemiCircleYesPercentageProps {
   percentage: number;
@@ -112,9 +112,9 @@ const SemiCircleYesPercentage = ({
         />
       </Svg>
       <Text
-        variant={TextVariant.BodyMDMedium}
-        color={TextColor.Success}
-        style={tw.style('-mb-1.5')}
+        variant={TextVariant.BodyMd}
+        color={TextColor.SuccessDefault}
+        style={tw.style('-mb-1.5 font-medium')}
       >
         {percentage}%
       </Text>
@@ -135,6 +135,12 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   isCarousel = false,
 }) => {
+  // Auto-detect entry point based on trending session state
+  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
+    .isFromTrending
+    ? PredictEventValues.ENTRY_POINT.TRENDING
+    : entryPoint;
+
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -181,7 +187,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             market,
             outcome,
             outcomeToken: token,
-            entryPoint,
+            entryPoint: resolvedEntryPoint,
           },
         });
       },
@@ -200,7 +206,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
-            entryPoint,
+            entryPoint: resolvedEntryPoint,
             title: market.title,
             image: getImageUrl(),
           },
@@ -226,8 +232,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
               )}
             </Box>
             <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Default}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
               style={tw.style('flex-1 font-medium')}
               numberOfLines={2}
             >
@@ -245,11 +251,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={
-                  isCarousel ? TextVariant.BodyXSMedium : TextVariant.BodySM
-                }
+                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodySm}
                 style={tw.style('font-medium')}
-                color={TextColor.Success}
+                color={TextColor.SuccessDefault}
               >
                 {outcome.tokens[0].title}
               </Text>
@@ -263,9 +267,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={isCarousel ? TextVariant.BodyXS : TextVariant.BodySM}
+                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodySm}
                 style={tw.style('font-medium')}
-                color={TextColor.Error}
+                color={TextColor.ErrorDefault}
               >
                 {outcome.tokens[1].title}
               </Text>
@@ -275,7 +279,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           />
         </View>
         <View style={styles.marketFooter}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
           </Text>
         </View>

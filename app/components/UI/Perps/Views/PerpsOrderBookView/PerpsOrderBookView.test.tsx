@@ -3,7 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsOrderBookView from './PerpsOrderBookView';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PerpsOrderBookViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 
 // Mock navigation
@@ -37,6 +37,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order_book.error': 'Failed to load order book',
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
+      'perps.market.modify': 'Modify',
+      'perps.market.close_long': 'Close Long',
+      'perps.market.close_short': 'Close Short',
       'perps.order_book.depth_band.title': 'Depth Band',
     };
     return translations[key] || key;
@@ -121,12 +124,54 @@ jest.mock('../../hooks/usePerpsMeasurement', () => ({
   usePerpsMeasurement: jest.fn(),
 }));
 
-// Mock usePerpsNavigation
+// Mock usePerpsNavigation, usePerpsMarkets, and usePositionManagement
 const mockNavigateToOrder = jest.fn();
+const mockNavigateToClosePosition = jest.fn();
+const mockOpenModifySheet = jest.fn();
+const mockCloseModifySheet = jest.fn();
+const mockHandleReversePosition = jest.fn();
+const mockModifyActionSheetRef = { current: null };
 
 jest.mock('../../hooks', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateToOrder: mockNavigateToOrder,
+    navigateToClosePosition: mockNavigateToClosePosition,
+  })),
+  usePerpsMarkets: jest.fn(() => ({
+    markets: [
+      {
+        symbol: 'BTC',
+        price: '$50,000.00',
+        leverage: 50,
+      },
+    ],
+    isLoading: false,
+    error: null,
+  })),
+  usePositionManagement: jest.fn(() => ({
+    showModifyActionSheet: false,
+    modifyActionSheetRef: mockModifyActionSheetRef,
+    openModifySheet: mockOpenModifySheet,
+    closeModifySheet: mockCloseModifySheet,
+    handleReversePosition: mockHandleReversePosition,
+  })),
+}));
+
+// Mock useHasExistingPosition
+jest.mock('../../hooks/useHasExistingPosition', () => ({
+  useHasExistingPosition: jest.fn(() => ({
+    isLoading: false,
+    existingPosition: null,
+  })),
+}));
+
+// Mock usePerpsOrderBookGrouping
+const mockSaveGrouping = jest.fn();
+
+jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
+  usePerpsOrderBookGrouping: jest.fn(() => ({
+    savedGrouping: undefined,
+    saveGrouping: mockSaveGrouping,
   })),
 }));
 
@@ -155,6 +200,35 @@ jest.mock('../../components/PerpsOrderBookDepthChart', () => {
   return (props: { testID?: string }) => (
     <View testID={props.testID || 'perps-order-book-depth-chart'} {...props} />
   );
+});
+
+// Mock PerpsMarketHeader to avoid PerpsStreamProvider dependency
+jest.mock('../../components/PerpsMarketHeader', () => {
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  const selectors = jest.requireActual<typeof import('../../Perps.testIds')>(
+    '../../Perps.testIds',
+  );
+  return {
+    __esModule: true,
+    default: ({
+      market,
+      onBackPress,
+    }: {
+      market?: { symbol: string };
+      onBackPress?: () => void;
+    }) => (
+      <View testID="perps-market-header">
+        <TouchableOpacity
+          testID={selectors.PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
+          onPress={onBackPress}
+        >
+          <Text>Back</Text>
+        </TouchableOpacity>
+        <Text>Order Book</Text>
+        {market && <Text>{market.symbol}</Text>}
+      </View>
+    ),
+  };
 });
 
 // Mock BottomSheet components to avoid SafeAreaProvider requirement
@@ -187,6 +261,15 @@ jest.mock(
     );
   },
 );
+
+// Mock PerpsSelectModifyActionView
+jest.mock('../PerpsSelectModifyActionView', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="perps-select-modify-action-view" />,
+  };
+});
 
 describe('PerpsOrderBookView', () => {
   const initialState = {
@@ -330,11 +413,17 @@ describe('PerpsOrderBookView', () => {
 
   describe('unit toggle', () => {
     it('displays BTC symbol on base unit toggle', () => {
-      const { getByText } = renderWithProvider(<PerpsOrderBookView />, {
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
         state: initialState,
       });
 
-      expect(getByText('BTC')).toBeOnTheScreen();
+      // Find the base unit toggle button by testID
+      const baseToggle = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_BASE,
+      );
+      expect(baseToggle).toBeOnTheScreen();
+      // The button should contain "BTC" text
+      expect(baseToggle).toHaveTextContent('BTC');
     });
 
     it('displays USD on USD unit toggle', () => {
@@ -462,15 +551,23 @@ describe('PerpsOrderBookView', () => {
       expect(mockTrack).toHaveBeenCalled();
     });
 
-    it('always uses nSigFigs: 5 for API (client-side aggregation)', () => {
+    it('uses dynamic nSigFigs based on grouping and price (server-side aggregation)', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
-      // nSigFigs should always be 5 (finest granularity) regardless of grouping selection
+      // nSigFigs is dynamically calculated based on grouping and price
+      // For BTC at ~$50k with default grouping of 10, nSigFigs should be 4
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
-          nSigFigs: 5,
+          nSigFigs: expect.any(Number),
         }),
       );
+      // Verify nSigFigs is within valid API range (2-5)
+      const calls = mockUsePerpsLiveOrderBook.mock.calls as [
+        { nSigFigs: number },
+      ][];
+      const lastCall = calls[calls.length - 1];
+      expect(lastCall[0].nSigFigs).toBeGreaterThanOrEqual(2);
+      expect(lastCall[0].nSigFigs).toBeLessThanOrEqual(5);
     });
   });
 
@@ -509,6 +606,167 @@ describe('PerpsOrderBookView', () => {
         asset: 'BTC',
       });
       expect(mockTrack).toHaveBeenCalled();
+    });
+  });
+
+  describe('action buttons with existing position', () => {
+    const mockLongPosition = {
+      coin: 'BTC',
+      size: '1.5',
+      entryPrice: '50000',
+      leverage: { value: 10, type: 'cross' as const },
+      margin: '5000',
+      unrealizedPnl: '100',
+      unrealizedPnlPercent: '2',
+      liquidationPrice: '45000',
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      returnOnEquity: '2',
+    };
+
+    const mockShortPosition = {
+      ...mockLongPosition,
+      size: '-1.5',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('renders Modify and Close buttons when position exists', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsOrderBookViewSelectorsIDs.LONG_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeNull();
+    });
+
+    it('opens modify action sheet when Modify button is pressed', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      const modifyButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON,
+      );
+      fireEvent.press(modifyButton);
+
+      expect(mockOpenModifySheet).toHaveBeenCalled();
+    });
+
+    it('navigates to close position when Close button is pressed', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      const closeButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON,
+      );
+      fireEvent.press(closeButton);
+
+      expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
+        mockLongPosition,
+      );
+    });
+
+    it('displays "Close Long" for long positions', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByText } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(getByText('Close Long')).toBeOnTheScreen();
+    });
+
+    it('displays "Close Short" for short positions', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockShortPosition,
+      });
+
+      const { getByText } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(getByText('Close Short')).toBeOnTheScreen();
+    });
+
+    it('shows Long/Short buttons when no position exists', () => {
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: null,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON),
+      ).toBeNull();
     });
   });
 
@@ -628,12 +886,13 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
-    it('subscribes to live order book with 50 levels for client-side aggregation', () => {
+    it('subscribes to live order book with MAX_ORDER_BOOK_LEVELS (20) for server-side aggregation', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
+      // Uses MAX_ORDER_BOOK_LEVELS (20) - API returns at most ~20 levels per side with nSigFigs
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
-          levels: 50,
+          levels: 20,
         }),
       );
     });
@@ -648,12 +907,13 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
-    it('subscribes to live order book with finest nSigFigs (5) for aggregation', () => {
+    it('subscribes to live order book with valid nSigFigs for aggregation', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
+      // nSigFigs is calculated dynamically based on price and grouping
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
-          nSigFigs: 5,
+          nSigFigs: expect.any(Number),
         }),
       );
     });

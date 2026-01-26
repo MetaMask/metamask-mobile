@@ -9,11 +9,11 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { selectChainId } from '../../../selectors/networkController';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, Box } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../util/networks';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
@@ -229,20 +229,22 @@ const FundActionMenu = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      {actionConfigs.map(
-        (config) =>
-          config.isVisible && (
-            <ActionListItem
-              key={config.type}
-              label={config.label}
-              description={config.description}
-              iconName={config.iconName}
-              onPress={createActionHandler(config)}
-              testID={config.testID}
-              isDisabled={config.isDisabled}
-            />
-          ),
-      )}
+      <Box twClassName="py-4">
+        {actionConfigs.map(
+          (config) =>
+            config.isVisible && (
+              <ActionListItem
+                key={config.type}
+                label={config.label}
+                description={config.description}
+                iconName={config.iconName}
+                onPress={createActionHandler(config)}
+                testID={config.testID}
+                isDisabled={config.isDisabled}
+              />
+            ),
+        )}
+      </Box>
     </BottomSheet>
   );
 };

@@ -11,9 +11,10 @@ import type {
   OrderBookLevel,
 } from '../../hooks/stream/usePerpsLiveOrderBook';
 import styleSheet from './PerpsOrderBookTable.styles';
-import { PerpsOrderBookTableSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderBookTableSelectorsIDs } from '../../Perps.testIds';
 import {
   formatPerpsFiat,
+  formatLargeNumber,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 
@@ -61,12 +62,20 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
   );
 
   // Format total based on unit preference
+  // Use compact notation for large USD values to prevent text wrapping
   const formatTotal = useCallback(
     (level: OrderBookLevel): string => {
       if (unit === 'usd') {
-        return formatPerpsFiat(parseFloat(level.totalNotional), {
-          ranges: PRICE_RANGES_UNIVERSAL,
-        });
+        const value = parseFloat(level.totalNotional);
+        // Use compact notation for large values to prevent text wrapping
+        if (value >= 1_000_000) {
+          return '$' + formatLargeNumber(value, { decimals: 1 }); // "$55.4M"
+        }
+        if (value >= 10_000) {
+          return '$' + formatLargeNumber(value, { decimals: 0 }); // "$121K"
+        }
+        // Standard formatting for smaller values
+        return formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
       }
       // Base currency
       const total = parseFloat(level.total);
@@ -110,14 +119,14 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
 
           {/* Total (left for bids) */}
           <View style={styles.totalColumn}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
               {formatTotal(level)}
             </Text>
           </View>
 
           {/* Price (right for bids, colored green) */}
           <View style={styles.priceColumnBid}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Success}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Success}>
               {formatPrice(level.price)}
             </Text>
           </View>
@@ -151,14 +160,14 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
 
           {/* Price (left for asks, colored red) */}
           <View style={styles.priceColumnAsk}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Error}>
               {formatPrice(level.price)}
             </Text>
           </View>
 
           {/* Total (right for asks) */}
           <View style={styles.totalColumnRight}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
               {formatTotal(level)}
             </Text>
           </View>

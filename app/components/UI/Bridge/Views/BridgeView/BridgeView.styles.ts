@@ -17,7 +17,6 @@ export const createStyles = (params: { theme: Theme }) => {
     buttonContainer: {
       width: '100%',
       paddingHorizontal: 16,
-      paddingBottom: 24,
       gap: 12,
       alignItems: 'center',
       justifyContent: 'center',

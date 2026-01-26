@@ -8,7 +8,7 @@ import {
   isTestNet,
 } from '../../../../../../../util/networks';
 import PropTypes from 'prop-types';
-import InfoModal from '../../../../../../UI/Swaps/components/InfoModal';
+import InfoModal from '../../../../../../Base/InfoModal';
 import FadeAnimationView from '../../../../../../UI/FadeAnimationView';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../../../../locales/i18n';

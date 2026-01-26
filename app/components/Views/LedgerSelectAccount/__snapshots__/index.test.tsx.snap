@@ -82,14 +82,14 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when ledger
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
           },
           undefined,
           undefined,
@@ -112,7 +112,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when ledger
           undefined,
           undefined,
           {
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 24,
           },
         ]
@@ -159,14 +159,14 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when ledger
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 30,
                 "marginVertical": 2,
               },
               undefined,
               undefined,
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
               },
               undefined,
               undefined,
@@ -209,7 +209,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when ledger
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -249,7 +249,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when ledger
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -289,7 +289,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when ledger
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -329,7 +329,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when ledger
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -369,7 +369,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when ledger
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -410,14 +410,14 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when ledger
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
             undefined,
             undefined,
             {
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
             },
             undefined,
             undefined,
@@ -555,14 +555,14 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when no acc
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
           },
           undefined,
           undefined,
@@ -585,7 +585,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when no acc
           undefined,
           undefined,
           {
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 24,
           },
         ]
@@ -632,14 +632,14 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when no acc
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 30,
                 "marginVertical": 2,
               },
               undefined,
               undefined,
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
               },
               undefined,
               undefined,
@@ -682,7 +682,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when no acc
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -722,7 +722,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when no acc
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -762,7 +762,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when no acc
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -802,7 +802,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when no acc
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -842,7 +842,7 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when no acc
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -883,14 +883,14 @@ exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when no acc
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
             undefined,
             undefined,
             {
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
             },
             undefined,
             undefined,

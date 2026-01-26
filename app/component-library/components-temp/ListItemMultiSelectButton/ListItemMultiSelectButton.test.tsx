@@ -18,24 +18,6 @@ describe('ListItemMultiSelectButton', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should not render the underlay view if isSelected is false', () => {
-    const { queryByRole } = render(
-      <ListItemMultiSelectButton>
-        <View />
-      </ListItemMultiSelectButton>,
-    );
-    expect(queryByRole('checkbox')).toBeNull();
-  });
-
-  it('should render the underlay view if isSelected is true', () => {
-    const { queryByRole } = render(
-      <ListItemMultiSelectButton isSelected>
-        <View />
-      </ListItemMultiSelectButton>,
-    );
-    expect(queryByRole('checkbox')).not.toBeNull();
-  });
-
   it('should call onPress when the button is pressed', () => {
     const mockOnPress = jest.fn();
     const { getByRole } = render(

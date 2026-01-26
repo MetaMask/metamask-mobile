@@ -43,7 +43,6 @@ const useTrackERC20WithoutDecimalInformation = (
             asset_type: TokenStandard.ERC20,
             chain_id: chainId,
             location: metricLocation,
-            ui_customizations: ['redesigned_confirmation'],
           })
           .build(),
       );

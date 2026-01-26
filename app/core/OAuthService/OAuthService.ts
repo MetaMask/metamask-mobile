@@ -10,7 +10,10 @@ import {
   OAuthLoginResultType,
   LoginHandlerResult,
 } from './OAuthInterface';
-import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import {
+  Web3AuthNetwork,
+  AuthConnection as SeedlessAuthConnection,
+} from '@metamask/seedless-onboarding-controller';
 import {
   AuthConnectionConfig,
   AuthServerUrl,
@@ -105,7 +108,7 @@ export class OAuthService {
 
   handleSeedlessAuthenticate = async (
     data: AuthResponse,
-    authConnection: AuthConnection,
+    authConnection: SeedlessAuthConnection,
   ): Promise<HandleOAuthLoginResult> => {
     try {
       const { userId, accountName } = this.localState;

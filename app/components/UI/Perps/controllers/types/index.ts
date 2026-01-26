@@ -45,6 +45,16 @@ export interface GetUserHistoryParams {
 // Trade configuration saved per market per network
 export interface TradeConfiguration {
   leverage?: number; // Last used leverage for this market
+  // Pending trade configuration (temporary, expires after 5 minutes)
+  pendingConfig?: {
+    amount?: string; // Order size in USD
+    leverage?: number; // Leverage
+    takeProfitPrice?: string; // Take profit price
+    stopLossPrice?: string; // Stop loss price
+    limitPrice?: string; // Limit price (for limit orders)
+    orderType?: OrderType; // Market vs limit
+    timestamp: number; // When the config was saved (for expiration check)
+  };
 }
 
 // Order type enumeration
@@ -64,6 +74,9 @@ export type InputMethod =
   | 'percentage'
   | 'max';
 
+// Trade action type - differentiates first trade on a market from adding to existing position
+export type TradeAction = 'create_position' | 'increase_exposure';
+
 // Unified tracking data interface for analytics events (never persisted in state)
 // Note: Numeric values are already parsed by hooks (usePerpsOrderFees, etc.) from API responses
 export interface TrackingData {
@@ -78,10 +91,14 @@ export interface TrackingData {
   // Order-specific (used for trade operations)
   marginUsed?: number; // Margin required for this order (calculated by hooks)
   inputMethod?: InputMethod; // How user set the amount
+  tradeAction?: TradeAction; // 'create_position' for first trade, 'increase_exposure' for adding to existing
 
   // Close-specific (used for position close operations)
   receivedAmount?: number; // Amount user receives after close (calculated by hooks)
   realizedPnl?: number; // Realized P&L from close (calculated by hooks)
+
+  // Entry source for analytics (e.g., 'trending' for Trending page discovery)
+  source?: string;
 }
 
 // TP/SL-specific tracking data for analytics events
@@ -89,6 +106,10 @@ export interface TPSLTrackingData {
   direction: 'long' | 'short'; // Position direction
   source: string; // Source of the TP/SL update (e.g., 'tp_sl_view', 'position_card')
   positionSize: number; // Unsigned position size for metrics
+  takeProfitPercentage?: number; // Take profit percentage from entry
+  stopLossPercentage?: number; // Stop loss percentage from entry
+  isEditingExistingPosition?: boolean; // true = editing existing position, false = creating for new order
+  entryPrice?: number; // Entry price for percentage calculations
 }
 
 // MetaMask Perps API order parameters for PerpsController
@@ -591,6 +612,7 @@ export interface GetMarketsParams {
   symbols?: string[]; // Optional symbol filter (e.g., ['BTC', 'xyz:XYZ100'])
   dex?: string; // HyperLiquid HIP-3: DEX name (empty string '' or undefined for main DEX). Other protocols: ignored.
   skipFilters?: boolean; // Skip market filtering (both allowlist and blocklist, default: false). When true, returns all markets without filtering.
+  readOnly?: boolean; // Lightweight mode: skip full initialization, only fetch market metadata (no wallet/WebSocket needed). Only main DEX markets returned. Use for discovery use cases like checking if a perps market exists.
 }
 
 export interface SubscribePricesParams {
@@ -678,8 +700,10 @@ export interface SubscribeOrderBookParams {
   symbol: string;
   /** Number of levels to return per side (default: 10) */
   levels?: number;
-  /** Price aggregation significant figures (default: 5). Higher = finer granularity */
-  nSigFigs?: number;
+  /** Price aggregation significant figures (2-5, default: 5). Higher = finer granularity */
+  nSigFigs?: 2 | 3 | 4 | 5;
+  /** Mantissa for aggregation when nSigFigs is 5 (2 or 5). Controls finest price increments */
+  mantissa?: 2 | 5;
   /** Callback function receiving order book updates */
   callback: (orderBook: OrderBookData) => void;
   /** Callback for errors */

@@ -40,8 +40,11 @@ export enum WebSocketConnectionState {
  */
 export class HyperLiquidClientService {
   private exchangeClient?: ExchangeClient;
-  private infoClient?: InfoClient;
-  private subscriptionClient?: SubscriptionClient<WebSocketTransport>;
+  private infoClient?: InfoClient; // WebSocket transport (default)
+  private infoClientHttp?: InfoClient; // HTTP transport (fallback)
+  private subscriptionClient?: SubscriptionClient<{
+    transport: WebSocketTransport;
+  }>;
   private wsTransport?: WebSocketTransport;
   private httpTransport?: HttpTransport;
   private isTestnet: boolean;
@@ -93,8 +96,11 @@ export class HyperLiquidClientService {
         transport: this.httpTransport,
       });
 
-      // InfoClient uses HTTP transport for read operations (queries, metadata, etc.)
-      this.infoClient = new InfoClient({ transport: this.httpTransport });
+      // InfoClient with WebSocket transport (default) - multiplexed requests over single connection
+      this.infoClient = new InfoClient({ transport: this.wsTransport });
+
+      // InfoClient with HTTP transport (fallback) - for specific calls if WebSocket has issues
+      this.infoClientHttp = new InfoClient({ transport: this.httpTransport });
 
       // SubscriptionClient uses WebSocket transport for real-time pub/sub (price feeds, position updates)
       this.subscriptionClient = new SubscriptionClient({
@@ -107,7 +113,7 @@ export class HyperLiquidClientService {
         testnet: this.isTestnet,
         timestamp: new Date().toISOString(),
         connectionState: this.connectionState,
-        note: 'Using HTTP for InfoClient/ExchangeClient, WebSocket for SubscriptionClient',
+        note: 'Using WebSocket for InfoClient (default), HTTP fallback available',
       });
 
       // Start health check monitoring after successful initialization
@@ -200,6 +206,7 @@ export class HyperLiquidClientService {
     return !!(
       this.exchangeClient &&
       this.infoClient &&
+      this.infoClientHttp &&
       this.subscriptionClient
     );
   }
@@ -253,9 +260,19 @@ export class HyperLiquidClientService {
 
   /**
    * Get the info client
+   * @param options.useHttp - Force HTTP transport instead of WebSocket (default: false)
+   * @returns InfoClient instance with the selected transport
    */
-  public getInfoClient(): InfoClient {
+  public getInfoClient(options?: { useHttp?: boolean }): InfoClient {
     this.ensureInitialized();
+
+    if (options?.useHttp) {
+      if (!this.infoClientHttp) {
+        throw new Error(strings('perps.errors.infoClientNotAvailable'));
+      }
+      return this.infoClientHttp;
+    }
+
     if (!this.infoClient) {
       throw new Error(strings('perps.errors.infoClientNotAvailable'));
     }
@@ -266,7 +283,7 @@ export class HyperLiquidClientService {
    * Get the subscription client
    */
   public getSubscriptionClient():
-    | SubscriptionClient<WebSocketTransport>
+    | SubscriptionClient<{ transport: WebSocketTransport }>
     | undefined {
     if (!this.subscriptionClient) {
       DevLogger.log('SubscriptionClient not initialized');
@@ -626,6 +643,7 @@ export class HyperLiquidClientService {
       this.subscriptionClient = undefined;
       this.exchangeClient = undefined;
       this.infoClient = undefined;
+      this.infoClientHttp = undefined;
       this.wsTransport = undefined;
       this.httpTransport = undefined;
 
@@ -728,7 +746,9 @@ export class HyperLiquidClientService {
 
       try {
         // Use transport.ready() to check if WebSocket is actually connected
-        await this.subscriptionClient.transport.ready(controller.signal);
+        await this.subscriptionClient.config_.transport.ready(
+          controller.signal,
+        );
       } catch {
         // Connection appears to be dead - trigger reconnection
         await this.handleConnectionDrop();

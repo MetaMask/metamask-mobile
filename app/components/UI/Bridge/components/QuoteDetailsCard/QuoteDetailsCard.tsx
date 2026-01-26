@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -30,7 +30,7 @@ import {
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
-import { getIntlNumberFormatter } from '../../../../../util/intl';
+import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { useRewards } from '../../hooks/useRewards';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -54,11 +54,6 @@ const QuoteDetailsCard: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
-
-  const locale = I18n.locale;
-  const intlNumberFormatter = getIntlNumberFormatter(locale, {
-    maximumSignificantDigits: 8,
-  });
 
   const {
     formattedQuoteData,
@@ -139,9 +134,11 @@ const QuoteDetailsCard: React.FC = () => {
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
+  const gasIncluded7702 = !!activeQuote?.quote.gasIncluded7702;
+  const isGasless = gasIncluded7702 || gasIncluded;
 
-  const formattedMinToTokenAmount = intlNumberFormatter.format(
-    parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
+  const formattedMinToTokenAmount = formatMinimumReceived(
+    activeQuote?.minToTokenAmount?.amount || '0',
   );
 
   return (
@@ -198,6 +195,7 @@ const QuoteDetailsCard: React.FC = () => {
                   nativeToken: nativeTokenName,
                 }),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
@@ -207,7 +205,7 @@ const QuoteDetailsCard: React.FC = () => {
               },
             }}
           />
-        ) : activeQuote?.quote.gasIncluded ? (
+        ) : isGasless ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -331,7 +329,7 @@ const QuoteDetailsCard: React.FC = () => {
               },
               tooltip: {
                 title: strings('bridge.price_impact_info_title'),
-                content: gasIncluded
+                content: isGasless
                   ? strings('bridge.price_impact_info_gasless_description')
                   : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,

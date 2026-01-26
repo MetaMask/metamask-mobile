@@ -15,98 +15,114 @@ describe('marginUtils', () => {
 
   describe('calculateMaxRemovableMargin', () => {
     it('uses 10% minimum when it exceeds leverage-based minimum (high leverage)', () => {
-      // For 50x leverage: initial margin = 2%, but 10% is higher
+      // For 50x position leverage: initial margin = 2%, but 10% is higher
       const result = calculateMaxRemovableMargin({
-        currentMargin: 1000,
+        currentMargin: 3000,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 50,
+        positionLeverage: 50,
       });
 
       // notionalValue = 10 * 2000 = 20000
       // initialMarginRequired = 20000 / 50 = 400 (2%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
-      // baseMinimumRequired = max(400, 2000) = 2000
-      // minimumMarginRequired = 2000 * 3 = 6000 (with 3x safety buffer)
-      // maxRemovable = 1000 - 6000 = -5000 -> 0 (capped)
-      expect(result).toBe(0);
+      // transferMarginRequired = max(400, 2000) = 2000
+      // maxRemovable = 3000 - 2000 = 1000
+      expect(result).toBe(1000);
     });
 
     it('uses leverage-based minimum when it exceeds 10% (low leverage)', () => {
-      // For 5x leverage: initial margin = 20%, which is > 10%
+      // For 5x position leverage: initial margin = 20%, which is > 10%
       const result = calculateMaxRemovableMargin({
-        currentMargin: 15000,
+        currentMargin: 5000,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 5,
+        positionLeverage: 5,
       });
 
       // notionalValue = 10 * 2000 = 20000
       // initialMarginRequired = 20000 / 5 = 4000 (20%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
-      // baseMinimumRequired = max(4000, 2000) = 4000
-      // minimumMarginRequired = 4000 * 3 = 12000 (with 3x safety buffer)
-      // maxRemovable = 15000 - 12000 = 3000
-      expect(result).toBe(3000);
+      // transferMarginRequired = max(4000, 2000) = 4000
+      // maxRemovable = 5000 - 4000 = 1000
+      expect(result).toBe(1000);
     });
 
-    it('uses higher of entry and current price for conservative calculation', () => {
+    it('uses current price (mark price) per Hyperliquid docs', () => {
       const result = calculateMaxRemovableMargin({
-        currentMargin: 20000,
+        currentMargin: 6000,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2500, // Higher than entry
-        maxLeverage: 5,
+        positionLeverage: 5,
       });
 
-      // Uses currentPrice (2500) since it's higher
+      // Uses currentPrice (2500) - mark price per Hyperliquid docs
       // notionalValue = 10 * 2500 = 25000
       // initialMarginRequired = 25000 / 5 = 5000 (20%)
       // tenPercentMargin = 25000 * 0.1 = 2500 (10%)
-      // baseMinimumRequired = max(5000, 2500) = 5000
-      // minimumMarginRequired = 5000 * 3 = 15000 (with 3x safety buffer)
-      // maxRemovable = 20000 - 15000 = 5000
-      expect(result).toBe(5000);
+      // transferMarginRequired = max(5000, 2500) = 5000
+      // maxRemovable = 6000 - 5000 = 1000
+      expect(result).toBe(1000);
     });
 
-    it('allows margin removal when current margin exceeds minimum with safety buffer', () => {
-      // User has 8000 margin for a position requiring 6000 minimum (with buffer)
+    it('allows margin removal when current margin exceeds transfer margin required', () => {
+      // User has 8000 margin for a position requiring 2000 minimum
       const result = calculateMaxRemovableMargin({
         currentMargin: 8000,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 50,
+        positionLeverage: 50,
       });
 
       // notionalValue = 10 * 2000 = 20000
       // initialMarginRequired = 20000 / 50 = 400 (2%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
-      // baseMinimumRequired = max(400, 2000) = 2000
-      // minimumMarginRequired = 2000 * 3 = 6000 (with 3x safety buffer)
-      // maxRemovable = 8000 - 6000 = 2000
-      expect(result).toBe(2000);
+      // transferMarginRequired = max(400, 2000) = 2000
+      // maxRemovable = 8000 - 2000 = 6000
+      expect(result).toBe(6000);
     });
 
-    it('correctly limits small positions (real-world scenario)', () => {
-      // Real scenario: ~$10.39 notional, $3.50 margin, 3x leverage
+    it('correctly calculates for position at exact initial margin (no removable)', () => {
+      // Position at 10x leverage with exactly the required margin
+      // $1000 notional, $100 margin (10% = initial margin at 10x)
       const result = calculateMaxRemovableMargin({
-        currentMargin: 3.5,
-        positionSize: 0.1,
-        entryPrice: 103.9,
-        currentPrice: 103.9,
-        maxLeverage: 3,
+        currentMargin: 100,
+        positionSize: 0.01,
+        entryPrice: 100000,
+        currentPrice: 100000,
+        positionLeverage: 10,
       });
 
-      // notionalValue = 0.1 * 103.9 = 10.39
-      // initialMarginRequired = 10.39 / 3 = 3.46 (33%)
-      // tenPercentMargin = 10.39 * 0.1 = 1.04 (10%)
-      // baseMinimumRequired = max(3.46, 1.04) = 3.46
-      // minimumMarginRequired = 3.46 * 3 = 10.38 (with 3x safety buffer)
-      // maxRemovable = 3.5 - 10.38 = -6.88 -> 0 (capped)
-      // With only 3.5 margin at 3x leverage, no margin can be removed!
+      // notionalValue = 0.01 * 100000 = 1000
+      // initialMarginRequired = 1000 / 10 = 100 (10%)
+      // tenPercentMargin = 1000 * 0.1 = 100 (10%)
+      // transferMarginRequired = max(100, 100) = 100
+      // maxRemovable = 100 - 100 = 0
+      expect(result).toBe(0);
+    });
+
+    it('does not include unrealized PnL in withdrawal calculation', () => {
+      // Per Hyperliquid docs: unrealized PnL helps prevent liquidation
+      // but doesn't increase withdrawal limits
+      // Position at exact initial margin - nothing removable
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 100,
+        positionSize: 0.01,
+        entryPrice: 100000,
+        currentPrice: 100000,
+        positionLeverage: 10,
+      });
+
+      // notionalValue = 0.01 * 100000 = 1000
+      // initialMarginRequired = 1000 / 10 = 100
+      // tenPercentMargin = 1000 * 0.1 = 100
+      // transferMarginRequired = max(100, 100) = 100
+      // maxRemovable = 100 - 100 = 0
+      // Even if position has positive unrealized PnL, it's not withdrawable
       expect(result).toBe(0);
     });
 
@@ -116,7 +132,7 @@ describe('marginUtils', () => {
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 50,
+        positionLeverage: 50,
       });
 
       expect(result).toBe(0);
@@ -128,46 +144,86 @@ describe('marginUtils', () => {
         positionSize: 0,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 50,
+        positionLeverage: 50,
       });
 
       expect(result).toBe(0);
     });
 
-    it('returns 0 when max leverage is 0', () => {
+    it('returns 0 when position leverage is 0', () => {
       const result = calculateMaxRemovableMargin({
         currentMargin: 500,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 0,
+        positionLeverage: 0,
       });
 
       expect(result).toBe(0);
     });
 
-    it('returns 0 when entry price is 0', () => {
-      const result = calculateMaxRemovableMargin({
-        currentMargin: 500,
-        positionSize: 10,
-        entryPrice: 0,
-        currentPrice: 2000,
-        maxLeverage: 50,
-      });
-
-      expect(result).toBe(0);
-    });
-
-    it('returns 0 when current price is 0', () => {
+    it('returns 0 when current price is 0 and no notionalValue provided', () => {
       const result = calculateMaxRemovableMargin({
         currentMargin: 500,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 0,
-        maxLeverage: 50,
+        positionLeverage: 50,
       });
 
       expect(result).toBe(0);
+    });
+
+    it('uses provided notionalValue when currentPrice is 0', () => {
+      // Simulates when live price hasn't loaded yet but we have position.positionValue
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 3000,
+        positionSize: 10,
+        entryPrice: 2000,
+        currentPrice: 0, // Live price not loaded
+        positionLeverage: 50,
+        notionalValue: 20000, // From position.positionValue
+      });
+
+      // notionalValue = 20000 (provided)
+      // initialMarginRequired = 20000 / 50 = 400 (2%)
+      // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
+      // transferMarginRequired = max(400, 2000) = 2000
+      // maxRemovable = 3000 - 2000 = 1000
+      expect(result).toBe(1000);
+    });
+
+    it('uses calculated notionalValue when provided value is 0', () => {
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 3000,
+        positionSize: 10,
+        entryPrice: 2000,
+        currentPrice: 2000,
+        positionLeverage: 50,
+        notionalValue: 0, // Invalid, should fall back to calculated
+      });
+
+      // Falls back to: notionalValue = 10 * 2000 = 20000
+      // Same calculation as above
+      expect(result).toBe(1000);
+    });
+
+    it('prefers provided notionalValue over calculated when both available', () => {
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 5000,
+        positionSize: 10,
+        entryPrice: 2000,
+        currentPrice: 2500, // Would give notional of 25000
+        positionLeverage: 5,
+        notionalValue: 20000, // Provided value takes precedence
+      });
+
+      // Uses provided notionalValue = 20000
+      // initialMarginRequired = 20000 / 5 = 4000 (20%)
+      // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
+      // transferMarginRequired = max(4000, 2000) = 4000
+      // maxRemovable = 5000 - 4000 = 1000
+      expect(result).toBe(1000);
     });
   });
 

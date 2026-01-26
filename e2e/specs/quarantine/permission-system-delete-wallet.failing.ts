@@ -12,7 +12,7 @@ import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
 import LoginView from '../../pages/wallet/LoginView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
@@ -52,7 +52,7 @@ describe(RegressionNetworkAbstractions('Permission System'), () => {
         await loginToApp();
 
         //validate connection to test dapp
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
@@ -117,7 +117,7 @@ describe(RegressionNetworkAbstractions('Permission System'), () => {
         await SkipAccountSecurityModal.tapSkipButton();
 
         //should no longer be connected to the  dapp
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectElementToNotBeVisible(

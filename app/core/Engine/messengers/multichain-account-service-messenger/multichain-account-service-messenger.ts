@@ -44,12 +44,13 @@ export function getMultichainAccountServiceMessenger(
       'KeyringController:getKeyringsByType',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
-      'ErrorReportingService:captureException',
+      'SnapController:getState',
     ],
     events: [
       'KeyringController:stateChange',
       'AccountsController:accountAdded',
       'AccountsController:accountRemoved',
+      'SnapController:stateChange',
     ],
     messenger,
   });

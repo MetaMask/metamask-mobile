@@ -1,5 +1,6 @@
 import { SnapController } from '@metamask/snaps-controllers';
 import { Duration, hasProperty, inMilliseconds } from '@metamask/utils';
+import { hmacSha512 } from '@metamask/native-utils';
 import { ControllerInitFunction } from '../../types';
 import {
   SnapControllerInitMessenger,
@@ -20,8 +21,8 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store, runSaga } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
-import { MetaMetrics } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { take } from 'redux-saga/effects';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import {
@@ -165,17 +166,23 @@ export const snapControllerInit: ControllerInitFunction<
     detectSnapLocation,
     clientCryptography: {
       pbkdf2Sha512: pbkdf2,
+      hmacSha512: async (key, data) => hmacSha512(key, data),
     },
     trackEvent: (params: {
       event: string;
       properties?: Record<string, unknown>;
-    }) =>
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder({
-          category: params.event,
-          properties: params.properties,
-        }).build(),
-      ),
+    }) => {
+      try {
+        const event = AnalyticsEventBuilder.createEventBuilder(params.event)
+          .addProperties((params.properties ?? {}) as AnalyticsEventProperties)
+          .build();
+
+        initMessenger.call('AnalyticsController:trackEvent', event);
+      } catch (error) {
+        // Analytics tracking failures should not break snap functionality
+        // Error is logged but not thrown
+      }
+    },
   });
 
   initMessenger.subscribe('KeyringController:lock', () => {

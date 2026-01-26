@@ -11,7 +11,8 @@ import {
   selectIsSolanaSwap,
   selectIsSolanaToNonSolana,
 } from '../../../../../core/redux/slices/bridge';
-import { RequestStatus } from '@metamask/bridge-controller';
+import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
+import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import {
   fromTokenMinimalUnit,
@@ -85,10 +86,31 @@ export const useBridgeQuoteData = ({
 
   const bestQuote = quotes?.recommendedQuote;
 
-  const activeQuote = isExpired && !willRefresh ? undefined : bestQuote;
+  const activeQuote =
+    isExpired && !willRefresh && !isSubmittingTx ? undefined : bestQuote;
+
+  // Validate that the quote's destination asset matches the selected destination token
+  // This prevents showing stale quote data (with wrong decimals) when user changes destination token
+  const isQuoteDestTokenMatch = (() => {
+    if (!activeQuote || !destToken) return false;
+
+    const { destAsset } = activeQuote.quote;
+
+    // For non-EVM chains (e.g., Solana), destAsset.address is in raw format (e.g., "EPj...")
+    // or zero address for native tokens, while destToken.address uses CAIP format
+    // (e.g., "solana:.../token:EPj...").
+    // Use destAsset.assetId (CAIP format) for comparison.
+    // For EVM chains, use the original address comparison.
+    const quoteDestAddress = isNonEvmChainId(destToken.chainId)
+      ? (destAsset.assetId ?? destAsset.address)
+      : destAsset.address;
+
+    const selectedDestAddress = destToken.address;
+    return areAddressesEqual(quoteDestAddress, selectedDestAddress);
+  })();
 
   const destTokenAmount =
-    activeQuote && destToken
+    activeQuote && destToken && isQuoteDestTokenMatch
       ? fromTokenMinimalUnit(
           activeQuote.quote.destTokenAmount,
           destToken.decimals,
@@ -182,13 +204,15 @@ export const useBridgeQuoteData = ({
   );
 
   // Check if price impact warning should be shown
+  const isGasless =
+    activeQuote?.quote.gasIncluded || activeQuote?.quote.gasIncluded7702;
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
-      ((activeQuote?.quote.gasIncluded &&
+      ((isGasless &&
         Number(activeQuote?.quote.priceData?.priceImpact) >=
           bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-        (!activeQuote?.quote.gasIncluded &&
+        (!isGasless &&
           Number(activeQuote?.quote.priceData?.priceImpact) >=
             bridgeFeatureFlags.priceImpactThreshold.normal)),
   );

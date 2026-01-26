@@ -9,7 +9,13 @@ import reducer, {
   setBridgeViewMode,
   selectBridgeViewMode,
   setDestToken,
+  setIsDestTokenManuallySet,
+  selectIsDestTokenManuallySet,
   selectBip44DefaultPair,
+  selectGasIncludedQuoteParams,
+  selectIsBridgeEnabledSource,
+  selectIsBridgeEnabledDest,
+  selectIsSwapsLive,
 } from '.';
 import {
   BridgeToken,
@@ -43,14 +49,15 @@ describe('bridge slice', () => {
   };
 
   describe('initial state', () => {
-    it('should have the correct initial state', () => {
+    it('has correct initial state', () => {
       expect(initialState).toEqual({
         bridgeViewMode: undefined,
         sourceAmount: undefined,
         destAmount: undefined,
         sourceToken: undefined,
         destToken: undefined,
-        gasIncluded: false,
+        isGasIncludedSTXSendBundleSupported: false,
+        isGasIncluded7702Supported: false,
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
@@ -58,6 +65,7 @@ describe('bridge slice', () => {
         isSubmittingTx: false,
         isSelectingRecipient: false,
         isMaxSourceAmount: false,
+        isDestTokenManuallySet: false,
       });
     });
   });
@@ -168,12 +176,70 @@ describe('bridge slice', () => {
   });
 
   describe('setDestToken', () => {
-    it('should set the destination token and update selectedDestChainId', () => {
+    it('sets the destination token and updates selectedDestChainId', () => {
       const action = setDestToken(mockDestToken);
       const state = reducer(initialState, action);
 
       expect(state.destToken).toBe(mockDestToken);
       expect(state.selectedDestChainId).toBe(mockDestToken.chainId);
+    });
+
+    it('does not modify isDestTokenManuallySet flag', () => {
+      const stateWithManualFlag = {
+        ...initialState,
+        isDestTokenManuallySet: true,
+      };
+
+      const action = setDestToken(mockDestToken);
+      const state = reducer(stateWithManualFlag, action);
+
+      expect(state.isDestTokenManuallySet).toBe(true);
+    });
+  });
+
+  describe('setIsDestTokenManuallySet', () => {
+    it('sets the flag to true', () => {
+      const action = setIsDestTokenManuallySet(true);
+      const state = reducer(initialState, action);
+
+      expect(state.isDestTokenManuallySet).toBe(true);
+    });
+
+    it('sets the flag to false', () => {
+      const stateWithManualFlag = {
+        ...initialState,
+        isDestTokenManuallySet: true,
+      };
+
+      const action = setIsDestTokenManuallySet(false);
+      const state = reducer(stateWithManualFlag, action);
+
+      expect(state.isDestTokenManuallySet).toBe(false);
+    });
+  });
+
+  describe('selectIsDestTokenManuallySet', () => {
+    it('returns false from initial state', () => {
+      const mockState = {
+        bridge: initialState,
+      } as RootState;
+
+      const result = selectIsDestTokenManuallySet(mockState);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when flag is set', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          isDestTokenManuallySet: true,
+        },
+      } as RootState;
+
+      const result = selectIsDestTokenManuallySet(mockState);
+
+      expect(result).toBe(true);
     });
   });
 
@@ -383,6 +449,224 @@ describe('bridge slice', () => {
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectGasIncludedQuoteParams', () => {
+    it('returns gasIncluded true with 7702 false when STX send bundle is supported', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          isGasIncludedSTXSendBundleSupported: true,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
+    });
+
+    it('returns gasIncluded true with 7702 true for swap when 7702 is supported', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: { ...mockDestToken, chainId: mockToken.chainId },
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: true });
+    });
+
+    it('returns gasIncluded false with 7702 false for swap without 7702 support', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: { ...mockDestToken, chainId: mockToken.chainId },
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: false,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
+    });
+
+    it('returns gasIncluded false with 7702 false for bridge mode', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: mockDestToken,
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
+    });
+  });
+
+  describe('selectIsBridgeEnabledSource', () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - Mock state structure causes TypeScript warnings but tests are valid
+    it('returns true when bridge is enabled as source for the chain', () => {
+      const result = selectIsBridgeEnabledSource(
+        mockRootState as unknown as RootState,
+        '0x1',
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when bridge is not enabled as source for the chain', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      // @ts-expect-error - Mock state has correct structure at runtime
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.chains[
+        'eip155:1'
+      ].isActiveSrc = false;
+
+      const result = selectIsBridgeEnabledSource(mockState, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns undefined when chain is not in bridge config', () => {
+      const result = selectIsBridgeEnabledSource(
+        mockRootState as unknown as RootState,
+        '0x999' as Hex,
+      );
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectIsBridgeEnabledDest', () => {
+    it('returns true when bridge is enabled as destination for the chain', () => {
+      const result = selectIsBridgeEnabledDest(
+        mockRootState as unknown as RootState,
+        '0x1',
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when bridge is not enabled as destination for the chain', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      // @ts-expect-error - Mock state has correct structure at runtime
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.chains[
+        'eip155:1'
+      ].isActiveDest = false;
+
+      const result = selectIsBridgeEnabledDest(mockState, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when support flag is false', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      // @ts-expect-error - Mock state has correct structure at runtime
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.support = false;
+
+      const result = selectIsBridgeEnabledDest(mockState, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns undefined when chain is not in bridge config', () => {
+      const result = selectIsBridgeEnabledDest(
+        mockRootState as unknown as RootState,
+        '0x999' as Hex,
+      );
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectIsSwapsLive', () => {
+    it('returns true when bridge is enabled as both source and destination', () => {
+      const result = selectIsSwapsLive(
+        mockRootState as unknown as RootState,
+        '0x1',
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when bridge is enabled only as source', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      // @ts-expect-error - Mock state has correct structure at runtime
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.chains[
+        'eip155:1'
+      ].isActiveDest = false;
+
+      const result = selectIsSwapsLive(mockState, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when bridge is enabled only as destination', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      // @ts-expect-error - Mock state has correct structure at runtime
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.chains[
+        'eip155:1'
+      ].isActiveSrc = false;
+
+      const result = selectIsSwapsLive(mockState, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when bridge is disabled for both source and destination', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      // @ts-expect-error - Mock state has correct structure at runtime
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.chains[
+        'eip155:1'
+      ].isActiveSrc = false;
+      // @ts-expect-error - Mock state has correct structure at runtime
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.chains[
+        'eip155:1'
+      ].isActiveDest = false;
+
+      const result = selectIsSwapsLive(mockState, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns undefined when chain is not in bridge config', () => {
+      const result = selectIsSwapsLive(
+        mockRootState as unknown as RootState,
+        '0x999' as Hex,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns false when support flag is disabled', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      // @ts-expect-error - Mock state has correct structure at runtime
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.support = false;
+
+      const result = selectIsSwapsLive(mockState, '0x1');
+
+      expect(result).toBe(false);
     });
   });
 });

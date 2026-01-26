@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { TextInput, View, StyleSheet, TextStyle } from 'react-native';
+import {
+  TextInput,
+  View,
+  StyleSheet,
+  TextStyle,
+  ViewStyle,
+} from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import Icon, {
   IconName,
   IconSize,
@@ -13,50 +19,50 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { BridgeToken } from '../Bridge/types';
 import { useTokenSearch } from '../Bridge/hooks/useTokenSearch';
+import { Colors } from '../../../util/theme/models';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    searchSection: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
+const createStyles = (colors: Colors) => {
+  const commonSearchStyles = {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    borderColor: colors.border.default,
+    color: colors.text.default,
+  };
+  return StyleSheet.create({
+    searchSection: Object.assign({
+      ...commonSearchStyles,
       borderWidth: 1,
-      borderRadius: 8,
-      borderColor: colors.border.default,
-      color: colors.text.default,
-    },
-    searchSectionFocused: {
-      marginBottom: 0,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderRadius: 8,
-      color: colors.text.default,
-      borderColor: colors.primary.default,
+    } as ViewStyle),
+    searchSectionFocused: Object.assign({
+      ...commonSearchStyles,
       borderWidth: 2,
-    },
+      borderColor: colors.primary.default,
+    } as ViewStyle),
     textInput: {
       ...fontStyles.normal,
       color: colors.text.default,
+      height: 42,
     } as TextStyle,
     icon: {
-      paddingLeft: 20,
+      position: 'absolute',
+      left: 16,
       color: colors.icon.alternative,
     },
     iconClose: {
-      paddingRight: 20,
+      position: 'absolute',
+      right: 16,
       color: colors.icon.alternative,
     },
     input: {
-      width: '80%',
-      paddingHorizontal: 12,
-      paddingVertical: 12,
+      width: '100%',
+      paddingHorizontal: 42,
       color: colors.icon.alternative,
       borderColor: colors.primary.alternative,
     },
   });
+};
 
 interface Props {
   onSearch: ({
@@ -129,16 +135,18 @@ const AssetSearch = ({ onSearch, onFocus, onBlur, allTokens }: Props) => {
         />
       </View>
 
-      <View style={styles.iconClose}>
-        <ButtonIcon
-          size={ButtonIconSizes.Sm}
-          iconName={IconName.Close}
-          onPress={() => {
-            setSearchString('');
-          }}
-          testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
-        />
-      </View>
+      {searchString.length > 0 && (
+        <View style={styles.iconClose}>
+          <ButtonIcon
+            size={ButtonIconSizes.Sm}
+            iconName={IconName.Close}
+            onPress={() => {
+              setSearchString('');
+            }}
+            testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
+          />
+        </View>
+      )}
     </View>
   );
 };

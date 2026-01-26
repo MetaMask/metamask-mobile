@@ -22,7 +22,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { selectDismissedBanners } from '../../../selectors/banner';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
@@ -42,7 +42,7 @@ import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { isInternalDeepLink } from '../../../util/deeplinks';
 import AppConstants from '../../../core/AppConstants';
 
@@ -367,12 +367,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       // Check if this is an internal MetaMask deeplink
       if (isInternalDeepLink(href)) {
         // Handle internal deeplinks through SharedDeeplinkManager
-        return SharedDeeplinkManager.parse(href, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
-        }).catch((error) => {
-          console.error('Failed to handle internal deeplink:', error);
-          return false;
-        });
+        return SharedDeeplinkManager.getInstance()
+          .parse(href, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+          })
+          .catch((error) => {
+            console.error('Failed to handle internal deeplink:', error);
+            return false;
+          });
       }
 
       // For external URLs, use the OS linking system

@@ -93,6 +93,7 @@ const useCardProviderAuthentication =
         }
 
         try {
+          setOtpError(null);
           setOtpLoading(true);
           await sdk.sendOtpLogin({
             userId: params.userId,
@@ -122,6 +123,7 @@ const useCardProviderAuthentication =
         const { codeVerifier, codeChallenge } = await generatePKCEPair();
 
         try {
+          setError(null);
           setLoading(true);
           const initiateResponse = await sdk.initiateCardProviderAuthentication(
             {

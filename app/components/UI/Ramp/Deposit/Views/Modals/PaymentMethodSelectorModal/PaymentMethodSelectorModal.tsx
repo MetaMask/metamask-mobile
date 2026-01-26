@@ -11,7 +11,7 @@ import Icon, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../../../component-library/components-temp/HeaderCenter';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -122,9 +122,10 @@ function PaymentMethodSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        {strings('deposit.payment_modal.select_a_payment_method')}
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('deposit.payment_modal.select_a_payment_method')}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
 
       <FlatList
         style={styles.list}

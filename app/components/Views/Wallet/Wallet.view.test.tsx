@@ -1,10 +1,6 @@
 import '../../../util/test/component-view/mocks';
 import { renderWalletView } from '../../../util/test/component-view/renderers/wallet';
-import {
-  WALLET_VIEW_CONTAINER_ID,
-  WALLET_TOTAL_BALANCE_TEXT_ID,
-  WALLET_SEND_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { describeForPlatforms } from '../../../util/test/platform';
 
 describeForPlatforms('Wallet', () => {
@@ -27,8 +23,14 @@ describeForPlatforms('Wallet', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    expect(getByTestId(WALLET_VIEW_CONTAINER_ID)).toBeOnTheScreen();
-    expect(getByTestId(WALLET_TOTAL_BALANCE_TEXT_ID)).toBeOnTheScreen();
-    expect(getByTestId(WALLET_SEND_BUTTON_ID)).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SEND_BUTTON),
+    ).toBeOnTheScreen();
   });
 });

@@ -7,6 +7,20 @@ import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import EarnTokenList from '.';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+// Prevent `useMetrics` from triggering async Engine readiness polling (`whenEngineReady`)
+// which can cause Jest timeouts / "import after environment torn down" errors.
+jest.mock('../../../../hooks/useMetrics', () => ({
+  MetaMetricsEvents: {
+    EARN_TOKEN_LIST_ITEM_CLICKED: 'EARN_TOKEN_LIST_ITEM_CLICKED',
+  },
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    }),
+  }),
+}));
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -20,27 +34,16 @@ import { getMockUseEarnTokens } from '../../__mocks__/earnMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import * as useEarnTokensHook from '../../hooks/useEarnTokens';
 import * as useEarnNetworkPollingHook from '../../hooks/useEarnNetworkPolling';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../../../components/hooks/useFeatureFlag';
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../selectors/featureFlags';
 import { EarnTokenDetails } from '../../types/lending.types';
 
 jest.mock('../../selectors/featureFlags', () => ({
-  selectStablecoinLendingEnabledFlag: jest.fn().mockImplementation(() => true),
   selectPooledStakingEnabledFlag: jest.fn().mockImplementation(() => true),
+  selectStablecoinLendingEnabledFlag: jest.fn().mockImplementation(() => true),
 }));
-
-jest.mock('../../../../../components/hooks/useFeatureFlag', () => {
-  const actual = jest.requireActual(
-    '../../../../../components/hooks/useFeatureFlag',
-  );
-  return {
-    ...actual,
-    useFeatureFlag: jest.fn().mockReturnValue(true),
-  };
-});
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -104,6 +107,16 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../util/networks'),
   getNetworkImageSource: jest.fn().mockReturnValue(10),
+}));
+
+jest.mock('../../hooks/useTronStakeApy', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    apyDecimal: null,
+    apyPercent: null,
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 const initialState = {
@@ -173,13 +186,8 @@ describe('EarnTokenList', () => {
     (
       selectStablecoinLendingEnabledFlag as unknown as jest.Mock
     ).mockReturnValue(true);
-    (useFeatureFlag as unknown as jest.Mock).mockImplementation(
-      (flagName: string) => {
-        if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
-          return true;
-        }
-        return true;
-      },
+    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+      true,
     );
 
     jest
@@ -211,11 +219,11 @@ describe('EarnTokenList', () => {
     // Token List
     // Ethereum
     expect(getAllByText('Ethereum').length).toBe(1);
-    expect(getAllByText('2.3% APR').length).toBe(1);
+    expect(getAllByText('2.29% APR').length).toBe(1);
 
     // USDC
     expect(getByText('USDC')).toBeDefined();
-    expect(getByText('4.0% APR')).toBeDefined();
+    expect(getByText('4% APR')).toBeDefined();
 
     expect(useEarnTokensSpy).toHaveBeenCalled();
     expect(useEarnNetworkPollingSpy).toHaveBeenCalled();
@@ -529,7 +537,9 @@ describe('EarnTokenList', () => {
   describe('ETH token filtering based on pooled staking status', () => {
     it('filters out ETH tokens that are not staked when pooled staking is disabled', () => {
       // Mock pooled staking as disabled
-      (useFeatureFlag as unknown as jest.Mock).mockReturnValue(false);
+      (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
 
       const mockTokens = [
         {
@@ -586,7 +596,9 @@ describe('EarnTokenList', () => {
 
     it('shows ETH tokens that are staked when pooled staking is disabled', () => {
       // Mock pooled staking as disabled
-      (useFeatureFlag as unknown as jest.Mock).mockReturnValue(false);
+      (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
 
       const mockTokens = [
         {
@@ -643,7 +655,9 @@ describe('EarnTokenList', () => {
 
     it('shows ETH tokens that are not staked when pooled staking is enabled', () => {
       // Mock pooled staking as enabled
-      (useFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
+      (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
 
       const mockTokens = [
         {
@@ -700,7 +714,9 @@ describe('EarnTokenList', () => {
 
     it('shows non-ETH tokens regardless of pooled staking status', () => {
       // Mock pooled staking as disabled
-      (useFeatureFlag as unknown as jest.Mock).mockReturnValue(false);
+      (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
 
       const mockTokens = [
         {

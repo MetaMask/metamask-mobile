@@ -43,16 +43,17 @@ const getAnalyticsParams = (
       ? getBlockaidMetricsParams(securityAlertResponse)
       : {};
 
+  const allCustomizations = ui_customizations as string[];
+
   return {
     account_type: getAddressAccountType(from as string),
     dapp_host_name: getHostFromUrl(meta.url as string) ?? 'N/A',
     signature_type: type,
     version: version || 'N/A',
     chain_id: chainId ? getDecimalChainId(chainId) : '',
-    ui_customizations: [
-      'redesigned_confirmation',
-      ...(ui_customizations as string[]),
-    ],
+    ...(allCustomizations.length > 0 && {
+      ui_customizations: allCustomizations,
+    }),
     ...(primaryType ? { eip712_primary_type: primaryType } : {}),
     ...(meta.analytics as Record<string, string>),
     ...getSignatureDecodingEventProps(

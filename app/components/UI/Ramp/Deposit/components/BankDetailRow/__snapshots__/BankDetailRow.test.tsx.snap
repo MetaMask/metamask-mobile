@@ -14,7 +14,7 @@ exports[`BankDetailRow render matches snapshot 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -42,7 +42,7 @@ exports[`BankDetailRow render matches snapshot 1`] = `
           "color": "#686e7d",
           "flex": 1,
           "flexWrap": "wrap",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -88,7 +88,7 @@ exports[`BankDetailRow render matches snapshot with different values 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -116,7 +116,7 @@ exports[`BankDetailRow render matches snapshot with different values 1`] = `
           "color": "#686e7d",
           "flex": 1,
           "flexWrap": "wrap",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,

@@ -1,5 +1,5 @@
 import Gestures from '../../helpers/Gestures.js';
-import { AddNewAccountIds } from '../../../e2e/selectors/MultiSRP/AddHdAccount.selectors.js';
+import { AddNewAccountIds } from '../../../app/components/Views/AddNewAccount/AddHdAccount.testIds';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
 

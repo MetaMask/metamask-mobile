@@ -28,7 +28,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -227,7 +227,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -394,7 +394,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -468,7 +468,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#121314",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -545,7 +545,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -595,7 +595,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -637,7 +637,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -743,7 +743,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#121314",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -820,7 +820,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -894,7 +894,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#121314",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -971,7 +971,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1045,7 +1045,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#121314",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -1122,7 +1122,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1172,7 +1172,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1214,7 +1214,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -1413,7 +1413,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1580,7 +1580,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1747,7 +1747,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1797,7 +1797,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

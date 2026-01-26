@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 
-import { ConfirmationRowComponentIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconColor,

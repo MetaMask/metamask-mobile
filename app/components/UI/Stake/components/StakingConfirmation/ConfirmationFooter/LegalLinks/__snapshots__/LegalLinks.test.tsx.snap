@@ -23,7 +23,7 @@ exports[`FooterLegalLinks navigates to risk disclosure web page 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -47,7 +47,7 @@ exports[`FooterLegalLinks navigates to risk disclosure web page 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -83,7 +83,7 @@ exports[`FooterLegalLinks navigates to terms of use web page 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -107,7 +107,7 @@ exports[`FooterLegalLinks navigates to terms of use web page 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -143,7 +143,7 @@ exports[`FooterLegalLinks render matches snapshot 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -167,7 +167,7 @@ exports[`FooterLegalLinks render matches snapshot 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,

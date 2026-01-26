@@ -1,4 +1,3 @@
-import { typography } from '@metamask/design-tokens';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
@@ -7,17 +6,21 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
+import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
+import { Box } from '@metamask/design-system-react-native';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import HeaderBase, {
+  HeaderBaseVariant,
+} from '../../../component-library/components/HeaderBase';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -26,9 +29,9 @@ import {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
-  getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -42,10 +45,11 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import { useParams } from '../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
-import TabBar from '../../Base/TabBar';
+import { TabsList } from '../../../component-library/components-temp/Tabs';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
@@ -66,32 +70,21 @@ const createStyles = (params) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
-    wrapper: {
+    tabWrapper: {
       flex: 1,
-    },
-    headerWithBackButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
       backgroundColor: colors.background.default,
-    },
-    headerBackButton: {
-      marginRight: 12,
-    },
-    headerTitleContainer: {
-      flex: 1,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
       width: '100%',
       justifyContent: 'space-between',
-      paddingVertical: 16,
-      paddingHorizontal: 8,
+      alignItems: 'center',
+      marginVertical: 8,
+      paddingHorizontal: 16,
     },
     controlButton: {
       backgroundColor: colors.background.default,
-      borderStyle: 'solid',
+      borderColor: colors.border.muted,
       borderWidth: 1,
       borderRadius: 8,
       maxWidth: '80%',
@@ -99,7 +92,7 @@ const createStyles = (params) => {
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
-      borderStyle: 'solid',
+      borderColor: colors.border.muted,
       marginRight: 4,
       borderWidth: 1,
       borderRadius: 8,
@@ -113,18 +106,6 @@ const createStyles = (params) => {
       alignItems: 'center',
       gap: 4,
     },
-    header: {
-      backgroundColor: colors.background.default,
-      flexDirection: 'row',
-      paddingHorizontal: 16,
-    },
-    title: {
-      marginTop: 20,
-      fontSize: 20,
-      color: colors.text.default,
-      ...typography.sHeadingMD,
-      fontFamily: getFontFamily(TextVariant.HeadingMD),
-    },
     titleText: {
       color: colors.text.default,
     },
@@ -134,6 +115,7 @@ const createStyles = (params) => {
 const ActivityView = () => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const tw = useTailwind();
 
   const { styles } = useStyles(createStyles, {
     style: { marginTop: insets.top },
@@ -160,17 +142,13 @@ const ActivityView = () => {
 
   const tabViewRef = useRef();
   const params = useParams();
-  const perpsEnabledFlag = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(
     () => perpsEnabledFlag && isEvmSelected,
     [perpsEnabledFlag, isEvmSelected],
   );
   const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const predictEnabledFlag = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],
@@ -233,33 +211,37 @@ const ActivityView = () => {
     [navigation, colors, selectedAddress, openAccountSelector, showBackButton],
   );
 
-  const renderTabBar = () => <TabBar />;
+  // Calculate dynamic tab indices based on which tabs are enabled
+  // Tab order: Transactions (0), Orders (1), Perps (conditional), Predict (conditional)
+  // Perps comes after Transactions (0) and Orders (1)
+  const perpsTabIndex = useMemo(() => 2, []);
 
-  // Calculate if Perps tab is currently active
-  // Perps is the last tab, so its index depends on what other tabs are shown
-  const perpsTabIndex = 2;
-  const predictTabIndex = isPerpsEnabled ? 3 : 2;
+  // Predict comes after Transactions (0), Orders (1), and optionally Perps
+  const predictTabIndex = useMemo(
+    () => (isPerpsEnabled ? 3 : 2),
+    [isPerpsEnabled],
+  );
+
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
   const isPredictTabActive =
     isPredictEnabled && activeTabIndex === predictTabIndex;
-  const isOrdersTabActive = activeTabIndex === 1;
 
   useFocusEffect(
     useCallback(() => {
       if (params.redirectToOrders) {
         const orderTabNumber = 1;
         navigation.setParams({ redirectToOrders: false });
-        tabViewRef.current?.goToPage(orderTabNumber);
+        tabViewRef.current?.goToTabIndex(orderTabNumber);
       } else if (isPerpsEnabled && params.redirectToPerpsTransactions) {
-        const perpsTabNumber = isPerpsEnabled ? 2 : 1;
         navigation.setParams({ redirectToPerpsTransactions: false });
-        tabViewRef.current?.goToPage(perpsTabNumber);
+        tabViewRef.current?.goToTabIndex(perpsTabIndex);
       }
     }, [
       navigation,
       params.redirectToOrders,
       isPerpsEnabled,
       params.redirectToPerpsTransactions,
+      perpsTabIndex,
     ]),
   );
 
@@ -274,120 +256,134 @@ const ActivityView = () => {
   );
   const showUnifiedActivityList = isMultichainAccountsState2Enabled;
 
+  const renderTransactionsView = () => {
+    if (showUnifiedActivityList) {
+      return <UnifiedTransactionsView chainId={currentChainId} />;
+    }
+    if (selectedAddress && isNonEvmAddress(selectedAddress)) {
+      return <MultichainTransactionsView chainId={currentChainId} />;
+    }
+    return <TransactionsView />;
+  };
+
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
-      {showBackButton ? (
-        <View style={[styles.headerWithBackButton, { marginTop: insets.top }]}>
-          <View style={styles.headerBackButton}>
-            <ButtonIcon
-              iconName={IconName.ArrowLeft}
-              iconColor={IconColor.Default}
-              size={ButtonIconSizes.Md}
-              onPress={handleBackPress}
-              testID="activity-view-back-button"
-            />
-          </View>
-          <View style={styles.headerTitleContainer}>
-            <TextComponent variant={TextVariant.HeadingMD}>
-              {strings('transactions_view.title')}
-            </TextComponent>
-          </View>
-        </View>
-      ) : (
-        <View style={[styles.header, { marginTop: insets.top }]}>
-          <Text style={styles.title} variant={TextVariant.HeadingSM}>
-            {strings('transactions_view.title')}
-          </Text>
-        </View>
-      )}
-      <View style={styles.wrapper}>
-        {!(isPerpsTabActive || isOrdersTabActive || isPredictTabActive) && (
-          <View style={styles.controlButtonOuterWrapper}>
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-              label={
-                <View style={styles.networkManagerWrapper}>
-                  {!areAllNetworksSelected && (
-                    <Avatar
-                      variant={AvatarVariant.Network}
-                      size={AvatarSize.Xs}
-                      name={networkName}
-                      imageSource={networkImageSource}
-                    />
-                  )}
-                  <TextComponent
-                    variant={TextVariant.BodyMDMedium}
-                    style={styles.controlButtonText}
-                    numberOfLines={1}
-                  >
-                    {enabledNetworks.length > 1
-                      ? strings('wallet.popular_networks')
-                      : (currentNetworkName ??
-                        strings('wallet.current_network'))}
-                  </TextComponent>
-                </View>
-              }
-              isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
-              onPress={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? showFilterControls
-                  : () => null
-              }
-              endIconName={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? IconName.ArrowDown
-                  : undefined
-              }
-              style={
-                isDisabled && !isMultichainAccountsState2Enabled
-                  ? styles.controlButtonDisabled
-                  : styles.controlButton
-              }
-              disabled={isDisabled && !isMultichainAccountsState2Enabled}
-            />
-          </View>
-        )}
-        <ScrollableTabView
-          ref={tabViewRef}
-          renderTabBar={renderTabBar}
-          onChangeTab={({ i }) => setActiveTabIndex(i)}
+      <Box
+        twClassName="flex-1 bg-default gap-4"
+        style={{ marginTop: insets.top }}
+      >
+        <HeaderBase
+          variant={HeaderBaseVariant.Display}
+          style={tw.style('px-4 mb-4')}
+          startAccessory={
+            showBackButton && (
+              <ButtonIcon
+                iconName={IconName.ArrowLeft}
+                iconColor={IconColor.Default}
+                size={ButtonIconSizes.Lg}
+                onPress={handleBackPress}
+                testID="activity-view-back-button"
+              />
+            )
+          }
         >
-          {showUnifiedActivityList ? (
-            <UnifiedTransactionsView
-              tabLabel={strings('transactions_view.title')}
-              chainId={currentChainId}
-            />
-          ) : selectedAddress && isNonEvmAddress(selectedAddress) ? (
-            <MultichainTransactionsView
-              tabLabel={strings('transactions_view.title')}
-              chainId={currentChainId}
-            />
-          ) : (
-            <TransactionsView tabLabel={strings('transactions_view.title')} />
-          )}
-          <RampOrdersList
+          {strings('activity_view.title')}
+        </HeaderBase>
+
+        <TabsList
+          ref={tabViewRef}
+          onChangeTab={({ i }) => setActiveTabIndex(i)}
+          tabsListContentTwClassName="px-0 pb-3"
+          testID={ActivitiesViewSelectorsIDs.TABS_CONTAINER}
+        >
+          <View
+            key="transactions"
+            tabLabel={strings('transactions_view.title')}
+            style={styles.tabWrapper}
+          >
+            <View style={styles.controlButtonOuterWrapper}>
+              <ButtonBase
+                testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+                label={
+                  <>
+                    <View style={styles.networkManagerWrapper}>
+                      {!areAllNetworksSelected && (
+                        <Avatar
+                          variant={AvatarVariant.Network}
+                          size={AvatarSize.Xs}
+                          name={networkName}
+                          imageSource={networkImageSource}
+                        />
+                      )}
+                      <TextComponent
+                        variant={TextVariant.BodyMDMedium}
+                        numberOfLines={1}
+                      >
+                        {enabledNetworks.length > 1
+                          ? strings('wallet.popular_networks')
+                          : (currentNetworkName ??
+                            strings('wallet.current_network'))}
+                      </TextComponent>
+                    </View>
+                  </>
+                }
+                isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
+                onPress={
+                  isEvmSelected || isMultichainAccountsState2Enabled
+                    ? showFilterControls
+                    : () => null
+                }
+                endIconName={
+                  isEvmSelected || isMultichainAccountsState2Enabled
+                    ? IconName.ArrowDown
+                    : undefined
+                }
+                style={
+                  isDisabled && !isMultichainAccountsState2Enabled
+                    ? styles.controlButtonDisabled
+                    : styles.controlButton
+                }
+                disabled={isDisabled && !isMultichainAccountsState2Enabled}
+              />
+            </View>
+            {renderTransactionsView()}
+          </View>
+          <View
+            key="orders"
             tabLabel={strings('fiat_on_ramp_aggregator.orders')}
-          />
+            style={styles.tabWrapper}
+          >
+            <RampOrdersList />
+          </View>
 
           {isPerpsEnabled && (
-            <PerpsConnectionProvider
+            <View
+              key="perps"
               tabLabel={strings('perps.transactions.title')}
-              isVisible={isPerpsTabActive}
+              style={styles.tabWrapper}
             >
-              <PerpsStreamProvider>
-                <PerpsTransactionsView />
-              </PerpsStreamProvider>
-            </PerpsConnectionProvider>
+              {/* Only mount providers when tab is active to prevent polling when hidden */}
+              {isPerpsTabActive ? (
+                <PerpsConnectionProvider isVisible={isPerpsTabActive}>
+                  <PerpsStreamProvider>
+                    <PerpsTransactionsView />
+                  </PerpsStreamProvider>
+                </PerpsConnectionProvider>
+              ) : null}
+            </View>
           )}
 
           {isPredictEnabled && (
-            <PredictTransactionsView
+            <View
+              key="predict"
               tabLabel={strings('predict.transactions.title')}
-              isVisible={isPredictTabActive}
-            />
+              style={styles.tabWrapper}
+            >
+              <PredictTransactionsView isVisible={isPredictTabActive} />
+            </View>
           )}
-        </ScrollableTabView>
-      </View>
+        </TabsList>
+      </Box>
     </ErrorBoundary>
   );
 };

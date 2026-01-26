@@ -11,11 +11,7 @@ import {
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
-import {
-  AGREED,
-  METRICS_OPT_IN,
-  METRICS_OPT_IN_SOCIAL_LOGIN,
-} from '../constants/storage';
+import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
@@ -529,10 +525,7 @@ let cachedConsent: boolean | null = null;
  */
 export async function hasMetricsConsent(): Promise<boolean> {
   const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
-  const socialLoginOptIn = await StorageWrapper.getItem(
-    METRICS_OPT_IN_SOCIAL_LOGIN,
-  );
-  const hasConsent = metricsOptIn === AGREED || socialLoginOptIn === AGREED;
+  const hasConsent = metricsOptIn === AGREED;
   cachedConsent = hasConsent;
   return hasConsent;
 }

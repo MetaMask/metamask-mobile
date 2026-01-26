@@ -19,7 +19,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { getNetworkImageSource } from '../../../../util/networks';
-import { createTokensBottomSheetNavDetails } from '../../Tokens/TokensBottomSheet';
+import { createTokensBottomSheetNavDetails } from '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import {
@@ -30,7 +30,7 @@ import { useStyles } from '../../../hooks/useStyles';
 import createControlBarStyles from '../ControlBarStyles';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import { KnownCaipNamespace } from '@metamask/utils';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 
@@ -172,12 +172,14 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const renderNetworkLabel = () => (
     <View style={styles.networkManagerWrapper}>
       {!areAllNetworksSelected && (
-        <Avatar
-          variant={AvatarVariant.Network}
-          size={AvatarSize.Xs}
-          name={networkName}
-          imageSource={networkImageSource}
-        />
+        <View style={styles.networkAvatarWrapper}>
+          <Avatar
+            variant={AvatarVariant.Network}
+            size={AvatarSize.Xs}
+            name={networkName}
+            imageSource={networkImageSource}
+          />
+        </View>
       )}
       <TextComponent
         variant={TextVariant.BodyMDMedium}

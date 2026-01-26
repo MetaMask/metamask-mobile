@@ -10,7 +10,6 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   addCurrencySymbol,
-  limitToMaximumDecimalPlaces,
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -26,8 +25,6 @@ import {
   TRANSACTION_TYPES,
   isTransactionIncomplete,
 } from '../../../util/transactions';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { isSwapsNativeAsset } from '../../../util/bridge';
 import Engine from '../../../core/Engine';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
@@ -37,14 +34,13 @@ import {
 import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+import { BigNumber } from 'bignumber.js';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
-
-const { getSwapsContractAddress } = swapsUtils;
 
 function getTokenTransfer(args) {
   const {
@@ -87,6 +83,12 @@ function getTokenTransfer(args) {
       decimals: tx.transferInformation.decimals,
       address: tx.transferInformation.contractAddress,
     };
+  }
+
+  const targetFiat = getMetamaskPayTargetFiat(tx, token?.decimals);
+
+  if (targetFiat && token) {
+    amount = targetFiat;
   }
 
   const isIncomplete = isTransactionIncomplete(status);
@@ -188,6 +190,21 @@ function getTokenTransfer(args) {
   };
 
   return [transactionElement, transactionDetails];
+}
+
+function getMetamaskPayTargetFiat(tx, decimals) {
+  const { metamaskPay } = tx ?? {};
+  const { targetFiat } = metamaskPay ?? {};
+
+  if (!targetFiat || targetFiat === '0') {
+    return undefined;
+  }
+
+  const targetFiatNoDecimals = new BigNumber(targetFiat)
+    .shiftedBy(decimals ?? 0)
+    .toFixed();
+
+  return new BN(targetFiatNoDecimals);
 }
 
 function getCollectibleTransfer(args) {
@@ -799,208 +816,6 @@ function decodeConfirmTx(args) {
   return [transactionElement, transactionDetails];
 }
 
-function decodeLegacySwapsTx(args) {
-  const {
-    swapsTransactions,
-    swapsTokens,
-    conversionRate,
-    currentCurrency,
-    primaryCurrency,
-    txChainId,
-    tx: {
-      id,
-      txParams,
-      txParams: { gas, from, to },
-      hash,
-    },
-    tx,
-    contractExchangeRates,
-    assetSymbol,
-    chainId,
-    ticker,
-  } = args;
-  // If the tx was a swaps smart transaction, the swapsTransactions id is the stx.uuid, rather than tx.id
-  // We need use the tx.hash and look up the stx with the same hash
-  const smartTransaction =
-    Engine.context.SmartTransactionsController.state.smartTransactionsState.smartTransactions[
-      chainId
-    ]?.find((stx) => stx.txHash === hash);
-
-  const swapTransaction =
-    swapsTransactions?.[id] ||
-    swapsTransactions?.[smartTransaction?.uuid] ||
-    {};
-
-  const totalGas = calculateTotalGas({
-    ...txParams,
-    gas: swapTransaction.gasUsed || gas,
-  });
-  const sourceToken = swapsTokens?.find(
-    ({ address }) => address === swapTransaction?.sourceToken?.address,
-  );
-  const destinationToken =
-    swapTransaction?.destinationToken?.swaps ||
-    swapsTokens?.find(
-      ({ address }) => address === swapTransaction?.destinationToken?.address,
-    );
-  if (!sourceToken || !destinationToken) return [undefined, undefined];
-
-  const renderFrom = renderFullAddress(from);
-  const renderTo = renderFullAddress(to);
-  const totalEthGas = renderFromWei(totalGas);
-  const decimalSourceAmount =
-    swapTransaction.sourceAmount &&
-    renderFromTokenMinimalUnit(
-      swapTransaction.sourceAmount,
-      swapTransaction.sourceToken.decimals,
-    );
-  const decimalDestinationAmount =
-    swapTransaction.destinationToken.decimals &&
-    renderFromTokenMinimalUnit(
-      !!swapTransaction?.receivedDestinationAmount &&
-        swapTransaction?.receivedDestinationAmount > 0
-        ? swapTransaction.receivedDestinationAmount
-        : swapTransaction.destinationAmount,
-      swapTransaction.destinationToken.decimals,
-    );
-  let totalAmountForEthSourceTokenFormatted;
-  if (sourceToken.symbol === 'ETH') {
-    const totalAmountForEthSourceToken =
-      Number(!isNaN(totalEthGas) ? totalEthGas : 0) +
-      Number(decimalSourceAmount);
-    totalAmountForEthSourceTokenFormatted = `${limitToMaximumDecimalPlaces(
-      totalAmountForEthSourceToken,
-    )} ${ticker}`;
-  }
-  const cryptoSummaryTotalAmount =
-    sourceToken.symbol === 'ETH'
-      ? totalAmountForEthSourceTokenFormatted
-      : decimalSourceAmount
-        ? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
-        : `${totalEthGas} ${ticker}`;
-
-  const isSwap = swapTransaction.action === 'swap';
-  let notificationKey, actionKey, value, fiatValue;
-  if (isSwap) {
-    actionKey = strings('swaps.transaction_label.swap', {
-      sourceToken: sourceToken.symbol,
-      destinationToken: destinationToken.symbol,
-    });
-    notificationKey = strings(
-      `swaps.notification_label.${
-        tx.status === 'submitted' ? 'swap_pending' : 'swap_confirmed'
-      }`,
-      {
-        sourceToken: sourceToken.symbol,
-        destinationToken: destinationToken.symbol,
-      },
-    );
-  } else {
-    actionKey = strings('swaps.transaction_label.approve', {
-      sourceToken: sourceToken.symbol,
-      upTo: renderFromTokenMinimalUnit(
-        swapTransaction.upTo,
-        sourceToken.decimals,
-      ),
-    });
-    notificationKey = strings(
-      `swaps.notification_label.${
-        tx.status === 'submitted' ? 'approve_pending' : 'approve_confirmed'
-      }`,
-      { sourceToken: sourceToken.symbol },
-    );
-  }
-
-  const sourceExchangeRate = isSwapsNativeAsset(sourceToken)
-    ? 1
-    : contractExchangeRates?.[toFormattedAddress(sourceToken.address)]?.price;
-  const renderSourceTokenFiatNumber = balanceToFiatNumber(
-    decimalSourceAmount,
-    conversionRate,
-    sourceExchangeRate,
-  );
-
-  const destinationExchangeRate = isSwapsNativeAsset(destinationToken)
-    ? 1
-    : contractExchangeRates?.[toFormattedAddress(destinationToken.address)]
-        ?.price;
-  const renderDestinationTokenFiatNumber = balanceToFiatNumber(
-    decimalDestinationAmount,
-    conversionRate,
-    destinationExchangeRate,
-  );
-
-  if (isSwap) {
-    if (!assetSymbol || sourceToken.symbol === assetSymbol) {
-      value = `-${decimalSourceAmount} ${sourceToken.symbol}`;
-      fiatValue = addCurrencySymbol(
-        renderSourceTokenFiatNumber,
-        currentCurrency,
-      );
-    } else {
-      value = `+${decimalDestinationAmount} ${destinationToken.symbol}`;
-      fiatValue = addCurrencySymbol(
-        renderDestinationTokenFiatNumber,
-        currentCurrency,
-      );
-    }
-  }
-  const transactionElement = {
-    renderTo,
-    renderFrom,
-    actionKey,
-    notificationKey,
-    value,
-    fiatValue,
-    transactionType: isSwap
-      ? TRANSACTION_TYPES.SITE_INTERACTION
-      : TRANSACTION_TYPES.APPROVE,
-  };
-
-  let transactionDetails = {
-    renderFrom,
-    renderTo,
-    hash,
-    renderValue: decimalSourceAmount
-      ? `${decimalSourceAmount} ${sourceToken.symbol}`
-      : `0 ${ticker}`,
-    renderGas: parseInt(gas, 16),
-    renderGasPrice: renderGwei(txParams),
-    renderTotalGas: `${totalEthGas} ${ticker}`,
-    txChainId,
-  };
-
-  if (primaryCurrency === 'ETH') {
-    transactionDetails = {
-      ...transactionDetails,
-      summaryAmount: isSwap
-        ? `${decimalSourceAmount} ${sourceToken.symbol}`
-        : `0 ${ticker}`,
-      summaryFee: `${totalEthGas} ${ticker}`,
-      summaryTotalAmount: cryptoSummaryTotalAmount,
-      summarySecondaryTotalAmount: addCurrencySymbol(
-        renderSourceTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate),
-        currentCurrency,
-      ),
-    };
-  } else {
-    transactionDetails = {
-      ...transactionDetails,
-      summaryAmount: addCurrencySymbol(
-        renderSourceTokenFiatNumber,
-        currentCurrency,
-      ),
-      summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
-      summaryTotalAmount: addCurrencySymbol(
-        renderSourceTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate),
-        currentCurrency,
-      ),
-      summarySecondaryTotalAmount: cryptoSummaryTotalAmount,
-    };
-  }
-  return [transactionElement, transactionDetails];
-}
-
 /**
  * Parse transaction with wallet information to render
  *
@@ -1008,7 +823,7 @@ function decodeLegacySwapsTx(args) {
  * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
  */
 export default async function decodeTransaction(args) {
-  const { tx, selectedAddress, chainId, swapsTransactions = {}, ticker } = args;
+  const { tx, selectedAddress, chainId, ticker } = args;
   const chainIdToUse = tx.chainId || chainId;
   const { isTransfer } = tx || {};
 
@@ -1038,19 +853,6 @@ export default async function decodeTransaction(args) {
     }
   }
 
-  if (
-    tx.txParams.to?.toLowerCase() === getSwapsContractAddress(chainIdToUse) ||
-    swapsTransactions[tx.id]
-  ) {
-    // Legacy Swaps, reads tx data from SwapsController
-    const [transactionElement, transactionDetails] = decodeLegacySwapsTx({
-      ...args,
-      actionKey,
-    });
-
-    if (transactionElement && transactionDetails)
-      return [transactionElement, transactionDetails];
-  }
   if (isTransfer) {
     [transactionElement, transactionDetails] = decodeIncomingTransfer({
       ...args,

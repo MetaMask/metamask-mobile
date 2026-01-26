@@ -5,12 +5,9 @@ const createStyles = () =>
       marginHorizontal: 16,
     },
     balanceContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    skeletonContainer: {
       flexDirection: 'column',
       gap: 4,
+      alignItems: 'flex-start',
     },
   });
 

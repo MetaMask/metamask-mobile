@@ -97,7 +97,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,

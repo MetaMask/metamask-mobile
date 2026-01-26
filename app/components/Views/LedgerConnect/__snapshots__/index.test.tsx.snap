@@ -81,14 +81,14 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
           },
           undefined,
           undefined,
@@ -111,7 +111,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           undefined,
           undefined,
           {
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 24,
           },
         ]
@@ -158,14 +158,14 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 30,
                 "marginVertical": 2,
               },
               undefined,
               undefined,
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
               },
               undefined,
               undefined,
@@ -201,7 +201,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -241,7 +241,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -281,7 +281,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -321,7 +321,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -361,7 +361,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -401,7 +401,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -442,14 +442,14 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
             undefined,
             undefined,
             {
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
             },
             undefined,
             undefined,
@@ -536,7 +536,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                       "alignSelf": "flex-start",
                       "color": "#121314",
                       "flex": 1,
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "paddingBottom": 10,
                       "paddingHorizontal": 15,
@@ -622,7 +622,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },

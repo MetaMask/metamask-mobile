@@ -57,7 +57,14 @@ export interface BridgeState {
   bridgeViewMode: BridgeViewMode | undefined;
   isMaxSourceAmount?: boolean;
   isSelectingRecipient: boolean;
-  gasIncluded: boolean;
+  isGasIncludedSTXSendBundleSupported: boolean;
+  isGasIncluded7702Supported: boolean;
+  /**
+   * Tracks whether the user has manually selected a destination token.
+   * When true, changing the source token to a different network won't auto-update the dest token.
+   * When false, changing source network will update dest to the default for that network.
+   */
+  isDestTokenManuallySet: boolean;
 }
 
 export const initialState: BridgeState = {
@@ -73,7 +80,9 @@ export const initialState: BridgeState = {
   bridgeViewMode: undefined,
   isMaxSourceAmount: false,
   isSelectingRecipient: false,
-  gasIncluded: false,
+  isGasIncludedSTXSendBundleSupported: false,
+  isGasIncluded7702Supported: false,
+  isDestTokenManuallySet: false,
 };
 
 const name = 'bridge';
@@ -131,6 +140,13 @@ const slice = createSlice({
       // Update selectedDestChainId to match the destination token's chain ID
       state.selectedDestChainId = action.payload.chainId;
     },
+    /**
+     * Sets whether the destination token was manually selected by the user.
+     * When true, auto-updates to dest token are prevented when source chain changes.
+     */
+    setIsDestTokenManuallySet: (state, action: PayloadAction<boolean>) => {
+      state.isDestTokenManuallySet = action.payload;
+    },
     setDestAddress: (state, action: PayloadAction<string | undefined>) => {
       state.destAddress = action.payload;
     },
@@ -143,8 +159,14 @@ const slice = createSlice({
     setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
       state.isSelectingRecipient = action.payload;
     },
-    setGasIncluded: (state, action: PayloadAction<boolean>) => {
-      state.gasIncluded = action.payload;
+    setIsGasIncludedSTXSendBundleSupported: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.isGasIncludedSTXSendBundleSupported = action.payload;
+    },
+    setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
+      state.isGasIncluded7702Supported = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -269,35 +291,6 @@ export const selectIsBridgeEnabledSourceFactory = createSelector(
   },
 );
 
-export const selectIsBridgeEnabledSource = createSelector(
-  selectIsBridgeEnabledSourceFactory,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
-);
-
-export const selectIsBridgeEnabledDest = createSelector(
-  selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (bridgeFeatureFlags, chainId) => {
-    const caipChainId = formatChainIdToCaip(chainId);
-
-    return (
-      bridgeFeatureFlags.support &&
-      bridgeFeatureFlags.chains[caipChainId]?.isActiveDest
-    );
-  },
-);
-
-export const selectIsSwapsLive = createSelector(
-  [
-    (state: RootState, chainId: Hex | CaipChainId) =>
-      selectIsBridgeEnabledSource(state, chainId),
-    (state: RootState, chainId: Hex | CaipChainId) =>
-      selectIsBridgeEnabledDest(state, chainId),
-  ],
-  (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
-);
-
 /**
  * Selector that determines if swap functionality is enabled
  * Combines all the conditions needed for swap functionality to be available
@@ -404,7 +397,13 @@ export const selectDestAddress = createSelector(
   (bridgeState) => bridgeState.destAddress,
 );
 
-export const selectGasIncluded = (state: RootState) => state.bridge.gasIncluded;
+// Selectors for gas included STX/SendBundle support
+export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
+  state.bridge.isGasIncludedSTXSendBundleSupported;
+
+// Selector for 7702 gas included support
+export const selectIsGasIncluded7702Supported = (state: RootState) =>
+  state.bridge.isGasIncluded7702Supported;
 
 const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
@@ -507,6 +506,34 @@ export const selectIsSwap = createSelector(
     sourceToken.chainId === destToken.chainId,
 );
 
+/**
+ * Selector that returns the gas included quote params for bridge and swap transactions.
+ * Combines isSwap, STX/SendBundle support, and 7702 support to determine the correct
+ * gas included parameters.
+ */
+export const selectGasIncludedQuoteParams = createSelector(
+  [
+    selectIsSwap,
+    selectIsGasIncludedSTXSendBundleSupported,
+    selectIsGasIncluded7702Supported,
+  ],
+  (isSwap, gasIncludedSTXSendBundleSupport, gasIncluded7702Support) => {
+    // If STX send bundle support is true, we favor it over 7702.
+    if (gasIncludedSTXSendBundleSupport) {
+      return { gasIncluded: true, gasIncluded7702: false };
+    }
+
+    // If 7702 support is true, we use it for swap transactions.
+    const gasIncludedWith7702Enabled =
+      Boolean(isSwap) && gasIncluded7702Support;
+
+    return {
+      gasIncluded: gasIncludedWith7702Enabled,
+      gasIncluded7702: gasIncludedWith7702Enabled,
+    };
+  },
+);
+
 export const selectIsEvmSwap = createSelector(
   selectIsSwap,
   selectIsSolanaSwap,
@@ -521,6 +548,11 @@ export const selectIsSubmittingTx = createSelector(
 export const selectIsSelectingRecipient = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSelectingRecipient,
+);
+
+export const selectIsDestTokenManuallySet = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isDestTokenManuallySet,
 );
 
 export const selectIsGaslessSwapEnabled = createSelector(
@@ -575,6 +607,35 @@ export const selectBip44DefaultPair = createSelector(
   },
 );
 
+export const selectIsBridgeEnabledSource = createSelector(
+  selectIsBridgeEnabledSourceFactory,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
+);
+
+export const selectIsBridgeEnabledDest = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (bridgeFeatureFlags, chainId) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+
+    return (
+      bridgeFeatureFlags.support &&
+      bridgeFeatureFlags.chains[caipChainId]?.isActiveDest
+    );
+  },
+);
+
+export const selectIsSwapsLive = createSelector(
+  [
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsBridgeEnabledSource(state, chainId),
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsBridgeEnabledDest(state, chainId),
+  ],
+  (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -583,6 +644,7 @@ export const {
   resetBridgeState,
   setSourceToken,
   setDestToken,
+  setIsDestTokenManuallySet,
   setSelectedSourceChainIds,
   setSelectedDestChainId,
   setSlippage,
@@ -590,5 +652,6 @@ export const {
   setIsSubmittingTx,
   setBridgeViewMode,
   setIsSelectingRecipient,
-  setGasIncluded,
+  setIsGasIncludedSTXSendBundleSupported,
+  setIsGasIncluded7702Supported,
 } = actions;

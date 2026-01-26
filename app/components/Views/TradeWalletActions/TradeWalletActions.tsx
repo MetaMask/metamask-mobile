@@ -24,7 +24,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
@@ -42,8 +42,12 @@ import {
   useSwapBridgeNavigation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
-import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../UI/Earn/selectors/featureFlags';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
@@ -51,6 +55,7 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -82,20 +87,16 @@ function TradeWalletActions() {
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
   );
-  const isPooledStakingEnabled = useFeatureFlag(
-    FeatureFlagNames.earnPooledStakingEnabled,
-  );
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
 
+  const { isEligible: isEarnEligible } = useStakingEligibility();
+
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const isPerpsEnabled = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  ) as boolean;
-  const isPredictEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  ) as boolean;
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const isStablecoinLendingEnabled = useSelector(
@@ -303,7 +304,7 @@ function TradeWalletActions() {
                     isDisabled={!canSignTransactions}
                   />
                 )}
-                {isEarnWalletActionEnabled && (
+                {isEarnWalletActionEnabled && isEarnEligible && (
                   <ActionListItem
                     label={strings('asset_overview.earn_button')}
                     description={strings('asset_overview.earn_description')}

@@ -1,7 +1,7 @@
 
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import { ChoosePasswordSelectorsIDs } from '../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { CONFIRM_PASSWORD_INPUT_FIRST_FIELD, CREATE_PASSWORD_INPUT_FIRST_FIELD } from '../testIDs/Screens/WalletSetupScreen.testIds';
@@ -96,7 +96,8 @@ class CreatePasswordScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.iUnderstandCheckbox);
     } else {
-      await AppwrightGestures.tap(this.iUnderstandCheckbox); // Use static tapElement method with retry logic
+        await AppwrightGestures.hideKeyboard(this._device);
+        await AppwrightGestures.tap(await this.iUnderstandCheckbox); 
     }
   }
 
@@ -104,7 +105,7 @@ class CreatePasswordScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.submitButton);
     } else {
-      await AppwrightGestures.tap(this.submitButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.submitButton); 
     }
   }
 

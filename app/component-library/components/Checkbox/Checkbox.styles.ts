@@ -43,7 +43,7 @@ const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
       ? theme.colors.error.default
       : isChecked || isIndeterminate
         ? theme.colors.primary.default
-        : theme.colors.icon.default;
+        : theme.colors.border.default;
 
   return StyleSheet.create({
     base: Object.assign(

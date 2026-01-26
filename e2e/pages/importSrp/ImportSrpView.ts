@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { ImportSRPIDs } from '../../selectors/MultiSRP/SRPImport.selectors';
+import { ImportSRPIDs } from '../../../app/components/Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
 
 class ImportSrpView {
   get container(): DetoxElement {
@@ -12,9 +12,7 @@ class ImportSrpView {
   }
 
   get importButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON)
-      : Matchers.getElementByLabel(ImportSRPIDs.IMPORT_BUTTON);
+    return Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON);
   }
 
   get textareaInput(): DetoxElement {

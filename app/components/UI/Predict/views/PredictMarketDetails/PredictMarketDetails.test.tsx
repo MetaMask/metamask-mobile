@@ -272,6 +272,21 @@ jest.mock('../../components/PredictShareButton/PredictShareButton', () => {
   };
 });
 
+jest.mock('../../components/PredictGameDetailsContent', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockPredictGameDetailsContent({
+    market,
+  }: {
+    market: { title?: string };
+  }) {
+    return (
+      <View testID="predict-game-details-content">
+        <Text>{market?.title || 'Game Details'}</Text>
+      </View>
+    );
+  };
+});
+
 jest.mock('../../../../Base/TabBar', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockTabBar({ textStyle }: { textStyle: object }) {
@@ -654,10 +669,10 @@ describe('PredictMarketDetails', () => {
         screen.getByTestId('predict-details-header-skeleton-back-button'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-details-content-skeleton-option-1'),
+        screen.getByTestId('predict-details-content-skeleton-line-1'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-details-buttons-skeleton-button-yes'),
+        screen.getByTestId('predict-details-buttons-skeleton-button-1'),
       ).toBeOnTheScreen();
     });
 
@@ -693,7 +708,11 @@ describe('PredictMarketDetails', () => {
     });
 
     it('hides share button when market is not loaded (shows skeleton)', () => {
-      setupPredictMarketDetailsTest({}, {}, { market: { market: null } });
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        { market: { isFetching: true, market: null } },
+      );
 
       expect(
         screen.queryByTestId('predict-share-button'),
@@ -2193,14 +2212,19 @@ describe('PredictMarketDetails', () => {
       it('requests higher fidelity when MAX history span is shorter than a month', async () => {
         const shortRangeHistory = buildPriceHistory(12 * 60 * 60 * 1000); // 12 hours
 
-        setupPredictMarketDetailsTest(
-          { status: 'closed' },
-          {},
-          { priceHistory: { priceHistories: shortRangeHistory } },
-        );
-
         const { usePredictPriceHistory } = jest.requireMock(
           '../../hooks/usePredictPriceHistory',
+        );
+
+        const { rerender } = setupPredictMarketDetailsTest(
+          { status: 'closed' },
+          {},
+          {
+            priceHistory: {
+              priceHistories: shortRangeHistory,
+              isFetching: true,
+            },
+          },
         );
 
         await waitFor(() => {
@@ -2209,17 +2233,37 @@ describe('PredictMarketDetails', () => {
               call[0]?.interval === PredictPriceHistoryInterval.MAX,
           );
           expect(maxCalls.length).toBeGreaterThan(0);
-          expect(
-            maxCalls.some(
-              (call: [UsePredictPriceHistoryOptions]) =>
-                call[0]?.fidelity === SHORT_RANGE_FIDELITY,
-            ),
-          ).toBe(true);
         });
-      });
+
+        usePredictPriceHistory.mockReturnValue({
+          priceHistories: shortRangeHistory,
+          isFetching: false,
+          errors: [],
+          refetch: jest.fn().mockResolvedValue(undefined),
+        });
+
+        await act(async () => {
+          rerender(<PredictMarketDetails />);
+        });
+        await waitFor(
+          () => {
+            const maxCalls = usePredictPriceHistory.mock.calls.filter(
+              (call: [UsePredictPriceHistoryOptions]) =>
+                call[0]?.interval === PredictPriceHistoryInterval.MAX,
+            );
+            expect(
+              maxCalls.some(
+                (call: [UsePredictPriceHistoryOptions]) =>
+                  call[0]?.fidelity === SHORT_RANGE_FIDELITY,
+              ),
+            ).toBe(true);
+          },
+          { timeout: 10000 },
+        );
+      }, 15000);
 
       it('keeps default MAX fidelity when history span exceeds the threshold', async () => {
-        const longRangeHistory = buildPriceHistory(45 * 24 * 60 * 60 * 1000); // 45 days
+        const longRangeHistory = buildPriceHistory(45 * 24 * 60 * 60 * 1000);
 
         setupPredictMarketDetailsTest(
           { status: 'closed' },
@@ -2237,6 +2281,37 @@ describe('PredictMarketDetails', () => {
               call[0]?.interval === PredictPriceHistoryInterval.MAX,
           );
           expect(maxCalls.length).toBeGreaterThan(0);
+          expect(
+            maxCalls.every(
+              (call: [UsePredictPriceHistoryOptions]) =>
+                call[0]?.fidelity === MAX_DEFAULT_FIDELITY,
+            ),
+          ).toBe(true);
+        });
+      });
+
+      it('handles empty price history gracefully', async () => {
+        // Empty price history should not cause errors
+        // The effect should wait for valid data before making fidelity decisions
+        setupPredictMarketDetailsTest(
+          { status: 'closed' },
+          {},
+          { priceHistory: { priceHistories: [[], []], isFetching: false } },
+        );
+
+        const { usePredictPriceHistory } = jest.requireMock(
+          '../../hooks/usePredictPriceHistory',
+        );
+
+        // omponent should still render and make MAX interval calls
+        // but fidelity adjustment won't happen until valid data is available
+        await waitFor(() => {
+          const maxCalls = usePredictPriceHistory.mock.calls.filter(
+            (call: [UsePredictPriceHistoryOptions]) =>
+              call[0]?.interval === PredictPriceHistoryInterval.MAX,
+          );
+          expect(maxCalls.length).toBeGreaterThan(0);
+          // Should use default MAX fidelity since no valid range data available
           expect(
             maxCalls.every(
               (call: [UsePredictPriceHistoryOptions]) =>
@@ -3386,6 +3461,43 @@ describe('PredictMarketDetails', () => {
           screen.queryByText('predict.market_details.fee_exemption'),
         ).not.toBeOnTheScreen();
       });
+    });
+  });
+
+  describe('Game Details Content', () => {
+    it('renders PredictGameDetailsContent when market has game property', () => {
+      const gameMarket = createMockMarket({
+        title: 'NFL: Team A vs Team B',
+        game: {
+          homeTeam: { name: 'Team A', abbreviation: 'TA' },
+          awayTeam: { name: 'Team B', abbreviation: 'TB' },
+          startTime: '2024-12-31T20:00:00Z',
+          status: 'scheduled',
+        },
+      });
+
+      setupPredictMarketDetailsTest(gameMarket);
+
+      expect(
+        screen.getByTestId('predict-game-details-content'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('NFL: Team A vs Team B')).toBeOnTheScreen();
+    });
+
+    it('renders regular market details when market has no game property', () => {
+      const regularMarket = createMockMarket({
+        title: 'Will Bitcoin reach $100k?',
+        game: undefined,
+      });
+
+      setupPredictMarketDetailsTest(regularMarket);
+
+      expect(
+        screen.queryByTestId('predict-game-details-content'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-market-details-screen'),
+      ).toBeOnTheScreen();
     });
   });
 });

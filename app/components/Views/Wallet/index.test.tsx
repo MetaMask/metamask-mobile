@@ -50,33 +50,25 @@ jest.mock(
   }),
 );
 
-// Mock the Perps feature flag - will be controlled per test
+// Mock the Perps feature flag selector - will be controlled per test
 let mockPerpsEnabled = true;
 let mockPerpsGTMModalEnabled = false;
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
   selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
   selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(
     () => mockPerpsGTMModalEnabled,
   ),
 }));
 
-// Mock the Predict feature flag - will be controlled per test
+// Mock the Predict feature flag selector - will be controlled per test
 let mockPredictEnabled = true;
 let mockPredictGTMModalEnabled = false;
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
+  selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
   selectPredictGtmOnboardingModalEnabledFlag: jest.fn(
     () => mockPredictGTMModalEnabled,
   ),
-}));
-
-// Mock useFeatureFlag hook
-jest.mock('../../hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn(),
-  FeatureFlagNames: {
-    perpsPerpTradingEnabled: 'perpsPerpTradingEnabled',
-    predictTradingEnabled: 'predictTradingEnabled',
-    carouselBanners: 'carouselBanners',
-  },
 }));
 
 // Create shared mock reference for TabsList
@@ -107,10 +99,9 @@ import { screen as RNScreen } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -300,12 +291,9 @@ const mockInitialState = {
               'eip155:1': {
                 isActiveSrc: true,
                 isActiveDest: true,
-                isUnifiedUIEnabled: false, // Default to false in base state
+                isUnifiedUIEnabled: false,
               },
             },
-          },
-          sendRedesign: {
-            enabled: false,
           },
         },
       },
@@ -707,10 +695,10 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView',
+      const sendNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'Send',
       );
-      expect(sendFlowNavigationCall).toBeDefined();
+      expect(sendNavigationCall).toBeDefined();
     });
 
     it('should handle onSend callback correctly without native currency', async () => {
@@ -744,10 +732,10 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView',
+      const sendNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'Send',
       );
-      expect(sendFlowNavigationCall).toBeDefined();
+      expect(sendNavigationCall).toBeDefined();
     });
 
     it('should pass correct props to AssetDetailsActions (no onBuy prop needed)', () => {
@@ -852,10 +840,10 @@ describe('Wallet', () => {
       await onSend();
 
       // Should still navigate even if there's an error
-      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView',
+      const sendNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'Send',
       );
-      expect(sendFlowNavigationCall).toBeDefined();
+      expect(sendNavigationCall).toBeDefined();
     });
   });
 
@@ -1086,23 +1074,6 @@ describe('Wallet', () => {
       mockPerpsGTMModalEnabled = false;
       mockPredictEnabled = true;
       mockPredictGTMModalEnabled = false;
-
-      // Set up useFeatureFlag mock
-      const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-        typeof useFeatureFlag
-      >;
-      mockUseFeatureFlag.mockImplementation((flagName) => {
-        if (flagName === FeatureFlagNames.perpsPerpTradingEnabled) {
-          return mockPerpsEnabled;
-        }
-        if (flagName === FeatureFlagNames.predictTradingEnabled) {
-          return mockPredictEnabled;
-        }
-        if (flagName === FeatureFlagNames.carouselBanners) {
-          return true; // Default to enabled
-        }
-        return false;
-      });
     });
 
     afterEach(() => {

@@ -1,4 +1,9 @@
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   NavigationProp,
@@ -7,7 +12,7 @@ import {
 } from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import { Image } from 'react-native';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -15,10 +20,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -132,7 +133,11 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         return <Skeleton width={70} height={20} />;
       }
       return (
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={tw.style('font-medium')}
+        >
           {formatPrice(currentValue, { maximumDecimals: 2 })}
         </Text>
       );
@@ -140,7 +145,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 
     if (percentPnl > 0) {
       return (
-        <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
           {strings('predict.market_details.won')}{' '}
           {formatPrice(currentValue, { maximumDecimals: 2 })}
         </Text>
@@ -148,7 +153,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     }
 
     return (
-      <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
         {strings('predict.market_details.lost')}{' '}
         {formatPrice(initialValue, { maximumDecimals: 2 })}
       </Text>
@@ -169,15 +174,17 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         )}
         <Box twClassName="flex-1">
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            style={tw.style('font-medium')}
             ellipsizeMode="tail"
           >
             {groupItemTitle ?? title}
           </Text>
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            style={tw.style('font-medium')}
           >
             {strings('predict.position_info', {
               initialValue: formatPrice(initialValue, {
@@ -197,8 +204,13 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
               <Skeleton width={55} height={16} style={tw.style('mt-1')} />
             ) : (
               <Text
-                variant={TextVariant.BodySMMedium}
-                color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
+                variant={TextVariant.BodySm}
+                color={
+                  percentPnl > 0
+                    ? TextColor.SuccessDefault
+                    : TextColor.ErrorDefault
+                }
+                style={tw.style('font-medium')}
               >
                 {formatPercentage(percentPnl)}
               </Text>

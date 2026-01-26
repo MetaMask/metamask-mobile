@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -8,18 +8,21 @@ import {
   Text,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import { connect } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/device';
-import { showAlert } from '../../../actions/alert';
-import GlobalAlert from '../../UI/GlobalAlert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { isEthAddress } from '../../../util/address';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 const WIDTH = Dimensions.get('window').width - 88;
 
@@ -78,117 +81,95 @@ const createStyles = (theme) =>
   });
 
 /**
- * PureComponent that renders a public address view
+ * Functional component that renders a public address view
  */
-class AddressQRCode extends PureComponent {
-  static propTypes = {
-    /**
-     * Selected address as string
-     */
-    selectedAddress: PropTypes.string,
-    /**
-    /* Triggers global alert
-    */
-    showAlert: PropTypes.func,
-    /**
-    /* Callback to close the modal
-    */
-    closeQrModal: PropTypes.func,
-    /**
-     * Prompts protect wallet modal
-     */
-    protectWalletModalVisible: PropTypes.func,
-    /**
-     * redux flag that indicates if the user
-     * completed the seed phrase backup flow
-     */
-    seedphraseBackedUp: PropTypes.bool,
-  };
+const AddressQRCode = ({ closeQrModal }) => {
+  const theme = useTheme();
+  const { colors } = theme;
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const dispatch = useDispatch();
+  const { toastRef } = useContext(ToastContext);
+
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const seedphraseBackedUp = useSelector(
+    (state) => state.user.seedphraseBackedUp,
+  );
+
+  const handleProtectWalletModalVisible = useCallback(
+    () => dispatch(protectWalletModalVisible()),
+    [dispatch],
+  );
 
   /**
    * Closes QR code modal
    */
-  closeQrModal = () => {
-    this.props.closeQrModal();
-    !this.props.seedphraseBackedUp &&
-      setTimeout(() => this.props.protectWalletModalVisible(), 1000);
-  };
+  const handleCloseQrModal = useCallback(() => {
+    closeQrModal();
+    if (!seedphraseBackedUp) {
+      setTimeout(() => handleProtectWalletModalVisible(), 1000);
+    }
+  }, [closeQrModal, seedphraseBackedUp, handleProtectWalletModalVisible]);
 
-  copyAccountToClipboard = async () => {
-    const { selectedAddress } = this.props;
+  const copyAccountToClipboard = useCallback(async () => {
     await ClipboardManager.setString(selectedAddress);
-    this.props.showAlert({
-      isVisible: true,
-      autodismiss: 1500,
-      content: 'clipboard-alert',
-      data: { msg: strings('account_details.account_copied_to_clipboard') },
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
+      labelOptions: [
+        { label: strings('account_details.account_copied_to_clipboard') },
+      ],
+      hasNoTimeout: false,
     });
-  };
+  }, [colors.accent03.dark, colors.accent03.normal, selectedAddress, toastRef]);
 
-  processAddress = () => {
-    const { selectedAddress } = this.props;
+  const processAddress = useCallback(() => {
     const processedAddress = `${selectedAddress.slice(0, 2)} ${selectedAddress
       .slice(2)
       .match(/.{1,4}/g)
       .join(' ')}`;
     return processedAddress;
-  };
+  }, [selectedAddress]);
 
-  render() {
-    const theme = this.context || mockTheme;
-    const colors = theme.colors;
-    const styles = createStyles(theme);
+  const qrValue = isEthAddress(selectedAddress)
+    ? `ethereum:${selectedAddress}`
+    : selectedAddress;
 
-    const qrValue = isEthAddress(this.props.selectedAddress)
-      ? `ethereum:${this.props.selectedAddress}`
-      : this.props.selectedAddress;
-
-    return (
-      <View style={styles.root}>
-        <View style={styles.wrapper}>
-          <TouchableOpacity
-            style={styles.closeIcon}
-            onPress={this.closeQrModal}
-          >
-            <IonicIcon
-              name={'close'}
-              size={38}
-              color={colors.primary.inverse}
+  return (
+    <View style={styles.root}>
+      <View style={styles.wrapper}>
+        <TouchableOpacity style={styles.closeIcon} onPress={handleCloseQrModal}>
+          <IonicIcon name={'close'} size={38} color={colors.primary.inverse} />
+        </TouchableOpacity>
+        <View style={styles.qrCodeContainer}>
+          <View style={styles.qrCode}>
+            <QRCode
+              value={qrValue}
+              size={Dimensions.get('window').width - 160}
             />
-          </TouchableOpacity>
-          <View style={styles.qrCodeContainer}>
-            <View style={styles.qrCode}>
-              <QRCode
-                value={qrValue}
-                size={Dimensions.get('window').width - 160}
-              />
-            </View>
-          </View>
-          <View style={styles.addressWrapper}>
-            <Text style={styles.addressTitle}>
-              {strings('receive_request.public_address_qr_code')}
-            </Text>
-            <TouchableOpacity onPress={this.copyAccountToClipboard}>
-              <Text style={styles.address}>{this.processAddress()}</Text>
-            </TouchableOpacity>
           </View>
         </View>
-        <GlobalAlert />
+        <View style={styles.addressWrapper}>
+          <Text style={styles.addressTitle}>
+            {strings('receive_request.public_address_qr_code')}
+          </Text>
+          <TouchableOpacity onPress={copyAccountToClipboard}>
+            <Text style={styles.address}>{processAddress()}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    );
-  }
-}
+    </View>
+  );
+};
 
-const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  seedphraseBackedUp: state.user.seedphraseBackedUp,
-});
+AddressQRCode.propTypes = {
+  /**
+   * Callback to close the modal
+   */
+  closeQrModal: PropTypes.func,
+};
 
-const mapDispatchToProps = (dispatch) => ({
-  showAlert: (config) => dispatch(showAlert(config)),
-  protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-});
-
-AddressQRCode.contextType = ThemeContext;
-
-export default connect(mapStateToProps, mapDispatchToProps)(AddressQRCode);
+export default AddressQRCode;

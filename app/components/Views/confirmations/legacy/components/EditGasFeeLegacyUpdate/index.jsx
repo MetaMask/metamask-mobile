@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable react/display-name */
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import BigNumber from 'bignumber.js';
@@ -11,7 +12,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSelector } from 'react-redux';
-import { EditGasViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/EditGasView.selectors';
+import { EditGasViewSelectorsIDs } from '../EditGasView.testIds';
 import { strings } from '../../../../../../../locales/i18n';
 import Text, {
   TextColor,
@@ -38,7 +39,7 @@ import RangeInput from '../../../../../Base/RangeInput';
 import { useMetrics } from '../../../../../hooks/useMetrics';
 import FadeAnimationView from '../../../../../UI/FadeAnimationView';
 import StyledButton from '../../../../../UI/StyledButton';
-import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
+import InfoModal from '../../../../../Base/InfoModal';
 import createStyles from './styles';
 
 const EditGasFeeLegacy = ({
@@ -231,8 +232,7 @@ const EditGasFeeLegacy = ({
 
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
-  let gasFeePrimary,
-    gasFeeSecondary;
+  let gasFeePrimary, gasFeeSecondary;
   if (nativeCurrencySelected) {
     gasFeePrimary = transactionFee;
     gasFeeSecondary = transactionFeeFiat;
@@ -393,8 +393,8 @@ const EditGasFeeLegacy = ({
                 infoText === 'gas_limit'
                   ? strings('edit_gas_fee_eip1559.gas_limit')
                   : infoText === 'gas_price'
-                  ? strings('edit_gas_fee_eip1559.gas_price')
-                  : null
+                    ? strings('edit_gas_fee_eip1559.gas_price')
+                    : null
               }
               toggleModal={() => setShowRangeInfoModal(false)}
               body={

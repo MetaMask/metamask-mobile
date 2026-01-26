@@ -55,8 +55,8 @@ describe('SwitchAccountTypeInfoRow', () => {
       state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
     });
     expect(getByText('Now')).toBeDefined();
-    expect(getByText('Standard Account')).toBeDefined();
-    expect(getByText('Switching To')).toBeDefined();
+    expect(getByText('Standard account')).toBeDefined();
+    expect(getByText('Switching to')).toBeDefined();
     expect(getByText('Smart Account')).toBeDefined();
   });
 
@@ -65,8 +65,8 @@ describe('SwitchAccountTypeInfoRow', () => {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
     expect(getByText('Now')).toBeDefined();
-    expect(getByText('Standard Account')).toBeDefined();
-    expect(getByText('Switching To')).toBeDefined();
+    expect(getByText('Standard account')).toBeDefined();
+    expect(getByText('Switching to')).toBeDefined();
     expect(getByText('Smart Account')).toBeDefined();
   });
 
@@ -76,7 +76,7 @@ describe('SwitchAccountTypeInfoRow', () => {
     });
     expect(getByText('Now')).toBeDefined();
     expect(getByText('Smart Account')).toBeDefined();
-    expect(getByText('Switching To')).toBeDefined();
-    expect(getByText('Standard Account')).toBeDefined();
+    expect(getByText('Switching to')).toBeDefined();
+    expect(getByText('Standard account')).toBeDefined();
   });
 });

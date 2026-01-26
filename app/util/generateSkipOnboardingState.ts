@@ -1,7 +1,12 @@
 import StorageWrapper from '../store/storage-wrapper';
-import { seedphraseBackedUp } from '../actions/user';
 import {
+  seedphraseBackedUp,
+  setMultichainAccountsIntroModalSeen,
+} from '../actions/user';
+import {
+  HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS,
   OPTIN_META_METRICS_UI_SEEN,
+  PREDICT_GTM_MODAL_SHOWN,
   TRUE,
   USE_TERMS,
 } from '../constants/storage';
@@ -96,6 +101,8 @@ async function applyVaultInitialization() {
     store.dispatch(seedphraseBackedUp());
     // removes the necessity of the user to see the privacy policy modal
     store.dispatch(storePrivacyPolicyClickedOrClosed());
+    // removes the necessity of the user to see the multichain accounts intro modal
+    store.dispatch(setMultichainAccountsIntroModalSeen(true));
     // Set auto-lock time for the default
     // Note: This line is tested via component tests (setLockTime action creator + store.dispatch)
     // Full integration testing requires PREDEFINED_PASSWORD env var set before module load
@@ -106,6 +113,12 @@ async function applyVaultInitialization() {
 
     // removes the necessity of the user to see the opt-in metrics modal
     await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
+
+    // removes the necessity of the user to see the predictions GTM modal
+    await StorageWrapper.setItem(PREDICT_GTM_MODAL_SHOWN, TRUE);
+
+    // prevents the enable notifications modal from showing
+    await StorageWrapper.setItem(HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS, TRUE);
   }
 
   return null;

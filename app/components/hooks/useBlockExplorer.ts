@@ -4,7 +4,10 @@ import {
   findBlockExplorerForRpc,
   getBlockExplorerName as getBlockExplorerNameFromUrl,
 } from '../../util/networks';
-import { getEtherscanAddressUrl } from '../../util/etherscan';
+import {
+  getEtherscanAddressUrl,
+  getEtherscanBaseUrl,
+} from '../../util/etherscan';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../locales/i18n';
@@ -123,6 +126,54 @@ const useBlockExplorer = (chainId?: string) => {
     ],
   );
 
+  /**
+   * Returns the base block explorer URL for a given chain (without any address path).
+   * Useful for navigating to the block explorer homepage for native currencies.
+   */
+  const getBlockExplorerBaseUrl = useCallback(
+    (targetChainId?: string) => {
+      const currentChainId = targetChainId || chainId;
+
+      // Handle non-EVM chains
+      if (currentChainId && isNonEvmChainId(currentChainId)) {
+        const blockExplorerUrls =
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
+            currentChainId as keyof typeof MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP
+          ];
+        return blockExplorerUrls ? blockExplorerUrls.url : null;
+      }
+
+      // For specific EVM chain block explorers
+      if (currentChainId) {
+        const hexChainId = convertToHexChainId(currentChainId);
+        const baseUrl = getEvmBlockExplorerUrl(hexChainId);
+        if (baseUrl) {
+          return baseUrl;
+        }
+      }
+
+      // For RPC networks, try to find custom block explorer
+      const { type, rpcUrl } = providerConfig;
+      if (type === RPC && rpcUrl) {
+        const blockExplorer = findBlockExplorerForRpc(
+          rpcUrl,
+          networkConfigurations,
+        );
+        return blockExplorer || null;
+      }
+
+      // Fallback to etherscan-based URL
+      return getEtherscanBaseUrl(type);
+    },
+    [
+      chainId,
+      providerConfig,
+      networkConfigurations,
+      getEvmBlockExplorerUrl,
+      convertToHexChainId,
+    ],
+  );
+
   const toBlockExplorer = useCallback(
     (address: string, targetChainId?: string) => {
       const accountLink = getBlockExplorerUrl(address, targetChainId);
@@ -194,6 +245,7 @@ const useBlockExplorer = (chainId?: string) => {
     getBlockExplorerUrl,
     getBlockExplorerName,
     getEvmBlockExplorerUrl,
+    getBlockExplorerBaseUrl,
   };
 };
 

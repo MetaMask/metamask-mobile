@@ -36,7 +36,11 @@ const title = (n: NativeSentReceiveNotification) => {
 };
 
 const state: NotificationState<NativeSentReceiveNotification> = {
-  guardFn: isNativeTokenNotification,
+  guardFn: [
+    isNativeTokenNotification,
+    (notification) =>
+      !!getNativeTokenDetailsByChainId(notification.payload.chain_id),
+  ],
   createMenuItem: (notification) => {
     const tokenDetails = getNativeTokenDetailsByChainId(
       notification.payload.chain_id,

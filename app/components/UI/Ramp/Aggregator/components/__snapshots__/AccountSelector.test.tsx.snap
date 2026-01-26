@@ -51,7 +51,7 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
         {
           "color": "#121314",
           "flexShrink": 1,
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,

@@ -190,6 +190,34 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
       { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
     ],
   }),
+  metaAndAssetCtxs: jest.fn().mockResolvedValue([
+    {
+      universe: [
+        { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+        { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+      ],
+    },
+    [
+      {
+        funding: '0.0001',
+        openInterest: '1000',
+        prevDayPx: '49000',
+        dayNtlVlm: '1000000',
+        markPx: '50000',
+        midPx: '50000',
+        oraclePx: '50000',
+      },
+      {
+        funding: '0.0001',
+        openInterest: '500',
+        prevDayPx: '2900',
+        dayNtlVlm: '500000',
+        markPx: '3000',
+        midPx: '3000',
+        oraclePx: '3000',
+      },
+    ],
+  ]),
   perpDexs: jest.fn().mockResolvedValue([null]),
   allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
   frontendOpenOrders: jest.fn().mockResolvedValue([]),
@@ -332,6 +360,10 @@ describe('HyperLiquidProvider', () => {
       isPositionsCacheInitialized: jest.fn().mockReturnValue(false),
       getCachedPositions: jest.fn().mockReturnValue([]),
       updateFeatureFlags: jest.fn().mockResolvedValue(undefined),
+      // Cache methods used by buildAssetMapping optimization
+      setDexMetaCache: jest.fn(),
+      setDexAssetCtxsCache: jest.fn(),
+      getDexAssetCtxsCache: jest.fn().mockReturnValue(undefined),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 
     // Mock constructors
@@ -1848,8 +1880,10 @@ describe('HyperLiquidProvider', () => {
       it('should successfully ping WebSocket connection with default timeout', async () => {
         const mockReady = jest.fn().mockResolvedValue(undefined);
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -1867,8 +1901,10 @@ describe('HyperLiquidProvider', () => {
       it('should successfully ping WebSocket connection with custom timeout', async () => {
         const mockReady = jest.fn().mockResolvedValue(undefined);
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -1900,8 +1936,10 @@ describe('HyperLiquidProvider', () => {
               ),
           );
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -1917,8 +1955,10 @@ describe('HyperLiquidProvider', () => {
           .fn()
           .mockRejectedValue(new Error('WebSocket closed'));
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -2772,6 +2812,9 @@ describe('HyperLiquidProvider', () => {
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockRejectedValue(new Error('Network timeout')),
+            metaAndAssetCtxs: jest
+              .fn()
+              .mockRejectedValue(new Error('Network timeout')),
           }),
         );
 
@@ -2964,6 +3007,11 @@ describe('HyperLiquidProvider', () => {
 
     describe('updatePositionTPSL error scenarios', () => {
       it('should handle WebSocket error in getPositions', async () => {
+        // Set up mock BEFORE creating fresh provider (provider calls metaAndAssetCtxs on init)
+        MockedHyperLiquidClientService.mockImplementation(
+          () => mockClientService,
+        );
+
         // Create a fresh provider to test WebSocket errors
         const freshProvider = new HyperLiquidProvider();
 
@@ -2973,10 +3021,6 @@ describe('HyperLiquidProvider', () => {
           .mockImplementation(async () => {
             throw new Error('WebSocket connection failed');
           });
-
-        MockedHyperLiquidClientService.mockImplementation(
-          () => mockClientService,
-        );
 
         const updateParams = {
           coin: 'BTC',
@@ -2990,6 +3034,11 @@ describe('HyperLiquidProvider', () => {
       });
 
       it('should handle non-WebSocket error in getPositions', async () => {
+        // Set up mock BEFORE creating fresh provider (provider calls metaAndAssetCtxs on init)
+        MockedHyperLiquidClientService.mockImplementation(
+          () => mockClientService,
+        );
+
         // Create a fresh provider to test non-WebSocket errors
         const freshProvider = new HyperLiquidProvider();
 
@@ -2999,10 +3048,6 @@ describe('HyperLiquidProvider', () => {
           .mockImplementation(async () => {
             throw new Error('Generic API error');
           });
-
-        MockedHyperLiquidClientService.mockImplementation(
-          () => mockClientService,
-        );
 
         const updateParams = {
           coin: 'BTC',
@@ -3118,6 +3163,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       it('should handle missing allMids', async () => {
+        // Set up mock BEFORE creating fresh provider
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockResolvedValue({
@@ -3125,17 +3171,34 @@ describe('HyperLiquidProvider', () => {
             }),
             allMids: jest.fn().mockResolvedValue(null),
             predictedFundings: jest.fn().mockResolvedValue([]),
-            metaAndAssetCtxs: jest.fn().mockResolvedValue([null, []]),
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([
+              { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+              [
+                {
+                  funding: '0.0001',
+                  openInterest: '1000',
+                  prevDayPx: '49000',
+                  dayNtlVlm: '1000000',
+                  markPx: '50000',
+                  midPx: '50000',
+                  oraclePx: '50000',
+                },
+              ],
+            ]),
           }),
         );
 
+        // Create fresh provider to avoid cached state from other tests
+        const freshProvider = new HyperLiquidProvider();
+
         // Should gracefully handle missing price data with fallback
-        const result = await provider.getMarketDataWithPrices();
+        const result = await freshProvider.getMarketDataWithPrices();
         expect(Array.isArray(result)).toBe(true);
         expect(result[0].price).toBe('$---'); // Fallback when allMids is null
       });
 
       it('should handle meta and predictedFundings calls successfully', async () => {
+        // Set up mock BEFORE creating fresh provider
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockResolvedValue({
@@ -3150,13 +3213,20 @@ describe('HyperLiquidProvider', () => {
                   funding: '0.001',
                   openInterest: '1000000',
                   prevDayPx: '49000',
+                  dayNtlVlm: '1000000',
+                  markPx: '50000',
+                  midPx: '50000',
+                  oraclePx: '50000',
                 },
               ],
             ]),
           }),
         );
 
-        const result = await provider.getMarketDataWithPrices();
+        // Create fresh provider to avoid cached state from other tests
+        const freshProvider = new HyperLiquidProvider();
+
+        const result = await freshProvider.getMarketDataWithPrices();
 
         // Verify successful call with proper data structure
         expect(Array.isArray(result)).toBe(true);
@@ -5071,7 +5141,7 @@ describe('HyperLiquidProvider', () => {
       expect(result).toBe(false);
     });
 
-    it('should transform fill data with liquidation information', async () => {
+    it('transforms fill data with liquidation information', async () => {
       // Mock fill with liquidation data
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -5106,7 +5176,7 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    it('should handle fills without liquidation data', async () => {
+    it('handles fills without liquidation data', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           userFills: jest.fn().mockResolvedValue([
@@ -5128,6 +5198,98 @@ describe('HyperLiquidProvider', () => {
 
       const fills = await provider.getOrderFills();
       expect(fills[0].liquidation).toBeUndefined();
+    });
+
+    it('uses userFillsByTime when startTime is provided', async () => {
+      const mockUserFillsByTime = jest.fn().mockResolvedValue([
+        {
+          oid: 125,
+          coin: 'BTC',
+          side: 'B',
+          sz: '0.5',
+          px: '50000',
+          fee: '5',
+          feeToken: 'USDC',
+          time: Date.now(),
+          closedPnl: '200',
+          dir: 'Open Long',
+        },
+      ]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userFillsByTime: mockUserFillsByTime,
+        }),
+      );
+
+      const startTime = Date.now() - 90 * 24 * 60 * 60 * 1000; // 3 months ago
+      const fills = await provider.getOrderFills({ startTime });
+
+      expect(mockUserFillsByTime).toHaveBeenCalledWith({
+        user: '0x1234567890123456789012345678901234567890',
+        startTime,
+        endTime: undefined,
+        aggregateByTime: false,
+      });
+      expect(fills).toHaveLength(1);
+      expect(fills[0].symbol).toBe('BTC');
+    });
+
+    it('uses userFills when startTime is not provided', async () => {
+      const mockUserFills = jest.fn().mockResolvedValue([
+        {
+          oid: 126,
+          coin: 'ETH',
+          side: 'A',
+          sz: '2.0',
+          px: '3500',
+          fee: '7',
+          feeToken: 'USDC',
+          time: Date.now(),
+          closedPnl: '150',
+          dir: 'Close Short',
+        },
+      ]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userFills: mockUserFills,
+        }),
+      );
+
+      const fills = await provider.getOrderFills({ aggregateByTime: true });
+
+      expect(mockUserFills).toHaveBeenCalledWith({
+        user: '0x1234567890123456789012345678901234567890',
+        aggregateByTime: true,
+      });
+      expect(fills).toHaveLength(1);
+      expect(fills[0].symbol).toBe('ETH');
+    });
+
+    it('passes endTime to userFillsByTime when provided', async () => {
+      const mockUserFillsByTime = jest.fn().mockResolvedValue([]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userFillsByTime: mockUserFillsByTime,
+        }),
+      );
+
+      const startTime = Date.now() - 30 * 24 * 60 * 60 * 1000; // 30 days ago
+      const endTime = Date.now();
+      await provider.getOrderFills({
+        startTime,
+        endTime,
+        aggregateByTime: true,
+      });
+
+      expect(mockUserFillsByTime).toHaveBeenCalledWith({
+        user: '0x1234567890123456789012345678901234567890',
+        startTime,
+        endTime,
+        aggregateByTime: true,
+      });
     });
   });
 

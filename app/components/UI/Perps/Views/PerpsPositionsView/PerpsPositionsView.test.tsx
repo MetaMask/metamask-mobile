@@ -226,10 +226,10 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Account Summary')).toBeOnTheScreen();
-        expect(screen.getByText('Total Balance')).toBeOnTheScreen();
-        expect(screen.getByText('Available Balance')).toBeOnTheScreen();
-        expect(screen.getByText('Margin Used')).toBeOnTheScreen();
+        expect(screen.getByText('Account summary')).toBeOnTheScreen();
+        expect(screen.getByText('Total balance')).toBeOnTheScreen();
+        expect(screen.getByText('Available balance')).toBeOnTheScreen();
+        expect(screen.getByText('Margin used')).toBeOnTheScreen();
         expect(screen.getByText('Total Unrealized P&L')).toBeOnTheScreen();
 
         // Check that the actual formatted values appear in the UI
@@ -248,7 +248,7 @@ describe('PerpsPositionsView', () => {
       // Assert
       await waitFor(() => {
         const section = screen.getByTestId('perps-positions-section');
-        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
+        expect(within(section).getByText('Open positions')).toBeOnTheScreen();
         expect(within(section).getByText('2 positions')).toBeOnTheScreen();
         expect(within(section).getByText(/1\.5[\s\S]*ETH/)).toBeOnTheScreen();
         expect(within(section).getByText(/0\.5[\s\S]*BTC/)).toBeOnTheScreen();
@@ -309,7 +309,7 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('No Open Positions')).toBeOnTheScreen();
+        expect(screen.getByText('No open positions')).toBeOnTheScreen();
         expect(
           screen.getByText(/You don't have any open positions yet/),
         ).toBeOnTheScreen();
@@ -331,7 +331,7 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('No Open Positions')).toBeOnTheScreen();
+        expect(screen.getByText('No open positions')).toBeOnTheScreen();
       });
     });
   });
@@ -361,7 +361,7 @@ describe('PerpsPositionsView', () => {
       // Assert
       await waitFor(() => {
         const section = screen.getByTestId('perps-positions-section');
-        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
+        expect(within(section).getByText('Open positions')).toBeOnTheScreen();
       });
     });
 
@@ -372,7 +372,7 @@ describe('PerpsPositionsView', () => {
       // Assert
       await waitFor(() => {
         const section = screen.getByTestId('perps-positions-section');
-        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
+        expect(within(section).getByText('Open positions')).toBeOnTheScreen();
       });
     });
   });

@@ -5,7 +5,7 @@ import {
   OPTIN_METRICS_TITLE_ID,
 } from '../testIDs/Screens/OptinMetricsScreen.testIds';
 import Selectors from '../../helpers/Selectors';
-import { MetaMetricsOptInSelectorsIDs } from '../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
+import { MetaMetricsOptInSelectorsIDs } from '../../../app/components/UI/OptinMetrics/MetaMetricsOptIn.testIds';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
@@ -75,7 +75,7 @@ class MetaMetricsScreen {
       await element.waitForEnabled();
       await Gestures.waitAndTap(this.iAgreeButton);
     } else {
-      await AppwrightGestures.tap(this.iAgreeButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.iAgreeButton); 
     }
   }
 

@@ -5,6 +5,7 @@ import {
   InteractionManager,
   Text,
   LayoutAnimation,
+  Platform,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AssetSearch from '../AssetSearch';
@@ -29,7 +30,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import Logger from '../../../util/Logger';
 import { Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -69,10 +70,12 @@ const createStyles = (colors: any) =>
       marginBottom: 15,
     },
     button: {
-      paddingVertical: 16,
+      paddingHorizontal: 16,
+      paddingTop: 24,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
     searchInput: {
-      paddingTop: 16,
+      margin: 16,
     },
   });
 

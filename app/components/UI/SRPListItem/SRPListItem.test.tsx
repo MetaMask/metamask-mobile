@@ -2,7 +2,7 @@ import React from 'react';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
-import { SRPListItemSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPListItem.selectors';
+import { SRPListItemSelectorsIDs } from './SRPListItem.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,

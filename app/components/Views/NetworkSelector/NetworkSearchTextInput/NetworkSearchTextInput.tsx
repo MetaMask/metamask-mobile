@@ -9,7 +9,7 @@ import { mockTheme, useTheme } from '../../../../util/theme';
 // Internal dependencies
 import Icon from 'react-native-vector-icons/Ionicons';
 import createStyles from './NetworkSearchTextInput.styles';
-import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { NetworksViewSelectorsIDs } from '../../Settings/NetworksSettings/NetworksView.testIds';
 import { isNetworkUiRedesignEnabled } from '../../../../util/networks/isNetworkUiRedesignEnabled';
 
 interface NetworkSearchTextInputProps {

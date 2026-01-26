@@ -9,25 +9,8 @@ import {
 import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { GasOptionIcon } from '../../../constants/gas';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { toHumanSeconds } from '../../../utils/time';
-
-const getEmoji = (userFeeLevel: UserFeeLevel | GasFeeEstimateLevel) => {
-  switch (userFeeLevel) {
-    case GasFeeEstimateLevel.Low:
-      return GasOptionIcon.LOW;
-    case GasFeeEstimateLevel.Medium:
-      return GasOptionIcon.MEDIUM;
-    case GasFeeEstimateLevel.High:
-      return GasOptionIcon.HIGH;
-    case UserFeeLevel.DAPP_SUGGESTED:
-      return GasOptionIcon.SITE_SUGGESTED;
-    case UserFeeLevel.CUSTOM:
-    default:
-      return GasOptionIcon.ADVANCED;
-  }
-};
 
 const getText = (userFeeLevel: UserFeeLevel | GasFeeEstimateLevel) => {
   switch (userFeeLevel) {
@@ -86,7 +69,6 @@ export const GasSpeed = () => {
     transactionMeta.gasFeeEstimates?.type === GasFeeEstimateType.GasPrice &&
     userFeeLevel === GasFeeEstimateLevel.Medium;
 
-  const emoji = getEmoji(userFeeLevel);
   const text = getText(userFeeLevel);
   const estimatedTime = getEstimatedTime(
     userFeeLevel,
@@ -94,6 +76,5 @@ export const GasSpeed = () => {
     isGasPriceEstimateSelected,
   );
 
-  // Intentionally no space between text and estimated time
-  return <Text>{`${emoji} ${text}${estimatedTime}`}</Text>;
+  return <Text>{`${text}${estimatedTime}`}</Text>;
 };

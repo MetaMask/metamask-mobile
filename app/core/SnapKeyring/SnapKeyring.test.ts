@@ -167,6 +167,7 @@ const createSnapKeyringBuilder = () =>
 // Mock the isSnapPreinstalled function
 jest.mock('./utils/snaps', () => ({
   isSnapPreinstalled: jest.fn(),
+  isMultichainWalletSnap: jest.fn().mockReturnValue(false),
   getSnapName: jest.fn().mockReturnValue('Mock Snap Name'),
 }));
 

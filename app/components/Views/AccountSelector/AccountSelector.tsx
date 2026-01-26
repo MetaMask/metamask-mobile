@@ -33,10 +33,9 @@ import { MultichainAddWalletActions } from '../../../component-library/component
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import Engine from '../../../core/Engine';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectFullPageAccountListEnabledFlag } from '../../../selectors/featureFlagController/fullPageAccountList';
 import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
@@ -49,7 +48,7 @@ import {
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import AddAccountActions from '../AddAccountActions';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -95,8 +94,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const routeParams = useMemo(() => route?.params, [route?.params]);
 
   // Feature flag for full-page account list
-  const isFullPageAccountList = useFeatureFlag(
-    FeatureFlagNames.fullPageAccountList,
+  const isFullPageAccountList = useSelector(
+    selectFullPageAccountListEnabledFlag,
   );
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -105,6 +104,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     disablePrivacyMode,
     navigateToAddAccountActions,
     isEvmOnly,
+    disableAddAccountButton,
   } = routeParams || {};
 
   const reloadAccounts = useSelector(
@@ -143,6 +143,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const accountsParams = useMemo(
     () => ({
       isLoading: reloadAccounts,
+      fetchENS: false,
     }),
     [reloadAccounts],
   );
@@ -350,6 +351,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             selectedAccountGroups={[selectedAccountGroup]}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
             setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
+            showFooter={!disableAddAccountButton}
           />
         ) : (
           <EvmAccountSelectorList
@@ -362,24 +364,27 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
         )}
-        <BottomSheetFooter
-          buttonPropsArray={addAccountButtonProps}
-          style={styles.sheet}
-        />
+        {!disableAddAccountButton && (
+          <BottomSheetFooter
+            buttonPropsArray={addAccountButtonProps}
+            style={styles.sheet}
+          />
+        )}
       </Fragment>
     ),
     [
       isMultichainAccountsState2Enabled,
       selectedAccountGroup,
       _onSelectMultichainAccount,
-      accounts,
+      disableAddAccountButton,
       _onSelectAccount,
-      ensByAccountAddress,
       onRemoveImportedAccount,
+      accounts,
+      ensByAccountAddress,
       privacyMode,
       disablePrivacyMode,
-      styles.sheet,
       addAccountButtonProps,
+      styles.sheet,
     ],
   );
 
@@ -441,7 +446,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
               animatedStyle,
             ]}
           >
-            <SheetHeader
+            <HeaderCenter
               title={strings('accounts.accounts_title')}
               onBack={closeModal}
             />
@@ -459,19 +464,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onOpen={onBottomSheetOpen}
       keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
     >
-      {screen === AccountSelectorScreens.AccountSelector && (
-        <SheetHeader title={strings('accounts.accounts_title')} />
-      )}
-      {screen === AccountSelectorScreens.AddAccountActions && (
-        <BottomSheetHeader>
-          {strings('account_actions.add_account')}
-        </BottomSheetHeader>
-      )}
-      {screen === AccountSelectorScreens.MultichainAddWalletActions && (
-        <BottomSheetHeader>
-          {strings('multichain_accounts.add_wallet')}
-        </BottomSheetHeader>
-      )}
+      <HeaderCenter
+        title={
+          screen === AccountSelectorScreens.AddAccountActions
+            ? strings('account_actions.add_account')
+            : screen === AccountSelectorScreens.MultichainAddWalletActions
+              ? strings('multichain_accounts.add_wallet')
+              : strings('accounts.accounts_title')
+        }
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
       {renderAccountScreens()}
     </BottomSheet>
   );

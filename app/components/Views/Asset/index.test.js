@@ -1,6 +1,5 @@
 import React from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
-import { swapsUtils } from '@metamask/swaps-controller/';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
@@ -306,11 +305,10 @@ describe('Asset', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should call navigation.setOptions on mount', () => {
-    const mockSetOptions = jest.fn();
-    renderWithProvider(
+  it('renders inline header with asset symbol', () => {
+    const { getByText } = renderWithProvider(
       <Asset
-        navigation={{ setOptions: mockSetOptions }}
+        navigation={{ setOptions: jest.fn(), pop: jest.fn() }}
         route={{
           params: {
             symbol: 'BNB',
@@ -326,7 +324,7 @@ describe('Asset', () => {
       },
     );
 
-    expect(mockSetOptions).toHaveBeenCalled();
+    expect(getByText('BNB')).toBeDefined();
   });
 
   it('should display swaps button if the asset is allowed', () => {
@@ -351,7 +349,6 @@ describe('Asset', () => {
   });
 
   it('should not display swaps button if the asset is not allowed', () => {
-    jest.spyOn(swapsUtils, 'fetchSwapsFeatureFlags').mockRejectedValue('error');
     const { toJSON } = renderWithProvider(
       <Asset
         navigation={{ setOptions: jest.fn() }}

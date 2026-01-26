@@ -3,6 +3,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Text,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -21,9 +23,6 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import Text, {
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
@@ -150,7 +149,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
             </Text>
             <Text
               style={tw.style('color-alternative text-body-sm')}
-              color={TextColor.Alternative}
+              color={TextColor.TextAlternative}
             >
               {strings('predict.available_balance')}
             </Text>

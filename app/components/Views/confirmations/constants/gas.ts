@@ -4,13 +4,4 @@ export enum GasModalType {
   ADVANCED_GAS_PRICE = 'advancedGasPriceModal',
 }
 
-export enum GasOptionIcon {
-  ADVANCED = '⚙️',
-  GAS_PRICE = '⛓️',
-  HIGH = '🦍',
-  LOW = '🐢',
-  MEDIUM = '🦊',
-  SITE_SUGGESTED = '🌐',
-}
-
 export const EMPTY_VALUE_STRING = '--';

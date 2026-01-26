@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { getFeatureFlagValue } from '../env';
-import { Json } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -20,17 +20,24 @@ export type ConfirmationRedesignRemoteFlags = {
   transfer: boolean;
 };
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SendRedesignFlags = {
-  enabled: boolean;
-};
-
 export interface MetaMaskPayFlags {
   attemptsMax: number;
   bufferInitial: number;
   bufferStep: number;
   bufferSubsequent: number;
   slippage: number;
+}
+
+export interface GasFeeTokenFlags {
+  gasFeeTokens: {
+    [chainId: Hex]: {
+      name: string;
+      tokens: {
+        name: string;
+        address: Hex;
+      }[];
+    };
+  };
 }
 
 /**
@@ -116,45 +123,32 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
   };
 };
 
-export const selectSendRedesignFlagsFromRemoteFeatureFlags = (
-  remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>,
-): SendRedesignFlags => {
-  const remoteValues = remoteFeatureFlags.sendRedesign as SendRedesignFlags;
-
-  const isEnabled = getFeatureFlagValue(
-    process.env.MM_SEND_REDESIGN_ENABLED,
-    remoteValues?.enabled !== false,
-  );
-
-  return {
-    enabled: isEnabled,
-  };
-};
-
 export const selectConfirmationRedesignFlags = createSelector(
   selectRemoteFeatureFlags,
   selectConfirmationRedesignFlagsFromRemoteFeatureFlags,
 );
 
-export const selectSendRedesignFlags = createSelector(
-  selectRemoteFeatureFlags,
-  selectSendRedesignFlagsFromRemoteFeatureFlags,
-);
-
 export const selectMetaMaskPayFlags = createSelector(
   selectRemoteFeatureFlags,
-  (featureFlags) => {
+  (featureFlags): MetaMaskPayFlags => {
     const metaMaskPayFlags = featureFlags?.confirmation_pay as
       | Record<string, Json>
       | undefined;
 
-    const attemptsMax = metaMaskPayFlags?.attemptsMax ?? ATTEMPTS_MAX_DEFAULT;
+    const attemptsMax =
+      (metaMaskPayFlags?.attemptsMax as number) ?? ATTEMPTS_MAX_DEFAULT;
+
     const bufferInitial =
-      metaMaskPayFlags?.bufferInitial ?? BUFFER_INITIAL_DEFAULT;
-    const bufferStep = metaMaskPayFlags?.bufferStep ?? BUFFER_STEP_DEFAULT;
+      (metaMaskPayFlags?.bufferInitial as number) ?? BUFFER_INITIAL_DEFAULT;
+
+    const bufferStep =
+      (metaMaskPayFlags?.bufferStep as number) ?? BUFFER_STEP_DEFAULT;
+
     const bufferSubsequent =
-      metaMaskPayFlags?.bufferSubsequent ?? BUFFER_SUBSEQUENT_DEFAULT;
-    const slippage = metaMaskPayFlags?.slippage ?? SLIPPAGE_DEFAULT;
+      (metaMaskPayFlags?.bufferSubsequent as number) ??
+      BUFFER_SUBSEQUENT_DEFAULT;
+
+    const slippage = (metaMaskPayFlags?.slippage as number) ?? SLIPPAGE_DEFAULT;
 
     return {
       attemptsMax,
@@ -162,7 +156,7 @@ export const selectMetaMaskPayFlags = createSelector(
       bufferStep,
       bufferSubsequent,
       slippage,
-    } as MetaMaskPayFlags;
+    };
   },
 );
 
@@ -176,4 +170,23 @@ export const selectNonZeroUnusedApprovalsAllowList = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>) =>
     remoteFeatureFlags?.nonZeroUnusedApprovals ?? [],
+);
+
+export const selectGasFeeTokenFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): GasFeeTokenFlags => {
+    const gasFeeTokenFlags =
+      remoteFeatureFlags?.confirmations_gas_fee_tokens as
+        | Record<string, Json>
+        | undefined;
+
+    const gasFeeTokens =
+      (gasFeeTokenFlags?.gasFeeTokens as
+        | GasFeeTokenFlags['gasFeeTokens']
+        | undefined) ?? {};
+
+    return {
+      gasFeeTokens,
+    };
+  },
 );

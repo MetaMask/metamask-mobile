@@ -28,10 +28,9 @@ import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import {
   selectNetworkConfigurationByChainId,
-  selectNetworkClientId,
+  selectDefaultEndpointByChainId,
 } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -41,12 +40,10 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
-import EstimatedAnnualRewardsCard from '../../../Stake/components/EstimatedAnnualRewardsCard';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
-import { EVENT_LOCATIONS } from '../../constants/events';
+import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
-import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
@@ -67,7 +64,6 @@ import {
   EarnInputViewProps,
 } from './EarnInputView.types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import {
   doesTokenRequireAllowanceReset,
@@ -77,6 +73,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronStake from '../../hooks/useTronStake';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
@@ -100,12 +97,6 @@ const EarnInputView = () => {
     setIsSubmittingStakeDepositTransaction,
   ] = useState(false);
 
-  const confirmationRedesignFlags = useSelector(
-    selectConfirmationRedesignFlags,
-  );
-
-  const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_confirmations;
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
@@ -155,7 +146,12 @@ const EarnInputView = () => {
 
   const earnToken = getEarnToken(token);
 
-  const networkClientId = useSelector(selectNetworkClientId);
+  const endpoint = useSelector((state: RootState) =>
+    selectDefaultEndpointByChainId(state, earnToken?.chainId as Hex),
+  );
+
+  const networkClientId = endpoint?.networkClientId;
+
   const {
     isFiat,
     currentCurrency,
@@ -170,11 +166,9 @@ const EarnInputView = () => {
     handleQuickAmountPress,
     handleKeypadChange,
     calculateEstimatedAnnualRewards,
-    estimatedAnnualRewards,
     annualRewardsToken,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingEarnMetadata,
     handleMax,
     balanceValue,
     isHighGasCostImpact,
@@ -245,6 +239,17 @@ const EarnInputView = () => {
 
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
+
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      // Navigate to TRX staking learn more modal
+      if (isTronNative) {
+        navigation.navigate('StakeModals', {
+          screen: Routes.STAKING.MODALS.TRX_LEARN_MORE,
+        });
+        return;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
         params: { chainId: earnToken?.chainId },
@@ -307,6 +312,13 @@ const EarnInputView = () => {
       isFiat,
     ],
   );
+
+  const confirmationRedesignFlags = useSelector(
+    selectConfirmationRedesignFlags,
+  );
+
+  const isStakingDepositRedesignedEnabled =
+    confirmationRedesignFlags?.staking_confirmations;
 
   const handleLendingFlow = useCallback(async () => {
     if (
@@ -381,6 +393,13 @@ const EarnInputView = () => {
       _earnToken: EarnTokenDetails,
       _activeAccount: InternalAccount,
     ) => {
+      if (!networkClientId) {
+        console.error(
+          'Cannot create lending deposit confirmation - networkClientId is undefined',
+        );
+        return;
+      }
+
       const approveTxParams = generateLendingAllowanceIncreaseTransaction(
         amountTokenMinimalUnit.toString(),
         _activeAccount.address,
@@ -431,9 +450,6 @@ const EarnInputView = () => {
         networkClientId,
         origin: ORIGIN_METAMASK,
         transactions: [approveTx, lendingDepositTx],
-        disable7702: true,
-        disableHook: true,
-        disableSequential: false,
         requireApproval: true,
       });
 
@@ -465,9 +481,10 @@ const EarnInputView = () => {
       });
     };
 
-    const isRedesignedStablecoinLendingScreenEnabled =
-      getIsRedesignedStablecoinLendingScreenEnabled();
-    if (isRedesignedStablecoinLendingScreenEnabled) {
+    // Temp: Will be brought back in subsequent PR.
+    const isBatchDepositEnabled = false;
+
+    if (isBatchDepositEnabled) {
       createRedesignedLendingDepositConfirmation(earnToken, selectedAccount);
     } else {
       createLegacyLendingDepositConfirmation(
@@ -479,13 +496,13 @@ const EarnInputView = () => {
     selectedAccount,
     earnToken,
     shouldLogStablecoinEvent,
+    amountTokenMinimalUnit,
     trackEvent,
     createEventBuilder,
     network?.name,
     balanceValue,
     amountToken,
     isFiat,
-    amountTokenMinimalUnit,
     networkClientId,
     navigation,
     token,
@@ -542,7 +559,9 @@ const EarnInputView = () => {
       // start trace between user initiating deposit and the redesigned confirmation screen loading
       trace({
         name: TraceName.EarnDepositConfirmationScreen,
-        data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+        data: {
+          experience: earnToken?.experience?.type ?? '',
+        },
       });
 
       // this prevents the user from adding the transaction deposit into the
@@ -607,6 +626,7 @@ const EarnInputView = () => {
     createEventBuilder,
     earnToken?.chainId,
     earnToken?.isETH,
+    earnToken?.experience?.type,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
@@ -1021,21 +1041,7 @@ const EarnInputView = () => {
                   action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
                 />
               </>
-            ) : (
-              <EstimatedAnnualRewardsCard
-                estimatedAnnualRewards={estimatedAnnualRewards}
-                onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
-                  event: MetaMetricsEvents.TOOLTIP_OPENED,
-                  properties: {
-                    selected_provider: EVENT_PROVIDERS.CONSENSYS,
-                    text: 'Tooltip Opened',
-                    location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-                    tooltip_name: 'MetaMask Pool Estimated Rewards',
-                  },
-                })}
-                isLoading={isLoadingEarnMetadata}
-              />
-            ))}
+            ) : null)}
         </View>
       </ScrollView>
       {

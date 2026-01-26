@@ -1,5 +1,5 @@
 import React from 'react';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from './LoginView.testIds';
 import Login from './index';
 import { fireEvent, act, screen, waitFor } from '@testing-library/react-native';
 import { VAULT_ERROR } from './constants';
@@ -13,7 +13,6 @@ import { Authentication } from '../../../core';
 
 // Mock dependencies
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -130,7 +129,36 @@ jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
     mockIsMultichainAccountsState2Enabled(),
 }));
 
+jest.mock('../../UI/ScreenshotDeterrent', () => ({
+  ScreenshotDeterrent: () => null,
+}));
+
 describe('Login test suite 2', () => {
+  const createMockReduxStore = (
+    stateOverrides?: RecursivePartial<RootState>,
+  ) => {
+    const defaultState = {
+      user: {
+        existingUser: false,
+      },
+      security: {
+        allowLoginWithRememberMe: false,
+      },
+      settings: {
+        lockTime: -1,
+      },
+      ...(stateOverrides || {}),
+    } as RecursivePartial<RootState>;
+
+    return {
+      dispatch: jest.fn(),
+      getState: jest.fn(() => defaultState),
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+      [Symbol.observable]: jest.fn(),
+    } as unknown as ReduxStore;
+  };
+
   beforeAll(() => {
     jest.useFakeTimers();
   });
@@ -139,12 +167,19 @@ describe('Login test suite 2', () => {
     jest
       .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
       .mockResolvedValue(false);
+
+    // Mock Redux store for all tests
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.clearAllTimers();
     jest.clearAllMocks();
+    // Restore Redux store mock after clearing mocks
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   afterAll(() => {
@@ -184,7 +219,7 @@ describe('Login test suite 2', () => {
         });
 
       jest
-        .spyOn(Authentication, 'storePassword')
+        .spyOn(Authentication, 'updateAuthPreference')
         .mockResolvedValueOnce(undefined);
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -277,21 +312,11 @@ describe('Login test suite 2', () => {
         .spyOn(Authentication, 'userEntryAuth')
         .mockRejectedValue(new Error(VAULT_ERROR));
 
+      // Mock getVaultFromBackup to return an error to trigger error handling
       mockGetVaultFromBackup.mockResolvedValueOnce({
-        success: true,
-        vault: 'mock-vault',
+        success: false,
+        error: 'Store password failed',
       });
-      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
-
-      jest
-        .spyOn(Authentication, 'componentAuthenticationType')
-        .mockResolvedValueOnce({
-          currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        });
-
-      jest
-        .spyOn(Authentication, 'storePassword')
-        .mockRejectedValueOnce(new Error('Store password failed'));
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -303,7 +328,9 @@ describe('Login test suite 2', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      await waitFor(() => {
+        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      });
     });
 
     it('handle vault corruption when vault seed cannot be parsed', async () => {
@@ -357,8 +384,6 @@ describe('Login test suite 2', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(updateAuthTypeStorageFlags).toHaveBeenCalledWith(false);
-
       mockRoute.mockClear();
     });
   });
@@ -383,6 +408,12 @@ describe('Login test suite 2', () => {
         return null;
       });
       const mockState: RecursivePartial<RootState> = {
+        user: {
+          existingUser: false,
+        },
+        security: {
+          allowLoginWithRememberMe: false,
+        },
         engine: {
           backgroundState: {
             SeedlessOnboardingController: {
@@ -395,8 +426,14 @@ describe('Login test suite 2', () => {
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
         getState: jest.fn(() => mockState),
+        subscribe: jest.fn(),
+        replaceReducer: jest.fn(),
+        [Symbol.observable]: jest.fn(),
       } as unknown as ReduxStore);
-      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
+      jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
+      jest
+        .spyOn(Authentication, 'updateAuthPreference')
+        .mockResolvedValue(undefined);
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);

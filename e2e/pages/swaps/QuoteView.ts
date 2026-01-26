@@ -3,7 +3,7 @@ import Gestures from '../../framework/Gestures';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
-} from '../../selectors/swaps/QuoteView.selectors';
+} from '../../../app/components/UI/Swaps/QuoteView.testIds';
 
 class QuoteView {
   get selectAmountLabel(): DetoxElement {
@@ -42,6 +42,14 @@ class QuoteView {
 
   get networkFeeLabel(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
+  }
+
+  get maxLink(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.MAX);
+  }
+
+  get includedLabel(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
   }
 
   token(chainId: string, symbol: string): Detox.NativeElement {
@@ -134,6 +142,12 @@ class QuoteView {
   async tapOnCancelButton() {
     await Gestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel swap',
+    });
+  }
+
+  async tapMax(): Promise<void> {
+    await Gestures.waitAndTap(this.maxLink, {
+      elemDescription: 'Tap Max link to use maximum balance',
     });
   }
 }

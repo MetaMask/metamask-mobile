@@ -1,11 +1,18 @@
 import React from 'react';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import OtpCode from './OtpCode';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { trace } from '../../../../../../util/trace';
+
+jest.mock('@react-native-clipboard/clipboard', () => ({
+  getString: jest.fn(),
+}));
+
+const mockGetString = Clipboard.getString as jest.Mock;
 
 const mockEmail = 'test@email.com';
 
@@ -116,6 +123,7 @@ describe('OtpCode Screen', () => {
     mockVerifyUserOtp.mockResolvedValue('Success');
     mockSendUserOtp.mockResolvedValue('Success');
     mockTrackEvent.mockClear();
+    mockGetString.mockResolvedValue('');
   });
 
   it('render matches snapshot', () => {
@@ -171,7 +179,15 @@ describe('OtpCode Screen', () => {
     mockSendUserOtp.mockRejectedValue(new Error('Failed to resend'));
     render(OtpCode);
     const resendButton = screen.getByText('Resend it');
-    fireEvent.press(resendButton);
+
+    await act(async () => {
+      fireEvent.press(resendButton);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Error resending code.')).toBeOnTheScreen();
+    });
+
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -304,6 +320,105 @@ describe('OtpCode Screen', () => {
         expect(mockVerifyUserOtp).toHaveBeenCalled();
         expect(mockSetAuthToken).toHaveBeenCalledWith(mockTokenResponse);
         expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ROOT);
+      });
+    });
+  });
+
+  describe('paste functionality', () => {
+    it('renders paste button', () => {
+      const { getByTestId } = render(OtpCode);
+
+      const pasteButton = getByTestId('otp-code-paste-button');
+
+      expect(pasteButton).toBeOnTheScreen();
+    });
+
+    it('reads from clipboard when paste button is pressed', async () => {
+      mockGetString.mockResolvedValue('123456');
+      const { getByTestId } = render(OtpCode);
+      const pasteButton = getByTestId('otp-code-paste-button');
+
+      await act(async () => {
+        fireEvent.press(pasteButton);
+      });
+
+      expect(mockGetString).toHaveBeenCalled();
+    });
+
+    it('extracts only numeric characters from clipboard content', async () => {
+      mockGetString.mockResolvedValue('abc123def456');
+      const { getByTestId } = render(OtpCode);
+      const pasteButton = getByTestId('otp-code-paste-button');
+
+      await act(async () => {
+        fireEvent.press(pasteButton);
+      });
+
+      const codeInput = getByTestId('otp-code-input');
+      expect(codeInput.props.value).toBe('123456');
+    });
+
+    it('limits pasted content to 6 digits', async () => {
+      mockGetString.mockResolvedValue('123456789');
+      const { getByTestId } = render(OtpCode);
+      const pasteButton = getByTestId('otp-code-paste-button');
+
+      await act(async () => {
+        fireEvent.press(pasteButton);
+      });
+
+      const codeInput = getByTestId('otp-code-input');
+      expect(codeInput.props.value).toBe('123456');
+    });
+
+    it('does not update value when clipboard content has no numeric characters', async () => {
+      mockGetString.mockResolvedValue('abcdef');
+      const { getByTestId } = render(OtpCode);
+      const pasteButton = getByTestId('otp-code-paste-button');
+
+      await act(async () => {
+        fireEvent.press(pasteButton);
+      });
+
+      const codeInput = getByTestId('otp-code-input');
+      expect(codeInput.props.value).toBe('');
+    });
+
+    it('overwrites existing input when paste button is pressed', async () => {
+      mockGetString.mockResolvedValue('654321');
+      const { getByTestId } = render(OtpCode);
+      const codeInput = getByTestId('otp-code-input');
+
+      act(() => {
+        fireEvent.changeText(codeInput, '123');
+      });
+
+      const pasteButton = getByTestId('otp-code-paste-button');
+      await act(async () => {
+        fireEvent.press(pasteButton);
+      });
+
+      expect(codeInput.props.value).toBe('654321');
+    });
+
+    it('triggers auto-submit when pasting 6 digits', async () => {
+      const mockTokenResponse: NativeTransakAccessToken = {
+        accessToken: 'mock-access-token-paste',
+        ttl: 1000,
+        created: new Date('2024-01-01'),
+      };
+      mockVerifyUserOtp.mockResolvedValue(mockTokenResponse);
+      mockSetAuthToken.mockResolvedValue(undefined);
+      mockGetString.mockResolvedValue('123456');
+      const { getByTestId } = render(OtpCode);
+      const pasteButton = getByTestId('otp-code-paste-button');
+
+      await act(async () => {
+        fireEvent.press(pasteButton);
+      });
+
+      await waitFor(() => {
+        expect(mockVerifyUserOtp).toHaveBeenCalled();
       });
     });
   });

@@ -377,10 +377,10 @@ describe('useBridgeQuoteRequest', () => {
   });
 
   describe('gasIncluded parameter', () => {
-    it('includes gasIncluded true in quote request when enabled', async () => {
+    it('includes gasIncluded true in quote request when STX send bundle is supported', async () => {
       const testState = createBridgeTestState({
         bridgeReducerOverrides: {
-          gasIncluded: true,
+          isGasIncludedSTXSendBundleSupported: true,
         },
       });
 
@@ -401,10 +401,10 @@ describe('useBridgeQuoteRequest', () => {
       );
     });
 
-    it('includes gasIncluded false in quote request when disabled', async () => {
+    it('includes gasIncluded false in quote request when STX send bundle is not supported', async () => {
       const testState = createBridgeTestState({
         bridgeReducerOverrides: {
-          gasIncluded: false,
+          isGasIncludedSTXSendBundleSupported: false,
         },
       });
 
@@ -425,7 +425,44 @@ describe('useBridgeQuoteRequest', () => {
       );
     });
 
-    it('includes gasIncluded7702 false in quote request', async () => {
+    it('includes gasIncluded7702 true in quote request when 7702 is supported for swap', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          isGasIncluded7702Supported: true,
+          // Need to set up a swap scenario (same chain) for 7702 to be enabled
+          sourceToken: {
+            address: '0xSourceToken',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'SRC',
+          },
+          destToken: {
+            address: '0xDestToken',
+            chainId: '0x1', // Same chain as source for swap
+            decimals: 18,
+            symbol: 'DEST',
+          },
+        },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded7702: true,
+        }),
+        undefined,
+      );
+    });
+
+    it('includes gasIncluded7702 false in quote request when 7702 is not supported', async () => {
       const testState = createBridgeTestState();
 
       const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {

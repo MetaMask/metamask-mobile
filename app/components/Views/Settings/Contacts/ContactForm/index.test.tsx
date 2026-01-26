@@ -5,7 +5,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import Engine, { EngineState } from '../../../../../core/Engine';
 import ContactForm from '.';
-import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 
 const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xf55C0d639d99699bFd7EC54d9FAFee40E4d272C4';
@@ -354,5 +354,67 @@ describe('ContactForm', () => {
       AddContactViewSelectorsIDs.DELETE_BUTTON,
     );
     expect(deleteButton).toBeTruthy();
+  });
+
+  it('rejects burn address 0x0000000000000000000000000000000000000000', async () => {
+    const validateAddressOrENSMock = jest.requireMock(
+      '../../../../../util/address',
+    ).validateAddressOrENS;
+
+    const burnAddress = '0x0000000000000000000000000000000000000000';
+    validateAddressOrENSMock.mockResolvedValueOnce({
+      addressError: 'Invalid address',
+      toEnsName: null,
+      addressReady: false,
+      toEnsAddress: null,
+      errorContinue: false,
+    });
+
+    const { findByTestId } = renderContactForm();
+
+    const addressInput = await findByTestId(
+      AddContactViewSelectorsIDs.ADDRESS_INPUT,
+    );
+    fireEvent.changeText(addressInput, burnAddress);
+
+    await waitFor(() => {
+      expect(validateAddressOrENSMock).toHaveBeenCalledWith(
+        burnAddress,
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+  });
+
+  it('rejects burn address 0x000000000000000000000000000000000000dEaD', async () => {
+    const validateAddressOrENSMock = jest.requireMock(
+      '../../../../../util/address',
+    ).validateAddressOrENS;
+
+    const burnAddress = '0x000000000000000000000000000000000000dEaD';
+    validateAddressOrENSMock.mockResolvedValueOnce({
+      addressError: 'Invalid address',
+      toEnsName: null,
+      addressReady: false,
+      toEnsAddress: null,
+      errorContinue: false,
+    });
+
+    const { findByTestId } = renderContactForm();
+
+    const addressInput = await findByTestId(
+      AddContactViewSelectorsIDs.ADDRESS_INPUT,
+    );
+    fireEvent.changeText(addressInput, burnAddress);
+
+    await waitFor(() => {
+      expect(validateAddressOrENSMock).toHaveBeenCalledWith(
+        burnAddress,
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
   });
 });

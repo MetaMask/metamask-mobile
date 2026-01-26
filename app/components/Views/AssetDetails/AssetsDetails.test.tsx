@@ -1,4 +1,5 @@
 import React from 'react';
+import { InteractionManager } from 'react-native';
 import AssetDetails from '.';
 import configureMockStore from 'redux-mock-store';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
@@ -12,6 +13,25 @@ import { TokenI } from '../../UI/Tokens/types';
 jest.mock('../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
 }));
+
+// Mock Perps components and hooks to avoid navigation dependency issues
+jest.mock('../../UI/Perps', () => ({
+  selectPerpsEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock('../../UI/Perps/hooks/usePerpsMarketForAsset', () => ({
+  usePerpsMarketForAsset: jest.fn(() => ({
+    hasPerpsMarket: false,
+    marketData: null,
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock(
+  '../../UI/Perps/components/PerpsDiscoveryBanner',
+  () => 'PerpsDiscoveryBanner',
+);
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
@@ -35,10 +55,14 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     setOptions: jest.fn(),
-    navigate: jest.fn(),
+    navigate: mockNavigate,
+    goBack: mockGoBack,
   })),
 }));
 
@@ -189,20 +213,28 @@ describe('AssetDetails', () => {
       </Provider>,
     );
 
-  it('renders correctly', () => {
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   it('renders token details correctly', () => {
     const { getByText } = renderComponent();
 
-    expect(getByText('Token')).toBeDefined();
-    expect(getByText('Token Amount')).toBeDefined();
-    expect(getByText('Token contract address')).toBeDefined();
-    expect(getByText('Token decimal')).toBeDefined();
-    expect(getByText('Network')).toBeDefined();
-    expect(getByText('Token Lists')).toBeDefined();
+    expect(getByText('Token')).toBeOnTheScreen();
+    expect(getByText('Token amount')).toBeOnTheScreen();
+    expect(getByText('Token contract address')).toBeOnTheScreen();
+    expect(getByText('Token decimal')).toBeOnTheScreen();
+    expect(getByText('Network')).toBeOnTheScreen();
+    expect(getByText('Token lists')).toBeOnTheScreen();
+  });
+
+  it('calls goBack when back button is pressed', () => {
+    const { getByTestId } = renderComponent();
+
+    const backButton = getByTestId('button-icon');
+    fireEvent.press(backButton);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('copies address to clipboard and shows alert', async () => {
@@ -242,6 +274,48 @@ describe('AssetDetails', () => {
     });
   });
 
+  it('hides token and navigates to WalletView when onConfirm is called', async () => {
+    const runAfterInteractionsSpy = jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        if (typeof callback === 'function') {
+          callback();
+        }
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
+      });
+
+    const { getByText } = renderComponent();
+
+    fireEvent.press(getByText('Hide token'));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'AssetHideConfirmation',
+          params: expect.objectContaining({
+            onConfirm: expect.any(Function),
+          }),
+        }),
+      );
+    });
+
+    const onConfirmCallback = mockNavigate.mock.calls[0][1].params.onConfirm;
+    onConfirmCallback();
+
+    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    expect(Engine.context.TokensController.ignoreTokens).toHaveBeenCalledWith(
+      ['0xAddress'],
+      'mainnet',
+    );
+
+    runAfterInteractionsSpy.mockRestore();
+  });
+
   it('renders warning banner if balance is undefined', () => {
     const mockEmptyState = {
       ...initialState,
@@ -271,12 +345,12 @@ describe('AssetDetails', () => {
       </Provider>,
     );
 
-    expect(getByText('troubleshooting missing balances')).toBeDefined();
+    expect(getByText('troubleshooting missing balances')).toBeOnTheScreen();
   });
 
   it('renders balance in ETH if primary currency is ETH', () => {
     const { getByText } = renderComponent();
-    expect(getByText('1')).toBeDefined();
+    expect(getByText('1')).toBeOnTheScreen();
   });
 
   it('renders balance in fiat if primary currency is fiat', () => {
@@ -302,6 +376,190 @@ describe('AssetDetails', () => {
       </Provider>,
     );
 
-    expect(getByText('1')).toBeDefined();
+    expect(getByText('1')).toBeOnTheScreen();
+  });
+
+  it('navigates to troubleshooting webview when warning banner link is pressed', async () => {
+    const mockEmptyState = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokenBalancesController: {
+            tokenBalances: {},
+          },
+        },
+      },
+    };
+    const mockStoreEmpty = mockStore(mockEmptyState);
+
+    const { getByText } = render(
+      <Provider store={mockStoreEmpty}>
+        <AssetDetails
+          route={{
+            params: {
+              address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />
+      </Provider>,
+    );
+
+    const troubleshootingLink = getByText('troubleshooting missing balances');
+    fireEvent.press(troubleshootingLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: expect.objectContaining({
+        title: 'Troubleshoot',
+      }),
+    });
+  });
+
+  it('does not render Token lists section when aggregators are empty', () => {
+    const mockStateNoAggregators = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokensController: {
+            tokens: [
+              {
+                address: '0xAddress',
+                symbol: 'TKN',
+                decimals: 18,
+                aggregators: [],
+              },
+            ],
+            tokensByChainId: {
+              [CHAIN_IDS.MAINNET]: [
+                {
+                  address: '0xAddress',
+                  symbol: 'TKN',
+                  decimals: 18,
+                  aggregators: [],
+                },
+              ],
+            },
+            allTokens: {
+              [CHAIN_IDS.MAINNET]: {
+                [MOCK_ADDRESS_1]: [
+                  {
+                    address: '0xAddress',
+                    symbol: 'TKN',
+                    decimals: 18,
+                    aggregators: [],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+    const mockStoreNoAggregators = mockStore(mockStateNoAggregators);
+
+    const { queryByText } = render(
+      <Provider store={mockStoreNoAggregators}>
+        <AssetDetails
+          route={{
+            params: {
+              address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />
+      </Provider>,
+    );
+
+    expect(queryByText('Token lists')).toBeNull();
+  });
+
+  it('renders token from asset prop when token is not in portfolio', () => {
+    const mockStateNoTokens = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokensController: {
+            tokens: [],
+            tokensByChainId: {},
+            allTokens: {},
+          },
+        },
+      },
+    };
+    const mockStoreNoTokens = mockStore(mockStateNoTokens);
+
+    const assetFromSearch = {
+      address: '0xNewToken',
+      symbol: 'NEW',
+      decimals: 18,
+      name: 'New Token',
+      image: 'https://example.com/token.png',
+      aggregators: ['Uniswap'],
+    };
+
+    const { getByText } = render(
+      <Provider store={mockStoreNoTokens}>
+        <AssetDetails
+          route={{
+            params: {
+              address: '0xNewToken' as `0x${string}`,
+              chainId: CHAIN_IDS.MAINNET,
+              asset: assetFromSearch as unknown as TokenI,
+            },
+          }}
+        />
+      </Provider>,
+    );
+
+    expect(getByText('NEW')).toBeOnTheScreen();
+  });
+
+  it('returns null when token is not found and no asset prop provided', () => {
+    const mockStateNoTokens = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokensController: {
+            tokens: [],
+            tokensByChainId: {},
+            allTokens: {},
+          },
+        },
+      },
+    };
+    const mockStoreNoTokens = mockStore(mockStateNoTokens);
+
+    const { toJSON } = render(
+      <Provider store={mockStoreNoTokens}>
+        <AssetDetails
+          route={{
+            params: {
+              address: '0xUnknownToken' as `0x${string}`,
+              chainId: CHAIN_IDS.MAINNET,
+              asset: undefined as unknown as TokenI,
+            },
+          }}
+        />
+      </Provider>,
+    );
+
+    expect(toJSON()).toBeNull();
+  });
+
+  it('displays network name in header and content section', () => {
+    const { getAllByText } = renderComponent();
+
+    const networkNameElements = getAllByText('Ethereum Mainnet');
+    expect(networkNameElements).toHaveLength(2);
+    networkNameElements.forEach((networkElement) => {
+      expect(networkElement).toBeOnTheScreen();
+    });
   });
 });

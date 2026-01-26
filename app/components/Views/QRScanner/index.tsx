@@ -2,9 +2,8 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
-import { isValidAddress } from 'ethereumjs-util';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
@@ -17,7 +16,6 @@ import {
   useCodeScanner,
   Code,
 } from 'react-native-vision-camera';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Routes from '../../../constants/navigation/Routes';
@@ -26,11 +24,13 @@ import {
   MM_WALLETCONNECT_DEEPLINK,
 } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
-import { selectChainId } from '../../../selectors/networkController';
+import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import { InitSendLocation } from '../confirmations/constants/send';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
+import { derivePredefinedRecipientParams } from '../confirmations/utils/address';
 import { getURLProtocol } from '../../../util/general';
 import {
   failedSeedPhraseRequirements,
@@ -40,6 +40,7 @@ import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
+import { ChainType } from '../confirmations/utils/send';
 import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
@@ -67,11 +68,13 @@ const QRScanner = ({
   const shouldReadBarCodeRef = useRef<boolean>(true);
   const [permissionCheckCompleted, setPermissionCheckCompleted] =
     useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(true);
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
 
-  const currentChainId = useSelector(selectChainId);
+  const { navigateToSendPage } = useSendNavigation();
+
   const theme = useTheme();
   const styles = createStyles(theme);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -114,6 +117,21 @@ const QRScanner = ({
     trackEvent,
     createEventBuilder,
   ]);
+
+  // Reset camera state when screen is focused (e.g., when navigating back from send screen)
+  useFocusEffect(
+    useCallback(() => {
+      mountedRef.current = true;
+      shouldReadBarCodeRef.current = true;
+      setIsCameraActive(true);
+
+      return () => {
+        mountedRef.current = false;
+        shouldReadBarCodeRef.current = false;
+        setIsCameraActive(false);
+      };
+    }, []),
+  );
 
   const end = useCallback(() => {
     mountedRef.current = false;
@@ -161,14 +179,19 @@ const QRScanner = ({
       // Early exit if no codes detected
       if (!codes.length) return;
 
-      const response = { data: codes[0].value };
-      let content = response.data;
       /**
        * Barcode read triggers multiple times
        * shouldReadBarCodeRef controls how often the logic below runs
        * Think of this as a allow or disallow bar code reading
        */
-      if (!shouldReadBarCodeRef.current || !mountedRef.current || !content) {
+      if (!shouldReadBarCodeRef.current || !mountedRef.current) {
+        return;
+      }
+
+      const response = { data: codes[0].value };
+      let content = response.data;
+
+      if (!content) {
         return;
       }
 
@@ -192,11 +215,12 @@ const QRScanner = ({
           return;
         }
       }
-      if (SDKConnectV2.isConnectDeeplink(response.data)) {
+
+      if (SDKConnectV2.isMwpDeeplink(response.data)) {
         // SDKConnectV2 handles the connection entirely internally (establishes WebSocket, etc.)
         // and bypasses the standard deeplink saga flow. We don't call onScanSuccess here because
         // parent components don't need to be notified.
-        // See: app/core/DeeplinkManager/handleDeeplink.ts for details.
+        // See: app/core/DeeplinkManager/Handlers/handleDeeplink.ts for details.
         shouldReadBarCodeRef.current = false;
         trackEvent(
           createEventBuilder(MetaMetricsEvents.QR_SCANNED)
@@ -208,7 +232,8 @@ const QRScanner = ({
             })
             .build(),
         );
-        SDKConnectV2.handleConnectDeeplink(response.data);
+
+        SDKConnectV2.handleMwpDeeplink(response.data);
         end();
         return;
       }
@@ -223,7 +248,6 @@ const QRScanner = ({
         !isWalletConnect &&
         !isSDK
       ) {
-        // Convert dapp:// protocol to https://
         if (contentProtocol === PROTOCOLS.DAPP) {
           content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
         }
@@ -317,7 +341,6 @@ const QRScanner = ({
           onScanSuccess(data, content);
           return;
         }
-
         // Check if wallet is unlocked before processing other scan types
         const { KeyringController } = Engine.context as EngineContext;
         const isUnlocked = KeyringController.isUnlocked();
@@ -343,29 +366,136 @@ const QRScanner = ({
           return;
         }
 
-        if (
-          (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
-            !parse(content).function_name) ||
-          (content.startsWith('0x') && isValidAddress(content))
-        ) {
-          const handledContent = content.startsWith('0x')
-            ? `${PROTOCOLS.ETHEREUM}:${content}@${currentChainId}`
-            : content;
+        let addressToValidate = content;
+        const hasEthereumProtocol =
+          content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1;
+
+        let isEthereumUrl = false;
+        if (hasEthereumProtocol) {
+          try {
+            const parsed = parse(content);
+            if (!parsed.function_name) {
+              isEthereumUrl = true;
+              addressToValidate = parsed.target_address;
+            }
+          } catch {
+            isEthereumUrl = false;
+          }
+        }
+
+        const predefinedRecipient =
+          derivePredefinedRecipientParams(addressToValidate);
+
+        if (predefinedRecipient || isEthereumUrl) {
           shouldReadBarCodeRef.current = false;
-          data = parse(handledContent);
-          const action = 'send-eth';
-          data = { ...data, action };
+          setIsCameraActive(false);
+
+          // Handle callback-based origins (ContactForm, SendTo)
+          // These origins expect onScanSuccess() with target_address instead of navigation
+          if (
+            origin === Routes.SEND_FLOW.SEND_TO ||
+            origin === Routes.SETTINGS.CONTACT_FORM
+          ) {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+                .addProperties({
+                  [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                  [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+                })
+                .build(),
+            );
+            end();
+            onScanSuccess({ target_address: addressToValidate }, content);
+            return;
+          }
+
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          // Handle non-EVM addresses when keyring-snaps is enabled (Solana, Bitcoin)
+          if (
+            predefinedRecipient &&
+            predefinedRecipient.chainType !== ChainType.EVM
+          ) {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+                .addProperties({
+                  [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                  [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+                })
+                .build(),
+            );
+            end();
+            InteractionManager.runAfterInteractions(() => {
+              navigateToSendPage({
+                location: InitSendLocation.QRScanner,
+                predefinedRecipient,
+              });
+            });
+            return;
+          }
+          ///: END:ONLY_INCLUDE_IF
+
+          // If non-EVM and keyring-snaps is disabled, show error
+          if (
+            predefinedRecipient &&
+            predefinedRecipient.chainType !== ChainType.EVM
+          ) {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+                .addProperties({
+                  [QRScannerEventProperties.SCAN_SUCCESS]: false,
+                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                  [QRScannerEventProperties.SCAN_RESULT]:
+                    ScanResult.ADDRESS_TYPE_NOT_SUPPORTED,
+                })
+                .build(),
+            );
+            showAlertForInvalidAddress();
+            end();
+            return;
+          }
+
+          // Handle EVM addresses
+          if (
+            predefinedRecipient &&
+            predefinedRecipient.chainType === ChainType.EVM
+          ) {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+                .addProperties({
+                  [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                  [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+                })
+                .build(),
+            );
+
+            end();
+
+            InteractionManager.runAfterInteractions(() => {
+              navigateToSendPage({
+                location: InitSendLocation.QRScanner,
+                predefinedRecipient,
+              });
+            });
+
+            return;
+          }
+
+          // Fallback for unknown chain types
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
               .addProperties({
-                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.SCAN_SUCCESS]: false,
                 [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
-                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.ADDRESS_TYPE_NOT_SUPPORTED,
               })
               .build(),
           );
+          showAlertForInvalidAddress();
           end();
-          onScanSuccess(data, handledContent);
           return;
         }
 
@@ -394,6 +524,7 @@ const QRScanner = ({
           return;
         }
 
+        // I can't be handled by deeplinks, checking other options
         if (
           content.length === 64 ||
           (content.substring(0, 2).toLowerCase() === '0x' &&
@@ -437,6 +568,7 @@ const QRScanner = ({
               .build(),
           );
         } else {
+          // EIP-945 allows scanning arbitrary data
           data = content;
           const qrType = getQRType(content, origin, data as ScanSuccess);
           trackEvent(
@@ -462,7 +594,7 @@ const QRScanner = ({
       navigation,
       onStartScan,
       onScanSuccess,
-      currentChainId,
+      navigateToSendPage,
       trackEvent,
       createEventBuilder,
     ],
@@ -530,7 +662,7 @@ const QRScanner = ({
       <Camera
         style={styles.preview}
         device={cameraDevice}
-        isActive={mountedRef.current}
+        isActive={mountedRef.current && isCameraActive}
         codeScanner={codeScanner}
         torch="off"
         onError={onError}

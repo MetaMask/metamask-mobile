@@ -12,7 +12,7 @@ import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
-import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { BuildQuoteSelectors } from './BuildQuote.testIds';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
@@ -402,7 +402,7 @@ describe('BuildQuote View', () => {
     };
     render(BuildQuote);
     fireEvent.press(
-      screen.getByRole('button', { name: 'Return to Home Screen' }),
+      screen.getByRole('button', { name: 'Return to home screen' }),
     );
     expect(mockPop).toBeCalledTimes(1);
 
@@ -416,7 +416,7 @@ describe('BuildQuote View', () => {
     };
     render(BuildQuote);
     fireEvent.press(
-      screen.getByRole('button', { name: 'Return to Home Screen' }),
+      screen.getByRole('button', { name: 'Return to home screen' }),
     );
     expect(mockPop).toBeCalledTimes(1);
   });

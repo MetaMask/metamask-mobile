@@ -1,12 +1,14 @@
 // third party dependencies
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { useSelector } from 'react-redux';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 // external dependencies
 import { strings } from '../../../../locales/i18n';
@@ -15,10 +17,7 @@ import { useStyles } from '../../../component-library/hooks/useStyles';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from './../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from './../../../component-library/components/Avatars/Avatar';
 import Icon, {
   IconName,
   IconSize,
@@ -28,7 +27,11 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
-import Device from '../../../util/device';
+import { selectEvmChainId } from '../../../selectors/networkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import {
@@ -53,9 +56,21 @@ const CustomNetworkSelector = ({
   openRpcModal,
 }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
-  const { styles } = useStyles(createStyles, { colors });
+  const { styles } = useStyles(createStyles, {});
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
+
+  // Get the currently active network's chain ID in CAIP format
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const evmChainId = useSelector(selectEvmChainId);
+  const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
+  const selectedChainIdCaip = useMemo(
+    () =>
+      isEvmSelected
+        ? formatChainIdToCaip(evmChainId)
+        : (nonEvmChainId ?? formatChainIdToCaip(evmChainId)),
+    [isEvmSelected, evmChainId, nonEvmChainId],
+  );
 
   // Use custom hooks for network management
   const { networks, areAllNetworksSelected } = useNetworksByNamespace({
@@ -79,6 +94,15 @@ const CustomNetworkSelector = ({
     });
   }, [navigate]);
 
+  const createAvatarProps = useCallback(
+    (item: CustomNetworkItem) => ({
+      variant: AvatarVariant.Network as const,
+      name: item.name,
+      imageSource: item.imageSource as ImageSourcePropType,
+    }),
+    [],
+  );
+
   const renderNetworkItem: ListRenderItem<CustomNetworkItem> = useCallback(
     ({ item }) => {
       const {
@@ -98,10 +122,12 @@ const CustomNetworkSelector = ({
       };
 
       const handleMenuPress = () => {
+        // Don't allow deleting the active network or testnets
+        const isActiveNetwork = selectedChainIdCaip === caipChainId;
         openModal({
           isVisible: true,
           caipChainId,
-          displayEdit: !isTestNet(chainId),
+          displayEdit: !isTestNet(chainId) && !isActiveNetwork,
           networkTypeOrRpcUrl: networkTypeOrRpcUrl || '',
           isReadOnly: false,
         });
@@ -122,12 +148,7 @@ const CustomNetworkSelector = ({
             onTextClick={() =>
               openRpcModal && openRpcModal({ chainId, networkName: name })
             }
-            avatarProps={{
-              variant: AvatarVariant.Network,
-              name,
-              imageSource: item.imageSource as ImageSourcePropType,
-              size: AvatarSize.Sm,
-            }}
+            avatarProps={createAvatarProps(item)}
             buttonIcon={IconName.MoreVertical}
             buttonProps={{
               onButtonClick: handleMenuPress,
@@ -136,11 +157,20 @@ const CustomNetworkSelector = ({
               caipChainId,
               isSelected,
             )}
+            style={styles.networkItem}
           />
         </View>
       );
     },
-    [selectCustomNetwork, openModal, dismissModal, openRpcModal],
+    [
+      selectCustomNetwork,
+      openModal,
+      dismissModal,
+      openRpcModal,
+      createAvatarProps,
+      styles.networkItem,
+      selectedChainIdCaip,
+    ],
   );
 
   const renderFooter = useCallback(
@@ -149,14 +179,15 @@ const CustomNetworkSelector = ({
         style={styles.addNetworkButtonContainer}
         onPress={goToNetworkSettings}
       >
-        <Icon
-          name={IconName.Add}
-          size={IconSize.Lg}
-          color={colors.icon.alternative}
-          style={styles.iconContainer}
-        />
+        <View style={styles.iconContainer}>
+          <Icon
+            name={IconName.Add}
+            size={IconSize.Md}
+            color={colors.primary.default}
+          />
+        </View>
 
-        <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
+        <Text variant={TextVariant.BodyMDMedium} color={colors.primary.default}>
           {strings('app_settings.network_add_custom_network')}
         </Text>
       </TouchableOpacity>
@@ -176,8 +207,7 @@ const CustomNetworkSelector = ({
         ListFooterComponent={renderFooter}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
-          paddingBottom:
-            safeAreaInsets.bottom + Device.getDeviceHeight() * 0.05,
+          paddingBottom: safeAreaInsets.bottom,
         }}
       />
     </ScrollView>

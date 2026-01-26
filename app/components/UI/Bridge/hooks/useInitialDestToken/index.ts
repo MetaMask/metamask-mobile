@@ -34,6 +34,11 @@ export const useInitialDestToken = (
   const prevInitialDestToken = usePrevious(initialDestToken);
 
   useEffect(() => {
+    // If dest token is already set in Redux (pre-populated before navigation), skip initialization
+    if (destToken && !initialDestToken) {
+      return;
+    }
+
     if (initialDestToken && prevInitialDestToken !== initialDestToken) {
       dispatch(setDestToken(initialDestToken));
       return;

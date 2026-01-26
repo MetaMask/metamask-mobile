@@ -19,7 +19,7 @@ import UntypedEngine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
 
 interface AccountPermissionsConfirmRevokeAllProps {
   route: {

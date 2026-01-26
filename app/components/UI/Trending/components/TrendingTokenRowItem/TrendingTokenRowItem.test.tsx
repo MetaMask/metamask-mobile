@@ -4,6 +4,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 
+// Mock the trendingNetworksList module to avoid getNetworkImageSource errors
+jest.mock('../../utils/trendingNetworksList', () => ({
+  TRENDING_NETWORKS_LIST: [],
+}));
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -348,20 +353,7 @@ describe('TrendingTokenRowItem', () => {
 
     const logo = getByTestId('trending-token-logo-ETH');
     expect(logo).toBeTruthy();
-    expect(logo.props['data-size']).toBe(44);
-  });
-
-  it('renders token logo with custom iconSize', () => {
-    const token = createMockToken({ symbol: 'BTC' });
-
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokenRowItem token={token} iconSize={60} />,
-      { state: mockState },
-      false,
-    );
-
-    const logo = getByTestId('trending-token-logo-BTC');
-    expect(logo.props['data-size']).toBe(60);
+    expect(logo.props['data-size']).toBe(40);
   });
 
   it('renders network badge with default network image source', () => {
@@ -485,7 +477,7 @@ describe('TrendingTokenRowItem', () => {
       false,
     );
 
-    expect(getByText(/\$0\.00 cap • \$0\.00 vol/)).toBeTruthy();
+    expect(getByText(/- cap • - vol/)).toBeTruthy();
   });
 
   it('renders with very large market cap and volume', () => {
@@ -563,6 +555,125 @@ describe('TrendingTokenRowItem', () => {
         image:
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
         pricePercentChange1d: 3.44,
+        isNative: false,
+        isETH: false,
+        isFromTrending: true,
+      });
+    });
+
+    it('navigates to Asset page with isETH true for native ETH on Ethereum mainnet', () => {
+      const token = createMockToken({
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+      });
+
+      const networkAddedState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              networkConfigurations: {},
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  caipChainId: 'eip155:1',
+                  name: 'Ethereum Mainnet',
+                },
+              },
+            },
+            MultichainNetworkController: {
+              ...mockState.engine.backgroundState.MultichainNetworkController,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: networkAddedState },
+        false,
+      );
+
+      const tokenRow = getByTestId(
+        'trending-token-row-item-eip155:1/slip44:60',
+      );
+      fireEvent.press(tokenRow);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+        chainId: '0x1',
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+        image:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+        pricePercentChange1d: 3.44,
+        isNative: true,
+        isETH: true,
+        isFromTrending: true,
+      });
+    });
+
+    it('navigates to Asset page with isNative true and isETH false for native token on non-Ethereum chain', () => {
+      const token = createMockToken({
+        assetId: 'eip155:137/slip44:966',
+        symbol: 'MATIC',
+        name: 'Polygon',
+        decimals: 18,
+      });
+
+      const networkAddedState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              networkConfigurations: {},
+              networkConfigurationsByChainId: {
+                '0x89': {
+                  chainId: '0x89',
+                  caipChainId: 'eip155:137',
+                  name: 'Polygon Mainnet',
+                },
+              },
+            },
+            MultichainNetworkController: {
+              ...mockState.engine.backgroundState.MultichainNetworkController,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: networkAddedState },
+        false,
+      );
+
+      const tokenRow = getByTestId(
+        'trending-token-row-item-eip155:137/slip44:966',
+      );
+      fireEvent.press(tokenRow);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+        chainId: '0x89',
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'MATIC',
+        name: 'Polygon',
+        decimals: 18,
+        image:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/137/slip44/966.png',
+        pricePercentChange1d: 3.44,
+        isNative: true,
+        isETH: false,
+        isFromTrending: true,
       });
     });
 

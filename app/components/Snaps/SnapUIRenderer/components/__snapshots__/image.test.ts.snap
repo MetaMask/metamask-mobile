@@ -1,0 +1,165 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`image component renders an SVG image 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+      testID="snap-ui-renderer__scrollview"
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            style={
+              [
+                {
+                  "aspectRatio": 1,
+                  "borderRadius": 999,
+                  "height": undefined,
+                  "maxHeight": "100%",
+                  "maxWidth": "100%",
+                  "overflow": "hidden",
+                  "width": undefined,
+                },
+                {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              ]
+            }
+          >
+            <RNSVGSvgView
+              bbHeight="100%"
+              bbWidth="100%"
+              focusable={false}
+              height="100%"
+              style={
+                [
+                  {
+                    "backgroundColor": "transparent",
+                    "borderWidth": 0,
+                  },
+                  {
+                    "flex": 1,
+                  },
+                  {
+                    "flex": 0,
+                    "height": "100%",
+                    "width": "100%",
+                  },
+                ]
+              }
+              testID="snaps-ui-image"
+              width="100%"
+              xml="<svg />"
+            >
+              <RNSVGGroup
+                fill={
+                  {
+                    "payload": 4278190080,
+                    "type": 0,
+                  }
+                }
+              />
+            </RNSVGSvgView>
+          </View>
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`image component renders an external image 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+      testID="snap-ui-renderer__scrollview"
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            source={
+              {
+                "uri": "https://metamask.io/fox.png",
+              }
+            }
+            style={
+              [
+                {
+                  "borderRadius": 999,
+                  "height": 200,
+                  "maxHeight": "100%",
+                  "maxWidth": "100%",
+                  "width": 200,
+                },
+                {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              ]
+            }
+          />
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;

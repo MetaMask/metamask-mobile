@@ -2,10 +2,12 @@ import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
-import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
-import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
+import { PerpsWithdrawViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
+import { QuoteViewSelectorText } from '../../app/components/UI/Swaps/QuoteView.testIds';
 import Selectors from '../helpers/Selectors.js';
-import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
+import { splitAmountIntoDigits } from 'appwright/utils/Utils.js';
+import AmountScreen from './AmountScreen';
 
 class BridgeScreen {
 
@@ -44,7 +46,7 @@ class BridgeScreen {
       );
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${networkName}"]`);
+        return AppwrightSelectors.getElementByCatchAll(this._device, networkName);
       } else {
         return AppwrightSelectors.getElementByID(this._device, `${networkName}`);
       }
@@ -56,9 +58,6 @@ class BridgeScreen {
   }
 
   async isQuoteDisplayed() {
-
-      const element = await this.quoteDisplayed; // bridge swap view shows on 
-      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
       const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MM fee");
       await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
     
@@ -66,121 +65,41 @@ class BridgeScreen {
   }
 
   async enterSourceTokenAmount(amount) {
-    // Split amount into digits
-    const digits = this.splitAmountIntoDigits(amount);
-    console.log('Amount digits:', digits);
-    for (const digit of digits) {
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        if (digit != '.') {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
-          await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
-          await AppwrightGestures.tap(numberKey);
-        }
-        else {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
-          await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
-          await AppwrightGestures.tap(numberKey);
-        }
-      }
-      else {
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
-        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
-        await AppwrightGestures.tap(numberKey);
-      }
-    }
+    AmountScreen.device = this._device;
+    await AmountScreen.enterAmount(amount);
   }
 
   async selectNetworkAndTokenTo(network, token) {
-      const destinationToken = this.destinationTokenArea;
-      await AppwrightGestures.tap(destinationToken);
-      await AppwrightGestures.tap(this.getNetworkButton(network));
-      const tokenField = AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
-      await AppwrightGestures.typeText(tokenField, token);
-      let tokenNetworkId;
-      if (network == 'Ethereum'){
-        tokenNetworkId = `0x1`;
-      }
-      else if (network == 'Polygon'){
-        tokenNetworkId = `0x89`;
-      }
-      else if (network == 'Solana'){
-        tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
-      }
-      let tokenButton;
-      if (AppwrightSelectors.isAndroid(this._device)){
-        tokenButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@resource-id="asset-${tokenNetworkId}-${token}"]`);
-      }
-      else {
-        // Try multiple iOS element selection strategies
-        console.log(`Looking for iOS token with ID: asset-${tokenNetworkId}-${token}`);
-        tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
-
-      }
-      await appwrightExpect(tokenButton).toBeVisible({ timeout: 10000 });
-      console.log('Token button found and visible');
-      
-      console.log('About to hide keyboard...');
-      await AppwrightGestures.hideKeyboard(this._device);
-      console.log('Keyboard hidden successfully');
-
-      console.log('About to tap token button...');
-      
-      // Try multiple tap strategies for iOS
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        await AppwrightGestures.tap(tokenButton);
-      } else {
-        // iOS-specific tap strategy
-        console.log('Using iOS-specific tap strategy...');
-        try {
-          await AppwrightGestures.tap(tokenButton);
-          console.log('iOS click() succeeded');
-        } catch (error) {
-          console.log('iOS click() failed, trying tap()...');
-          await AppwrightGestures.tap(tokenButton);
-          console.log('iOS tap() succeeded');
-        }
-      }
-      console.log('Token button tapped successfully');
-      
-      // Wait for the amount input field to appear after tapping token
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Waited 2 seconds after token button tap');
-      
-      // Check if number input field is available
-      try {
-        const testNumberButton = AppwrightSelectors.isIOS(this._device) ? await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="1"]`) : await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='1']`);
-        await appwrightExpect(testNumberButton).toBeVisible({ timeout: 5000 });
-        console.log('Number input field is visible - token tap worked');
-      } catch (error) {
-        console.log('Number input field not visible - token tap may not have worked, trying alternative tap method...');
-        
-        // Try alternative tap methods for iOS
-        await AppwrightGestures.tap(tokenButton); // Try click instead of tap
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        console.log('Tried alternative tap methods');
-      }
+    const destinationToken = await this.destinationTokenArea;
+    await AppwrightGestures.tap(destinationToken);
+    const filterNetworkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'See all');
+    await AppwrightGestures.tap(filterNetworkButton);
+    const networkButton = await this.getNetworkButton(network);
+    await AppwrightGestures.tap(networkButton);
+    let tokenNetworkId;
+    if (network == 'Ethereum'){
+      tokenNetworkId = `0x1`;
+    }
+    else if (network == 'Polygon'){
+      tokenNetworkId = `0x89`;
+    }
+    else if (network == 'Solana'){
+      tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
+    }
+    const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+    await AppwrightGestures.tap(tokenButton);
   }
 
   async tapGetQuotes(network){
     if (network == 'Ethereum'){
-    const quotesButton = this.getETHQuotesButton;
+    const quotesButton = await this.getETHQuotesButton;
     await appwrightExpect(quotesButton).toBeVisible({ timeout: 10000 });
     await AppwrightGestures.tap(quotesButton);
     }
   }
 
-  // Helper method to split amount into digits
-  splitAmountIntoDigits(amount) {
-    // Convert to string and split into array of digits
-    return amount.toString().split('').map(char => {
-      // Return only numeric digits, filter out decimal points, commas, etc.
-      return /\d/.test(char) ? parseInt(char, 10) : char;
-    });
-  }
-
   async enterDestinationTokenAmount(amount) {
-    const element = this.destTokenInput;
+    const element = await this.destTokenInput;
     await AppwrightGestures.typeText(element, amount);
   }
 

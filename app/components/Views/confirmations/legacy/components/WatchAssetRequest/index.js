@@ -18,7 +18,7 @@ import { selectEvmChainId } from '../../../../../../selectors/networkController'
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../../../../util/transactions';
 import { isEqual } from 'lodash';
-import { AssetWatcherSelectorsIDs } from '../../../../../../../e2e/selectors/Transactions/AssetWatcher.selectors';
+import { AssetWatcherSelectorsIDs } from './AssetWatcher.testIds';
 import { getDecimalChainId } from '../../../../../../util/networks';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import Logger from '../../../../../../util/Logger';

@@ -11,15 +11,16 @@ import {
   LOGIN_OPTIONS,
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
-  REVEAL_PRIVATE_KEY_SECTION,
   SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
   TURN_ON_REMEMBER_ME,
 } from './SecuritySettings.constants';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { strings } from '../../../../../locales/i18n';
+import ReduxService from '../../../../core/redux/ReduxService';
+import { ReduxStore } from '../../../../core/redux/types';
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -85,14 +86,30 @@ describe('SecuritySettings', () => {
     mockUseParamsValues = {
       scrollToDetectNFTs: undefined,
     };
+
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      dispatch: jest.fn(),
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: true },
+        settings: { lockTime: 1000 },
+      }),
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+      [Symbol.observable]: jest.fn(),
+    } as unknown as ReduxStore);
   });
-  it('should render correctly', () => {
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+  it('renders correctly', () => {
     const wrapper = renderWithProvider(<SecuritySettings />, {
       state: initialState,
     });
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
-  it('should render all sections', () => {
+  it('renders all sections', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <SecuritySettings />,
       {
@@ -106,7 +123,6 @@ describe('SecuritySettings', () => {
     expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
     expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
     expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
-    expect(getByTestId(REVEAL_PRIVATE_KEY_SECTION)).toBeTruthy();
     expect(getByTestId(SDK_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();

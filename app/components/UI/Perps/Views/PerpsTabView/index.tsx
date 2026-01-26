@@ -5,6 +5,12 @@ import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import PerpsTabView from './PerpsTabView';
 import PerpsStreamBridge from '../../components/PerpsStreamBridge';
+import { useSelector } from 'react-redux';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import BasicFunctionalityEmptyState from '../../../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+import { StyleSheet, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+import { IconName } from '@metamask/design-system-react-native';
 
 interface PerpsTabViewWithProviderProps {
   navigation?: NavigationProp<ParamListBase>;
@@ -12,6 +18,12 @@ interface PerpsTabViewWithProviderProps {
   isVisible?: boolean;
   onVisibilityChange?: (callback: (visible: boolean) => void) => void;
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
 
 /**
  * PerpsTabView wrapped with both PerpsConnectionProvider and PerpsStreamProvider
@@ -23,6 +35,9 @@ const PerpsTabViewWithProvider: React.FC<PerpsTabViewWithProviderProps> = (
 ) => {
   const { isVisible: initialVisible = false, onVisibilityChange } = props;
   const [isVisible, setIsVisible] = useState(initialVisible);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
 
   // Register callback with parent
   useEffect(() => {
@@ -36,6 +51,17 @@ const PerpsTabViewWithProvider: React.FC<PerpsTabViewWithProviderProps> = (
       });
     }
   }, [onVisibilityChange]);
+
+  if (!isBasicFunctionalityEnabled) {
+    return (
+      <View style={styles.container}>
+        <BasicFunctionalityEmptyState
+          title={strings('perps.basic_functionality_disabled_title')}
+          iconName={IconName.Warning}
+        />
+      </View>
+    );
+  }
 
   return (
     <PerpsConnectionProvider isVisible={isVisible}>

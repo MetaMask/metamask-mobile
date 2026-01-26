@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import PerpsOrderBookTable from './PerpsOrderBookTable';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
-import { PerpsOrderBookTableSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderBookTableSelectorsIDs } from '../../Perps.testIds';
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -92,6 +92,15 @@ jest.mock('../../../../hooks/useStyles', () => ({
 // Mock formatUtils
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((value: number) => `$${value.toLocaleString()}`),
+  formatLargeNumber: jest.fn(
+    (value: number, options?: { decimals?: number }) => {
+      const decimals = options?.decimals ?? 0;
+      if (value >= 1_000_000)
+        return `${(value / 1_000_000).toFixed(decimals)}M`;
+      if (value >= 1_000) return `${(value / 1_000).toFixed(decimals)}K`;
+      return value.toFixed(decimals);
+    },
+  ),
   PRICE_RANGES_UNIVERSAL: [],
 }));
 

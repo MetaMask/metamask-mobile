@@ -23,6 +23,7 @@
     foxCode = @"debug";
   }
 
+  [RNBranch.branch checkPasteboardOnInstall]; 
  // Uncomment this line to use the test key instead of the live one.
   // [RNBranch useTestInstance];
   [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];

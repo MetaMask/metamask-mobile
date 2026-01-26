@@ -1,19 +1,46 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { CaipChainId } from '@metamask/utils';
 import { searchTokens } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
+import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+
+interface SearchResult {
+  assetId: CaipChainId;
+  decimals: number;
+  name: string;
+  symbol: string;
+  marketCap: number;
+  aggregatedUsdVolume: number;
+  price: string;
+  pricePercentChange1d: string;
+}
 
 /**
  * Hook for handling search tokens request
  * @returns {Object} An object containing the search results, loading state, and a function to trigger search
  */
 export const useSearchRequest = (options: {
-  chainIds: CaipChainId[];
+  chainIds?: CaipChainId[];
   query: string;
   limit: number;
+  includeMarketData?: boolean;
 }) => {
-  const { chainIds, query, limit } = options;
-  const [results, setResults] = useState<unknown[]>([]);
+  const {
+    chainIds: providedChainIds = [],
+    query,
+    limit,
+    includeMarketData,
+  } = options;
+
+  // Use provided chainIds or default to trending networks
+  const chainIds = useMemo((): CaipChainId[] => {
+    if (providedChainIds.length > 0) {
+      return providedChainIds;
+    }
+    return TRENDING_NETWORKS_LIST.map((network) => network.caipChainId);
+  }, [providedChainIds]);
+
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -38,10 +65,11 @@ export const useSearchRequest = (options: {
     try {
       const searchResults = await searchTokens(stableChainIds, query, {
         limit,
+        includeMarketData,
       });
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
-        setResults(searchResults?.data || []);
+        setResults((searchResults?.data as SearchResult[]) || []);
       }
     } catch (err) {
       // Only update state if this is still the current request
@@ -55,7 +83,7 @@ export const useSearchRequest = (options: {
         setIsLoading(false);
       }
     }
-  }, [stableChainIds, query, limit]);
+  }, [stableChainIds, query, limit, includeMarketData]);
 
   // Automatically trigger search when query changes
   useEffect(() => {

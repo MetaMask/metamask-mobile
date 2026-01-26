@@ -1,6 +1,6 @@
 import { test as base } from 'appwright';
 import { PerformanceTracker } from '../reporters/PerformanceTracker.js';
-import TimerHelper from '../utils/TimersHelper.js';
+import QualityGatesValidator from '../utils/QualityGatesValidator.js';
 
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend({
@@ -21,51 +21,6 @@ export const test = base.extend({
       console.log('⚠️ No timers found in performance tracker');
     }
 
-    // Enhanced timer recovery: capture any timers that weren't added to the tracker
-    try {
-      const Timers = await import('../utils/Timers.js').then((m) => m.default);
-      const allGlobalTimers = Timers.getAllTimers();
-
-      // Check for timers that exist globally but weren't added to the tracker
-      for (const globalTimer of allGlobalTimers) {
-        const existsInTracker = performanceTracker.timers.some(
-          (t) => t.id === globalTimer.id,
-        );
-
-        if (!existsInTracker) {
-          console.log(`🔄 Recovering orphaned timer: "${globalTimer.id}"`);
-
-          try {
-            const recoveredTimer = new TimerHelper(globalTimer.id);
-
-            if (globalTimer.start !== null && globalTimer.duration === null) {
-              recoveredTimer.stop();
-            }
-
-            performanceTracker.addTimer(recoveredTimer);
-          } catch (error) {
-            console.log(`⚠️ Failed to recover timer ${globalTimer.id}`);
-          }
-        }
-      }
-    } catch (importError) {
-      console.log(`⚠️ Timer recovery failed: ${importError.message}`);
-    }
-
-    // Stop any running timers in the tracker
-    for (const timer of performanceTracker.timers) {
-      try {
-        const isRunning = timer.isRunning ? timer.isRunning() : false;
-        const isCompleted = timer.isCompleted ? timer.isCompleted() : false;
-
-        if (isRunning && !isCompleted) {
-          timer.stop();
-        }
-      } catch (error) {
-        console.log(`⚠️ Error checking timer ${timer.id}`);
-      }
-    }
-
     // Always try to attach performance metrics, even if test failed
     try {
       const metrics = await performanceTracker.attachToTest(testInfo);
@@ -76,32 +31,19 @@ export const test = base.extend({
       );
     } catch (error) {
       console.error('❌ Failed to attach performance metrics:', error.message);
+    }
 
-      // Create fallback metrics for failed tests
-      try {
-        const fallbackMetrics = {
-          testFailed: true,
-          failureReason: testInfo?.status || 'unknown',
-          testDuration: testInfo?.duration || 0,
-          message: 'Performance metrics could not be properly attached',
-          timersFound: performanceTracker.timers.length,
-          device: testInfo?.project?.use?.device || {
-            name: 'Unknown',
-            osVersion: 'Unknown',
-          },
-        };
-
-        await testInfo.attach(
-          `performance-metrics-fallback-${testInfo.title}`,
-          {
-            body: JSON.stringify(fallbackMetrics),
-            contentType: 'application/json',
-          },
-        );
-        console.log(`✅ Fallback metrics attached`);
-      } catch (fallbackError) {
-        console.error('❌ Fallback metrics attachment failed');
-      }
+    // Validate quality gates if any timer has thresholds defined
+    const hasThresholds = performanceTracker.timers.some((t) =>
+      t.hasThreshold(),
+    );
+    if (hasThresholds) {
+      console.log('🔍 Validating quality gates...');
+      QualityGatesValidator.assertThresholds(
+        testInfo.title,
+        performanceTracker.timers,
+      );
+      console.log('✅ Quality gates PASSED');
     }
 
     console.log('🔍 Looking for session ID...');

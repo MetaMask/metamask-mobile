@@ -55,6 +55,24 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Order Book feature flag
+ * Controls visibility of the Order Book navigation in Market Details view
+ *
+ * @returns boolean - true if Order Book should be shown, false otherwise
+ */
+export const selectPerpsOrderBookEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = process.env.MM_PERPS_ORDER_BOOK_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsOrderBookEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for button color A/B test variant from LaunchDarkly
  * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
  *
@@ -125,4 +143,21 @@ export const selectPerpsButtonColorTestVariant = createSelector(
 export const selectHip3ConfigVersion = createSelector(
   (state: RootState) => state?.engine?.backgroundState?.PerpsController,
   (perpsController) => perpsController?.hip3ConfigVersion ?? 0,
+);
+
+/**
+ * Selector for Perps Feedback feature flag
+ * Controls visibility of the "Give feedback" button on Perps home screen
+ *
+ * @returns boolean - true if feedback button should be shown, false otherwise
+ */
+export const selectPerpsFeedbackEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_FEEDBACK_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsFeedbackEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
 );

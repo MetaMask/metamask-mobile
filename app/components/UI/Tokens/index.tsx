@@ -1,14 +1,5 @@
-import React, {
-  useRef,
-  useState,
-  LegacyRef,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-} from 'react';
-import { InteractionManager } from 'react-native';
-import ActionSheet from '@metamask/react-native-actionsheet';
+import React, { useState, memo, useCallback, useEffect, useMemo } from 'react';
+import { InteractionManager, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -17,9 +8,9 @@ import {
   selectNativeNetworkCurrencies,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
-import { TokenList } from './TokenList';
+import { TokenList } from './TokenList/TokenList';
 import { TokenI } from './types';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { strings } from '../../../../locales/i18n';
 import {
   refreshTokens,
@@ -30,12 +21,10 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
-import { TokenListControlBar } from './TokenListControlBar';
+import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
-import { ScamWarningModal } from './TokenList/ScamWarningModal';
-import TokenListSkeleton from './TokenList/TokenListSkeleton';
-import { selectSortedTokenKeys } from '../../../selectors/tokenList';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
+import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
@@ -43,6 +32,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
+import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
+import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
+import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -71,9 +63,10 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   const currentChainId = useSelector(selectChainId);
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
 
-  const actionSheet = useRef<typeof ActionSheet>();
-  const tokenToRemoveRef = useRef<TokenI | undefined>();
   const [refreshing, setRefreshing] = useState(false);
+  const [removeTokenState, setRemoveTokenState] = useState<
+    { isVisible: true; token: TokenI } | { isVisible: false }
+  >({ isVisible: false });
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
   const selectInternalAccountByScope = useSelector(
@@ -88,24 +81,15 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     selectHomepageRedesignV1Enabled,
   );
 
+  const isMusdConversionFlowEnabled = useSelector(
+    selectIsMusdConversionFlowEnabledFlag,
+  );
+
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
-  // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-
   // Memoize selector computation for better performance
-  const sortedTokenKeys = useSelector(
-    useMemo(
-      () =>
-        isMultichainAccountsState2Enabled
-          ? selectSortedAssetsBySelectedAccountGroup
-          : selectSortedTokenKeys,
-      [isMultichainAccountsState2Enabled],
-    ),
-  );
+  const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
 
   // Mark as loaded once we have data (even if empty)
   useEffect(() => {
@@ -117,10 +101,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   }, [sortedTokenKeys, hasInitialLoad]);
 
   const showRemoveMenu = useCallback((token: TokenI) => {
-    if (actionSheet.current) {
-      tokenToRemoveRef.current = token;
-      actionSheet.current.show();
-    }
+    setRemoveTokenState({ isVisible: true, token });
   }, []);
 
   const onRefresh = useCallback(async () => {
@@ -144,7 +125,13 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   ]);
 
   const removeToken = useCallback(async () => {
-    const tokenToRemove = tokenToRemoveRef.current;
+    if (!removeTokenState.isVisible) return;
+
+    const tokenToRemove = removeTokenState.token;
+
+    // Reset state immediately to prevent issues if onClose fires first
+    setRemoveTokenState({ isVisible: false });
+
     if (tokenToRemove?.chainId !== undefined) {
       if (isNonEvmChainId(tokenToRemove.chainId)) {
         await removeNonEvmToken({
@@ -164,6 +151,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
       }
     }
   }, [
+    removeTokenState,
     currentChainId,
     trackEvent,
     createEventBuilder,
@@ -180,14 +168,9 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     });
   }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
-  const onActionSheetPress = useCallback(
-    (index: number) => {
-      if (index === 0) {
-        removeToken();
-      }
-    },
-    [removeToken],
-  );
+  const handleCloseRemoveTokenBottomSheet = useCallback(() => {
+    setRemoveTokenState({ isVisible: false });
+  }, []);
 
   const handleScamWarningModal = useCallback(() => {
     setShowScamWarningModal((prev) => !prev);
@@ -218,33 +201,35 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
           <TokenListSkeleton />
         </Box>
       ) : sortedTokenKeys.length > 0 ? (
-        <TokenList
-          tokenKeys={sortedTokenKeys}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          showRemoveMenu={showRemoveMenu}
-          setShowScamWarningModal={handleScamWarningModal}
-          maxItems={maxItems}
-          isFullView={isFullView}
-        />
+        <>
+          {isMusdConversionFlowEnabled && (
+            <View style={isFullView ? tw`px-4` : undefined}>
+              <MusdConversionAssetListCta />
+            </View>
+          )}
+          <TokenList
+            tokenKeys={sortedTokenKeys}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            showRemoveMenu={showRemoveMenu}
+            setShowScamWarningModal={handleScamWarningModal}
+            maxItems={maxItems}
+            isFullView={isFullView}
+          />
+        </>
       ) : (
         <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
           <TokensEmptyState />
         </Box>
       )}
-      {showScamWarningModal && (
-        <ScamWarningModal
-          showScamWarningModal={showScamWarningModal}
-          setShowScamWarningModal={setShowScamWarningModal}
-        />
-      )}
-      <ActionSheet
-        ref={actionSheet as LegacyRef<typeof ActionSheet>}
-        title={strings('wallet.remove_token_title')}
-        options={[strings('wallet.remove'), strings('wallet.cancel')]}
-        cancelButtonIndex={1}
-        destructiveButtonIndex={0}
-        onPress={onActionSheetPress}
+      <ScamWarningModal
+        showScamWarningModal={showScamWarningModal}
+        setShowScamWarningModal={setShowScamWarningModal}
+      />
+      <RemoveTokenBottomSheet
+        isVisible={removeTokenState.isVisible}
+        onClose={handleCloseRemoveTokenBottomSheet}
+        onRemove={removeToken}
       />
     </Box>
   );

@@ -101,7 +101,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Bold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 20,
                   "textAlign": "center",
                 }
@@ -174,7 +174,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 24,
                           "textAlign": "center",
                           "textTransform": "uppercase",
@@ -199,7 +199,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "marginBottom": 4,
                     }
@@ -224,104 +224,105 @@ exports[`TypedSign onConfirm signs message 1`] = `
             </TouchableOpacity>
           </View>
         </View>
-        <View
-          style={
-            [
-              {
-                "flexDirection": "row",
-                "gap": 16,
-                "paddingHorizontal": 16,
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              undefined,
-            ]
-          }
-        >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flex": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="request-signature-cancel-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Cancel
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            loading={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#121314",
-                "borderRadius": 12,
-                "flex": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="request-signature-confirm-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#ffffff",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Sign
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </RCTScrollView>
+    <View
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+            "paddingBottom": 16,
+            "paddingHorizontal": 16,
+            "paddingTop": 24,
+            "width": "100%",
+          },
+          undefined,
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#3c4d9d0f",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="request-signature-cancel-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        loading={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="request-signature-confirm-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Sign
+        </Text>
+      </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -427,7 +428,7 @@ exports[`TypedSign onReject rejects message 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Bold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 20,
                   "textAlign": "center",
                 }
@@ -500,7 +501,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 24,
                           "textAlign": "center",
                           "textTransform": "uppercase",
@@ -525,7 +526,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "marginBottom": 4,
                     }
@@ -550,104 +551,105 @@ exports[`TypedSign onReject rejects message 1`] = `
             </TouchableOpacity>
           </View>
         </View>
-        <View
-          style={
-            [
-              {
-                "flexDirection": "row",
-                "gap": 16,
-                "paddingHorizontal": 16,
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              undefined,
-            ]
-          }
-        >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flex": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="request-signature-cancel-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Cancel
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            loading={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#121314",
-                "borderRadius": 12,
-                "flex": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="request-signature-confirm-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#ffffff",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Sign
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </RCTScrollView>
+    <View
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+            "paddingBottom": 16,
+            "paddingHorizontal": 16,
+            "paddingTop": 24,
+            "width": "100%",
+          },
+          undefined,
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#3c4d9d0f",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="request-signature-cancel-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        loading={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="request-signature-confirm-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Sign
+        </Text>
+      </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

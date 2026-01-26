@@ -4,7 +4,8 @@ import {
 } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { useSelector } from 'react-redux';
+import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
   IconName,
@@ -36,6 +37,10 @@ import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './gas-fee-details-row.styles';
+import { IconColor } from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
+import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
+import type { RootState } from '../../../../../../../reducers';
+import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 
 const PaidByMetaMask = () => (
   <Text variant={TextVariant.BodyMD} testID="paid-by-metamask">
@@ -56,6 +61,7 @@ const EstimationInfo = ({
   feeCalculations,
   fiatOnly,
   isGasFeeSponsored,
+  isBatch = false,
 }: {
   hideFiatForTestnet: boolean;
   feeCalculations:
@@ -63,6 +69,7 @@ const EstimationInfo = ({
     | ReturnType<typeof useFeeCalculationsTransactionBatch>;
   fiatOnly: boolean;
   isGasFeeSponsored?: boolean;
+  isBatch?: boolean;
 }) => {
   const gasFeeToken = useSelectedGasFeeToken();
   const { styles } = useStyles(styleSheet, {});
@@ -76,6 +83,7 @@ const EstimationInfo = ({
     hideFiatForTestnet || !fiatValue
       ? styles.primaryValue
       : styles.secondaryValue;
+
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, simulationData, networkClientId } =
     (transactionMetadata as TransactionMeta) ?? {};
@@ -84,7 +92,9 @@ const EstimationInfo = ({
     simulationData,
     networkClientId,
   });
-  const isSimulationLoading = !simulationData || balanceChangesResult.pending;
+
+  const isSimulationLoading =
+    !isBatch && (!simulationData || balanceChangesResult.pending);
 
   return (
     <View style={styles.estimationContainer}>
@@ -139,6 +149,7 @@ const BatchEstimateInfo = ({
   const feeCalculations = useFeeCalculationsTransactionBatch(
     transactionBatchesMetadata as TransactionBatchMeta,
   );
+  const isBatch = Boolean(transactionBatchesMetadata);
 
   return (
     <EstimationInfo
@@ -146,6 +157,7 @@ const BatchEstimateInfo = ({
       feeCalculations={feeCalculations}
       fiatOnly={fiatOnly}
       isGasFeeSponsored={isGasFeeSponsored}
+      isBatch={isBatch}
     />
   );
 };
@@ -247,14 +259,30 @@ const GasFeesDetailsRow = ({
     });
   };
 
+  const networkConfiguration = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, transactionMetadata?.chainId),
+  );
+  const { nativeCurrency } = networkConfiguration ?? {};
+
+  const { networkNativeCurrency } = useNetworkInfo(
+    transactionMetadata?.chainId,
+  );
+
+  // Fallback chain: networkConfiguration.nativeCurrency -> networkNativeCurrency -> empty string
+  const nativeTokenSymbol = nativeCurrency ?? networkNativeCurrency ?? '';
+
   const showGasFeeTokenInfo =
     gasFeeToken?.metaMaskFee && gasFeeToken?.metaMaskFee !== '0x0';
 
-  const confirmGasFeeTokenTooltip = showGasFeeTokenInfo
-    ? strings('transactions.confirm_gas_fee_token_tooltip', {
-        metamaskFeeFiat,
+  const confirmGasFeeTokenTooltip = isGasFeeSponsored
+    ? strings('bridge.network_fee_info_content_sponsored', {
+        nativeToken: nativeTokenSymbol,
       })
-    : strings('transactions.network_fee_tooltip');
+    : showGasFeeTokenInfo
+      ? strings('transactions.confirm_gas_fee_token_tooltip', {
+          metamaskFeeFiat,
+        })
+      : strings('transactions.network_fee_tooltip');
 
   const Container = noSection ? View : InfoSection;
 
@@ -273,6 +301,7 @@ const GasFeesDetailsRow = ({
           alertField={RowAlertKey.EstimatedFee}
           label={strings('transactions.network_fee')}
           tooltip={confirmGasFeeTokenTooltip}
+          tooltipColor={IconColor.Alternative}
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
           <View style={styles.valueContainer}>
