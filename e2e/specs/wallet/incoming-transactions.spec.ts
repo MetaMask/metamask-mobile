@@ -1,17 +1,23 @@
 import { TransactionType } from '@metamask/transaction-controller';
+import { Mockttp } from 'mockttp';
+
 import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import Assertions from '../../framework/Assertions';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import Assertions from '../../../tests/framework/Assertions';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../framework/fixtures/FixtureBuilder';
+} from '../../../tests/framework/fixtures/FixtureBuilder';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ToastModal from '../../pages/wallet/ToastModal';
-import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { Mockttp } from 'mockttp';
+import {
+  MockApiEndpoint,
+  TestSpecificMock,
+} from '../../../tests/framework/types';
+import { setupMockRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
@@ -88,6 +94,10 @@ function createAccountsTestSpecificMock(
 ): TestSpecificMock {
   return async (mockServer: Mockttp) => {
     const mock = mockAccountsApi(transactions);
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      remoteFeatureMultichainAccountsAccountDetailsV2(false),
+    );
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
       url: mock.urlEndpoint,

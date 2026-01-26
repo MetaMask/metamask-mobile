@@ -151,11 +151,11 @@ export function determineMakerStatus(
     direction: 'long' | 'short';
     bestAsk?: number;
     bestBid?: number;
-    coin?: string;
+    symbol?: string;
   },
   debugLogger?: OrderUtilsDebugLogger,
 ): boolean {
-  const { orderType, limitPrice, direction, bestAsk, bestBid, coin } = params;
+  const { orderType, limitPrice, direction, bestAsk, bestBid, symbol } = params;
   // Market orders are always taker
   if (orderType === 'market') {
     return false;
@@ -184,7 +184,7 @@ export function determineMakerStatus(
   // Default to taker when no bid/ask data is available
   debugLogger?.log(
     'Fee Calculation: No bid/ask data available, using conservative taker fee',
-    { coin },
+    { symbol },
   );
   return false;
 }

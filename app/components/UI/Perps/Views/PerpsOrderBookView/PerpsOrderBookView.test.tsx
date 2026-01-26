@@ -175,6 +175,17 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
   })),
 }));
 
+// Mock usePerpsTopOfBook
+const mockUsePerpsTopOfBook = jest.fn(() => ({
+  bestBid: '50000',
+  bestAsk: '50001',
+  spread: '1.00000',
+}));
+
+jest.mock('../../hooks/stream/usePerpsTopOfBook', () => ({
+  usePerpsTopOfBook: () => mockUsePerpsTopOfBook(),
+}));
+
 // Mock usePerpsEventTracking
 const mockTrack = jest.fn();
 
@@ -284,6 +295,11 @@ describe('PerpsOrderBookView', () => {
       orderBook: mockOrderBook,
       isLoading: false,
       error: null,
+    });
+    mockUsePerpsTopOfBook.mockReturnValue({
+      bestBid: '50000',
+      bestAsk: '50001',
+      spread: '1.00000',
     });
   });
 
@@ -611,7 +627,7 @@ describe('PerpsOrderBookView', () => {
 
   describe('action buttons with existing position', () => {
     const mockLongPosition = {
-      coin: 'BTC',
+      symbol: 'BTC',
       size: '1.5',
       entryPrice: '50000',
       leverage: { value: 10, type: 'cross' as const },

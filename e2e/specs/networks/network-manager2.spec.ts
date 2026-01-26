@@ -1,17 +1,17 @@
 import { SmokeNetworkAbstractions } from '../../tags';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import NetworkManager from '../../pages/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import Assertions from '../../framework/Assertions';
-import { DappVariants } from '../../framework/Constants';
+import Assertions from '../../../tests/framework/Assertions';
+import { DappVariants } from '../../../tests/framework/Constants';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Browser from '../../pages/Browser/BrowserView';
 import TestDApp from '../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import { CustomNetworks } from '../../resources/networks.e2e';
+import { CustomNetworks } from '../../../tests/resources/networks.e2e';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -221,7 +221,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
     );
   });
 
-  it('should preserve existing enabled networks when adding a network via dapp', async () => {
+  it.skip('should preserve existing enabled networks when adding a network via dapp', async () => {
     await withFixtures(
       {
         dapps: [

@@ -1,4 +1,4 @@
-import { Matchers, Gestures } from '../../framework';
+import { Matchers, Gestures } from '../../../tests/framework';
 import {
   PredictBalanceSelectorsIDs,
   PredictBuyPreviewSelectorsIDs,
@@ -123,6 +123,7 @@ class PredictDetailsPage {
   async tapOpenPosition(): Promise<void> {
     await Gestures.waitAndTap(this.placeBetButton, {
       elemDescription: 'Place bet button',
+      delay: 1000, // this ensures the positions values are stabilized
     });
   }
 

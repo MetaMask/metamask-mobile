@@ -17,7 +17,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { formatVolume } from '../../utils/format';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictGameDetailsFooterProps } from './PredictGameDetailsFooter.types';
-import PredictSportTeamGradient from '../PredictSportTeamGradient';
 
 const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   market,
@@ -28,8 +27,6 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   claimableAmount = 0,
   isLoading = false,
   testID = 'predict-game-details-footer',
-  awayColor,
-  homeColor,
 }) => {
   const insets = useSafeAreaInsets();
   const formattedVolume = useMemo(
@@ -37,7 +34,8 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
     [market.volume],
   );
 
-  const isMarketClosed = market.status !== 'open';
+  const isMarketClosed =
+    market.status !== 'open' || market.game?.status === 'ended';
   const hasClaimableWinnings = claimableAmount > 0;
   const showClaimButton = hasClaimableWinnings && onClaimPress;
 
@@ -45,11 +43,9 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
     return null;
   }
 
-  const hasGradient = awayColor && homeColor;
-
   const content = (
     <Box
-      twClassName={`px-4 pt-3 border-t border-muted ${hasGradient ? '' : 'bg-default'}`}
+      twClassName={'px-4 pt-3 border-t border-muted'}
       style={{ paddingBottom: Math.max(insets.bottom, 16) }}
       testID={testID}
     >
@@ -103,18 +99,6 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
       />
     </Box>
   );
-
-  if (hasGradient) {
-    return (
-      <PredictSportTeamGradient
-        awayColor={awayColor}
-        homeColor={homeColor}
-        testID={`${testID}-gradient`}
-      >
-        {content}
-      </PredictSportTeamGradient>
-    );
-  }
 
   return content;
 };
