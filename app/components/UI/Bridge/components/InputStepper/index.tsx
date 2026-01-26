@@ -23,6 +23,8 @@ export const InputStepper = ({
   description,
   minAmount,
   maxAmount,
+  postValue,
+  placeholder = '0',
 }: InputStepperProps) => {
   const fontSize = calculateInputFontSize(value.length);
   const { styles } = useStyles(inputStepperStyles, { fontSize });
@@ -46,7 +48,8 @@ export const InputStepper = ({
           onPressIn={() => setMinusPressed(true)}
           onPressOut={() => setMinusPressed(false)}
           onPress={onDecrease}
-          isDisabled={parseFloat(value) === minAmount}
+          isDisabled={parseFloat(value) <= minAmount}
+          testID="input-stepper-minus-button"
         />
         <View style={styles.inputRow}>
           <View>
@@ -54,14 +57,17 @@ export const InputStepper = ({
               showSoftInputOnFocus={false}
               caretHidden={false}
               autoFocus
-              placeholder="0"
+              placeholder={placeholder}
               value={displayedAmount}
               style={styles.input}
+              testID="input-stepper-input"
             />
           </View>
-          <View>
-            <Text style={styles.input}>{'%'}</Text>
-          </View>
+          {postValue && (
+            <View testID="input-stepper-post-value">
+              <Text style={styles.input}>{postValue}</Text>
+            </View>
+          )}
         </View>
         <ButtonIcon
           size={ButtonIconSize.Lg}
@@ -72,7 +78,8 @@ export const InputStepper = ({
           onPressIn={() => setPlusPressed(true)}
           onPressOut={() => setPlusPressed(false)}
           onPress={onIncrease}
-          isDisabled={parseFloat(value) === maxAmount}
+          isDisabled={parseFloat(value) >= maxAmount}
+          testID="input-stepper-plus-button"
         />
       </View>
       <InputStepperDescriptionRow description={description} />

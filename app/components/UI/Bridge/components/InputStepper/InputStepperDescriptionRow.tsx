@@ -3,15 +3,10 @@ import { View } from 'react-native';
 import {
   FontWeight,
   Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { inputStepperDescriptionRow } from './styles';
-import { InputStepperDescriptionType } from './constants';
 import { InputStepperProps } from './types';
 
 interface InputStepperDescriptionRowProps {
@@ -26,28 +21,27 @@ export const InputStepperDescriptionRow = ({
   }
 
   return (
-    <View style={inputStepperDescriptionRow.descriptionRow}>
-      <View>
-        <Icon
-          name={IconName.Danger}
-          size={IconSize.Lg}
-          color={
-            description.type === InputStepperDescriptionType.WARNING
-              ? IconColor.WarningDefault
-              : IconColor.ErrorDefault
-          }
-        />
-      </View>
+    <View
+      style={inputStepperDescriptionRow.descriptionRow}
+      testID="input-stepper-description-row"
+    >
+      {description.icon && (
+        <View>
+          <Icon
+            testID="input-stepper-description-icon"
+            name={description.icon.name}
+            size={description.icon.size}
+            color={description.icon.color}
+          />
+        </View>
+      )}
       <View style={inputStepperDescriptionRow.descriptionTextWrapper}>
         <Text
           style={inputStepperDescriptionRow.descriptionText}
-          color={
-            description.type === InputStepperDescriptionType.WARNING
-              ? TextColor.WarningDefault
-              : TextColor.ErrorDefault
-          }
+          color={description.color}
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
+          testID="input-text-description-message"
         >
           {description.message}
         </Text>

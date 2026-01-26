@@ -2,6 +2,13 @@ import { useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeSlippageConfig } from '../../types';
 import { InputStepperDescriptionType } from '../../components/InputStepper/constants';
+import {
+  IconColor,
+  IconName,
+  IconSize,
+  TextColor,
+} from '@metamask/design-system-react-native';
+import { InputStepperProps } from '../../components/InputStepper/types';
 
 interface Props {
   inputAmount: string;
@@ -13,7 +20,7 @@ export const useSlippageStepperDescription = ({
   inputAmount,
   slippageConfig,
   hasAttemptedToExceedMax,
-}: Props) =>
+}: Props): InputStepperProps['description'] =>
   useMemo(() => {
     const value = parseFloat(inputAmount);
 
@@ -49,6 +56,18 @@ export const useSlippageStepperDescription = ({
       if (threshold && compare(value, threshold.value, threshold.inclusive)) {
         return {
           type,
+          color:
+            type === InputStepperDescriptionType.WARNING
+              ? TextColor.WarningDefault
+              : TextColor.ErrorDefault,
+          icon: {
+            name: IconName.Danger,
+            size: IconSize.Lg,
+            color:
+              type === InputStepperDescriptionType.WARNING
+                ? IconColor.WarningDefault
+                : IconColor.ErrorDefault,
+          },
           message: strings(threshold.messageId, { value: threshold.value }),
         };
       }

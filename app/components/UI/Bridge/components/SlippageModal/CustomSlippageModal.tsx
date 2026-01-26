@@ -118,6 +118,7 @@ export const CustomSlippageModal = () => {
           description={description}
           minAmount={slippageConfig.min_amount}
           maxAmount={slippageConfig.max_amount}
+          postValue="%"
         />
       </View>
       <View style={customSlippageModalStyles.keypadContainer}>
