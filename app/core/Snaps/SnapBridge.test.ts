@@ -28,6 +28,9 @@ jest.mock('../Engine/Engine', () => ({
         },
       }),
     },
+    KeyringController: {
+      isUnlocked: jest.fn().mockReturnValue(true),
+    },
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(),
     },
@@ -51,7 +54,7 @@ jest.mock('../Engine/Engine', () => ({
   },
 }));
 
-function createBridge() {
+function createBridge(snapId = 'npm:@metamask/example-snap' as SnapId) {
   const streamA = new Duplex({
     objectMode: true,
     write(chunk, _encoding, callback) {
@@ -80,7 +83,7 @@ function createBridge() {
   const streamAMux = mux.createStream('metamask-provider');
 
   const bridge = new SnapBridge({
-    snapId: 'npm:@metamask/example-snap' as SnapId,
+    snapId,
     connectionStream: streamB,
     getRPCMethodMiddleware: ({ hostname, getProviderState }) =>
       getRpcMethodMiddleware({
@@ -124,5 +127,24 @@ describe('SnapBridge', () => {
     });
 
     expect(response).toStrictEqual({ jsonrpc: '2.0', id: 1, result: '0x1' });
+  });
+
+  it('responds to a Snap-specific JSON-RPC request', async () => {
+    const { request } = createBridge();
+
+    const response = await request({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'snap_getClientStatus',
+      params: [],
+    });
+
+    expect(response).toStrictEqual({
+      jsonrpc: '2.0',
+      id: 1,
+      result: expect.objectContaining({
+        locked: false,
+      }),
+    });
   });
 });
