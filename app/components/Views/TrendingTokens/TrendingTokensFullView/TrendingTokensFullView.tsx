@@ -10,6 +10,7 @@ import {
   View,
   TouchableOpacity,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAppThemeFromContext } from '../../../../util/theme';
@@ -70,24 +71,26 @@ const createStyles = (theme: Theme) =>
       paddingRight: 16,
     },
     controlBarWrapper: {
-      flexDirection: 'row',
       paddingVertical: 16,
       paddingHorizontal: 16,
-      justifyContent: 'space-between',
+      flexGrow: 0,
+    },
+    controlBarScrollView: {
+      flexGrow: 0,
       alignItems: 'center',
-      alignSelf: 'stretch',
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
-      flex: 1,
       justifyContent: 'space-between',
       alignItems: 'center',
+      minWidth: '100%',
     },
     controlButtonInnerWrapper: {
       flexDirection: 'row',
       gap: 8,
       alignItems: 'center',
       flexShrink: 0,
+      marginLeft: 8,
     },
     controlButton: {
       paddingVertical: 8,
@@ -322,7 +325,12 @@ const TrendingTokensFullView = () => {
         />
       </View>
       {!isSearchVisible ? (
-        <View style={styles.controlBarWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.controlBarScrollView}
+          style={styles.controlBarWrapper}
+        >
           <View style={styles.controlButtonOuterWrapper}>
             <TouchableOpacity
               testID="price-change-button"
@@ -386,7 +394,7 @@ const TrendingTokensFullView = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </ScrollView>
       ) : null}
 
       {isLoading ? (
