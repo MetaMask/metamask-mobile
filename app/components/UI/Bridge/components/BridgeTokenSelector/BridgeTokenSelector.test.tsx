@@ -10,7 +10,6 @@ import {
 } from '../../testUtils/fixtures';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
 import { tokenToIncludeAsset } from '../../utils/tokenUtils';
-import { BridgeToken } from '../../types';
 
 let mockBridgeFeatureFlags = {
   chainRanking: [
@@ -365,17 +364,6 @@ const resetMocks = () => {
   mockIsNonEvmChainId.mockReturnValue(false);
 };
 
-const createTestToken = (
-  overrides: Partial<BridgeToken> = {},
-): BridgeToken => ({
-  address: '0x1234567890123456789012345678901234567890',
-  symbol: 'TEST',
-  decimals: 18,
-  chainId: '0x1',
-  name: 'Test Token',
-  ...overrides,
-});
-
 describe('tokenToIncludeAsset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -385,7 +373,7 @@ describe('tokenToIncludeAsset', () => {
 
   it('returns null when formatAddressToAssetId returns null', () => {
     mockFormatAddressToAssetId.mockReturnValue(null);
-    const token = createTestToken();
+    const token = createMockToken();
 
     const result = tokenToIncludeAsset(token);
 
@@ -395,7 +383,7 @@ describe('tokenToIncludeAsset', () => {
   it('returns IncludeAsset with lowercase assetId for EVM token', () => {
     mockFormatAddressToAssetId.mockReturnValue('EIP155:1/ERC20:0xABCD');
     mockIsNonEvmChainId.mockReturnValue(false);
-    const token = createTestToken({
+    const token = createMockToken({
       symbol: 'USDC',
       name: 'USD Coin',
       decimals: 6,
@@ -416,7 +404,7 @@ describe('tokenToIncludeAsset', () => {
       'bip122:000000000019d6689c085ae165831e93/slip44:0',
     );
     mockIsNonEvmChainId.mockReturnValue(true);
-    const token = createTestToken({
+    const token = createMockToken({
       symbol: 'BTC',
       name: 'Bitcoin',
       decimals: 8,
@@ -434,7 +422,7 @@ describe('tokenToIncludeAsset', () => {
   });
 
   it('uses empty string for undefined token name', () => {
-    const token = createTestToken({ name: undefined });
+    const token = createMockToken({ name: undefined });
 
     const result = tokenToIncludeAsset(token);
 
