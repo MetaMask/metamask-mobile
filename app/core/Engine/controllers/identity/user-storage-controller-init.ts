@@ -1,10 +1,10 @@
+import { scrypt } from 'react-native-fast-crypto';
 import { ControllerInitFunction } from '../../types';
 import {
   Controller as UserStorageController,
   UserStorageControllerMessenger,
 } from '@metamask/profile-sync-controller/user-storage';
 import type { UserStorageControllerInitMessenger } from '../../messengers/identity/user-storage-controller-messenger';
-import { calculateScryptKey } from './calculate-scrypt-key';
 import { MetaMetricsEvents } from '../../../Analytics';
 import { trace } from '../../../../util/trace';
 import { buildAndTrackEvent } from '../../utils/analytics';
@@ -27,7 +27,7 @@ export const userStorageControllerInit: ControllerInitFunction<
     // @ts-expect-error: `UserStorageController` does not accept partial state.
     state: persistedState.UserStorageController,
 
-    nativeScryptCrypto: calculateScryptKey,
+    nativeScryptCrypto: scrypt,
 
     // @ts-expect-error: Type of `TraceRequest` is different.
     trace,

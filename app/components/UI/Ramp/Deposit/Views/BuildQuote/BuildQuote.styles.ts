@@ -45,12 +45,10 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
     },
     fiatSelector: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.muted,
       borderRadius: 12,
       paddingVertical: 8,
       paddingHorizontal: 16,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
     },
     regionContent: {
       flexDirection: 'row',
@@ -66,14 +64,11 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingLeft: 8,
       paddingRight: 12,
       backgroundColor: theme.colors.background.muted,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
     },
     paymentMethodBox: {
       borderRadius: 12,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
       marginBottom: 16,
+      backgroundColor: theme.colors.background.muted,
     },
     errorText: {
       textAlign: 'center',
