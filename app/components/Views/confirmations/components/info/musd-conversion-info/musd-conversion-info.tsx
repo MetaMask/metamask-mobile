@@ -1,4 +1,3 @@
-import { providerErrors } from '@metamask/rpc-errors';
 import { Hex } from '@metamask/utils';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useParams } from '../../../../../../util/navigation/navUtils';
@@ -16,13 +15,12 @@ import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransact
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import Engine from '../../../../../../core/Engine';
-import EngineService from '../../../../../../core/EngineService';
-import { getTokenTransferData } from '../../../utils/transaction-pay';
-import { parseStandardTokenTransactionData } from '../../../utils/transaction';
 import { useMusdConversionQuoteTrace } from '../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace';
 import { endTrace, TraceName } from '../../../../../../util/trace';
-import { createMusdConversionTransaction } from '../../../../../UI/Earn/utils/createMusdConversionTransaction';
+import {
+  replaceMusdConversionTransactionForPayToken,
+  type PayTokenSelection,
+} from '../../../../../UI/Earn/utils/replaceMusdConversionTransactionForPayToken';
 
 interface MusdOverrideContentProps {
   amountHuman: string;
@@ -34,30 +32,6 @@ interface MusdConversionInfoContentProps {
   >;
   outputChainId: Hex;
   preferredPaymentToken: MusdConversionConfig['preferredPaymentToken'];
-}
-
-interface PayTokenSelection {
-  address: Hex;
-  chainId: Hex;
-}
-
-function getHexFromEthersBigNumberLike(value: unknown): string | undefined {
-  if (!value || typeof value !== 'object') {
-    return undefined;
-  }
-
-  const maybeHex = (value as { _hex?: unknown })._hex;
-  if (typeof maybeHex === 'string') {
-    return maybeHex;
-  }
-
-  const toHexString = (value as { toHexString?: unknown }).toHexString;
-  if (typeof toHexString === 'function') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (toHexString as any).call(value) as string;
-  }
-
-  return undefined;
 }
 
 const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
@@ -148,87 +122,13 @@ const MusdConversionInfoContent = ({
 
   const replaceMusdConversionTransaction = useCallback(
     async (newPayToken: PayTokenSelection) => {
-      if (!transactionMeta?.id || !transactionMeta?.txParams?.from) {
-        console.error(
-          '[mUSD Conversion] Missing transaction metadata for replacement',
-          { transactionMeta },
-        );
-        return;
-      }
-
-      const newChainId = newPayToken.chainId;
-
-      const musdTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[newChainId];
-      if (!musdTokenAddress) {
-        console.error(
-          '[mUSD Conversion] mUSD not supported on selected chain',
-          { newChainId },
+      const newTransactionId =
+        await replaceMusdConversionTransactionForPayToken(
+          transactionMeta,
+          newPayToken,
         );
 
-        const fallbackPayToken = lastSameChainPayToken.current;
-        if (fallbackPayToken) {
-          setPayToken(fallbackPayToken);
-        }
-
-        return;
-      }
-
-      const tokenTransferData = getTokenTransferData(transactionMeta);
-
-      const parsedTokenTransferData = parseStandardTokenTransactionData(
-        tokenTransferData?.data,
-      );
-
-      const recipientAddress =
-        (parsedTokenTransferData?.args?._to?.toString() as Hex | undefined) ??
-        (transactionMeta.txParams.from as Hex);
-
-      const amountHex =
-        getHexFromEthersBigNumberLike(parsedTokenTransferData?.args?._value) ??
-        '0x0';
-
-      try {
-        const { transactionId: newTransactionId } =
-          await createMusdConversionTransaction({
-            outputChainId: newChainId,
-            // TODO: May be able to simplify this by selecting active account address like we do in useMusdConversion > initiateConversion.
-            fromAddress: transactionMeta.txParams.from as Hex,
-            recipientAddress,
-            amountHex,
-          });
-
-        const {
-          GasFeeController,
-          TransactionPayController,
-          ApprovalController,
-        } = Engine.context;
-
-        const { NetworkController } = Engine.context;
-        const networkClientId =
-          NetworkController.findNetworkClientIdByChainId(newChainId);
-
-        GasFeeController.fetchGasFeeEstimates({ networkClientId }).catch(
-          () => undefined,
-        );
-
-        TransactionPayController.updatePaymentToken({
-          transactionId: newTransactionId,
-          tokenAddress: newPayToken.address,
-          chainId: newPayToken.chainId,
-        });
-
-        EngineService.flushState();
-
-        ApprovalController.reject(
-          transactionMeta.id,
-          providerErrors.userRejectedRequest(),
-        );
-      } catch (error) {
-        console.error(
-          '[mUSD Conversion] Failed to replace transaction on chain change',
-          error,
-        );
-
+      if (!newTransactionId) {
         const fallbackPayToken = lastSameChainPayToken.current;
         if (fallbackPayToken) {
           setPayToken(fallbackPayToken);
