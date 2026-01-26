@@ -24,43 +24,40 @@ describe('SectionHeader', () => {
     jest.clearAllMocks();
   });
 
-  it('renders title and view all text for predictions section', () => {
+  it('renders title for predictions section', () => {
     const { getByText } = renderWithProvider(
       <SectionHeader sectionId="predictions" />,
       { state: initialState },
     );
 
     expect(getByText('Predictions')).toBeOnTheScreen();
-    expect(getByText('View all')).toBeOnTheScreen();
   });
 
-  it('renders title and view all text for tokens section', () => {
+  it('renders title for tokens section', () => {
     const { getByText } = renderWithProvider(
       <SectionHeader sectionId="tokens" />,
       { state: initialState },
     );
 
-    expect(getByText('Tokens')).toBeOnTheScreen();
-    expect(getByText('View all')).toBeOnTheScreen();
+    expect(getByText('Trending tokens')).toBeOnTheScreen();
   });
 
-  it('renders title and view all text for perps section', () => {
+  it('renders title for perps section', () => {
     const { getByText } = renderWithProvider(
       <SectionHeader sectionId="perps" />,
       { state: initialState },
     );
 
     expect(getByText('Perps')).toBeOnTheScreen();
-    expect(getByText('View all')).toBeOnTheScreen();
   });
 
-  it('calls navigation action when view all button is pressed', () => {
-    const { getByText } = renderWithProvider(
+  it('calls navigation action when header is pressed', () => {
+    const { getByTestId } = renderWithProvider(
       <SectionHeader sectionId="perps" />,
       { state: initialState },
     );
 
-    fireEvent.press(getByText('View all'));
+    fireEvent.press(getByTestId('section-header-view-all-perps'));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });

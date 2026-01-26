@@ -8,9 +8,6 @@ import PrivateKeysList from '../../pages/MultichainAccounts/PrivateKeyList';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import { Mockttp } from 'mockttp';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(RegressionAccounts('Account details private key'), () => {
   const PASSWORD = '123123123';
@@ -19,13 +16,6 @@ describe(RegressionAccounts('Account details private key'), () => {
   const MAINNET_INDEX = 0;
   const VISIBILE_NETWORK = ['Ethereum Main Network', 'Linea Main Network'];
 
-  const testSpecificMock = async (mockServer: Mockttp) => {
-    await setupRemoteFeatureFlagsMock(
-      mockServer,
-      remoteFeatureMultichainAccountsAccountDetailsV2(true),
-    );
-  };
-
   it('it should copy to clipboard the correct private key for the first account in the account list ', async () => {
     await withFixtures(
       {
@@ -33,7 +23,6 @@ describe(RegressionAccounts('Account details private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -73,7 +62,6 @@ describe(RegressionAccounts('Account details private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
