@@ -8,28 +8,28 @@ import React, {
 import { Linking } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
   IconName,
   IconColor,
-} from '../../../../../../../component-library/components/Icons/Icon';
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../../../locales/i18n';
+} from '../../../../../../component-library/components/Icons/Icon';
+import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../../../../../component-library/components/Toast';
-import Logger from '../../../../../../../util/Logger';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import MenuItem from '../../../MenuItem';
-import { useRampsController } from '../../../../hooks/useRampsController';
+} from '../../../../../../component-library/components/Toast';
+import Logger from '../../../../../../util/Logger';
+import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import MenuItem from '../../../components/MenuItem';
+import { useRampsController } from '../../../hooks/useRampsController';
 import {
   getProviderToken,
   resetProviderToken,
-} from '../../../../Deposit/utils/ProviderTokenVault';
-import { PROVIDER_LINKS } from '../../../../Aggregator/types';
+} from '../../../Deposit/utils/ProviderTokenVault';
+import { PROVIDER_LINKS } from '../../../Aggregator/types';
 
 /**
  * Transak provider ID - the only provider with native logout support

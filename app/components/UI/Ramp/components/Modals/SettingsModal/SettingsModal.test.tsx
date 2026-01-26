@@ -1,16 +1,16 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import SettingsModal from './SettingsModal';
-import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import Routes from '../../../../../../../constants/navigation/Routes';
-import { ToastContext } from '../../../../../../../component-library/components/Toast';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { ToastContext } from '../../../../../../component-library/components/Toast';
 import {
   getProviderToken,
   resetProviderToken,
-} from '../../../../Deposit/utils/ProviderTokenVault';
-import { PROVIDER_LINKS } from '../../../../Aggregator/types';
+} from '../../../Deposit/utils/ProviderTokenVault';
+import { PROVIDER_LINKS } from '../../../Aggregator/types';
 import type { Provider } from '@metamask/ramps-controller';
 
 const MOCK_SUPPORT_URL = 'https://support.test-provider.com';
@@ -52,7 +52,7 @@ const createMockTransakProvider = (
   ...overrides,
 });
 
-jest.mock('../../../../Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../../Deposit/utils/ProviderTokenVault', () => ({
   getProviderToken: jest.fn(),
   resetProviderToken: jest.fn(),
 }));
@@ -104,16 +104,16 @@ jest.mock('react-native', () => {
 let mockPreferredProvider: Provider | null = createMockProvider();
 const mockSetPreferredProvider = jest.fn();
 
-jest.mock('../../../../hooks/useRampsController', () => ({
+jest.mock('../../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     preferredProvider: mockPreferredProvider,
     setPreferredProvider: mockSetPreferredProvider,
   }),
 }));
 
-jest.mock('../../../../../../../component-library/components/Toast', () => {
+jest.mock('../../../../../../component-library/components/Toast', () => {
   const actualToast = jest.requireActual(
-    '../../../../../../../component-library/components/Toast',
+    '../../../../../../component-library/components/Toast',
   );
 
   return {

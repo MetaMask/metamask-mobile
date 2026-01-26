@@ -28,7 +28,7 @@ import styleSheet from './BuildQuote.styles';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
-import { createSettingsModalNavDetails } from './Modals/SettingsModal';
+import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 
 interface BuildQuoteParams {
   assetId?: string;
