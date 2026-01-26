@@ -470,8 +470,7 @@ const CardHome = () => {
       isAuthenticated &&
       userLocation === 'us' &&
       userShippingAddress &&
-      cardDetails &&
-      cardDetails.type === CardType.VIRTUAL,
+      cardDetails?.type === CardType.VIRTUAL,
     [
       isBaanxLoginEnabled,
       isAuthenticated,

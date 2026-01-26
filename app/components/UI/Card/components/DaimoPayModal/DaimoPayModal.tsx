@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ImageSourcePropType, Linking, StyleSheet, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -166,14 +166,42 @@ const DaimoPayModal: React.FC = () => {
         pollingIntervalRef.current = null;
       }
 
-      navigation.navigate(
-        Routes.CARD.ORDER_COMPLETED as never,
-        {
-          paymentMethod: 'crypto',
-          transactionHash: txHash,
-          fromUpgrade,
-        } as never,
-      );
+      const parentNavigator = navigation.dangerouslyGetParent();
+      if (parentNavigator) {
+        parentNavigator.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.CARD.HOME,
+                state: {
+                  index: 1,
+                  routes: [
+                    { name: Routes.CARD.HOME },
+                    {
+                      name: Routes.CARD.ORDER_COMPLETED,
+                      params: {
+                        paymentMethod: 'crypto',
+                        transactionHash: txHash,
+                        fromUpgrade,
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        );
+      } else {
+        navigation.navigate(
+          Routes.CARD.ORDER_COMPLETED as never,
+          {
+            paymentMethod: 'crypto',
+            transactionHash: txHash,
+            fromUpgrade,
+          } as never,
+        );
+      }
     },
     [trackEvent, createEventBuilder, navigation, fromUpgrade],
   );

@@ -9,6 +9,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockDispatch = jest.fn();
+const mockDangerouslyGetParent = jest.fn<
+  { dispatch: jest.Mock } | undefined,
+  []
+>();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -20,7 +25,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    dangerouslyGetParent: mockDangerouslyGetParent,
   }),
+  CommonActions: {
+    reset: jest.fn((config) => ({ type: 'RESET', ...config })),
+  },
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -244,6 +253,9 @@ describe('DaimoPayModal', () => {
     mockOnError = null;
     mockOnShouldStartLoadWithRequest = null;
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    mockDangerouslyGetParent.mockReturnValue({
+      dispatch: mockDispatch,
+    });
   });
 
   describe('Render', () => {
@@ -410,7 +422,7 @@ describe('DaimoPayModal', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('handles paymentCompleted event in demo mode', async () => {
+    it('handles paymentCompleted event by resetting navigation to OrderCompleted', async () => {
       render(<DaimoPayModal />);
 
       await waitFor(() => {
@@ -435,11 +447,65 @@ describe('DaimoPayModal', () => {
         }
       });
 
+      expect(mockDangerouslyGetParent).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'RESET',
+          index: 0,
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: Routes.CARD.HOME,
+              state: expect.objectContaining({
+                index: 1,
+                routes: expect.arrayContaining([
+                  expect.objectContaining({ name: Routes.CARD.HOME }),
+                  expect.objectContaining({
+                    name: Routes.CARD.ORDER_COMPLETED,
+                    params: expect.objectContaining({
+                      paymentMethod: 'crypto',
+                      transactionHash: '0x123',
+                    }),
+                  }),
+                ]),
+              }),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to navigate when parent navigator is unavailable', async () => {
+      mockDangerouslyGetParent.mockReturnValueOnce(undefined);
+
+      render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
+      await act(async () => {
+        if (mockOnMessage) {
+          mockOnMessage({
+            nativeEvent: {
+              data: JSON.stringify({
+                source: 'daimo-pay',
+                version: 1,
+                type: 'paymentCompleted',
+                payload: {
+                  txHash: '0xabc',
+                  chainId: 1,
+                },
+              }),
+            },
+          });
+        }
+      });
+
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ORDER_COMPLETED,
         expect.objectContaining({
           paymentMethod: 'crypto',
-          transactionHash: '0x123',
+          transactionHash: '0xabc',
         }),
       );
     });
@@ -493,6 +559,7 @@ describe('DaimoPayModal', () => {
 
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 
