@@ -249,8 +249,6 @@ jobs:
       needs.approval.result == 'success'
     env:
       ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
-      METAMASK_BUILD_TYPE: 'main'
-      METAMASK_ENVIRONMENT: ${{ inputs.channel }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
@@ -338,6 +336,72 @@ jobs:
           echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
           echo "✅ Artifacts verified"
 
+      - name: Create .env file and export environment variables
+        run: |
+          echo "📝 Creating .env file from environment variables..."
+
+          # List of environment variable names to export
+          ENV_VARS=(
+            "EXPO_PROJECT_ID"
+            "EXPO_CHANNEL"
+            "GIT_BRANCH"
+            "BRIDGE_USE_DEV_APIS"
+            "RAMP_INTERNAL_BUILD"
+            "SEEDLESS_ONBOARDING_ENABLED"
+            "MM_NOTIFICATIONS_UI_ENABLED"
+            "MM_SECURITY_ALERTS_API_ENABLED"
+            "MM_REMOVE_GLOBAL_NETWORK_SELECTOR"
+            "FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
+            "FEATURES_ANNOUNCEMENTS_SPACE_ID"
+            "SEGMENT_WRITE_KEY"
+            "SEGMENT_PROXY_URL"
+            "SEGMENT_DELETE_API_SOURCE_ID"
+            "SEGMENT_REGULATIONS_ENDPOINT"
+            "MM_SENTRY_DSN"
+            "MM_SENTRY_AUTH_TOKEN"
+            "IOS_GOOGLE_CLIENT_ID"
+            "IOS_GOOGLE_REDIRECT_URI"
+            "ANDROID_APPLE_CLIENT_ID"
+            "ANDROID_GOOGLE_CLIENT_ID"
+            "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+            "MM_INFURA_PROJECT_ID"
+            "MM_BRANCH_KEY_LIVE"
+            "MM_BRANCH_KEY_TEST"
+            "MM_CARD_BAANX_API_CLIENT_KEY"
+            "WALLET_CONNECT_PROJECT_ID"
+            "MM_FOX_CODE"
+            "FCM_CONFIG_API_KEY"
+            "FCM_CONFIG_AUTH_DOMAIN"
+            "FCM_CONFIG_STORAGE_BUCKET"
+            "FCM_CONFIG_PROJECT_ID"
+            "FCM_CONFIG_MESSAGING_SENDER_ID"
+            "FCM_CONFIG_APP_ID"
+            "FCM_CONFIG_MEASUREMENT_ID"
+            "QUICKNODE_MAINNET_URL"
+            "QUICKNODE_ARBITRUM_URL"
+            "QUICKNODE_AVALANCHE_URL"
+            "QUICKNODE_BASE_URL"
+            "QUICKNODE_LINEA_MAINNET_URL"
+            "QUICKNODE_MONAD_URL"
+            "QUICKNODE_OPTIMISM_URL"
+            "QUICKNODE_POLYGON_URL"
+          )
+
+          # Create .env file and export to GITHUB_ENV
+          > .env
+          for var in "${ENV_VARS[@]}"; do
+            value="${!var}"
+            if [ -n "$value" ]; then
+              echo "${var}=${value}" >> .env
+              echo "${var}=${value}" >> "$GITHUB_ENV"
+              echo "✅ Exported: ${var} (value hidden)"
+            else
+              echo "⚠️ Skipped (empty): ${var}"
+            fi
+          done
+
+          echo "📄 .env file created with $(wc -l < .env) variables"
+
       - name: Determine signing secret name
         shell: bash
         env:
@@ -387,62 +451,11 @@ jobs:
       - name: Display configuration
         run: |
           TARGET_RUNTIME_VERSION=$(node -p "require('./package.json').version")
-          TARGET_PROJECT_ID=$(node -p "require('./ota.config.js').PROJECT_ID")
           echo "🔧 Configuration:"
           echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
           echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
           echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
           echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
-          echo "  METAMASK_BUILD_TYPE: ${METAMASK_BUILD_TYPE:-<not set>}"
-          echo "  METAMASK_ENVIRONMENT: ${METAMASK_ENVIRONMENT:-<not set>}"
-          echo ""
-          echo "📱 Project Info:"
-          echo "  Project ID (target branch): ${TARGET_PROJECT_ID}"
-          echo "  EXPO_PROJECT_ID (from secrets): ${EXPO_PROJECT_ID:+SET}"
-          echo "  EXPO_TOKEN (from secrets): ${EXPO_TOKEN:+SET}"
-          echo ""
-          echo "🔐 Environment Variables (first 3 chars):"
-          echo ""
-          echo "OAuth/Social Login:"
-          echo "  IOS_GOOGLE_CLIENT_ID: ${IOS_GOOGLE_CLIENT_ID:0:3}... (length: ${#IOS_GOOGLE_CLIENT_ID})"
-          echo "  IOS_GOOGLE_REDIRECT_URI: ${IOS_GOOGLE_REDIRECT_URI:0:3}... (length: ${#IOS_GOOGLE_REDIRECT_URI})"
-          echo "  ANDROID_APPLE_CLIENT_ID: ${ANDROID_APPLE_CLIENT_ID:0:3}... (length: ${#ANDROID_APPLE_CLIENT_ID})"
-          echo "  ANDROID_GOOGLE_CLIENT_ID: ${ANDROID_GOOGLE_CLIENT_ID:0:3}... (length: ${#ANDROID_GOOGLE_CLIENT_ID})"
-          echo "  ANDROID_GOOGLE_SERVER_CLIENT_ID: ${ANDROID_GOOGLE_SERVER_CLIENT_ID:0:3}... (length: ${#ANDROID_GOOGLE_SERVER_CLIENT_ID})"
-          echo ""
-          echo "Segment Analytics:"
-          echo "  SEGMENT_WRITE_KEY: ${SEGMENT_WRITE_KEY:0:3}... (length: ${#SEGMENT_WRITE_KEY})"
-          echo "  SEGMENT_PROXY_URL: ${SEGMENT_PROXY_URL:0:3}... (length: ${#SEGMENT_PROXY_URL})"
-          echo "  SEGMENT_DELETE_API_SOURCE_ID: ${SEGMENT_DELETE_API_SOURCE_ID:0:3}... (length: ${#SEGMENT_DELETE_API_SOURCE_ID})"
-          echo "  SEGMENT_REGULATIONS_ENDPOINT: ${SEGMENT_REGULATIONS_ENDPOINT:0:3}... (length: ${#SEGMENT_REGULATIONS_ENDPOINT})"
-          echo ""
-          echo "Sentry:"
-          echo "  MM_SENTRY_DSN: ${MM_SENTRY_DSN:0:3}... (length: ${#MM_SENTRY_DSN})"
-          echo "  MM_SENTRY_AUTH_TOKEN: ${MM_SENTRY_AUTH_TOKEN:0:3}... (length: ${#MM_SENTRY_AUTH_TOKEN})"
-          echo ""
-          echo "Firebase:"
-          echo "  GOOGLE_SERVICES_B64_IOS: ${GOOGLE_SERVICES_B64_IOS:0:3}... (length: ${#GOOGLE_SERVICES_B64_IOS})"
-          echo "  GOOGLE_SERVICES_B64_ANDROID: ${GOOGLE_SERVICES_B64_ANDROID:0:3}... (length: ${#GOOGLE_SERVICES_B64_ANDROID})"
-          echo "  FCM_CONFIG_API_KEY: ${FCM_CONFIG_API_KEY:0:3}... (length: ${#FCM_CONFIG_API_KEY})"
-          echo "  FCM_CONFIG_PROJECT_ID: ${FCM_CONFIG_PROJECT_ID:0:3}... (length: ${#FCM_CONFIG_PROJECT_ID})"
-          echo ""
-          echo "Infrastructure:"
-          echo "  MM_INFURA_PROJECT_ID: ${MM_INFURA_PROJECT_ID:0:3}... (length: ${#MM_INFURA_PROJECT_ID})"
-          echo "  WALLET_CONNECT_PROJECT_ID: ${WALLET_CONNECT_PROJECT_ID:0:3}... (length: ${#WALLET_CONNECT_PROJECT_ID})"
-          echo "  MM_BRANCH_KEY_LIVE: ${MM_BRANCH_KEY_LIVE:0:3}... (length: ${#MM_BRANCH_KEY_LIVE})"
-          echo "  MM_FOX_CODE: ${MM_FOX_CODE:0:3}... (length: ${#MM_FOX_CODE})"
-          echo ""
-          echo "QuickNode URLs:"
-          echo "  QUICKNODE_MAINNET_URL: ${QUICKNODE_MAINNET_URL:0:3}... (length: ${#QUICKNODE_MAINNET_URL})"
-          echo "  QUICKNODE_ARBITRUM_URL: ${QUICKNODE_ARBITRUM_URL:0:3}... (length: ${#QUICKNODE_ARBITRUM_URL})"
-          echo "  QUICKNODE_BASE_URL: ${QUICKNODE_BASE_URL:0:3}... (length: ${#QUICKNODE_BASE_URL})"
-          echo "  QUICKNODE_LINEA_MAINNET_URL: ${QUICKNODE_LINEA_MAINNET_URL:0:3}... (length: ${#QUICKNODE_LINEA_MAINNET_URL})"
-          echo ""
-          echo "Feature Flags:"
-          echo "  BRIDGE_USE_DEV_APIS: ${BRIDGE_USE_DEV_APIS}"
-          echo "  RAMP_INTERNAL_BUILD: ${RAMP_INTERNAL_BUILD}"
-          echo "  SEEDLESS_ONBOARDING_ENABLED: ${SEEDLESS_ONBOARDING_ENABLED}"
-          echo "  MM_NOTIFICATIONS_UI_ENABLED: ${MM_NOTIFICATIONS_UI_ENABLED}"
 
       - name: Build & Push EAS Update via build.sh
         env:
