@@ -349,3 +349,78 @@ builds:
       earnMusdConversionTokenListItemCtaEnabled: true
       earnMusdConversionRewardsUiEnabled: true
       earnMerklCampaignClaiming: true
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # QA Builds (legacy - for internal testing)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  # QA production build
+  qa-prod:
+    github_environment: build-qa
+    env:
+      METAMASK_ENVIRONMENT: "production"
+      METAMASK_BUILD_TYPE: "qa"
+      <<: *servers
+      BRIDGE_USE_DEV_APIS: "false"
+      RAMP_INTERNAL_BUILD: "false"
+      IS_TEST: "false"
+    secrets:
+      <<: *secrets
+      # QA uses QA Segment project
+      SEGMENT_WRITE_KEY: SEGMENT_WRITE_KEY_QA
+      SEGMENT_PROXY_URL: SEGMENT_PROXY_URL_QA
+      SEGMENT_DELETE_API_SOURCE_ID: SEGMENT_DELETE_API_SOURCE_ID_QA
+      SEGMENT_REGULATIONS_ENDPOINT: SEGMENT_REGULATIONS_ENDPOINT_QA
+      # QA uses UAT OAuth credentials
+      IOS_GOOGLE_CLIENT_ID: MAIN_IOS_GOOGLE_CLIENT_ID_UAT
+      IOS_GOOGLE_REDIRECT_URI: MAIN_IOS_GOOGLE_REDIRECT_URI_UAT
+      ANDROID_GOOGLE_CLIENT_ID: MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT
+      ANDROID_APPLE_CLIENT_ID: MAIN_ANDROID_APPLE_CLIENT_ID_UAT
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
+      MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
+    code_fencing: *code_fencing_main
+    remote_feature_flags: *remote_feature_flags
+
+  # QA dev build
+  qa-dev:
+    github_environment: build-qa
+    env:
+      METAMASK_ENVIRONMENT: "dev"
+      METAMASK_BUILD_TYPE: "qa"
+      <<: *servers
+      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
+      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
+      BAANX_API_URL: "https://dev.api.baanx.com"
+      RAMPS_ENVIRONMENT: "staging"
+      BRIDGE_USE_DEV_APIS: "true"
+      RAMP_INTERNAL_BUILD: "true"
+      IS_TEST: "false"
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
+    secrets:
+      <<: *secrets
+      # QA uses QA Segment project
+      SEGMENT_WRITE_KEY: SEGMENT_WRITE_KEY_QA
+      SEGMENT_PROXY_URL: SEGMENT_PROXY_URL_QA
+      SEGMENT_DELETE_API_SOURCE_ID: SEGMENT_DELETE_API_SOURCE_ID_QA
+      SEGMENT_REGULATIONS_ENDPOINT: SEGMENT_REGULATIONS_ENDPOINT_QA
+      # QA uses UAT OAuth credentials
+      IOS_GOOGLE_CLIENT_ID: MAIN_IOS_GOOGLE_CLIENT_ID_UAT
+      IOS_GOOGLE_REDIRECT_URI: MAIN_IOS_GOOGLE_REDIRECT_URI_UAT
+      ANDROID_GOOGLE_CLIENT_ID: MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT
+      ANDROID_APPLE_CLIENT_ID: MAIN_ANDROID_APPLE_CLIENT_ID_UAT
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
+      MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
+    code_fencing: *code_fencing_main
+    remote_feature_flags:
+      <<: *remote_feature_flags
+      # Override for dev testing
+      perpsPerpTradingEnabled: true
+      perpsPerpGtmOnboardingModalEnabled: true
+      perpsOrderBookEnabled: true
+      perpsFeedbackEnabled: true
+      earnMusdConversionFlowEnabled: true
+      earnMusdCtaEnabled: true
+      earnMusdConversionAssetOverviewCtaEnabled: true
+      earnMusdConversionTokenListItemCtaEnabled: true
+      earnMusdConversionRewardsUiEnabled: true
+      earnMerklCampaignClaiming: true

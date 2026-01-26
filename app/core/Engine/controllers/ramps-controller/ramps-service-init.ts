@@ -6,21 +6,12 @@ import {
   RampsEnvironment,
 } from '@metamask/ramps-controller';
 
+// Environment is set at build time via builds.yml
 export function getRampsEnvironment(): RampsEnvironment {
-  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-  switch (metamaskEnvironment) {
-    case 'production':
-    case 'beta':
-    case 'rc':
-      return RampsEnvironment.Production;
-
-    case 'dev':
-    case 'exp':
-    case 'test':
-    case 'e2e':
-    default:
-      return RampsEnvironment.Staging;
-  }
+  const rampsEnv = process.env.RAMPS_ENVIRONMENT;
+  return rampsEnv === 'production'
+    ? RampsEnvironment.Production
+    : RampsEnvironment.Staging;
 }
 
 /**

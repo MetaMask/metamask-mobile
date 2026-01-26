@@ -12,6 +12,8 @@ const svgTransformer = require('react-native-svg-transformer');
 
 // Code fence removal variables
 const fileExtsToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
+
+// All available features that can be used in code fences
 const availableFeatures = new Set([
   'flask',
   'preinstalled-snaps',
@@ -26,78 +28,29 @@ const availableFeatures = new Set([
   'experimental',
 ]);
 
-const mainFeatureSet = new Set([
-  'preinstalled-snaps',
-  'keyring-snaps',
-  'multi-srp',
-  'solana',
-  'bitcoin',
-  'tron',
-]);
-const betaFeatureSet = new Set([
-  'beta',
-  'preinstalled-snaps',
-  'keyring-snaps',
-  'multi-srp',
-  'solana',
-  'bitcoin',
-  'tron',
-]);
-const flaskFeatureSet = new Set([
-  'flask',
-  'preinstalled-snaps',
-  'external-snaps',
-  'keyring-snaps',
-  'multi-srp',
-  'bitcoin',
-  'solana',
-  'tron',
-]);
-// Experimental feature set includes all main features plus experimental
-const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
-
 /**
  * Gets the features for the current build type, used to determine which code
  * fences to remove.
  *
+ * Source of truth: CODE_FENCING_FEATURES env var (set by builds.yml via apply-build-config.js)
+ *
  * @returns {Set<string>} The set of features to be included in the build.
  */
 function getBuildTypeFeatures() {
-  const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
-  const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
-  let features;
-
-  switch (buildType) {
-    // TODO: Remove uppercase QA once we've consolidated build types
-    case 'qa':
-    case 'QA':
-    case 'main':
-      // TODO: Refactor this once we've abstracted environment away from build type
-      if (envType === 'exp') {
-        // Only include experimental features in experimental environment
-        features = experimentalFeatureSet;
-        break;
-      }
-      features = envType === 'beta' ? betaFeatureSet : mainFeatureSet;
-      break;
-    case 'beta':
-      features = betaFeatureSet;
-      break;
-    case 'flask':
-      features = flaskFeatureSet;
-      break;
-    default:
-      throw new Error(
-        `Invalid METAMASK_BUILD_TYPE of ${buildType} was passed to metro transform`,
-      );
+  if (!process.env.CODE_FENCING_FEATURES) {
+    throw new Error(
+      'CODE_FENCING_FEATURES not set. Run: node scripts/apply-build-config.js <build-name>',
+    );
   }
 
-  // Add sample-feature only if explicitly enabled via env var
+  const features = JSON.parse(process.env.CODE_FENCING_FEATURES);
+  const featureSet = new Set(features);
+
   if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
-    features.add('sample-feature');
+    featureSet.add('sample-feature');
   }
 
-  return features;
+  return featureSet;
 }
 
 /**
