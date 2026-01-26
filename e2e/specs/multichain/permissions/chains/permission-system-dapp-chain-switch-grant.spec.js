@@ -3,7 +3,7 @@ import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHel
 import Browser from '../../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import TestDApp from '../../../../pages/Browser/TestDApp';
-import { CustomNetworks } from '../../../../resources/networks.e2e';
+import { CustomNetworks } from '../../../../../tests/resources/networks.e2e';
 import { SmokeNetworkAbstractions } from '../../../../tags';
 import Assertions from '../../../../../tests/framework/Assertions';
 import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
