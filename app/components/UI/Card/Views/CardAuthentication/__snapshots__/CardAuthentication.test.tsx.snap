@@ -694,7 +694,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     <TextInput
                                       accessibilityLabel="Email"
                                       autoCapitalize="none"
-                                      autoComplete="email"
+                                      autoComplete="off"
                                       autoFocus={false}
                                       editable={true}
                                       keyboardType="email-address"
@@ -721,7 +721,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                         }
                                       }
                                       testID="email-field"
-                                      textContentType="emailAddress"
                                       value=""
                                     />
                                   </View>
@@ -807,7 +806,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     <TextInput
                                       accessibilityLabel="Password"
                                       autoCapitalize="none"
-                                      autoComplete="password"
+                                      autoComplete="off"
                                       autoFocus={false}
                                       editable={true}
                                       maxLength={255}
@@ -835,7 +834,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                         }
                                       }
                                       testID="password-field"
-                                      textContentType="password"
                                       value=""
                                     />
                                   </View>
