@@ -600,6 +600,9 @@ jobs:
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v4
       - name: Download actionlint
@@ -609,6 +612,7 @@ jobs:
       - name: Check workflow files
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
+
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-latest
