@@ -3,13 +3,11 @@ import { BridgeSlippageConfig } from '../../types';
 interface Props {
   inputAmount: string;
   slippageConfig: BridgeSlippageConfig['__default__'];
-  hasAttemptedToExceedMax: boolean;
 }
 
 export const useShouldDisableCustomSlippageConfirm = ({
   inputAmount,
   slippageConfig,
-  hasAttemptedToExceedMax,
 }: Props) => {
   const value = parseFloat(inputAmount);
 
@@ -33,7 +31,6 @@ export const useShouldDisableCustomSlippageConfirm = ({
     violatesThreshold(
       slippageConfig.lower_allowed_slippage_threshold,
       (v, t) => v < t,
-    ) ||
-    hasAttemptedToExceedMax
+    )
   );
 };

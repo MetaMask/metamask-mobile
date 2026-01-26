@@ -29,7 +29,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '101',
         slippageConfig: defaultSlippageConfig,
-        hasAttemptedToExceedMax: false,
       }),
     );
 
@@ -41,22 +40,21 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '-1',
         slippageConfig: defaultSlippageConfig,
-        hasAttemptedToExceedMax: false,
       }),
     );
 
     expect(result.current).toBe(true);
   });
 
-  it('disables confirm if inputAmount is max value and user has attempted to exceed max value', () => {
+  it('disables confirm if inputAmount is at max value', () => {
     const { result } = renderHook(() =>
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '100',
         slippageConfig: defaultSlippageConfig,
-        hasAttemptedToExceedMax: true,
       }),
     );
 
+    // Value at max is valid (not more than), but violates upper threshold (50, inclusive)
     expect(result.current).toBe(true);
   });
 
@@ -65,26 +63,24 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '51',
         slippageConfig: defaultSlippageConfig,
-        hasAttemptedToExceedMax: false,
       }),
     );
 
     expect(result.current).toBe(true);
   });
 
-  it('disables confirm if inputAmount exceeds lower allowed slippage threshold', () => {
+  it('disables confirm if inputAmount violates lower allowed slippage threshold', () => {
     const { result } = renderHook(() =>
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '0.3',
         slippageConfig: defaultSlippageConfig,
-        hasAttemptedToExceedMax: false,
       }),
     );
 
     expect(result.current).toBe(true);
   });
 
-  it('works if upper allowed slippage threshold is not defined', () => {
+  it('enables confirm if upper allowed slippage threshold is not defined', () => {
     const configWithoutUpper: BridgeSlippageConfig['__default__'] = {
       ...defaultSlippageConfig,
       upper_allowed_slippage_threshold: null,
@@ -94,7 +90,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '99',
         slippageConfig: configWithoutUpper,
-        hasAttemptedToExceedMax: false,
       }),
     );
 
@@ -102,7 +97,7 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
     expect(result.current).toBe(false);
   });
 
-  it('works if lower allowed slippage threshold is not defined', () => {
+  it('enables confirm if lower allowed slippage threshold is not defined', () => {
     const configWithoutLower: BridgeSlippageConfig['__default__'] = {
       ...defaultSlippageConfig,
       lower_allowed_slippage_threshold: null,
@@ -112,7 +107,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '0.3',
         slippageConfig: configWithoutLower,
-        hasAttemptedToExceedMax: false,
       }),
     );
 
@@ -135,7 +129,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '1',
         slippageConfig: inclusiveConfig,
-        hasAttemptedToExceedMax: false,
       }),
     );
 
@@ -156,7 +149,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '1',
         slippageConfig: exclusiveConfig,
-        hasAttemptedToExceedMax: false,
       }),
     );
 
@@ -179,7 +171,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '50',
         slippageConfig: inclusiveConfig,
-        hasAttemptedToExceedMax: false,
       }),
     );
 
@@ -200,7 +191,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
       useShouldDisableCustomSlippageConfirm({
         inputAmount: '50',
         slippageConfig: exclusiveConfig,
-        hasAttemptedToExceedMax: false,
       }),
     );
 
@@ -214,7 +204,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '5',
           slippageConfig: defaultSlippageConfig,
-          hasAttemptedToExceedMax: false,
         }),
       );
 
@@ -226,7 +215,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '0',
           slippageConfig: defaultSlippageConfig,
-          hasAttemptedToExceedMax: false,
         }),
       );
 
@@ -239,7 +227,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '100',
           slippageConfig: defaultSlippageConfig,
-          hasAttemptedToExceedMax: false,
         }),
       );
 
@@ -252,7 +239,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '2.5',
           slippageConfig: defaultSlippageConfig,
-          hasAttemptedToExceedMax: false,
         }),
       );
 
@@ -270,7 +256,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '0',
           slippageConfig: configWithZeroMin,
-          hasAttemptedToExceedMax: false,
         }),
       );
 
@@ -282,7 +267,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '',
           slippageConfig: defaultSlippageConfig,
-          hasAttemptedToExceedMax: false,
         }),
       );
 
@@ -295,25 +279,11 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: 'abc',
           slippageConfig: defaultSlippageConfig,
-          hasAttemptedToExceedMax: false,
         }),
       );
 
       // parseFloat('abc') returns NaN
       expect(result.current).toBe(false);
-    });
-
-    it('hasAttemptedToExceedMax alone disables confirm', () => {
-      const { result } = renderHook(() =>
-        useShouldDisableCustomSlippageConfirm({
-          inputAmount: '5',
-          slippageConfig: defaultSlippageConfig,
-          hasAttemptedToExceedMax: true,
-        }),
-      );
-
-      // Even though value is valid, hasAttemptedToExceedMax should disable
-      expect(result.current).toBe(true);
     });
 
     it('handles both thresholds as null', () => {
@@ -327,7 +297,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '50',
           slippageConfig: configWithoutThresholds,
-          hasAttemptedToExceedMax: false,
         }),
       );
 
@@ -352,7 +321,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '0.9',
           slippageConfig: config,
-          hasAttemptedToExceedMax: false,
         }),
       );
       expect(below.current).toBe(true);
@@ -362,7 +330,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '1',
           slippageConfig: config,
-          hasAttemptedToExceedMax: false,
         }),
       );
       expect(at.current).toBe(false);
@@ -372,7 +339,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '1.1',
           slippageConfig: config,
-          hasAttemptedToExceedMax: false,
         }),
       );
       expect(above.current).toBe(false);
@@ -393,7 +359,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '49',
           slippageConfig: config,
-          hasAttemptedToExceedMax: false,
         }),
       );
       expect(below.current).toBe(false);
@@ -403,7 +368,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '50',
           slippageConfig: config,
-          hasAttemptedToExceedMax: false,
         }),
       );
       expect(at.current).toBe(false);
@@ -413,7 +377,6 @@ describe('useShouldDisableCustomSlippageConfirm', () => {
         useShouldDisableCustomSlippageConfirm({
           inputAmount: '51',
           slippageConfig: config,
-          hasAttemptedToExceedMax: false,
         }),
       );
       expect(above.current).toBe(true);

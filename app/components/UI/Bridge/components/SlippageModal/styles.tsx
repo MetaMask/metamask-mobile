@@ -6,6 +6,7 @@ export const defaultSlippageButtonGroupStyles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     display: 'flex',
+    justifyContent: 'center',
   },
 });
 
