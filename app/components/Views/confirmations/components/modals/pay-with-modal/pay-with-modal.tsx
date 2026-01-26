@@ -28,14 +28,15 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      setPayToken({
-        address: token.address as Hex,
-        chainId: token.chainId as Hex,
+      // Call after the bottom sheet's closing animation completes.
+      bottomSheetRef.current?.onCloseBottomSheet(() => {
+        setPayToken({
+          address: token.address as Hex,
+          chainId: token.chainId as Hex,
+        });
       });
-
-      handleClose();
     },
-    [handleClose, setPayToken],
+    [setPayToken],
   );
 
   const tokenFilter = useCallback(
