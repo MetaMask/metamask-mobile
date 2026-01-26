@@ -19,14 +19,44 @@ jest.mock('@metamask/analytics-controller', () => ({
 
 // Also mock the analytics utility that imports it
 jest.mock('../../util/analytics/analytics', () => ({
-  trackEvent: jest.fn(),
-  trackView: jest.fn(),
-  identify: jest.fn(),
-  optIn: jest.fn().mockResolvedValue(undefined),
-  optOut: jest.fn().mockResolvedValue(undefined),
-  getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
-  isEnabled: jest.fn(() => false),
-  isOptedIn: jest.fn().mockResolvedValue(false),
+  analytics: {
+    trackEvent: jest.fn(),
+    trackView: jest.fn(),
+    identify: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    isEnabled: jest.fn(() => false),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
+// Mock MetaMetrics for useMetrics hook
+jest.mock('../../core/Analytics/MetaMetrics', () => {
+  const mockInstance = {
+    updateDataRecordingFlag: jest.fn(),
+    createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
+    checkDataDeleteStatus: jest.fn().mockResolvedValue(undefined),
+    getDeleteRegulationCreationDate: jest.fn().mockResolvedValue(undefined),
+    getDeleteRegulationId: jest.fn().mockResolvedValue(undefined),
+    isDataRecorded: jest.fn().mockReturnValue(false),
+    isEnabled: jest.fn().mockReturnValue(false),
+  };
+  return {
+    __esModule: true,
+    default: {
+      getInstance: jest.fn(() => mockInstance),
+    },
+  };
+});
+
+// Mock @metamask/smart-transactions-controller for selectors
+jest.mock('@metamask/smart-transactions-controller', () => ({
+  selectSmartTransactionsFeatureFlagsForChain: jest.fn(() => ({
+    mobileActive: false,
+    mobileActiveIOS: false,
+    mobileActiveAndroid: false,
+  })),
 }));
 
 const { NativeModules } = require('react-native');

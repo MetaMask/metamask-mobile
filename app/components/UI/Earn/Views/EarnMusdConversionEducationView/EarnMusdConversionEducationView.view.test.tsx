@@ -138,7 +138,11 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
 
     // Verify screen renders with heading (image is rendered as part of component tree)
     expect(
-      getByText(strings('earn.musd_conversion.education.heading')),
+      getByText(
+        strings('earn.musd_conversion.education.heading', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      ),
     ).toBeOnTheScreen();
   });
 
