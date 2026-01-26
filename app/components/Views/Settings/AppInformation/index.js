@@ -26,7 +26,7 @@ import {
 import { connect } from 'react-redux';
 import { getFullVersion, OTA_VERSION } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
-import { captureExceptionWithForce } from '../../../../util/sentry/utils';
+import { captureExceptionForced } from '../../../../util/sentry/utils';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -195,7 +195,7 @@ class AppInformation extends PureComponent {
 
   onSendSentryTestError = async () => {
     try {
-      await captureExceptionWithForce(
+      await captureExceptionForced(
         new Error(`OTA update Sentry test error production ${OTA_VERSION}`),
         {
           otaVersion: OTA_VERSION,
