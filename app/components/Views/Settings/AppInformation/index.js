@@ -26,7 +26,7 @@ import {
 import { connect } from 'react-redux';
 import { getFullVersion, OTA_VERSION } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
-import { captureException } from '@sentry/react-native';
+import { captureExceptionWithForce } from '../../../../util/sentry/utils';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -193,10 +193,24 @@ class AppInformation extends PureComponent {
     this.setState({ showEnvironmentInfo: true });
   };
 
-  onSendSentryTestError = () => {
-    captureException(
-      new Error(`OTA update Sentry test error production ${OTA_VERSION}`),
-    );
+  onSendSentryTestError = async () => {
+    try {
+      await captureExceptionWithForce(
+        new Error(`OTA update Sentry test error production ${OTA_VERSION}`),
+        {
+          otaVersion: OTA_VERSION,
+          channel,
+          environment: process.env.METAMASK_ENVIRONMENT,
+          timestamp: new Date().toISOString(),
+        },
+      );
+
+      alert(
+        `✅ Sentry error sent successfully!\n\nOTA: ${OTA_VERSION}\nChannel: ${channel}\nEnv: ${process.env.METAMASK_ENVIRONMENT}`,
+      );
+    } catch (error) {
+      alert(`❌ Failed to send Sentry error!\n\nError: ${error.message}`);
+    }
   };
 
   render = () => {
