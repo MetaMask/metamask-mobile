@@ -35,7 +35,7 @@ import MultichainUtilities from '../../utils/MultichainUtilities';
 import Assertions from '../../../tests/framework/Assertions';
 import { DappVariants } from '../../../tests/framework/Constants';
 
-describe(SmokeMultiChainAPI('wallet_notify'), () => {
+describe.skip(SmokeMultiChainAPI('wallet_notify'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

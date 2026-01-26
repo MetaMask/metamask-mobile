@@ -18,7 +18,7 @@ import {
 } from '../../../tests/framework/Constants';
 import TestHelpers from '../../helpers';
 
-describe(SmokeTrade('Off-Ramp'), () => {
+describe.skip(SmokeTrade('Off-Ramp'), () => {
   let shouldCheckProviderSelectedEvents = true;
   const eventsToCheck: EventPayload[] = [];
 

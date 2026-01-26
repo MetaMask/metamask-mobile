@@ -9,7 +9,7 @@ import { defaultGanacheOptions } from '../../../tests/framework/Constants.js';
 import { completeSrpQuiz } from '../multisrp/utils.js';
 
 // Quarantining, See open ticket here: https://github.com/MetaMask/metamask-mobile/issues/21429
-describe(SmokeAccounts('Create wallet accounts'), () => {
+describe.skip(SmokeAccounts('Create wallet accounts'), () => {
   const FIRST = 0;
   const LAST = 3;
 

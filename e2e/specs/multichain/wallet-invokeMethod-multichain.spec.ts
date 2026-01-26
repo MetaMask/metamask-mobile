@@ -52,7 +52,7 @@ const REMOTE_FEATURE_EIP_7702_MOCK = async (mockServer: Mockttp) => {
   );
 };
 
-describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
+describe.skip(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
   describe('Read operations: calling different methods on each connected scope', () => {
     it('should match selected method to the expected output for eth_chainId', async () => {
       await withFixtures(

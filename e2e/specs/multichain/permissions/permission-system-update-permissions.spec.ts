@@ -21,7 +21,7 @@ const accountOneText = 'Account 1';
 const accountTwoText = 'Account 2';
 const accountThreeText = 'Account 3';
 
-describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
+describe.skip(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });

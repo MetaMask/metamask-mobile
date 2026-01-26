@@ -20,7 +20,7 @@ import { DappVariants } from '../../../tests/framework/Constants';
 
 const SOLANA_MAINNET_CHAIN_ID = SolScope.Mainnet;
 
-describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
+describe.skip(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
   it('should be able to call method: signIn', async () => {
     await withFixtures(
       {

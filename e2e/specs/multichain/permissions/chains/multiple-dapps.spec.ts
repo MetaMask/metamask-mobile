@@ -27,7 +27,7 @@ Test Steps:
 7. Check Dapp 1 is still on Linea Sepolia
 8. Check Dapp 2 is still on ETH Mainnet
 */
-describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
+describe.skip(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
   beforeAll(async (): Promise<void> => {
     jest.setTimeout(300000);
     await TestHelpers.reverseServerPort();

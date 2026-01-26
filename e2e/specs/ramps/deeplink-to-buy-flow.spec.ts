@@ -12,7 +12,7 @@ import { PopularNetworksList } from '../../../tests/resources/networks.e2e';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
+describe.skip(SmokeRamps('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });

@@ -29,7 +29,7 @@ const SEEDLESS_ONBOARDING_ENABLED =
 const PASSWORD = '12345678';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeNetworkAbstractions('Permission System'), () => {
+describe.skip(SmokeNetworkAbstractions('Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

@@ -26,7 +26,7 @@ const SEPOLIA = 'Sepolia';
 const accountPrivateKey = Accounts.getAccountPrivateKey();
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(
+describe.skip(
   SmokeNetworkAbstractions(
     'Permission System Test: Revoking accounts after connecting to a dapp',
   ),

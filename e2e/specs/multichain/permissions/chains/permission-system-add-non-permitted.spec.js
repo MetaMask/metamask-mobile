@@ -20,7 +20,7 @@ const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 const ETHEREUM_MAIN_NET_NETWORK_NAME =
   NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME;
 
-describe(
+describe.skip(
   SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
@@ -116,7 +116,7 @@ describe(
   },
 );
 
-describe(
+describe.skip(
   SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {

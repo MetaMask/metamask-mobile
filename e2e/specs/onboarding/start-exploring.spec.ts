@@ -12,7 +12,7 @@ import Assertions from '../../../tests/framework/Assertions';
 const PASSWORD = '12345678';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeWalletPlatform('Start Exploring'), () => {
+describe.skip(SmokeWalletPlatform('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();

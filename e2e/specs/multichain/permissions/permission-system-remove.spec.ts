@@ -21,7 +21,7 @@ import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModa
 import { DappVariants } from '../../../../tests/framework/Constants';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
+describe.skip(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

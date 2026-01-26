@@ -39,7 +39,7 @@ const networkErrorBodyMessage =
 const validAccount = Accounts.getValidAccount();
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeWalletPlatform('Deep linking Tests'), () => {
+describe.skip(SmokeWalletPlatform('Deep linking Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

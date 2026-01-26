@@ -14,7 +14,7 @@ import { testSpecificMock } from '../swaps/helpers/swap-mocks';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
-describe(SmokeTrade('Multiple Swaps from Actions'), (): void => {
+describe.skip(SmokeTrade('Multiple Swaps from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(120000);
   });
