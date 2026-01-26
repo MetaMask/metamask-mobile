@@ -281,11 +281,12 @@ describe('StickyBottomBar', () => {
 
       // Assert
       expect(mockUseSafeAreaInsets).toHaveBeenCalled();
-      expect(container.props.style).toEqual(
-        expect.arrayContaining([
-          expect.anything(),
-          expect.objectContaining({ paddingBottom: 50 }), // 34 + 16
-        ]),
+      // Box wraps styles: [{display: "flex"}, containerStyle]
+      const style = container.props.style;
+      expect(style).toBeDefined();
+      expect(Array.isArray(style)).toBe(true);
+      expect(style[1]).toEqual(
+        expect.objectContaining({ paddingBottom: 50 }), // 34 + 16
       );
     });
 
@@ -310,11 +311,12 @@ describe('StickyBottomBar', () => {
       const container = getByTestId('sticky-bottom-bar');
 
       // Assert
-      expect(container.props.style).toEqual(
-        expect.arrayContaining([
-          expect.anything(),
-          expect.objectContaining({ paddingBottom: 16 }), // 0 + 16
-        ]),
+      // Box wraps styles: [{display: "flex"}, containerStyle]
+      const style = container.props.style;
+      expect(style).toBeDefined();
+      expect(Array.isArray(style)).toBe(true);
+      expect(style[1]).toEqual(
+        expect.objectContaining({ paddingBottom: 16 }), // 0 + 16
       );
     });
   });
@@ -417,12 +419,14 @@ describe('StickyBottomBar', () => {
       const container = getByTestId('sticky-bottom-bar');
 
       // Assert
-      expect(container.props.style).toEqual(
-        expect.arrayContaining([
-          expect.anything(),
-          expect.anything(),
-          customStyle,
-        ]),
+      // Box wraps styles: [{display: "flex"}, [containerStyle, customStyle]]
+      const style = container.props.style;
+      expect(style).toBeDefined();
+      expect(Array.isArray(style)).toBe(true);
+      const stylesArray = style[1];
+      expect(Array.isArray(stylesArray)).toBe(true);
+      expect(stylesArray).toEqual(
+        expect.arrayContaining([expect.objectContaining(customStyle)]),
       );
     });
 

@@ -1,2 +1,2 @@
 export { default } from './StickyBottomBar';
-export * from './StickyBottomBar.types';
+export type { StickyBottomBarProps } from './StickyBottomBar';
