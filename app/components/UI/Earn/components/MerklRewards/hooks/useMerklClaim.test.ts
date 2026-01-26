@@ -38,9 +38,10 @@ jest.mock('../../../../../../core/Engine', () => ({
         predicate: (...args: unknown[]) => boolean,
       ) => {
         capturedCallbacks[eventName] = { callback, predicate };
-        return jest.fn(); // Return cleanup function
+        return callback; // Return the handler (not an unsubscribe function)
       },
     ),
+    tryUnsubscribe: jest.fn(),
   },
 }));
 

@@ -16,6 +16,19 @@ import { fetchMerklRewardsForAsset } from '../merkl-client';
 import { DISTRIBUTOR_CLAIM_ABI, MERKL_DISTRIBUTOR_ADDRESS } from '../constants';
 import Engine from '../../../../../../core/Engine';
 
+// Event types for transaction controller events we subscribe to
+type TransactionEventType =
+  | 'TransactionController:transactionConfirmed'
+  | 'TransactionController:transactionFailed'
+  | 'TransactionController:transactionDropped';
+
+// Structure to store event type and handler for proper cleanup
+interface SubscriptionRef {
+  eventType: TransactionEventType;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handler: (...args: any[]) => void;
+}
+
 interface UseMerklClaimOptions {
   asset: TokenI;
   onTransactionConfirmed?: () => void;
@@ -29,7 +42,7 @@ export const useMerklClaim = ({
   const [error, setError] = useState<string | null>(null);
   const onTransactionConfirmedRef = useRef(onTransactionConfirmed);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const unsubscribeRefs = useRef<(() => void)[]>([]);
+  const subscriptionRefs = useRef<SubscriptionRef[]>([]);
 
   // Keep the callback ref updated
   onTransactionConfirmedRef.current = onTransactionConfirmed;
@@ -38,8 +51,10 @@ export const useMerklClaim = ({
   useEffect(
     () => () => {
       abortControllerRef.current?.abort();
-      unsubscribeRefs.current.forEach((unsub) => unsub?.());
-      unsubscribeRefs.current = [];
+      subscriptionRefs.current.forEach(({ eventType, handler }) => {
+        Engine.controllerMessenger.tryUnsubscribe(eventType, handler);
+      });
+      subscriptionRefs.current = [];
     },
     [],
   );
@@ -161,12 +176,20 @@ export const useMerklClaim = ({
         (payload) => payload?.transactionMeta?.id === transactionId,
       );
 
-      // Store unsubscribe functions for cleanup if component unmounts before tx completes
-      // Cast to () => void since unsubscribe functions don't need arguments when called
-      unsubscribeRefs.current = [
-        unsubConfirmed as () => void,
-        unsubFailed as () => void,
-        unsubDropped as () => void,
+      // Store event types and handlers for proper cleanup via tryUnsubscribe
+      subscriptionRefs.current = [
+        {
+          eventType: 'TransactionController:transactionConfirmed',
+          handler: unsubConfirmed,
+        },
+        {
+          eventType: 'TransactionController:transactionFailed',
+          handler: unsubFailed,
+        },
+        {
+          eventType: 'TransactionController:transactionDropped',
+          handler: unsubDropped,
+        },
       ];
 
       // Wait for transaction hash (indicates tx is submitted to network)
