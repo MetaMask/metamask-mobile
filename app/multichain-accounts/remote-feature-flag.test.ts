@@ -1,6 +1,7 @@
 import {
   assertMultichainAccountsFeatureFlagType,
   isMultichainAccountsRemoteFeatureEnabled,
+  isMultichainAccountsState2Enabled,
   STATE_1_FLAG,
   STATE_2_FLAG,
   MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
@@ -9,6 +10,19 @@ import {
 
 jest.mock('../../package.json', () => ({
   version: '15.0.0',
+}));
+
+const mockRemoteFeatureFlags = jest.fn();
+jest.mock('../core/Engine', () => ({
+  context: {
+    RemoteFeatureFlagController: {
+      state: {
+        get remoteFeatureFlags() {
+          return mockRemoteFeatureFlags();
+        },
+      },
+    },
+  },
 }));
 
 const disabledStateMock = {
@@ -46,6 +60,7 @@ const mockState2FeatureVersionsToCheck = [
 describe('Multichain Accounts Feature Flag', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRemoteFeatureFlags.mockReturnValue({});
   });
 
   describe('assertMultichainAccountsFeatureFlagType', () => {
@@ -55,6 +70,17 @@ describe('Multichain Accounts Feature Flag', () => {
         featureVersion: '1',
         minimumVersion: '1.0.0',
       };
+
+      expect(assertMultichainAccountsFeatureFlagType(validFlag)).toBe(true);
+    });
+
+    it('returns true for valid feature flag with null featureVersion', () => {
+      const validFlag = {
+        enabled: false,
+        featureVersion: null,
+        minimumVersion: null,
+      };
+
       expect(assertMultichainAccountsFeatureFlagType(validFlag)).toBe(true);
     });
 
@@ -64,22 +90,37 @@ describe('Multichain Accounts Feature Flag', () => {
         featureVersion: 1,
         minimumVersion: null,
       };
+
       expect(assertMultichainAccountsFeatureFlagType(invalidFlag)).toBe(false);
     });
 
     it('returns false for undefined feature flag', () => {
       expect(assertMultichainAccountsFeatureFlagType(undefined)).toBe(false);
     });
+
+    it('returns false for null feature flag', () => {
+      expect(assertMultichainAccountsFeatureFlagType(null)).toBe(false);
+    });
+
+    it('returns false when enabled is missing', () => {
+      const invalidFlag = {
+        featureVersion: '1',
+        minimumVersion: '1.0.0',
+      };
+
+      expect(assertMultichainAccountsFeatureFlagType(invalidFlag)).toBe(false);
+    });
   });
 
   describe('isMultichainAccountsRemoteFeatureEnabled', () => {
-    it('returns true as default value', () => {
+    it('returns true as default value when flags are empty', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled({}, [
         {
           version: '1',
           featureKey: STATE_1_FLAG,
         },
       ]);
+
       expect(result).toBe(true);
     });
 
@@ -90,6 +131,7 @@ describe('Multichain Accounts Feature Flag', () => {
         },
         mockState1FeatureVersionsToCheck,
       );
+
       expect(result).toBe(true);
     });
 
@@ -100,6 +142,7 @@ describe('Multichain Accounts Feature Flag', () => {
         },
         mockState1FeatureVersionsToCheck,
       );
+
       expect(result).toBe(false);
     });
 
@@ -113,12 +156,41 @@ describe('Multichain Accounts Feature Flag', () => {
         },
         mockState1FeatureVersionsToCheck,
       );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when minimumVersion is null', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          [STATE_1_FLAG]: {
+            ...state1Mock,
+            minimumVersion: null,
+          },
+        },
+        mockState1FeatureVersionsToCheck,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when app version is below minimumVersion', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          [STATE_1_FLAG]: {
+            ...state1Mock,
+            minimumVersion: '16.0.0', // Higher than mocked 15.0.0
+          },
+        },
+        mockState1FeatureVersionsToCheck,
+      );
+
       expect(result).toBe(false);
     });
   });
 
   describe('isMultichainAccountsRemoteFeatureEnabled - State 2', () => {
-    it('returns false when the feature flag is not defined', () => {
+    it('returns true when the feature flag is undefined', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           // @ts-expect-error Testing undefined flag
@@ -126,6 +198,7 @@ describe('Multichain Accounts Feature Flag', () => {
         },
         mockState2FeatureVersionsToCheck,
       );
+
       expect(result).toBe(true);
     });
 
@@ -136,6 +209,7 @@ describe('Multichain Accounts Feature Flag', () => {
         },
         mockState2FeatureVersionsToCheck,
       );
+
       expect(result).toBe(true);
     });
 
@@ -146,6 +220,7 @@ describe('Multichain Accounts Feature Flag', () => {
         },
         mockState2FeatureVersionsToCheck,
       );
+
       expect(result).toBe(false);
     });
 
@@ -159,6 +234,7 @@ describe('Multichain Accounts Feature Flag', () => {
         },
         mockState2FeatureVersionsToCheck,
       );
+
       expect(result).toBe(false);
     });
   });
@@ -172,6 +248,7 @@ describe('Multichain Accounts Feature Flag', () => {
         mockState2FeatureVersionsToCheck,
         'true',
       );
+
       expect(result).toBe(true);
     });
 
@@ -183,10 +260,11 @@ describe('Multichain Accounts Feature Flag', () => {
         mockState2FeatureVersionsToCheck,
         'false',
       );
+
       expect(result).toBe(false);
     });
 
-    it('returns false when the override is undefined', () => {
+    it('returns false when the override is undefined and flag is disabled', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_2_FLAG]: disabledStateMock,
@@ -194,7 +272,51 @@ describe('Multichain Accounts Feature Flag', () => {
         mockState2FeatureVersionsToCheck,
         undefined,
       );
+
       expect(result).toBe(false);
+    });
+
+    it('ignores override for state 1 feature versions', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          [STATE_1_FLAG]: disabledStateMock,
+        },
+        mockState1FeatureVersionsToCheck,
+        'true',
+      );
+
+      // Override only applies to state 2, so it uses the flag value
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isMultichainAccountsState2Enabled', () => {
+    it('returns true when state 2 feature flag is enabled', () => {
+      mockRemoteFeatureFlags.mockReturnValue({
+        [STATE_2_FLAG]: state2Mock,
+      });
+
+      const result = isMultichainAccountsState2Enabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when state 2 feature flag is disabled', () => {
+      mockRemoteFeatureFlags.mockReturnValue({
+        [STATE_2_FLAG]: disabledStateMock,
+      });
+
+      const result = isMultichainAccountsState2Enabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when remote feature flags are empty', () => {
+      mockRemoteFeatureFlags.mockReturnValue({});
+
+      const result = isMultichainAccountsState2Enabled();
+
+      expect(result).toBe(true);
     });
   });
 });

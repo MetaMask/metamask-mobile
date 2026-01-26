@@ -107,22 +107,6 @@ function getRemoteFeatureFlags(): FeatureFlags {
 }
 
 /**
- * Checks if multichain accounts state 1 is enabled.
- * Returns true if the feature is enabled for state 1 or state 2.
- */
-export const isMultichainAccountsState1Enabled = () =>
-  isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
-      featureKey: STATE_1_FLAG,
-    },
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-      featureKey: STATE_2_FLAG,
-    },
-  ]);
-
-/**
  * Checks if multichain accounts state 2 is enabled.
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */

@@ -1,7 +1,4 @@
-import {
-  selectMultichainAccountsState1Enabled,
-  selectMultichainAccountsState2Enabled,
-} from './enabledMultichainAccounts';
+import { selectMultichainAccountsState2Enabled } from './enabledMultichainAccounts';
 
 jest.mock('../../../../package.json', () => ({
   version: '15.0.0',
@@ -13,12 +10,6 @@ const disabledStateMock = {
   minimumVersion: null,
 };
 
-const state1Mock = {
-  enabled: true,
-  featureVersion: '1',
-  minimumVersion: '13.0.0',
-};
-
 const state2Mock = {
   enabled: true,
   featureVersion: '2',
@@ -26,36 +17,13 @@ const state2Mock = {
 };
 
 describe('Multichain Accounts Feature Flag', () => {
-  describe('selectMultichainAccountsState1Enabled', () => {
-    it('returns true when the flag is undefined', () => {
-      const result = selectMultichainAccountsState1Enabled.resultFunc({
-        // @ts-expect-error testing undefined case
-        enableMultichainAccounts: undefined,
-      });
-      expect(result).toBe(true);
-    });
-
-    it('returns false when the feature is not enabled', () => {
-      const result = selectMultichainAccountsState1Enabled.resultFunc({
-        enableMultichainAccounts: disabledStateMock,
-      });
-      expect(result).toBe(false);
-    });
-
-    it('returns true when the feature is enabled for state 1', () => {
-      const result = selectMultichainAccountsState1Enabled.resultFunc({
-        enableMultichainAccounts: state1Mock,
-      });
-      expect(result).toBe(true);
-    });
-  });
-
   describe('selectMultichainAccountsState2Enabled', () => {
     it('returns true when the flag is undefined', () => {
       const result = selectMultichainAccountsState2Enabled.resultFunc({
         // @ts-expect-error testing undefined case
         enableMultichainAccountsState2: undefined,
       });
+
       expect(result).toBe(true);
     });
 
@@ -63,6 +31,7 @@ describe('Multichain Accounts Feature Flag', () => {
       const result = selectMultichainAccountsState2Enabled.resultFunc({
         enableMultichainAccountsState2: disabledStateMock,
       });
+
       expect(result).toBe(false);
     });
 
@@ -70,6 +39,7 @@ describe('Multichain Accounts Feature Flag', () => {
       const result = selectMultichainAccountsState2Enabled.resultFunc({
         enableMultichainAccountsState2: state2Mock,
       });
+
       expect(result).toBe(true);
     });
   });
