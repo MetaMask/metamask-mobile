@@ -16,15 +16,15 @@ export type {
   LLMRequest,
   LLMResponse,
   ProviderConfig,
-} from './types';
+} from './types.ts';
 
 // Interface
-export type { ILLMProvider } from './llm-provider';
+export type { ILLMProvider } from './llm-provider.ts';
 
 // Implementations
-export { AnthropicProvider } from './anthropic-provider';
-export { OpenAIProvider } from './openai-provider';
-export { GoogleProvider } from './google-provider';
+export { AnthropicProvider } from './anthropic-provider.ts';
+export { OpenAIProvider } from './openai-provider.ts';
+export { GoogleProvider } from './google-provider.ts';
 
 // Factory
 export {
@@ -33,4 +33,4 @@ export {
   getAvailableProviders,
   getFirstAvailableProvider,
   createProviderWithFallback,
-} from './provider-factory';
+} from './provider-factory.ts';

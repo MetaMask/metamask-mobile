@@ -8,10 +8,10 @@ It is designed to be used in different **modes**, being each mode responsible fo
 
 ```bash
 # Run with default provider (uses priority order from config)
-node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345
+node -r esbuild-register tests/tools/e2e-ai-analyzer --pr 12345
 
 # Run with a specific provider
-node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345 --provider <provider-name>
+node -r esbuild-register tests/tools/e2e-ai-analyzer --pr 12345 --provider <provider-name>
 ```
 
 ### Modes

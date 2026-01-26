@@ -5,7 +5,7 @@
  */
 
 import OpenAI from 'openai';
-import { ILLMProvider } from './llm-provider';
+import { ILLMProvider } from './llm-provider.ts';
 import {
   ProviderType,
   LLMRequest,
@@ -16,8 +16,8 @@ import {
   LLMToolResultBlock,
   LLMMessage,
   LLMTool,
-} from './types';
-import { LLM_CONFIG } from '../config';
+} from './types.ts';
+import { LLM_CONFIG } from '../config.ts';
 
 /**
  * Convert provider-agnostic tools to OpenAI format

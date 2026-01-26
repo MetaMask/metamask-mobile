@@ -2,15 +2,15 @@
  * Mode-specific prompt for E2E tag selection
  */
 
-import { SELECT_TAGS_CONFIG } from './handlers';
+import { SELECT_TAGS_CONFIG } from './handlers.ts';
 import {
   buildCriticalPatternsSection,
   buildToolsSection,
   buildReasoningSection,
   buildConfidenceGuidanceSection,
   buildRiskAssessmentSection,
-} from '../shared/base-system-prompt';
-import { LLM_CONFIG } from '../../config';
+} from '../shared/base-system-prompt.ts';
+import { LLM_CONFIG } from '../../config.ts';
 
 /**
  * Builds the system prompt, i.e. the initial system message

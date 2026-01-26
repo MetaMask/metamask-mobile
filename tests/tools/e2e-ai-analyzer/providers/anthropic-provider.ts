@@ -5,7 +5,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { ILLMProvider } from './llm-provider';
+import { ILLMProvider } from './llm-provider.ts';
 import {
   ProviderType,
   LLMRequest,
@@ -13,8 +13,8 @@ import {
   LLMContentBlock,
   LLMMessage,
   LLMTool,
-} from './types';
-import { LLM_CONFIG } from '../config';
+} from './types.ts';
+import { LLM_CONFIG } from '../config.ts';
 
 /**
  * Convert provider-agnostic messages to Anthropic format

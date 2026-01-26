@@ -6,7 +6,7 @@
  */
 
 import { LLMTool } from '../providers';
-import { TOOL_LIMITS } from '../config';
+import { TOOL_LIMITS } from '../config.ts';
 
 /**
  * Gets all tool definitions for the AI agent
