@@ -61,6 +61,11 @@ import {
   useMinimumOrderAmount,
 } from '../../hooks';
 import {
+  usePerpsLivePositions,
+  usePerpsLivePrices,
+  usePerpsTopOfBook,
+} from '../../hooks/stream';
+import {
   PerpsStreamManager,
   PerpsStreamProvider,
 } from '../../providers/PerpsStreamManager';
@@ -135,6 +140,32 @@ jest.mock('../../contexts/PerpsOrderContext', () => {
     usePerpsOrderContext: jest.fn(),
   };
 });
+
+// Mock stream hooks - these will be overridden in beforeEach
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      availableBalance: '1000',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+      totalBalance: '1000',
+    },
+    isInitialLoading: false,
+  })),
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
+  usePerpsLivePrices: jest.fn(() => ({
+    ETH: { price: '3000', percentChange24h: '2.5', markPrice: '3000' },
+    BTC: { price: '3000', percentChange24h: '2.5', markPrice: '3000' },
+  })),
+  usePerpsTopOfBook: jest.fn(() => ({
+    bid: '2999',
+    ask: '3001',
+  })),
+}));
 
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
@@ -321,7 +352,17 @@ jest.mock('../../../../Views/confirmations/hooks/tokens/useAddToken', () => ({
 jest.mock(
   '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
   () => ({
-    useTransactionMetadataRequest: jest.fn(() => undefined),
+    useTransactionMetadataRequest: jest.fn(() => ({
+      id: 'test-transaction-id',
+      type: 'perpsDeposit',
+      status: 'unapproved',
+      chainId: '0xa4b1',
+      txParams: {
+        from: '0x1234567890123456789012345678901234567890',
+        to: '0x0987654321098765432109876543210987654321',
+        value: '0x0',
+      },
+    })),
   }),
 );
 
@@ -367,9 +408,14 @@ jest.mock(
   '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount',
   () => ({
     useTransactionCustomAmount: jest.fn(() => ({
-      customAmount: undefined,
-      setCustomAmount: jest.fn(),
-      clearCustomAmount: jest.fn(),
+      amountFiat: '0',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      hasInput: false,
+      isInputChanged: false,
+      updatePendingAmount: jest.fn(),
+      updatePendingAmountPercentage: jest.fn(),
+      updateTokenAmount: jest.fn(),
     })),
   }),
 );
@@ -782,6 +828,12 @@ const initialMetrics: Metrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
+// Mock requestAnimationFrame to execute immediately in tests
+global.requestAnimationFrame = jest.fn((cb) => {
+  setTimeout(cb, 0);
+  return 1;
+});
+
 describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -806,6 +858,20 @@ describe('PerpsOrderView', () => {
     (usePerpsPrices as jest.Mock).mockReturnValue(
       defaultMockHooks.usePerpsPrices,
     );
+
+    // Mock stream hooks
+    (usePerpsLivePositions as jest.Mock).mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    });
+    (usePerpsLivePrices as jest.Mock).mockReturnValue({
+      ETH: { price: '3000', percentChange24h: '2.5', markPrice: '3000' },
+      BTC: { price: '3000', percentChange24h: '2.5', markPrice: '3000' },
+    });
+    (usePerpsTopOfBook as jest.Mock).mockReturnValue({
+      bid: '2999',
+      ask: '3001',
+    });
 
     // Mock the new hooks
     (usePerpsMarketData as jest.Mock).mockReturnValue({
@@ -1244,10 +1310,10 @@ describe('PerpsOrderView', () => {
     });
 
     // Since the default order type is 'market' and no limit price is set,
-    // the hook should be called with the current market price (0 from mock data)
+    // the hook should be called with the current market price (3000 from mock data)
     expect(usePerpsLiquidationPrice).toHaveBeenCalledWith(
       expect.objectContaining({
-        entryPrice: 0, // Current mock price from assetData
+        entryPrice: 3000, // Current mock price from assetData
       }),
     );
   });
