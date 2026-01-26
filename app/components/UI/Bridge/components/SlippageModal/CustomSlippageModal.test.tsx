@@ -322,7 +322,7 @@ describe('CustomSlippageModal', () => {
       expect(valueElement.props.children).toBe('100');
     });
 
-    it('resets hasAttemptedToExceedMax flag on increase', () => {
+    it('updates hooks after increase', () => {
       mockSelector.mockReturnValue('50');
 
       const { getByTestId } = render(<CustomSlippageModal />);
@@ -330,12 +330,17 @@ describe('CustomSlippageModal', () => {
       const increaseButton = getByTestId('input-stepper-increase');
       fireEvent.press(increaseButton);
 
-      // Verify hook was called with hasAttemptedToExceedMax: false
-      expect(mockUseShouldDisableCustomSlippageConfirm).toHaveBeenCalledWith(
-        expect.objectContaining({
-          hasAttemptedToExceedMax: false,
-        }),
-      );
+      // Verify hooks were called with updated inputAmount
+      expect(mockUseShouldDisableCustomSlippageConfirm).toHaveBeenCalledWith({
+        inputAmount: '50.1',
+        slippageConfig: mockSlippageConfig,
+      });
+
+      expect(mockUseSlippageStepperDescription).toHaveBeenCalledWith({
+        inputAmount: '50.1',
+        slippageConfig: mockSlippageConfig,
+        hasAttemptedToExceedMax: false,
+      });
     });
   });
 
@@ -378,7 +383,7 @@ describe('CustomSlippageModal', () => {
       expect(valueElement.props.children).toBe('0');
     });
 
-    it('resets hasAttemptedToExceedMax flag on decrease', () => {
+    it('updates hooks after decrease', () => {
       mockSelector.mockReturnValue('50');
 
       const { getByTestId } = render(<CustomSlippageModal />);
@@ -386,12 +391,17 @@ describe('CustomSlippageModal', () => {
       const decreaseButton = getByTestId('input-stepper-decrease');
       fireEvent.press(decreaseButton);
 
-      // Verify hook was called with hasAttemptedToExceedMax: false
-      expect(mockUseShouldDisableCustomSlippageConfirm).toHaveBeenCalledWith(
-        expect.objectContaining({
-          hasAttemptedToExceedMax: false,
-        }),
-      );
+      // Verify hooks were called with updated inputAmount
+      expect(mockUseShouldDisableCustomSlippageConfirm).toHaveBeenCalledWith({
+        inputAmount: '49.9',
+        slippageConfig: mockSlippageConfig,
+      });
+
+      expect(mockUseSlippageStepperDescription).toHaveBeenCalledWith({
+        inputAmount: '49.9',
+        slippageConfig: mockSlippageConfig,
+        hasAttemptedToExceedMax: false,
+      });
     });
   });
 
@@ -498,17 +508,23 @@ describe('CustomSlippageModal', () => {
       expect(valueElement.props.children).toBe('100');
     });
 
-    it('resets hasAttemptedToExceedMax on valid input', () => {
+    it('calls hooks with initial input', () => {
       mockSelector.mockReturnValue('50');
 
       render(<CustomSlippageModal />);
 
-      // Verify hook was called with hasAttemptedToExceedMax: false initially
-      expect(mockUseShouldDisableCustomSlippageConfirm).toHaveBeenCalledWith(
-        expect.objectContaining({
-          hasAttemptedToExceedMax: false,
-        }),
-      );
+      // Verify useShouldDisableCustomSlippageConfirm was called
+      expect(mockUseShouldDisableCustomSlippageConfirm).toHaveBeenCalledWith({
+        inputAmount: '50',
+        slippageConfig: mockSlippageConfig,
+      });
+
+      // Verify useSlippageStepperDescription was called with hasAttemptedToExceedMax
+      expect(mockUseSlippageStepperDescription).toHaveBeenCalledWith({
+        inputAmount: '50',
+        slippageConfig: mockSlippageConfig,
+        hasAttemptedToExceedMax: false,
+      });
     });
   });
 
@@ -655,7 +671,6 @@ describe('CustomSlippageModal', () => {
       expect(mockUseShouldDisableCustomSlippageConfirm).toHaveBeenCalledWith({
         inputAmount: '5',
         slippageConfig: mockSlippageConfig,
-        hasAttemptedToExceedMax: false,
       });
     });
 
