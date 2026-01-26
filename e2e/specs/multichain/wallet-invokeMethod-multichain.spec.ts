@@ -18,23 +18,23 @@
  * 2. Result elements are created in the DOM
  * 3. Results appear in the expected format (truncated vs non-truncated)
  */
-import { SmokeMultiChainAPI } from '../../../tags';
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import MultichainTestDApp from '../../../pages/Browser/MultichainTestDApp';
-import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import MultichainUtilities from '../../../utils/MultichainUtilities';
-import Assertions from '../../../../tests/framework/Assertions';
-import { MULTICHAIN_TEST_TIMEOUTS } from '../../../selectors/Browser/MultichainTestDapp.selectors';
+import { SmokeMultiChainAPI } from '../../tags';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
+import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import MultichainUtilities from '../../utils/MultichainUtilities';
+import Assertions from '../../../tests/framework/Assertions';
+import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import { waitFor } from 'detox';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
+import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { isHexString } from '@metamask/utils';
-import { DappVariants } from '../../../../tests/framework/Constants';
-import { LocalNodeType } from '../../../../tests/framework';
-import { AnvilNodeOptions } from '../../../../tests/framework/types';
+import { DappVariants } from '../../../tests/framework/Constants';
+import { LocalNodeType } from '../../../tests/framework';
+import { AnvilNodeOptions } from '../../../tests/framework/types';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureEip7702 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureEip7702 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const ANVIL_NODE_OPTIONS_WITH_GATOR = [
   {
