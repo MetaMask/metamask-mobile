@@ -25,12 +25,14 @@ interface PredictSportCardFooterProps {
   market: PredictMarketType;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  isCarousel?: boolean;
 }
 
 const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   market,
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  isCarousel,
 }) => {
   const tw = useTailwind();
   const navigation =
@@ -147,7 +149,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
 
   return (
     <>
-      {hasPositions && (
+      {!isCarousel && hasPositions && (
         <PredictPicksForCard
           marketId={market.id}
           positions={positions}
@@ -164,6 +166,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           onClaimPress={handleClaimPress}
           claimableAmount={claimableAmount}
           testID={testID ? `${testID}-action-buttons` : undefined}
+          isCarousel={isCarousel}
         />
       )}
 
@@ -173,6 +176,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           outcome={outcome}
           onBetPress={handleBetPress}
           testID={testID ? `${testID}-action-buttons` : undefined}
+          isCarousel={isCarousel}
         />
       )}
     </>
