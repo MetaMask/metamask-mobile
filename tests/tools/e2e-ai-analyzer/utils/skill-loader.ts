@@ -7,19 +7,13 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import { Skill, SkillMetadata } from '../types';
 
-interface SkillQuality {
-  warnings: string[];
-  score: number; // 0-100
-}
-
 /**
- *
- * Load from skills/ directory
+ * Load a single skill by name from skills/ directory
  *
  * @param name - Skill name (without .md extension)
  * @returns Loaded skill or null if not found
  */
-async function loadSingleSkill(name: string): Promise<Skill | null> {
+export async function loadSkillByName(name: string): Promise<Skill | null> {
   const skillPath = join(__dirname, '..', 'skills', `${name}.md`);
 
   try {
@@ -34,13 +28,6 @@ async function loadSingleSkill(name: string): Promise<Skill | null> {
     }
 
     const skill = { name, metadata, content };
-
-    // Validate structure (non-blocking - warns but doesn't fail)
-    const quality = assessSkillQuality(skill);
-    if (quality.warnings.length > 0) {
-      console.warn(`   Skill '${name}' quality: ${quality.score}/100`);
-      quality.warnings.forEach((w) => console.warn(`     ${w}`));
-    }
 
     return skill;
   } catch (error) {
@@ -160,50 +147,6 @@ function parseFrontmatter(yaml: string): SkillMetadata {
 }
 
 /**
- * Assess skill quality (non-blocking validation)
- *
- * Checks for recommended sections and provides feedback
- *
- * @param skill - Skill to assess
- * @returns Quality warnings and score
- */
-function assessSkillQuality(skill: Skill): SkillQuality {
-  const warnings: string[] = [];
-  let score = 100;
-
-  // Check for recommended sections
-  const sections = {
-    'When to Activate': /##\s+When to (Activate|Use)/i,
-    'Domain Knowledge': /##\s+(Domain Knowledge|Knowledge|Context)/i,
-    Examples: /##\s+Examples?/i,
-    'Risk Factors': /##\s+Risk/i,
-    Guidelines: /##\s+(Guidelines|Testing|Instructions)/i,
-  };
-
-  for (const [section, pattern] of Object.entries(sections)) {
-    if (!pattern.test(skill.content)) {
-      warnings.push(`Missing '## ${section}' section (recommended)`);
-      score -= 15;
-    }
-  }
-
-  // Check content length
-  if (skill.content.length < 200) {
-    warnings.push(`Very short content (${skill.content.length} chars)`);
-    score -= 20;
-  }
-
-  // Check for examples
-  const exampleCount = (skill.content.match(/```/g) || []).length / 2;
-  if (exampleCount === 0) {
-    warnings.push('No code/example blocks found (recommended)');
-    score -= 10;
-  }
-
-  return { warnings, score: Math.max(0, score) };
-}
-
-/**
  * List all available skills in the skills directory
  *
  * @returns Array of skill names (without .md extension)
@@ -235,7 +178,7 @@ export async function getSkillsMetadata(): Promise<SkillMetadata[]> {
 
   for (const name of skillNames) {
     try {
-      const skill = await loadSingleSkill(name);
+      const skill = await loadSkillByName(name);
       if (skill) {
         metadata.push(skill.metadata);
       }
@@ -246,14 +189,4 @@ export async function getSkillsMetadata(): Promise<SkillMetadata[]> {
   }
 
   return metadata;
-}
-
-/**
- * Load a single skill by name (exported for load_skill tool)
- *
- * @param name - Skill name
- * @returns Loaded skill or null if not found
- */
-export async function loadSkillByName(name: string): Promise<Skill | null> {
-  return loadSingleSkill(name);
 }
