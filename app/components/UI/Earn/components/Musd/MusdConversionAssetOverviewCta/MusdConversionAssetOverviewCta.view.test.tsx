@@ -37,6 +37,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
   };
 
   it('renders CTA with asset', () => {
+    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -55,18 +56,21 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { getByTestId } = renderComponentViewScreen(
       () => <MusdConversionAssetOverviewCtaScreen asset={mockAsset} />,
       { name: 'TestScreen' },
       { state },
     );
 
+    // Assert
     expect(
       getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
     ).toBeOnTheScreen();
   });
 
   it('displays CTA text correctly', () => {
+    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -85,12 +89,14 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { getByText } = renderComponentViewScreen(
       () => <MusdConversionAssetOverviewCtaScreen asset={mockAsset} />,
       { name: 'TestScreen' },
       { state },
     );
 
+    // Assert
     expect(getByText('Boost your stablecoin balance')).toBeOnTheScreen();
     expect(
       getByText(/Earn a bonus every time you convert stablecoins to/),
@@ -99,6 +105,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
   });
 
   it('renders close button when onDismiss is provided', () => {
+    // Arrange
     const mockOnDismiss = jest.fn();
 
     const state = initialStateWallet()
@@ -119,6 +126,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { getByTestId } = renderComponentViewScreen(
       () => (
         <MusdConversionAssetOverviewCtaScreen
@@ -130,6 +138,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       { state },
     );
 
+    // Assert
     expect(
       getByTestId(
         EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON,
@@ -138,6 +147,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
   });
 
   it('does not render close button when onDismiss is not provided', () => {
+    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -156,12 +166,14 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { queryByTestId } = renderComponentViewScreen(
       () => <MusdConversionAssetOverviewCtaScreen asset={mockAsset} />,
       { name: 'TestScreen' },
       { state },
     );
 
+    // Assert
     expect(
       queryByTestId(
         EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON,
@@ -170,6 +182,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
   });
 
   it('calls onDismiss when close button is pressed', () => {
+    // Arrange
     const mockOnDismiss = jest.fn();
 
     const state = initialStateWallet()
@@ -201,16 +214,19 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       { state },
     );
 
+    // Act
     fireEvent.press(
       getByTestId(
         EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON,
       ),
     );
 
+    // Assert
     expect(mockOnDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('renders CTA component regardless of allowlist status', () => {
+    // Arrange
     const mockAssetNotInAllowlist = {
       ...mockAsset,
       symbol: 'USDT', // Not in allowlist
@@ -234,6 +250,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { queryByTestId } = renderComponentViewScreen(
       () => (
         <MusdConversionAssetOverviewCtaScreen asset={mockAssetNotInAllowlist} />
@@ -242,6 +259,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       { state },
     );
 
+    // Assert
     // Component always renders when called - it's a presentational component
     // Visibility logic (including allowlist checks) is handled by the parent
     // component via shouldShowAssetOverviewCta hook, not by this component itself
@@ -251,6 +269,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
   });
 
   it('renders CTA when asset balance is above minimum', () => {
+    // Arrange
     const mockAssetWithBalance = {
       ...mockAsset,
       balance: '1000000000', // 1000 USDC (above minimum)
@@ -275,6 +294,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { getByTestId } = renderComponentViewScreen(
       () => (
         <MusdConversionAssetOverviewCtaScreen asset={mockAssetWithBalance} />
@@ -283,12 +303,14 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       { state },
     );
 
+    // Assert
     expect(
       getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
     ).toBeOnTheScreen();
   });
 
   it('renders CTA for different asset symbols', () => {
+    // Arrange
     const mockDAIAsset = {
       ...mockAsset,
       symbol: 'DAI',
@@ -313,18 +335,21 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { getByTestId } = renderComponentViewScreen(
       () => <MusdConversionAssetOverviewCtaScreen asset={mockDAIAsset} />,
       { name: 'TestScreen' },
       { state },
     );
 
+    // Assert
     expect(
       getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
     ).toBeOnTheScreen();
   });
 
   it('renders CTA when asset address is missing', () => {
+    // Arrange
     const mockAssetWithoutAddress = {
       ...mockAsset,
       address: '',
@@ -348,6 +373,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     // Component should still render, error handling happens in handlePress
     const { getByTestId } = renderComponentViewScreen(
       () => (
@@ -357,6 +383,231 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
       { state },
     );
 
+    // Assert
+    expect(
+      getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders CTA with asset having low balance', () => {
+    // Arrange
+    const mockAssetLowBalance = {
+      ...mockAsset,
+      balance: '1000', // 0.001 USDC (very low)
+    };
+
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionAssetOverviewCtaEnabled: { enabled: true },
+        earnMusdConversionFlowEnabled: { enabled: true },
+        earnMusdConversionCtaTokens: { '*': ['USDC'] },
+        earnMusdConversionMinAssetBalanceRequired: 0.01,
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { getByTestId } = renderComponentViewScreen(
+      () => (
+        <MusdConversionAssetOverviewCtaScreen asset={mockAssetLowBalance} />
+      ),
+      { name: 'TestScreen' },
+      { state },
+    );
+
+    // Assert
+    // Component renders regardless of balance - balance check is in parent
+    expect(
+      getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders CTA for asset on different chain', () => {
+    // Arrange
+    const mockLineaAsset = {
+      ...mockAsset,
+      chainId: '0xe708', // Linea Mainnet
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    };
+
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionAssetOverviewCtaEnabled: { enabled: true },
+        earnMusdConversionFlowEnabled: { enabled: true },
+        earnMusdConversionCtaTokens: { '*': ['USDC'] },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { getByTestId } = renderComponentViewScreen(
+      () => <MusdConversionAssetOverviewCtaScreen asset={mockLineaAsset} />,
+      { name: 'TestScreen' },
+      { state },
+    );
+
+    // Assert
+    expect(
+      getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders CTA with correct boost title text', () => {
+    // Arrange
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionAssetOverviewCtaEnabled: { enabled: true },
+        earnMusdConversionFlowEnabled: { enabled: true },
+        earnMusdConversionCtaTokens: { '*': ['USDC'] },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { getByText } = renderComponentViewScreen(
+      () => <MusdConversionAssetOverviewCtaScreen asset={mockAsset} />,
+      { name: 'TestScreen' },
+      { state },
+    );
+
+    // Assert
+    expect(getByText('Boost your stablecoin balance')).toBeOnTheScreen();
+  });
+
+  it('renders CTA with correct boost description text', () => {
+    // Arrange
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionAssetOverviewCtaEnabled: { enabled: true },
+        earnMusdConversionFlowEnabled: { enabled: true },
+        earnMusdConversionCtaTokens: { '*': ['USDC'] },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { getByText } = renderComponentViewScreen(
+      () => <MusdConversionAssetOverviewCtaScreen asset={mockAsset} />,
+      { name: 'TestScreen' },
+      { state },
+    );
+
+    // Assert
+    expect(
+      getByText(/Earn a bonus every time you convert stablecoins to/),
+    ).toBeOnTheScreen();
+    expect(getByText('mUSD')).toBeOnTheScreen();
+  });
+
+  it('renders CTA without close button when onDismiss is undefined', () => {
+    // Arrange
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionAssetOverviewCtaEnabled: { enabled: true },
+        earnMusdConversionFlowEnabled: { enabled: true },
+        earnMusdConversionCtaTokens: { '*': ['USDC'] },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { queryByTestId, getByTestId } = renderComponentViewScreen(
+      () => <MusdConversionAssetOverviewCtaScreen asset={mockAsset} />,
+      { name: 'TestScreen' },
+      { state },
+    );
+
+    // Assert
+    expect(
+      getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON,
+      ),
+    ).toBeNull();
+  });
+
+  it('renders CTA for USDT asset when in allowlist', () => {
+    // Arrange
+    const mockUSDTAsset = {
+      ...mockAsset,
+      symbol: 'USDT',
+      address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      name: 'Tether USD',
+    };
+
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionAssetOverviewCtaEnabled: { enabled: true },
+        earnMusdConversionFlowEnabled: { enabled: true },
+        earnMusdConversionCtaTokens: { '*': ['USDC', 'USDT'] },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { getByTestId } = renderComponentViewScreen(
+      () => <MusdConversionAssetOverviewCtaScreen asset={mockUSDTAsset} />,
+      { name: 'TestScreen' },
+      { state },
+    );
+
+    // Assert
     expect(
       getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
     ).toBeOnTheScreen();

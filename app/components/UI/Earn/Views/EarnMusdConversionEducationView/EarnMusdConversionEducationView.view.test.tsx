@@ -20,6 +20,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
   };
 
   it('renders education screen with all UI elements', () => {
+    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -36,6 +37,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { getByText } = renderScreenWithRoutes(
       EarnMusdConversionEducationView as unknown as React.ComponentType,
       { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
@@ -46,6 +48,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       mockRouteParams,
     );
 
+    // Assert
     expect(
       getByText(
         strings('earn.musd_conversion.education.heading', {
@@ -69,6 +72,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
   });
 
   it('renders background image based on color scheme', () => {
+    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -85,6 +89,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { getByText } = renderScreenWithRoutes(
       EarnMusdConversionEducationView as unknown as React.ComponentType,
       { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
@@ -95,6 +100,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       mockRouteParams,
     );
 
+    // Assert
     // Verify screen renders with heading (image is rendered as part of component tree)
     expect(
       getByText(
@@ -106,6 +112,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
   });
 
   it('keeps go back button visible after press', () => {
+    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -135,13 +142,17 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     const goBackButton = getByText(
       strings('earn.musd_conversion.education.secondary_button'),
     );
+
+    // Act
     fireEvent.press(goBackButton);
 
+    // Assert
     // Button should still be on screen after press
     expect(goBackButton).toBeOnTheScreen();
   });
 
   it('keeps continue button visible after press when education not seen', async () => {
+    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -175,14 +186,17 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       strings('earn.musd_conversion.education.primary_button'),
     );
 
+    // Act
     await act(async () => {
       fireEvent.press(continueButton);
     });
 
+    // Assert
     expect(continueButton).toBeOnTheScreen();
   });
 
   it('renders screen when route params are missing', () => {
+    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -199,6 +213,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { getByText } = renderScreenWithRoutes(
       EarnMusdConversionEducationView as unknown as React.ComponentType,
       { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
@@ -209,6 +224,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       {}, // Missing params
     );
 
+    // Assert
     // Component should still render
     expect(
       getByText(
@@ -220,6 +236,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
   });
 
   it('renders screen when outputChainId is missing in route params', () => {
+    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -236,6 +253,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { getByText } = renderScreenWithRoutes(
       EarnMusdConversionEducationView as unknown as React.ComponentType,
       { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
@@ -249,6 +267,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       },
     );
 
+    // Assert
     // Component should still render
     expect(
       getByText(
@@ -260,6 +279,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
   });
 
   it('renders screen when preferredPaymentToken is missing in route params', () => {
+    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -276,6 +296,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
+    // Act
     const { getByText } = renderScreenWithRoutes(
       EarnMusdConversionEducationView as unknown as React.ComponentType,
       { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
@@ -289,7 +310,222 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       },
     );
 
+    // Assert
     // Component should still render
+    expect(
+      getByText(
+        strings('earn.musd_conversion.education.heading', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders all required UI elements on education screen', () => {
+    // Arrange
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionFlowEnabled: { enabled: true },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { getByText } = renderScreenWithRoutes(
+      EarnMusdConversionEducationView as unknown as React.ComponentType,
+      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
+      [],
+      {
+        state,
+      },
+      mockRouteParams,
+    );
+
+    // Assert
+    expect(
+      getByText(
+        strings('earn.musd_conversion.education.heading', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('earn.musd_conversion.education.description', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('earn.musd_conversion.education.primary_button')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('earn.musd_conversion.education.secondary_button')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders education screen with correct APY percentage in heading', () => {
+    // Arrange
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionFlowEnabled: { enabled: true },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { getByText } = renderScreenWithRoutes(
+      EarnMusdConversionEducationView as unknown as React.ComponentType,
+      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
+      [],
+      {
+        state,
+      },
+      mockRouteParams,
+    );
+
+    // Assert
+    const heading = getByText(
+      strings('earn.musd_conversion.education.heading', {
+        percentage: MUSD_CONVERSION_APY,
+      }),
+    );
+    expect(heading).toBeOnTheScreen();
+    expect(heading.props.children).toContain('3%');
+  });
+
+  it('renders education screen with correct APY percentage in description', () => {
+    // Arrange
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionFlowEnabled: { enabled: true },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { getByText } = renderScreenWithRoutes(
+      EarnMusdConversionEducationView as unknown as React.ComponentType,
+      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
+      [],
+      {
+        state,
+      },
+      mockRouteParams,
+    );
+
+    // Assert
+    const description = getByText(
+      strings('earn.musd_conversion.education.description', {
+        percentage: MUSD_CONVERSION_APY,
+      }),
+    );
+    expect(description).toBeOnTheScreen();
+    expect(description.props.children).toContain('3%');
+  });
+
+  it('renders education screen when education has been seen', () => {
+    // Arrange
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionFlowEnabled: { enabled: true },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+        user: {
+          musdConversionEducationSeen: true,
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { getByText } = renderScreenWithRoutes(
+      EarnMusdConversionEducationView as unknown as React.ComponentType,
+      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
+      [],
+      {
+        state,
+      },
+      mockRouteParams,
+    );
+
+    // Assert
+    expect(
+      getByText(
+        strings('earn.musd_conversion.education.heading', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders education screen with all route params provided', () => {
+    // Arrange
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionFlowEnabled: { enabled: true },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    // Act
+    const { getByText } = renderScreenWithRoutes(
+      EarnMusdConversionEducationView as unknown as React.ComponentType,
+      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
+      [],
+      {
+        state,
+      },
+      {
+        preferredPaymentToken: mockRouteParams.preferredPaymentToken,
+        outputChainId: mockRouteParams.outputChainId,
+      },
+    );
+
+    // Assert
     expect(
       getByText(
         strings('earn.musd_conversion.education.heading', {
