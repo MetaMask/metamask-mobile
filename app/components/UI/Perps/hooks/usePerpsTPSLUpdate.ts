@@ -6,24 +6,6 @@ import type { Position, TPSLTrackingData } from '../controllers/types';
 import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
-import { retryWithExponentialDelay } from '../../../../util/exponential-retry';
-
-/**
- * Retry configuration for rate limiting resilience.
- *
- * HyperLiquid rate limits:
- * - IP-based: 1,200 weighted requests per minute
- * - Address-based: 1 request per 1 USDC traded (lifetime) + 10,000 initial buffer
- * - When rate limited: addresses receive 1 request every 10 seconds (drip recovery)
- *
- * Strategy: Retry with exponential backoff, but fail fast (~14s total) to avoid
- * leaving the user waiting too long. Sequence: 2s → 4s → 8s = ~14s total.
- *
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/rate-limits
- */
-const TPSL_UPDATE_MAX_RETRIES = 3;
-const TPSL_UPDATE_BASE_DELAY_MS = 2000;
-const TPSL_UPDATE_MAX_DELAY_MS = 10000;
 
 interface UseTPSLUpdateOptions {
   onSuccess?: () => void;
@@ -53,29 +35,15 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
 
       try {
-        // Wrap API call with exponential backoff retry for rate limiting resilience
-        // The inner function throws on failure to trigger retries (since updatePositionTPSL
-        // returns { success: false } instead of throwing)
-        const result = await retryWithExponentialDelay(
-          async () => {
-            const res = await updatePositionTPSL({
-              symbol: position.symbol,
-              takeProfitPrice,
-              stopLossPrice,
-              trackingData,
-              position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
-            });
-            if (!res.success) {
-              // Throw to trigger retry - the error message will be used if all retries fail
-              throw new Error(res.error || 'TP/SL update failed');
-            }
-            return res;
-          },
-          TPSL_UPDATE_MAX_RETRIES,
-          TPSL_UPDATE_BASE_DELAY_MS,
-          TPSL_UPDATE_MAX_DELAY_MS,
-          true, // Enable jitter to prevent thundering herd
-        );
+        // Direct API call without retry - intentionally removed exponential backoff
+        // to surface 429 errors immediately for WebSocket troubleshooting
+        const result = await updatePositionTPSL({
+          symbol: position.symbol,
+          takeProfitPrice,
+          stopLossPrice,
+          trackingData,
+          position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
+        });
 
         if (result.success) {
           DevLogger.log('Position TP/SL updated successfully:', result);
