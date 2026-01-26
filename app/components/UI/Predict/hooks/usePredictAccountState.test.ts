@@ -25,6 +25,14 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock usePredictNetworkManagement
+const mockEnsurePolygonNetworkExists = jest.fn().mockResolvedValue(undefined);
+jest.mock('./usePredictNetworkManagement', () => ({
+  usePredictNetworkManagement: () => ({
+    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
+  }),
+}));
+
 import { useFocusEffect } from '@react-navigation/native';
 
 const mockGetAccountState = Engine.context.PredictController
@@ -40,12 +48,11 @@ describe('usePredictAccountState', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset useFocusEffect to do nothing by default
     mockUseFocusEffect.mockImplementation(() => {
       // Default no-op implementation
     });
-    // Provide a default resolved value to prevent crashes
     mockGetAccountState.mockResolvedValue(mockAccountState);
+    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
