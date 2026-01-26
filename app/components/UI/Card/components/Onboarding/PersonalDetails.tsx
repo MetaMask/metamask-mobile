@@ -318,6 +318,7 @@ const PersonalDetails = () => {
           onChangeText={setFirstName}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          textContentType="givenName"
           value={firstName}
           keyboardType="default"
           maxLength={255}
@@ -338,6 +339,7 @@ const PersonalDetails = () => {
           onChangeText={setLastName}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          textContentType="familyName"
           value={lastName}
           keyboardType="default"
           maxLength={255}
@@ -390,6 +392,7 @@ const PersonalDetails = () => {
             size={TextFieldSize.Lg}
             value={SSN}
             keyboardType="number-pad"
+            textContentType="oneTimeCode"
             secureTextEntry
             maxLength={9}
             accessibilityLabel={strings(

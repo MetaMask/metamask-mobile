@@ -413,6 +413,7 @@ const CardAuthentication = () => {
               value={email}
               returnKeyType={'next'}
               keyboardType="email-address"
+              textContentType="emailAddress"
               maxLength={255}
               accessibilityLabel={strings(
                 'card.card_authentication.email_label',
@@ -433,6 +434,7 @@ const CardAuthentication = () => {
               returnKeyType={'done'}
               onSubmitEditing={() => performLogin()}
               secureTextEntry
+              textContentType="password"
               accessibilityLabel={strings(
                 'card.card_authentication.password_label',
               )}

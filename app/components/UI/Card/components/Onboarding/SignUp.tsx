@@ -252,6 +252,7 @@ const SignUp = () => {
           size={TextFieldSize.Lg}
           value={email}
           keyboardType="email-address"
+          textContentType="emailAddress"
           maxLength={255}
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.email_label',
@@ -288,6 +289,7 @@ const SignUp = () => {
           value={password}
           maxLength={255}
           secureTextEntry
+          textContentType="newPassword"
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.password_label',
           )}
@@ -333,6 +335,7 @@ const SignUp = () => {
           value={confirmPassword}
           maxLength={255}
           secureTextEntry
+          textContentType="newPassword"
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.confirm_password_label',
           )}

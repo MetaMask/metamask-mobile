@@ -272,6 +272,7 @@ const SetPhoneNumber = () => {
             onChangeText={handlePhoneNumberChange}
             numberOfLines={1}
             size={TextFieldSize.Lg}
+            textContentType="telephoneNumber"
             value={phoneNumber}
             keyboardType="phone-pad"
             maxLength={255}
