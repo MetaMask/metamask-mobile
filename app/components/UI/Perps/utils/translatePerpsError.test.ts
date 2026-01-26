@@ -632,6 +632,32 @@ describe('handlePerpsError', () => {
       expect(result).toBe('perps.errors.transferFailed');
     });
 
+    it('matches specific network error before generic transfer failed', () => {
+      // "Transfer failed: network error" should match NETWORK_ERROR, not TRANSFER_FAILED
+      const result = handlePerpsError({
+        error: 'Transfer failed: network error',
+      });
+
+      expect(result).toBe('perps.errors.networkErrorSimple');
+    });
+
+    it('matches specific timeout before generic swap failed', () => {
+      // "Swap failed: connection timed out" should match CONNECTION_TIMEOUT, not SWAP_FAILED
+      const result = handlePerpsError({
+        error: 'Swap failed: connection timed out',
+      });
+
+      expect(result).toBe('perps.errors.connectionTimeout');
+    });
+
+    it('matches specific service unavailable before generic transfer failed', () => {
+      const result = handlePerpsError({
+        error: 'Transfer failed: service unavailable',
+      });
+
+      expect(result).toBe('perps.errors.serviceUnavailable');
+    });
+
     it('translates slippage exceeded error pattern', () => {
       const result = handlePerpsError({
         error: 'Price moved too much during execution',

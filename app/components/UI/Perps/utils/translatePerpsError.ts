@@ -113,12 +113,36 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
 /**
  * Pattern matching for common HyperLiquid API error messages.
  * Maps regex patterns to error codes for user-friendly translation.
- * Order matters - more specific patterns should come before general ones.
+ *
+ * IMPORTANT: Order matters - more specific patterns MUST come before general ones.
+ * For example, "Transfer failed: network error" should match NETWORK_ERROR, not TRANSFER_FAILED.
  */
 const API_ERROR_PATTERNS: {
   pattern: RegExp;
   errorCode: PerpsErrorCode;
 }[] = [
+  // === SPECIFIC PATTERNS FIRST ===
+
+  // Network/service errors - check these early since they can appear in compound errors
+  // e.g., "Transfer failed: network error" should match NETWORK_ERROR
+  {
+    pattern: /timeout|timed out/i,
+    errorCode: PERPS_ERROR_CODES.CONNECTION_TIMEOUT,
+  },
+  {
+    pattern: /service unavailable|503|temporarily unavailable/i,
+    errorCode: PERPS_ERROR_CODES.SERVICE_UNAVAILABLE,
+  },
+  {
+    pattern: /network error|fetch failed|connection failed/i,
+    errorCode: PERPS_ERROR_CODES.NETWORK_ERROR,
+  },
+  // Rate limiting
+  {
+    pattern: /rate limit|too many requests|throttl/i,
+    errorCode: PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED,
+  },
+
   // Margin/balance errors
   {
     pattern: /margin available|not enough margin|insufficient margin/i,
@@ -128,6 +152,7 @@ const API_ERROR_PATTERNS: {
     pattern: /insufficient balance|not enough balance/i,
     errorCode: PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
   },
+
   // Order execution errors
   {
     pattern: /reduce only|reduceOnly/i,
@@ -149,15 +174,8 @@ const API_ERROR_PATTERNS: {
     pattern: /order rejected|rejected order/i,
     errorCode: PERPS_ERROR_CODES.ORDER_REJECTED,
   },
-  // Transfer/swap errors
-  {
-    pattern: /transfer failed/i,
-    errorCode: PERPS_ERROR_CODES.TRANSFER_FAILED,
-  },
-  {
-    pattern: /swap failed/i,
-    errorCode: PERPS_ERROR_CODES.SWAP_FAILED,
-  },
+
+  // Data errors
   {
     pattern:
       /spot pair not found|trading pair not found|USDH.*USDC.*not found/i,
@@ -167,6 +185,7 @@ const API_ERROR_PATTERNS: {
     pattern: /no price available|price unavailable|price data unavailable/i,
     errorCode: PERPS_ERROR_CODES.PRICE_UNAVAILABLE,
   },
+
   // Batch operation errors - use specific patterns to avoid matching single-order errors
   // e.g., "Order cancellation failed" should NOT match batch cancel
   {
@@ -177,28 +196,22 @@ const API_ERROR_PATTERNS: {
     pattern: /batch close|close all|bulk close|multiple.*close/i,
     errorCode: PERPS_ERROR_CODES.BATCH_CLOSE_FAILED,
   },
-  // Rate limiting
-  {
-    pattern: /rate limit|too many requests|throttl/i,
-    errorCode: PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED,
-  },
-  // Network/service errors
-  {
-    pattern: /timeout|timed out/i,
-    errorCode: PERPS_ERROR_CODES.CONNECTION_TIMEOUT,
-  },
-  {
-    pattern: /service unavailable|503|temporarily unavailable/i,
-    errorCode: PERPS_ERROR_CODES.SERVICE_UNAVAILABLE,
-  },
-  {
-    pattern: /network error|fetch failed|connection failed/i,
-    errorCode: PERPS_ERROR_CODES.NETWORK_ERROR,
-  },
+
   // Leverage errors
   {
     pattern: /cannot reduce.*leverage|leverage reduction/i,
     errorCode: PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
+  },
+
+  // === GENERIC PATTERNS LAST ===
+  // These are catch-all patterns that should only match if no specific pattern matched
+  {
+    pattern: /transfer failed/i,
+    errorCode: PERPS_ERROR_CODES.TRANSFER_FAILED,
+  },
+  {
+    pattern: /swap failed/i,
+    errorCode: PERPS_ERROR_CODES.SWAP_FAILED,
   },
 ];
 
