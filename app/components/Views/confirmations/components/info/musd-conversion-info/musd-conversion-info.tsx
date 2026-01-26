@@ -1,5 +1,4 @@
 import { providerErrors } from '@metamask/rpc-errors';
-import { TransactionType } from '@metamask/transaction-controller';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useParams } from '../../../../../../util/navigation/navUtils';
@@ -19,12 +18,11 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import Engine from '../../../../../../core/Engine';
 import EngineService from '../../../../../../core/EngineService';
-import { MMM_ORIGIN } from '../../../constants/confirmations';
-import { generateTransferData } from '../../../../../../util/transactions';
 import { getTokenTransferData } from '../../../utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../utils/transaction';
 import { useMusdConversionQuoteTrace } from '../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace';
 import { endTrace, TraceName } from '../../../../../../util/trace';
+import { createMusdConversionTransaction } from '../../../../../UI/Earn/utils/createMusdConversionTransaction';
 
 const log = createProjectLogger('musd-conversion-same-chain');
 
@@ -226,64 +224,21 @@ const MusdConversionInfoContent = ({
         toChainId: newChainId,
       });
 
-      const transferData = generateTransferData('transfer', {
-        toAddress: recipientAddress,
-        amount: amountHex,
-      }) as Hex;
-
-      const { NetworkController, TransactionController } = Engine.context;
-
-      const networkClientId =
-        NetworkController.findNetworkClientIdByChainId(newChainId);
-
-      if (!networkClientId) {
-        console.error(
-          '[mUSD Conversion] Network client not found for selected chain',
-          { newChainId },
-        );
-        log('Replacement aborted: network client id missing', {
-          toChainId: newChainId,
-          fromTransactionId: transactionMeta.id,
-        });
-
-        const fallbackPayToken = lastSameChainPayToken.current;
-        if (fallbackPayToken) {
-          log('Reverting pay token to last same-chain selection', {
-            chainId: fallbackPayToken.chainId,
-            tokenAddress: fallbackPayToken.address,
-            fromTransactionId: transactionMeta.id,
-          });
-          setPayToken(fallbackPayToken);
-        }
-
-        return;
-      }
-
       try {
-        const { transactionMeta: newTransactionMeta } =
-          await TransactionController.addTransaction(
-            {
-              to: musdTokenAddress,
-              // TODO: May be able to simplify this by selecting active account address like we do in useMusdConversion > initiateConversion.
-              from: transactionMeta.txParams.from,
-              data: transferData,
-              value: '0x0',
-              chainId: newChainId,
-            },
-            {
-              skipInitialGasEstimate: true,
-              networkClientId,
-              origin: MMM_ORIGIN,
-              type: TransactionType.musdConversion,
-            },
-          );
+        const { transactionId: newTransactionId } =
+          await createMusdConversionTransaction({
+            outputChainId: newChainId,
+            // TODO: May be able to simplify this by selecting active account address like we do in useMusdConversion > initiateConversion.
+            fromAddress: transactionMeta.txParams.from as Hex,
+            recipientAddress,
+            amountHex,
+          });
 
         log('Created replacement transaction', {
           fromTransactionId: transactionMeta.id,
-          toTransactionId: newTransactionMeta.id,
+          toTransactionId: newTransactionId,
           toChainId: newChainId,
           musdTokenAddress,
-          networkClientId,
         });
 
         const {
@@ -292,20 +247,24 @@ const MusdConversionInfoContent = ({
           ApprovalController,
         } = Engine.context;
 
+        const { NetworkController } = Engine.context;
+        const networkClientId =
+          NetworkController.findNetworkClientIdByChainId(newChainId);
+
         // TODO: Double-check if we can piggy back off of existing setPayToken call which may handle below operations already.
         GasFeeController.fetchGasFeeEstimates({ networkClientId }).catch(
           () => undefined,
         );
 
         TransactionPayController.updatePaymentToken({
-          transactionId: newTransactionMeta.id,
+          transactionId: newTransactionId,
           tokenAddress: newPayToken.address,
           chainId: newPayToken.chainId,
         });
 
         EngineService.flushState();
         log('Updated pay token for replacement transaction', {
-          toTransactionId: newTransactionMeta.id,
+          toTransactionId: newTransactionId,
           payTokenChainId: newPayToken.chainId,
           payTokenAddress: newPayToken.address,
         });
@@ -317,7 +276,7 @@ const MusdConversionInfoContent = ({
         );
         log('Rejected old transaction approval after replacement', {
           fromTransactionId: transactionMeta.id,
-          toTransactionId: newTransactionMeta.id,
+          toTransactionId: newTransactionId,
         });
       } catch (error) {
         console.error(
