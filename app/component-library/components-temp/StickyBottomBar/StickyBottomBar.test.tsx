@@ -156,7 +156,10 @@ describe('StickyBottomBar', () => {
     });
 
     it('returns null when buttons array is undefined', () => {
-      // Arrange & Act
+      // Arrange
+      // No specific arrangement needed for this test case
+
+      // Act
       const { queryByTestId } = render(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         <StickyBottomBar buttons={undefined as any} />,
@@ -233,7 +236,7 @@ describe('StickyBottomBar', () => {
       expect(mockSellPress).toHaveBeenCalledTimes(1);
     });
 
-    it('handles multiple presses on same button', () => {
+    it('invokes onPress three times when button pressed three times', () => {
       // Arrange
       const mockBuyPress = jest.fn();
       const buttons = [
