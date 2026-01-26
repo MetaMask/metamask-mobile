@@ -235,7 +235,7 @@ const ConfirmEmail = () => {
           size={TextFieldSize.Lg}
           value={confirmCode}
           keyboardType="number-pad"
-          autoComplete="off"
+          autoComplete="one-time-code"
           maxLength={CODE_LENGTH}
           accessibilityLabel={strings(
             'card.card_onboarding.confirm_email.code_label',

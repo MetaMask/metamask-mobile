@@ -226,7 +226,7 @@ function RegionSelectorModal() {
           onPressClearButton={clearSearchText}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
-          autoComplete="off"
+          autoComplete="one-time-code"
           testID="region-selector-search-input"
         />
       </Box>
