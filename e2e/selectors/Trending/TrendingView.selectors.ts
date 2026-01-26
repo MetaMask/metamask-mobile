@@ -19,10 +19,9 @@ export const TrendingViewSelectorsIDs = {
 } as const;
 
 export const TrendingViewSelectorsText = {
-  VIEW_ALL: 'View all',
-  // Section titles might vary by localization, but these are for logical mapping
+  // Section titles - must match the actual localized strings from sections.config.tsx
   SECTION_PREDICTIONS: 'Predictions',
-  SECTION_TOKENS: 'Tokens',
+  SECTION_TOKENS: 'Trending tokens',
   SECTION_PERPS: 'Perps',
   SECTION_SITES: 'Sites',
 } as const;
