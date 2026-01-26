@@ -5,8 +5,10 @@ name: Build Apps and Run Performance E2E Tests
 on:
   schedule:
     - cron: '0 */3 * * 1-6'
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - 'release/*'
   workflow_dispatch:
     inputs:
       description:
@@ -130,12 +132,11 @@ jobs:
         run: |
           FILE="appwright/device-matrix.json"
 
-          # PR or push to main: Use first low/medium device (fallback to first)
-          # Other events (schedule, workflow_dispatch): Use all devices
-          # Note: When called via workflow_call, github.event_name is "workflow_call", so we check the branch name
-          if [ "${{ github.event_name }}" = "pull_request" ] || [ "$BRANCH_NAME" = "main" ] || ([ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]); then
-            FILTER='if length == 0 then [] else [first((.[] | select(.category == "low" or .category == "medium")), .[0])] end'
-            echo "Limited mode: 1 device per platform (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
+          # Push to main or release branches: Use only "low" category devices
+          # Schedule and workflow_dispatch: Use all devices
+          if [ "${{ github.event_name }}" = "push" ]; then
+            FILTER='[.[] | select(.category == "low")]'
+            echo "Limited mode: low category devices only (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           else
             FILTER='.'
             echo "Full mode: All devices (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"

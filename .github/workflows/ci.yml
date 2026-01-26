@@ -382,23 +382,6 @@ jobs:
         }}
     secrets: inherit
 
-  # =============================================================================
-  # PERFORMANCE E2E TESTS
-  # =============================================================================
-
-  run-performance-e2e-tests:
-    name: 'Performance E2E Tests'
-    # TODO: Change to main only after testing: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build]
-    uses: ./.github/workflows/run-performance-e2e.yml
-    with:
-      branch_name: ${{ github.head_ref || github.ref_name }}
-    secrets: inherit
-
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
