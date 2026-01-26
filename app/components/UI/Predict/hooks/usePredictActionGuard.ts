@@ -5,6 +5,7 @@ import Engine from '../../../../core/Engine';
 import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictEligibility } from './usePredictEligibility';
 import { usePredictBalance } from './usePredictBalance';
+import { usePredictDeposit } from './usePredictDeposit';
 
 interface UsePredictActionGuardOptions {
   providerId: string;
@@ -31,6 +32,7 @@ export const usePredictActionGuard = ({
 }: UsePredictActionGuardOptions): UsePredictActionGuardResult => {
   const { isEligible } = usePredictEligibility({ providerId });
   const { hasNoBalance } = usePredictBalance();
+  const { deposit } = usePredictDeposit();
 
   const executeGuardedAction = useCallback(
     (
@@ -55,15 +57,16 @@ export const usePredictActionGuard = ({
       }
 
       if (checkBalance && hasNoBalance) {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-        });
+        action();
+        setTimeout(() => {
+          deposit();
+        }, 100);
         return;
       }
 
       return action();
     },
-    [isEligible, hasNoBalance, navigation, providerId],
+    [isEligible, hasNoBalance, navigation, providerId, deposit],
   );
 
   return {
