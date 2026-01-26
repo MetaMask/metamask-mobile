@@ -56,26 +56,31 @@ export const validateMarketPattern = (pattern: string): boolean => {
     throw new Error('Market pattern cannot be empty');
   }
 
+  // Trim whitespace and normalize the pattern
+  const normalizedPattern = pattern.trim();
+
   // Reject patterns that are too long (potential DoS)
-  if (pattern.length > MAX_MARKET_PATTERN_LENGTH) {
+  if (normalizedPattern.length > MAX_MARKET_PATTERN_LENGTH) {
     throw new Error(
-      `Market pattern exceeds maximum length (${MAX_MARKET_PATTERN_LENGTH} chars): ${pattern}`,
+      `Market pattern exceeds maximum length (${MAX_MARKET_PATTERN_LENGTH} chars): ${normalizedPattern}`,
     );
   }
 
   // Reject patterns with suspicious regex control characters
   // Allow only colon and asterisk for our pattern syntax
   const dangerousChars = /[\\()[\]{}^$+?.|]/;
-  if (dangerousChars.test(pattern)) {
+  if (dangerousChars.test(normalizedPattern)) {
     throw new Error(
-      `Market pattern contains invalid regex characters: ${pattern}`,
+      `Market pattern contains invalid regex characters: ${normalizedPattern}`,
     );
   }
 
   // Allow only: alphanumeric, colon, hyphen, underscore, asterisk
   const validPattern = /^[a-zA-Z0-9:_\-*]+$/;
-  if (!validPattern.test(pattern)) {
-    throw new Error(`Market pattern contains invalid characters: ${pattern}`);
+  if (!validPattern.test(normalizedPattern)) {
+    throw new Error(
+      `Market pattern contains invalid characters: ${normalizedPattern}`,
+    );
   }
 
   return true;
@@ -101,22 +106,23 @@ export const validateMarketPattern = (pattern: string): boolean => {
  * compileMarketPattern("xyz:TSLA") // → "xyz:TSLA"
  */
 export const compileMarketPattern = (pattern: string): MarketPatternMatcher => {
-  // Validate pattern before compilation to prevent regex DoS
-  validateMarketPattern(pattern);
+  // Trim and validate pattern before compilation to prevent regex DoS
+  const normalizedPattern = pattern.trim();
+  validateMarketPattern(normalizedPattern);
 
-  if (pattern.endsWith(':*')) {
+  if (normalizedPattern.endsWith(':*')) {
     // Wildcard: "xyz:*" → regex /^xyz:/
-    const prefix = pattern.slice(0, -2);
+    const prefix = normalizedPattern.slice(0, -2);
     return new RegExp(`^${escapeRegex(prefix)}:`);
   }
 
-  if (!pattern.includes(':')) {
+  if (!normalizedPattern.includes(':')) {
     // DEX shorthand: "xyz" → regex /^xyz:/
-    return new RegExp(`^${escapeRegex(pattern)}:`);
+    return new RegExp(`^${escapeRegex(normalizedPattern)}:`);
   }
 
   // Exact match: just use string (fastest)
-  return pattern;
+  return normalizedPattern;
 };
 
 /**
