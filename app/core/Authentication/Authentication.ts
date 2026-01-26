@@ -183,15 +183,14 @@ class AuthenticationService {
 
     const mnemonic = mnemonicPhraseToBytes(parsedSeed);
     if (isMultichainAccountsState2Enabled()) {
-      await MultichainAccountService.createMultichainAccountWallet(
-        { type: 'restore', password, mnemonic },
-      );
-    } else {
-      const { KeyringController } = Engine.context;
-      await KeyringController.createNewVaultAndRestore(
+      await MultichainAccountService.createMultichainAccountWallet({
+        type: 'restore',
         password,
         mnemonic,
-      );
+      });
+    } else {
+      const { KeyringController } = Engine.context;
+      await KeyringController.createNewVaultAndRestore(password, mnemonic);
 
       Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
@@ -311,9 +310,10 @@ class AuthenticationService {
     const { MultichainAccountService } = Engine.context;
 
     if (isMultichainAccountsState2Enabled()) {
-      await MultichainAccountService.createMultichainAccountWallet(
-        { type: 'create', password },
-      );
+      await MultichainAccountService.createMultichainAccountWallet({
+        type: 'create',
+        password,
+      });
     } else {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1162,7 +1162,11 @@ class AuthenticationService {
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }
-    const { KeyringController, SeedlessOnboardingController, MultichainAccountService } = Engine.context;
+    const {
+      KeyringController,
+      SeedlessOnboardingController,
+      MultichainAccountService,
+    } = Engine.context;
 
     const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
     const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
@@ -1173,25 +1177,24 @@ class AuthenticationService {
     let entropySource: EntropySourceId;
 
     if (isMultichainAccountsState2Enabled()) {
-    const wallet = await MultichainAccountService.createMultichainAccountWallet(
-      {
-        type: 'import',
-        mnemonic: seedPhraseAsUint8Array,
-      },
-    );
+      const wallet =
+        await MultichainAccountService.createMultichainAccountWallet({
+          type: 'import',
+          mnemonic: seedPhraseAsUint8Array,
+        });
 
-    entropySource = wallet.entropySource;
-  } else {
+      entropySource = wallet.entropySource;
+    } else {
       const keyringMetadata = await KeyringController.addNewKeyring(
-      KeyringTypes.hd,
-      {
-        mnemonic,
-        numberOfAccounts: 1,
-      },
-    );
+        KeyringTypes.hd,
+        {
+          mnemonic,
+          numberOfAccounts: 1,
+        },
+      );
 
-    entropySource = keyringMetadata.id;
-  }
+      entropySource = keyringMetadata.id;
+    }
 
     const [newAccountAddress] = await KeyringController.withKeyring(
       { id: entropySource },
@@ -1317,7 +1320,10 @@ class AuthenticationService {
         const multichainClient =
           MultichainWalletSnapFactory.createClient(clientType);
 
-        await multichainClient.addDiscoveredAccounts(entropySource, discoveryScope);
+        await multichainClient.addDiscoveredAccounts(
+          entropySource,
+          discoveryScope,
+        );
       }
     }
   };
