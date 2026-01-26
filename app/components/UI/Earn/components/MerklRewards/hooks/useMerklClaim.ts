@@ -114,7 +114,7 @@ export const useMerklClaim = ({
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
         origin: 'merkl-claim',
-        type: TransactionType.stakingClaim,
+        type: TransactionType.contractInteraction,
       });
 
       // transactionMeta can be undefined if user cancels before tx is created
