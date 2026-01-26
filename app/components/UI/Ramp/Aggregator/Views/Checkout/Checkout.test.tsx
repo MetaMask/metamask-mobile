@@ -94,6 +94,7 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
   Linking: {
+    canOpenURL: jest.fn(),
     openURL: jest.fn(),
   },
 }));
@@ -410,9 +411,11 @@ describe('Checkout', () => {
   describe('onShouldStartLoadWithRequest', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      (Linking.canOpenURL as jest.Mock).mockResolvedValue(true);
+      (Linking.openURL as jest.Mock).mockResolvedValue(true);
     });
 
-    it('opens UPI payment URL via Linking and blocks webview navigation', () => {
+    it('opens UPI payment URL via Linking and blocks webview navigation', async () => {
       const { getByTestId } = render();
       const webView = getByTestId('checkout-webview');
       const onShouldStartLoadWithRequest =
@@ -422,13 +425,21 @@ describe('Checkout', () => {
         url: 'upi://pay?pa=company@ypbiz&cu=INR&am=1100.00',
       });
 
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(
+        'upi://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
       expect(Linking.openURL).toHaveBeenCalledWith(
         'upi://pay?pa=company@ypbiz&cu=INR&am=1100.00',
       );
-      expect(result).toBe(false);
     });
 
-    it('opens Paytm payment URL via Linking and blocks webview navigation', () => {
+    it('opens Paytm payment URL via Linking and blocks webview navigation', async () => {
       const { getByTestId } = render();
       const webView = getByTestId('checkout-webview');
       const onShouldStartLoadWithRequest =
@@ -438,13 +449,21 @@ describe('Checkout', () => {
         url: 'paytmmp://pay?pa=company@ypbiz&cu=INR&am=1100.00',
       });
 
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(
+        'paytmmp://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
       expect(Linking.openURL).toHaveBeenCalledWith(
         'paytmmp://pay?pa=company@ypbiz&cu=INR&am=1100.00',
       );
-      expect(result).toBe(false);
     });
 
-    it('opens PhonePe payment URL via Linking and blocks webview navigation', () => {
+    it('opens PhonePe payment URL via Linking and blocks webview navigation', async () => {
       const { getByTestId } = render();
       const webView = getByTestId('checkout-webview');
       const onShouldStartLoadWithRequest =
@@ -454,13 +473,21 @@ describe('Checkout', () => {
         url: 'phonepe://pay?pa=company@ypbiz&cu=INR&am=1100.00',
       });
 
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(
+        'phonepe://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
       expect(Linking.openURL).toHaveBeenCalledWith(
         'phonepe://pay?pa=company@ypbiz&cu=INR&am=1100.00',
       );
-      expect(result).toBe(false);
     });
 
-    it('opens Google Pay payment URL via Linking and blocks webview navigation', () => {
+    it('opens Google Pay payment URL via Linking and blocks webview navigation', async () => {
       const { getByTestId } = render();
       const webView = getByTestId('checkout-webview');
       const onShouldStartLoadWithRequest =
@@ -470,10 +497,18 @@ describe('Checkout', () => {
         url: 'gpay://upi/pay?pa=company@ypbiz&cu=INR&am=1100.00',
       });
 
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(
+        'gpay://upi/pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
       expect(Linking.openURL).toHaveBeenCalledWith(
         'gpay://upi/pay?pa=company@ypbiz&cu=INR&am=1100.00',
       );
-      expect(result).toBe(false);
     });
 
     it('allows HTTPS URLs to load in webview', () => {
@@ -486,6 +521,7 @@ describe('Checkout', () => {
         url: 'https://example.com/payment',
       });
 
+      expect(Linking.canOpenURL).not.toHaveBeenCalled();
       expect(Linking.openURL).not.toHaveBeenCalled();
       expect(result).toBe(true);
     });
@@ -500,8 +536,35 @@ describe('Checkout', () => {
         url: 'http://example.com/payment',
       });
 
+      expect(Linking.canOpenURL).not.toHaveBeenCalled();
       expect(Linking.openURL).not.toHaveBeenCalled();
       expect(result).toBe(true);
+    });
+
+    it('logs error when Linking.canOpenURL fails', async () => {
+      const mockError = new Error('Failed to check URL');
+      (Linking.canOpenURL as jest.Mock).mockRejectedValueOnce(mockError);
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'upi://pay?pa=company@ypbiz',
+      });
+
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        'Failed to open payment URL: upi://pay?pa=company@ypbiz',
+      );
     });
 
     it('logs error when Linking.openURL fails', async () => {

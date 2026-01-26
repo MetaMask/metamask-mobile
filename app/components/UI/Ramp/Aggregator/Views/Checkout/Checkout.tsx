@@ -189,9 +189,16 @@ const CheckoutWebView = () => {
       const { protocol } = new URLParse(url);
 
       if (paymentProtocolList.includes(protocol)) {
-        Linking.openURL(url).catch((err) => {
-          Logger.error(err, `Failed to open payment URL: ${url}`);
-        });
+        Linking.canOpenURL(url)
+          .then((canOpen) => {
+            if (canOpen) {
+              return Linking.openURL(url);
+            }
+            return Promise.resolve();
+          })
+          .catch((err: Error) => {
+            Logger.error(err, `Failed to open payment URL: ${url}`);
+          });
         return false;
       }
 
