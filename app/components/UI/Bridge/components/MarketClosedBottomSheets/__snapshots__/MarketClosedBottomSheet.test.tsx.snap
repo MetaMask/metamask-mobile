@@ -184,7 +184,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
               }
               testID="header-title"
             >
-              [missing "en.bridge.market_closed.title" translation]
+              Market is closed
             </Text>
           </View>
           <View>
@@ -245,7 +245,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
               }
             }
           >
-            [missing "en.bridge.market_closed.description" translation]
+            The market that backs this token is currently closed. Tokens can be transferred on-chain at any time
              
             <Text
               accessibilityRole="text"
@@ -260,7 +260,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
                 }
               }
             >
-              [missing "en.bridge.market_closed.learn_more" translation]
+              Learn more
             </Text>
           </Text>
         </View>
@@ -311,7 +311,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
                 }
               }
             >
-              [missing "en.bridge.market_closed.done" translation]
+              Done
             </Text>
           </TouchableOpacity>
         </View>

@@ -18,8 +18,6 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './MarketClosedBottomSheet.styles';
 
-const MARKET_HOURS_LEARN_MORE_URL = 'https://support.metamask.io';
-
 const MarketClosedBottomSheet = () => {
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -30,7 +28,7 @@ const MarketClosedBottomSheet = () => {
   };
 
   const handleLearnMore = () => {
-    Linking.openURL(MARKET_HOURS_LEARN_MORE_URL);
+    Linking.openURL(strings('bridge.market_closed.learn_more_url'));
   };
 
   const footerButtonProps = [
