@@ -85,6 +85,14 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED]: 'perps.errors.noAccountSelected',
   [PERPS_ERROR_CODES.INVALID_ADDRESS_FORMAT]:
     'perps.errors.invalidAddressFormat',
+  // Transfer/swap errors
+  [PERPS_ERROR_CODES.TRANSFER_FAILED]: 'perps.errors.transferFailed',
+  [PERPS_ERROR_CODES.SWAP_FAILED]: 'perps.errors.swapFailed',
+  [PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND]: 'perps.errors.spotPairNotFound',
+  [PERPS_ERROR_CODES.PRICE_UNAVAILABLE]: 'perps.errors.priceUnavailable',
+  // Batch operation errors
+  [PERPS_ERROR_CODES.BATCH_CANCEL_FAILED]: 'perps.errors.batchCancelFailed',
+  [PERPS_ERROR_CODES.BATCH_CLOSE_FAILED]: 'perps.errors.batchCloseFailed',
 };
 
 /**

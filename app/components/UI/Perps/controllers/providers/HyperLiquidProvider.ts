@@ -12,7 +12,6 @@ import {
   HIP3_FEE_CONFIG,
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
-  MAINNET_HIP3_CONFIG,
   REFERRAL_CONFIG,
   TESTNET_HIP3_CONFIG,
   TRADING_DEFAULTS,
@@ -27,7 +26,10 @@ import {
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
-import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
+import {
+  HyperLiquidClientService,
+  WebSocketConnectionState,
+} from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import {
@@ -55,7 +57,6 @@ import {
 import type {
   SDKOrderParams,
   MetaResponse,
-  SpotMetaResponse,
   PerpsAssetCtx,
   FrontendOrder,
 } from '../../types/hyperliquid-types';
@@ -93,8 +94,8 @@ import type {
   GetHistoricalPortfolioParams,
   GetMarketsParams,
   GetOrderFillsParams,
-  GetOrdersParams,
   GetOrFetchFillsParams,
+  GetOrdersParams,
   GetPositionsParams,
   GetSupportedPathsParams,
   HistoricalPortfolioResult,
@@ -196,11 +197,6 @@ interface HandleOrderErrorParams {
   isBuy: boolean;
 }
 
-interface GetOrFetchPriceParams {
-  symbol: string;
-  dexName: string | null;
-}
-
 /**
  * HyperLiquid provider implementation
  *
@@ -290,10 +286,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Pending promise to deduplicate concurrent getValidatedDexs() calls
   private pendingValidatedDexsPromise: Promise<(string | null)[]> | null = null;
 
-  // Session cache for spot metadata (contains USDC/USDH token info for HIP-3 collateral checks)
-  // Pre-fetched when needed to avoid API failures during order placement
-  private cachedSpotMeta: SpotMetaResponse | null = null;
-
   // Cache for USDC token ID from spot metadata
   private cachedUsdcTokenId?: string;
 
@@ -306,6 +298,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   // Track whether clients have been initialized (lazy initialization)
   private clientsInitialized = false;
+
+  // Promise-based lock to prevent race conditions in concurrent initialization
+  private initializationPromise: Promise<void> | null = null;
 
   constructor(options: {
     isTestnet?: boolean;
@@ -370,34 +365,75 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * This is called on first API operation to ensure Engine.context is ready.
    * Creating the wallet adapter requires accessing Engine.context.AccountTreeController,
    * which may not be available during early app initialization.
+   *
+   * IMPORTANT: This method awaits the WebSocket transport.ready() to ensure
+   * the connection is fully established before marking initialization complete.
    */
-  private ensureClientsInitialized(): void {
+  private async ensureClientsInitialized(): Promise<void> {
     if (this.clientsInitialized) {
       return; // Already initialized
     }
 
-    const wallet = this.walletService.createWalletAdapter();
-    this.clientService.initialize(wallet);
+    // Reuse existing initialization promise if one is in progress
+    // This prevents race conditions when multiple methods call concurrently
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
 
-    // Set reconnection callback to restore subscriptions when WebSocket reconnects
-    this.clientService.setOnReconnectCallback(async () => {
-      try {
-        // Restore subscription service subscriptions
-        await this.subscriptionService.restoreSubscriptions();
-
-        const streamManager = getStreamManagerInstance();
-        streamManager.clearAllChannels();
-      } catch {
-        // Ignore errors during reconnection
+    // Create and cache the initialization promise
+    this.initializationPromise = (async () => {
+      // Double-check after acquiring the "lock"
+      if (this.clientsInitialized) {
+        return;
       }
-    });
 
-    // Only set flag AFTER successful initialization
-    this.clientsInitialized = true;
+      const wallet = this.walletService.createWalletAdapter();
+      await this.clientService.initialize(wallet);
 
-    this.deps.debugLogger.log(
-      '[HyperLiquidProvider] Clients initialized lazily',
-    );
+      // Set termination callback for logging when WebSocket terminates
+      // Note: Do NOT restore subscriptions here - termination means connection failed permanently
+      this.clientService.setOnTerminateCallback((error: Error) => {
+        this.deps.debugLogger.log(
+          '[HyperLiquidProvider] WebSocket terminated',
+          {
+            error: error.message,
+          },
+        );
+      });
+
+      // Set reconnection callback to restore subscriptions after successful reconnection
+      // This is called in handleConnectionDrop() after the WebSocket reconnects successfully
+      this.clientService.setOnReconnectCallback(async () => {
+        try {
+          this.deps.debugLogger.log(
+            '[HyperLiquidProvider] WebSocket reconnected, restoring subscriptions',
+          );
+          await this.subscriptionService.restoreSubscriptions();
+          const streamManager = getStreamManagerInstance();
+          streamManager.clearAllChannels();
+        } catch (restoreError) {
+          this.deps.debugLogger.log(
+            '[HyperLiquidProvider] Failed to restore subscriptions',
+            restoreError,
+          );
+        }
+      });
+
+      // Only set flag AFTER successful initialization
+      this.clientsInitialized = true;
+
+      this.deps.debugLogger.log(
+        '[HyperLiquidProvider] Clients initialized lazily',
+      );
+    })();
+
+    try {
+      await this.initializationPromise;
+    } finally {
+      // Clear promise after completion (success or failure)
+      // so future calls can retry if needed
+      this.initializationPromise = null;
+    }
   }
 
   /**
@@ -480,7 +516,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Create and track initialization promise
     this.ensureReadyPromise = (async () => {
       // Lazy initialization: ensure clients are created (safe after Engine.context is ready)
-      this.ensureClientsInitialized();
+      // This awaits WebSocket transport.ready() to ensure connection is established
+      await this.ensureClientsInitialized();
 
       // Verify clients are properly initialized
       this.clientService.ensureInitialized();
@@ -524,115 +561,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // The promise is only reset in disconnect() for clean reconnection
     await this.ensureReadyPromise;
     this.deps.debugLogger.log('[ensureReady] Initialization complete');
-  }
-
-  /**
-   * Get current price for a symbol using WebSocket cache first, REST API fallback
-   * Centralizes the price fetching pattern used across multiple methods
-   * @param params - Parameters for fetching price
-   * @param params.symbol - The symbol to get price for
-   * @param params.dexName - Optional DEX name for REST API fallback
-   * @returns The current price as a number
-   * @throws Error if no price is available
-   */
-  private async getOrFetchPrice(
-    params: GetOrFetchPriceParams,
-  ): Promise<number> {
-    const { symbol, dexName } = params;
-
-    // OPTIMIZATION: Use WebSocket price cache first (0 weight), fall back to REST (2 weight)
-    const cachedPrice = this.subscriptionService.getCachedPrice(symbol);
-
-    if (cachedPrice) {
-      const price = parseFloat(cachedPrice);
-      // Validate cached price: must be positive and finite
-      // Covers zero, negative, NaN, and Infinity in one check
-      if (price <= 0 || !isFinite(price)) {
-        this.deps.debugLogger.log(
-          'WebSocket cached price invalid for getOrFetchPrice, falling back to REST',
-          { symbol, cachedPrice, parsedPrice: price },
-        );
-        // Fall through to REST API fallback
-      } else {
-        this.deps.debugLogger.log('Using WebSocket cached price', {
-          symbol,
-          price,
-        });
-        return price;
-      }
-    }
-
-    // Fallback to REST API if cache miss
-    this.deps.debugLogger.log(
-      'Price cache miss for getOrFetchPrice, falling back to REST allMids',
-      { symbol },
-    );
-    const infoClient = this.clientService.getInfoClient();
-    const mids = await infoClient.allMids(
-      dexName ? { dex: dexName } : undefined,
-    );
-    const price = parseFloat(mids[symbol] || '0');
-
-    // Validate REST price: must be positive and finite
-    if (price <= 0 || !isFinite(price)) {
-      throw new Error(`Invalid price for ${symbol}: ${price}`);
-    }
-
-    return price;
-  }
-
-  /**
-   * Get fills using WebSocket cache first, falling back to REST API
-   * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss
-   *
-   * Cache limitation: WebSocket cache is limited to ~100 most recent fills.
-   * For historical data (e.g., position-opening fills from months ago), use getOrderFills directly.
-   *
-   * @param params - Optional filter parameters (startTime, symbol)
-   * @returns Array of order fills
-   */
-  public async getOrFetchFills(
-    params?: GetOrFetchFillsParams,
-  ): Promise<OrderFill[]> {
-    // Check WebSocket cache first (0 API weight)
-    const cachedFills = this.subscriptionService.getFillsCacheIfInitialized();
-
-    if (cachedFills !== null) {
-      this.deps.debugLogger.log('Using WebSocket cached fills', {
-        count: cachedFills.length,
-        params,
-      });
-      return this.filterFills(cachedFills, params);
-    }
-
-    // Fallback to REST API when cache not initialized
-    this.deps.debugLogger.log(
-      'Fills cache miss for getOrFetchFills, falling back to REST',
-      { params },
-    );
-    const restFills = await this.getOrderFills(params);
-    // Apply symbol filter to REST results for consistent API behavior
-    // Note: getOrderFills doesn't support symbol filtering natively
-    return this.filterFills(restFills, params);
-  }
-
-  /**
-   * Filter fills array by optional startTime and symbol parameters
-   * @param fills - Array of fills to filter
-   * @param params - Optional filter parameters
-   * @returns Filtered fills array
-   */
-  private filterFills(
-    fills: OrderFill[],
-    params?: { startTime?: number; symbol?: string },
-  ): OrderFill[] {
-    if (!params) return fills;
-
-    return fills.filter((fill) => {
-      if (params.startTime && fill.timestamp < params.startTime) return false;
-      if (params.symbol && fill.symbol !== params.symbol) return false;
-      return true;
-    });
   }
 
   /**
@@ -821,53 +749,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         'HyperLiquidProvider: Testnet - AUTO_DISCOVER_ALL enabled, using all DEXs',
         { totalDexCount: availableHip3Dexs.length + 1 },
       );
-    } else {
-      // Mainnet-specific filtering: Extract allowed DEXs from the allowlist patterns
-      // This reduces WebSocket subscription overhead dynamically based on feature flags
-      const { AutoDiscoverAll } = MAINNET_HIP3_CONFIG;
-
-      if (!AutoDiscoverAll) {
-        // Extract unique DEX names from allowlist patterns
-        // Patterns like "xyz:*", "xyz:TSLA", or "xyz" all indicate DEX "xyz"
-        const allowedDexsFromAllowlist = this.extractDexsFromAllowlist();
-
-        if (allowedDexsFromAllowlist.length === 0) {
-          // No HIP-3 DEXs in allowlist - main DEX only
-          this.deps.debugLogger.log(
-            'HyperLiquidProvider: Mainnet - using main DEX only (no HIP-3 DEXs in allowlist)',
-            {
-              availableHip3Dexs: availableHip3Dexs.length,
-              allowlistMarkets: this.allowlistMarkets,
-            },
-          );
-          this.cachedValidatedDexs = [null];
-          return this.cachedValidatedDexs;
-        }
-
-        // Filter to DEXs that are both available AND in the allowlist
-        const filteredDexs = availableHip3Dexs.filter((dex) =>
-          allowedDexsFromAllowlist.includes(dex),
-        );
-        this.deps.debugLogger.log(
-          'HyperLiquidProvider: Mainnet - filtered to allowlist DEXs',
-          {
-            allowedDexsFromAllowlist,
-            filteredDexs,
-            availableHip3Dexs: availableHip3Dexs.length,
-          },
-        );
-        this.cachedValidatedDexs = [null, ...filteredDexs];
-        return this.cachedValidatedDexs;
-      }
-
-      // AUTO_DISCOVER_ALL is true - proceed with all DEXs
-      this.deps.debugLogger.log(
-        'HyperLiquidProvider: Mainnet - AUTO_DISCOVER_ALL enabled, using all DEXs',
-        { totalDexCount: availableHip3Dexs.length + 1 },
-      );
     }
 
-    // Fallback: Return all DEXs (when AUTO_DISCOVER_ALL is true)
+    // Mainnet (or testnet with AUTO_DISCOVER_ALL): Return all DEXs
     // Market filtering is applied at subscription data layer
     this.deps.debugLogger.log(
       'HyperLiquidProvider: All DEXs enabled (market filtering at data layer)',
@@ -879,41 +763,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
     );
     this.cachedValidatedDexs = [null, ...availableHip3Dexs];
     return this.cachedValidatedDexs;
-  }
-
-  /**
-   * Extract unique DEX names from allowlist market patterns
-   * Patterns can be: "xyz:*" (wildcard), "xyz:TSLA" (exact), or "xyz" (DEX shorthand)
-   *
-   * @returns Array of unique DEX names from the allowlist
-   */
-  private extractDexsFromAllowlist(): string[] {
-    if (this.allowlistMarkets.length === 0) {
-      return [];
-    }
-
-    const dexNames = new Set<string>();
-
-    for (const pattern of this.allowlistMarkets) {
-      // Pattern formats:
-      // - "xyz:*" -> DEX "xyz" (wildcard)
-      // - "xyz:TSLA" -> DEX "xyz" (exact match)
-      // - "xyz" -> DEX "xyz" (shorthand)
-      const colonIndex = pattern.indexOf(':');
-      if (colonIndex > 0) {
-        // Has colon - extract DEX prefix
-        const dex = pattern.substring(0, colonIndex);
-        dexNames.add(dex);
-      } else if (pattern.length > 0 && !pattern.includes('*')) {
-        // No colon and not a wildcard - could be DEX shorthand
-        // Only add if it looks like a valid DEX name (lowercase alphanumeric)
-        if (/^[a-z][a-z0-9]*$/i.test(pattern)) {
-          dexNames.add(pattern.toLowerCase());
-        }
-      }
-    }
-
-    return Array.from(dexNames);
   }
 
   /**
@@ -975,35 +824,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Fetch spot metadata with session-based caching
-   * Contains token info (USDC, USDH indices) needed for HIP-3 collateral checks
-   * @returns SpotMetaResponse with tokens and universe data
-   */
-  private async getCachedSpotMeta(): Promise<SpotMetaResponse> {
-    if (this.cachedSpotMeta) {
-      this.deps.debugLogger.log('[getCachedSpotMeta] Using cached spotMeta', {
-        tokensCount: this.cachedSpotMeta.tokens.length,
-        universeCount: this.cachedSpotMeta.universe.length,
-      });
-      return this.cachedSpotMeta;
-    }
-
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
-
-    this.cachedSpotMeta = spotMeta;
-    this.deps.debugLogger.log(
-      '[getCachedSpotMeta] Fetched and cached spotMeta',
-      {
-        tokensCount: spotMeta.tokens.length,
-        universeCount: spotMeta.universe.length,
-      },
-    );
-
-    return spotMeta;
-  }
-
-  /**
    * Fetch perpDexs data with TTL-based caching
    * Returns deployerFeeScale info needed for dynamic fee calculation
    * @returns Array of ExtendedPerpDex objects (null entries represent main DEX)
@@ -1029,7 +849,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Fetch fresh data from API
     // Note: SDK types are incomplete, but API returns deployerFeeScale
-    this.ensureClientsInitialized();
+    await this.ensureClientsInitialized();
     const infoClient = this.clientService.getInfoClient();
     const perpDexs =
       (await infoClient.perpDexs()) as unknown as ExtendedPerpDex[];
@@ -1196,9 +1016,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return this.cachedUsdcTokenId;
     }
 
-    const spotMeta = await this.getCachedSpotMeta();
+    const infoClient = this.clientService.getInfoClient();
+    const spotMeta = await infoClient.spotMeta();
 
-    const usdcToken = spotMeta.tokens.find((tok) => tok.name === 'USDC');
+    const usdcToken = spotMeta.tokens.find((t) => t.name === 'USDC');
     if (!usdcToken) {
       throw new Error('USDC token not found in spot metadata');
     }
@@ -1217,10 +1038,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   private async isUsdhCollateralDex(dexName: string): Promise<boolean> {
     const meta = await this.getCachedMeta({ dexName });
-    const spotMeta = await this.getCachedSpotMeta();
+    const infoClient = this.clientService.getInfoClient();
+    const spotMeta = await infoClient.spotMeta();
 
     const collateralToken = spotMeta.tokens.find(
-      (tok: { index: number }) => tok.index === meta.collateralToken,
+      (t: { index: number }) => t.index === meta.collateralToken,
     );
 
     const isUsdh = collateralToken?.name === USDH_CONFIG.TOKEN_NAME;
@@ -1326,12 +1148,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         return { success: true };
       }
 
-      return { success: false, error: `Transfer failed: ${result.status}` };
+      return { success: false, error: PERPS_ERROR_CODES.TRANSFER_FAILED };
     } catch (error) {
-      const errorMsg = ensureError(
-        error,
-        'HyperLiquidProvider.transferUSDCToPerps',
-      ).message;
+      const errorMsg = error instanceof Error ? error.message : String(error);
       this.deps.debugLogger.log(
         'HyperLiquidProvider: USDC transfer to spot failed',
         {
@@ -1349,7 +1168,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private async swapUsdcToUsdh(
     amount: number,
   ): Promise<{ success: boolean; filledSize?: number; error?: string }> {
-    const spotMeta = await this.getCachedSpotMeta();
+    const infoClient = this.clientService.getInfoClient();
+    const spotMeta = await infoClient.spotMeta();
 
     // Find USDH and USDC tokens by name
     const usdhToken = spotMeta.tokens.find(
@@ -1362,7 +1182,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     if (!usdhToken || !usdcToken) {
       return {
         success: false,
-        error: 'USDH or USDC token not found in spot metadata',
+        error: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND,
       };
     }
 
@@ -1374,7 +1194,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     );
 
     if (!usdhUsdcPair) {
-      return { success: false, error: 'USDH/USDC spot pair not found' };
+      return { success: false, error: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND };
     }
 
     const spotAssetId = 10000 + usdhUsdcPair.index;
@@ -1391,7 +1211,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
     );
 
     // Get current mid price
-    const infoClient = this.clientService.getInfoClient();
     const allMids = await infoClient.allMids();
     const pairKey = `@${usdhUsdcPair.index}`;
     const usdhPrice = parseFloat(allMids[pairKey] || '1');
@@ -1399,7 +1218,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     if (usdhPrice === 0) {
       return {
         success: false,
-        error: `No price available for USDH/USDC pair (${pairKey})`,
+        error: PERPS_ERROR_CODES.PRICE_UNAVAILABLE,
       };
     }
 
@@ -1462,7 +1281,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       if (result.status !== 'ok') {
         return {
           success: false,
-          error: `Swap failed: ${JSON.stringify(result)}`,
+          error: PERPS_ERROR_CODES.SWAP_FAILED,
         };
       }
 
@@ -1488,10 +1307,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return { success: true, filledSize };
     } catch (error) {
-      const errorMsg = ensureError(
-        error,
-        'HyperLiquidProvider.swapUSDCToUSDH',
-      ).message;
+      const errorMsg = error instanceof Error ? error.message : String(error);
       this.deps.debugLogger.log('HyperLiquidProvider: USDC→USDH swap error', {
         error: errorMsg,
       });
@@ -1817,7 +1633,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Map HyperLiquid API errors to standardized PERPS_ERROR_CODES
    */
   private mapError(error: unknown): Error {
-    const message = ensureError(error, 'HyperLiquidProvider.mapError').message;
+    const message = error instanceof Error ? error.message : String(error);
 
     for (const [pattern, code] of Object.entries(this.ERROR_MAPPINGS)) {
       if (message.toLowerCase().includes(pattern.toLowerCase())) {
@@ -1826,7 +1642,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Return original error to preserve stack trace for unmapped errors
-    return ensureError(error, 'HyperLiquidProvider.mapError');
+    return error instanceof Error ? error : new Error(String(error));
   }
 
   /**
@@ -2607,6 +2423,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   ): Promise<GetAssetInfoResult> {
     const { symbol, dexName } = params;
 
+    const infoClient = this.clientService.getInfoClient();
     const meta = await this.getCachedMeta({ dexName });
 
     const assetInfo = meta.universe.find((asset) => asset.name === symbol);
@@ -2616,10 +2433,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
     }
 
-    const currentPrice = await this.getOrFetchPrice({
-      symbol,
-      dexName: dexName ?? null,
-    });
+    const mids = await infoClient.allMids({ dex: dexName ?? '' });
+    const currentPrice = parseFloat(mids[symbol] || '0');
+    if (currentPrice === 0) {
+      throw new Error(`No price available for ${symbol}`);
+    }
 
     return { assetInfo, currentPrice, meta };
   }
@@ -3099,7 +2917,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const { dex: dexName } = parseAssetName(params.newOrder.symbol);
 
       // Get asset info and prices (uses cache to avoid redundant API calls)
+      const infoClient = this.clientService.getInfoClient();
       const meta = await this.getCachedMeta({ dexName });
+      const mids = await infoClient.allMids({ dex: dexName ?? '' });
 
       // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
       const assetInfo = meta.universe.find(
@@ -3113,10 +2933,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
       }
 
-      const currentPrice = await this.getOrFetchPrice({
-        symbol: params.newOrder.symbol,
-        dexName: dexName ?? null,
-      });
+      const currentPrice = parseFloat(mids[params.newOrder.symbol] || '0');
+      if (currentPrice === 0) {
+        throw new Error(`No price available for ${params.newOrder.symbol}`);
+      }
 
       // Calculate order parameters using the same logic as placeOrder
       let orderPrice: number;
@@ -3337,7 +3157,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
           orderId: order.orderId,
           symbol: order.symbol,
           success: false,
-          error: error instanceof Error ? error.message : 'Batch cancel failed',
+          error:
+            error instanceof Error
+              ? error.message
+              : PERPS_ERROR_CODES.BATCH_CANCEL_FAILED,
         })),
       };
     }
@@ -3355,8 +3178,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Explicitly ensure builder fee approval for trading
       await this.ensureBuilderFeeApproval();
 
-      // Get all current positions from cache (avoids 429 rate limiting)
-      const positions = await this.getPositions();
+      // Get all current positions
+      // Force fresh API data (not WebSocket cache) since we're about to mutate positions
+      const positions = await this.getPositions({ skipCache: true });
 
       // Filter positions based on params
       positionsToClose =
@@ -3379,8 +3203,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         };
       }
 
-      // Get exchange client for order submission
+      // Get exchange client and meta for price/size formatting
       const exchangeClient = this.clientService.getExchangeClient();
+      const infoClient = this.clientService.getInfoClient();
 
       // Pre-fetch meta for all unique DEXs to avoid N API calls in loop
       const uniqueDexs = [
@@ -3442,10 +3267,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
           });
         }
 
-        const currentPrice = await this.getOrFetchPrice({
-          symbol: position.symbol,
-          dexName: dexName ?? null,
-        });
+        // Get current price for market order slippage
+        const mids = await infoClient.allMids({ dex: dexName ?? '' });
+        const currentPrice = parseFloat(mids[position.symbol] || '0');
+        if (currentPrice === 0) {
+          throw new Error(`No price available for ${position.symbol}`);
+        }
 
         // Calculate order price with slippage
         const slippage =
@@ -3555,7 +3382,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         results: positionsToClose.map((position) => ({
           symbol: position.symbol,
           success: false,
-          error: error instanceof Error ? error.message : 'Batch close failed',
+          error:
+            error instanceof Error
+              ? error.message
+              : PERPS_ERROR_CODES.BATCH_CLOSE_FAILED,
         })),
       };
     }
@@ -3585,45 +3415,28 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       this.deps.debugLogger.log('Updating position TP/SL:', params);
 
-      const {
-        symbol,
-        takeProfitPrice,
-        stopLossPrice,
-        position: livePosition,
-      } = params;
+      const { symbol, takeProfitPrice, stopLossPrice } = params;
 
       // Explicitly ensure builder fee approval for trading
       await this.ensureReady();
       await this.ensureBuilderFeeApproval();
 
-      // Use live position (from WebSocket) if available, otherwise fetch via REST
-      // Preferring WebSocket data avoids rate limiting issues with the REST API
-      let position: Position | undefined = livePosition;
-
-      if (!position) {
-        // Fallback: fetch positions via REST API (legacy behavior)
-        this.deps.debugLogger.log(
-          'No live position passed, falling back to REST API fetch',
+      // Get current position to validate it exists
+      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
+      let positions: Position[];
+      try {
+        positions = await this.getPositions({ skipCache: true });
+      } catch (error) {
+        this.deps.logger.error(
+          ensureError(error),
+          this.getErrorContext('updatePositionTPSL > getPositions', {
+            symbol,
+          }),
         );
-        let positions: Position[];
-        try {
-          positions = await this.getPositions({ skipCache: true });
-        } catch (error) {
-          this.deps.logger.error(
-            ensureError(error),
-            this.getErrorContext('updatePositionTPSL > getPositions', {
-              symbol,
-            }),
-          );
-          throw error;
-        }
-        position = positions.find((pos) => pos.symbol === symbol);
-      } else {
-        this.deps.debugLogger.log('Using live position from WebSocket', {
-          symbol: position.symbol,
-          size: position.size,
-        });
+        throw error;
       }
+
+      const position = positions.find((p) => p.symbol === symbol);
 
       if (!position) {
         throw new Error(`No position found for ${symbol}`);
@@ -3632,7 +3445,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const positionSize = Math.abs(parseFloat(position.size));
       const isLong = parseFloat(position.size) > 0;
 
-      // Get clients for API calls (ensureReady already called at method start)
+      await this.ensureReady();
+
+      // See ensureReady() - builder fee and referral are session-cached
+
+      // Get current price for the asset
       const infoClient = this.clientService.getInfoClient();
       const exchangeClient = this.clientService.getExchangeClient();
       const userAddress = await this.walletService.getUserAddressWithDefault();
@@ -3640,79 +3457,50 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(symbol);
 
-      // Cancel existing TP/SL orders for this position
-      // OPTIMIZATION: Use WebSocket cache first (0 weight), fall back to single-DEX REST (20 weight)
-      // Previously: queryUserDataAcrossDexs queried ALL DEXs (20 weight × N DEXs = 40+ weight)
-      const assetId = this.symbolToAssetId.get(symbol);
-      if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${symbol}`);
+      // Fetch current price for this asset's DEX
+      const mids = await infoClient.allMids(
+        dexName ? { dex: dexName } : undefined,
+      );
+      const currentPrice = parseFloat(mids[symbol] || '0');
+
+      if (currentPrice === 0) {
+        throw new Error(`No price available for ${symbol}`);
       }
 
-      let cancelRequests: { a: number; o: number }[] = [];
+      // Cancel existing TP/SL orders for this position across all DEXs
+      this.deps.debugLogger.log(
+        'Fetching open orders to cancel existing TP/SL...',
+      );
+      const orderResults = await this.queryUserDataAcrossDexs(
+        { user: userAddress },
+        (p) => infoClient.frontendOpenOrders(p),
+      );
 
-      // Use atomic getter to prevent race condition between check and get
-      const cachedOrders =
-        this.subscriptionService.getOrdersCacheIfInitialized();
+      // Combine orders from all DEXs
+      const allOrders = orderResults.flatMap((result) => result.data);
 
-      if (cachedOrders !== null) {
-        // WebSocket cache available - use it (no API call, 0 weight)
+      const tpslOrdersToCancel = allOrders.filter(
+        (order) =>
+          order.coin === symbol &&
+          order.reduceOnly === true &&
+          order.isPositionTpsl === !!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL &&
+          order.isTrigger === true &&
+          (order.orderType.includes('Take Profit') ||
+            order.orderType.includes('Stop')),
+      );
+
+      if (tpslOrdersToCancel.length > 0) {
         this.deps.debugLogger.log(
-          'Using WebSocket cache for TP/SL orders lookup',
-          { cachedOrdersCount: cachedOrders.length },
+          `Canceling ${tpslOrdersToCancel.length} existing TP/SL orders for ${symbol}`,
         );
-
-        // Filter using normalized Order type properties
-        // Note: Cached orders don't have isPositionTpsl, but we identify TP/SL orders by:
-        // - isTrigger === true
-        // - reduceOnly === true
-        // - detailedOrderType contains 'Take Profit' or 'Stop'
-        const tpslOrders = cachedOrders.filter(
-          (order) =>
-            order.symbol === symbol &&
-            order.reduceOnly === true &&
-            order.isTrigger === true &&
-            order.detailedOrderType &&
-            (order.detailedOrderType.includes('Take Profit') ||
-              order.detailedOrderType.includes('Stop')),
-        );
-
-        cancelRequests = tpslOrders.map((order) => ({
-          a: assetId,
-          o: parseInt(order.orderId, 10),
-        }));
-      } else {
-        // Fallback: Query only the specific DEX (20 weight instead of 40+)
-        this.deps.debugLogger.log(
-          'WebSocket cache not initialized, falling back to single-DEX REST query',
-          { dex: dexName || 'main' },
-        );
-
-        const orders = await infoClient.frontendOpenOrders({
-          user: userAddress,
-          dex: dexName || undefined,
-        });
-
-        // Filter using raw SDK response properties
-        const tpslOrders = orders.filter(
-          (order) =>
-            order.coin === symbol &&
-            order.reduceOnly === true &&
-            order.isPositionTpsl === !!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL &&
-            order.isTrigger === true &&
-            (order.orderType.includes('Take Profit') ||
-              order.orderType.includes('Stop')),
-        );
-
-        cancelRequests = tpslOrders.map((order) => ({
+        const assetId = this.symbolToAssetId.get(symbol);
+        if (assetId === undefined) {
+          throw new Error(`Asset ID not found for ${symbol}`);
+        }
+        const cancelRequests = tpslOrdersToCancel.map((order) => ({
           a: assetId,
           o: order.oid,
         }));
-      }
-
-      if (cancelRequests.length > 0) {
-        this.deps.debugLogger.log(
-          `Canceling ${cancelRequests.length} existing TP/SL orders for ${symbol}`,
-        );
 
         const cancelResult = await exchangeClient.cancel({
           cancels: cancelRequests,
@@ -3750,7 +3538,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
       }
 
-      // assetId already validated above when building cancelRequests
+      const assetId = this.symbolToAssetId.get(symbol);
+      if (assetId === undefined) {
+        throw new Error(`Asset ID not found for ${symbol}`);
+      }
 
       // Build orders array for TP/SL
       const orders: SDKOrderParams[] = [];
@@ -3883,13 +3674,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.ensureReady();
       await this.ensureBuilderFeeApproval();
 
-      // Use provided position (from WebSocket) or fetch from cache
-      // This avoids unnecessary API calls and prevents 429 rate limiting
-      let position = params.position;
-      if (!position) {
-        const positions = await this.getPositions();
-        position = positions.find((pos) => pos.symbol === params.symbol);
-      }
+      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
+      const positions = await this.getPositions({ skipCache: true });
+      const position = positions.find((p) => p.symbol === params.symbol);
 
       if (!position) {
         throw new Error(`No position found for ${params.symbol}`);
@@ -4026,9 +3813,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Ensure provider is ready
       await this.ensureReady();
 
-      // Get current position to determine direction (from cache to avoid 429 rate limiting)
-      const positions = await this.getPositions();
-      const position = positions.find((pos) => pos.symbol === symbol);
+      // Get current position to determine direction
+      // Force fresh API data since we're about to mutate the position
+      const positions = await this.getPositions({ skipCache: true });
+      const position = positions.find((p) => p.symbol === symbol);
 
       if (!position) {
         throw new Error(`No position found for ${symbol}`);
@@ -4120,7 +3908,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4278,6 +4066,65 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Cache-first fill retrieval with WebSocket cache fallback to REST.
+   *
+   * This method attempts to return fills from the WebSocket cache first (0 API weight),
+   * falling back to REST API when the cache is not initialized.
+   *
+   * Use cases:
+   * - Real-time fill display (most recent fills)
+   * - Stop Loss Banner editing (needs current fills)
+   *
+   * For historical data (e.g., position-opening fills from months ago), use getOrderFills directly.
+   *
+   * @param params - Optional filter parameters (startTime, symbol)
+   * @returns Array of order fills
+   */
+  public async getOrFetchFills(
+    params?: GetOrFetchFillsParams,
+  ): Promise<OrderFill[]> {
+    // Check WebSocket cache first (0 API weight)
+    const cachedFills = this.subscriptionService.getFillsCacheIfInitialized();
+
+    if (cachedFills !== null) {
+      this.deps.debugLogger.log('Using WebSocket cached fills', {
+        count: cachedFills.length,
+        params,
+      });
+      return this.filterFills(cachedFills, params);
+    }
+
+    // Fallback to REST API when cache not initialized
+    this.deps.debugLogger.log(
+      'Fills cache miss for getOrFetchFills, falling back to REST',
+      { params },
+    );
+    const restFills = await this.getOrderFills(params);
+    // Apply symbol filter to REST results for consistent API behavior
+    // Note: getOrderFills doesn't support symbol filtering natively
+    return this.filterFills(restFills, params);
+  }
+
+  /**
+   * Filter fills array by optional startTime and symbol parameters
+   * @param fills - Array of fills to filter
+   * @param params - Optional filter parameters
+   * @returns Filtered fills array
+   */
+  private filterFills(
+    fills: OrderFill[],
+    params?: { startTime?: number; symbol?: string },
+  ): OrderFill[] {
+    if (!params) return fills;
+
+    return fills.filter((fill) => {
+      if (params.startTime && fill.timestamp < params.startTime) return false;
+      if (params.symbol && fill.symbol !== params.symbol) return false;
+      return true;
+    });
+  }
+
+  /**
    * Get historical user fills (trade executions)
    */
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
@@ -4288,7 +4135,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4360,7 +4207,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4454,16 +4301,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
       // Try WebSocket cache first (unless explicitly bypassed)
-      // Use atomic getter to prevent race condition between check and get
-      if (!params?.skipCache) {
-        const cachedOrders =
-          this.subscriptionService.getOrdersCacheIfInitialized();
-        if (cachedOrders !== null) {
-          this.deps.debugLogger.log('Using cached open orders from WebSocket', {
-            count: cachedOrders.length,
-          });
-          return cachedOrders;
-        }
+      if (
+        !params?.skipCache &&
+        this.subscriptionService.isOrdersCacheInitialized()
+      ) {
+        const cachedOrders = this.subscriptionService.getCachedOrders() || [];
+        this.deps.debugLogger.log('Using cached open orders from WebSocket', {
+          count: cachedOrders.length,
+        });
+        return cachedOrders;
       }
 
       // Fallback to API call
@@ -4473,7 +4319,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4522,7 +4368,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4578,7 +4424,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }): Promise<RawHyperLiquidLedgerUpdate[]> {
     try {
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4612,7 +4458,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }): Promise<UserHistoryItem[]> {
     try {
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4647,7 +4493,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4719,7 +4565,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.deps.debugLogger.log('Getting account state via HyperLiquid SDK');
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -5030,7 +4876,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getAvailableHip3Dexs(): Promise<string[]> {
     try {
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       if (!this.hip3Enabled) {
@@ -5861,7 +5707,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         };
       }
 
-      throw new Error(`Transfer failed: ${result.status}`);
+      throw new Error(PERPS_ERROR_CODES.TRANSFER_FAILED);
     } catch (error) {
       this.deps.debugLogger.log('❌ HyperLiquidProvider: TRANSFER FAILED', {
         error: error instanceof Error ? error.message : String(error),
@@ -5979,6 +5825,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       const newIsTestnet = !this.clientService.isTestnetMode();
 
+      // Await pending initialization to prevent race condition where
+      // the IIFE sets clientsInitialized = true after we reset it
+      const pendingInit = this.initializationPromise;
+      this.initializationPromise = null;
+
+      if (pendingInit) {
+        try {
+          await pendingInit;
+        } catch {
+          // Ignore - we're switching networks anyway
+        }
+      }
+
       // Update all services
       this.clientService.setTestnetMode(newIsTestnet);
       this.walletService.setTestnetMode(newIsTestnet);
@@ -6004,7 +5863,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async initialize(): Promise<InitializeResult> {
     try {
       // Ensure clients are initialized (lazy initialization)
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       return {
         success: true,
         chainId: getChainId(this.clientService.isTestnetMode()),
@@ -6175,7 +6034,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Read-only operation: only need client initialization, not full ensureReady()
       // (no DEX abstraction, referral, or builder fee needed for metadata)
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       // Extract DEX name for API calls (main DEX = null)
@@ -6329,7 +6188,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         // Fetch fresh rates from SDK
         // Read-only operation: only need client initialization
-        this.ensureClientsInitialized();
+        await this.ensureClientsInitialized();
         this.clientService.ensureInitialized();
         const infoClient = this.clientService.getInfoClient();
         const userFees = await infoClient.userFees({
@@ -6575,15 +6434,34 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Clear session caches (ensures fresh state on reconnect/account switch)
       this.referralCheckCache.clear();
       this.builderFeeCheckCache.clear();
-      // NOTE: DexAbstractionCache is global and NOT cleared on disconnect
-      // to prevent repeated signing requests across reconnections
       this.cachedMetaByDex.clear();
-      this.cachedSpotMeta = null;
       this.perpDexsCache = { data: null, timestamp: 0 };
 
-      // Clear pending promise trackers to prevent memory leaks and ensure clean state
+      // Await pending initialization before clearing to prevent the IIFE from
+      // setting clientsInitialized = true after disconnect completes
+      const pendingInit = this.initializationPromise;
+      const pendingReady = this.ensureReadyPromise;
+
+      // Clear references first to prevent new callers from reusing
+      this.initializationPromise = null;
       this.ensureReadyPromise = null;
       this.pendingBuilderFeeApprovals.clear();
+
+      // Wait for pending operations to complete (ignore errors)
+      if (pendingInit) {
+        try {
+          await pendingInit;
+        } catch {
+          // Ignore - we're disconnecting anyway
+        }
+      }
+      if (pendingReady) {
+        try {
+          await pendingReady;
+        } catch {
+          // Ignore - we're disconnecting anyway
+        }
+      }
 
       // Reset client initialization flag so wallet adapter will be recreated with new account
       // This fixes account synchronization issue where old account's address persists in wallet adapter
@@ -6611,7 +6489,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async ping(timeoutMs?: number): Promise<void> {
     // Read-only operation: only need client initialization
-    this.ensureClientsInitialized();
+    await this.ensureClientsInitialized();
     this.clientService.ensureInitialized();
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
@@ -6662,6 +6540,40 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Get the current WebSocket connection state from the client service.
+   * Used by the UI to monitor connection health and show notifications.
+   *
+   * @returns The current WebSocket connection state
+   */
+  getWebSocketConnectionState(): WebSocketConnectionState {
+    return this.clientService.getConnectionState();
+  }
+
+  /**
+   * Subscribe to WebSocket connection state changes.
+   * The listener will be called immediately with the current state and whenever the state changes.
+   *
+   * @param listener - Callback function that receives the new connection state and reconnection attempt
+   * @returns Unsubscribe function to remove the listener
+   */
+  subscribeToConnectionState(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void {
+    return this.clientService.subscribeToConnectionState(listener);
+  }
+
+  /**
+   * Manually trigger a WebSocket reconnection attempt.
+   * Used by the UI retry button when connection is lost.
+   */
+  async reconnect(): Promise<void> {
+    return this.clientService.reconnect();
+  }
+
+  /**
    * Get list of available HIP-3 builder-deployed DEXs
    * @param _params - Optional parameters (reserved for future filters/pagination)
    * @returns Array of DEX names (empty string '' represents main DEX)
@@ -6669,7 +6581,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getAvailableDexs(_params?: GetAvailableDexsParams): Promise<string[]> {
     try {
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
