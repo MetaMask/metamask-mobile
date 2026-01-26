@@ -111,6 +111,7 @@ const MusdConversionInfoContent = ({
     tokenAddress: tokenToAddAddress,
   });
 
+  // Store the last same-chain pay token to revert to if the replacement fails.
   useEffect(() => {
     if (
       selectedPayToken?.chainId &&
@@ -143,16 +144,20 @@ const MusdConversionInfoContent = ({
       return;
     }
 
+    // If a replacement is already in flight, we don't need to run it again.
     if (isReplacementInFlight.current) {
       return;
     }
 
+    // If the selected pay token is on the same chain as the output chain,
+    // we don't need to replace the transaction.
     if (
       selectedPayToken.chainId.toLowerCase() === outputChainId.toLowerCase()
     ) {
       return;
     }
 
+    // TODO: Reminder to remove if not necessary anymore.
     replacementAttemptCount.current += 1;
 
     const runReplacement = async () => {
