@@ -51,7 +51,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={tw.style('my-[8px]')}
+      style={tw.style(isCarousel ? '' : 'my-[8px]')}
       testID={testID}
       onPress={() => {
         navigation.navigate(Routes.PREDICT.ROOT, {
@@ -65,7 +65,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
         });
       }}
     >
-      <Box twClassName="bg-muted rounded-xl">
+      <Box twClassName="bg-muted rounded-[16px]">
         {onDismiss && (
           <Box twClassName="absolute top-3 right-3 z-10">
             <ButtonIcon

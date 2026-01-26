@@ -73,7 +73,10 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
         () => {
           // When accessed from Carousel, we're outside the Predict navigator,
           // so we need to navigate through the ROOT first
-          if (resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL) {
+          if (
+            isCarousel ||
+            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL
+          ) {
             navigation.navigate(Routes.PREDICT.ROOT, {
               screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
               params: {
@@ -98,7 +101,14 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
         },
       );
     },
-    [executeGuardedAction, navigation, market, outcome, resolvedEntryPoint],
+    [
+      executeGuardedAction,
+      isCarousel,
+      resolvedEntryPoint,
+      navigation,
+      market,
+      outcome,
+    ],
   );
 
   const handleClaimPress = useCallback(async () => {
@@ -117,7 +127,8 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     0,
   );
 
-  const showBetButtons = isMarketOpen && !hasPositions && outcome;
+  const showBetButtons =
+    isMarketOpen && (!hasPositions || isCarousel) && outcome;
   const showClaimButton = hasClaimablePositions && outcome;
 
   if (isLoading) {
