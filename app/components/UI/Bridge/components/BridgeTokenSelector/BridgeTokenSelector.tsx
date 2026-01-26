@@ -191,10 +191,9 @@ export const BridgeTokenSelector: React.FC = () => {
             ? assetId
             : (assetId?.toLowerCase() as CaipAssetType);
           acc.push({
+            ...token,
             assetId: normalizedAssetId,
             name: token.name ?? '',
-            symbol: token.symbol,
-            decimals: token.decimals,
           });
         }
         return acc;
