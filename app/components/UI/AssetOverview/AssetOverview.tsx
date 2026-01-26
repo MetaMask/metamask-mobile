@@ -17,7 +17,7 @@ import {
   isCaipChainId,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
-import I18n, { strings } from '../../../../locales/i18n';
+import { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
@@ -31,21 +31,10 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
-import {
-  selectSelectedInternalAccount,
-  selectSelectedInternalAccountFormattedAddress,
-} from '../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
-import {
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-  toHexadecimal,
-  addCurrencySymbol,
-  balanceToFiatNumber,
-} from '../../../util/number';
+import { addCurrencySymbol, balanceToFiatNumber } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
@@ -79,7 +68,6 @@ import {
   isAssetFromSearch,
   selectTokenDisplayData,
 } from '../../../selectors/tokenSearchDiscoveryDataController';
-import { formatWithThreshold } from '../../../util/assets';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
@@ -93,7 +81,6 @@ import {
 import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
-import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
@@ -103,7 +90,6 @@ import {
 } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/utils/parseRampIntent';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
@@ -213,15 +199,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const selectedInternalAccountAddress = selectedInternalAccount?.address;
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const accountsByChainId = useSelector(selectAccountsByChainId);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
   const { trackEvent, createEventBuilder } = useMetrics();
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
@@ -238,11 +219,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
-  );
-
-  const multiChainTokenBalance = useSelector(selectTokensBalances);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
   );
 
   const chainId = asset.chainId as Hex;
@@ -610,10 +586,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const exchangeRate = marketDataRate ?? fetchedRate;
 
   let balance;
-  const minimumDisplayThreshold = 0.00001;
-
-  const isMultichainAsset = isNonEvmAsset;
-  const isEthOrNative = asset.isETH || asset.isNative;
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTronNative =
@@ -633,40 +605,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
   ///: END:ONLY_INCLUDE_IF
 
-  if (isMultichainAccountsState2Enabled && balanceSource != null) {
-    // When state2 is enabled and asset has balance, use it directly
+  if (balanceSource != null) {
     balance = balanceSource;
-  } else if (isMultichainAsset) {
-    balance = balanceSource
-      ? formatWithThreshold(
-          parseFloat(balanceSource),
-          minimumDisplayThreshold,
-          I18n.locale,
-          { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-        )
-      : undefined;
-  } else if (isEthOrNative) {
-    balance = renderFromWei(
-      // @ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-      accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
-    );
-  } else {
-    const multiChainTokenBalanceHex =
-      itemAddress &&
-      multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-        chainId as Hex
-      ]?.[itemAddress as Hex];
-    const tokenBalanceHex = multiChainTokenBalanceHex;
-    if (
-      !isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)
-    ) {
-      balance = asset.balance ?? undefined;
-    } else {
-      balance =
-        itemAddress && tokenBalanceHex
-          ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
-          : (asset.balance ?? undefined);
-    }
   }
 
   const convertedMultichainAssetRates =

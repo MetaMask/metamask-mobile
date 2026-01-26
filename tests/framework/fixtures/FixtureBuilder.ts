@@ -157,6 +157,26 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Enables the multichain accounts state 2 feature flag.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withMultichainAccountsState2Enabled() {
+    merge(
+      this.fixture.state.engine.backgroundState.RemoteFeatureFlagController,
+      {
+        remoteFeatureFlags: {
+          enableMultichainAccountsState2: {
+            enabled: true,
+            featureVersion: '2',
+            minimumVersion: '7.46.0',
+          },
+        },
+      },
+    );
+    return this;
+  }
+
   withSolanaFeatureSheetDisplayed() {
     if (!this.fixture.asyncState) {
       this.fixture.asyncState = {};

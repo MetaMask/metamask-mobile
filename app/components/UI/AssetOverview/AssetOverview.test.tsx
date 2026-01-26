@@ -260,13 +260,6 @@ jest.mock('../../../components/hooks/useMetrics', () => {
   };
 });
 
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 const mockAddPopularNetwork = jest
   .fn()
   .mockImplementation(() => Promise.resolve());
@@ -1604,26 +1597,16 @@ describe('AssetOverview', () => {
 
       const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
 
-      // Should display formatted Solana balance
-      expect(secondaryBalance.props.children).toBe('123.45679 SOL');
+      // Balance is displayed directly from the asset
+      expect(secondaryBalance.props.children).toBe('123.456789 SOL');
     });
   });
 
-  it('should not render Balance component when balance is undefined', () => {
-    // Given an asset with undefined balance
+  it('does not render Balance component when balance is undefined', () => {
     const assetWithNoBalance = {
       ...asset,
       balance: undefined as unknown as string,
     };
-
-    // Override the mock to enable state2 so balance stays undefined
-    const mockModule = jest.requireMock(
-      '../../../selectors/featureFlagController/multichainAccounts',
-    );
-    const originalMock = mockModule.selectMultichainAccountsState2Enabled;
-    mockModule.selectMultichainAccountsState2Enabled = jest
-      .fn()
-      .mockReturnValue(true);
 
     const { queryByTestId } = renderWithProvider(
       <AssetOverview asset={assetWithNoBalance} />,
@@ -1631,9 +1614,6 @@ describe('AssetOverview', () => {
     );
 
     expect(queryByTestId(BALANCE_TEST_ID)).toBeNull();
-
-    // Restore original mock
-    mockModule.selectMultichainAccountsState2Enabled = originalMock;
   });
 
   describe('Exchange Rate Fetching', () => {
