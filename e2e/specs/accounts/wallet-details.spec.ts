@@ -1,36 +1,25 @@
 import { SmokeAccounts } from '../../tags';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import WalletDetails from '../../pages/MultichainAccounts/WalletDetails';
 import { completeSrpQuiz } from '../multisrp/utils';
-import { defaultGanacheOptions } from '../../framework/Constants';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { defaultGanacheOptions } from '../../../tests/framework/Constants';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
-import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeAccounts('Wallet details'), () => {
   const FIRST = 0;
 
   it('goes to the wallet details, creates an account and exports srp', async () => {
-    const testSpecificMock = async (mockServer: Mockttp) => {
-      await setupRemoteFeatureFlagsMock(
-        mockServer,
-        remoteFeatureMultichainAccountsAccountDetailsV2(), // TODO: remove it after account details v2 will be enabled by default
-      );
-    };
-
     await withFixtures(
       {
         fixture: new FixtureBuilder()
           .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
           .build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await device.disableSynchronization();
