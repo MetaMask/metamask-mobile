@@ -7,10 +7,17 @@ import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem
 // Mock dependencies
 jest.mock('../../UI/Sites/hooks/useSiteData/useSitesData');
 
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: jest.requireActual('react-native').View,
-  useSafeAreaInsets: () => ({ top: 50, bottom: 34, left: 0, right: 0 }),
-}));
+const mockSafeAreaView = jest.fn();
+jest.mock('react-native-safe-area-context', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    SafeAreaView: (props: Record<string, unknown>) => {
+      mockSafeAreaView(props);
+      return <RN.View {...props} />;
+    },
+    useSafeAreaInsets: () => ({ top: 50, bottom: 34, left: 0, right: 0 }),
+  };
+});
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -131,6 +138,10 @@ const mockUseSitesData = useSitesData as jest.Mock;
 const mockRefetch = jest.fn();
 
 describe('SitesFullView', () => {
+  beforeEach(() => {
+    mockSafeAreaView.mockClear();
+  });
+
   const mockSites: SiteData[] = [
     {
       id: '1',
@@ -470,6 +481,26 @@ describe('SitesFullView', () => {
       // MetaMask should still be found
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
       expect(queryByTestId('site-item-2')).toBeNull();
+    });
+  });
+
+  describe('Platform-specific SafeAreaView edges', () => {
+    it('renders SafeAreaView with correct edges prop', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: [],
+        isLoading: false,
+        refetch: mockRefetch,
+      });
+
+      render(<SitesFullView />);
+
+      // Verify SafeAreaView was rendered with edges prop
+      expect(mockSafeAreaView).toHaveBeenCalled();
+      const safeAreaProps = mockSafeAreaView.mock.calls[0][0];
+      expect(safeAreaProps.edges).toBeDefined();
+      expect(Array.isArray(safeAreaProps.edges)).toBe(true);
+      expect(safeAreaProps.edges).toContain('left');
+      expect(safeAreaProps.edges).toContain('right');
     });
   });
 });
