@@ -14,6 +14,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
+import { replaceMusdConversionTransactionForPayToken } from '../../../../../UI/Earn/utils/replaceMusdConversionTransactionForPayToken';
 
 export function PayWithModal() {
   const { payToken, setPayToken } = useTransactionPayToken();
@@ -28,6 +29,37 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
+      const isMusdConversion =
+        transactionMeta &&
+        hasTransactionType(transactionMeta, [TransactionType.musdConversion]);
+
+      const selectedTokenChainId = token.chainId as Hex;
+      const transactionChainId = transactionMeta?.chainId;
+
+      const isChainMismatch =
+        transactionChainId &&
+        selectedTokenChainId.toLowerCase() !== transactionChainId.toLowerCase();
+
+      // For mUSD conversions, if user selects a token on a different chain,
+      // we need to recreate the transaction on the new chain instead of
+      // updating the payment token on the old transaction (which would trigger
+      // a cross-chain quote request).
+      if (isMusdConversion && isChainMismatch && transactionMeta) {
+        bottomSheetRef.current?.onCloseBottomSheet(() => {
+          replaceMusdConversionTransactionForPayToken(transactionMeta, {
+            address: token.address as Hex,
+            chainId: selectedTokenChainId,
+          }).catch((error) => {
+            console.error(
+              '[mUSD Conversion] Failed to replace transaction from PayWithModal',
+              error,
+            );
+          });
+        });
+        return;
+      }
+
+      // Default behavior: update payment token on the current transaction.
       // Call after the bottom sheet's closing animation completes.
       bottomSheetRef.current?.onCloseBottomSheet(() => {
         setPayToken({
@@ -36,7 +68,7 @@ export function PayWithModal() {
         });
       });
     },
-    [setPayToken],
+    [setPayToken, transactionMeta],
   );
 
   const tokenFilter = useCallback(
