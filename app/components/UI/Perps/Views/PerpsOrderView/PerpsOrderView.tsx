@@ -67,9 +67,13 @@ import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedS
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import PerpsErrorState, {
+  PerpsErrorType,
+} from '../../components/PerpsErrorState';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
+import PerpsLoader from '../../components/PerpsLoader';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
@@ -1756,9 +1760,12 @@ const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   const activeTransactionMeta = useTransactionMetadataRequest();
   const { depositWithConfirmation } = usePerpsTrading();
-  const isTradeWithAnyTokenEnabled = useSelector(
-    selectPerpsTradeWithAnyTokenEnabledFlag,
-  );
+
+  // Track transaction creation state
+  const [isCreatingTransaction, setIsCreatingTransaction] = useState(false);
+  const [transactionCreationError, setTransactionCreationError] =
+    useState<Error | null>(null);
+  const hasAttemptedCreationRef = useRef(false);
 
   // Get navigation params to pass to context provider
   const {
@@ -1770,27 +1777,85 @@ const PerpsOrderView: React.FC = () => {
     hideTPSL = false,
   } = route.params || {};
 
-  // Create transaction when needed (for deposit flow with trade with any token enabled)
-  useEffect(() => {
-    if (isTradeWithAnyTokenEnabled && !activeTransactionMeta) {
-      // Create transaction with skipNavigation to avoid redirect
-      // Amount will be set later when user enters deposit amount
-      depositWithConfirmation(undefined, true).catch((error) => {
-        // Silently handle error - transaction creation will be retried if needed
+  // Retry function to reset error state and attempt transaction creation again
+  const handleRetryTransactionCreation = useCallback(() => {
+    setTransactionCreationError(null);
+    setIsCreatingTransaction(true);
+    hasAttemptedCreationRef.current = false; // Allow retry
+    depositWithConfirmation(undefined, true)
+      .then(() => {
+        setIsCreatingTransaction(false);
+      })
+      .catch((error) => {
+        setIsCreatingTransaction(false);
+        setTransactionCreationError(error);
         // eslint-disable-next-line no-console
         console.error('Failed to create deposit transaction:', error);
       });
+  }, [depositWithConfirmation]);
+
+  // Create transaction when needed (for deposit flow with trade with any token enabled)
+  useEffect(() => {
+    if (
+      !activeTransactionMeta &&
+      !isCreatingTransaction &&
+      !transactionCreationError &&
+      !hasAttemptedCreationRef.current
+    ) {
+      hasAttemptedCreationRef.current = true;
+      setIsCreatingTransaction(true);
+      depositWithConfirmation(undefined, true)
+        .then(() => {
+          setIsCreatingTransaction(false);
+        })
+        .catch((error) => {
+          setIsCreatingTransaction(false);
+          setTransactionCreationError(error);
+          // eslint-disable-next-line no-console
+          console.error('Failed to create deposit transaction:', error);
+        });
     }
   }, [
-    isTradeWithAnyTokenEnabled,
     activeTransactionMeta,
     depositWithConfirmation,
+    isCreatingTransaction,
+    transactionCreationError,
   ]);
+
+  // Reset error state and creation attempt flag when transaction is successfully created
+  useEffect(() => {
+    if (activeTransactionMeta) {
+      if (transactionCreationError) {
+        setTransactionCreationError(null);
+      }
+      hasAttemptedCreationRef.current = false;
+    }
+  }, [activeTransactionMeta, transactionCreationError]);
+
+  // Show loading state while creating transaction
+  if (!activeTransactionMeta && isCreatingTransaction) {
+    return (
+      <PerpsLoader message={strings('perps.order.initializing')} fullScreen />
+    );
+  }
+
+  // Show error state if transaction creation failed
+  if (!activeTransactionMeta && transactionCreationError) {
+    return (
+      <PerpsErrorState
+        errorType={PerpsErrorType.NETWORK_ERROR}
+        onRetry={handleRetryTransactionCreation}
+      />
+    );
+  }
 
   // Don't render until transaction exists (if trade with any token is enabled)
   // This prevents blank screen while transaction is being created
-  if (isTradeWithAnyTokenEnabled && !activeTransactionMeta) {
-    return null;
+  // Note: This should not happen in normal flow, but kept as fallback
+  if (!activeTransactionMeta) {
+    return (
+      <PerpsLoader message={strings('perps.order.initializing')} fullScreen />
+    );
   }
 
   // If trade with any token is disabled, render normally without transaction requirement
