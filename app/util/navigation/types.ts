@@ -722,6 +722,8 @@ export type RootParamList = {
     | {
         amountWei?: string;
         amountFiat?: string;
+        amount?: string;
+        maxValueMode?: boolean;
         params?: {
           maxValueMode?: boolean;
         };
@@ -733,7 +735,13 @@ export type RootParamList = {
         outputChainId?: string;
       }
     | undefined;
-  NoHeaderConfirmations: undefined;
+  NoHeaderConfirmations:
+    | {
+        amount?: string;
+        loader?: object;
+        maxValueMode?: boolean;
+      }
+    | undefined;
 
   // Token Sort
   TokenSortBottomSheet: undefined;
@@ -835,7 +843,7 @@ export type RootParamList = {
   RevealSRPCredential: undefined;
   SRPRevealQuizInMultichainAccountDetails:
     | {
-        keyringId?: string | object;
+        keyringId?: string | number | boolean | object | unknown[];
       }
     | undefined;
   SmartAccount: undefined;
