@@ -1,19 +1,19 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../framework/types';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import QuoteView from '../../pages/swaps/QuoteView';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from './helpers/bridge-mocks';
-import SoftAssert from '../../framework/SoftAssert';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import SoftAssert from '../../../tests/framework/SoftAssert';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',

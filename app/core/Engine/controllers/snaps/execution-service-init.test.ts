@@ -66,6 +66,7 @@ describe('ExecutionServiceInit', () => {
         setupProviderConnection,
       }));
 
+      // @ts-expect-error The stream type doesn't match because of a version mismatch.
       setupSnapProvider(snapId, connectionStream);
 
       expect(setupProviderConnection).toHaveBeenCalled();

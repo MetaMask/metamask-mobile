@@ -25,6 +25,7 @@ import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 import { MusdConversionInfo } from '../info/musd-conversion-info';
+import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -81,6 +82,8 @@ const Info = ({ route }: InfoProps) => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { isSigningQRObject } = useQRHardwareContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
+  // Refresh STX liveness for the transaction's network
+  useRefreshSmartTransactionsLiveness(transactionMetadata?.chainId);
 
   if (!approvalRequest?.type) {
     return null;

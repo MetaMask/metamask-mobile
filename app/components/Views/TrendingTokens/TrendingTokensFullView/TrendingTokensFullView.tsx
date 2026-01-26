@@ -10,6 +10,7 @@ import {
   View,
   TouchableOpacity,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAppThemeFromContext } from '../../../../util/theme';
@@ -42,6 +43,7 @@ import {
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
+import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -69,24 +71,26 @@ const createStyles = (theme: Theme) =>
       paddingRight: 16,
     },
     controlBarWrapper: {
-      flexDirection: 'row',
       paddingVertical: 16,
       paddingHorizontal: 16,
-      justifyContent: 'space-between',
+      flexGrow: 0,
+    },
+    controlBarScrollView: {
+      flexGrow: 0,
       alignItems: 'center',
-      alignSelf: 'stretch',
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
-      flex: 1,
       justifyContent: 'space-between',
       alignItems: 'center',
+      minWidth: '100%',
     },
     controlButtonInnerWrapper: {
       flexDirection: 'row',
       gap: 8,
       alignItems: 'center',
       flexShrink: 0,
+      marginLeft: 8,
     },
     controlButton: {
       paddingVertical: 8,
@@ -203,7 +207,11 @@ const TrendingTokensFullView = () => {
     data: searchResults,
     isLoading,
     refetch: refetchTokensSection,
-  } = useTrendingSearch(searchQuery || undefined, sortBy, selectedNetwork);
+  } = useTrendingSearch({
+    searchQuery: searchQuery || undefined,
+    sortBy,
+    chainIds: selectedNetwork,
+  });
 
   // Sort and display tokens based on selected option and direction
   const trendingTokens = useMemo(() => {
@@ -297,7 +305,7 @@ const TrendingTokensFullView = () => {
   }, [selectedPriceChangeOption]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       <View
         style={[
           styles.headerContainer,
@@ -317,7 +325,12 @@ const TrendingTokensFullView = () => {
         />
       </View>
       {!isSearchVisible ? (
-        <View style={styles.controlBarWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.controlBarScrollView}
+          style={styles.controlBarWrapper}
+        >
           <View style={styles.controlButtonOuterWrapper}>
             <TouchableOpacity
               testID="price-change-button"
@@ -381,7 +394,7 @@ const TrendingTokensFullView = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </ScrollView>
       ) : null}
 
       {isLoading ? (
@@ -391,7 +404,11 @@ const TrendingTokensFullView = () => {
           ))}
         </View>
       ) : (searchResults as TrendingAsset[]).length === 0 ? (
-        <EmptyErrorTrendingState onRetry={handleRefresh} />
+        searchQuery.trim().length > 0 ? (
+          <EmptySearchResultState />
+        ) : (
+          <EmptyErrorTrendingState onRetry={handleRefresh} />
+        )
       ) : (
         <View style={styles.listContainer}>
           <TrendingTokensList

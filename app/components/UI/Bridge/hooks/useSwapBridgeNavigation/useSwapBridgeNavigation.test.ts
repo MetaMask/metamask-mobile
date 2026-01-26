@@ -126,7 +126,7 @@ jest.mock('../../utils/tokenUtils', () => ({
 
 describe('useSwapBridgeNavigation', () => {
   const mockChainId = '0x1' as Hex;
-  const mockLocation = SwapBridgeNavigationLocation.TabBar;
+  const mockLocation = SwapBridgeNavigationLocation.MainView;
   const mockSourcePage = 'test-source-page';
   const mockNativeAsset = {
     address: '0x0000000000000000000000000000000000000000',
@@ -1058,11 +1058,11 @@ describe('useSwapBridgeNavigation', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('tracks action button click with correct properties when location is TabBar', () => {
+    it('tracks action button click with correct properties when location is MainView', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TabBar,
+            location: SwapBridgeNavigationLocation.MainView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1074,7 +1074,7 @@ describe('useSwapBridgeNavigation', () => {
         MetaMetricsEvents.ACTION_BUTTON_CLICKED,
       );
 
-      // When location is TabBar, action_position is omitted and location is navbar
+      // When location is MainView, action_position is omitted and location is navbar
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: ActionButtonType.SWAP,
         button_label: 'Swap',
@@ -1085,31 +1085,11 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
     });
 
-    it('tracks action button click with correct properties when location is TokenDetails', () => {
+    it('tracks action button click with correct properties when location is TokenView', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenDetails,
-            sourcePage: mockSourcePage,
-          }),
-        { state: initialState },
-      );
-
-      result.current.goToSwaps();
-
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SECOND_POSITION,
-        button_label: 'Swap',
-        location: ActionLocation.ASSET_DETAILS,
-      });
-    });
-
-    it('tracks action button click when location is Swaps', () => {
-      const { result } = renderHookWithProvider(
-        () =>
-          useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.Swaps,
+            location: SwapBridgeNavigationLocation.TokenView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1149,7 +1129,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TabBar,
+            location: SwapBridgeNavigationLocation.MainView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1176,7 +1156,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenDetails,
+            location: SwapBridgeNavigationLocation.TokenView,
             sourcePage: mockSourcePage,
             sourceToken: mockToken,
           }),
