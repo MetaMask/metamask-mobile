@@ -7,15 +7,44 @@ import { Duplex } from 'stream';
 import SnapBridge from './SnapBridge';
 import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
 import { setupMultiplex } from '../../util/streams';
+import Engine from '../Engine/Engine';
 
 jest.mock('../Engine/Engine', () => ({
   ...jest.requireActual('../Engine/Engine'),
   controllerMessenger: {
-    call: jest.fn(),
+    call: jest.fn().mockImplementation((action) => {
+      if (action === 'AccountsController:listAccounts') {
+        return [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
+            metadata: {
+              name: 'Test Account 1',
+              lastSelected: 1,
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+          },
+        ];
+      }
+    }),
   },
   context: {
     AccountsController: {
-      listAccounts: jest.fn(),
+      listAccounts: jest.fn().mockReturnValue([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
+          metadata: {
+            name: 'Test Account 1',
+            lastSelected: 1,
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+        },
+      ]),
     },
     ApprovalController: {
       addAndShowApprovalRequest: jest.fn(),
@@ -44,7 +73,9 @@ jest.mock('../Engine/Engine', () => ({
             next: JsonRpcEngineNextCallback,
           ) => next(),
         ),
-      getPermissions: jest.fn(),
+      getPermissions: jest.fn().mockReturnValue({
+        'endowment:ethereum-provider': {},
+      }),
       hasPermission: jest.fn(),
       getCaveat: jest.fn(),
       updateCaveat: jest.fn(),
@@ -52,6 +83,10 @@ jest.mock('../Engine/Engine', () => ({
       revokePermission: jest.fn(),
     },
   },
+}));
+
+jest.mock('../SnapKeyring/utils/snaps', () => ({
+  isSnapPreinstalled: (snapId: SnapId) => snapId.includes('preinstalled'),
 }));
 
 function createBridge(snapId = 'npm:@metamask/example-snap' as SnapId) {
@@ -146,5 +181,27 @@ describe('SnapBridge', () => {
         locked: false,
       }),
     });
+  });
+
+  it('automatically grants permissions to preinstalled Snaps', async () => {
+    const snapId = 'npm:@metamask/preinstalled-example-snap' as SnapId;
+    const { request } = createBridge(snapId);
+
+    await request({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'eth_blockNumber',
+      params: [],
+    });
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'PermissionController:grantPermissions',
+      {
+        approvedPermissions: {
+          'endowment:caip25': expect.any(Object),
+        },
+        subject: { origin: snapId },
+      },
+    );
   });
 });

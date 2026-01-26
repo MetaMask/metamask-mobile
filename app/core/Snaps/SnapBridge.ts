@@ -179,6 +179,7 @@ export default class SnapBridge {
 
     const providerStream = createEngineStream({ engine });
 
+    /* istanbul ignore next 2 */
     pump(stream, providerStream, stream, (error: Error | null) => {
       engine.destroy();
 
