@@ -1,11 +1,12 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { StyleSheet, View, RefreshControl } from 'react-native';
+import { Platform, StyleSheet, View, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 // eslint-disable-next-line no-duplicate-imports
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
+  type Edge,
 } from 'react-native-safe-area-context';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { Theme } from '../../../util/theme/models';
@@ -32,17 +33,14 @@ const createStyles = (theme: Theme) =>
     },
   });
 
+const safeAreaEdges: Edge[] =
+  Platform.OS === 'android' ? ['left', 'right', 'bottom'] : ['left', 'right'];
+
 const SitesFullView: React.FC = () => {
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
-
-  const safeAreaStyle = useMemo(
-    () => [styles.safeArea, { paddingBottom: insets.bottom }],
-    [styles.safeArea, insets.bottom],
-  );
-
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -95,7 +93,7 @@ const SitesFullView: React.FC = () => {
   }, [isSearchActive, searchQuery]);
 
   return (
-    <SafeAreaView style={safeAreaStyle} edges={['left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
       <View
         style={[
           styles.headerContainer,

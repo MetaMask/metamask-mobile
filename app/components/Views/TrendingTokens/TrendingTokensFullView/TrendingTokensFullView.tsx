@@ -4,8 +4,10 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import {
   SafeAreaView,
   useSafeAreaInsets,
+  type Edge,
 } from 'react-native-safe-area-context';
 import {
+  Platform,
   StyleSheet,
   View,
   TouchableOpacity,
@@ -119,18 +121,15 @@ const createStyles = (theme: Theme) =>
     },
   });
 
+const safeAreaEdges: Edge[] =
+  Platform.OS === 'android' ? ['left', 'right', 'bottom'] : ['left', 'right'];
+
 const TrendingTokensFullView = () => {
   const navigation =
     useNavigation<StackNavigationProp<TrendingTokensNavigationParamList>>();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
-
-  const safeAreaStyle = useMemo(
-    () => [styles.safeArea, { paddingBottom: insets.bottom }],
-    [styles.safeArea, insets.bottom],
-  );
-
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
   const [selectedTimeOption, setSelectedTimeOption] = useState<TimeOption>(
     TimeOption.TwentyFourHours,
@@ -307,7 +306,7 @@ const TrendingTokensFullView = () => {
   }, [selectedPriceChangeOption]);
 
   return (
-    <SafeAreaView style={safeAreaStyle} edges={['left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
       <View
         style={[
           styles.headerContainer,
