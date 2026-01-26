@@ -98,7 +98,7 @@ export type RootParamList = {
   // Asset Screens
   Asset:
     | (TokenI & {
-        chainId?: string;
+        chainId?: string | `0x${string}`;
         isFromSearch?: boolean;
         isFromTrending?: boolean;
         pricePercentChange1d?: number;
@@ -453,6 +453,7 @@ export type RootParamList = {
     | {
         isFromDeeplink?: boolean;
         isFromGTMModal?: boolean;
+        source?: string;
       }
     | undefined;
   PerpsModalsRoot: undefined;
@@ -462,7 +463,27 @@ export type RootParamList = {
   PerpsFundingTransaction: PerpsRouteParams<'PerpsFundingTransaction'>;
   PerpsMarketDetails: object | undefined;
   PerpsMarketListView: undefined;
-  PerpsTrendingView: undefined;
+  PerpsTrendingView:
+    | {
+        source?: string;
+        variant?: 'full' | 'minimal';
+        title?: string;
+        showBalanceActions?: boolean;
+        showBottomNav?: boolean;
+        defaultSearchVisible?: boolean;
+        showWatchlistOnly?: boolean;
+        defaultMarketTypeFilter?:
+          | 'crypto'
+          | 'equity'
+          | 'commodity'
+          | 'forex'
+          | 'all'
+          | 'stocks_and_commodities';
+        fromHome?: boolean;
+        button_clicked?: string;
+        button_location?: string;
+      }
+    | undefined;
   PerpsOrder: undefined;
   PerpsWithdraw: undefined;
   PerpsPositions: undefined;
@@ -474,7 +495,13 @@ export type RootParamList = {
   PerpsSelectAdjustMarginAction: undefined;
   PerpsSelectOrderType: undefined;
   PerpsOrderDetailsView: undefined;
-  PerpsPnlHeroCard: undefined;
+  PerpsPnlHeroCard:
+    | {
+        position?: object;
+        marketPrice?: string;
+        source?: string;
+      }
+    | undefined;
   PerpsActivity: undefined;
   PerpsOrderBook: undefined;
   PerpsClosePositionModals:

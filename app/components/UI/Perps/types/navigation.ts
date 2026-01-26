@@ -152,10 +152,13 @@ export interface PerpsNavigationParamList extends ParamListBase {
     transaction: PerpsTransaction;
   };
 
-  PerpsTutorial: {
-    isFromDeeplink?: boolean;
-    isFromGTMModal?: boolean;
-  };
+  PerpsTutorial:
+    | {
+        isFromDeeplink?: boolean;
+        isFromGTMModal?: boolean;
+        source?: string;
+      }
+    | undefined;
 
   // TP/SL screen
   PerpsTPSL: {
@@ -210,15 +213,27 @@ export interface PerpsNavigationParamList extends ParamListBase {
   Perps: undefined;
 
   // Trending view (market list variant)
-  PerpsTrendingView: {
-    defaultMarketTypeFilter?:
-      | 'crypto'
-      | 'equity'
-      | 'commodity'
-      | 'forex'
-      | 'all'
-      | 'stocks_and_commodities';
-  };
+  PerpsTrendingView:
+    | {
+        source?: string;
+        variant?: 'full' | 'minimal';
+        title?: string;
+        showBalanceActions?: boolean;
+        showBottomNav?: boolean;
+        defaultSearchVisible?: boolean;
+        showWatchlistOnly?: boolean;
+        defaultMarketTypeFilter?:
+          | 'crypto'
+          | 'equity'
+          | 'commodity'
+          | 'forex'
+          | 'all'
+          | 'stocks_and_commodities';
+        fromHome?: boolean;
+        button_clicked?: string;
+        button_location?: string;
+      }
+    | undefined;
 
   // Debug view (development only)
   PerpsHIP3Debug: undefined;
