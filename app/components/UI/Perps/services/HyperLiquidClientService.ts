@@ -978,6 +978,12 @@ export class HyperLiquidClientService {
         await this.onReconnectCallback();
       }
 
+      // Cancel any pending retry timeout from previous failed attempts
+      if (this.reconnectionRetryTimeout) {
+        clearTimeout(this.reconnectionRetryTimeout);
+        this.reconnectionRetryTimeout = null;
+      }
+
       this.updateConnectionState(WebSocketConnectionState.CONNECTED);
       this.isReconnecting = false;
     } catch {
@@ -994,14 +1000,15 @@ export class HyperLiquidClientService {
       }
 
       // Reconnection failed - schedule a retry after a delay
-      // Stay in CONNECTING state to indicate we're still trying
       // Store timeout reference so it can be cancelled on intentional disconnect
       this.reconnectionRetryTimeout = setTimeout(() => {
         this.reconnectionRetryTimeout = null; // Clear reference after execution
         // Only retry if we haven't been intentionally disconnected
         // and no manual reconnect() is already in progress
+        // Note: State may be CONNECTING or DISCONNECTED (if terminate event fired during reconnect)
         if (
-          this.connectionState === WebSocketConnectionState.CONNECTING &&
+          (this.connectionState === WebSocketConnectionState.CONNECTING ||
+            this.connectionState === WebSocketConnectionState.DISCONNECTED) &&
           !this.disconnectionPromise &&
           !this.isReconnecting
         ) {
