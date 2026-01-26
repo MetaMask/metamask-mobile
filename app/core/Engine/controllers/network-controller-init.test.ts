@@ -20,12 +20,16 @@ import {
 } from '@metamask/network-controller';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { trackEvent } from '../utils/analytics';
+import { buildAndTrackEvent } from '../utils/analytics';
 import {
   onRpcEndpointUnavailable,
   onRpcEndpointDegraded,
 } from './network-controller/messenger-action-handlers';
-import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
+import type {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+  JsonMap,
+} from '../../../core/Analytics/MetaMetrics.types';
 
 jest.mock('@metamask/network-controller');
 jest.mock('../utils/analytics');
@@ -204,8 +208,8 @@ describe('networkControllerInit', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  describe('trackEvent integration', () => {
-    it('calls trackEvent when NetworkController:rpcEndpointUnavailable event is published', () => {
+  describe('buildAndTrackEvent integration', () => {
+    it('calls buildAndTrackEvent when NetworkController:rpcEndpointUnavailable event is published', () => {
       const baseMessenger = new ExtendedMessenger<
         MockAnyNamespace,
         never,
@@ -215,7 +219,10 @@ describe('networkControllerInit', () => {
       });
       const initRequest = getInitRequestMock(baseMessenger);
       let capturedTrackEvent:
-        | ((event: AnalyticsTrackingEvent) => void)
+        | ((options: {
+            event: IMetaMetricsEvent | ITrackingEvent;
+            properties: JsonMap;
+          }) => void)
         | undefined;
 
       jest.mocked(onRpcEndpointUnavailable).mockImplementation((args) => {
@@ -234,23 +241,21 @@ describe('networkControllerInit', () => {
       expect(onRpcEndpointUnavailable).toHaveBeenCalled();
       expect(capturedTrackEvent).toBeDefined();
 
-      // Call the captured trackEvent function to verify it calls the utility
-      // Create a mock AnalyticsTrackingEvent (using type assertion since getters aren't easily mockable)
+      // Call the captured trackEvent function to verify it calls buildAndTrackEvent
       const testEvent = {
-        name: 'test-event',
-        properties: { testProperty: 'test-value' },
-        sensitiveProperties: {},
-        saveDataRecording: false,
-      } as unknown as AnalyticsTrackingEvent;
-      capturedTrackEvent?.(testEvent);
+        category: 'Test Event',
+      };
+      const testProperties = { testProperty: 'test-value' };
+      capturedTrackEvent?.({ event: testEvent, properties: testProperties });
 
-      expect(trackEvent).toHaveBeenCalledWith(
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
         initRequest.initMessenger,
         testEvent,
+        testProperties,
       );
     });
 
-    it('calls trackEvent when NetworkController:rpcEndpointDegraded event is published', () => {
+    it('calls buildAndTrackEvent when NetworkController:rpcEndpointDegraded event is published', () => {
       const baseMessenger = new ExtendedMessenger<
         MockAnyNamespace,
         never,
@@ -260,7 +265,10 @@ describe('networkControllerInit', () => {
       });
       const initRequest = getInitRequestMock(baseMessenger);
       let capturedTrackEvent:
-        | ((event: AnalyticsTrackingEvent) => void)
+        | ((options: {
+            event: IMetaMetricsEvent | ITrackingEvent;
+            properties: JsonMap;
+          }) => void)
         | undefined;
 
       jest.mocked(onRpcEndpointDegraded).mockImplementation((args) => {
@@ -279,23 +287,21 @@ describe('networkControllerInit', () => {
       expect(onRpcEndpointDegraded).toHaveBeenCalled();
       expect(capturedTrackEvent).toBeDefined();
 
-      // Call the captured trackEvent function to verify it calls the utility
-      // Create a mock AnalyticsTrackingEvent (using type assertion since getters aren't easily mockable)
+      // Call the captured trackEvent function to verify it calls buildAndTrackEvent
       const testEvent = {
-        name: 'test-event',
-        properties: { testProperty: 'test-value' },
-        sensitiveProperties: {},
-        saveDataRecording: false,
-      } as unknown as AnalyticsTrackingEvent;
-      capturedTrackEvent?.(testEvent);
+        category: 'Test Event',
+      };
+      const testProperties = { testProperty: 'test-value' };
+      capturedTrackEvent?.({ event: testEvent, properties: testProperties });
 
-      expect(trackEvent).toHaveBeenCalledWith(
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
         initRequest.initMessenger,
         testEvent,
+        testProperties,
       );
     });
 
-    it('calls trackEvent with empty properties when properties are not provided in rpcEndpointUnavailable', () => {
+    it('calls buildAndTrackEvent with empty properties when properties are not provided in rpcEndpointUnavailable', () => {
       const baseMessenger = new ExtendedMessenger<
         MockAnyNamespace,
         never,
@@ -305,7 +311,10 @@ describe('networkControllerInit', () => {
       });
       const initRequest = getInitRequestMock(baseMessenger);
       let capturedTrackEvent:
-        | ((event: AnalyticsTrackingEvent) => void)
+        | ((options: {
+            event: IMetaMetricsEvent | ITrackingEvent;
+            properties: JsonMap;
+          }) => void)
         | undefined;
 
       jest.mocked(onRpcEndpointUnavailable).mockImplementation((args) => {
@@ -321,18 +330,17 @@ describe('networkControllerInit', () => {
         error: new Error('Test error'),
       });
 
-      // Call the captured trackEvent function with no properties
-      const testEventEmpty = {
-        name: 'test-event',
-        properties: {},
-        sensitiveProperties: {},
-        saveDataRecording: false,
-      } as unknown as AnalyticsTrackingEvent;
-      capturedTrackEvent?.(testEventEmpty);
+      // Call the captured trackEvent function with empty properties
+      const testEvent = {
+        category: 'Test Event',
+      };
+      const testProperties = {};
+      capturedTrackEvent?.({ event: testEvent, properties: testProperties });
 
-      expect(trackEvent).toHaveBeenCalledWith(
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
         initRequest.initMessenger,
-        testEventEmpty,
+        testEvent,
+        testProperties,
       );
     });
   });
