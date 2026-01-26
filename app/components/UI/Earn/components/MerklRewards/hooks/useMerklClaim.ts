@@ -117,6 +117,12 @@ export const useMerklClaim = ({
         type: TransactionType.stakingClaim,
       });
 
+      // transactionMeta can be undefined if user cancels before tx is created
+      if (!transactionMeta) {
+        setIsClaiming(false);
+        return undefined;
+      }
+
       const { id: transactionId } = transactionMeta;
 
       // Set up listeners BEFORE awaiting result to avoid race condition
@@ -128,16 +134,18 @@ export const useMerklClaim = ({
           setIsClaiming(false);
           onTransactionConfirmedRef.current?.();
         },
-        (txMeta) => txMeta.id === transactionId,
+        (txMeta) => txMeta?.id === transactionId,
       );
 
       const unsubFailed = Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionFailed',
-        ({ transactionMeta: txMeta }) => {
+        (payload) => {
           setIsClaiming(false);
-          setError(txMeta.error?.message ?? 'Transaction failed');
+          setError(
+            payload?.transactionMeta?.error?.message ?? 'Transaction failed',
+          );
         },
-        ({ transactionMeta: txMeta }) => txMeta.id === transactionId,
+        (payload) => payload?.transactionMeta?.id === transactionId,
       );
 
       // Also listen for dropped transactions - on some networks/RPC providers,
@@ -150,7 +158,7 @@ export const useMerklClaim = ({
           setIsClaiming(false);
           onTransactionConfirmedRef.current?.();
         },
-        ({ transactionMeta: txMeta }) => txMeta.id === transactionId,
+        (payload) => payload?.transactionMeta?.id === transactionId,
       );
 
       // Store unsubscribe functions for cleanup if component unmounts before tx completes

@@ -8,8 +8,8 @@ import {
   useMerklRewards,
 } from './hooks/useMerklRewards';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../../core/Engine';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { BigNumber } from 'ethers';
+import { fetchEvmAtomicBalance } from '../../../Bridge/hooks/useLatestBalance';
 
 jest.mock('./hooks/useMerklRewards');
 
@@ -28,20 +28,14 @@ jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
 }));
 
-jest.mock('../../../../../util/number', () => ({
-  renderFromTokenMinimalUnit: jest.fn(() => '100'),
+// Mock fetchEvmAtomicBalance from useLatestBalance
+jest.mock('../../../Bridge/hooks/useLatestBalance', () => ({
+  fetchEvmAtomicBalance: jest.fn(),
 }));
 
-const mockUpdateBalances = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokenBalancesController: {
-      state: {
-        tokenBalances: {},
-      },
-      updateBalances: jest.fn().mockResolvedValue(undefined),
-    },
-  },
+// Mock getProviderByChainId
+jest.mock('../../../../../util/notifications/methods/common', () => ({
+  getProviderByChainId: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -109,10 +103,8 @@ const mockUseMerklRewards = useMerklRewards as jest.MockedFunction<
   typeof useMerklRewards
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockRenderFromTokenMinimalUnit =
-  renderFromTokenMinimalUnit as jest.MockedFunction<
-    typeof renderFromTokenMinimalUnit
-  >;
+const mockedFetchEvmAtomicBalance =
+  fetchEvmAtomicBalance as jest.MockedFunction<typeof fetchEvmAtomicBalance>;
 
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
 
@@ -144,42 +136,13 @@ const mockAsset: TokenI = {
   isNative: false,
 };
 
-// Helper to set up Engine mock with token balances
-const setupEngineMock = (balanceHex?: string) => {
-  const addressLower = mockSelectedAddress.toLowerCase();
-  const tokenAddressLower = mockAsset.address?.toLowerCase() ?? '';
-  const chainId = mockAsset.chainId as string;
-
-  const tokenBalances = balanceHex
-    ? {
-        [addressLower]: {
-          [chainId]: {
-            [tokenAddressLower]: balanceHex,
-          },
-        },
-      }
-    : {};
-
-  // Use Object.defineProperty to override the read-only context
-  Object.defineProperty(Engine, 'context', {
-    value: {
-      TokenBalancesController: {
-        state: { tokenBalances },
-        updateBalances: mockUpdateBalances,
-      },
-    },
-    writable: true,
-    configurable: true,
-  });
-};
-
 describe('MerklRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     capturedOnClaimSuccess = null;
     mockUseSelector.mockReturnValue(mockSelectedAddress);
-    setupEngineMock();
+    mockedFetchEvmAtomicBalance.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -315,6 +278,7 @@ describe('MerklRewards', () => {
       // Advance timers
       await jest.advanceTimersByTimeAsync(2000);
 
+      expect(mockedFetchEvmAtomicBalance).not.toHaveBeenCalled();
       expect(mockSetParams).not.toHaveBeenCalled();
     });
 
@@ -339,52 +303,17 @@ describe('MerklRewards', () => {
       // Advance timers
       await jest.advanceTimersByTimeAsync(2000);
 
+      expect(mockedFetchEvmAtomicBalance).not.toHaveBeenCalled();
       expect(mockSetParams).not.toHaveBeenCalled();
     });
 
     it('updates navigation params when balance changes', async () => {
       jest.useRealTimers();
 
-      const initialBalance = '0x100';
-      const newBalance = '0x200';
-      let callCount = 0;
-
-      // Setup Engine to return different balances
-      const addressLower = mockSelectedAddress.toLowerCase();
-      const tokenAddressLower = mockAsset.address?.toLowerCase() ?? '';
-      const chainId = mockAsset.chainId as string;
-
-      const tokenBalances: Record<
-        string,
-        Record<string, Record<string, string>>
-      > = {
-        [addressLower]: {
-          [chainId]: {
-            [tokenAddressLower]: initialBalance,
-          },
-        },
-      };
-
-      Object.defineProperty(Engine, 'context', {
-        value: {
-          TokenBalancesController: {
-            state: { tokenBalances },
-            updateBalances: jest.fn().mockImplementation(() => {
-              callCount++;
-              // After first call, update the balance
-              if (callCount >= 1) {
-                tokenBalances[addressLower][chainId][tokenAddressLower] =
-                  newBalance;
-              }
-              return Promise.resolve();
-            }),
-          },
-        },
-        writable: true,
-        configurable: true,
-      });
-
-      mockRenderFromTokenMinimalUnit.mockReturnValue('512');
+      // Mock fetchEvmAtomicBalance to return a new balance (different from asset.balance)
+      // asset.balance is '1000', so new balance should be different
+      const newBalanceAtomic = BigNumber.from('2000000000000000000000'); // 2000 tokens
+      mockedFetchEvmAtomicBalance.mockResolvedValue(newBalanceAtomic);
 
       const mockClearReward = jest.fn();
       const mockRefetchWithRetry = jest.fn().mockResolvedValue(undefined);
@@ -406,15 +335,46 @@ describe('MerklRewards', () => {
       await waitFor(
         () => {
           expect(mockSetParams).toHaveBeenCalledWith({
-            balance: '512',
+            balance: '2000.0',
           });
         },
         { timeout: 5000 },
       );
     });
 
-    it('returns undefined from getCurrentBalanceHex when tokenBalances is empty', () => {
-      setupEngineMock(); // Empty balances
+    it('does not update navigation params when balance has not changed', async () => {
+      // Mock fetchEvmAtomicBalance to return the same balance as asset.balance
+      // asset.balance is '1000', so return equivalent atomic value
+      const sameBalanceAtomic = BigNumber.from('1000000000000000000000'); // 1000 tokens
+      mockedFetchEvmAtomicBalance.mockResolvedValue(sameBalanceAtomic);
+
+      const mockClearReward = jest.fn();
+      const mockRefetchWithRetry = jest.fn().mockResolvedValue(undefined);
+
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      mockUseMerklRewards.mockReturnValue(
+        createMockUseMerklRewardsReturn('1.5', {
+          clearReward: mockClearReward,
+          refetchWithRetry: mockRefetchWithRetry,
+        }),
+      );
+
+      render(<MerklRewards asset={mockAsset} />);
+
+      // Trigger claim success
+      capturedOnClaimSuccess?.();
+
+      // Advance through all retries (5 retries * 2000ms delay)
+      for (let i = 0; i < 5; i++) {
+        await jest.advanceTimersByTimeAsync(2000);
+      }
+
+      // Should not update params since balance didn't change
+      expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('does not update balance when fetchEvmAtomicBalance returns undefined', async () => {
+      mockedFetchEvmAtomicBalance.mockResolvedValue(undefined);
       mockUseSelector.mockReturnValue(mockSelectedAddress);
 
       mockIsEligibleForMerklRewards.mockReturnValue(true);
@@ -424,8 +384,11 @@ describe('MerklRewards', () => {
 
       render(<MerklRewards asset={mockAsset} />);
 
-      // Trigger claim success - should not crash
+      // Trigger claim success
       capturedOnClaimSuccess?.();
+
+      // Advance through all retries
+      await jest.advanceTimersByTimeAsync(2000 * 5);
 
       // Should not call setParams since balance is undefined
       expect(mockSetParams).not.toHaveBeenCalled();
