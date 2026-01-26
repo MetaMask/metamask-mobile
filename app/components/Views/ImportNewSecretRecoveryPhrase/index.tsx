@@ -25,7 +25,6 @@ import { strings } from '../../../../locales/i18n';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import { ImportSRPIDs } from './SRPImport.testIds';
-import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import Text, {
   TextVariant,
   TextColor,
@@ -43,11 +42,8 @@ import {
 } from '../../../component-library/components/Toast';
 import { useSelector } from 'react-redux';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
-import useMetrics from '../../hooks/useMetrics/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
-import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import Routes from '../../../constants/navigation/Routes';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
@@ -88,7 +84,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
   const hdKeyrings = useSelector(selectHDKeyrings);
-  const { trackEvent, createEventBuilder } = useMetrics();
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
@@ -147,18 +142,6 @@ const ImportNewSecretRecoveryPhrase = () => {
     });
   }, [navigation]);
 
-  const trackDiscoveryEvent = (discoveredAccountsCount: number) => {
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-      )
-        .addProperties({
-          number_of_solana_accounts_discovered: discoveredAccountsCount,
-        })
-        .build(),
-    );
-  };
-
   const onSubmit = async () => {
     const phrase = seedPhrase
       .map((item) => item.trim())
@@ -190,15 +173,6 @@ const ImportNewSecretRecoveryPhrase = () => {
         return;
       }
 
-      // In case state 2 is enabled, discoverAccounts will be 0 because accounts are synced and then discovered
-      // in a non-blocking way. So we rely on the callback to track the event when the discovery is done.
-      const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(
-        phrase,
-        undefined,
-        async ({ discoveredAccountsCount }) => {
-          trackDiscoveryEvent(discoveredAccountsCount);
-        },
-      );
       setLoading(false);
       setSeedPhrase(['']);
 
@@ -216,10 +190,6 @@ const ImportNewSecretRecoveryPhrase = () => {
       });
 
       fetchAccountsWithActivity();
-
-      if (!isMultichainAccountsState2Enabled()) {
-        trackDiscoveryEvent(discoveredAccountsCount);
-      }
 
       navigation.navigate('WalletView');
     } catch (e) {
