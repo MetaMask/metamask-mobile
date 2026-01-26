@@ -573,11 +573,7 @@ describe('TrendingTokensFullView', () => {
   it('renders SafeAreaView with correct edges prop', () => {
     mockSafeAreaView.mockClear();
 
-    renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
+    renderWithProvider(<TrendingTokensFullView />, { state: mockState }, false);
 
     // Verify SafeAreaView was rendered with edges prop
     expect(mockSafeAreaView).toHaveBeenCalled();
