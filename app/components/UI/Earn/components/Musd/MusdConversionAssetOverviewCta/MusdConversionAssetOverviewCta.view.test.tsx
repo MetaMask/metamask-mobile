@@ -209,7 +209,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     expect(mockOnDismiss).toHaveBeenCalledTimes(1);
   });
 
-  it('hides CTA when asset is not in allowlist', () => {
+  it('renders CTA when asset is not in allowlist', () => {
     const mockAssetNotInAllowlist = {
       ...mockAsset,
       symbol: 'USDT', // Not in allowlist
@@ -286,7 +286,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     ).toBeOnTheScreen();
   });
 
-  it('handles different asset symbols correctly', () => {
+  it('renders CTA for different asset symbols', () => {
     const mockDAIAsset = {
       ...mockAsset,
       symbol: 'DAI',
@@ -322,7 +322,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     ).toBeOnTheScreen();
   });
 
-  it('handles missing asset address gracefully', () => {
+  it('renders CTA when asset address is missing', () => {
     const mockAssetWithoutAddress = {
       ...mockAsset,
       address: '',

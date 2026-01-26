@@ -5,9 +5,10 @@ import { describeForPlatforms } from '../../../../../util/test/platform';
 import React from 'react';
 import EarnMusdConversionEducationView from './index';
 import { strings } from '../../../../../../locales/i18n';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
+import { MUSD_CONVERSION_APY } from '../../constants/musd';
 
 describeForPlatforms('EarnMusdConversionEducationView', () => {
   const mockRouteParams = {
@@ -46,10 +47,18 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     );
 
     expect(
-      getByText(strings('earn.musd_conversion.education.heading')),
+      getByText(
+        strings('earn.musd_conversion.education.heading', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      ),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('earn.musd_conversion.education.description')),
+      getByText(
+        strings('earn.musd_conversion.education.description', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      ),
     ).toBeOnTheScreen();
     expect(
       getByText(strings('earn.musd_conversion.education.primary_button')),
@@ -59,7 +68,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('dispatches setMusdConversionEducationSeen when continue button pressed', async () => {
+  it('keeps continue button visible after press', async () => {
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -89,15 +98,15 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       },
     );
 
-    fireEvent.press(
-      getByText(strings('earn.musd_conversion.education.primary_button')),
+    const continueButton = getByText(
+      strings('earn.musd_conversion.education.primary_button'),
     );
 
-    // Verify that the action would be dispatched (via Engine mock)
-    // The actual dispatch happens through Redux, which is mocked in component-view tests
-    expect(
-      getByText(strings('earn.musd_conversion.education.primary_button')),
-    ).toBeOnTheScreen();
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
+
+    expect(continueButton).toBeOnTheScreen();
   });
 
   it('renders background image based on color scheme', () => {
@@ -117,7 +126,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
-    const { UNSAFE_root } = renderScreenWithRoutes(
+    const { getByText } = renderScreenWithRoutes(
       EarnMusdConversionEducationView as unknown as React.ComponentType,
       { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
       [],
@@ -127,12 +136,13 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       },
     );
 
-    // Verify image is rendered (component uses Image from react-native)
-    // Image component is rendered as part of the component tree
-    expect(UNSAFE_root).toBeDefined();
+    // Verify screen renders with heading (image is rendered as part of component tree)
+    expect(
+      getByText(strings('earn.musd_conversion.education.heading')),
+    ).toBeOnTheScreen();
   });
 
-  it('handles go back button press', () => {
+  it('keeps go back button visible after press', () => {
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -168,7 +178,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     expect(goBackButton).toBeOnTheScreen();
   });
 
-  it('marks education as seen when continue pressed', () => {
+  it('keeps continue button visible after press when education not seen', async () => {
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -201,14 +211,15 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     const continueButton = getByText(
       strings('earn.musd_conversion.education.primary_button'),
     );
-    fireEvent.press(continueButton);
 
-    // Button should still be on screen after press
-    // The actual state update happens through Redux dispatch
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
+
     expect(continueButton).toBeOnTheScreen();
   });
 
-  it('handles missing route params gracefully', () => {
+  it('renders screen when route params are missing', () => {
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -237,11 +248,15 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
 
     // Component should still render
     expect(
-      getByText(strings('earn.musd_conversion.education.heading')),
+      getByText(
+        strings('earn.musd_conversion.education.heading', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      ),
     ).toBeOnTheScreen();
   });
 
-  it('handles missing outputChainId in route params', () => {
+  it('renders screen when outputChainId is missing in route params', () => {
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -273,11 +288,15 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
 
     // Component should still render
     expect(
-      getByText(strings('earn.musd_conversion.education.heading')),
+      getByText(
+        strings('earn.musd_conversion.education.heading', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      ),
     ).toBeOnTheScreen();
   });
 
-  it('handles missing preferredPaymentToken in route params', () => {
+  it('renders screen when preferredPaymentToken is missing in route params', () => {
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -309,7 +328,11 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
 
     // Component should still render
     expect(
-      getByText(strings('earn.musd_conversion.education.heading')),
+      getByText(
+        strings('earn.musd_conversion.education.heading', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      ),
     ).toBeOnTheScreen();
   });
 });
