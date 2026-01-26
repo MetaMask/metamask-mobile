@@ -1,6 +1,6 @@
 import React, { PropsWithChildren, useMemo } from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { RootNavigationProp } from '../../../util/navigation/types';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -10,7 +10,6 @@ import PerpsMarketRowItem from '../../UI/Perps/components/PerpsMarketRowItem';
 import type { PerpsMarketData } from '../../UI/Perps/controllers/types';
 import PredictMarket from '../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types';
-import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
@@ -38,14 +37,14 @@ interface SectionConfig {
   id: SectionId;
   title: string;
   icon: IconName;
-  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
+  viewAllAction: (navigation: RootNavigationProp) => void;
   RowItem: React.ComponentType<{
     item: unknown;
-    navigation: NavigationProp<ParamListBase>;
+    navigation: RootNavigationProp;
   }>;
   OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
-    navigation: NavigationProp<ParamListBase>;
+    navigation: RootNavigationProp;
   }>;
   Skeleton: React.ComponentType;
   OverrideSkeletonSearch?: React.ComponentType;
@@ -171,13 +170,10 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
         onPress={() => {
-          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
-            Routes.PERPS.ROOT,
-            {
-              screen: Routes.PERPS.MARKET_DETAILS,
-              params: { market: item as PerpsMarketData },
-            },
-          );
+          navigation.navigate(Routes.PERPS.ROOT, {
+            screen: Routes.PERPS.MARKET_DETAILS,
+            params: { market: item as PerpsMarketData },
+          });
         }}
         showBadge={false}
       />

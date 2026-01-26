@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-namespace */
-import type { NavigatorScreenParams } from '@react-navigation/native';
+import type {
+  NavigatorScreenParams,
+  NavigationProp,
+  NavigationState,
+} from '@react-navigation/native';
 import type { Hex } from '@metamask/utils';
 import type { Snap } from '@metamask/snaps-utils';
 
@@ -446,7 +450,7 @@ export type RootParamList = {
   CardConfirmModal: undefined;
 
   // Perps Flow
-  Perps: NavigatorScreenParams<PerpsNavigationParamList> | undefined;
+  Perps: NavigatorScreenParams<PerpsNavigationParamList>;
   PerpsRoot: undefined;
   PerpsTradingView: undefined;
   PerpsTutorial:
@@ -903,6 +907,23 @@ export type RootParamList = {
 
   // Browser
   AssetView: undefined;
+};
+
+/**
+ * Navigation state type returned by getState().
+ */
+/**
+ * Type alias for navigation props that works with both:
+ * 1. Direct NavigationProp<RootParamList>
+ * 2. The modified type returned by useNavigation() (with Omit<..., "getState">)
+ *
+ * Use this type in function signatures that accept navigation props.
+ */
+export type RootNavigationProp = Omit<
+  NavigationProp<RootParamList>,
+  'getState'
+> & {
+  getState(): NavigationState | undefined;
 };
 
 /**

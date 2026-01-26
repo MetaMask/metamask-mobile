@@ -1,4 +1,4 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { RootNavigationProp } from '../../../../util/navigation/types';
 import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 import {
   normalizeToDotDecimal,
@@ -144,7 +144,7 @@ export const getLocalizedErrorMessage = (errors?: string[]): string => {
 };
 
 export const handleTronStakingNavigationResult = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: RootNavigationProp,
   result: TronStakingNavigationResult,
   action: TronStakingAction,
   accountId?: string,

@@ -1,8 +1,7 @@
 import React from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
-// eslint-disable-next-line no-duplicate-imports
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { RootNavigationProp } from '../../../../../util/navigation/types';
 import SiteRowItemWrapper from '../SiteRowItemWrapper/SiteRowItemWrapper';
 import type { SiteData } from '../SiteRowItem/SiteRowItem';
 
@@ -17,7 +16,7 @@ const SitesList: React.FC<SitesListProps> = ({
   refreshControl,
   ListFooterComponent,
 }) => {
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<RootNavigationProp>();
 
   const renderSiteItem = ({ item }: { item: SiteData }) => (
     <SiteRowItemWrapper site={item} navigation={navigation} />
