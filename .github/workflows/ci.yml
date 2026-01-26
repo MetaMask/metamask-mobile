@@ -494,7 +494,9 @@ jobs:
   sonar-cloud:
     name: SonarCloud analysis
     runs-on: ubuntu-latest
-    needs: merge-unit-tests
+    needs:
+      - merge-unit-tests
+      - check-skip-merge-queue
     if: ${{ !cancelled() && (github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true') }}
     steps:
       - uses: actions/checkout@v3
@@ -539,7 +541,9 @@ jobs:
   sonar-cloud-quality-gate-status:
     name: SonarCloud quality gate status
     runs-on: ubuntu-latest
-    needs: sonar-cloud
+    needs:
+      - sonar-cloud
+      - check-skip-merge-queue
     if: ${{ !cancelled() && (github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true') }}
     steps:
       - name: Checkout code
