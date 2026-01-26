@@ -11,6 +11,8 @@ import Assertions from './framework/Assertions';
 import { setupMockRequest } from './api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
+const TRONGRID_API_URL = 'https://api.trongrid.io';
+
 const blockResponse = {
   blockID: 'xxxxxxxx',
   block_header: {
@@ -120,24 +122,23 @@ export async function withTronAccountEnabled(
   test: () => Promise<void>,
 ) {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    // Mock get block
     await setupMockRequest(mockServer, {
       requestMethod: 'POST',
-      url: 'https://api.trongrid.io/wallet/getblock',
+      url: `${TRONGRID_API_URL}/wallet/getblock`,
       response: blockResponse,
       responseCode: 200,
     });
 
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
-      url: 'https://api.trongrid.io/v1/accounts/TLSLTQxPqXEHYVVAM76HsLYqiKpsN4nf2T',
+      url: `${TRONGRID_API_URL}/v1/accounts/TLSLTQxPqXEHYVVAM76HsLYqiKpsN4nf2T`,
       response: accountsResponse,
       responseCode: 200,
     });
 
     await setupMockRequest(mockServer, {
       requestMethod: 'POST',
-      url: 'https://api.trongrid.io/wallet/getaccountresource',
+      url: `${TRONGRID_API_URL}/wallet/getaccountresource`,
       response: accountResourcesResponse,
       responseCode: 200,
     });
