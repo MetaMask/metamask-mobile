@@ -264,6 +264,7 @@ describe('updateMarketingOptInStatus', () => {
       accessToken: undefined,
       socialBackupsMetadata: [],
       isSeedlessOnboardingUserAuthenticated: false,
+      migrationVersion: 0,
     };
   });
 
@@ -552,6 +553,7 @@ describe('getMarketingOptInStatus', () => {
       accessToken: undefined,
       socialBackupsMetadata: [],
       isSeedlessOnboardingUserAuthenticated: false,
+      migrationVersion: 0,
     };
   });
 
