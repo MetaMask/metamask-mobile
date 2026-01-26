@@ -6,6 +6,7 @@ import {
 import { useCallback, useContext, useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast';
+import { strings } from '../../../../../locales/i18n';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import usePerpsToasts from './usePerpsToasts';
@@ -53,41 +54,43 @@ export const usePerpsOrderDepositTracking = ({
     onDepositCompleteRef.current = onDepositComplete;
   }, [onDepositComplete]);
 
+  const showProgressToastIfNeeded = useCallback(
+    (transactionId: string) => {
+      if (hasShownDepositToastRef.current === transactionId) {
+        return;
+      }
+      hasShownDepositToastRef.current = transactionId;
+      expectingDepositRef.current = true;
+      prevAvailableBalanceRef.current =
+        account?.availableBalance?.toString() || '0';
+      getStreamManagerInstance().setActiveDepositHandler(true);
+
+      showToast({
+        ...PerpsToastOptions.accountManagement.deposit.inProgress(
+          0,
+          transactionId,
+        ),
+        labelOptions: [
+          {
+            label: strings('perps.deposit.depositing_your_funds'),
+            isBold: true,
+          },
+        ],
+        hasNoTimeout: true,
+      });
+    },
+    [showToast, PerpsToastOptions, account?.availableBalance],
+  );
+
   // Callback to show toast when user confirms the deposit
   const handleDepositConfirm = useCallback(
     (transactionMeta: TransactionMeta) => {
       if (transactionMeta.type !== TransactionType.perpsDeposit) {
         return;
       }
-
-      const transactionId = transactionMeta.id;
-
-      // Prevent showing toast multiple times for the same transaction
-      if (hasShownDepositToastRef.current === transactionId) {
-        return;
-      }
-
-      // Mark that we're actively handling deposit toasts
-      // This prevents usePerpsDepositStatus from showing duplicate toasts
-      getStreamManagerInstance().setActiveDepositHandler(true);
-
-      // Set up deposit tracking
-      expectingDepositRef.current = true;
-      prevAvailableBalanceRef.current =
-        account?.availableBalance?.toString() || '0';
-      hasShownDepositToastRef.current = transactionId;
-
-      // Show "depositing your funds" toast that stays on screen
-      showToast({
-        ...PerpsToastOptions.accountManagement.deposit.inProgress(
-          0,
-          transactionId,
-        ),
-        labelOptions: [{ label: 'Depositing your funds', isBold: true }],
-        hasNoTimeout: true, // Keep toast visible until funds arrive
-      });
+      showProgressToastIfNeeded(transactionMeta.id);
     },
-    [account?.availableBalance, showToast, PerpsToastOptions],
+    [showProgressToastIfNeeded],
   );
 
   // Extract primitive values from activeTransactionMeta to avoid re-renders
@@ -124,17 +127,8 @@ export const usePerpsOrderDepositTracking = ({
         expectingDepositRef.current = true;
         prevAvailableBalanceRef.current =
           account?.availableBalance?.toString() || '0';
-        hasShownDepositToastRef.current = transactionId;
 
-        // Show "depositing your funds" toast that stays on screen
-        showToast({
-          ...PerpsToastOptions.accountManagement.deposit.inProgress(
-            0,
-            transactionId,
-          ),
-          labelOptions: [{ label: 'Depositing your funds', isBold: true }],
-          hasNoTimeout: true, // Keep toast visible until funds arrive
-        });
+        showProgressToastIfNeeded(transactionId);
       }
     };
 
@@ -175,22 +169,7 @@ export const usePerpsOrderDepositTracking = ({
       activeTransactionId &&
       hasShownDepositToastRef.current !== activeTransactionId
     ) {
-      const transactionId = activeTransactionId;
-      // Mark that we're actively handling deposit toasts
-      getStreamManagerInstance().setActiveDepositHandler(true);
-      expectingDepositRef.current = true;
-      prevAvailableBalanceRef.current =
-        account?.availableBalance?.toString() || '0';
-      hasShownDepositToastRef.current = transactionId;
-
-      showToast({
-        ...PerpsToastOptions.accountManagement.deposit.inProgress(
-          0,
-          transactionId,
-        ),
-        labelOptions: [{ label: 'Depositing your funds', isBold: true }],
-        hasNoTimeout: true,
-      });
+      showProgressToastIfNeeded(activeTransactionId);
     }
 
     return () => {
@@ -208,12 +187,13 @@ export const usePerpsOrderDepositTracking = ({
     };
   }, [
     activeTransactionId,
-    activeTransactionType,
     activeTransactionStatus,
+    activeTransactionType,
+    showProgressToastIfNeeded,
     account?.availableBalance,
+    toastRef,
     showToast,
     PerpsToastOptions,
-    toastRef,
   ]);
 
   // Monitor balance changes to detect when funds arrive
@@ -231,26 +211,27 @@ export const usePerpsOrderDepositTracking = ({
 
     // Check if balance increased (funds have arrived)
     if (currentBalance > previousBalance) {
-      // Close the "depositing your funds" toast
       toastRef?.current?.closeToast();
 
-      // Show "Your funds have arrived" toast
       showToast({
         ...PerpsToastOptions.accountManagement.deposit.success(
           account.availableBalance?.toString(),
         ),
-        labelOptions: [{ label: 'Your funds have arrived', isBold: true }],
+        labelOptions: [
+          {
+            label: strings('perps.deposit.your_funds_have_arrived'),
+            isBold: true,
+          },
+        ],
       });
 
-      // Reset state
       expectingDepositRef.current = false;
       prevAvailableBalanceRef.current =
         account.availableBalance?.toString() || '0';
-      // Unmark active handler since deposit is complete
+
       getStreamManagerInstance().setActiveDepositHandler(false);
       hasShownDepositToastRef.current = null;
 
-      // Execute trade after funds arrive
       onDepositCompleteRef.current();
     }
   }, [account, showToast, PerpsToastOptions, toastRef]);

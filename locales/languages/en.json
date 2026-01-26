@@ -1083,6 +1083,8 @@
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
       "in_progress": "Adding funds to Perps",
+      "depositing_your_funds": "Depositing your funds",
+      "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
       "your_funds_are_available_to_trade": "Your funds are available to trade",
