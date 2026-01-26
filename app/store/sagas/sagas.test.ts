@@ -307,8 +307,8 @@ describe('appLockStateMachine', () => {
   it('forks appStateListenerTask and navigates to LockScreen when app is locked', async () => {
     await expectSaga(appLockStateMachine)
       .dispatch({ type: UserActionType.LOCKED_APP })
-      // Verify appStateListenerTask is forked
-      .fork(appStateListenerTask)
+      // Verify appStateListenerTask is called
+      .call(appStateListenerTask)
       .run();
 
     // Verify navigation to LockScreen

@@ -85,21 +85,14 @@ export function* appStateListenerTask() {
 }
 
 export function* appLockStateMachine() {
-  let appStateListener: Task<void> | undefined;
-
   while (true) {
     yield take(UserActionType.LOCKED_APP);
 
     // Navigate to lock screen.
     NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);
 
-    // Cancel existing app state listener.
-    if (appStateListener) {
-      yield cancel(appStateListener);
-    }
-
-    // Start new app state listener for prompting authentication when the app is foregrounded.
-    appStateListener = yield fork(appStateListenerTask);
+    // App state listener for prompting authentication when the app is foregrounded.
+    yield call(appStateListenerTask);
   }
 }
 
