@@ -564,19 +564,25 @@ jobs:
         id: jobs-passed-status
         env:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           # Check results of all required jobs dynamically
-          # Jobs must either succeed or be skipped (skipped is OK for merge_group events)
+          # On merge_group events, "skipped" is acceptable (some jobs intentionally skip)
+          # On other events (PR, push), all jobs must succeed
 
           FAILED="false"
 
-          # Use process substitution to iterate over all jobs in needs context
           while read -r job_name result; do
             if [[ "$result" == "failure" ]] || [[ "$result" == "cancelled" ]]; then
               echo "::error::Job '$job_name' failed with result: $result"
               FAILED="true"
             elif [[ "$result" == "skipped" ]]; then
-              echo "Job '$job_name' was skipped (OK for merge_group events)"
+              if [[ "$EVENT_NAME" == "merge_group" ]]; then
+                echo "Job '$job_name' was skipped (OK for merge_group events)"
+              else
+                echo "::error::Job '$job_name' was unexpectedly skipped on $EVENT_NAME event"
+                FAILED="true"
+              fi
             else
               echo "Job '$job_name' passed"
             fi
