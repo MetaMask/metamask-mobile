@@ -27,7 +27,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     marketId: market.id,
     autoRefreshTimeout: 10000,
   });
-  const {positions: claimablePositions} = usePredictPositions({
+  const { positions: claimablePositions } = usePredictPositions({
     marketId: market.id,
     claimable: true,
   });
