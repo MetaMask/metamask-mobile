@@ -19,7 +19,7 @@ import {
   getAnvilPortForFixture,
 } from '../tests/framework/fixtures/FixtureUtils';
 import Assertions from '../tests/framework/Assertions';
-import { CustomNetworks } from './resources/networks.e2e';
+import { CustomNetworks } from '../tests/resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';

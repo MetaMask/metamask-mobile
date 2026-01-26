@@ -59,7 +59,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
 
   return (
     <Box testID={testID} twClassName="flex-col">
-      <Text variant={TextVariant.HeadingMd} twClassName="font-medium py-2">
+      <Text variant={TextVariant.HeadingMd} twClassName="font-medium pt-8">
         {strings('predict.market_details.your_picks')}
       </Text>
       {livePositions.map((position) => (

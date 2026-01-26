@@ -55,6 +55,15 @@ export const PredictEventProperties = {
   SESSION_TIME_IN_FEED: 'session_time_in_feed',
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
+
+  // Market slug and game properties (for live sports markets)
+  MARKET_SLUG: 'market_slug',
+  GAME_ID: 'game_id',
+  GAME_START_TIME: 'game_start_time',
+  GAME_LEAGUE: 'game_league',
+  GAME_STATUS: 'game_status',
+  GAME_PERIOD: 'game_period',
+  GAME_CLOCK: 'game_clock',
 } as const;
 
 /**
@@ -121,6 +130,19 @@ export type PredictTradeStatusValue =
 // Legacy export for backward compatibility during transition
 export const PredictEventType = PredictTradeStatus;
 export type PredictEventTypeValue = PredictTradeStatusValue;
+
+/**
+ * Share action status values for analytics tracking
+ * Used as the 'status' property in SHARE_ACTION event for Predict
+ */
+export const PredictShareStatus = {
+  INITIATED: 'initiated',
+  SUCCESS: 'success',
+  FAILED: 'failed',
+} as const;
+
+export type PredictShareStatusValue =
+  (typeof PredictShareStatus)[keyof typeof PredictShareStatus];
 
 /**
  * GTM Modal constants for analytics tracking

@@ -19,7 +19,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpe
 import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks.ts';
 import { Mockttp } from 'mockttp';
 import { LocalNode } from '../../../../tests/framework/types';
-import { AnvilManager } from '../../../seeder/anvil-manager';
+import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
