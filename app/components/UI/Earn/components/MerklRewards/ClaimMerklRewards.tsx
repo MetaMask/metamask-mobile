@@ -49,13 +49,13 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
 
   const handleClaim = async () => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_LENDING_WITHDRAW_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.CLAIM_BONUS_BUTTON_CLICKED)
         .addProperties({
           action_type: 'claim_rewards',
           token: asset.symbol,
-          chain_id: asset.chainId,
           network: network?.name,
           location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW,
+          text: strings('asset_overview.merkl_rewards.claim'),
         })
         .build(),
     );

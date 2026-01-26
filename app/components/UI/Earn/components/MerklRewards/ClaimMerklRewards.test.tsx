@@ -5,7 +5,6 @@ import { useMerklClaim } from './hooks/useMerklClaim';
 import { TokenI } from '../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -16,8 +15,7 @@ jest.mock('../../../../hooks/useMetrics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
   MetaMetricsEvents: {
-    EARN_LENDING_WITHDRAW_BUTTON_CLICKED:
-      'Earn Lending Withdraw Button Clicked',
+    CLAIM_BONUS_BUTTON_CLICKED: 'Claim Bonus Button Clicked',
   },
 }));
 
@@ -281,15 +279,14 @@ describe('ClaimMerklRewards', () => {
 
     await waitFor(() => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.EARN_LENDING_WITHDRAW_BUTTON_CLICKED,
+        MetaMetricsEvents.CLAIM_BONUS_BUTTON_CLICKED,
       );
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
         action_type: 'claim_rewards',
         token: mockAsset.symbol,
-        chain_id: mockAsset.chainId,
         network: 'Ethereum Mainnet',
-        location: 'asset_details',
-        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        location: 'asset_overview',
+        text: 'Claim',
       });
       expect(mockEventBuilder.build).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
