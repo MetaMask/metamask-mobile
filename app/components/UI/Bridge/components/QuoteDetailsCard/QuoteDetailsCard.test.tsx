@@ -325,6 +325,9 @@ describe('QuoteDetailsCard', () => {
     // Check if navigation was called with correct params
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        network: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      },
     });
   });
 
