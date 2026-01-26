@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportNewSecretRecoveryPhrase from './';
-import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
+import { ImportSRPIDs } from './SRPImport.testIds';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import messages from '../../../../locales/languages/en.json';
@@ -23,6 +23,19 @@ import {
 } from '../../../component-library/components/Toast';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { Alert } from 'react-native';
+
+// Mock for keyboard state visibility
+const mockUseKeyboardState = jest.fn();
+jest.mock('react-native-keyboard-controller', () => {
+  const { ScrollView, View } = jest.requireActual('react-native');
+  return {
+    KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
+    KeyboardAwareScrollView: ScrollView,
+    KeyboardStickyView: View,
+    useKeyboardState: (selector: (state: { isVisible: boolean }) => boolean) =>
+      mockUseKeyboardState(selector),
+  };
+});
 
 // Mock Keyboard to prevent Jest environment teardown errors
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
@@ -134,6 +147,14 @@ const initialState = {
   },
 };
 
+// Mock the feature flag selector to return true
+jest.mock(
+  '../../../selectors/featureFlagController/importSrpWordSuggestion',
+  () => ({
+    selectImportSrpWordSuggestionEnabledFlag: () => true,
+  }),
+);
+
 describe('ImportNewSecretRecoveryPhrase', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -185,6 +206,11 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
 
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
+
+    mockUseKeyboardState.mockImplementation(
+      (selector: (state: { isVisible: boolean }) => boolean) =>
+        selector({ isVisible: false }),
+    );
   });
 
   it('renders initial textarea input', () => {
@@ -507,7 +533,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     it('displays error for invalid word in pasted SRP', async () => {
       mockGetString.mockResolvedValue(invalidMnemonic);
 
-      const { getByText } = renderScreen(
+      const { getByText, getAllByText } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -522,16 +548,17 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByText(messages.import_from_seed.spellcheck_error),
-        ).toBeTruthy();
+        const errorMessages = getAllByText(
+          messages.import_from_seed.spellcheck_error,
+        );
+        expect(errorMessages.length).toBeGreaterThan(0);
       });
     });
 
     it('clears error when SRP is cleared', async () => {
       mockGetString.mockResolvedValue(invalidMnemonic);
 
-      const { getByText, queryByText } = renderScreen(
+      const { getByText, getAllByText, queryAllByText } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -546,9 +573,10 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByText(messages.import_from_seed.spellcheck_error),
-        ).toBeTruthy();
+        const errorMessages = getAllByText(
+          messages.import_from_seed.spellcheck_error,
+        );
+        expect(errorMessages.length).toBeGreaterThan(0);
       });
 
       const clearButton = getByText(messages.import_from_seed.clear_all);
@@ -559,8 +587,8 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(
-          queryByText(messages.import_from_seed.spellcheck_error),
-        ).toBeNull();
+          queryAllByText(messages.import_from_seed.spellcheck_error).length,
+        ).toBe(0);
       });
     });
 
@@ -873,10 +901,10 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
     });
 
-    it('adds space when enter key is pressed in grid input', async () => {
+    it('dismisses keyboard when submit is pressed in grid input', async () => {
       mockGetString.mockResolvedValue('word1 word2');
 
-      const { getByTestId, getByText } = renderScreen(
+      const { getByTestId, getByText, queryByTestId } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -902,10 +930,11 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         await fireEvent(input1, 'onSubmitEditing');
       });
 
+      // Verify no new input was created (keyboard just dismisses)
       await waitFor(() => {
         expect(
-          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`),
-        ).toBeTruthy();
+          queryByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`),
+        ).toBeNull();
       });
     });
 
@@ -949,7 +978,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     it('validates word on focus change', async () => {
       mockGetString.mockResolvedValue('word1 word2 word3');
 
-      const { getByTestId, getByText, queryByText } = renderScreen(
+      const { getByTestId, getByText, queryAllByText } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -990,8 +1019,8 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(
-          queryByText(messages.import_from_seed.spellcheck_error),
-        ).toBeTruthy();
+          queryAllByText(messages.import_from_seed.spellcheck_error).length,
+        ).toBeGreaterThan(0);
       });
     });
 
@@ -1035,25 +1064,12 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
   describe('navigation', () => {
     it('navigates back when back button is pressed', async () => {
-      renderScreen(
+      const { getByTestId } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
           state: initialState,
         },
-      );
-
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      const headerLeft = setOptionsCall.headerLeft;
-
-      const { getByTestId } = renderScreen(
-        () => headerLeft(),
-        { name: 'HeaderLeft' },
-        { state: initialState },
       );
 
       const backButton = getByTestId(ImportSRPIDs.BACK);
@@ -1066,25 +1082,12 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
 
     it('opens QR scanner when QR button is pressed', async () => {
-      renderScreen(
+      const { getByTestId } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
           state: initialState,
         },
-      );
-
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      const headerRight = setOptionsCall.headerRight;
-
-      const { getByTestId } = renderScreen(
-        () => headerRight(),
-        { name: 'HeaderRight' },
-        { state: initialState },
       );
 
       const qrButton = getByTestId('qr-code-button');
@@ -1135,20 +1138,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         },
       );
 
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      const headerRight = setOptionsCall.headerRight;
-
-      const { getByTestId: getHeaderButton } = renderScreen(
-        () => headerRight(),
-        { name: 'HeaderRight' },
-        { state: initialState },
-      );
-
-      const qrButton = getHeaderButton('qr-code-button');
+      const qrButton = getByTestId('qr-code-button');
 
       await act(async () => {
         await fireEvent.press(qrButton);
@@ -1178,20 +1168,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         },
       );
 
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      const headerRight = setOptionsCall.headerRight;
-
-      const { getByTestId: getHeaderButton } = renderScreen(
-        () => headerRight(),
-        { name: 'HeaderRight' },
-        { state: initialState },
-      );
-
-      const qrButton = getHeaderButton('qr-code-button');
+      const qrButton = getByTestId('qr-code-button');
 
       await act(async () => {
         await fireEvent.press(qrButton);
@@ -1215,25 +1192,12 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     it('shows alert when QR scan returns no seed data', async () => {
       const mockAlert = jest.spyOn(Alert, 'alert');
 
-      renderScreen(
+      const { getByTestId } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
           state: initialState,
         },
-      );
-
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      const headerRight = setOptionsCall.headerRight;
-
-      const { getByTestId } = renderScreen(
-        () => headerRight(),
-        { name: 'HeaderRight' },
-        { state: initialState },
       );
 
       const qrButton = getByTestId('qr-code-button');
@@ -1252,11 +1216,95 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       expect(mockAlert).toHaveBeenCalledWith(
-        'Invalid QR Code',
+        'Invalid QR code',
         'The QR code does not contain a valid Secret Recovery Phrase',
       );
 
       mockAlert.mockRestore();
+    });
+  });
+
+  describe('SRP Word Suggestions Feature', () => {
+    it('renders SRP input grid for word suggestions', () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('renders with KeyboardProvider wrapper in non-E2E environment', () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('renders KeyboardStickyView with SrpWordSuggestions when keyboard is visible', async () => {
+      mockUseKeyboardState.mockImplementation(
+        (selector: (state: { isVisible: boolean }) => boolean) =>
+          selector({ isVisible: true }),
+      );
+
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      expect(getByTestId('srp-word-suggestions')).toBeTruthy();
+    });
+
+    it('does not render KeyboardStickyView when keyboard is not visible', async () => {
+      mockUseKeyboardState.mockImplementation(
+        (selector: (state: { isVisible: boolean }) => boolean) =>
+          selector({ isVisible: false }),
+      );
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      // Act
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      // Assert
+      expect(queryByTestId('srp-word-suggestions')).toBeNull();
+    });
+
+    it('passes onCurrentWordChange to SrpInputGrid', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      expect(srpInput).toBeTruthy();
     });
   });
 });

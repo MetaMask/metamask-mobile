@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { cloneDeep } from 'lodash';
 import Device from '../../util/device';
-import { NetworkClientType } from '@metamask/network-controller';
 // eslint-disable-next-line import/no-namespace
 import * as tokensControllerSelectors from '../../selectors/tokensController';
-import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { FeatureFlags } from '@metamask/swaps-controller/dist/types';
 
 // Type definitions for the swaps reducer
@@ -42,15 +40,11 @@ interface SwapsState {
 }
 
 jest.mock('../../selectors/tokensController');
-jest.mock('../../components/UI/Swaps/utils', () => ({
-  allowedTestnetChainIds: ['0xaa36a7'], // Sepolia testnet
-}));
 jest.mock('@metamask/swaps-controller/dist/constants', () => ({
   CHAIN_ID_TO_NAME_MAP: {
     '0x1': 'ethereum',
     '0x38': 'bsc',
     '0x89': 'polygon',
-    '0xaa36a7': 'sepolia',
   },
 }));
 
@@ -58,10 +52,8 @@ import reducer, {
   initialState,
   SWAPS_SET_LIVENESS,
   SWAPS_SET_HAS_ONBOARDED,
-  swapsSmartTxFlagEnabled,
   swapsTokensObjectSelector,
   swapsTokensMultiChainObjectSelector,
-  selectSwapsChainFeatureFlags,
   getFeatureFlagChainId,
 } from './index';
 
@@ -111,16 +103,6 @@ const DEFAULT_FEATURE_FLAGS = {
 } as unknown as FeatureFlags;
 
 describe('swaps reducer', () => {
-  const withGlobalDev = (devValue: boolean, testFn: () => void) => {
-    const originalDev = (global as { __DEV__?: boolean }).__DEV__;
-    (global as { __DEV__?: boolean }).__DEV__ = devValue;
-    try {
-      testFn();
-    } finally {
-      (global as { __DEV__?: boolean }).__DEV__ = originalDev;
-    }
-  };
-
   it('should return initial state', () => {
     const state = reducer(undefined, emptyAction);
     expect(state).toEqual(initialState);
@@ -299,30 +281,6 @@ describe('swaps reducer', () => {
       ).toEqual(DEFAULT_FEATURE_FLAGS.bsc);
     });
 
-    it('should handle testnet chain IDs in dev mode', () => {
-      withGlobalDev(true, () => {
-        const initalState = reducer(undefined, emptyAction);
-        const action: SetLivenessAction = {
-          type: SWAPS_SET_LIVENESS,
-          payload: {
-            featureFlags: DEFAULT_FEATURE_FLAGS,
-            chainId: '0xaa36a7', // Sepolia testnet
-          },
-        };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const liveState = reducer(initalState as any, action) as SwapsState;
-
-        // Should use mainnet feature flags for testnet
-        expect(liveState['0x1'].featureFlags).toEqual(
-          DEFAULT_FEATURE_FLAGS.ethereum,
-        );
-        // Should also set the testnet chain with mainnet flags
-        expect(
-          (liveState['0xaa36a7'] as { featureFlags?: unknown }).featureFlags,
-        ).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
-      });
-    });
-
     it('should preserve existing state when updating feature flags', () => {
       const existingState = {
         ...initialState,
@@ -404,315 +362,16 @@ describe('swaps reducer', () => {
   });
 
   describe('getFeatureFlagChainId', () => {
-    it('should return mainnet chain ID for testnets in dev mode', () => {
-      withGlobalDev(true, () => {
-        const result = getFeatureFlagChainId('0xaa36a7'); // Sepolia
-        expect(result).toBe(NETWORKS_CHAIN_ID.MAINNET);
-      });
+    it('returns the same chain ID without modification', () => {
+      const result = getFeatureFlagChainId('0x1');
+
+      expect(result).toBe('0x1');
     });
 
-    it('should return original chain ID for non-testnets', () => {
-      withGlobalDev(true, () => {
-        const result = getFeatureFlagChainId('0x38'); // BSC
-        expect(result).toBe('0x38');
-      });
-    });
+    it('returns the same chain ID for any input', () => {
+      const result = getFeatureFlagChainId('0x38');
 
-    it('should return original chain ID when not in dev mode', () => {
-      withGlobalDev(false, () => {
-        const result = getFeatureFlagChainId('0xaa36a7'); // Sepolia
-        expect(result).toBe('0xaa36a7');
-      });
-    });
-  });
-
-  describe('swapsSmartTxFlagEnabled', () => {
-    it('should return true if smart transactions are enabled', () => {
-      const rootState = {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              getNetworkClientById: () => ({
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                configuration: {
-                  rpcUrl: 'https://mainnet.infura.io/v3',
-                  chainId: '0x1',
-                  ticker: 'ETH',
-                  type: NetworkClientType.Custom,
-                },
-              }),
-              networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
-                  chainId: '0x1',
-                  ticker: 'ETH',
-                  nickname: 'Ethereum mainnet',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
-                },
-              },
-              selectedNetworkClientId: 'mainnet',
-              networksMetadata: {},
-            },
-          },
-        },
-        swaps: cloneDeep(initialState),
-      };
-
-      rootState.swaps = {
-        featureFlags: {
-          smart_transactions: {
-            mobile_active: true,
-            extension_active: true,
-          },
-          smartTransactions: {
-            mobileActive: true,
-            extensionActive: true,
-            mobileActiveIOS: true,
-            mobileActiveAndroid: true,
-          },
-        },
-        '0x1': {
-          featureFlags: {
-            smartTransactions: {
-              expectedDeadline: 45,
-              maxDeadline: 150,
-              mobileReturnTxHashAsap: false,
-            },
-          },
-        },
-      } as unknown as typeof rootState.swaps;
-
-      const enabled = swapsSmartTxFlagEnabled(rootState);
-      expect(enabled).toEqual(true);
-    });
-
-    it('should return false if smart transactions flags are disabled', () => {
-      const rootState = {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              selectedNetworkClientId: 'mainnet',
-              networksMetadata: {},
-              networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
-                  chainId: '0x36bbbe6d',
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
-                },
-              },
-            },
-          },
-        },
-        swaps: cloneDeep(initialState),
-      };
-
-      rootState.swaps = {
-        featureFlags: {
-          smart_transactions: {
-            mobile_active: false,
-            extension_active: true,
-          },
-          smartTransactions: {
-            mobileActive: false,
-            extensionActive: true,
-            mobileActiveIOS: false,
-            mobileActiveAndroid: false,
-          },
-        },
-        '0x1': {
-          featureFlags: {
-            smartTransactions: {
-              expectedDeadline: 45,
-              maxDeadline: 150,
-              mobileReturnTxHashAsap: false,
-            },
-          },
-        },
-      } as unknown as typeof rootState.swaps;
-
-      const enabled = swapsSmartTxFlagEnabled(rootState);
-      expect(enabled).toEqual(false);
-    });
-
-    it('should return false if smart transactions flags are undefined', () => {
-      const rootState = {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              selectedNetworkClientId: 'mainnet',
-              networksMetadata: {},
-              networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
-                  chainId: '0x36bbbe6d',
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
-                },
-              },
-            },
-          },
-        },
-        swaps: initialState,
-      };
-
-      const enabled = swapsSmartTxFlagEnabled(rootState);
-      expect(enabled).toEqual(false);
-    });
-  });
-
-  describe('selectSwapsChainFeatureFlags', () => {
-    const createTestState = ({
-      selectedChainId = '0x1',
-      globalFeatureFlags = {},
-      chainFeatureFlags = {},
-    } = {}) => ({
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                chainId: selectedChainId,
-              },
-            },
-            getNetworkClientById: () => ({
-              configuration: {
-                chainId: selectedChainId,
-              },
-            }),
-          },
-        },
-      },
-      swaps: {
-        featureFlags: globalFeatureFlags,
-        ...Object.entries(chainFeatureFlags).reduce(
-          (acc, [chainId, flags]) => ({
-            ...acc,
-            [chainId]: { featureFlags: flags },
-          }),
-          {},
-        ),
-      },
-    });
-
-    it('should return chain feature flags with merged smartTransactions from global flags', () => {
-      const globalFlags = {
-        smartTransactions: {
-          mobileActive: true,
-          extensionActive: true,
-          globalSetting: true,
-        },
-      };
-
-      const chainFlags = {
-        '0x1': {
-          fallbackToV1: false,
-          mobileActive: true,
-          smartTransactions: {
-            chainSpecificSetting: true,
-          },
-        },
-      };
-
-      const rootState = createTestState({
-        globalFeatureFlags: globalFlags,
-        chainFeatureFlags: chainFlags,
-      });
-
-      const result = selectSwapsChainFeatureFlags(rootState);
-      expect(result).toEqual({
-        fallbackToV1: false,
-        mobileActive: true,
-        smartTransactions: {
-          chainSpecificSetting: true,
-          globalSetting: true,
-          mobileActive: true,
-          extensionActive: true,
-        },
-      });
-    });
-
-    it('should use provided transactionChainId instead of current chainId', () => {
-      const rootState = createTestState({
-        globalFeatureFlags: {
-          smartTransactions: {
-            globalSetting: true,
-          },
-        },
-        chainFeatureFlags: {
-          '0x1': {
-            mainnetFlag: true,
-          },
-          '0x5': {
-            goerliFlag: true,
-            smartTransactions: {
-              goerliSetting: true,
-            },
-          },
-        },
-      });
-
-      const chainFlags = selectSwapsChainFeatureFlags(rootState, '0x5');
-      expect(chainFlags).toEqual({
-        goerliFlag: true,
-        smartTransactions: {
-          goerliSetting: true,
-          globalSetting: true,
-        },
-      });
-    });
-
-    it('should handle missing feature flags gracefully', () => {
-      const rootState = createTestState({
-        globalFeatureFlags: {
-          smartTransactions: {
-            globalSetting: true,
-          },
-        },
-        chainFeatureFlags: {
-          '0x1': {}, // Empty feature flags
-        },
-      });
-
-      const chainFlags = selectSwapsChainFeatureFlags(rootState);
-      expect(chainFlags).toEqual({
-        smartTransactions: {
-          globalSetting: true,
-        },
-      });
-    });
-
-    it('should return empty object when no chain entry exists', () => {
-      const rootState = createTestState({
-        selectedChainId: '0x89', // Chain ID not in swaps state
-        globalFeatureFlags: {
-          smartTransactions: {
-            globalSetting: true,
-          },
-        },
-        // No chain feature flags for 0x89
-      });
-
-      const chainFlags = selectSwapsChainFeatureFlags(rootState);
-      expect(chainFlags).toEqual({
-        smartTransactions: {
-          globalSetting: true,
-        },
-      });
+      expect(result).toBe('0x38');
     });
   });
 

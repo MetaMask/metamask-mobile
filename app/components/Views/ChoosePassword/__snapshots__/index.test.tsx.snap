@@ -215,7 +215,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "fontWeight": "400",
                       "height": 46,
                       "letterSpacing": 0,
-                      "lineHeight": 20,
                       "opacity": 1,
                       "paddingVertical": 2,
                       "textAlignVertical": "center",
@@ -234,20 +233,23 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 }
                 testID="textfield-endacccessory"
               >
-                <SvgMock
-                  color="#686e7d"
-                  fill="currentColor"
-                  height={24}
-                  name="Eye"
+                <TouchableOpacity
                   onPress={[Function]}
-                  style={
-                    {
-                      "height": 24,
-                      "width": 24,
+                >
+                  <SvgMock
+                    color="#686e7d"
+                    fill="currentColor"
+                    height={24}
+                    name="Eye"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
-                  }
-                  width={24}
-                />
+                    width={24}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
             <Text
@@ -367,7 +369,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "fontWeight": "400",
                       "height": 46,
                       "letterSpacing": 0,
-                      "lineHeight": 20,
                       "opacity": 1,
                       "paddingVertical": 2,
                       "textAlignVertical": "center",
@@ -385,20 +386,23 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 }
                 testID="textfield-endacccessory"
               >
-                <SvgMock
-                  color="#686e7d"
-                  fill="currentColor"
-                  height={24}
-                  name="Eye"
+                <TouchableOpacity
                   onPress={[Function]}
-                  style={
-                    {
-                      "height": 24,
-                      "width": 24,
+                >
+                  <SvgMock
+                    color="#686e7d"
+                    fill="currentColor"
+                    height={24}
+                    name="Eye"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
-                  }
-                  width={24}
-                />
+                    width={24}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
           </View>

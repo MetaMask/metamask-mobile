@@ -1,15 +1,15 @@
 import { RegressionConfirmations } from '../../../tags';
-import { loginToApp } from '../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../../selectors/Transactions/ActivitiesView.selectors';
-import Assertions from '../../../framework/Assertions';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import { ActivitiesViewSelectorsText } from '../../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import Assertions from '../../../../tests/framework/Assertions';
+import { buildPermissions } from '../../../../tests/framework/fixtures/FixtureUtils';
 import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
-import { DappVariants } from '../../../framework/Constants';
+import { DappVariants } from '../../../../tests/framework/Constants';
 import TestHelpers from '../../../helpers';
 
 describe.skip(RegressionConfirmations('ERC721 tokens'), () => {
@@ -47,7 +47,7 @@ describe.skip(RegressionConfirmations('ERC721 tokens'), () => {
           await loginToApp();
 
           // Navigate to the browser screen
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await TestDApp.navigateToTestDappWithContract({
             contractAddress: nftsAddress,
           });

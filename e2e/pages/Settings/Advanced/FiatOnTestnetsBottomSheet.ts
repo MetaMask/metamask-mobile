@@ -1,6 +1,6 @@
-import { FiatOnTestnetsBottomSheetSelectorsIDs } from '../../../selectors/Settings/Advanced/FiatOnTestnetsBottomSheet.selectors';
-import Gestures from '../../../framework/Gestures';
-import Matchers from '../../../framework/Matchers';
+import { FiatOnTestnetsBottomSheetSelectorsIDs } from '../../../../app/components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction/FiatOnTestnetsBottomSheet.testIds';
+import Gestures from '../../../../tests/framework/Gestures';
+import Matchers from '../../../../tests/framework/Matchers';
 
 class FiatOnTestnetsBottomSheet {
   get continueButton(): DetoxElement {

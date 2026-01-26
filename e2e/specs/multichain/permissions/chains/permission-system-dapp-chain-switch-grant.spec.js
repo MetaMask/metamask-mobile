@@ -1,17 +1,16 @@
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
 import Browser from '../../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import TestDApp from '../../../../pages/Browser/TestDApp';
-import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import { CustomNetworks } from '../../../../resources/networks.e2e';
 import { SmokeNetworkAbstractions } from '../../../../tags';
-import Assertions from '../../../../framework/Assertions';
-import { loginToApp } from '../../../../viewHelper';
+import Assertions from '../../../../../tests/framework/Assertions';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
-import { DappVariants } from '../../../../framework/Constants';
+import { DappVariants } from '../../../../../tests/framework/Constants';
 
 describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {
@@ -19,7 +18,7 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   });
 
   describe('When a dApp requests to switch to a new chain', () => {
-    it('should grant permission to the new chain and switch to it when approved', async () => {
+    it('grants permission to the new chain and switches to it when approved', async () => {
       await withFixtures(
         {
           dapps: [
@@ -37,7 +36,7 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
         async () => {
           // Setup: Login and navigate to browser
           await loginToApp();
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
           // Connect to test dApp
@@ -49,7 +48,10 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
           await NetworkNonPemittedBottomSheet.tapElysiumTestnetNetworkName();
           await NetworkConnectMultiSelector.tapUpdateButton();
           await ConnectBottomSheet.tapConnectButton();
-          await TabBarComponent.tapBrowser();
+
+          // Verify browser is still visible after modal closes
+          await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+
           // Grant permission and switch to new chain
           await TestDApp.switchChainFromTestDapp();
           await ConnectBottomSheet.tapConnectButton();

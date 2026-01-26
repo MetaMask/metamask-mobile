@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -145,7 +145,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     if ((!takeProfitPrice || !stopLossPrice) && orders && orders.length > 0) {
       const parentOrder = orders.find(
         (order) =>
-          order.symbol === position.coin &&
+          order.symbol === position.symbol &&
           !order.isTrigger &&
           (order.takeProfitPrice || order.stopLossPrice),
       );
@@ -159,7 +159,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     const hasTakeProfit = takeProfitPrice && parseFloat(takeProfitPrice) > 0;
     const hasStopLoss = stopLossPrice && parseFloat(stopLossPrice) > 0;
     return Boolean(hasTakeProfit || hasStopLoss);
-  }, [position.takeProfitPrice, position.stopLossPrice, position.coin, orders]);
+  }, [
+    position.takeProfitPrice,
+    position.stopLossPrice,
+    position.symbol,
+    orders,
+  ]);
 
   const handleAutoCloseButtonPress = () => {
     if (onAutoClosePress) {
@@ -240,7 +245,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 ? formatPerpsFiat(absoluteSize * currentPrice, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
-                : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.coin)}`}
+                : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.symbol)}`}
             </Text>
           </View>
           <View style={styles.iconButtonContainer}>
@@ -317,7 +322,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               // Parent orders: same symbol, not trigger orders, have TP/SL children
               const parentOrder = orders.find(
                 (order) =>
-                  order.symbol === position.coin &&
+                  order.symbol === position.symbol &&
                   !order.isTrigger &&
                   (order.takeProfitPrice || order.stopLossPrice),
               );
@@ -338,14 +343,14 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
               if (hasTakeProfit && takeProfitPrice) {
                 const tpPrice = formatPerpsFiat(parseFloat(takeProfitPrice), {
-                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  ranges: PRICE_RANGES_UNIVERSAL,
                 });
                 parts.push(`${strings('perps.order.tp')} ${tpPrice}`);
               }
 
               if (hasStopLoss && stopLossPrice) {
                 const slPrice = formatPerpsFiat(parseFloat(stopLossPrice), {
-                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  ranges: PRICE_RANGES_UNIVERSAL,
                 });
                 parts.push(`${strings('perps.order.sl')} ${slPrice}`);
               }

@@ -17,6 +17,9 @@ const HeaderCenterMeta = {
     title: {
       control: 'text',
     },
+    subtitle: {
+      control: 'text',
+    },
     twClassName: {
       control: 'text',
     },
@@ -52,6 +55,16 @@ export const BackAndClose = {
       title="Settings"
       onBack={() => console.log('Back pressed')}
       onClose={() => console.log('Close pressed')}
+    />
+  ),
+};
+
+export const WithSubtitle = {
+  render: () => (
+    <HeaderCenter
+      title="Settings"
+      subtitle="Account Settings"
+      onBack={() => console.log('Back pressed')}
     />
   ),
 };

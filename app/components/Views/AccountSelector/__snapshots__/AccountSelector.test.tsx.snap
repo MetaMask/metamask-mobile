@@ -431,45 +431,156 @@ exports[`AccountSelector should render correctly 1`] = `
                           </View>
                           <View
                             style={
-                              {
-                                "alignItems": "center",
-                                "backgroundColor": "#ffffff",
-                                "flexDirection": "row",
-                                "height": 32,
-                                "justifyContent": "space-between",
-                                "margin": 16,
-                              }
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "gap": 16,
+                                  "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
+                                },
+                                false,
+                                undefined,
+                              ]
                             }
+                            testID="header"
                           >
+                            <View>
+                              <View
+                                onLayout={[Function]}
+                              />
+                            </View>
                             <View
                               style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
-                            />
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 18,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
-                              Accounts
-                            </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-end",
-                                  "flex": 1,
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "display": "flex",
+                                    },
+                                    undefined,
+                                  ]
                                 }
-                              }
-                            />
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Accounts
+                                </Text>
+                              </View>
+                            </View>
+                            <View>
+                              <View
+                                onLayout={[Function]}
+                              >
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
+                              </View>
+                            </View>
                           </View>
                           <View
                             style={
@@ -940,9 +1051,9 @@ exports[`AccountSelector should render correctly 1`] = `
                             style={
                               {
                                 "flexDirection": "row",
-                                "marginHorizontal": 16,
-                                "marginVertical": 16,
-                                "paddingHorizontal": 8,
+                                "paddingBottom": 16,
+                                "paddingHorizontal": 16,
+                                "paddingTop": 24,
                                 "paddingVertical": 4,
                               }
                             }

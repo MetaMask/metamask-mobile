@@ -319,7 +319,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             "alignItems": "center",
                             "flexDirection": "row",
                             "gap": 16,
-                            "height": 48,
+                            "height": 56,
                           },
                           false,
                           {

@@ -287,11 +287,7 @@ describe('useConfirmationRedesignEnabled', () => {
       expect(result.current.isRedesignedEnabled).toBe(true);
     });
 
-    it.each([
-      [TransactionType.contractInteraction],
-      [TransactionType.lendingDeposit],
-      [TransactionType.lendingWithdraw],
-    ])(
+    it.each([[TransactionType.contractInteraction]])(
       'returns true when flag is enabled for %s transaction',
       async (transactionType) => {
         confirmationRedesignFlagsMock.mockReturnValue({

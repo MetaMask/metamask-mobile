@@ -1,10 +1,10 @@
-import { Matchers, Gestures } from '../../framework';
+import { Matchers, Gestures } from '../../../tests/framework';
 import {
   PredictBalanceSelectorsIDs,
   PredictBuyPreviewSelectorsIDs,
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
-} from '../../selectors/Predict/Predict.selectors';
+} from '../../../app/components/UI/Predict/Predict.testIds';
 class PredictDetailsPage {
   get container(): DetoxElement {
     return Matchers.getElementByID(PredictMarketDetailsSelectorsIDs.SCREEN);
@@ -123,6 +123,7 @@ class PredictDetailsPage {
   async tapOpenPosition(): Promise<void> {
     await Gestures.waitAndTap(this.placeBetButton, {
       elemDescription: 'Place bet button',
+      delay: 1000, // this ensures the positions values are stabilized
     });
   }
 

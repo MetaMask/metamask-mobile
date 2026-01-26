@@ -9,7 +9,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 
 import PaymentMethod from '../PaymentMethod';
 import useAnalytics from '../../../hooks/useAnalytics';
@@ -101,9 +101,10 @@ function PaymentMethodSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingMD}>{title}</Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={title}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>

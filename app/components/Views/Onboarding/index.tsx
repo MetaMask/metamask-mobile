@@ -41,9 +41,13 @@ import { getVaultFromBackup } from '../../../core/BackupVault';
 import Logger from '../../../util/Logger';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
+import {
+  markMetricsOptInUISeen,
+  resetMetricsOptInUISeen,
+} from '../../../util/metrics/metricsOptInUIUtils';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isE2E } from '../../../util/test/utils';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -326,6 +330,10 @@ const Onboarding = () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    // Reset metrics opt-in UI flag so the user sees the consent screen again.
+    // This ensures users starting a new wallet flow are prompted to make a fresh choice.
+    await resetMetricsOptInUISeen();
+
     await metrics.enable(false);
     // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
@@ -355,6 +363,10 @@ const Onboarding = () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    // Reset metrics opt-in UI flag so the user sees the consent screen again.
+    // This ensures users starting a new wallet flow are prompted to make a fresh choice.
+    await resetMetricsOptInUISeen();
+
     await metrics.enable(false);
     await hasMetricsConsent();
 
@@ -670,6 +682,10 @@ const Onboarding = () => {
             createWallet,
             provider,
           );
+
+          // Mark metrics opt-in UI as seen since OAuth users auto-consent to metrics.
+          // Set AFTER OAuth succeeds to avoid marking as seen if the flow fails.
+          await markMetricsOptInUISeen();
 
           // delay unset loading to avoid flash of loading state
           setTimeout(() => {

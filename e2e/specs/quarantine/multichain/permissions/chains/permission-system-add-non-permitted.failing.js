@@ -2,18 +2,18 @@ import {
   RegressionNetworkExpansion,
   SmokeNetworkExpansion,
 } from '../../../../../tags';
-import { loginToApp } from '../../../../../viewHelper';
-import Assertions from '../../../../../framework/Assertions';
+import { loginToApp, navigateToBrowserView } from '../../../../../viewHelper';
+import Assertions from '../../../../../../tests/framework/Assertions';
 import TestHelpers from '../../../../../helpers';
-import FixtureBuilder from '../../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../../../tests/framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../../../../resources/networks.e2e';
 import Browser from '../../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../../pages/wallet/TabBarComponent';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import ConnectedAccountsModal from '../../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../../pages/Browser/NetworkConnectMultiSelector';
-import { DappVariants } from '../../../../../framework/Constants';
+import { DappVariants } from '../../../../../../tests/framework/Constants';
 import WalletView from '../../../../../pages/wallet/WalletView';
 import NetworkListModal from '../../../../../pages/Network/NetworkListModal';
 import TestDApp from '../../../../../pages/Browser/TestDApp';
@@ -53,7 +53,7 @@ describe(
           await loginToApp();
 
           // Switch to non-permitted network on dapp
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await Browser.navigateToTestDApp();
           await TestDApp.tapOpenNetworkPicker();
           await TestDApp.tapNetworkByName(SEPOLIA);
@@ -91,7 +91,7 @@ describe(
           await loginToApp();
 
           // Add network permission
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await Browser.navigateToTestDApp();
 
           // Verify the permission was added by checking that disconnecting both networks shows disconnect all button
@@ -152,7 +152,7 @@ describe(
           await loginToApp();
 
           // Switch to permitted network on dapp
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await Browser.navigateToTestDApp();
           await TestDApp.verifyCurrentNetworkText('Ethereum Mainnet');
           await TestDApp.tapOpenNetworkPicker();
@@ -194,7 +194,7 @@ describe(
           await loginToApp();
 
           // Switch to permitted network on dapp
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await Browser.navigateToTestDApp();
           await TestDApp.verifyCurrentNetworkText('Ethereum Mainnet');
 
@@ -203,7 +203,7 @@ describe(
           await NetworkListModal.tapOnCustomTab();
           await NetworkListModal.changeNetworkTo('Sepolia');
 
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           if (device.getPlatform() === 'ios') {
             await Browser.tapHomeButton();
             await Browser.navigateToTestDApp();

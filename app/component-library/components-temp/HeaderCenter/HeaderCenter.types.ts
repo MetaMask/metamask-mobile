@@ -23,6 +23,16 @@ export interface HeaderCenterProps extends HeaderBaseProps {
    */
   titleProps?: Partial<TextProps>;
   /**
+   * Subtitle text to display below the title.
+   * Rendered with TextVariant.BodySm and TextColor.TextAlternative by default.
+   */
+  subtitle?: string;
+  /**
+   * Additional props to pass to the subtitle Text component.
+   * Props are spread to the Text component and can override default values.
+   */
+  subtitleProps?: Partial<TextProps>;
+  /**
    * Callback when the back button is pressed.
    * If provided, a back button will be rendered as startButtonIconProps.
    */

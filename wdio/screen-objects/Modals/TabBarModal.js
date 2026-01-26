@@ -1,7 +1,7 @@
 import Selectors from '../../helpers/Selectors';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
-import { TabBarSelectorIDs } from '../../../e2e/selectors/wallet/TabBar.selectors';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
+import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
 import BrowserScreen from '../BrowserObject/BrowserScreen';
 import { expect as appwrightExpect } from 'appwright';

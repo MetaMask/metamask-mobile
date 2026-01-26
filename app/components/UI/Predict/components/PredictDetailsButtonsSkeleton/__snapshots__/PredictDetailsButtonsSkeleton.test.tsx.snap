@@ -31,14 +31,13 @@ exports[`PredictDetailsButtonsSkeleton matches snapshot 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#457a391a",
-          "borderRadius": 8,
+          "borderRadius": 12,
           "height": 48,
           "overflow": "hidden",
           "width": "100%",
         }
       }
-      testID="predict-details-buttons-skeleton-button-yes"
+      testID="predict-details-buttons-skeleton-button-1"
     >
       <View
         collapsable={false}
@@ -74,14 +73,13 @@ exports[`PredictDetailsButtonsSkeleton matches snapshot 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#ca35421a",
-          "borderRadius": 8,
+          "borderRadius": 12,
           "height": 48,
           "overflow": "hidden",
           "width": "100%",
         }
       }
-      testID="predict-details-buttons-skeleton-button-no"
+      testID="predict-details-buttons-skeleton-button-2"
     >
       <View
         collapsable={false}

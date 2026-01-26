@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { View, Platform, TextInput, TouchableOpacity } from 'react-native';
 
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/SendFlow/AddAddressModal.selectors';
+import { AddAddressModalSelectorsIDs } from './AddAddressModal.testIds';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { baseStyles } from '../../../styles/common';

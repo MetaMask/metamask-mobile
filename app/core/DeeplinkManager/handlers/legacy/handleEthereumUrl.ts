@@ -8,6 +8,7 @@ import { NetworkSwitchErrorType } from '../../../../constants/error';
 import { getDecimalChainId } from '../../../../util/networks';
 import { MAINNET } from '../../../../constants/network';
 import Engine from '../../../Engine';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
@@ -63,8 +64,8 @@ async function handleEthereumUrl({
 
     switch (ethUrl.function_name) {
       case ETH_ACTIONS.TRANSFER: {
-        NavigationService.navigation.navigate('SendView', {
-          screen: 'Send',
+        NavigationService.navigation.navigate(Routes.SEND.DEFAULT, {
+          screen: Routes.SEND.RECIPIENT,
           params: { txMeta: { ...txMeta, action: 'send-token' } },
         });
         break;
@@ -78,13 +79,13 @@ async function handleEthereumUrl({
           ethUrl.parameters.value = formattedDeeplinkParsedValue(
             ethUrl.parameters.value,
           );
-          NavigationService.navigation.navigate('SendView', {
-            screen: 'Send',
+          NavigationService.navigation.navigate(Routes.SEND.DEFAULT, {
+            screen: Routes.SEND.RECIPIENT,
             params: { txMeta: { ...txMeta, action: 'send-eth' } },
           });
         } else {
-          NavigationService.navigation.navigate('SendFlowView', {
-            screen: 'SendTo',
+          NavigationService.navigation.navigate(Routes.SEND.DEFAULT, {
+            screen: Routes.SEND.RECIPIENT,
             params: { txMeta },
           });
         }

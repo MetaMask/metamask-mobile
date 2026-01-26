@@ -34,7 +34,10 @@ import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../constants/events/earnEvents';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
 import { StakeNavigationParamsList } from '../../../Stake/types';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
@@ -347,7 +350,7 @@ const EarnWithdrawInputView = () => {
         navBarEventOptions,
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         receiptTokenToUse,
-        tronApyPercent,
+        isTronEnabled ? tronApyPercent : null,
         ///: END:ONLY_INCLUDE_IF
       ),
     );
@@ -359,6 +362,7 @@ const EarnWithdrawInputView = () => {
     isLending,
     tokenLabel,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronEnabled,
     receiptTokenToUse,
     tronApyPercent,
     ///: END:ONLY_INCLUDE_IF

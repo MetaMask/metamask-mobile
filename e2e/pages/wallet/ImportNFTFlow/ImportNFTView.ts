@@ -1,6 +1,6 @@
-import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
-import { NFTImportScreenSelectorsIDs } from '../../../selectors/wallet/ImportNFTView.selectors';
+import Matchers from '../../../../tests/framework/Matchers';
+import Gestures from '../../../../tests/framework/Gestures';
+import { NFTImportScreenSelectorsIDs } from '../../../../app/components/UI/AddCustomCollectible/ImportNFTView.testIds';
 
 class ImportNFTView {
   get container(): DetoxElement {

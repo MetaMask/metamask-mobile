@@ -22,7 +22,6 @@ import {
   TX_UNAPPROVED,
 } from '../../../constants/transaction';
 import AppConstants from '../../../core/AppConstants';
-import { swapsTokensMultiChainObjectSelector } from '../../../reducers/swaps';
 import FIRST_PARTY_CONTRACT_NAMES from '../../../constants/first-party-contracts';
 import {
   selectNetworkClientId,
@@ -186,6 +185,7 @@ const AssetInlineHeader = ({
         size={ButtonIconSize.Lg}
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
+        testID="back-arrow-button"
       />
       <View style={inlineHeaderStyles.titleWrapper}>
         <Text variant={TextVariant.HeadingSM} numberOfLines={1}>
@@ -264,7 +264,6 @@ class Asset extends PureComponent {
      * Array of ERC20 assets
      */
     tokens: PropTypes.array,
-    swapsTokens: PropTypes.object,
     searchDiscoverySwapsTokens: PropTypes.array,
     swapsTransactions: PropTypes.object,
     /**
@@ -607,7 +606,6 @@ class Asset extends PureComponent {
     const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
       asset,
       searchDiscoverySwapsTokens: this.props.searchDiscoverySwapsTokens,
-      swapsTokens: this.props.swapsTokens,
     });
 
     const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
@@ -846,7 +844,6 @@ const mapStateToProps = (state, { route }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return {
-    swapsTokens: swapsTokensMultiChainObjectSelector(state),
     searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
       state,
       route.params.chainId,

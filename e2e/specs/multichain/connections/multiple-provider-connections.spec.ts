@@ -1,25 +1,24 @@
 import { SmokeNetworkExpansion } from '../../../tags';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import { withSolanaAccountEnabled } from '../../../common-solana';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+} from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Browser from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMultiSelector';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
-import { loginToApp } from '../../../viewHelper';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import { DappVariants } from '../../../framework/Constants';
-import { createLogger } from '../../../framework/logger';
+import { DappVariants } from '../../../../tests/framework/Constants';
+import { createLogger } from '../../../../tests/framework/logger';
 import { requestPermissions } from './helpers';
 
 const logger = createLogger({
@@ -68,7 +67,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         logger.debug('requesting permissions');
@@ -94,7 +93,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
         dappVariant: DappVariants.TEST_DAPP,
       },
       async () => {
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await TestDApp.connect();
 
@@ -134,7 +133,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
         dappVariant: DappVariants.TEST_DAPP,
       },
       async () => {
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         await requestPermissions({

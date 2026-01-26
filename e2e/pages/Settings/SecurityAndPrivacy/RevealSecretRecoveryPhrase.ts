@@ -1,9 +1,9 @@
 import {
   RevealSeedViewSelectorsIDs,
   RevealSeedViewSelectorsText,
-} from '../../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
-import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
+} from '../../../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds';
+import Matchers from '../../../../tests/framework/Matchers';
+import Gestures from '../../../../tests/framework/Gestures';
 
 class RevealSecretRecoveryPhrase {
   get container(): DetoxElement {

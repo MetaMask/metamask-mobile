@@ -7,7 +7,7 @@ import {
 } from '@react-navigation/native';
 import PerpsMarketListView from './PerpsMarketListView';
 import type { PerpsMarketData } from '../../controllers/types';
-import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 jest.mock('@react-navigation/native', () => ({
@@ -219,7 +219,9 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
   return function PerpsMarketFiltersBar({
     selectedOptionId,
     onSortPress,
-    onWatchlistToggle,
+    showMarketTypeDropdown,
+    marketTypeFilter,
+    onMarketTypePress,
     showStocksCommoditiesDropdown,
     stocksCommoditiesFilter,
     onStocksCommoditiesPress,
@@ -227,8 +229,9 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
   }: {
     selectedOptionId: string;
     onSortPress: () => void;
-    showWatchlistOnly: boolean;
-    onWatchlistToggle: () => void;
+    showMarketTypeDropdown?: boolean;
+    marketTypeFilter?: string;
+    onMarketTypePress?: () => void;
     showStocksCommoditiesDropdown?: boolean;
     stocksCommoditiesFilter?: 'all' | 'equity' | 'commodity';
     onStocksCommoditiesPress?: () => void;
@@ -238,18 +241,41 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     const getSortLabel = (optionId: string) => {
       const translations: Record<string, string> = {
         volume: 'Volume',
-        'priceChange-desc': 'Price Change (High to Low)',
-        'priceChange-asc': 'Price Change (Low to High)',
-        fundingRate: 'Funding Rate',
-        openInterest: 'Open Interest',
+        priceChange: 'Price change',
+        fundingRate: 'Funding rate',
+        openInterest: 'Open interest',
       };
       return translations[optionId] || optionId;
     };
     const displayText = getSortLabel(selectedOptionId || 'volume');
 
+    // Map market type filter to display labels
+    const getMarketTypeLabel = (filter: string) => {
+      const translations: Record<string, string> = {
+        all: 'All',
+        crypto: 'Crypto',
+        stocks_and_commodities: 'Stocks & Commodities',
+      };
+      return translations[filter] || filter;
+    };
+
     return MockReact.createElement(
       View,
       { testID },
+      showMarketTypeDropdown &&
+        onMarketTypePress &&
+        MockReact.createElement(
+          RNTouchableOpacity,
+          {
+            testID: testID ? `${testID}-market-type` : undefined,
+            onPress: onMarketTypePress,
+          },
+          MockReact.createElement(
+            Text,
+            { testID: `${testID}-market-type-text` },
+            getMarketTypeLabel(marketTypeFilter || 'all'),
+          ),
+        ),
       MockReact.createElement(
         RNTouchableOpacity,
         { testID: testID ? `${testID}-sort` : undefined, onPress: onSortPress },
@@ -259,15 +285,6 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
           displayText,
         ),
       ),
-      onWatchlistToggle &&
-        MockReact.createElement(
-          RNTouchableOpacity,
-          {
-            testID: testID ? `${testID}-watchlist-toggle` : undefined,
-            onPress: onWatchlistToggle,
-          },
-          MockReact.createElement(Text, null, 'Watchlist'),
-        ),
       showStocksCommoditiesDropdown &&
         onStocksCommoditiesPress &&
         MockReact.createElement(
@@ -421,7 +438,10 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
   selectPerpsWatchlistMarkets: jest.fn(() => []),
-  selectPerpsMarketFilterPreferences: jest.fn(() => 'volume'),
+  selectPerpsMarketFilterPreferences: jest.fn(() => ({
+    optionId: 'volume',
+    direction: 'desc',
+  })),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
@@ -1222,7 +1242,7 @@ describe('PerpsMarketListView', () => {
   // The component only renders market type tabs (All, Crypto, Stocks) for filtering markets
 
   describe('Stocks/Commodities Dropdown', () => {
-    it('does not show stocks/commodities dropdown when showStocksCommoditiesDropdown is false', async () => {
+    it('does not show stocks/commodities dropdown when market type filter is not stocks_and_commodities', async () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Wait for filter bar to render
@@ -1230,7 +1250,7 @@ describe('PerpsMarketListView', () => {
         expect(screen.getByText('Volume')).toBeOnTheScreen();
       });
 
-      // Verify stocks/commodities dropdown is not present
+      // Verify stocks/commodities dropdown is not present when filter is 'all'
       expect(
         screen.queryByTestId(
           `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-stocks-commodities-dropdown`,
@@ -1238,7 +1258,7 @@ describe('PerpsMarketListView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('does not show stocks/commodities dropdown regardless of market type filter', async () => {
+    it('shows stocks/commodities dropdown when market type filter is stocks_and_commodities', async () => {
       const { usePerpsMarketListView } = jest.requireMock('../../hooks');
 
       // Mock the hook to return stocks_and_commodities as the active filter
@@ -1283,10 +1303,118 @@ describe('PerpsMarketListView', () => {
         expect(screen.getByText('Volume')).toBeOnTheScreen();
       });
 
-      // Verify stocks/commodities dropdown is still not present even with stocks_and_commodities filter
+      // Verify stocks/commodities dropdown is present when filter is stocks_and_commodities
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-stocks-commodities-dropdown`,
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Market Type Dropdown', () => {
+    it('shows market type dropdown when multiple market types exist', async () => {
+      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+
+      // Mock with both crypto and stocks/commodities markets
+      usePerpsMarketListView.mockReturnValue({
+        markets: mockMarketData,
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: jest.fn(),
+          isSearchVisible: false,
+          setIsSearchVisible: jest.fn(),
+          toggleSearchVisibility: jest.fn(),
+          clearSearch: jest.fn(),
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          equity: 2, // Has stocks
+          commodity: 1, // Has commodities
+          forex: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Wait for filter bar to render
+      await waitFor(() => {
+        expect(screen.getByText('Volume')).toBeOnTheScreen();
+      });
+
+      // Verify market type dropdown is present
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-market-type`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show market type dropdown when only crypto markets exist', async () => {
+      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+
+      // Mock with only crypto markets (no stocks or commodities)
+      usePerpsMarketListView.mockReturnValue({
+        markets: mockMarketData,
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: jest.fn(),
+          isSearchVisible: false,
+          setIsSearchVisible: jest.fn(),
+          toggleSearchVisibility: jest.fn(),
+          clearSearch: jest.fn(),
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          equity: 0, // No stocks
+          commodity: 0, // No commodities
+          forex: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Wait for filter bar to render
+      await waitFor(() => {
+        expect(screen.getByText('Volume')).toBeOnTheScreen();
+      });
+
+      // Verify market type dropdown is not present when only crypto
       expect(
         screen.queryByTestId(
-          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-stocks-commodities-dropdown`,
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-market-type`,
         ),
       ).not.toBeOnTheScreen();
     });

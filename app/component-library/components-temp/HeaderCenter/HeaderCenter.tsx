@@ -3,8 +3,11 @@ import React, { useMemo } from 'react';
 
 // External dependencies.
 import {
+  Box,
+  BoxAlignItems,
   Text,
   TextVariant,
+  TextColor,
   FontWeight,
   IconName,
   ButtonIconProps,
@@ -37,6 +40,8 @@ import { HeaderCenterProps } from './HeaderCenter.types';
 const HeaderCenter: React.FC<HeaderCenterProps> = ({
   title,
   titleProps,
+  subtitle,
+  subtitleProps,
   children,
   onBack,
   backButtonProps,
@@ -91,13 +96,25 @@ const HeaderCenter: React.FC<HeaderCenterProps> = ({
     }
     if (title) {
       return (
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          {...titleProps}
-        >
-          {title}
-        </Text>
+        <Box alignItems={BoxAlignItems.Center}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            {...titleProps}
+          >
+            {title}
+          </Text>
+          {subtitle && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              {...subtitleProps}
+              twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
+            >
+              {subtitle}
+            </Text>
+          )}
+        </Box>
       );
     }
     return null;

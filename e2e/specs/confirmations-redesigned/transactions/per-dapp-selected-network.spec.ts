@@ -1,9 +1,9 @@
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper.ts';
 import {
   buildPermissions,
   AnvilPort,
-} from '../../../framework/fixtures/FixtureUtils.ts';
+} from '../../../../tests/framework/fixtures/FixtureUtils.ts';
 import Browser from '../../../pages/Browser/BrowserView.ts';
 import ConfirmationFooterActions from '../../../pages/Browser/Confirmations/FooterActions.ts';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes.ts';
@@ -12,14 +12,14 @@ import NetworkListModal from '../../../pages/Network/NetworkListModal.ts';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
 import WalletView from '../../../pages/wallet/WalletView.ts';
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
-import Assertions from '../../../framework/Assertions.ts';
-import { loginToApp } from '../../../viewHelper.ts';
-import { DappVariants } from '../../../framework/Constants.ts';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
+import Assertions from '../../../../tests/framework/Assertions.ts';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper.ts';
+import { DappVariants } from '../../../../tests/framework/Constants.ts';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper.ts';
+import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks.ts';
 import { Mockttp } from 'mockttp';
-import { LocalNode } from '../../../framework/types';
-import { AnvilManager } from '../../../seeder/anvil-manager';
+import { LocalNode } from '../../../../tests/framework/types';
+import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
@@ -77,17 +77,28 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         // Make sure the dapp is connected to the predefined network in configuration (LOCAL_CHAIN_ID)
         // by checking chainId text in the test dapp
         await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 
+        // Close browser to reveal app tab bar before changing network
+        await Browser.tapCloseBrowserButton();
+
+        // Wait for browser screen to disappear and tab bar to be visible
+        await Assertions.expectElementToBeVisible(
+          TabBarComponent.tabBarWalletButton,
+          {
+            description: 'Tab bar should be visible after closing browser',
+          },
+        );
+
         // Change the network to Ethereum Main Network in app
         await changeNetworkFromNetworkListModal('Ethereum Main Network');
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         // Assert the dapp is still connected the previously selected network (LOCAL_CHAIN_ID)
         await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 
@@ -105,10 +116,27 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
         // Accept confirmation
         await ConfirmationFooterActions.tapConfirmButton();
 
+        // Wait for browser screen to be visible after confirmation modal dismisses
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+          description:
+            'Browser screen should be visible after confirming transaction',
+        });
+
+        // Close browser to reveal app tab bar before changing network
+        await Browser.tapCloseBrowserButton();
+
+        // Wait for browser screen to disappear and tab bar to be visible
+        await Assertions.expectElementToBeVisible(
+          TabBarComponent.tabBarWalletButton,
+          {
+            description: 'Tab bar should be visible after closing browser',
+          },
+        );
+
         // Change the network to Localhost in app
         await changeNetworkFromNetworkListModal(LOCAL_CHAIN_NAME);
 
-        // Check activity tab
+        // Check activity tab (already on wallet from helper, just navigate)
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },

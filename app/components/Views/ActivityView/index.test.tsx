@@ -7,7 +7,7 @@ import { fireEvent } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 
 // Mock the Perps feature flag selector - will be controlled per test
 let mockPerpsEnabled = false;

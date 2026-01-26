@@ -30,6 +30,13 @@ jest.mock('../utils/formatUtils', () => ({
   formatPerpsFiat: (price: string) => price, // Simple pass-through for testing
   PRICE_RANGES_UNIVERSAL: {},
   PRICE_RANGES_MINIMAL_VIEW: {},
+  // Include significant figures utilities (re-exported via tpslValidation)
+  countSignificantFigures: jest.requireActual('../utils/formatUtils')
+    .countSignificantFigures,
+  hasExceededSignificantFigures: jest.requireActual('../utils/formatUtils')
+    .hasExceededSignificantFigures,
+  roundToSignificantFigures: jest.requireActual('../utils/formatUtils')
+    .roundToSignificantFigures,
 }));
 
 // Mock i18n strings
@@ -59,7 +66,7 @@ const createWrapper = () => {
 
 describe('usePerpsTPSLForm', () => {
   const mockPosition: Position = {
-    coin: 'BTC',
+    symbol: 'BTC',
     size: '1.5',
     entryPrice: '50000',
     positionValue: '75000',
@@ -219,10 +226,11 @@ describe('usePerpsTPSLForm', () => {
         });
 
         act(() => {
-          result.current.handlers.handleTakeProfitPriceChange('55000.50abc');
+          // Use 5000.50 (5 sig figs) instead of 55000.50 (6 sig figs) to stay within limit
+          result.current.handlers.handleTakeProfitPriceChange('5000.50abc');
         });
 
-        expect(result.current.formState.takeProfitPrice).toBe('55000.50');
+        expect(result.current.formState.takeProfitPrice).toBe('5000.50');
       });
 
       it('prevent multiple decimal points in price input', () => {

@@ -1,5 +1,5 @@
-import { ConfirmationUIType } from '../../../selectors/Confirmation/ConfirmationView.selectors';
-import Matchers from '../../../framework/Matchers';
+import { ConfirmationUIType } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import Matchers from '../../../../tests/framework/Matchers';
 
 class ConfirmationUITypes {
   get ModalConfirmationContainer(): DetoxElement {

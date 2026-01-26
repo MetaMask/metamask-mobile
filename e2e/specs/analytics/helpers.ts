@@ -1,6 +1,6 @@
 import { MockedEndpoint, Mockttp, MockttpServer } from 'mockttp';
 import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
-import { createLogger } from '../../framework/logger';
+import { createLogger } from '../../../tests/framework/logger';
 
 const logger = createLogger({
   name: 'AnalyticsHelpers',
@@ -66,6 +66,7 @@ export const getEventsPayloads = async (
 
   const mockedEndpoints = await waitForPendingEndpoints();
 
+  // Get requests from all mocked endpoints (including catch-all proxy handler)
   const requests = (
     await Promise.all(
       mockedEndpoints.map((endpoint) => endpoint.getSeenRequests()),

@@ -2,6 +2,8 @@ import { ContractConfig, RoundConfig, TickSize } from './types';
 
 export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
+export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
+
 /**
  * Default slippage for market orders.
  */

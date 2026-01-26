@@ -1,6 +1,6 @@
 import { StakeViewSelectors } from '../../selectors/Stake/StakeView.selectors.js';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class StakeView {
   get stakeContainer(): DetoxElement {
@@ -15,8 +15,8 @@ class StakeView {
     return Matchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON);
   }
 
-  get continueButton(): DetoxElement {
-    return Matchers.getElementByText(StakeViewSelectors.CONTINUE);
+  get confirmButton(): DetoxElement {
+    return Matchers.getElementByText(StakeViewSelectors.CONFIRM);
   }
 
   async selectAmount(amount: string): Promise<void> {
@@ -39,9 +39,9 @@ class StakeView {
     });
   }
 
-  async tapContinue(): Promise<void> {
-    await Gestures.waitAndTap(this.continueButton, {
-      elemDescription: 'Continue Button in Stake View',
+  async tapConfirm(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmButton, {
+      elemDescription: 'Confirm Button in Stake View',
     });
   }
 }
