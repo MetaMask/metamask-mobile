@@ -25,7 +25,7 @@ import {
 import {
   CustomNetworks,
   PopularNetworksList,
-} from '../../../e2e/resources/networks.e2e';
+} from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types.ts';
 import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants.ts';
 import {
