@@ -8,6 +8,8 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const SRP_1 = {
   index: 1,
@@ -62,6 +64,12 @@ describe(
             .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
             .build(),
           restartDevice: true,
+          testSpecificMock: async (mockServer) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureMultichainAccountsAccountDetailsV2(false),
+            );
+          },
         },
         async () => {
           await loginToApp();

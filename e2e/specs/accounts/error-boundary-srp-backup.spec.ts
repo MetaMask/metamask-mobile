@@ -25,7 +25,7 @@ import {
   securityAlertsUrl,
 } from '../../../tests/api-mocking/mock-responses/security-alerts-mock';
 import { LocalNode } from '../../../tests/framework/types';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const PASSWORD = '123123123';
 
