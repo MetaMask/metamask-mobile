@@ -109,7 +109,7 @@ describe('PerpsDepositFees', () => {
       {
         targetTokenAddress: '0x123',
         amount: '100',
-      } as TransactionPaySourceAmount,
+      } as unknown as TransactionPaySourceAmount,
     ]);
 
     const { getByTestId } = render();
@@ -124,13 +124,13 @@ describe('PerpsDepositFees', () => {
       {
         address: '0x123',
         skipIfBalance: false,
-      } as TransactionPayRequiredToken,
+      } as unknown as TransactionPayRequiredToken,
     ]);
     useTransactionPaySourceAmountsMock.mockReturnValue([
       {
         targetTokenAddress: '0x456', // Different address - no match
         amount: '100',
-      } as TransactionPaySourceAmount,
+      } as unknown as TransactionPaySourceAmount,
     ]);
 
     const { getByTestId } = render();
@@ -149,13 +149,13 @@ describe('PerpsDepositFees', () => {
       {
         address: '0x123',
         skipIfBalance: false,
-      } as TransactionPayRequiredToken,
+      } as unknown as TransactionPayRequiredToken,
     ]);
     useTransactionPaySourceAmountsMock.mockReturnValue([
       {
         targetTokenAddress: '0x123', // Matching address
         amount: '100',
-      } as TransactionPaySourceAmount,
+      } as unknown as TransactionPaySourceAmount,
     ]);
 
     const { queryByTestId } = render();
@@ -172,13 +172,13 @@ describe('PerpsDepositFees', () => {
       {
         address: '0x123',
         skipIfBalance: true, // Should be skipped in hasSourceAmount check
-      } as TransactionPayRequiredToken,
+      } as unknown as TransactionPayRequiredToken,
     ]);
     useTransactionPaySourceAmountsMock.mockReturnValue([
       {
         targetTokenAddress: '0x123',
         amount: '100',
-      } as TransactionPaySourceAmount,
+      } as unknown as TransactionPaySourceAmount,
     ]);
 
     const { getByTestId } = render();
