@@ -79,9 +79,10 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
-import MetaMetrics from '../Analytics/MetaMetrics';
-import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import { analytics } from '../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
+import MetaMetrics from '../Analytics/MetaMetrics';
 import { captureException } from '@sentry/react-native';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { setAllowLoginWithRememberMe } from '../../actions/security';
@@ -1604,24 +1605,27 @@ class AuthenticationService {
     }
 
     try {
-      await SeedlessOnboardingController.runMigrations();
+      const migrationPerformed =
+        await SeedlessOnboardingController.runMigrations();
 
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
-        )
-          .addProperties({
-            migration_version:
-              SeedlessOnboardingController.state?.migrationVersion,
-          })
-          .build(),
-      );
+      if (migrationPerformed) {
+        analytics.trackEvent(
+          AnalyticsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
+          )
+            .addProperties({
+              migration_version:
+                SeedlessOnboardingController.state?.migrationVersion,
+            })
+            .build(),
+        );
+      }
     } catch (error) {
       const isError = error instanceof Error;
       const errorMessage = isError ? error.message : 'Unknown error';
 
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
         )
           .addProperties({
