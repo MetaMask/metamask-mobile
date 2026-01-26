@@ -11,6 +11,8 @@ import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsM
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import { DappVariants } from '../../../../../tests/framework/Constants';
+import { setupRemoteFeatureFlagsMock } from '../../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {
@@ -32,6 +34,12 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
             .withPermissionController()
             .build(),
           restartDevice: true,
+          testSpecificMock: async (mockServer) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureMultichainAccountsAccountDetailsV2(false),
+            );
+          },
         },
         async () => {
           // Setup: Login and navigate to browser
