@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
-import { View, Switch, ActivityIndicator, Animated } from 'react-native';
+import { View, ActivityIndicator, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -9,6 +9,11 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
@@ -19,6 +24,8 @@ import {
 import styleSheet from './PerpsStopLossPromptBanner.styles';
 import type { PerpsStopLossPromptBannerProps } from './PerpsStopLossPromptBanner.types';
 
+/** Delay before fade-out starts, allowing user to see success checkmark */
+const SUCCESS_DISPLAY_DELAY_MS = 2000;
 /** Duration of the fade-out animation in milliseconds */
 const FADE_OUT_DURATION_MS = 300;
 
@@ -71,17 +78,23 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
       const fadeAnim = useRef(new Animated.Value(1)).current;
 
       // Trigger fade-out animation when isSuccess becomes true
+      // Wait for SUCCESS_DISPLAY_DELAY_MS first so user sees success checkmark
       useEffect(() => {
         if (isSuccess) {
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: FADE_OUT_DURATION_MS,
-            useNativeDriver: true,
-          }).start(() => {
-            // Call callback when animation completes
-            onFadeOutComplete?.();
-          });
+          const delayTimer = setTimeout(() => {
+            Animated.timing(fadeAnim, {
+              toValue: 0,
+              duration: FADE_OUT_DURATION_MS,
+              useNativeDriver: true,
+            }).start(() => {
+              // Call callback when animation completes
+              onFadeOutComplete?.();
+            });
+          }, SUCCESS_DISPLAY_DELAY_MS);
+
+          return () => clearTimeout(delayTimer);
         }
+        return undefined;
       }, [isSuccess, fadeAnim, onFadeOutComplete]);
 
       // Safe press handlers that won't trigger if callback is not provided
@@ -89,15 +102,12 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
         onAddMargin?.();
       }, [onAddMargin]);
 
-      // Toggle handler - directly triggers stop loss action
-      const handleToggleChange = useCallback(
-        (value: boolean) => {
-          if (value && !isLoading) {
-            onSetStopLoss?.();
-          }
-        },
-        [isLoading, onSetStopLoss],
-      );
+      // Button press handler - directly triggers stop loss action
+      const handleSetStopLossPress = useCallback(() => {
+        if (!isLoading && !isSuccess) {
+          onSetStopLoss?.();
+        }
+      }, [isLoading, isSuccess, onSetStopLoss]);
 
       // Format the suggested stop loss price for display
       const formattedStopLossPrice = suggestedStopLossPrice
@@ -176,28 +186,32 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
                 })}
               </Text>
             </View>
-            <View style={styles.toggleContainer}>
-              {isLoading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary.default}
-                  testID={PerpsStopLossPromptSelectorsIDs.LOADING}
-                />
-              ) : (
-                <Switch
-                  value={false}
-                  onValueChange={handleToggleChange}
-                  trackColor={{
-                    true: colors.primary.default,
-                    false: colors.border.muted,
-                  }}
-                  thumbColor={colors.background.default}
-                  ios_backgroundColor={colors.border.muted}
-                  disabled={isLoading || !onSetStopLoss}
-                  testID={PerpsStopLossPromptSelectorsIDs.TOGGLE}
-                />
-              )}
-            </View>
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Sm}
+              label={
+                isLoading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.primary.inverse}
+                    testID={PerpsStopLossPromptSelectorsIDs.LOADING}
+                  />
+                ) : isSuccess ? (
+                  <Icon
+                    name={IconName.Check}
+                    size={IconSize.Sm}
+                    color={IconColor.Inverse}
+                    testID={PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON}
+                  />
+                ) : (
+                  strings('perps.stop_loss_prompt.set_button')
+                )
+              }
+              onPress={handleSetStopLossPress}
+              isDisabled={isLoading || isSuccess || !onSetStopLoss}
+              style={styles.button}
+              testID={PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON}
+            />
           </View>
         </Animated.View>
       );

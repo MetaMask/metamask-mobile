@@ -6,6 +6,24 @@ import type { Position, TPSLTrackingData } from '../controllers/types';
 import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { retryWithExponentialDelay } from '../../../../util/exponential-retry';
+
+/**
+ * Retry configuration for rate limiting resilience.
+ *
+ * HyperLiquid rate limits:
+ * - IP-based: 1,200 weighted requests per minute
+ * - Address-based: 1 request per 1 USDC traded (lifetime) + 10,000 initial buffer
+ * - When rate limited: addresses receive 1 request every 10 seconds (drip recovery)
+ *
+ * Strategy: Retry with exponential backoff, but fail fast (~14s total) to avoid
+ * leaving the user waiting too long. Sequence: 2s → 4s → 8s = ~14s total.
+ *
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/rate-limits
+ */
+const TPSL_UPDATE_MAX_RETRIES = 3;
+const TPSL_UPDATE_BASE_DELAY_MS = 2000;
+const TPSL_UPDATE_MAX_DELAY_MS = 10000;
 
 interface UseTPSLUpdateOptions {
   onSuccess?: () => void;
@@ -30,17 +48,34 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       takeProfitPrice: string | undefined,
       stopLossPrice: string | undefined,
       trackingData?: TPSLTrackingData,
-    ) => {
+    ): Promise<{ success: boolean }> => {
       setIsUpdating(true);
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
 
       try {
-        const result = await updatePositionTPSL({
-          symbol: position.symbol,
-          takeProfitPrice,
-          stopLossPrice,
-          trackingData,
-        });
+        // Wrap API call with exponential backoff retry for rate limiting resilience
+        // The inner function throws on failure to trigger retries (since updatePositionTPSL
+        // returns { success: false } instead of throwing)
+        const result = await retryWithExponentialDelay(
+          async () => {
+            const res = await updatePositionTPSL({
+              symbol: position.symbol,
+              takeProfitPrice,
+              stopLossPrice,
+              trackingData,
+              position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
+            });
+            if (!res.success) {
+              // Throw to trigger retry - the error message will be used if all retries fail
+              throw new Error(res.error || 'TP/SL update failed');
+            }
+            return res;
+          },
+          TPSL_UPDATE_MAX_RETRIES,
+          TPSL_UPDATE_BASE_DELAY_MS,
+          TPSL_UPDATE_MAX_DELAY_MS,
+          true, // Enable jitter to prevent thundering herd
+        );
 
         if (result.success) {
           DevLogger.log('Position TP/SL updated successfully:', result);
@@ -59,20 +94,23 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
           // Call success callback if provided
           options?.onSuccess?.();
-        } else {
-          DevLogger.log('Failed to update position TP/SL:', result.error);
 
-          const errorMessage = result.error || strings('perps.errors.unknown');
-
-          showToast(
-            PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-              errorMessage,
-            ),
-          );
-
-          // Call error callback if provided
-          options?.onError?.(errorMessage);
+          return { success: true };
         }
+        DevLogger.log('Failed to update position TP/SL:', result.error);
+
+        const errorMessage = result.error || strings('perps.errors.unknown');
+
+        showToast(
+          PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+            errorMessage,
+          ),
+        );
+
+        // Call error callback if provided
+        options?.onError?.(errorMessage);
+
+        return { success: false };
       } catch (error) {
         DevLogger.log('Error updating position TP/SL:', error);
 
@@ -112,6 +150,8 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
         // Call error callback if provided
         options?.onError?.(errorMessage);
+
+        return { success: false };
       } finally {
         DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to false');
         setIsUpdating(false);
