@@ -3,7 +3,7 @@ import { Linking } from 'react-native';
 import SettingsModal from './SettingsModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../../../../component-library/components/Toast';
 import {
@@ -243,7 +243,9 @@ describe('SettingsModal', () => {
       const { findByText } = renderWithProvider(SettingsModal);
 
       const logoutButton = await findByText('Log out of Transak');
-      fireEvent.press(logoutButton);
+      await act(async () => {
+        fireEvent.press(logoutButton);
+      });
 
       await waitFor(() => {
         expect(mockResetProviderToken).toHaveBeenCalled();
@@ -266,7 +268,9 @@ describe('SettingsModal', () => {
       const { findByText } = renderWithProvider(SettingsModal);
 
       const logoutButton = await findByText('Log out of Transak');
-      fireEvent.press(logoutButton);
+      await act(async () => {
+        fireEvent.press(logoutButton);
+      });
 
       await waitFor(() => {
         expect(mockResetProviderToken).toHaveBeenCalled();
