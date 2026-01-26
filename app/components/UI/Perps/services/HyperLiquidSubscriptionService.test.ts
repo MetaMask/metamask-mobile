@@ -4464,4 +4464,138 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(orderBookData.asks.length).toBe(3);
     });
   });
+
+  describe('Position hash change detection', () => {
+    it('should notify subscribers when liquidationPrice or marginUsed changes', async () => {
+      const mockCallback = jest.fn();
+      const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
+      let callCount = 0;
+
+      // Mock adapter to return different liquidationPrice/marginUsed on each call
+      mockAdapter.adaptPositionFromSDK.mockImplementation((assetPos: any) => {
+        callCount++;
+        // First call: initial values, Second call: updated margin values
+        const isUpdated = callCount > 1;
+        return {
+          symbol: 'BTC',
+          size: assetPos.position.szi,
+          entryPrice: '50000',
+          positionValue: '5000',
+          unrealizedPnl: '100',
+          // These values change after margin adjustment
+          marginUsed: isUpdated ? '3000' : '2500',
+          liquidationPrice: isUpdated ? '38000' : '40000',
+          leverage: { type: 'isolated', value: 2 },
+          maxLeverage: 100,
+          returnOnEquity: '4.0',
+          cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        };
+      });
+
+      // Capture the callback ref for simulating updates
+      let clearinghouseCallback: any;
+      mockSubscriptionClient.clearinghouseState.mockImplementation(
+        (_params: any, callback: any) => {
+          clearinghouseCallback = callback;
+          // Send initial position data
+          setTimeout(() => {
+            callback({
+              dex: _params.dex || '',
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: {
+                      szi: '1.0',
+                      coin: 'BTC',
+                      entryPrice: '50000',
+                    },
+                    coin: 'BTC',
+                  },
+                ],
+                marginSummary: {
+                  accountValue: '10000',
+                  totalMarginUsed: '2500',
+                },
+                withdrawable: '7500',
+              },
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      mockSubscriptionClient.openOrders.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({ dex: _params.dex || '', orders: [] });
+          }, 5);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      // Wait for initial update
+      await jest.runAllTimersAsync();
+
+      // Verify initial callback was called
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+      expect(mockCallback).toHaveBeenLastCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            symbol: 'BTC',
+            liquidationPrice: '40000',
+            marginUsed: '2500',
+          }),
+        ]),
+      );
+
+      // Clear mock to track subsequent calls
+      mockCallback.mockClear();
+
+      // Simulate margin adjustment update - same position size/entry but different margin values
+      // The adapter will return updated liquidationPrice and marginUsed
+      clearinghouseCallback({
+        dex: '',
+        clearinghouseState: {
+          assetPositions: [
+            {
+              position: {
+                szi: '1.0', // Same size
+                coin: 'BTC',
+                entryPrice: '50000', // Same entry price
+              },
+              coin: 'BTC',
+            },
+          ],
+          marginSummary: { accountValue: '10500', totalMarginUsed: '3000' },
+          withdrawable: '7500',
+        },
+      });
+
+      await jest.runAllTimersAsync();
+
+      // Callback should be called again because liquidationPrice and marginUsed changed
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+      expect(mockCallback).toHaveBeenLastCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            symbol: 'BTC',
+            liquidationPrice: '38000',
+            marginUsed: '3000',
+          }),
+        ]),
+      );
+
+      unsubscribe();
+    });
+  });
 });
