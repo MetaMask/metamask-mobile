@@ -21,13 +21,13 @@ import { CardLocation } from '../types';
 export function getCardProvider(
   userCardLocation: CardLocation,
   cardSDK: CardSDK,
-): ICardProviderAdapter {
+): ICardProviderAdapter | null {
   switch (userCardLocation) {
     case 'us':
       return new GalileoCardAdapter(cardSDK);
     case 'international':
     default:
-      return new GalileoCardAdapter(cardSDK);
+      return null;
   }
 }
 
