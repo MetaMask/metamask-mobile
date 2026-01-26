@@ -194,6 +194,7 @@ const CheckoutWebView = () => {
             if (canOpen) {
               return Linking.openURL(url);
             }
+            Logger.log(`Cannot open URL: ${url} - payment app not installed`);
             return Promise.resolve();
           })
           .catch((err: Error) => {

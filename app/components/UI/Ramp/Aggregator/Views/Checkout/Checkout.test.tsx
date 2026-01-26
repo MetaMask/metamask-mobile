@@ -541,6 +541,34 @@ describe('Checkout', () => {
       expect(result).toBe(true);
     });
 
+    it('logs message when payment app is not installed', async () => {
+      (Linking.canOpenURL as jest.Mock).mockResolvedValueOnce(false);
+      const mockLoggerLog = jest.spyOn(Logger, 'log');
+
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'upi://pay?pa=company@ypbiz',
+      });
+
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(
+        'upi://pay?pa=company@ypbiz',
+      );
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'Cannot open URL: upi://pay?pa=company@ypbiz - payment app not installed',
+      );
+    });
+
     it('logs error when Linking.canOpenURL fails', async () => {
       const mockError = new Error('Failed to check URL');
       (Linking.canOpenURL as jest.Mock).mockRejectedValueOnce(mockError);
