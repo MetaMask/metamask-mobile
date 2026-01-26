@@ -189,22 +189,19 @@ describe('ClaimMerklRewards', () => {
   });
 
   it('disables button when isClaiming is true', () => {
-    const { TouchableOpacity: RNTouchableOpacity } =
-      jest.requireActual('react-native');
-
     mockUseMerklClaim.mockReturnValue({
       claimRewards: mockClaimRewards,
       isClaiming: true,
       error: null,
     });
 
-    const { UNSAFE_root } = render(
+    const { getByTestId } = render(
       <ClaimMerklRewards
         asset={mockAsset}
         onClaimSuccess={mockOnClaimSuccess}
       />,
     );
-    const buttonElement = UNSAFE_root.findByType(RNTouchableOpacity);
+    const buttonElement = getByTestId('claim-merkl-rewards-button');
 
     expect(buttonElement.props.disabled).toBe(true);
   });

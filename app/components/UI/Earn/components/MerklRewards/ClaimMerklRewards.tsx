@@ -72,6 +72,7 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
   return (
     <View style={styles.claimButtonContainer}>
       <Button
+        testID="claim-merkl-rewards-button"
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         twClassName="w-full"
