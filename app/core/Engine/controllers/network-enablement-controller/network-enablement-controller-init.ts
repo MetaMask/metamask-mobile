@@ -25,5 +25,7 @@ export const networkEnablementControllerInit: ControllerInitFunction<
     state: networkEnablementControllerState,
   });
 
+  controller.init();
+
   return { controller };
 };
