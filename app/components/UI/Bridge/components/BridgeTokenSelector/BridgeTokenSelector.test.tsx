@@ -191,22 +191,24 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-const mockFormatAddressToAssetId = jest.fn(() => 'eip155:1/erc20:0x1234');
-const mockIsNonEvmChainId = jest.fn(() => false);
+const mockFormatAddressToAssetId = jest.fn<string | null, [string, string]>(
+  () => 'eip155:1/erc20:0x1234',
+);
+const mockIsNonEvmChainId = jest.fn<boolean, [string]>(() => false);
 jest.mock('@metamask/bridge-controller', () => ({
-  formatAddressToAssetId: (...args: unknown[]) =>
-    mockFormatAddressToAssetId(...args),
+  formatAddressToAssetId: (address: string, chainId: string) =>
+    mockFormatAddressToAssetId(address, chainId),
   formatChainIdToCaip: jest.fn(
     (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
   ),
-  isNonEvmChainId: (...args: unknown[]) => mockIsNonEvmChainId(...args),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
   UnifiedSwapBridgeEventName: {
     AssetDetailTooltipClicked: 'AssetDetailTooltipClicked',
   },
 }));
 
 jest.mock('../../../../../core/Multichain/utils', () => ({
-  isNonEvmChainId: (...args: unknown[]) => mockIsNonEvmChainId(...args),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
