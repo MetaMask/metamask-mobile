@@ -744,6 +744,27 @@ export interface LiquidationPriceParams {
   asset?: string; // Optional: for asset-specific maintenance margins
 }
 
+export interface EstimateLiquidationPriceAfterMarginChangeParams {
+  /** Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA') */
+  asset: string;
+  /** Entry price of the position */
+  entryPrice: number;
+  /** Position direction */
+  direction: 'long' | 'short';
+  /** Absolute position size in base units */
+  positionSize: number;
+  /** Absolute position notional value in USD */
+  positionValueUsd: number;
+  /** Current isolated margin in USD */
+  currentMarginUsd: number;
+  /** Target isolated margin after adjustment (absolute USD, not delta) */
+  newMarginUsd: number;
+  /** Margin type (isolated/cross) */
+  marginType?: 'isolated' | 'cross';
+  /** Multi-provider routing override */
+  providerId?: PerpsProviderType;
+}
+
 export interface MaintenanceMarginParams {
   asset: string;
   positionSize?: number; // Optional: for tiered margin systems
@@ -915,6 +936,9 @@ export interface IPerpsProvider {
 
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
+  estimateLiquidationPriceAfterMarginChange?(
+    params: EstimateLiquidationPriceAfterMarginChangeParams,
+  ): Promise<string>;
   calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
   getMaxLeverage(asset: string): Promise<number>;
   calculateFees(params: FeeCalculationParams): Promise<FeeCalculationResult>;

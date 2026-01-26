@@ -2,6 +2,7 @@ import {
   assessMarginRemovalRisk,
   calculateMaxRemovableMargin,
   calculateNewLiquidationPrice,
+  estimateLiquidationPriceAfterMarginChange,
 } from './marginUtils';
 
 describe('marginUtils', () => {
@@ -320,6 +321,63 @@ describe('marginUtils', () => {
       });
 
       expect(result).toBe(0);
+    });
+  });
+
+  describe('estimateLiquidationPriceAfterMarginChange', () => {
+    it('returns the current liquidation price when new margin equals current margin', () => {
+      const result = estimateLiquidationPriceAfterMarginChange({
+        entryPrice: 2000,
+        isLong: true,
+        currentMargin: 1000,
+        newMargin: 1000,
+        positionSize: 10,
+        currentLiquidationPrice: 1900,
+      });
+
+      expect(result).toBe(1900);
+    });
+
+    it('moves liquidation price by delta/size when adding margin (long)', () => {
+      const result = estimateLiquidationPriceAfterMarginChange({
+        entryPrice: 2000,
+        isLong: true,
+        currentMargin: 1000,
+        newMargin: 2000, // +100%
+        positionSize: 10,
+        currentLiquidationPrice: 1900, // distance=100
+      });
+
+      // delta=+1000, delta/size=100 => 1900 - 100 = 1800
+      expect(result).toBe(1800);
+    });
+
+    it('moves liquidation price by delta/size when removing margin (short)', () => {
+      const result = estimateLiquidationPriceAfterMarginChange({
+        entryPrice: 2000,
+        isLong: false,
+        currentMargin: 1000,
+        newMargin: 500, // -50%
+        positionSize: 10,
+        currentLiquidationPrice: 2100, // distance=100
+      });
+
+      // delta=-500, delta/size=-50 => 2100 - 50 = 2050
+      expect(result).toBe(2050);
+    });
+
+    it('falls back to simplified estimator when current margin is invalid', () => {
+      const result = estimateLiquidationPriceAfterMarginChange({
+        entryPrice: 2000,
+        isLong: true,
+        currentMargin: 0, // invalid -> fallback
+        newMargin: 200,
+        positionSize: 10,
+        currentLiquidationPrice: 1900,
+      });
+
+      // fallback: marginPerUnit = 200/10 = 20 => 2000 - 20 = 1980
+      expect(result).toBe(1980);
     });
   });
 

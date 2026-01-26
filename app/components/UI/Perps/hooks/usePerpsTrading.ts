@@ -16,6 +16,7 @@ import type {
   OrderFill,
   Order,
   Funding,
+  EstimateLiquidationPriceAfterMarginChangeParams,
   LiquidationPriceParams,
   MaintenanceMarginParams,
   MarginResult,
@@ -134,6 +135,16 @@ export function usePerpsTrading() {
     [],
   );
 
+  const estimateLiquidationPriceAfterMarginChange = useCallback(
+    async (
+      params: EstimateLiquidationPriceAfterMarginChangeParams,
+    ): Promise<string> => {
+      const controller = Engine.context.PerpsController;
+      return controller.estimateLiquidationPriceAfterMarginChange(params);
+    },
+    [],
+  );
+
   const calculateMaintenanceMargin = useCallback(
     async (params: MaintenanceMarginParams): Promise<number> => {
       const controller = Engine.context.PerpsController;
@@ -247,6 +258,7 @@ export function usePerpsTrading() {
     clearDepositResult,
     withdraw,
     calculateLiquidationPrice,
+    estimateLiquidationPriceAfterMarginChange,
     calculateMaintenanceMargin,
     getMaxLeverage,
     updatePositionTPSL,

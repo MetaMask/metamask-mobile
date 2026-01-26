@@ -37,6 +37,15 @@ export interface CalculateNewLiquidationPriceParams {
   currentLiquidationPrice: number;
 }
 
+export interface EstimateLiquidationPriceAfterMarginChangeParams {
+  entryPrice: number;
+  isLong: boolean;
+  currentMargin: number;
+  newMargin: number;
+  positionSize: number;
+  currentLiquidationPrice: number;
+}
+
 /**
  * Assess liquidation risk after margin removal
  * Compares new liquidation price against current market price to determine risk level
@@ -206,4 +215,81 @@ export function calculateNewLiquidationPrice(
     return Math.max(0, entryPrice - marginPerUnit);
   }
   return entryPrice + marginPerUnit;
+}
+
+/**
+ * Estimate liquidation price after a margin change, anchored to the current provider liquidation price.
+ *
+ * Uses an "anchored + delta" model:
+ * - Start from the current provider liquidation price (source-of-truth baseline).
+ * - Apply the margin delta per unit of position size to move liquidation price.
+ *
+ * This keeps the preview aligned with what the user sees on the open position page (inputAmount=0 matches)
+ * and typically tracks the provider better than scaling from entry for isolated margin adjustments.
+ *
+ * Falls back to simplified estimation when required inputs are invalid.
+ */
+export function estimateLiquidationPriceAfterMarginChange(
+  params: EstimateLiquidationPriceAfterMarginChangeParams,
+): number {
+  const {
+    entryPrice,
+    isLong,
+    currentMargin,
+    newMargin,
+    positionSize,
+    currentLiquidationPrice,
+  } = params;
+
+  if (!isFinite(newMargin) || newMargin <= 0) {
+    return currentLiquidationPrice;
+  }
+
+  // If we don't have a valid current provider liquidation price, fall back to the simplified estimator.
+  if (
+    !isFinite(entryPrice) ||
+    entryPrice <= 0 ||
+    !isFinite(currentLiquidationPrice) ||
+    currentLiquidationPrice <= 0 ||
+    !isFinite(currentMargin) ||
+    currentMargin <= 0
+  ) {
+    return calculateNewLiquidationPrice({
+      newMargin,
+      positionSize,
+      entryPrice,
+      isLong,
+      currentLiquidationPrice,
+    });
+  }
+
+  if (!isFinite(positionSize) || positionSize <= 0) {
+    return calculateNewLiquidationPrice({
+      newMargin,
+      positionSize,
+      entryPrice,
+      isLong,
+      currentLiquidationPrice,
+    });
+  }
+
+  const marginDelta = newMargin - currentMargin;
+  if (!isFinite(marginDelta)) {
+    return calculateNewLiquidationPrice({
+      newMargin,
+      positionSize,
+      entryPrice,
+      isLong,
+      currentLiquidationPrice,
+    });
+  }
+
+  // For long positions, adding margin moves liquidation price down (safer).
+  // For short positions, adding margin moves liquidation price up (safer).
+  const directionMultiplier = isLong ? -1 : 1;
+  const estimatedLiquidationPrice =
+    currentLiquidationPrice +
+    directionMultiplier * (marginDelta / positionSize);
+
+  return Math.max(0, estimatedLiquidationPrice);
 }

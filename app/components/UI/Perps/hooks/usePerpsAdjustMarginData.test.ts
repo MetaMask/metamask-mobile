@@ -6,6 +6,7 @@ import {
   usePerpsLivePrices,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
+import { usePerpsTrading } from './usePerpsTrading';
 
 // Mock the dependencies
 jest.mock('./stream', () => ({
@@ -16,6 +17,10 @@ jest.mock('./stream', () => ({
 
 jest.mock('./usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
+}));
+
+jest.mock('./usePerpsTrading', () => ({
+  usePerpsTrading: jest.fn(),
 }));
 
 const mockUsePerpsLivePositions = usePerpsLivePositions as jest.MockedFunction<
@@ -30,8 +35,12 @@ const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
 const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
   typeof usePerpsMarkets
 >;
+const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
+  typeof usePerpsTrading
+>;
 
 describe('usePerpsAdjustMarginData', () => {
+  let mockEstimateLiquidationPriceAfterMarginChange: jest.Mock;
   const mockPosition = {
     symbol: 'BTC',
     size: '0.5',
@@ -76,6 +85,15 @@ describe('usePerpsAdjustMarginData', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockEstimateLiquidationPriceAfterMarginChange = jest
+      .fn()
+      // Default: return 0 (ignored), so hook uses fallback estimate unless test overrides
+      .mockResolvedValue('0');
+    mockUsePerpsTrading.mockReturnValue({
+      estimateLiquidationPriceAfterMarginChange:
+        mockEstimateLiquidationPriceAfterMarginChange,
+    } as unknown as ReturnType<typeof usePerpsTrading>);
 
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [mockPosition],
@@ -254,7 +272,9 @@ describe('usePerpsAdjustMarginData', () => {
     });
 
     it('calculates new liquidation price when adding margin', () => {
-      const { result } = renderHook(() =>
+      mockEstimateLiquidationPriceAfterMarginChange.mockResolvedValue('78000');
+
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePerpsAdjustMarginData({
           symbol: 'BTC',
           mode: 'add',
@@ -262,11 +282,22 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      // newMargin = 5000 + 1000 = 6000
-      // positionSize = 0.5
-      // marginPerUnit = 6000 / 0.5 = 12000
-      // For long: liquidationPrice = entryPrice - marginPerUnit = 100000 - 12000 = 88000
-      expect(result.current.newLiquidationPrice).toBe(88000);
+      return waitForNextUpdate().then(() => {
+        expect(
+          mockEstimateLiquidationPriceAfterMarginChange,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            asset: 'BTC',
+            entryPrice: 100000,
+            direction: 'long',
+            positionSize: 0.5,
+            positionValueUsd: 50000,
+            currentMarginUsd: 5000,
+            newMarginUsd: 6000,
+          }),
+        );
+        expect(result.current.newLiquidationPrice).toBe(78000);
+      });
     });
 
     it('calculates new liquidation price when removing margin', () => {
@@ -280,7 +311,9 @@ describe('usePerpsAdjustMarginData', () => {
         isInitialLoading: false,
       });
 
-      const { result } = renderHook(() =>
+      mockEstimateLiquidationPriceAfterMarginChange.mockResolvedValue('82000');
+
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePerpsAdjustMarginData({
           symbol: 'BTC',
           mode: 'remove',
@@ -288,10 +321,22 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      // newMargin = 8000 - 1000 = 7000
-      // marginPerUnit = 7000 / 0.5 = 14000
-      // For long: liquidationPrice = 100000 - 14000 = 86000
-      expect(result.current.newLiquidationPrice).toBe(86000);
+      return waitForNextUpdate().then(() => {
+        expect(
+          mockEstimateLiquidationPriceAfterMarginChange,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            asset: 'BTC',
+            entryPrice: 100000,
+            direction: 'long',
+            positionSize: 0.5,
+            positionValueUsd: 50000,
+            currentMarginUsd: 8000,
+            newMarginUsd: 7000,
+          }),
+        );
+        expect(result.current.newLiquidationPrice).toBe(82000);
+      });
     });
   });
 

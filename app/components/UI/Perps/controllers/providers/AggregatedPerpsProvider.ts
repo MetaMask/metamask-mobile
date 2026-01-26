@@ -47,6 +47,7 @@ import type {
   IPerpsPlatformDependencies,
   IPerpsProvider,
   LiquidationPriceParams,
+  EstimateLiquidationPriceAfterMarginChangeParams,
   LiveDataConfig,
   MaintenanceMarginParams,
   MarginResult,
@@ -486,6 +487,18 @@ export class AggregatedPerpsProvider implements IPerpsProvider {
     params: LiquidationPriceParams,
   ): Promise<string> {
     return this.getDefaultProvider().calculateLiquidationPrice(params);
+  }
+
+  async estimateLiquidationPriceAfterMarginChange(
+    params: EstimateLiquidationPriceAfterMarginChangeParams,
+  ): Promise<string> {
+    const [, provider] = this.getProviderOrDefault(params.providerId);
+    if (!provider.estimateLiquidationPriceAfterMarginChange) {
+      throw new Error(
+        'Provider does not support estimateLiquidationPriceAfterMarginChange',
+      );
+    }
+    return provider.estimateLiquidationPriceAfterMarginChange(params);
   }
 
   async calculateMaintenanceMargin(

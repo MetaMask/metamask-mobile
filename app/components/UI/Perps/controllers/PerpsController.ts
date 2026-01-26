@@ -74,6 +74,7 @@ import {
   type GetOrdersParams,
   type GetPositionsParams,
   type IPerpsProvider,
+  type EstimateLiquidationPriceAfterMarginChangeParams,
   type LiquidationPriceParams,
   type LiveDataConfig,
   type MaintenanceMarginParams,
@@ -1981,6 +1982,23 @@ export class PerpsController extends BaseController<
     const provider = this.getActiveProvider();
     const context = this.createServiceContext('calculateLiquidationPrice');
     return this.marketDataService.calculateLiquidationPrice({
+      provider,
+      params,
+      context,
+    });
+  }
+
+  /**
+   * Estimate liquidation price after a margin change (provider-specific).
+   */
+  async estimateLiquidationPriceAfterMarginChange(
+    params: EstimateLiquidationPriceAfterMarginChangeParams,
+  ): Promise<string> {
+    const provider = this.getActiveProvider();
+    const context = this.createServiceContext(
+      'estimateLiquidationPriceAfterMarginChange',
+    );
+    return this.marketDataService.estimateLiquidationPriceAfterMarginChange({
       provider,
       params,
       context,

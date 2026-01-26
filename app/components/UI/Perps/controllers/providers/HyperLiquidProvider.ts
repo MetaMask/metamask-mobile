@@ -87,6 +87,7 @@ import type {
   EditOrderParams,
   FeeCalculationParams,
   FeeCalculationResult,
+  EstimateLiquidationPriceAfterMarginChangeParams,
   Funding,
   GetAccountStateParams,
   GetAvailableDexsParams,
@@ -5936,6 +5937,63 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
       return '0.00';
     }
+  }
+
+  /**
+   * Estimate liquidation price after an isolated margin change using Hyperliquid's formula.
+   *
+   * Formula: liq_price = entryPrice - (side * marginUsd / positionSize) / (1 - l * side)
+   * where l = 1 / (2 * maxLeverage)
+   *
+   * The denominator (1 - l * side) already accounts for maintenance margin, so we use the
+   * full margin amount directly. Do NOT subtract maintenance margin first - that would
+   * double-count the maintenance buffer.
+   */
+  async estimateLiquidationPriceAfterMarginChange(
+    params: EstimateLiquidationPriceAfterMarginChangeParams,
+  ): Promise<string> {
+    const {
+      asset,
+      entryPrice,
+      direction,
+      positionSize,
+      newMarginUsd,
+      marginType,
+    } = params;
+
+    // Only isolated margin preview is supported; cross margin depends on account-wide state.
+    if (marginType && marginType !== 'isolated') {
+      throw new Error('Cross margin liquidation preview is not supported');
+    }
+
+    if (
+      !asset ||
+      !isFinite(entryPrice) ||
+      !isFinite(positionSize) ||
+      !isFinite(newMarginUsd) ||
+      entryPrice <= 0 ||
+      positionSize <= 0 ||
+      newMarginUsd <= 0
+    ) {
+      return '0.00';
+    }
+
+    const maxLeverage = await this.getMaxLeverage(asset);
+    const l = 1 / (2 * maxLeverage);
+    const side = direction === 'long' ? 1 : -1;
+    const denominator = 1 - l * side;
+
+    if (Math.abs(denominator) < 0.0001) {
+      // Avoid division by very small numbers
+      return String(entryPrice);
+    }
+
+    // Correct formula: absolute margin / size, divided by maintenance factor
+    // Do NOT subtract maintenance margin first - denominator already handles it
+    const liquidationPrice =
+      entryPrice - (side * newMarginUsd) / positionSize / denominator;
+
+    return String(Math.max(0, liquidationPrice));
   }
 
   /**

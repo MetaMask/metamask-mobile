@@ -1,13 +1,14 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   usePerpsLivePositions,
   usePerpsLiveAccount,
   usePerpsLivePrices,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
+import { usePerpsTrading } from './usePerpsTrading';
 import {
   calculateMaxRemovableMargin,
-  calculateNewLiquidationPrice,
+  estimateLiquidationPriceAfterMarginChange,
 } from '../utils/marginUtils';
 import { MARGIN_ADJUSTMENT_CONFIG } from '../constants/perpsConfig';
 import type { Position } from '../controllers/types';
@@ -66,6 +67,10 @@ export function usePerpsAdjustMarginData(
 ): UsePerpsAdjustMarginDataReturn {
   const { symbol, mode, inputAmount } = params;
   const isAddMode = mode === 'add';
+  const {
+    estimateLiquidationPriceAfterMarginChange:
+      estimateLiquidationPriceAfterMarginChangeFromProvider,
+  } = usePerpsTrading();
 
   // Live data subscriptions
   const { positions, isInitialLoading } = usePerpsLivePositions();
@@ -106,6 +111,12 @@ export function usePerpsAdjustMarginData(
     () => parseFloat(position?.liquidationPrice || '0'),
     [position],
   );
+
+  const [
+    providerEstimatedLiquidationPrice,
+    setProviderEstimatedLiquidationPrice,
+  ] = useState<number | null>(null);
+  const estimateRequestIdRef = useRef(0);
 
   const positionSize = useMemo(
     () => Math.abs(parseFloat(position?.size || '0')),
@@ -166,32 +177,110 @@ export function usePerpsAdjustMarginData(
     return Math.max(0, currentMargin - inputAmount);
   }, [isAddMode, currentMargin, inputAmount]);
 
-  // Calculate new liquidation price
-  const newLiquidationPrice = useMemo(() => {
-    if (newMargin === 0 || positionSize === 0) return currentLiquidationPrice;
-
-    if (isAddMode) {
-      const marginPerUnit = newMargin / positionSize;
-      return isLong
-        ? Math.max(0, entryPrice - marginPerUnit)
-        : entryPrice + marginPerUnit;
+  const fallbackNewLiquidationPrice = useMemo(() => {
+    if (newMargin === 0) {
+      return currentLiquidationPrice;
     }
 
-    return calculateNewLiquidationPrice({
-      newMargin,
-      positionSize,
+    return estimateLiquidationPriceAfterMarginChange({
       entryPrice,
       isLong,
+      currentMargin,
+      newMargin,
+      positionSize,
       currentLiquidationPrice,
     });
   }, [
-    isAddMode,
-    newMargin,
-    positionSize,
     entryPrice,
     isLong,
+    currentMargin,
+    newMargin,
+    positionSize,
     currentLiquidationPrice,
   ]);
+
+  // Provider-based estimate (preferred for parity with open position screen).
+  useEffect(() => {
+    // If no change, keep parity with current liquidation price and avoid extra work.
+    if (newMargin === currentMargin) {
+      setProviderEstimatedLiquidationPrice(null);
+      return;
+    }
+
+    if (!position || !symbol) {
+      setProviderEstimatedLiquidationPrice(null);
+      return;
+    }
+
+    if (
+      !isFinite(entryPrice) ||
+      entryPrice <= 0 ||
+      !isFinite(positionValue) ||
+      positionValue <= 0 ||
+      !isFinite(positionSize) ||
+      positionSize <= 0 ||
+      !isFinite(currentMargin) ||
+      currentMargin <= 0 ||
+      !isFinite(newMargin) ||
+      newMargin <= 0
+    ) {
+      setProviderEstimatedLiquidationPrice(null);
+      return;
+    }
+
+    const requestId = ++estimateRequestIdRef.current;
+    let isCancelled = false;
+
+    async function run() {
+      try {
+        const estimate =
+          await estimateLiquidationPriceAfterMarginChangeFromProvider({
+            asset: symbol,
+            entryPrice,
+            direction: isLong ? 'long' : 'short',
+            positionSize,
+            positionValueUsd: positionValue,
+            currentMarginUsd: currentMargin,
+            newMarginUsd: newMargin,
+            marginType: position.leverage?.type ?? 'isolated',
+            providerId: position.providerId,
+          });
+
+        if (isCancelled || estimateRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        const parsed = parseFloat(estimate);
+        setProviderEstimatedLiquidationPrice(
+          isFinite(parsed) && parsed > 0 ? parsed : null,
+        );
+      } catch {
+        if (isCancelled || estimateRequestIdRef.current !== requestId) {
+          return;
+        }
+        setProviderEstimatedLiquidationPrice(null);
+      }
+    }
+
+    run();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    estimateLiquidationPriceAfterMarginChangeFromProvider,
+    position,
+    symbol,
+    entryPrice,
+    isLong,
+    positionSize,
+    positionValue,
+    currentMargin,
+    newMargin,
+  ]);
+
+  const newLiquidationPrice =
+    providerEstimatedLiquidationPrice ?? fallbackNewLiquidationPrice;
 
   // Calculate liquidation distance
   const calculateDistance = useCallback(
