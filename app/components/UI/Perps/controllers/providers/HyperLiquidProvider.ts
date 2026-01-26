@@ -2413,8 +2413,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
     }
 
-    const mids = await infoClient.allMids({ dex: dexName ?? '' });
-    const currentPrice = parseFloat(mids[symbol] || '0');
+    // OPTIMIZATION: Use WebSocket price cache first (0 weight), fall back to REST (2 weight)
+    let currentPrice = 0;
+    const cachedPrice = this.subscriptionService.getCachedPrice(symbol);
+
+    if (cachedPrice) {
+      currentPrice = parseFloat(cachedPrice);
+      this.deps.debugLogger.log(
+        'Using WebSocket cached price for getAssetInfoAndPrice',
+        { symbol, price: currentPrice },
+      );
+    } else {
+      // Fallback to REST API if cache miss
+      const mids = await infoClient.allMids({ dex: dexName ?? '' });
+      currentPrice = parseFloat(mids[symbol] || '0');
+    }
+
     if (currentPrice === 0) {
       throw new Error(`No price available for ${symbol}`);
     }
@@ -2899,7 +2913,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Get asset info and prices (uses cache to avoid redundant API calls)
       const infoClient = this.clientService.getInfoClient();
       const meta = await this.getCachedMeta({ dexName });
-      const mids = await infoClient.allMids({ dex: dexName ?? '' });
 
       // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
       const assetInfo = meta.universe.find(
@@ -2913,7 +2926,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
       }
 
-      const currentPrice = parseFloat(mids[params.newOrder.symbol] || '0');
+      // OPTIMIZATION: Use WebSocket price cache first (0 weight), fall back to REST (2 weight)
+      let currentPrice = 0;
+      const cachedPrice = this.subscriptionService.getCachedPrice(
+        params.newOrder.symbol,
+      );
+
+      if (cachedPrice) {
+        currentPrice = parseFloat(cachedPrice);
+        this.deps.debugLogger.log(
+          'Using WebSocket cached price for editOrder',
+          {
+            symbol: params.newOrder.symbol,
+            price: currentPrice,
+          },
+        );
+      } else {
+        // Fallback to REST API if cache miss
+        const mids = await infoClient.allMids({ dex: dexName ?? '' });
+        currentPrice = parseFloat(mids[params.newOrder.symbol] || '0');
+      }
+
       if (currentPrice === 0) {
         throw new Error(`No price available for ${params.newOrder.symbol}`);
       }
@@ -3244,9 +3277,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
           });
         }
 
-        // Get current price for market order slippage
-        const mids = await infoClient.allMids({ dex: dexName ?? '' });
-        const currentPrice = parseFloat(mids[position.symbol] || '0');
+        // OPTIMIZATION: Use WebSocket price cache first (0 weight), fall back to REST (2 weight)
+        let currentPrice = 0;
+        const cachedPrice = this.subscriptionService.getCachedPrice(
+          position.symbol,
+        );
+
+        if (cachedPrice) {
+          currentPrice = parseFloat(cachedPrice);
+          this.deps.debugLogger.log(
+            'Using WebSocket cached price for close position',
+            { symbol: position.symbol, price: currentPrice },
+          );
+        } else {
+          // Fallback to REST API if cache miss
+          const mids = await infoClient.allMids({ dex: dexName ?? '' });
+          currentPrice = parseFloat(mids[position.symbol] || '0');
+        }
+
         if (currentPrice === 0) {
           throw new Error(`No price available for ${position.symbol}`);
         }
@@ -3448,11 +3496,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(symbol);
 
-      // Fetch current price for this asset's DEX
-      const mids = await infoClient.allMids(
-        dexName ? { dex: dexName } : undefined,
-      );
-      const currentPrice = parseFloat(mids[symbol] || '0');
+      // OPTIMIZATION: Use WebSocket price cache first (0 weight), fall back to REST (2 weight)
+      let currentPrice = 0;
+      const cachedPrice = this.subscriptionService.getCachedPrice(symbol);
+
+      if (cachedPrice) {
+        currentPrice = parseFloat(cachedPrice);
+        this.deps.debugLogger.log(
+          'Using WebSocket cached price for TP/SL validation',
+          { symbol, price: currentPrice },
+        );
+      } else {
+        // Fallback to REST API if cache miss
+        this.deps.debugLogger.log(
+          'Price cache miss, falling back to REST allMids',
+          { symbol },
+        );
+        const mids = await infoClient.allMids(
+          dexName ? { dex: dexName } : undefined,
+        );
+        currentPrice = parseFloat(mids[symbol] || '0');
+      }
 
       if (currentPrice === 0) {
         throw new Error(`No price available for ${symbol}`);

@@ -1886,6 +1886,24 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Get cached price for a symbol from WebSocket allMids subscription
+   * OPTIMIZATION: Use this instead of REST infoClient.allMids() to avoid rate limiting
+   * @param symbol - Asset symbol (e.g., 'BTC', 'ETH', 'xyz:TSLA')
+   * @returns Price string, or undefined if not cached
+   */
+  public getCachedPrice(symbol: string): string | undefined {
+    return this.cachedPriceData?.get(symbol)?.price;
+  }
+
+  /**
+   * Check if price cache has been initialized from WebSocket allMids subscription
+   * @returns true if WebSocket has sent at least one allMids update, false otherwise
+   */
+  public isPriceCacheInitialized(): boolean {
+    return this.cachedPriceData !== null && this.cachedPriceData.size > 0;
+  }
+
+  /**
    * Create subscription with common error handling
    */
   private createSubscription<T>(
