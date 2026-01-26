@@ -209,7 +209,6 @@
     "@metamask/bridge-controller": "^64.8.0",
     "@metamask/bridge-status-controller": "^64.4.1",
     "@metamask/chain-agnostic-permission": "^1.3.0",
-    "@metamask/composable-controller": "^12.0.0",
     "@metamask/connectivity-controller": "^0.1.0",
     "@metamask/controller-utils": "^11.18.0",
     "@metamask/core-backend": "^5.0.0",
