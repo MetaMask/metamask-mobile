@@ -403,3 +403,7 @@ export type PredictWithdraw = {
 export type PredictAccountMeta = {
   isOnboarded: boolean;
 };
+
+export interface PredictCarouselMetadata {
+  marketId: string;
+}
