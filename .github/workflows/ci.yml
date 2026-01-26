@@ -600,7 +600,7 @@ jobs:
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    if: ${{ github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true' }}
     needs:
       - check-skip-merge-queue
     steps:
