@@ -39,9 +39,9 @@ import {
   selectIsSolanaSourced,
   selectBridgeViewMode,
   setBridgeViewMode,
-  selectNoFeeAssets,
   selectIsNonEvmNonEvmBridge,
   selectIsSelectingRecipient,
+  selectIsSelectingToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -76,7 +76,6 @@ import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalTooltip from '../../components/ApprovalText';
-import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { isNullOrUndefined, Hex } from '@metamask/utils';
@@ -86,6 +85,7 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/feat
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
+import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -100,6 +100,7 @@ const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
+  const isSelectingToken = useSelector(selectIsSelectingToken);
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
@@ -128,10 +129,8 @@ const BridgeView = () => {
   const isHardwareAddress = selectedAddress
     ? !!isHardwareAccount(selectedAddress)
     : false;
+
   const walletAddress = useSelector(selectSourceWalletAddress);
-  const noFeeDestAssets = useSelector((state: RootState) =>
-    selectNoFeeAssets(state, destToken?.chainId),
-  );
 
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
@@ -142,6 +141,9 @@ const BridgeView = () => {
   const inputRef = useRef<{ blur: () => void }>(null);
 
   const updateQuoteParams = useBridgeQuoteRequest();
+
+  // Fetch STX liveness for the source chain
+  useRefreshSmartTransactionsLiveness(sourceToken?.chainId);
 
   // Update isGasIncludedSTXSendBundleSupported state based on source chain capabilities
   useIsGasIncludedSTXSendBundleSupported(sourceToken?.chainId);
@@ -371,13 +373,13 @@ const BridgeView = () => {
   };
 
   const handleSourceTokenPress = () =>
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+    navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
+      type: 'source',
     });
 
   const handleDestTokenPress = () =>
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+    navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
+      type: 'dest',
     });
 
   const getButtonLabel = () => {
@@ -389,7 +391,13 @@ const BridgeView = () => {
   };
 
   useEffect(() => {
-    if (isExpired && !willRefresh && !isSelectingRecipient && !isSubmittingTx) {
+    if (
+      isExpired &&
+      !willRefresh &&
+      !isSelectingRecipient &&
+      !isSelectingToken &&
+      !isSubmittingTx
+    ) {
       setIsInputFocused(false);
       // open the quote tooltip modal
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -401,6 +409,7 @@ const BridgeView = () => {
     willRefresh,
     navigation,
     isSelectingRecipient,
+    isSelectingToken,
     isSubmittingTx,
   ]);
 
@@ -449,9 +458,6 @@ const BridgeView = () => {
 
     const hasFee = activeQuote && feePercentage > 0;
 
-    const isNoFeeDestinationAsset =
-      destToken?.address && noFeeDestAssets?.includes(destToken.address);
-
     const approval =
       activeQuote?.approval && sourceAmount && sourceToken
         ? { amount: sourceAmount, symbol: sourceToken.symbol }
@@ -494,11 +500,9 @@ const BridgeView = () => {
                 ? strings('bridge.fee_disclaimer', {
                     feePercentage,
                   })
-                : !hasFee && isNoFeeDestinationAsset
-                  ? strings('bridge.no_mm_fee_disclaimer', {
-                      destTokenSymbol: destToken?.symbol,
-                    })
-                  : ''}
+                : strings('bridge.no_mm_fee_disclaimer', {
+                    destTokenSymbol: destToken?.symbol,
+                  })}
               {approval
                 ? ` ${strings('bridge.approval_needed', approval)}`
                 : ''}{' '}

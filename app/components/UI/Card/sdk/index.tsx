@@ -24,6 +24,7 @@ import {
   resetAuthenticatedData,
   clearAllCache,
   setContactVerificationId,
+  setUserCardLocation,
 } from '../../../../core/redux/slices/card';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
@@ -35,6 +36,7 @@ import {
   MockCardAdapter,
 } from '../pushProvisioning';
 import Logger from '../../../../util/Logger';
+import { mapCountryToLocation } from '../util/mapCountryToLocation';
 
 // Types
 export interface ICardSDK {
@@ -150,6 +152,11 @@ export const CardSDKProvider = ({
       if (userData.contactVerificationId) {
         dispatch(setContactVerificationId(userData.contactVerificationId));
       }
+      dispatch(
+        setUserCardLocation(
+          mapCountryToLocation(userData.countryOfResidence ?? null),
+        ),
+      );
 
       setUser(userData);
     } catch (err) {

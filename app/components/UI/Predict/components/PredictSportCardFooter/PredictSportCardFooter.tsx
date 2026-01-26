@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -25,12 +25,14 @@ interface PredictSportCardFooterProps {
   market: PredictMarketType;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  isCarousel?: boolean;
 }
 
 const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   market,
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  isCarousel,
 }) => {
   const tw = useTailwind();
   const navigation =
@@ -46,6 +48,11 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     autoRefreshTimeout: 10000,
   });
 
+  const { positions: claimablePositions } = usePredictPositions({
+    marketId: market.id,
+    claimable: true,
+  });
+
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: market.providerId,
     navigation,
@@ -56,31 +63,37 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   });
 
   const outcome = market.outcomes?.[0];
-  const isMarketOpen = market.status === PredictMarketStatus.OPEN;
-
-  const { hasPositions, hasClaimablePositions, claimableAmount } =
-    useMemo(() => {
-      const claimablePositions = positions.filter((p) => p.claimable);
-      return {
-        hasPositions: positions.length > 0,
-        hasClaimablePositions: claimablePositions.length > 0,
-        claimableAmount: claimablePositions.reduce(
-          (sum, p) => sum + (p.currentValue ?? 0),
-          0,
-        ),
-      };
-    }, [positions]);
+  const isMarketOpen =
+    market.status === PredictMarketStatus.OPEN &&
+    market.game?.status !== 'ended';
 
   const handleBetPress = useCallback(
     (token: PredictOutcomeToken) => {
       executeGuardedAction(
         () => {
-          navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint: resolvedEntryPoint,
-          });
+          // When accessed from Carousel, we're outside the Predict navigator,
+          // so we need to navigate through the ROOT first
+          if (
+            isCarousel ||
+            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL
+          ) {
+            navigation.navigate(Routes.PREDICT.ROOT, {
+              screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+              params: {
+                market,
+                outcome,
+                outcomeToken: token,
+                entryPoint: resolvedEntryPoint,
+              },
+            });
+          } else {
+            navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+              market,
+              outcome,
+              outcomeToken: token,
+              entryPoint: resolvedEntryPoint,
+            });
+          }
         },
         {
           checkBalance: true,
@@ -88,7 +101,14 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
         },
       );
     },
-    [executeGuardedAction, navigation, market, outcome, resolvedEntryPoint],
+    [
+      executeGuardedAction,
+      isCarousel,
+      resolvedEntryPoint,
+      navigation,
+      market,
+      outcome,
+    ],
   );
 
   const handleClaimPress = useCallback(async () => {
@@ -100,7 +120,15 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     );
   }, [executeGuardedAction, claim]);
 
-  const showBetButtons = isMarketOpen && !hasPositions && outcome;
+  const hasPositions = positions.length > 0;
+  const hasClaimablePositions = claimablePositions.length > 0;
+  const claimableAmount = claimablePositions.reduce(
+    (sum, p) => sum + (p.currentValue ?? 0),
+    0,
+  );
+
+  const showBetButtons =
+    isMarketOpen && (!hasPositions || isCarousel) && outcome;
   const showClaimButton = hasClaimablePositions && outcome;
 
   if (isLoading) {
@@ -132,7 +160,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
 
   return (
     <>
-      {hasPositions && (
+      {!isCarousel && hasPositions && (
         <PredictPicksForCard
           marketId={market.id}
           positions={positions}
@@ -149,6 +177,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           onClaimPress={handleClaimPress}
           claimableAmount={claimableAmount}
           testID={testID ? `${testID}-action-buttons` : undefined}
+          isCarousel={isCarousel}
         />
       )}
 
@@ -158,6 +187,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           outcome={outcome}
           onBetPress={handleBetPress}
           testID={testID ? `${testID}-action-buttons` : undefined}
+          isCarousel={isCarousel}
         />
       )}
     </>

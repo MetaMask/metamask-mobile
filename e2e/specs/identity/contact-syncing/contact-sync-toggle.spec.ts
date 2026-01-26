@@ -1,6 +1,6 @@
 import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
-import Assertions from '../../../framework/Assertions.ts';
+import Assertions from '../../../../tests/framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';

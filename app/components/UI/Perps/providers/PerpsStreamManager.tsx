@@ -142,6 +142,18 @@ abstract class StreamChannel<T> {
     // Override in subclasses
   }
 
+  /**
+   * Reconnect the channel after WebSocket reconnection
+   * Clears dead subscription and re-establishes if there are active subscribers
+   */
+  public reconnect() {
+    this.disconnect();
+    // Re-establish connection if there are active subscribers
+    if (this.subscribers.size > 0) {
+      this.connect();
+    }
+  }
+
   public disconnect() {
     // This prevents orphaned timers from continuing to run after disconnect
     this.subscribers.forEach((subscriber) => {
@@ -264,7 +276,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         updates.forEach((update) => {
           // Map the update to PriceUpdate format
           const priceUpdate: PriceUpdate = {
-            coin: update.coin,
+            symbol: update.symbol,
             price: update.price,
             timestamp: Date.now(),
             percentChange24h: update.percentChange24h,
@@ -276,8 +288,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             openInterest: update.openInterest,
             volume24h: update.volume24h,
           };
-          this.priceCache.set(update.coin, priceUpdate);
-          priceMap[update.coin] = priceUpdate;
+          this.priceCache.set(update.symbol, priceUpdate);
+          priceMap[update.symbol] = priceUpdate;
         });
 
         this.notifySubscribers(priceMap);
@@ -369,7 +381,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           const priceMap: Record<string, PriceUpdate> = {};
           updates.forEach((update) => {
             const priceUpdate: PriceUpdate = {
-              coin: update.coin,
+              symbol: update.symbol,
               price: update.price,
               timestamp: Date.now(),
               percentChange24h: update.percentChange24h,
@@ -381,8 +393,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
               openInterest: update.openInterest,
               volume24h: update.volume24h,
             };
-            this.priceCache.set(update.coin, priceUpdate);
-            priceMap[update.coin] = priceUpdate;
+            this.priceCache.set(update.symbol, priceUpdate);
+            priceMap[update.symbol] = priceUpdate;
           });
 
           // Notify any active subscribers with all updates
@@ -713,7 +725,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
       return;
     }
 
-    const positionIndex = cachedPositions.findIndex((p) => p.coin === coin);
+    const positionIndex = cachedPositions.findIndex((p) => p.symbol === coin);
     if (positionIndex === -1) {
       DevLogger.log(
         `PositionStreamChannel: Cannot apply optimistic update - position not found for ${coin}`,
@@ -1072,7 +1084,7 @@ class TopOfBookStreamChannel extends StreamChannel<
       symbols: [this.currentSymbol],
       includeOrderBook: true,
       callback: (updates: PriceUpdate[]) => {
-        const update = updates.find((u) => u.coin === this.currentSymbol);
+        const update = updates.find((u) => u.symbol === this.currentSymbol);
         if (update) {
           const topOfBook = {
             bestBid: update.bestBid,
@@ -1200,7 +1212,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         );
 
         const controller = Engine.context.PerpsController;
-        const provider = controller.getActiveProvider();
+        const provider = controller.getActiveProviderOrNull();
+        if (!provider) {
+          DevLogger.log(
+            'PerpsStreamManager: Provider not ready, skipping fetch',
+          );
+          return;
+        }
         const data = await provider.getMarketDataWithPrices();
         const fetchTime = Date.now() - fetchStartTime;
 
@@ -1321,21 +1339,20 @@ export class PerpsStreamManager {
 
   /**
    * Force reconnection of all stream channels after WebSocket reconnection
-   * Disconnects all channels (clearing dead WebSocket subscriptions) so they
-   * will automatically reconnect when subscribers are still active
+   * Disconnects all channels and reconnects those with active subscribers
    */
   public clearAllChannels(): void {
-    // Disconnect all channels to clear dead WebSocket subscriptions
-    // Channels will automatically reconnect when subscribers call connect()
-    this.prices.disconnect();
-    this.orders.disconnect();
-    this.positions.disconnect();
-    this.fills.disconnect();
-    this.account.disconnect();
-    this.marketData.disconnect();
-    this.oiCaps.disconnect();
-    this.topOfBook.disconnect();
-    this.candles.disconnect();
+    // Reconnect all channels - clears dead subscriptions and re-establishes
+    // connections for channels that have active subscribers
+    this.prices.reconnect();
+    this.orders.reconnect();
+    this.positions.reconnect();
+    this.fills.reconnect();
+    this.account.reconnect();
+    this.marketData.reconnect();
+    this.oiCaps.reconnect();
+    this.topOfBook.reconnect();
+    this.candles.reconnect();
   }
 }
 

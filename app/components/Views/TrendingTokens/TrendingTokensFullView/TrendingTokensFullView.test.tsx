@@ -3,6 +3,7 @@ import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TrendingTokensFullView from './TrendingTokensFullView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -29,20 +30,8 @@ jest.mock(
   }),
 );
 
-const mockUseTrendingSearch = jest.fn();
-
-jest.mock(
-  '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch',
-  () => ({
-    useTrendingSearch: (
-      searchQuery?: string,
-      sortBy?: unknown,
-      chainIds?: unknown,
-      enableDebounce?: boolean,
-    ) =>
-      mockUseTrendingSearch({ searchQuery, sortBy, chainIds, enableDebounce }),
-  }),
-);
+jest.mock('../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch');
+const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
 
 // Mock sections.config to avoid complex Perps dependencies
 jest.mock('../../TrendingView/sections.config', () => ({

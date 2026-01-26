@@ -27,6 +27,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
+import { MUSD_CONVERSION_APY } from '../../constants/musd';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * The payment token to preselect in the confirmation screen
@@ -179,11 +180,15 @@ const EarnMusdConversionEducationView = () => {
     // Do not remove the top edge as this screen does not have a navbar set in the route options.
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.content}>
-        <Text style={styles.heading} numberOfLines={3} adjustsFontSizeToFit>
-          {strings('earn.musd_conversion.education.heading')}
+        <Text style={styles.heading} numberOfLines={2} adjustsFontSizeToFit>
+          {strings('earn.musd_conversion.education.heading', {
+            percentage: MUSD_CONVERSION_APY,
+          })}
         </Text>
         <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
-          {strings('earn.musd_conversion.education.description')}
+          {strings('earn.musd_conversion.education.description', {
+            percentage: MUSD_CONVERSION_APY,
+          })}
         </Text>
       </View>
       <View style={styles.imageContainer}>

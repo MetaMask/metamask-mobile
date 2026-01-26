@@ -10,7 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../util/test/platform';
-import { QuoteViewSelectorIDs } from '../../../Swaps/QuoteView.testIds';
+import { QuoteViewSelectorIDs } from '../../../../../../e2e/selectors/Bridge/QuoteView.selectors';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 
@@ -215,11 +215,11 @@ describeForPlatforms('BridgeView', () => {
   });
 
   it('navigates to dest token selector on press', async () => {
-    const ModalRootProbe: React.FC<{
-      route?: { params?: { screen?: string } };
+    const TokenSelectorProbe: React.FC<{
+      route?: { params?: { type?: string } };
     }> = (props) => (
       // eslint-disable-next-line react-native/no-raw-text
-      <Text testID="modal-root-probe">{props?.route?.params?.screen}</Text>
+      <Text testID="token-selector-probe">{props?.route?.params?.type}</Text>
     );
     const state = initialStateBridge()
       .withOverrides({
@@ -239,11 +239,12 @@ describeForPlatforms('BridgeView', () => {
       BridgeView as unknown as React.ComponentType,
       // Entry route
       { name: Routes.BRIDGE.ROOT },
-      // Register modal root to probe destination screen name
+      // Register token selector route to probe params
       [
         {
-          name: Routes.BRIDGE.MODALS.ROOT,
-          Component: ModalRootProbe as unknown as React.ComponentType<unknown>,
+          name: Routes.BRIDGE.TOKEN_SELECTOR,
+          Component:
+            TokenSelectorProbe as unknown as React.ComponentType<unknown>,
         },
       ],
       // State
@@ -251,8 +252,7 @@ describeForPlatforms('BridgeView', () => {
     );
 
     fireEvent.press(await findByText('Swap to'));
-    expect(
-      await findByText(Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR),
-    ).toBeOnTheScreen();
+    // TokenInputArea navigates to TOKEN_SELECTOR with { type: 'dest' }
+    expect(await findByText('dest')).toBeOnTheScreen();
   });
 });
