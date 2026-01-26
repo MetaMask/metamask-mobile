@@ -482,33 +482,25 @@ describe('useMerklRewards', () => {
   });
 
   it('converts "< 0.00001" to "< 0.01" for small amounts', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '100', // Very small but non-zero amount
-            pending: '0',
-            proofs: [],
-            amount: '100',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
       },
-    ];
+      accumulated: '0',
+      unclaimed: '100', // Very small but non-zero amount
+      pending: '0',
+      proofs: [],
+      amount: '100',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData),
-    });
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
 
     // renderFromTokenMinimalUnit returns "< 0.00001" for very small amounts
     mockRenderFromTokenMinimalUnit.mockReturnValue('< 0.00001');
