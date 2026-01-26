@@ -1,6 +1,6 @@
 import { AssetWatcherSelectorsIDs } from '../../../app/components/Views/confirmations/legacy/components/WatchAssetRequest/AssetWatcher.testIds';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class AssetWatchBottomSheet {
   get container(): DetoxElement {
