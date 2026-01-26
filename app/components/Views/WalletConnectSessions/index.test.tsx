@@ -3,15 +3,15 @@ import WalletConnectSessions from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import { ExperimentalSelectorsIDs } from '../Settings/ExperimentalSettings/ExperimentalView.testIds';
+import WC2Manager from '../../../core/WalletConnect/WalletConnectV2';
 
 const mockGetSessions = jest.fn();
 
 jest.mock('../../../core/WalletConnect/WalletConnectV2', () => ({
+  __esModule: true,
   isWC2Enabled: true,
   default: {
-    getInstance: jest.fn().mockResolvedValue({
-      getSessions: () => mockGetSessions(),
-    }),
+    getInstance: jest.fn(),
   },
 }));
 
@@ -19,6 +19,9 @@ describe('WalletConnectSessions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetSessions.mockReturnValue([]);
+    (WC2Manager.getInstance as jest.Mock).mockResolvedValue({
+      getSessions: () => mockGetSessions(),
+    });
   });
 
   it('does not render when not ready', () => {

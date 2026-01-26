@@ -1460,7 +1460,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                   }
                                 }
                               >
-                                peer1
+                                topic1
                               </Text>
                               <Text
                                 style={
@@ -1574,7 +1574,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                   }
                                 }
                               >
-                                peer2
+                                topic2
                               </Text>
                               <Text
                                 style={
