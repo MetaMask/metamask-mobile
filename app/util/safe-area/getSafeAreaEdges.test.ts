@@ -8,17 +8,17 @@ describe('SAFE_AREA_EDGES', () => {
     jest.resetModules();
   });
 
-  it('includes bottom edge on Android', () => {
+  it('includes bottom edge on Android', async () => {
     Platform.OS = 'android';
     jest.resetModules();
-    const { SAFE_AREA_EDGES } = require('./getSafeAreaEdges');
-    expect(SAFE_AREA_EDGES).toEqual(['left', 'right', 'bottom']);
+    const module = await import('./getSafeAreaEdges');
+    expect(module.SAFE_AREA_EDGES).toEqual(['left', 'right', 'bottom']);
   });
 
-  it('excludes bottom edge on iOS', () => {
+  it('excludes bottom edge on iOS', async () => {
     Platform.OS = 'ios';
     jest.resetModules();
-    const { SAFE_AREA_EDGES } = require('./getSafeAreaEdges');
-    expect(SAFE_AREA_EDGES).toEqual(['left', 'right']);
+    const module = await import('./getSafeAreaEdges');
+    expect(module.SAFE_AREA_EDGES).toEqual(['left', 'right']);
   });
 });
