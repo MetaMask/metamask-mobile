@@ -7,11 +7,11 @@ import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/
 
 const mockSafeAreaView = jest.fn();
 jest.mock('react-native-safe-area-context', () => {
-  const RN = jest.requireActual('react-native');
+  const ReactNative = jest.requireActual('react-native');
   return {
     SafeAreaView: (props: Record<string, unknown>) => {
       mockSafeAreaView(props);
-      return <RN.View {...props} />;
+      return <ReactNative.View {...props} />;
     },
     useSafeAreaInsets: () => ({ top: 50, bottom: 34, left: 0, right: 0 }),
   };
