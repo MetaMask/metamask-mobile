@@ -122,17 +122,21 @@ export interface RootModalFlowParamList {
  */
 export interface MultichainAccountDetailActionsParamList {
   MultichainAccountActions: { selectedAccount?: object } | undefined;
-  EditMultichainAccountName: { accountId?: string } | undefined;
-  LegacyEditMultichainAccountName: { accountId?: string } | undefined;
+  EditMultichainAccountName:
+    | { accountId?: string; account?: object }
+    | undefined;
+  LegacyEditMultichainAccountName:
+    | { accountId?: string; account?: object }
+    | undefined;
   EditWalletName: { walletId?: string } | undefined;
-  ShareAddress: { address?: string } | undefined;
+  ShareAddress: { address?: string; account?: object } | undefined;
   ShareAddressQR: {
     address: string;
     networkName?: string;
     chainId?: string;
     groupId?: string;
   };
-  DeleteAccount: { accountId?: string } | undefined;
+  DeleteAccount: { accountId?: string; account?: object } | undefined;
   RevealPrivateCredential: object | undefined;
   RevealSRPCredential: undefined;
   SRPRevealQuizInMultichainAccountDetails: undefined;

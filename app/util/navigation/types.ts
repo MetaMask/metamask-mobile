@@ -27,7 +27,6 @@ import type { PredictNavigationParamList } from '../../components/UI/Predict/typ
 import type {
   RootModalFlowParamList,
   MultichainAccountDetailActionsParamList,
-  RewardsBottomSheetModalParamList,
   WalletTabHomeParamList,
 } from '../../components/Nav/App/types';
 
@@ -42,7 +41,6 @@ export type { PredictNavigationParamList } from '../../components/UI/Predict/typ
 export type {
   RootModalFlowParamList,
   MultichainAccountDetailActionsParamList,
-  RewardsBottomSheetModalParamList,
   WalletTabHomeParamList,
 } from '../../components/Nav/App/types';
 
@@ -451,7 +449,12 @@ export type RootParamList = {
   Perps: NavigatorScreenParams<PerpsNavigationParamList> | undefined;
   PerpsRoot: undefined;
   PerpsTradingView: undefined;
-  PerpsTutorial: undefined;
+  PerpsTutorial:
+    | {
+        isFromDeeplink?: boolean;
+        isFromGTMModal?: boolean;
+      }
+    | undefined;
   PerpsModalsRoot: undefined;
   PerpsModals: undefined;
   PerpsPositionTransaction: PerpsRouteParams<'PerpsPositionTransaction'>;
@@ -474,7 +477,12 @@ export type RootParamList = {
   PerpsPnlHeroCard: undefined;
   PerpsActivity: undefined;
   PerpsOrderBook: undefined;
-  PerpsClosePositionModals: undefined;
+  PerpsClosePositionModals:
+    | {
+        screen?: string;
+        params?: object;
+      }
+    | undefined;
   PerpsQuoteExpiredModal: undefined;
   PerpsGTMModal: undefined;
   PerpsCloseAllPositions: undefined;
@@ -538,7 +546,24 @@ export type RootParamList = {
   RewardsOnboarding3: undefined;
   RewardsOnboarding4: undefined;
   RewardsBottomSheetModal:
-    | NavigatorScreenParams<RewardsBottomSheetModalParamList>
+    | {
+        title?: string | React.ReactNode;
+        description?: string | React.ReactNode;
+        confirmAction?: {
+          label?: string;
+          onPress?: () => void | Promise<void>;
+          variant?: string;
+          loadOnPress?: boolean;
+          disabled?: boolean;
+        };
+        onCancel?: () => void;
+        cancelLabel?: string;
+        showIcon?: boolean;
+        customIcon?: React.ReactNode;
+        type?: string;
+        showCancelButton?: boolean;
+        cancelMode?: string;
+      }
     | undefined;
   RewardsClaimBottomSheetModal:
     | {
