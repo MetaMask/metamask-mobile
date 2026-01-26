@@ -140,6 +140,13 @@ export const useMerklClaim = ({
 
       const { id: transactionId } = transactionMeta;
 
+      // Clean up any previous subscriptions before setting up new ones
+      // This prevents listener leaks when claimRewards is called multiple times
+      subscriptionRefs.current.forEach(({ eventType, handler }) => {
+        Engine.controllerMessenger.tryUnsubscribe(eventType, handler);
+      });
+      subscriptionRefs.current = [];
+
       // Set up listeners BEFORE awaiting result to avoid race condition
       // where transaction confirms before listeners are set up
       // Store unsubscribe functions for cleanup on unmount
