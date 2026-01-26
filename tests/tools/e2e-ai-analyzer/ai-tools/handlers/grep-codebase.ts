@@ -6,7 +6,7 @@
 
 import { execSync } from 'node:child_process';
 import { ToolInput } from '../../types';
-import { TOOL_LIMITS } from '../../config.ts';
+import { TOOL_LIMITS } from '../../config';
 
 /**
  * Validates and sanitizes grep pattern

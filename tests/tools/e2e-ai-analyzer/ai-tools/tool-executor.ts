@@ -5,12 +5,12 @@
  */
 
 import { ToolInput } from '../types';
-import { handleReadFile } from './handlers/read-file.ts';
-import { handleGitDiff } from './handlers/git-diff.ts';
-import { handleRelatedFiles } from './handlers/related-files.ts';
-import { handleListDirectory } from './handlers/list-directory.ts';
-import { handleGrepCodebase } from './handlers/grep-codebase.ts';
-import { handleFinalizeTagSelection } from './handlers/finalize-tag-selection.ts';
+import { handleReadFile } from './handlers/read-file';
+import { handleGitDiff } from './handlers/git-diff';
+import { handleRelatedFiles } from './handlers/related-files';
+import { handleListDirectory } from './handlers/list-directory';
+import { handleGrepCodebase } from './handlers/grep-codebase';
+import { handleFinalizeTagSelection } from './handlers/finalize-tag-selection';
 
 /**
  * Tool execution context

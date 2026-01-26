@@ -7,9 +7,9 @@
  */
 
 import { ToolInput, ModeAnalysisTypes } from '../types';
-import { LLM_CONFIG } from '../config.ts';
-import { getToolDefinitions } from '../ai-tools/tool-registry.ts';
-import { executeTool, ToolContext } from '../ai-tools/tool-executor.ts';
+import { LLM_CONFIG } from '../config';
+import { getToolDefinitions } from '../ai-tools/tool-registry';
+import { executeTool, ToolContext } from '../ai-tools/tool-executor';
 import {
   ILLMProvider,
   LLMMessage,
@@ -19,13 +19,13 @@ import {
 import {
   buildSystemPrompt as buildSelectTagsSystemPrompt,
   buildTaskPrompt as buildSelectTagsTaskPrompt,
-} from '../modes/select-tags/prompt.ts';
+} from '../modes/select-tags/prompt';
 import {
   processAnalysis as processSelectTagsAnalysis,
   createConservativeResult as createSelectTagsConservativeResult,
   createEmptyResult as createSelectTagsEmptyResult,
   outputAnalysis as outputSelectTagsAnalysis,
-} from '../modes/select-tags/handlers.ts';
+} from '../modes/select-tags/handlers';
 
 /**
  * Mode Registry

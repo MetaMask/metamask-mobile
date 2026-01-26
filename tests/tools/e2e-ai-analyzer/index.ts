@@ -6,19 +6,19 @@
  */
 
 import { ParsedArgs } from './types';
-import { APP_CONFIG, LLM_CONFIG } from './config.ts';
+import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
   getAllChangedFiles,
   getPRFiles,
   validatePRNumber,
-} from './utils/git-utils.ts';
+} from './utils/git-utils';
 import {
   MODES,
   validateMode,
   analyzeWithAgent,
   AnalysisContext,
-} from './analysis/analyzer.ts';
-import { identifyCriticalFiles } from './utils/file-utils.ts';
+} from './analysis/analyzer';
+import { identifyCriticalFiles } from './utils/file-utils';
 import {
   createProvider,
   getSupportedProviders,

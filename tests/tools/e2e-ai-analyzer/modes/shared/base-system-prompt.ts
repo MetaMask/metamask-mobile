@@ -4,8 +4,8 @@
  * Reusable parts of the system prompt across all modes
  */
 
-import { APP_CONFIG } from '../../config.ts';
-import { getToolDefinitions } from '../../ai-tools/tool-registry.ts';
+import { APP_CONFIG } from '../../config';
+import { getToolDefinitions } from '../../ai-tools/tool-registry';
 
 export function buildCriticalPatternsSection(): string {
   return `CRITICAL FILE PATTERNS (files pre-marked as critical for you):

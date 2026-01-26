@@ -4,12 +4,12 @@
  * Factory for creating LLM provider instances with automatic fallback support.
  */
 
-import { ILLMProvider } from './llm-provider.ts';
-import { ProviderType } from './types.ts';
-import { AnthropicProvider } from './anthropic-provider.ts';
-import { OpenAIProvider } from './openai-provider.ts';
-import { GoogleProvider } from './google-provider.ts';
-import { LLM_CONFIG } from '../config.ts';
+import { ILLMProvider } from './llm-provider';
+import { ProviderType } from './types';
+import { AnthropicProvider } from './anthropic-provider';
+import { OpenAIProvider } from './openai-provider';
+import { GoogleProvider } from './google-provider';
+import { LLM_CONFIG } from '../config';
 
 /**
  * Provider constructor registry

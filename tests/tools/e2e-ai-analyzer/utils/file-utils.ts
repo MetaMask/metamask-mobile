@@ -4,7 +4,7 @@
  * Utility functions for file analysis and categorization
  */
 
-import { APP_CONFIG } from '../config.ts';
+import { APP_CONFIG } from '../config';
 
 /**
  * Identifies critical files from a list of changed files

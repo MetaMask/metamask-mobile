@@ -7,7 +7,7 @@
 import { join, normalize } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { ToolInput } from '../../types';
-import { TOOL_LIMITS } from '../../config.ts';
+import { TOOL_LIMITS } from '../../config';
 
 export function handleReadFile(input: ToolInput, baseDir: string): string {
   const filePath = normalize(input.file_path as string);

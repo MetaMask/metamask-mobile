@@ -8,9 +8,9 @@
 
 import { normalize } from 'node:path';
 import { ToolInput } from '../../types';
-import { getFileDiff, getPRFileDiff } from '../../utils/git-utils.ts';
-import { TOOL_LIMITS } from '../../config.ts';
-import { ToolContext } from '../tool-executor.ts';
+import { getFileDiff, getPRFileDiff } from '../../utils/git-utils';
+import { TOOL_LIMITS } from '../../config';
+import { ToolContext } from '../tool-executor';
 
 export function handleGitDiff(input: ToolInput, context: ToolContext): string {
   const filePath = normalize(input.file_path as string);

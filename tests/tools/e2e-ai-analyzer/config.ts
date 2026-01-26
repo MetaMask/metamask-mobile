@@ -4,7 +4,7 @@
  *
  */
 
-import { ProviderType, ProviderConfig } from './providers/types.ts';
+import { ProviderType, ProviderConfig } from './providers/types';
 
 /**
  * Multi-Provider LLM Configuration

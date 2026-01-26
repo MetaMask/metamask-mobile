@@ -5,7 +5,7 @@
  * This enables the analyzer to work with multiple providers interchangeably.
  */
 
-import { ProviderType, LLMRequest, LLMResponse } from './types.ts';
+import { ProviderType, LLMRequest, LLMResponse } from './types';
 
 /**
  * Interface for LLM provider implementations
