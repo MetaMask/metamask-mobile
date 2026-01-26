@@ -290,12 +290,14 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
-  useEffect(() =>
-     function cleanup() {
-      Engine.context.TokensController?.hub?.removeAllListeners();
-    }
+  useEffect(
+    () =>
+      function cleanup() {
+        Engine.context.TokensController?.hub?.removeAllListeners();
+      },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  , []);
+    [],
+  );
 
   return (
     <React.Fragment>
