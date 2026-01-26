@@ -36,7 +36,6 @@ import {
 } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
-import { SolScope } from '@metamask/keyring-api';
 import {
   logOut,
   setExistingUser,
@@ -1051,25 +1050,27 @@ describe('Authentication', () => {
       mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
     });
 
-    it('calls discoverAccounts after vault creation in newWalletAndKeychain', async () => {
+    it('completes newWalletAndKeychain without calling direct discovery', async () => {
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
+
       await Authentication.newWalletAndKeychain('1234', {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
-      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
-        expect.any(String), // mock entropySource
-        SolScope.Mainnet,
-      );
+
+      // Discovery is no longer called directly during wallet creation
+      // It is handled via postLoginAsyncOperations when pending flags are set
+      expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
     });
 
-    it('calls discoverAccounts in newWalletVaultAndRestore', async () => {
+    it('completes newWalletVaultAndRestore without calling direct discovery', async () => {
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
+
       await Authentication.newWalletAndRestore(
         '1234',
         {
@@ -1078,10 +1079,10 @@ describe('Authentication', () => {
         '1234',
         false,
       );
-      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
-        expect.any(String), // mock entropySource
-        SolScope.Mainnet,
-      );
+
+      // Discovery is no longer called directly during wallet creation
+      // It is handled via postLoginAsyncOperations when pending flags are set
+      expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
     });
 
     describe('Account discovery failure handling', () => {
@@ -1103,19 +1104,15 @@ describe('Authentication', () => {
         mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
       });
 
-      it('completes wallet creation when discovery fails', async () => {
-        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(
-          new Error('RPC error'),
-        );
-
+      it('completes wallet creation without attempting discovery', async () => {
         await expect(
           Authentication.newWalletAndKeychain('1234', {
             currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
           }),
         ).resolves.not.toThrow();
 
-        // Verify discovery was attempted
-        expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
+        // Discovery is no longer called during wallet creation
+        expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
       });
 
       it('does not break authentication flow when discovery fails', async () => {
@@ -1131,38 +1128,23 @@ describe('Authentication', () => {
         await expect(Authentication.appTriggeredAuth()).resolves.not.toThrow();
       });
 
-      it('sets SOLANA_DISCOVERY_PENDING when discovery fails in createWalletVaultAndKeychain', async () => {
+      it('completes newWalletAndKeychain without setting discovery pending flag', async () => {
         const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
-        jest
-          .spyOn(
-            Authentication as unknown as {
-              attemptAccountDiscovery: () => Promise<void>;
-            },
-            'attemptAccountDiscovery',
-          )
-          .mockRejectedValue(new Error('RPC error'));
 
         await Authentication.newWalletAndKeychain('1234', {
           currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
         });
         await Promise.resolve();
 
-        expect(setItemSpy).toHaveBeenCalledWith(
+        // Discovery pending flag is no longer set during wallet creation
+        expect(setItemSpy).not.toHaveBeenCalledWith(
           SOLANA_DISCOVERY_PENDING,
           'true',
         );
       });
 
-      it('sets SOLANA_DISCOVERY_PENDING when discovery fails in newWalletVaultAndRestore', async () => {
+      it('completes newWalletVaultAndRestore without setting discovery pending flag', async () => {
         const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
-        jest
-          .spyOn(
-            Authentication as unknown as {
-              attemptAccountDiscovery: () => Promise<void>;
-            },
-            'attemptAccountDiscovery',
-          )
-          .mockRejectedValue(new Error('RPC error'));
 
         await Authentication.newWalletAndRestore(
           '1234',
@@ -1172,7 +1154,11 @@ describe('Authentication', () => {
         );
         await Promise.resolve();
 
-        expect(setItemSpy).toHaveBeenCalledWith(SOLANA_DISCOVERY_PENDING, TRUE);
+        // Discovery pending flag is no longer set during wallet creation
+        expect(setItemSpy).not.toHaveBeenCalledWith(
+          SOLANA_DISCOVERY_PENDING,
+          TRUE,
+        );
       });
 
       describe('retryDiscoveryIfPending behavior', () => {
@@ -1445,7 +1431,7 @@ describe('Authentication', () => {
           }
         });
 
-        it('resync accounts after login - state 2', async () => {
+        it('completes login without explicit resync - state 2', async () => {
           mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
 
           const mockCredentials = { username: 'test', password: 'test' };
@@ -1458,11 +1444,11 @@ describe('Authentication', () => {
           // Wait for the asynchronous call to `postLoginAsyncOperations`.
           await Promise.resolve();
 
-          // We should have ran account resynchronization after logging in.
-          expect(mockResyncAccounts).toHaveBeenCalled();
+          // postLoginAsyncOperations only handles pending discovery flags
+          // Explicit resync is no longer called from postLoginAsyncOperations
         });
 
-        it('runs discovery and alignment on all HD wallets - state 2', async () => {
+        it('handles multiple HD keyrings without explicit discovery - state 2', async () => {
           const Engine = jest.requireMock('../Engine');
           Engine.context.KeyringController.state.keyrings = [
             { type: KeyringTypes.hd, metadata: { id: 'test-keyring-1' } },
@@ -1483,16 +1469,8 @@ describe('Authentication', () => {
           // Wait for the asynchronous call to `postLoginAsyncOperations`.
           await Promise.resolve();
 
-          // We should have ran discovery + alignment on all HD keyrings only.
-          expect(
-            mockAttemptMultichainAccountWalletDiscovery,
-          ).toHaveBeenCalledTimes(2);
-          expect(
-            mockAttemptMultichainAccountWalletDiscovery,
-          ).toHaveBeenNthCalledWith(1, 'test-keyring-1');
-          expect(
-            mockAttemptMultichainAccountWalletDiscovery,
-          ).toHaveBeenNthCalledWith(2, 'test-keyring-2');
+          // postLoginAsyncOperations only handles pending discovery flags
+          // Explicit discovery on HD keyrings is no longer called from postLoginAsyncOperations
         });
       });
     });

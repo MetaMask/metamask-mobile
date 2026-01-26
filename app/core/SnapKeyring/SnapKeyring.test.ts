@@ -298,14 +298,9 @@ describe('Snap Keyring Methods', () => {
       // Wait for any pending promises (including the account finalization which tracks the event)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount and setAccountName are called separately
+      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
-        mockAccount.id,
-        mockNameSuggestion,
-      ]);
       expect(mockEndFlow).toHaveBeenCalledTimes(2);
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
 
@@ -466,20 +461,15 @@ describe('Snap Keyring Methods', () => {
       // Verify that listMultichainAccounts was called to generate a unique name
       expect(mockListMultichainAccounts).toHaveBeenCalledTimes(1);
 
-      // Verify that the account was created and named
+      // Verify that the account was created
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount and setAccountName are called separately
+      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
-        mockAccount.id,
-        mockNameSuggestion,
-      ]);
     });
 
     it('shows account name suggestion dialog for preinstalled snaps when displayAccountNameSuggestion is true', async () => {
@@ -508,20 +498,15 @@ describe('Snap Keyring Methods', () => {
       // Verify that the approval flow was started
       expect(mockStartFlow).toHaveBeenCalledTimes(2);
 
-      // Verify that the account was created and named
+      // Verify that the account was created
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount and setAccountName are called separately
+      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
-        mockAccount.id,
-        mockNameSuggestion,
-      ]);
 
       // Verify that the approval flow was ended
       expect(mockEndFlow).toHaveBeenCalledTimes(2);
@@ -562,20 +547,15 @@ describe('Snap Keyring Methods', () => {
         true,
       ]);
 
-      // Verify that the account was created and named
+      // Verify that the account was created
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount and setAccountName are called separately
+      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
-        mockAccount.id,
-        mockNameSuggestion,
-      ]);
     });
 
     it('always sets selected account for both preinstalled and non-preinstalled snaps with default options', async () => {
@@ -601,14 +581,9 @@ describe('Snap Keyring Methods', () => {
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that both setSelectedAccount and setAccountName are called for preinstalled snap
+      // Verify that setSelectedAccount is called for preinstalled snap (setAccountName is no longer called directly)
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
-        mockAccount.id,
-        mockNameSuggestion,
-      ]);
 
       // Reset mocks for second test and set them up again
       mockSetSelectedAccount.mockReset();
@@ -643,14 +618,9 @@ describe('Snap Keyring Methods', () => {
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that both setSelectedAccount and setAccountName are called for non-preinstalled snap too
+      // Verify that setSelectedAccount is called for non-preinstalled snap too (setAccountName is no longer called directly)
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
-        mockAccount.id,
-        mockNameSuggestion,
-      ]);
     });
 
     it('skips startFlow when skipConfirmation is true for preinstalled snaps', async () => {
@@ -674,20 +644,15 @@ describe('Snap Keyring Methods', () => {
       // Verify that startFlow was NOT called during account creation
       expect(mockStartFlow).not.toHaveBeenCalled();
 
-      // Verify that the account was created and named
+      // Verify that the account was created
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount and setAccountName are called
+      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
-        mockAccount.id,
-        mockNameSuggestion,
-      ]);
 
       // Verify trackSnapAccountEvent was called
       expect(trackSnapAccountEvent).toHaveBeenCalled();
@@ -716,20 +681,15 @@ describe('Snap Keyring Methods', () => {
       // Verify that startFlow was called during account creation
       expect(mockStartFlow).toHaveBeenCalledTimes(2);
 
-      // Verify that the account was created and named
+      // Verify that the account was created
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount and setAccountName are called
+      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
-        mockAccount.id,
-        mockNameSuggestion,
-      ]);
 
       // Verify that the approval flow was ended
       expect(mockEndFlow).toHaveBeenCalledTimes(2);

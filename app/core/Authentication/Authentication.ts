@@ -34,7 +34,6 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
@@ -186,26 +185,6 @@ class AuthenticationService {
       parsedSeedUint8Array,
     );
 
-    if (!isMultichainAccountsState2Enabled()) {
-      Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-
-          try {
-            await this.attemptAccountDiscovery(clientType);
-          } catch (error) {
-            console.warn(
-              'Account discovery failed during wallet creation:',
-              clientType,
-              error,
-            );
-            // Store flag to retry on next unlock
-            await StorageWrapper.setItem(discoveryStorageId, TRUE);
-          }
-        }),
-      ).catch(console.error);
-    }
-
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
@@ -249,48 +228,20 @@ class AuthenticationService {
   };
 
   private postLoginAsyncOperations = async (): Promise<void> => {
-    if (isMultichainAccountsState2Enabled()) {
-      // READ THIS CAREFULLY:
-      // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
-      // automatically "fix" this corrupted state, we run this method which will re-sync
-      // MetaMask accounts and Snap accounts upon login.
-      try {
-        const { MultichainAccountService } = Engine.context;
-        await MultichainAccountService.resyncAccounts();
-      } catch (error) {
-        console.warn('Failed to resync accounts:', error);
-      }
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
-      // We just re-run the same discovery here.
-      // 1. Each wallets know their highest group index and restart the discovery from
-      // there, thus acting naturally as a "retry".
-      // 2. Running the discovery every time allow to auto-discover accounts that could
-      // have been added on external wallets.
-      // 3. We run the alignment at the end of the discovery, thus, automatically
-      // creating accounts for new account providers.
-      await Promise.allSettled(
-        this.getEntropySourceIds().map(
-          async (entropySource) =>
-            await this.attemptMultichainAccountWalletDiscovery(entropySource),
-        ),
-      );
-    } else {
-      // Try to complete any pending account discovery
-      await Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-
-          try {
-            const isPending = await StorageWrapper.getItem(discoveryStorageId);
-            if (isPending === TRUE) {
-              await this.attemptAccountDiscovery(clientType);
-            }
-          } catch (error) {
-            console.warn('Failed to check/retry discovery:', clientType, error);
+        try {
+          const isPending = await StorageWrapper.getItem(discoveryStorageId);
+          if (isPending === TRUE) {
+            await this.attemptAccountDiscovery(clientType);
           }
-        }),
-      );
-    }
+        } catch (error) {
+          console.warn('Failed to check/retry discovery:', clientType, error);
+        }
+      }),
+    );
   };
 
   /**
@@ -305,25 +256,6 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
-
-    if (!isMultichainAccountsState2Enabled()) {
-      Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-
-          try {
-            await this.attemptAccountDiscovery(clientType);
-          } catch (error) {
-            console.warn(
-              'Account discovery failed during wallet creation:',
-              error,
-            );
-            // Store flag to retry on next unlock
-            await StorageWrapper.setItem(discoveryStorageId, TRUE);
-          }
-        }),
-      ).catch(console.error);
-    }
 
     password = this.wipeSensitiveData();
   };
@@ -1116,12 +1048,7 @@ class AuthenticationService {
               await this.importSeedlessMnemonicToVault(mnemonicToRestore);
 
             // discover multichain accounts from imported srp
-            if (isMultichainAccountsState2Enabled()) {
-              // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-              this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
-            } else {
-              this.addMultichainAccounts([keyringMetadata]);
-            }
+            this.addMultichainAccounts([keyringMetadata]);
           } else {
             Logger.error(
               new Error('SeedlessOnboardingController: Unknown secret type'),
@@ -1370,14 +1297,7 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        if (isMultichainAccountsState2Enabled()) {
-          for (const { id } of keyringMetadataList) {
-            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(id);
-          }
-        } else {
-          this.addMultichainAccounts(keyringMetadataList);
-        }
+        this.addMultichainAccounts(keyringMetadataList);
 
         this.dispatchOauthReset();
 
