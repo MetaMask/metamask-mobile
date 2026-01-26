@@ -20,7 +20,7 @@ import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 import { SnapId } from '@metamask/snaps-sdk';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
-import Engine from '../Engine';
+import Engine from '../Engine/Engine';
 import { setupMultiplex } from '../../util/streams';
 import Logger from '../../util/Logger';
 import { createOriginMiddleware } from '../../util/middlewares';
