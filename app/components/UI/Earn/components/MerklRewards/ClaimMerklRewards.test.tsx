@@ -8,6 +8,7 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
+const mockOnClaimSuccess = jest.fn();
 
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -15,7 +16,9 @@ jest.mock('../../../../hooks/useMetrics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
   MetaMetricsEvents: {
-    CLAIM_BONUS_BUTTON_CLICKED: 'Claim Bonus Button Clicked',
+    MUSD_CLAIM_BONUS_BUTTON_CLICKED: {
+      category: 'mUSD Claim Bonus Button Clicked',
+    },
   },
 }));
 
@@ -117,7 +120,6 @@ const mockAsset: TokenI = {
 
 describe('ClaimMerklRewards', () => {
   const mockClaimRewards = jest.fn();
-  const mockOnClaimSuccess = jest.fn();
   const mockEventBuilder = {
     addProperties: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({ event: 'mock-event' }),
@@ -276,14 +278,15 @@ describe('ClaimMerklRewards', () => {
 
     await waitFor(() => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CLAIM_BONUS_BUTTON_CLICKED,
+        MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
       );
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
-        action_type: 'claim_rewards',
-        token: mockAsset.symbol,
-        network: 'Ethereum Mainnet',
         location: 'asset_overview',
-        text: 'Claim',
+        action_type: 'claim_bonus',
+        button_text: 'Claim',
+        network_chain_id: mockAsset.chainId,
+        network_name: 'Ethereum Mainnet',
+        asset_symbol: mockAsset.symbol,
       });
       expect(mockEventBuilder.build).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
