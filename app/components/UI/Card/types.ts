@@ -449,13 +449,9 @@ export interface DelegationSettingsResponse {
  */
 export interface CardDetailsTokenRequest {
   customCss?: {
-    /** Background color of the card image (hex format, e.g., "#000000") */
     cardBackgroundColor?: string;
-    /** Text color for card information (hex format) */
     cardTextColor?: string;
-    /** Background color for the PAN number display area (hex format) */
     panBackgroundColor?: string;
-    /** Text color for PAN number (hex format) */
     panTextColor?: string;
   };
 }
@@ -464,9 +460,7 @@ export interface CardDetailsTokenRequest {
  * Response from generating card details token
  */
 export interface CardDetailsTokenResponse {
-  /** Secure, time-limited token (UUID format) - valid for ~10 minutes, single-use */
   token: string;
-  /** URL that renders card details as a secure image */
   imageUrl: string;
 }
 
@@ -480,9 +474,7 @@ export type OrderPaymentMethod = 'CRYPTO_EXTERNAL_DAIMO';
  * POST /v1/order
  */
 export interface CreateOrderRequest {
-  /** The unique identifier of the product to order */
   productId: string;
-  /** Required payment method */
   paymentMethod: OrderPaymentMethod;
 }
 
@@ -490,17 +482,11 @@ export interface CreateOrderRequest {
  * Payment configuration returned when creating an order
  */
 export interface OrderPaymentConfig {
-  /** Payment amount (e.g., 199) */
   paymentAmount: number;
-  /** Payment currency (e.g., "USD") */
   paymentCurrency: string;
-  /** Destination wallet address for the payment */
   destinationAddress: string;
-  /** Chain ID for the destination (e.g., "59144" for Linea) */
   destinationChainId: string;
-  /** Token symbol for destination (e.g., "USDC") */
   destinationTokenSymbol: string;
-  /** Token contract address for destination */
   destinationTokenAddress: string;
 }
 
@@ -509,9 +495,7 @@ export interface OrderPaymentConfig {
  * POST /v1/order
  */
 export interface CreateOrderResponse {
-  /** Unique order identifier */
   orderId: string;
-  /** Payment configuration for the order */
   paymentConfig: OrderPaymentConfig;
 }
 
@@ -529,11 +513,8 @@ export type OrderStatus =
  * Metadata returned with order status
  */
 export interface OrderStatusMetadata {
-  /** Daimo payment ID */
   paymentId?: string;
-  /** Transaction hash on-chain */
   txHash?: string;
-  /** Additional note (e.g., "payment_refunded") */
   note?: string;
 }
 
@@ -542,12 +523,8 @@ export interface OrderStatusMetadata {
  * GET /v1/order/:orderId
  */
 export interface GetOrderStatusResponse {
-  /** Unique order identifier */
   orderId: string;
-  /** ISO timestamp when the order was paid */
   paidAt?: string;
-  /** Current status of the order */
   status: OrderStatus;
-  /** Additional metadata about the order */
   metadata?: OrderStatusMetadata;
 }

@@ -2015,10 +2015,6 @@ export class CardSDK {
     );
   };
 
-  // ============================================================================
-  // Order API Methods (for Daimo Pay integration)
-  // ============================================================================
-
   /**
    * Creates a new order for a product (e.g., premium account upgrade, metal card)
    * POST /v1/order

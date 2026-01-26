@@ -14,6 +14,7 @@ import {
 import { useSelector } from 'react-redux';
 import { isEqual } from 'lodash';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -28,7 +29,6 @@ import EntryScriptWeb3 from '../../../../../core/EntryScriptWeb3';
 import { getRpcMethodMiddleware } from '../../../../../core/RPCMethods/RPCMethodMiddleware';
 import { SPA_urlChangeListener } from '../../../../../util/browserScripts';
 import { MAX_MESSAGE_LENGTH } from '../../../../../constants/dapp';
-import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import Engine from '../../../../../core/Engine';
 import AppConstants from '../../../../../core/AppConstants';
@@ -101,11 +101,6 @@ const DaimoPayModal: React.FC = () => {
     const permittedAccounts = getPermittedEvmAddressesByHostname(
       permissionsControllerState,
       daimoOrigin,
-    );
-
-    Logger.log(
-      '[DaimoPay] Sending active accounts:',
-      JSON.stringify(permittedAccounts),
     );
 
     notifyAllConnections({
@@ -297,8 +292,6 @@ const DaimoPayModal: React.FC = () => {
     (event: DaimoPayEvent) => {
       const eventType: DaimoPayEventType = event.type;
 
-      Logger.log(`[DaimoPay Event] ${eventType}:`, JSON.stringify(event));
-
       switch (eventType) {
         case 'modalOpened':
           trackEvent(
@@ -327,20 +320,10 @@ const DaimoPayModal: React.FC = () => {
           break;
 
         case 'paymentCompleted':
-          Logger.log(
-            '[DaimoPay] Payment completed with payload:',
-            JSON.stringify(event.payload),
-          );
-          if (!isProduction) {
-            handlePaymentSuccess(event.payload.txHash, event.payload.chainId);
-          }
+          handlePaymentSuccess(event.payload.txHash, event.payload.chainId);
           break;
 
         case 'paymentBounced': {
-          Logger.log(
-            '[DaimoPay] Payment bounced with payload:',
-            JSON.stringify(event.payload),
-          );
           const errorMsg =
             event.payload?.errorMessage ||
             event.payload?.error ||
@@ -357,7 +340,6 @@ const DaimoPayModal: React.FC = () => {
       handlePaymentSuccess,
       handlePaymentBounced,
       startPolling,
-      isProduction,
     ],
   );
 
@@ -367,30 +349,12 @@ const DaimoPayModal: React.FC = () => {
 
       try {
         if (data.length > MAX_MESSAGE_LENGTH) {
-          Logger.log(
-            `DaimoPayModal: Message exceeded size limit (${data.length} bytes), dropping`,
-          );
           return;
         }
 
         const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
 
         if (!dataParsed || typeof dataParsed !== 'object') {
-          return;
-        }
-
-        if (dataParsed.source === 'daimo-pay-console') {
-          const prefix = '[DaimoPay WebView]';
-          switch (dataParsed.level) {
-            case 'error':
-            case 'warn':
-            case 'info':
-            case 'debug':
-            case 'log':
-            default:
-              Logger.log(`${prefix} ${dataParsed.message}`);
-              break;
-          }
           return;
         }
 
@@ -404,9 +368,6 @@ const DaimoPayModal: React.FC = () => {
             dataParsed.origin &&
             !DaimoPayService.isValidMessageOrigin(dataParsed.origin)
           ) {
-            Logger.log(
-              `DaimoPayModal: Message blocked from untrusted origin: ${dataParsed.origin}`,
-            );
             return;
           }
 
@@ -520,14 +481,7 @@ const DaimoPayModal: React.FC = () => {
             
             // Directly call eth_requestAccounts
             if (window.ethereum && window.ethereum.request) {
-              console.log('[DaimoPay] Intercepted MetaMask click, calling eth_requestAccounts');
-              window.ethereum.request({ method: 'eth_requestAccounts' })
-                .then(function(accounts) {
-                  console.log('[DaimoPay] eth_requestAccounts success:', accounts);
-                })
-                .catch(function(err) {
-                  console.log('[DaimoPay] eth_requestAccounts error:', err);
-                });
+              window.ethereum.request({ method: 'eth_requestAccounts' });
             }
           }
         }, true); // Use capture phase to intercept before wagmi
@@ -578,18 +532,9 @@ const DaimoPayModal: React.FC = () => {
     true;
   `;
 
-  const handleError = useCallback(
-    (syntheticEvent?: {
-      nativeEvent?: { description?: string; code?: number };
-    }) => {
-      Logger.log(
-        '[DaimoPay] WebView error:',
-        JSON.stringify(syntheticEvent?.nativeEvent),
-      );
-      setError(strings('card.daimo_pay_modal.load_error'));
-    },
-    [],
-  );
+  const handleError = useCallback(() => {
+    setError(strings('card.daimo_pay_modal.load_error'));
+  }, []);
 
   const handleRetry = useCallback(() => {
     setError(null);

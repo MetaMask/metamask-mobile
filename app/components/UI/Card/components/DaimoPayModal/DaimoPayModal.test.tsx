@@ -103,6 +103,60 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
+jest.mock('../../../../../core/EntryScriptWeb3', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn().mockResolvedValue(''),
+  },
+}));
+
+jest.mock('../../../../../util/browserScripts', () => ({
+  SPA_urlChangeListener: '',
+}));
+
+jest.mock('../../../../../core/BackgroundBridge/BackgroundBridge', () =>
+  jest.fn().mockImplementation(() => ({
+    onMessage: jest.fn(),
+    onDisconnect: jest.fn(),
+    sendNotificationEip1193: jest.fn(),
+  })),
+);
+
+jest.mock('../../../../../core/RPCMethods/RPCMethodMiddleware', () => ({
+  getRpcMethodMiddleware: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PermissionController: {
+      state: {},
+    },
+  },
+}));
+
+jest.mock('../../../../../core/Permissions', () => ({
+  getPermittedEvmAddressesByHostname: jest.fn(() => []),
+}));
+
+jest.mock('../../../../../selectors/snaps/permissionController', () => ({
+  selectPermissionControllerState: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
+
+jest.mock('../../../../../core/AppConstants', () => ({
+  NOTIFICATION_NAMES: {
+    accountsChanged: 'metamask_accountsChanged',
+  },
+}));
+
+jest.mock('../../../../../constants/dapp', () => ({
+  MAX_MESSAGE_LENGTH: 1000000,
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
@@ -193,15 +247,21 @@ describe('DaimoPayModal', () => {
   });
 
   describe('Render', () => {
-    it('renders container and WebView', () => {
+    it('renders container and WebView', async () => {
       const { getByTestId } = render(<DaimoPayModal />);
 
-      expect(getByTestId(DaimoPayModalSelectors.CONTAINER)).toBeTruthy();
-      expect(getByTestId(DaimoPayModalSelectors.WEBVIEW)).toBeTruthy();
+      await waitFor(() => {
+        expect(getByTestId(DaimoPayModalSelectors.CONTAINER)).toBeTruthy();
+        expect(getByTestId(DaimoPayModalSelectors.WEBVIEW)).toBeTruthy();
+      });
     });
 
     it('displays error message when WebView fails to load', async () => {
       const { getByTestId } = render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnError).not.toBeNull();
+      });
 
       await act(async () => {
         if (mockOnError) {
@@ -217,6 +277,10 @@ describe('DaimoPayModal', () => {
     it('displays close and retry buttons when error occurs', async () => {
       const { getByTestId } = render(<DaimoPayModal />);
 
+      await waitFor(() => {
+        expect(mockOnError).not.toBeNull();
+      });
+
       await act(async () => {
         if (mockOnError) {
           mockOnError();
@@ -231,6 +295,10 @@ describe('DaimoPayModal', () => {
 
     it('closes modal when close button is pressed in error state', async () => {
       const { getByTestId } = render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnError).not.toBeNull();
+      });
 
       await act(async () => {
         if (mockOnError) {
@@ -251,6 +319,10 @@ describe('DaimoPayModal', () => {
 
     it('retries loading WebView when retry button is pressed', async () => {
       const { getByTestId, queryByTestId } = render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnError).not.toBeNull();
+      });
 
       await act(async () => {
         if (mockOnError) {
@@ -275,8 +347,12 @@ describe('DaimoPayModal', () => {
   });
 
   describe('Interactions', () => {
-    it('opens external URLs via Linking', () => {
+    it('opens external URLs via Linking', async () => {
       render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnShouldStartLoadWithRequest).not.toBeNull();
+      });
 
       if (mockOnShouldStartLoadWithRequest) {
         const result = mockOnShouldStartLoadWithRequest({
@@ -290,8 +366,12 @@ describe('DaimoPayModal', () => {
       }
     });
 
-    it('allows Daimo URLs to load in WebView', () => {
+    it('allows Daimo URLs to load in WebView', async () => {
       render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnShouldStartLoadWithRequest).not.toBeNull();
+      });
 
       if (mockOnShouldStartLoadWithRequest) {
         const result = mockOnShouldStartLoadWithRequest({
@@ -307,6 +387,10 @@ describe('DaimoPayModal', () => {
   describe('WebView Events', () => {
     it('handles modalClosed event by navigating back', async () => {
       render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
 
       await act(async () => {
         if (mockOnMessage) {
@@ -328,6 +412,10 @@ describe('DaimoPayModal', () => {
 
     it('handles paymentCompleted event in demo mode', async () => {
       render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
 
       await act(async () => {
         if (mockOnMessage) {
@@ -359,6 +447,10 @@ describe('DaimoPayModal', () => {
     it('displays error when paymentBounced event received', async () => {
       const { getByTestId } = render(<DaimoPayModal />);
 
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
       await act(async () => {
         if (mockOnMessage) {
           mockOnMessage({
@@ -382,6 +474,10 @@ describe('DaimoPayModal', () => {
     it('ignores non-Daimo events', async () => {
       render(<DaimoPayModal />);
 
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
       await act(async () => {
         if (mockOnMessage) {
           mockOnMessage({
@@ -403,6 +499,10 @@ describe('DaimoPayModal', () => {
   describe('Analytics', () => {
     it('tracks modalClosed event', async () => {
       render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
 
       await act(async () => {
         if (mockOnMessage) {
@@ -431,6 +531,10 @@ describe('DaimoPayModal', () => {
     it('tracks modalOpened event', async () => {
       render(<DaimoPayModal />);
 
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
       await act(async () => {
         if (mockOnMessage) {
           mockOnMessage({
@@ -456,6 +560,10 @@ describe('DaimoPayModal', () => {
 
     it('tracks paymentStarted event', async () => {
       render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
 
       await act(async () => {
         if (mockOnMessage) {
@@ -483,6 +591,10 @@ describe('DaimoPayModal', () => {
 
     it('tracks paymentCompleted event', async () => {
       render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
 
       await act(async () => {
         if (mockOnMessage) {
@@ -515,6 +627,10 @@ describe('DaimoPayModal', () => {
 
     it('tracks paymentBounced event', async () => {
       render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
 
       await act(async () => {
         if (mockOnMessage) {

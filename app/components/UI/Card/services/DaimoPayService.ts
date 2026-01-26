@@ -219,11 +219,6 @@ const pollProductionPaymentStatus = async (
   try {
     const statusResponse = await cardSDK.getOrderStatus(orderId);
 
-    Logger.log('DaimoPayService: Production order status fetched', {
-      orderId: statusResponse.orderId,
-      status: statusResponse.status,
-    });
-
     return {
       status: mapOrderStatusToPaymentStatus(statusResponse.status),
       transactionHash: statusResponse.metadata?.txHash,
@@ -259,9 +254,6 @@ export const DaimoPayService = {
   createPayment: async (
     options?: DaimoPayServiceOptions,
   ): Promise<DaimoPaymentResponse> => {
-    const environment = getDaimoEnvironment();
-    Logger.log(`DaimoPayService: Creating payment in ${environment} mode`);
-
     if (isDaimoDemo()) {
       return createDemoPayment();
     }

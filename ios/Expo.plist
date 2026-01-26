@@ -3,50 +3,5 @@
 <plist version="1.0">
   <dict>
     <!-- EAS Update configuration is injected by scripts/update-expo-channel.js during build -->
-	<key>EXUpdatesRuntimeVersion</key>
-	<string>7.62.0</string>
-	<key>EXUpdatesURL</key>
-	<string>https://u.expo.dev/</string>
-	<key>EXUpdatesRequestHeaders</key>
-	<dict>
-		<key>expo-channel-name</key>
-		<string>exp</string>
-	</dict>
-	<key>EXUpdatesCheckOnLaunch</key>
-	<string>NEVER</string>
-	<key>EXUpdatesLaunchWaitMs</key>
-	<integer>0</integer>
-	<key>EXUpdatesCodeSigningCertificate</key>
-	<string>-----BEGIN CERTIFICATE-----&#xD;
-MIIC0zCCAbugAwIBAgIJcBxkPoOMcf4PMA0GCSqGSIb3DQEBCwUAMBMxETAPBgNV&#xD;
-BAMTCE1ldGFNYXNrMB4XDTI1MTExMzIzNDE1NloXDTM1MTExMzIzNDE1NlowEzER&#xD;
-MA8GA1UEAxMITWV0YU1hc2swggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB&#xD;
-AQDDTSLvuG/yqXz8dQgvrJquVmBa4HjpzKLI7DrUuW1dSWow9S30yTgV3G/nw3hX&#xD;
-JwXLZrMrtFrsGs/ZWxGIAhlHhlNRIRkQ98ikxiFw6BtgHg3pXVix87RnysgeAx95&#xD;
-YdfY8/t3k8zNdi6WTVWxP84Ov9++e15jxXhK3jFKA8UygbX2mlH3mT9F0DALtP/P&#xD;
-2yDAlzvOrCOFlmyNvwnTfLvbkDuBRQCYBHw3KQQyRXxM4h0UXy+4DgnZiRfZ7dwC&#xD;
-XXXepkk4V41HZw6eKTHvIvh6LAQMwKhS/adjC0X8r6JfvaGlLzJ9qiugpwCqNq0m&#xD;
-WS4pq+bfTKTh3RjGqqzwYOgBAgMBAAGjKjAoMA4GA1UdDwEB/wQEAwIHgDAWBgNV&#xD;
-HSUBAf8EDDAKBggrBgEFBQcDAzANBgkqhkiG9w0BAQsFAAOCAQEAIb2cQmtdwCRF&#xD;
-pbtg2JvkfcIHLXYpkC0WAlIIOl6Ze0Gw54RVGFaV//C5N83z8VkDSs9ETgQzxpPJ&#xD;
-z/bPZbUvRcEAUIfsf3VznNZWENVKxWLbFJi4H+dfShlIhwZkJ1P+WwDxppa0sBW4&#xD;
-KkCgsxUiNhs9Df9kjs0GOq80xiODqjf8Y42cn3r/bQcfu80UH51W1t1pNIDKXCFe&#xD;
-ubQ4OGeqHgTy6RALr60nS4GGiFelLCES378+6matuxGCobDvK0tQyhOebBBeEAgU&#xD;
-ZSHh9W0s7WdN9dwSUNfbLw2MpLodFqoB47St9mOHTo+l/+qZOssFmm5vYwn/yhiQ&#xD;
-EnmoQT0YNA==&#xD;
------END CERTIFICATE-----&#xD;
-</string>
-		<key>EXUpdatesCodeSigningMetadata</key>
-	<dict>
-		<key>keyid</key>
-		<string>exp</string>
-		<key>alg</key>
-		<string>rsa-v1_5-sha256</string>
-	</dict>
-	<key>EXUpdatesEnabled</key>
-	<true/>
-
-
-
   </dict>
 </plist>
