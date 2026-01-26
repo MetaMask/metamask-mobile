@@ -152,7 +152,13 @@ export function useTransactionCustomAmount({
 
   const updateTokenAmount = useCallback(() => {
     updateTokenAmountCallback(amountHuman);
-  }, [amountHuman, updateTokenAmountCallback]);
+
+    setConfirmationMetric({
+      properties: {
+        mm_pay_quote_requested: true,
+      },
+    });
+  }, [amountHuman, setConfirmationMetric, updateTokenAmountCallback]);
 
   return {
     amountFiat,

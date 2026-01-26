@@ -243,6 +243,26 @@ describe('useTransactionCustomAmount', () => {
     expect(updateTokenAmountMock).toHaveBeenCalledWith('61.725');
   });
 
+  it('sets quote requested metric when updateTokenAmount is called', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    setConfirmationMetricMock.mockClear();
+
+    await act(async () => {
+      result.current.updateTokenAmount();
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: {
+        mm_pay_quote_requested: true,
+      },
+    });
+  });
+
   it('returns default amount from params if available', async () => {
     useParamsMock.mockReturnValue({ amount: '43.21' });
 
