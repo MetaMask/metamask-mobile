@@ -32,7 +32,6 @@ import {
   KeyringController,
   KeyringTypes,
   AccountImportStrategy,
-  KeyringMetadata,
 } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
@@ -3366,7 +3365,7 @@ describe('Authentication', () => {
         .mockResolvedValue(true);
       jest
         .spyOn(Authentication, 'importSeedlessMnemonicToVault')
-        .mockResolvedValue({ id: 'test-keyring-id' } as KeyringMetadata);
+        .mockResolvedValue('test-keyring-id');
 
       // Mock convertEnglishWordlistIndicesToCodepoints
       mockConvertEnglishWordlistIndicesToCodepoints.mockReturnValue(
