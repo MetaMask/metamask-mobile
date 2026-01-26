@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.63.0",
+  "version": "7.64.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -13,8 +13,9 @@
     "gem:bundle:install": "bundle install --gemfile=ios/Gemfile",
     "clean:android": "rm -rf android/app/build",
     "clean": "yarn clean:ios && yarn clean:android && yarn install --immutable",
-    "lint": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --cache --cache-location node_modules/.cache/eslint/.eslint-cache",
-    "lint:fix": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --fix --cache --cache-location node_modules/.cache/eslint/.eslint-cache",
+    "lint": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --cache",
+    "lint:fix": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --fix --cache",
+    "lint:clean": "rm -f .eslintcache",
     "lint:tsc": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
     "format:check": "prettier '**/*.{js,ts,tsx,json}' --check",
@@ -179,7 +180,8 @@
     "@metamask/key-tree@npm:^10.1.1": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/key-tree@npm:^10.0.2": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/transaction-controller@npm:^62.9.0": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch",
-    "qs": "6.14.1"
+    "qs": "6.14.1",
+    "@playwright/test": "^1.57.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -204,7 +206,7 @@
     "@metamask/assets-controllers": "^95.3.0",
     "@metamask/base-controller": "^9.0.0",
     "@metamask/bitcoin-wallet-snap": "^1.9.0",
-    "@metamask/bridge-controller": "^64.4.0",
+    "@metamask/bridge-controller": "^64.8.0",
     "@metamask/bridge-status-controller": "^64.4.1",
     "@metamask/chain-agnostic-permission": "^1.3.0",
     "@metamask/composable-controller": "^12.0.0",
@@ -281,7 +283,7 @@
     "@metamask/selected-network-controller": "^25.0.0",
     "@metamask/signature-controller": "^35.0.0",
     "@metamask/slip44": "^4.2.0",
-    "@metamask/smart-transactions-controller": "patch:@metamask/smart-transactions-controller@npm%3A21.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.1.0-383adc86a8.patch",
+    "@metamask/smart-transactions-controller": "^22.1.0",
     "@metamask/snaps-controllers": "^17.2.0",
     "@metamask/snaps-execution-environments": "^10.3.0",
     "@metamask/snaps-rpc-methods": "^14.1.1",
@@ -338,6 +340,7 @@
     "@tradle/react-native-http": "2.0.1",
     "@types/he": "^1.2.3",
     "@types/react-test-renderer": "^18.0.0",
+    "@types/readable-stream": "^2.3.9",
     "@viem/anvil": "^0.0.10",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/core": "^2.19.2",
@@ -562,6 +565,8 @@
     "@walletconnect/types": "^2.19.2",
     "@welldone-software/why-did-you-render": "^8.0.1",
     "appium": "^2.12.1",
+    "appium-adb": "^9.11.4",
+    "appium-chromium-driver": "^2.0.2",
     "appium-uiautomator2-driver": "4.2.7",
     "appium-xcuitest-driver": "5.16.1",
     "appwright": "patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=3beae4#~/.yarn/patches/appwright-patch-685d6e06a0.patch",
@@ -731,6 +736,7 @@
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/linux-x64": false,
       "react-native-nitro-modules": false,
       "esbuild": false,
+      "appium-chromium-driver>appium-chromedriver>@appium/support>sharp": false,
       "@metamask/transaction-controller>babel-runtime>core-js": false,
       "webdriverio>@wdio/utils>edgedriver": false,
       "webdriverio>@wdio/utils>geckodriver": false

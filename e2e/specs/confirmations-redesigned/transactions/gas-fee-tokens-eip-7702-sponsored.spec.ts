@@ -1,4 +1,4 @@
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../../pages/Send/RedesignedSendView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -8,25 +8,25 @@ import {
   LocalNode,
   LocalNodeType,
   Utilities,
-} from '../../../framework';
+} from '../../../../tests/framework';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
+import { AnvilPort } from '../../../../tests/framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../../viewHelper';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
+import { AnvilManager, Hardfork } from '../../../../tests/seeder/anvil-manager';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/helpers/mockHelpers';
-import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureEip7702 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+} from '../../../../tests/api-mocking/helpers/mockHelpers';
+import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../tests/api-mocking/mock-responses/simulations';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureEip7702 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import {
   TRANSACTION_RELAY_STATUS_NETWORKS_MOCK,
   TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK,
-} from '../../../api-mocking/mock-responses/transaction-relay-mocks';
+} from '../../../../tests/api-mocking/mock-responses/transaction-relay-mocks';
 import { RelayStatus } from '../../../../app/util/transactions/transaction-relay';
 
 const TRANSACTION_UUID_MOCK = '1234-5678';

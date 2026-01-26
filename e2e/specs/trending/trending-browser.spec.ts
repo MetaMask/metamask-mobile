@@ -1,14 +1,14 @@
 import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { DappVariants } from '../../framework/Constants';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { DappVariants } from '../../../tests/framework/Constants';
 import { Mockttp } from 'mockttp';
-import { Assertions } from '../../framework';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
-import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
-import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { Assertions } from '../../../tests/framework';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { TRENDING_API_MOCKS } from '../../../tests/api-mocking/mock-responses/trending-api-mocks';
+import { setupMockEvents } from '../../../tests/api-mocking/helpers/mockHelpers';
+import { remoteFeatureFlagTrendingTokensEnabled } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import Browser from '../../pages/Browser/BrowserView';
 import TestDApp from '../../pages/Browser/TestDApp';
 

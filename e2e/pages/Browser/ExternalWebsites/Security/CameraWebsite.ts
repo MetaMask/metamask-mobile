@@ -1,4 +1,4 @@
-import Matchers from '../../../../framework/Matchers.ts';
+import Matchers from '../../../../../tests/framework/Matchers.ts';
 import { waitFor } from 'detox';
 
 class CameraWebsite {

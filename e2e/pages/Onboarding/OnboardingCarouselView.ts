@@ -2,8 +2,8 @@ import {
   OnboardingCarouselSelectorIDs,
   OnboardingCarouselSelectorText,
 } from '../../selectors/Onboarding/OnboardingCarousel.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class OnboardingCarouselView {
   get container(): DetoxElement {

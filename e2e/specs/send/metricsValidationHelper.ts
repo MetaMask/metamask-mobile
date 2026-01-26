@@ -1,6 +1,6 @@
 import { Mockttp } from 'mockttp';
-import { AnvilManager } from '../../seeder/anvil-manager';
-import { LocalNode } from '../../framework';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { LocalNode } from '../../../tests/framework';
 import { getEventsPayloads } from '../analytics/helpers';
 
 export const validateTransactionHashInTransactionFinalizedEvent = async (
@@ -47,7 +47,7 @@ export const validateTransactionHashInTransactionFinalizedEvent = async (
 
   if (latestTransaction !== eventTxHash) {
     throw new Error(
-      `Transaction hash mismatch: expected ${latestTransaction}, got ${eventTxHash}. 
+      `Transaction hash mismatch: expected ${latestTransaction}, got ${eventTxHash}.
         Transaction Hash is not matching with the latest transaction on the local node.`,
     );
   }

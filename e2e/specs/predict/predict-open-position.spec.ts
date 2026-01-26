@@ -1,26 +1,26 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../pages/Predict/PredictMarketList';
 import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagPredictEnabled } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
-} from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+} from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
 import { getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
+import SoftAssert from '../../../tests/framework/SoftAssert';
 
 /*
 Test Scenario: Open position on Celtics vs. Nets market

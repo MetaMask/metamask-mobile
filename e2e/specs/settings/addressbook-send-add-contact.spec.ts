@@ -4,25 +4,25 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import Assertions from '../../framework/Assertions';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import Assertions from '../../../tests/framework/Assertions';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+} from '../../../tests/api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   SIMULATION_ENABLED_NETWORKS_MOCK,
   SEND_ETH_SIMULATION_MOCK,
-} from '../../api-mocking/mock-responses/simulations';
-import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+} from '../../../tests/api-mocking/mock-responses/simulations';
+import { confirmationsRedesignedFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
 import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
-import { LocalNode } from '../../framework/types';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { LocalNode } from '../../../tests/framework/types';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 
 const TEST_CONTACT = {
