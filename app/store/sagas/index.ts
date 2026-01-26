@@ -66,8 +66,10 @@ export function* appStateListenerTask() {
             // Prompt authentication.
             await Authentication.unlockWallet();
           } catch (error) {
-            // Lock app and navigate to login.
-            Authentication.lockApp({ reset: false });
+            // Navigate to login.
+            NavigationService.navigation?.reset({
+              routes: [{ name: Routes.ONBOARDING.LOGIN }],
+            });
             trackErrorAsAnalytics(
               'Lockscreen: Authentication failed',
               (error as Error)?.message,
