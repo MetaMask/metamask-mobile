@@ -3265,11 +3265,14 @@ describe('Authentication', () => {
     beforeEach(() => {
       // Reset mocks
       jest.clearAllMocks();
+      mockSelectCompletedOnboarding.mockReturnValue(true);
 
       // Setup Engine context mocks
       Engine.context.SeedlessOnboardingController = {
         addNewSecretData: jest.fn().mockResolvedValue(undefined),
         updateBackupMetadataState: jest.fn(),
+        runMigrations: jest.fn().mockResolvedValue(undefined),
+        state: { migrationVersion: 1 },
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
     });
 
@@ -3762,7 +3765,7 @@ describe('Authentication', () => {
       ).toHaveBeenCalled();
     });
 
-    it('skips migration when onboarding not complete and skipOnboardingCheck is false', async () => {
+    it('skips migration when onboarding not complete', async () => {
       mockSelectCompletedOnboarding.mockReturnValue(false);
 
       await Authentication.runSeedlessOnboardingMigrations();
@@ -3770,18 +3773,6 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.runMigrations,
       ).not.toHaveBeenCalled();
-    });
-
-    it('calls controller runMigrations when onboarding not complete but skipOnboardingCheck is true', async () => {
-      mockSelectCompletedOnboarding.mockReturnValue(false);
-
-      await Authentication.runSeedlessOnboardingMigrations({
-        skipOnboardingCheck: true,
-      });
-
-      expect(
-        Engine.context.SeedlessOnboardingController.runMigrations,
-      ).toHaveBeenCalled();
     });
 
     it('tracks success event on successful migration', async () => {

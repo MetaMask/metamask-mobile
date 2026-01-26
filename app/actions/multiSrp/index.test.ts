@@ -39,6 +39,7 @@ const mockSelectSeedlessOnboardingLoginFlow = jest.fn();
 const mockAddNewSecretData = jest.fn();
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
+const mockRunSeedlessOnboardingMigrations = jest.fn();
 
 const hdKeyring = {
   getAccounts: () => {
@@ -58,6 +59,13 @@ const mockSnapClient = {
 jest.mock('../../selectors/seedlessOnboardingController', () => ({
   selectSeedlessOnboardingLoginFlow: (state: unknown) =>
     mockSelectSeedlessOnboardingLoginFlow(state),
+}));
+
+jest.mock('../../core', () => ({
+  Authentication: {
+    runSeedlessOnboardingMigrations: () =>
+      mockRunSeedlessOnboardingMigrations(),
+  },
 }));
 
 jest.mock('../../util/trace', () => ({
@@ -147,6 +155,7 @@ describe('MultiSRP Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddNewSecretData.mockReset();
+    mockRunSeedlessOnboardingMigrations.mockReset();
     mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
     mockGetSnapKeyring.mockResolvedValue(true);
   });
@@ -317,6 +326,7 @@ describe('MultiSRP Actions', () => {
           id: 'keyring-id-123',
         });
         mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+        mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       });
 
       it('successfully adds seed phrase backup when seedless onboarding is enabled', async () => {
@@ -329,6 +339,7 @@ describe('MultiSRP Actions', () => {
           name: TraceName.OnboardingAddSrp,
           op: TraceOperation.OnboardingSecurityOp,
         });
+        expect(mockRunSeedlessOnboardingMigrations).toHaveBeenCalled();
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
           EncAccountDataType.ImportedSrp,
@@ -381,6 +392,7 @@ describe('MultiSRP Actions', () => {
 
     it('calls addNewSeedPhraseBackup when seedless onboarding login flow is active', async () => {
       mockAddNewSecretData.mockResolvedValue(undefined);
+      mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       mockGetKeyringsByType.mockResolvedValue([]);
       mockAddNewKeyring.mockResolvedValue({
         id: 'test-keyring-id',
@@ -394,6 +406,7 @@ describe('MultiSRP Actions', () => {
       // Act
       const result = await importNewSecretRecoveryPhrase(testMnemonic);
 
+      expect(mockRunSeedlessOnboardingMigrations).toHaveBeenCalled();
       expect(mockAddNewSecretData).toHaveBeenCalledWith(
         expect.any(Uint8Array),
         EncAccountDataType.ImportedSrp,
@@ -418,6 +431,7 @@ describe('MultiSRP Actions', () => {
       jest
         .spyOn(ReduxService.store, 'getState')
         .mockReturnValue(createMockState(true) as unknown as RootState);
+      mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       mockAddNewSecretData.mockRejectedValue(syncError);
 
       // Act & Assert

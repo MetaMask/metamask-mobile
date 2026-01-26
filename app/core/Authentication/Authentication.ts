@@ -706,21 +706,6 @@ class AuthenticationService {
       // eslint-disable-next-line no-void
       void this.postLoginAsyncOperations();
 
-      // Migrations for social login users (rehydration + existing user unlock).
-      // oauth2Login fallback needed: Redux state is batched, so vault isn't available yet during rehydration.
-      const isSeedlessLoginFlow = selectSeedlessOnboardingLoginFlow(
-        ReduxService.store.getState(),
-      );
-      if (isSeedlessLoginFlow || authData.oauth2Login) {
-        this.runSeedlessOnboardingMigrations({
-          skipOnboardingCheck: authData.oauth2Login,
-        }).catch((err) => {
-          const message = 'Error during seedless onboarding migrations';
-          Logger.error(err, message);
-          captureException(err);
-        });
-      }
-
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -793,15 +778,6 @@ class AuthenticationService {
       // NOTE: We do not await on purpose, to run those operations in the background.
       // eslint-disable-next-line no-void
       void this.postLoginAsyncOperations();
-
-      // Migrations for existing social login users unlocking via biometrics.
-      if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
-        this.runSeedlessOnboardingMigrations().catch((err) => {
-          const message = 'Error during seedless onboarding migrations';
-          Logger.error(err, message);
-          captureException(err);
-        });
-      }
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1068,6 +1044,9 @@ class AuthenticationService {
     const bufferedPrivateKey = hexToBytes(add0x(privateKey));
 
     if (syncWithSocial) {
+      // Run data type migration before adding new private key to ensure data consistency.
+      await this.runSeedlessOnboardingMigrations();
+
       await SeedlessOnboardingController.addNewSecretData(
         bufferedPrivateKey,
         EncAccountDataType.ImportedPrivateKey,
@@ -1442,16 +1421,17 @@ class AuthenticationService {
 
   /**
    * Runs seedless onboarding migrations if needed.
-   * @param options.skipOnboardingCheck - Skip completedOnboarding check (for rehydration)
+   *
+   * Delegates to SeedlessOnboardingController.runMigrations() which handles
+   * version tracking and migration logic. Called before adding new secret data
+   * to ensure data type consistency and correct ordering.
    */
-  runSeedlessOnboardingMigrations = async ({
-    skipOnboardingCheck = false,
-  } = {}): Promise<void> => {
+  runSeedlessOnboardingMigrations = async (): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
     const state = ReduxService.store.getState();
     const completedOnboarding = selectCompletedOnboarding(state);
 
-    if (!skipOnboardingCheck && !completedOnboarding) {
+    if (!completedOnboarding) {
       return;
     }
 
@@ -1469,8 +1449,8 @@ class AuthenticationService {
           .build(),
       );
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+      const isError = error instanceof Error;
+      const errorMessage = isError ? error.message : 'Unknown error';
 
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
@@ -1483,7 +1463,7 @@ class AuthenticationService {
           })
           .build(),
       );
-
+      captureException(isError ? error : new Error(errorMessage));
       throw error;
     }
   };
