@@ -144,8 +144,8 @@ const getChainIdsForRewardsFetch = (
   tokenAddress: Hex,
 ): Hex | Hex[] => {
   if (isMusdToken(tokenAddress)) {
-    // For mUSD, fetch from both mainnet and Linea
-    return [CHAIN_IDS.MAINNET, CHAIN_IDS.LINEA_MAINNET];
+    // For mUSD, fetch only Linea
+    return [CHAIN_IDS.LINEA_MAINNET];
   }
   return [assetChainId];
 };
