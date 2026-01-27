@@ -10,8 +10,6 @@ import {
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
 } from '../../constants/storage';
 import {
-  authSuccess,
-  authError,
   logIn,
   logOut,
   passwordSet,
@@ -893,16 +891,13 @@ class AuthenticationService {
 
   /**
    * Attempts to use biometric/pin code/remember me to login
-   * @param bioStateMachineId - ID associated with each biometric session.
    * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
    */
   appTriggeredAuth = async (
     options: {
-      bioStateMachineId?: string;
       disableAutoLogout?: boolean;
     } = {},
   ): Promise<void> => {
-    const bioStateMachineId = options?.bioStateMachineId;
     const disableAutoLogout = options?.disableAutoLogout;
     try {
       // TODO: Replace "any" with type
@@ -935,7 +930,6 @@ class AuthenticationService {
       endTrace({ name: TraceName.VaultCreation });
 
       await this.dispatchLogin();
-      ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
 
       // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
@@ -955,7 +949,6 @@ class AuthenticationService {
         context: 'app_triggered_auth_failed',
       });
 
-      ReduxService.store.dispatch(authError(bioStateMachineId));
       !disableAutoLogout && this.lockApp({ reset: false });
       throw new AuthenticationError(
         errorMessage,
