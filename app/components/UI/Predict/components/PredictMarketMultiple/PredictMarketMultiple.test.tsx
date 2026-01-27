@@ -38,6 +38,15 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockUsePredictBalance(),
 }));
 
+// Mock usePredictDeposit hook
+const mockDeposit = jest.fn();
+jest.mock('../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => ({
+    deposit: mockDeposit,
+    isDepositPending: false,
+  }),
+}));
+
 // Mock TrendingFeedSessionManager
 jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   __esModule: true,

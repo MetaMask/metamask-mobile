@@ -39,6 +39,15 @@ jest.mock('../../hooks/usePredictEligibility', () => ({
   usePredictEligibility: () => mockUsePredictEligibility(),
 }));
 
+// Mock usePredictDeposit hook
+const mockDeposit = jest.fn();
+jest.mock('../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => ({
+    deposit: mockDeposit,
+    isDepositPending: false,
+  }),
+}));
+
 const mockOutcome: PredictOutcome = {
   id: 'test-outcome-1',
   marketId: 'test-market-1',
@@ -201,7 +210,7 @@ describe('PredictMarketOutcome', () => {
     expect(getByText('Crypto Markets')).toBeOnTheScreen();
   });
 
-  it('navigates to add funds sheet when user has no balance - Yes button', () => {
+  it('calls deposit when user has no balance - Yes button', () => {
     // Mock user has no balance
     mockUsePredictBalance.mockReturnValue({
       hasNoBalance: true,
@@ -215,12 +224,10 @@ describe('PredictMarketOutcome', () => {
     const yesButton = getByText(/65¢/);
     fireEvent.press(yesButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
+    expect(mockDeposit).toHaveBeenCalled();
   });
 
-  it('navigates to add funds sheet when user has no balance - No button', () => {
+  it('calls deposit when user has no balance - No button', () => {
     // Mock user has no balance
     mockUsePredictBalance.mockReturnValue({
       hasNoBalance: true,
@@ -234,9 +241,7 @@ describe('PredictMarketOutcome', () => {
     const noButton = getByText(/35¢/);
     fireEvent.press(noButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
+    expect(mockDeposit).toHaveBeenCalled();
   });
 
   it('navigates to unavailable modal when user is not eligible - Yes button', () => {

@@ -45,6 +45,15 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockUsePredictBalance(),
 }));
 
+// Mock usePredictDeposit hook
+const mockDeposit = jest.fn();
+jest.mock('../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => ({
+    deposit: mockDeposit,
+    isDepositPending: false,
+  }),
+}));
+
 // Mock TrendingFeedSessionManager
 jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   __esModule: true,
@@ -344,7 +353,7 @@ describe('PredictMarketSingle', () => {
     expect(getByText('No')).toBeOnTheScreen();
   });
 
-  it('navigates to add funds sheet when user has no balance', () => {
+  it('calls deposit when user has no balance', () => {
     // Mock user has no balance
     mockUsePredictBalance.mockReturnValue({
       hasNoBalance: true,
@@ -358,9 +367,7 @@ describe('PredictMarketSingle', () => {
     const yesButton = getByText('Yes');
     fireEvent.press(yesButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
+    expect(mockDeposit).toHaveBeenCalledTimes(1);
   });
 
   it('checks eligibility before balance for Yes button', () => {
