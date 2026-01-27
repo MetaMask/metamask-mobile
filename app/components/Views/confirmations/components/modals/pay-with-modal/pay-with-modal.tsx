@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { strings } from '../../../../../../../locales/i18n';
@@ -16,11 +16,14 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 
+interface PayWithModalRouteParams {
+  hideNetworkFilter?: boolean;
+}
+
 export function PayWithModal() {
-  const route = useRoute();
-  const hideNetworkFilter =
-    (route.params as { hideNetworkFilter?: boolean })?.hideNetworkFilter ??
-    false;
+  const route =
+    useRoute<RouteProp<{ params: PayWithModalRouteParams }, 'params'>>();
+  const hideNetworkFilter = route.params?.hideNetworkFilter ?? false;
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
   const transactionMeta = useTransactionMetadataRequest();
