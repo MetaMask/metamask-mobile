@@ -1,21 +1,25 @@
 ---
 name: metamask-core-architecture
-description: Deep architectural knowledge of MetaMask Mobile's core Engine, controller initialization, dependencies, and state management. Essential for assessing impact of changes to app/core/ files, understanding breaking change patterns, and interpreting controller relationships.
+description: Deep architectural knowledge of MetaMask Mobile's core Engine and controller patterns. Load this when you see changes to ANY file matching these patterns - *Controller.ts files (PerpsController, SwapsController, NetworkController, TransactionController, etc.), app/core/Engine/ directory, BaseController implementations, messenger configurations (app/core/Engine/messengers/), Engine.ts initialization, or controller state management. Provides critical context on controller dependencies, initialization order, breaking change patterns, and cascade effects.
 ---
 
 # MetaMask Core Architecture Skill
 
-This skill provides deep architectural knowledge to help interpret findings from your investigation of core file changes. Use this to understand what patterns mean, assess cascade effects, and recognize breaking change indicators.
+This skill provides deep architectural knowledge to help interpret findings from your investigation of Engine and controller changes. Use this to understand what patterns mean, assess cascade effects, and recognize breaking change indicators.
 
 ## When This Skill Is Essential
 
 Load this skill when analyzing changes to:
 
 - `app/core/Engine/` directory (any file)
-- `app/core/*Controller.ts` files
+- ANY controller integrated into the Engine - check if there's a corresponding entry in:
+  - `app/core/Engine/types.ts` (controller type definitions)
+  - `app/core/Engine/messengers/` (restricted messenger configurations)
+  - Examples: PerpsController (app/components/UI/Perps/controllers/), SwapsController, etc.
+- Controller implementations that extend `BaseController` or use restricted messengers
 - Controller initialization or messenger configuration
 - State management or Redux integration
-- Any change that could affect controller dependencies
+- Any change that could affect controller dependencies or initialization order
 
 ## Core Architecture Overview
 
