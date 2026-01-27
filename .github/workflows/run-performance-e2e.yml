@@ -227,7 +227,7 @@ jobs:
     secrets: inherit
 
   # =============================================================================
-  # PHASE 2: IMPORTED WALLET TESTS (Run After Onboarding Complete)
+  # PHASE 2: IMPORTED WALLET & MM-CONNECT TESTS (Run After Onboarding Complete)
   # =============================================================================
 
   wait-for-onboarding-completion:
@@ -285,6 +285,52 @@ jobs:
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
 
+  run-android-mm-connect-tests:
+    name: Run Android MM-Connect Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs:
+      [
+        read-device-matrix,
+        trigger-android-dual-versions,
+        wait-for-onboarding-completion,
+        set-build-names,
+        determine-branch-name,
+      ]
+    # MM-Connect tests use the same with-srp build as imported-wallet tests
+    if: always() && needs.trigger-android-dual-versions.result == 'success'
+    with:
+      platform: android
+      build_type: mm-connect
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
+    secrets: inherit
+
+  run-ios-mm-connect-tests:
+    name: Run iOS MM-Connect Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs:
+      [
+        read-device-matrix,
+        trigger-ios-dual-versions,
+        wait-for-onboarding-completion,
+        set-build-names,
+        determine-branch-name,
+      ]
+    # MM-Connect tests use the same with-srp build as imported-wallet tests
+    if: always() && needs.trigger-ios-dual-versions.result == 'success'
+    with:
+      platform: ios
+      build_type: mm-connect
+      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
+    secrets: inherit
+
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
@@ -292,8 +338,10 @@ jobs:
       [
         run-android-imported-wallet-tests,
         run-android-onboarding-tests,
+        run-android-mm-connect-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
+        run-ios-mm-connect-tests,
         wait-for-onboarding-completion,
         determine-branch-name,
       ]
@@ -334,8 +382,10 @@ jobs:
       [
         run-android-imported-wallet-tests,
         run-android-onboarding-tests,
+        run-android-mm-connect-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
+        run-ios-mm-connect-tests,
         aggregate-results,
         determine-branch-name,
       ]
