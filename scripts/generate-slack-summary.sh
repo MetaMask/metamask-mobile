@@ -118,12 +118,13 @@ if [ -f "$SUMMARY_FILE" ]; then
         teamIds=$(jq -r '.failedTestsStats.failedTestsByTeam | keys[]' "$SUMMARY_FILE" 2>/dev/null)
         
         for teamId in $teamIds; do
-            # Get team info - the teamId IS the Slack ID (e.g., @swap-bridge-dev-team)
+            # Get team info including the proper Slack mention format
             teamName=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].team.teamName // \"Unknown Team\"" "$SUMMARY_FILE")
+            slackMention=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].team.slackMention // \"$teamId\"" "$SUMMARY_FILE")
             failedCount=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests | length" "$SUMMARY_FILE")
             
-            # Add team header with Slack mention (teamId is the Slack ID)
-            SUMMARY+="• *${teamName}* ${teamId} - ${failedCount} failed test(s):\n"
+            # Add team header with proper Slack mention (<!subteam^ID|name> format)
+            SUMMARY+="• *${teamName}* ${slackMention} - ${failedCount} failed test(s):\n"
             
             # List each failed test for this team
             failedTests=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[] | \"  → \(.testName) [\(.platform)/\(.device)]\"" "$SUMMARY_FILE" 2>/dev/null)

@@ -1,38 +1,46 @@
 /**
  * Team Configuration for Performance Tests
  *
- * This file defines teams for notifications.
+ * This file defines teams and their Slack group IDs for notifications.
  * Tests are tagged directly using Playwright's tag syntax:
  *
  * test('My test', { tag: '@swap-bridge-dev-team' }, async ({ ... }) => { ... });
  *
- * The tag itself is the Slack ID for the team (e.g., @swap-bridge-dev-team)
+ * The slackGroupId is used to generate proper Slack mentions: <!subteam^ID|name>
  */
 
 export const TEAMS = {
   '@swap-bridge-dev-team': {
     name: 'Swap & Bridge Dev Team',
+    slackGroupId: 'S04NGHK3U9Z',
   },
   '@metamask-onboarding-team': {
     name: 'Onboarding Team',
+    slackGroupId: 'S090QC71NQ2',
   },
   '@metamask-mobile-platform': {
     name: 'Mobile Platform Team',
+    slackGroupId: 'S04EF225J1M',
   },
   '@mm-perps-engineering-team': {
     name: 'Perps Engineering Team',
+    slackGroupId: 'S094DMAQNCV',
   },
   '@accounts-team': {
     name: 'Accounts Team',
+    slackGroupId: 'S05NSFC03GF',
   },
   '@assets-dev-team': {
     name: 'Assets Dev Team',
+    slackGroupId: 'S09C9U4K953',
   },
   '@team-predict': {
     name: 'Predict Team',
+    slackGroupId: 'S095BEYMASG',
   },
   '@performance-team': {
     name: 'Performance Team',
+    slackGroupId: null, // No Slack group ID available
   },
 };
 
@@ -69,9 +77,25 @@ export function extractTeamTag(tags) {
 }
 
 /**
+ * Generate Slack mention format for a team
+ * @param {Object} teamConfig - Team configuration object
+ * @param {string} teamTag - The team tag
+ * @returns {string} Slack mention string or fallback to tag
+ */
+function generateSlackMention(teamConfig, teamTag) {
+  if (teamConfig?.slackGroupId) {
+    // Format: <!subteam^GROUP_ID|display_name>
+    const displayName = teamTag.replace('@', '');
+    return `<!subteam^${teamConfig.slackGroupId}|${displayName}>`;
+  }
+  // Fallback to just the tag if no Slack group ID
+  return teamTag;
+}
+
+/**
  * Get full team info from test tags
  * @param {Array} tags - Array of test tags
- * @returns {Object} Object containing teamId (which is also the Slack ID)
+ * @returns {Object} Object containing teamId, teamName, and slackMention
  */
 export function getTeamInfoFromTags(tags) {
   const teamTag = extractTeamTag(tags);
@@ -80,7 +104,7 @@ export function getTeamInfoFromTags(tags) {
   return {
     teamId: teamTag,
     teamName: teamConfig?.name || teamTag,
-    slackId: teamTag, // The tag IS the Slack ID
+    slackMention: generateSlackMention(teamConfig, teamTag),
   };
 }
 
@@ -94,13 +118,14 @@ export function groupFailedTestsByTeam(failedTests) {
 
   for (const test of failedTests) {
     const teamTag = extractTeamTag(test.tags);
+    const teamConfig = getTeamConfig(teamTag);
 
     if (!grouped[teamTag]) {
       grouped[teamTag] = {
         team: {
           teamId: teamTag,
-          teamName: getTeamConfig(teamTag)?.name || teamTag,
-          slackId: teamTag,
+          teamName: teamConfig?.name || teamTag,
+          slackMention: generateSlackMention(teamConfig, teamTag),
         },
         tests: [],
       };
