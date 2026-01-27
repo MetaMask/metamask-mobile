@@ -169,19 +169,22 @@ export function calculateMaxRemovableMargin(
 /**
  * Estimate liquidation price after margin change using anchored + delta approach.
  *
- * Hyperliquid liquidates isolated positions when accountValue < maintenanceMargin × notionalValue,
- * where maintenance margin = 1/(2 × maxLeverage), i.e., half of initial margin at max leverage.
+ * Core formula:
+ * newLiqPrice = currentLiqPrice + (direction × marginDelta / positionSize) / adjustmentFactor
+ *
+ * - direction: -1 for long (adding margin moves liq down), +1 for short (adding margin moves liq up)
+ * - adjustmentFactor: accounts for maintenance margin's effect on liquidation dynamics
+ *
+ * Hyperliquid-specific:
+ * adjustmentFactor = 1 - (maintenanceMarginRate × side)
+ * where maintenanceMarginRate = 1/(2 × maxLeverage)
+ *
+ * This anchors to the provider's authoritative liquidation price rather than recalculating
+ * from scratch, avoiding protocol-specific edge cases we might miss.
+ *
  * See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
  *
- * Rather than recalculating liquidation price from scratch (which could miss protocol-specific
- * adjustments), this function anchors to Hyperliquid's authoritative current liquidation price
- * and applies the margin delta with the correct maintenance margin factor.
- *
- * Formula: newLiqPrice = currentLiqPrice + (directionMultiplier × marginDelta / positionSize) / (1 - l × side)
- * where l = 1/(2 × maxLeverage) is the maintenance margin rate
- *
- * For long positions: adding margin moves liquidation price down (safer)
- * For short positions: adding margin moves liquidation price up (safer)
+ * Future: Could abstract adjustmentFactor as a provider-supplied parameter for multi-provider support.
  */
 export function estimateLiquidationPrice(
   params: EstimateLiquidationPriceParams,
