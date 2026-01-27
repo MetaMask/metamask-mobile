@@ -22,7 +22,7 @@ interface SortMarketsParams {
 export const sortMarkets = ({
   markets,
   sortBy,
-  direction = MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+  direction = MARKET_SORTING_CONFIG.DefaultDirection,
 }: SortMarketsParams): PerpsMarketData[] => {
   const sortedMarkets = [...markets];
 
@@ -30,7 +30,7 @@ export const sortMarkets = ({
     let compareValue = 0;
 
     switch (sortBy) {
-      case MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME: {
+      case MARKET_SORTING_CONFIG.SortFields.Volume: {
         // Parse volume strings with magnitude suffixes (e.g., '$1.2B', '$850M')
         const volumeA = parseVolume(a.volume);
         const volumeB = parseVolume(b.volume);
@@ -38,7 +38,7 @@ export const sortMarkets = ({
         break;
       }
 
-      case MARKET_SORTING_CONFIG.SORT_FIELDS.PRICE_CHANGE: {
+      case MARKET_SORTING_CONFIG.SortFields.PriceChange: {
         // Use 24h price change percentage (e.g., '+2.5%', '-1.8%')
         // Parse and remove % sign
         const changeA = parseFloat(
@@ -51,7 +51,7 @@ export const sortMarkets = ({
         break;
       }
 
-      case MARKET_SORTING_CONFIG.SORT_FIELDS.FUNDING_RATE: {
+      case MARKET_SORTING_CONFIG.SortFields.FundingRate: {
         // Funding rate is a number (not string)
         const fundingA = a.fundingRate ?? 0;
         const fundingB = b.fundingRate ?? 0;
@@ -59,7 +59,7 @@ export const sortMarkets = ({
         break;
       }
 
-      case MARKET_SORTING_CONFIG.SORT_FIELDS.OPEN_INTEREST: {
+      case MARKET_SORTING_CONFIG.SortFields.OpenInterest: {
         // Parse open interest strings (similar to volume)
         const openInterestA = parseVolume(a.openInterest);
         const openInterestB = parseVolume(b.openInterest);
@@ -73,7 +73,7 @@ export const sortMarkets = ({
     }
 
     // Apply sort direction
-    return direction === MARKET_SORTING_CONFIG.DEFAULT_DIRECTION
+    return direction === MARKET_SORTING_CONFIG.DefaultDirection
       ? compareValue * -1 // desc (larger first)
       : compareValue; // asc (smaller first)
   });

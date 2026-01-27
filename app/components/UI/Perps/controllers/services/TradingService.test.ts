@@ -2,7 +2,7 @@ import { TradingService } from './TradingService';
 import type { ServiceContext } from './ServiceContext';
 import {
   PerpsAnalyticsEvent,
-  type IPerpsProvider,
+  type PerpsProvider,
   type OrderParams,
   type OrderResult,
   type EditOrderParams,
@@ -13,7 +13,7 @@ import {
   type Position,
   type Order,
   type UpdatePositionTPSLParams,
-  type IPerpsPlatformDependencies,
+  type PerpsPlatformDependencies,
 } from '../types';
 import {
   createMockServiceContext,
@@ -25,9 +25,9 @@ import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 
 describe('TradingService', () => {
-  let mockProvider: jest.Mocked<IPerpsProvider>;
+  let mockProvider: jest.Mocked<PerpsProvider>;
   let mockContext: ServiceContext;
-  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
   let tradingService: TradingService;
   let mockReportOrderToDataLake: jest.Mock;
   let mockWithStreamPause: jest.Mock;
@@ -58,7 +58,7 @@ describe('TradingService', () => {
       rewardsIntegrationService: mockRewardsIntegrationService as never,
     });
     mockProvider =
-      createMockHyperLiquidProvider() as unknown as jest.Mocked<IPerpsProvider>;
+      createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
     mockSaveTradeConfiguration = jest.fn();
     mockContext = createMockServiceContext({
       errorContext: { controller: 'TradingService', method: 'test' },

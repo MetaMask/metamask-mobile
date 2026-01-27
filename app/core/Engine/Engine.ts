@@ -309,13 +309,16 @@ export class Engine {
         EarnController: earnControllerInit,
         TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
+        // MultichainNetworkController and NetworkEnablementController must be initialized before TokenRatesController
+        // because TokenRatesController depends on NetworkEnablementController:getState during construction.
+        MultichainNetworkController: multichainNetworkControllerInit,
+        NetworkEnablementController: networkEnablementControllerInit,
         TokenRatesController: tokenRatesControllerInit,
         TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
         TokenSearchDiscoveryController: tokenSearchDiscoveryControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
-        MultichainNetworkController: multichainNetworkControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
         BridgeController: bridgeControllerInit,
         BridgeStatusController: bridgeStatusControllerInit,
@@ -349,7 +352,6 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
-        NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
