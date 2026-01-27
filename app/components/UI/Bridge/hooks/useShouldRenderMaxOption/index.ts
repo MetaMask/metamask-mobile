@@ -6,6 +6,17 @@ import { BridgeToken } from '../../types';
 import { useTokenAddress } from '../useTokenAddress';
 import { isNativeAddress } from '@metamask/bridge-controller';
 import { BigNumber } from 'bignumber.js';
+import { isCaipChainId, parseCaipChainId, Hex } from '@metamask/utils';
+
+const caipChainIdToHex = (chainId: string): Hex => {
+  if (!isCaipChainId(chainId)) {
+    return chainId as Hex;
+  }
+  const { namespace, reference } = parseCaipChainId(chainId);
+  return namespace === 'eip155'
+    ? (`0x${Number(reference).toString(16)}` as Hex)
+    : (chainId as Hex);
+};
 
 export const useShouldRenderMaxOption = (
   token?: BridgeToken,
@@ -15,7 +26,11 @@ export const useShouldRenderMaxOption = (
   const isGaslessSwapEnabled = useSelector((state: RootState) =>
     token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
   );
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
+  const stxEnabled = useSelector((state: RootState) =>
+    token?.chainId
+      ? selectShouldUseSmartTransaction(state, caipChainIdToHex(token.chainId))
+      : false,
+  );
   const tokenAddress = useTokenAddress(token);
   const isNativeAsset = isNativeAddress(tokenAddress);
   const isZeroDisplayBalance = new BigNumber(displayBalance || 0).eq(0);
