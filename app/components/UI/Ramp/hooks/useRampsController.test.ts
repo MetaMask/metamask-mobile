@@ -27,11 +27,16 @@ jest.mock('./useRampsUserRegion', () => ({
   })),
 }));
 
-jest.mock('./useRampsPreferredProvider', () => ({
-  useRampsPreferredProvider: jest.fn(() => ({
-    preferredProvider: null,
-    setPreferredProvider: jest.fn(),
-  })),
+jest.mock('../../../../selectors/rampsController', () => ({
+  selectSelectedProvider: jest.fn(() => null),
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      setSelectedProvider: jest.fn(),
+    },
+  },
 }));
 
 jest.mock('./useRampsProviders', () => ({
@@ -59,10 +64,6 @@ jest.mock('./useRampsCountries', () => ({
     error: null,
     fetchCountries: jest.fn(),
   })),
-}));
-
-jest.mock('./useRampsPreferredProviderAutoSet', () => ({
-  useRampsPreferredProviderAutoSet: jest.fn(),
 }));
 
 const createMockStore = () =>
@@ -109,7 +110,7 @@ describe('useRampsController', () => {
       userRegion: null,
       userRegionLoading: false,
       userRegionError: null,
-      preferredProvider: null,
+      selectedProvider: null,
       providers: [],
       providersLoading: false,
       providersError: null,
@@ -123,7 +124,7 @@ describe('useRampsController', () => {
 
     expect(typeof result.current.fetchUserRegion).toBe('function');
     expect(typeof result.current.setUserRegion).toBe('function');
-    expect(typeof result.current.setPreferredProvider).toBe('function');
+    expect(typeof result.current.setSelectedProvider).toBe('function');
     expect(typeof result.current.fetchProviders).toBe('function');
     expect(typeof result.current.fetchTokens).toBe('function');
     expect(typeof result.current.fetchCountries).toBe('function');

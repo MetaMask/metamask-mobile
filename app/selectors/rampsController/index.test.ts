@@ -9,7 +9,7 @@ import {
 import {
   selectUserRegion,
   selectUserRegionRequest,
-  selectPreferredProvider,
+  selectSelectedProvider,
   selectProviders,
   selectTokens,
   selectCountriesRequest,
@@ -192,17 +192,17 @@ describe('RampsController Selectors', () => {
     });
   });
 
-  describe('selectPreferredProvider', () => {
-    it('returns preferred provider from state', () => {
-      const state = createMockState({ preferredProvider: mockProvider });
+  describe('selectSelectedProvider', () => {
+    it('returns selected provider from state', () => {
+      const state = createMockState({ selectedProvider: mockProvider });
 
-      expect(selectPreferredProvider(state)).toEqual(mockProvider);
+      expect(selectSelectedProvider(state)).toEqual(mockProvider);
     });
 
-    it('returns null when preferred provider is null', () => {
-      const state = createMockState({ preferredProvider: null });
+    it('returns null when selected provider is null', () => {
+      const state = createMockState({ selectedProvider: null });
 
-      expect(selectPreferredProvider(state)).toBeNull();
+      expect(selectSelectedProvider(state)).toBeNull();
     });
 
     it('returns null when RampsController state is undefined', () => {
@@ -214,7 +214,7 @@ describe('RampsController Selectors', () => {
         },
       } as unknown as RootState;
 
-      expect(selectPreferredProvider(state)).toBeNull();
+      expect(selectSelectedProvider(state)).toBeNull();
     });
   });
 
@@ -511,7 +511,7 @@ describe('RampsController Selectors', () => {
     it('returns RampsController state', () => {
       const rampsState: Partial<RampsControllerState> = {
         userRegion: mockUserRegion,
-        preferredProvider: mockProvider,
+        selectedProvider: mockProvider,
         providers: [mockProvider],
         tokens: mockTokens,
         requests: {},

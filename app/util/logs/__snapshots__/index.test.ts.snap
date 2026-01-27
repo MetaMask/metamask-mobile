@@ -588,7 +588,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "RampsController": {
         "paymentMethods": [],
-        "preferredProvider": null,
+        "selectedProvider": null,
         "providers": [],
         "requests": {},
         "selectedPaymentMethod": null,
@@ -1384,7 +1384,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "RampsController": {
         "paymentMethods": [],
-        "preferredProvider": null,
+        "selectedProvider": null,
         "providers": [],
         "requests": {},
         "selectedPaymentMethod": null,

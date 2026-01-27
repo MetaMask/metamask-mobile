@@ -1,11 +1,12 @@
+import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
+import { selectSelectedProvider } from '../../../../selectors/rampsController';
+import type { Provider } from '@metamask/ramps-controller';
 import {
   useRampsUserRegion,
   type UseRampsUserRegionResult,
 } from './useRampsUserRegion';
-import {
-  useRampsPreferredProvider,
-  type UseRampsPreferredProviderResult,
-} from './useRampsPreferredProvider';
 import {
   useRampsProviders,
   type UseRampsProvidersResult,
@@ -15,7 +16,6 @@ import {
   useRampsCountries,
   type UseRampsCountriesResult,
 } from './useRampsCountries';
-import { useRampsPreferredProviderAutoSet } from './useRampsPreferredProviderAutoSet';
 
 /**
  * Options for the useRampsController hook.
@@ -54,9 +54,9 @@ export interface UseRampsControllerResult {
   fetchUserRegion: UseRampsUserRegionResult['fetchUserRegion'];
   setUserRegion: UseRampsUserRegionResult['setUserRegion'];
 
-  // Preferred provider
-  preferredProvider: UseRampsPreferredProviderResult['preferredProvider'];
-  setPreferredProvider: UseRampsPreferredProviderResult['setPreferredProvider'];
+  // Selected provider
+  selectedProvider: Provider | null;
+  setSelectedProvider: (provider: Provider | null) => void;
 
   // Providers
   providers: UseRampsProvidersResult['providers'];
@@ -94,9 +94,9 @@ export interface UseRampsControllerResult {
  *   fetchUserRegion,
  *   setUserRegion,
  *
- *   // Preferred provider
- *   preferredProvider,
- *   setPreferredProvider,
+ *   // Selected provider
+ *   selectedProvider,
+ *   setSelectedProvider,
  *
  *   // Providers
  *   providers,
@@ -130,8 +130,15 @@ export function useRampsController(
     setUserRegion,
   } = useRampsUserRegion();
 
-  const { preferredProvider, setPreferredProvider } =
-    useRampsPreferredProvider();
+  const selectedProvider = useSelector(selectSelectedProvider);
+
+  const setSelectedProvider = useCallback((provider: Provider | null) => {
+    (
+      Engine.context.RampsController.setSelectedProvider as (
+        providerId: string | null,
+      ) => void
+    )(provider?.id ?? null);
+  }, []);
 
   const {
     providers,
@@ -154,8 +161,6 @@ export function useRampsController(
     fetchCountries,
   } = useRampsCountries(options?.action);
 
-  useRampsPreferredProviderAutoSet();
-
   return {
     // User region
     userRegion,
@@ -164,9 +169,9 @@ export function useRampsController(
     fetchUserRegion,
     setUserRegion,
 
-    // Preferred provider
-    preferredProvider,
-    setPreferredProvider,
+    // Selected provider
+    selectedProvider,
+    setSelectedProvider,
 
     // Providers
     providers,

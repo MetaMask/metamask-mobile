@@ -758,7 +758,7 @@
   "RampsController": {
     "paymentMethods": [],
     "userRegion": null,
-    "preferredProvider": null,
+    "selectedProvider": null,
     "providers": [],
     "selectedPaymentMethod": null,
     "tokens": null,

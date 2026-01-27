@@ -89,7 +89,7 @@ const mockFetchUserRegion = jest.fn();
 const mockFetchProviders = jest.fn();
 const mockFetchTokens = jest.fn();
 const mockFetchCountries = jest.fn();
-const mockSetPreferredProvider = jest.fn();
+const mockSetSelectedProvider = jest.fn();
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
   const parts = regionCode.toLowerCase().split('-');
@@ -124,8 +124,8 @@ const mockUseRampsControllerInitialValues: ReturnType<
   userRegionError: null,
   setUserRegion: mockSetUserRegion,
   fetchUserRegion: mockFetchUserRegion,
-  preferredProvider: null,
-  setPreferredProvider: mockSetPreferredProvider,
+  selectedProvider: null,
+  setSelectedProvider: mockSetSelectedProvider,
   providers: [],
   providersLoading: false,
   providersError: null,

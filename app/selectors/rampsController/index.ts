@@ -28,11 +28,11 @@ export const selectUserRegion = createSelector(
 );
 
 /**
- * Selects the user's preferred provider from state.
+ * Selects the user's selected provider from state.
  */
-export const selectPreferredProvider = createSelector(
+export const selectSelectedProvider = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.preferredProvider ?? null,
+  (rampsControllerState) => rampsControllerState?.selectedProvider ?? null,
 );
 
 /**
