@@ -1,7 +1,6 @@
 import {
   assessMarginRemovalRisk,
   calculateMaxRemovableMargin,
-  calculateNewLiquidationPrice,
   estimateLiquidationPrice,
 } from './marginUtils';
 
@@ -225,102 +224,6 @@ describe('marginUtils', () => {
       // transferMarginRequired = max(4000, 2000) = 4000
       // maxRemovable = 5000 - 4000 = 1000
       expect(result).toBe(1000);
-    });
-  });
-
-  describe('calculateNewLiquidationPrice', () => {
-    it('calculates liquidation price below entry for long position', () => {
-      const newMargin = 200;
-      const positionSize = 10;
-      const entryPrice = 2000;
-      const isLong = true;
-      const currentLiquidationPrice = 1900;
-      const expectedMarginPerUnit = newMargin / positionSize; // 20
-      const expectedLiquidation = entryPrice - expectedMarginPerUnit; // 1980
-
-      const result = calculateNewLiquidationPrice({
-        newMargin,
-        positionSize,
-        entryPrice,
-        isLong,
-        currentLiquidationPrice,
-      });
-
-      expect(result).toBe(expectedLiquidation);
-    });
-
-    it('calculates liquidation price above entry for short position', () => {
-      const newMargin = 200;
-      const positionSize = 10;
-      const entryPrice = 2000;
-      const isLong = false;
-      const currentLiquidationPrice = 2100;
-      const expectedMarginPerUnit = newMargin / positionSize; // 20
-      const expectedLiquidation = entryPrice + expectedMarginPerUnit; // 2020
-
-      const result = calculateNewLiquidationPrice({
-        newMargin,
-        positionSize,
-        entryPrice,
-        isLong,
-        currentLiquidationPrice,
-      });
-
-      expect(result).toBe(expectedLiquidation);
-    });
-
-    it('returns current liquidation price when new margin is 0', () => {
-      const newMargin = 0;
-      const positionSize = 10;
-      const entryPrice = 2000;
-      const isLong = true;
-      const currentLiquidationPrice = 1900;
-
-      const result = calculateNewLiquidationPrice({
-        newMargin,
-        positionSize,
-        entryPrice,
-        isLong,
-        currentLiquidationPrice,
-      });
-
-      expect(result).toBe(currentLiquidationPrice);
-    });
-
-    it('returns current liquidation price when position size is 0', () => {
-      const newMargin = 200;
-      const positionSize = 0;
-      const entryPrice = 2000;
-      const isLong = true;
-      const currentLiquidationPrice = 1900;
-
-      const result = calculateNewLiquidationPrice({
-        newMargin,
-        positionSize,
-        entryPrice,
-        isLong,
-        currentLiquidationPrice,
-      });
-
-      expect(result).toBe(currentLiquidationPrice);
-    });
-
-    it('returns 0 for long position when liquidation would be negative', () => {
-      const newMargin = 25000; // Very high margin
-      const positionSize = 10;
-      const entryPrice = 2000;
-      const isLong = true;
-      const currentLiquidationPrice = 1900;
-
-      const result = calculateNewLiquidationPrice({
-        newMargin,
-        positionSize,
-        entryPrice,
-        isLong,
-        currentLiquidationPrice,
-      });
-
-      expect(result).toBe(0);
     });
   });
 
@@ -548,6 +451,20 @@ describe('marginUtils', () => {
       });
 
       expect(result).toBe(78000);
+    });
+
+    it('clamps to 0 when margin addition would push liquidation price negative', () => {
+      // Adding massive margin to long position
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 500000, // Huge margin addition
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 20,
+      });
+
+      expect(result).toBe(0);
     });
   });
 });

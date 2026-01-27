@@ -29,14 +29,6 @@ export interface CalculateMaxRemovableMarginParams {
   notionalValue?: number;
 }
 
-export interface CalculateNewLiquidationPriceParams {
-  newMargin: number;
-  positionSize: number;
-  entryPrice: number;
-  isLong: boolean;
-  currentLiquidationPrice: number;
-}
-
 export interface EstimateLiquidationPriceParams {
   isLong: boolean;
   currentMargin: number;
@@ -175,56 +167,21 @@ export function calculateMaxRemovableMargin(
 }
 
 /**
- * Calculate new liquidation price after margin adjustment
- * Estimates where the liquidation price will move based on margin change
- * Note: This is a simplified calculation; actual liquidation price may vary based on protocol
- * @param params - New margin amount, position size, entry price, direction, and current liquidation price
- * @returns Estimated new liquidation price
- */
-export function calculateNewLiquidationPrice(
-  params: CalculateNewLiquidationPriceParams,
-): number {
-  const {
-    newMargin,
-    positionSize,
-    entryPrice,
-    isLong,
-    currentLiquidationPrice,
-  } = params;
-
-  // Validate inputs
-  if (
-    isNaN(newMargin) ||
-    isNaN(positionSize) ||
-    isNaN(entryPrice) ||
-    newMargin <= 0 ||
-    positionSize <= 0 ||
-    entryPrice <= 0
-  ) {
-    return currentLiquidationPrice; // Return current if invalid inputs
-  }
-
-  // Calculate margin per unit of position
-  const marginPerUnit = newMargin / positionSize;
-
-  // For long positions: liquidation price is below entry price
-  // liquidationPrice = entryPrice - marginPerUnit
-  // For short positions: liquidation price is above entry price
-  // liquidationPrice = entryPrice + marginPerUnit
-  if (isLong) {
-    return Math.max(0, entryPrice - marginPerUnit);
-  }
-  return entryPrice + marginPerUnit;
-}
-
-/**
  * Estimate liquidation price after margin change using anchored + delta approach.
  *
- * Anchors to the current provider liquidation price and applies the margin delta,
- * accounting for Hyperliquid's maintenance margin factor.
+ * Hyperliquid liquidates isolated positions when accountValue < maintenanceMargin × notionalValue,
+ * where maintenance margin = 1/(2 × maxLeverage), i.e., half of initial margin at max leverage.
+ * See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
  *
- * Formula: newLiqPrice = currentLiqPrice + (directionMultiplier * marginDelta / positionSize) / (1 - l * side)
- * where l = 1 / (2 * maxLeverage) is the maintenance margin rate
+ * Rather than recalculating liquidation price from scratch (which could miss protocol-specific
+ * adjustments), this function anchors to Hyperliquid's authoritative current liquidation price
+ * and applies the margin delta with the correct maintenance margin factor.
+ *
+ * Formula: newLiqPrice = currentLiqPrice + (directionMultiplier × marginDelta / positionSize) / (1 - l × side)
+ * where l = 1/(2 × maxLeverage) is the maintenance margin rate
+ *
+ * For long positions: adding margin moves liquidation price down (safer)
+ * For short positions: adding margin moves liquidation price up (safer)
  */
 export function estimateLiquidationPrice(
   params: EstimateLiquidationPriceParams,
