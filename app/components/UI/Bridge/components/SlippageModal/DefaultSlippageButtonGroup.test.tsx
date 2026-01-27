@@ -311,7 +311,6 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '2', label: 'Auto', selected: false, onPress: jest.fn() },
       ];
 
-      // Component uses label as key, might cause React warning
       const { getAllByText } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );

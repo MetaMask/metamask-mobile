@@ -45,7 +45,7 @@ describe('InputStepper', () => {
       expect(postValue).toBeTruthy();
     });
 
-    it('should not render postValue when not provided', () => {
+    it('does not render postValue when not provided', () => {
       const { queryByTestId } = render(<InputStepper {...defaultProps} />);
 
       const postValue = queryByTestId('input-stepper-post-value');

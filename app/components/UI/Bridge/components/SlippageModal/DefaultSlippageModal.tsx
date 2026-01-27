@@ -46,8 +46,9 @@ export const DefaultSlippageModal = () => {
     navigation.goBack();
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL,
+      network,
     });
-  }, [navigation]);
+  }, [navigation, network]);
 
   const handleSubmit = useCallback(() => {
     dispatch(

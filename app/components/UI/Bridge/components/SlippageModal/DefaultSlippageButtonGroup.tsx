@@ -21,7 +21,7 @@ interface Props {
 export const DefaultSlippageButtonGroup = ({ options }: Props) => (
   <View style={styles.container}>
     {options.map((option) => (
-      <View key={option.label}>
+      <View key={option.id}>
         <Button
           variant={
             option.selected ? ButtonVariant.Primary : ButtonVariant.Secondary

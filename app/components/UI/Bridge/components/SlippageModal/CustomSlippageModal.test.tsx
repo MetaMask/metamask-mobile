@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { CustomSlippageModal } from './CustomSlippageModal';
+import { Keys } from '../../../../Base/Keypad/constants';
 
 // Mock BottomSheet
 jest.mock(
@@ -90,7 +91,11 @@ jest.mock('../../../../Base/Keypad', () => ({
       onChange,
     }: {
       value: string;
-      onChange: (data: { value: string; valueAsNumber: number }) => void;
+      onChange: (data: {
+        value: string;
+        valueAsNumber: number;
+        pressedKey: string;
+      }) => void;
     }) => {
       const ReactNative = jest.requireActual('react-native');
       const { View, TouchableOpacity, Text } = ReactNative;
@@ -104,6 +109,7 @@ jest.mock('../../../../Base/Keypad', () => ({
               onChange({
                 value: value + '5',
                 valueAsNumber: parseFloat(value + '5'),
+                pressedKey: '5', // Use string literal in mock
               })
             }
           >
@@ -480,32 +486,107 @@ describe('CustomSlippageModal', () => {
       expect(valueElement.props.children).toBe('100');
     });
 
+    it('sets hasAttemptedToExceedMax when value exceeds max_amount', () => {
+      mockSelector.mockReturnValue('50');
+
+      const { getByTestId, rerender } = render(<CustomSlippageModal />);
+
+      // Get the Keypad onChange handler
+      const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
+
+      // Try to input value that exceeds max_amount (e.g., 150)
+      keypadOnChange({
+        value: '150',
+        valueAsNumber: 150,
+        pressedKey: Keys.Digit0,
+      });
+
+      // Re-render to apply state change
+      rerender(<CustomSlippageModal />);
+
+      // Value should remain unchanged (rejected)
+      const valueElement = getByTestId('input-stepper-value');
+      expect(valueElement.props.children).toBe('50');
+
+      // Verify hasAttemptedToExceedMax was set to true
+      const lastDescriptionCall =
+        mockUseSlippageStepperDescription.mock.calls[
+          mockUseSlippageStepperDescription.mock.calls.length - 1
+        ];
+      expect(lastDescriptionCall[0].hasAttemptedToExceedMax).toBe(true);
+    });
+
     it('rejects input with more decimals than input_max_decimals', () => {
-      mockSelector.mockReturnValue('1.23');
+      mockSelector.mockReturnValue('1.2');
 
       const { getByTestId } = render(<CustomSlippageModal />);
 
-      // Try to add another decimal (would be 1.235)
-      // Simulate keypad onChange with 3 decimals
-      // This would normally try to add '5', making it 1.235
-      // But our mock just appends, so we verify the logic through value not changing
+      // Get the Keypad onChange handler
+      const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
-      const valueBefore = getByTestId('keypad-value').props.children;
+      // Try to input value with 3 decimals (exceeds input_max_decimals: 2)
+      keypadOnChange({
+        value: '1.234',
+        valueAsNumber: 1.234,
+        pressedKey: Keys.Digit4,
+      });
 
-      // The real keypad would call onChange with value having 3 decimals
-      // Our implementation should reject it
-      // Since our mock is simple, we test by checking initial render
-      expect(valueBefore).toBe('1.23');
+      // Value should remain unchanged (rejected)
+      const valueElement = getByTestId('keypad-value');
+      expect(valueElement.props.children).toBe('1.2');
+    });
+
+    it('accepts input with exact input_max_decimals', () => {
+      mockSelector.mockReturnValue('1.2');
+
+      const { getByTestId, rerender } = render(<CustomSlippageModal />);
+
+      // Get the Keypad onChange handler
+      const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
+
+      // Input value with exactly 2 decimals (should be accepted)
+      keypadOnChange({
+        value: '1.25',
+        valueAsNumber: 1.25,
+        pressedKey: Keys.Digit5,
+      });
+
+      // Re-render to apply state change
+      rerender(<CustomSlippageModal />);
+
+      // Value should update
+      const valueElement = getByTestId('input-stepper-value');
+      expect(valueElement.props.children).toBe('1.25');
     });
 
     it('handles max_amount with trailing decimal point', () => {
       mockSelector.mockReturnValue('100');
 
-      const { getByTestId } = render(<CustomSlippageModal />);
+      const { getByTestId, rerender } = render(<CustomSlippageModal />);
 
-      // Value stays at 100, cannot add decimal point
-      const valueElement = getByTestId('keypad-value');
+      // Get the Keypad onChange handler
+      const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
+
+      // Try to add decimal point to max amount (100.)
+      keypadOnChange({
+        value: '100.',
+        valueAsNumber: 100,
+        pressedKey: Keys.Period,
+      });
+
+      // Re-render to apply state change
+      rerender(<CustomSlippageModal />);
+
+      // Value should be set to max_amount without decimal point
+      const valueElement = getByTestId('input-stepper-value');
       expect(valueElement.props.children).toBe('100');
+
+      // Verify hasAttemptedToExceedMax was set to true
+      const lastDescriptionCall =
+        mockUseSlippageStepperDescription.mock.calls[
+          mockUseSlippageStepperDescription.mock.calls.length - 1
+        ];
+      expect(lastDescriptionCall[0].hasAttemptedToExceedMax).toBe(true);
     });
 
     it('calls hooks with initial input', () => {
@@ -525,6 +606,32 @@ describe('CustomSlippageModal', () => {
         slippageConfig: mockSlippageConfig,
         hasAttemptedToExceedMax: false,
       });
+    });
+
+    it('resets hasAttemptedToExceedMax on valid keypad input', () => {
+      mockSelector.mockReturnValue('50');
+
+      const { rerender } = render(<CustomSlippageModal />);
+
+      // Get the Keypad onChange handler
+      const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
+
+      // Input valid value
+      keypadOnChange({
+        value: '25',
+        valueAsNumber: 25,
+        pressedKey: Keys.Digit5,
+      });
+
+      // Re-render to apply state change
+      rerender(<CustomSlippageModal />);
+
+      // Verify hasAttemptedToExceedMax was reset to false
+      const lastDescriptionCall =
+        mockUseSlippageStepperDescription.mock.calls[
+          mockUseSlippageStepperDescription.mock.calls.length - 1
+        ];
+      expect(lastDescriptionCall[0].hasAttemptedToExceedMax).toBe(false);
     });
   });
 
