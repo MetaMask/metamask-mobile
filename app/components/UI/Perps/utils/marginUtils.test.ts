@@ -333,6 +333,7 @@ describe('marginUtils', () => {
         newMargin: 1000,
         positionSize: 10,
         currentLiquidationPrice: 1900,
+        maxLeverage: 20,
       });
 
       expect(result).toBe(1900);
@@ -346,10 +347,12 @@ describe('marginUtils', () => {
         newMargin: 2000, // +100%
         positionSize: 10,
         currentLiquidationPrice: 1900, // distance=100
+        maxLeverage: 20,
       });
 
-      // delta=+1000, delta/size=100 => 1900 - 100 = 1800
-      expect(result).toBe(1800);
+      // maxLeverage=20 => l=1/(2*20)=0.025 => denom=0.975 (long)
+      // delta=+1000, delta/size=100 => 1900 - 100/0.975 = 1797.435...
+      expect(result).toBeCloseTo(1797.4359, 4);
     });
 
     it('moves liquidation price by delta/size when removing margin (short)', () => {
@@ -360,10 +363,12 @@ describe('marginUtils', () => {
         newMargin: 500, // -50%
         positionSize: 10,
         currentLiquidationPrice: 2100, // distance=100
+        maxLeverage: 20,
       });
 
-      // delta=-500, delta/size=-50 => 2100 - 50 = 2050
-      expect(result).toBe(2050);
+      // maxLeverage=20 => l=0.025 => denom=1.025 (short)
+      // delta=-500, delta/size=-50 => 2100 - 50/1.025 = 2051.2195...
+      expect(result).toBeCloseTo(2051.2195, 4);
     });
 
     it('falls back to simplified estimator when current margin is invalid', () => {
@@ -374,10 +379,29 @@ describe('marginUtils', () => {
         newMargin: 200,
         positionSize: 10,
         currentLiquidationPrice: 1900,
+        maxLeverage: 20,
       });
 
-      // fallback: marginPerUnit = 200/10 = 20 => 2000 - 20 = 1980
-      expect(result).toBe(1980);
+      // fallback (with maintenance factor):
+      // denom=0.975 => liq = 2000 - (200/10)/0.975 = 2000 - 20.5128... = 1979.487...
+      expect(result).toBeCloseTo(1979.4872, 4);
+    });
+
+    it('applies maintenance factor for accurate estimate', () => {
+      const result = estimateLiquidationPriceAfterMarginChange({
+        entryPrice: 100000,
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 6000,
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 20,
+      });
+
+      // maxLeverage=20 => l=0.025 => denom=0.975 (long)
+      // delta=+1000 => move = -1000/0.5/0.975 = -2051.282...
+      // new liq = 80000 - 2051.282... = 77948.717...
+      expect(result).toBeCloseTo(77948.7179, 4);
     });
   });
 

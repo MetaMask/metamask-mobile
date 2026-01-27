@@ -44,6 +44,8 @@ export interface EstimateLiquidationPriceAfterMarginChangeParams {
   newMargin: number;
   positionSize: number;
   currentLiquidationPrice: number;
+  /** The asset's max leverage (used to account for maintenance margin factor) */
+  maxLeverage: number;
 }
 
 /**
@@ -239,11 +241,19 @@ export function estimateLiquidationPriceAfterMarginChange(
     newMargin,
     positionSize,
     currentLiquidationPrice,
+    maxLeverage,
   } = params;
 
   if (!isFinite(newMargin) || newMargin <= 0) {
     return currentLiquidationPrice;
   }
+
+  const side = isLong ? 1 : -1;
+  const maintenanceMarginRate =
+    isFinite(maxLeverage) && maxLeverage > 0 ? 1 / (2 * maxLeverage) : 0;
+  const maintenanceDenominator = 1 - maintenanceMarginRate * side;
+  const safeMaintenanceDenominator =
+    Math.abs(maintenanceDenominator) < 0.0001 ? 1 : maintenanceDenominator;
 
   // If we don't have a valid current provider liquidation price, fall back to the simplified estimator.
   if (
@@ -254,13 +264,23 @@ export function estimateLiquidationPriceAfterMarginChange(
     !isFinite(currentMargin) ||
     currentMargin <= 0
   ) {
-    return calculateNewLiquidationPrice({
-      newMargin,
-      positionSize,
-      entryPrice,
-      isLong,
-      currentLiquidationPrice,
-    });
+    if (!isFinite(positionSize) || positionSize <= 0) {
+      return calculateNewLiquidationPrice({
+        newMargin,
+        positionSize,
+        entryPrice,
+        isLong,
+        currentLiquidationPrice,
+      });
+    }
+
+    // Hyperliquid isolated margin formula:
+    // liq_price = entryPrice - (side * marginUsd / positionSize) / (1 - l * side)
+    // where l = 1 / (2 * maxLeverage)
+    const liquidationPrice =
+      entryPrice -
+      (side * newMargin) / positionSize / safeMaintenanceDenominator;
+    return Math.max(0, liquidationPrice);
   }
 
   if (!isFinite(positionSize) || positionSize <= 0) {
@@ -289,7 +309,9 @@ export function estimateLiquidationPriceAfterMarginChange(
   const directionMultiplier = isLong ? -1 : 1;
   const estimatedLiquidationPrice =
     currentLiquidationPrice +
-    directionMultiplier * (marginDelta / positionSize);
+    (directionMultiplier * marginDelta) /
+      positionSize /
+      safeMaintenanceDenominator;
 
   return Math.max(0, estimatedLiquidationPrice);
 }

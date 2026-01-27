@@ -67,6 +67,11 @@ const PerpsAdjustMarginView: React.FC = () => {
     newLiquidationDistance: number;
   } | null>(null);
 
+  const resetFrozenLiquidationValues = useCallback(() => {
+    submittedRef.current = false;
+    frozenValuesRef.current = null;
+  }, []);
+
   // Derived numeric value from string
   const marginAmount = useMemo(
     () => parseFloat(marginAmountString) || 0,
@@ -77,6 +82,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   const { handleAddMargin, handleRemoveMargin, isAdjusting } =
     usePerpsMarginAdjustment({
       onSuccess: () => navigation.goBack(),
+      onError: () => resetFrozenLiquidationValues(),
     });
 
   // Get all margin data from dedicated hook (uses live subscriptions)
@@ -194,9 +200,8 @@ const PerpsAdjustMarginView: React.FC = () => {
         await handleRemoveMargin(position.symbol, marginAmount);
       }
     } catch (error) {
-      // Unfreeze on error so user sees live values again
-      submittedRef.current = false;
-      frozenValuesRef.current = null;
+      // Unfreeze on unexpected error so user sees live values again
+      resetFrozenLiquidationValues();
       Logger.error(
         ensureError(error),
         `Failed to ${isAddMode ? 'add' : 'remove'} margin for ${position.symbol}`,
@@ -212,6 +217,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     newLiquidationDistance,
     handleAddMargin,
     handleRemoveMargin,
+    resetFrozenLiquidationValues,
   ]);
 
   // Show error if no position found (either from route or live data)

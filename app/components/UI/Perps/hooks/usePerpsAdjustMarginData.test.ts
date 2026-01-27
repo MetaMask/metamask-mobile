@@ -6,7 +6,6 @@ import {
   usePerpsLivePrices,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import { usePerpsTrading } from './usePerpsTrading';
 
 // Mock the dependencies
 jest.mock('./stream', () => ({
@@ -17,10 +16,6 @@ jest.mock('./stream', () => ({
 
 jest.mock('./usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
-}));
-
-jest.mock('./usePerpsTrading', () => ({
-  usePerpsTrading: jest.fn(),
 }));
 
 const mockUsePerpsLivePositions = usePerpsLivePositions as jest.MockedFunction<
@@ -35,12 +30,8 @@ const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
 const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
   typeof usePerpsMarkets
 >;
-const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
-  typeof usePerpsTrading
->;
 
 describe('usePerpsAdjustMarginData', () => {
-  let mockEstimateLiquidationPriceAfterMarginChange: jest.Mock;
   const mockPosition = {
     symbol: 'BTC',
     size: '0.5',
@@ -85,15 +76,6 @@ describe('usePerpsAdjustMarginData', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockEstimateLiquidationPriceAfterMarginChange = jest
-      .fn()
-      // Default: return 0 (ignored), so hook uses fallback estimate unless test overrides
-      .mockResolvedValue('0');
-    mockUsePerpsTrading.mockReturnValue({
-      estimateLiquidationPriceAfterMarginChange:
-        mockEstimateLiquidationPriceAfterMarginChange,
-    } as unknown as ReturnType<typeof usePerpsTrading>);
 
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [mockPosition],
@@ -271,10 +253,14 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.currentLiquidationPrice).toBe(80000);
     });
 
-    it('calculates new liquidation price when adding margin', () => {
-      mockEstimateLiquidationPriceAfterMarginChange.mockResolvedValue('78000');
+    it('calculates new liquidation price when adding margin using delta-based approach', () => {
+      // Delta-based formula for long positions:
+      // newLiqPrice = currentLiqPrice + directionMultiplier * (marginDelta / positionSize)
+      // directionMultiplier = -1 for long (adding margin moves liq price down)
+      // marginDelta = newMargin - currentMargin = 6000 - 5000 = 1000
+      // newLiqPrice = 80000 + (-1) * (1000 / 0.5) = 80000 - 2000 = 78000
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
           symbol: 'BTC',
           mode: 'add',
@@ -282,25 +268,10 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      return waitForNextUpdate().then(() => {
-        expect(
-          mockEstimateLiquidationPriceAfterMarginChange,
-        ).toHaveBeenCalledWith(
-          expect.objectContaining({
-            asset: 'BTC',
-            entryPrice: 100000,
-            direction: 'long',
-            positionSize: 0.5,
-            positionValueUsd: 50000,
-            currentMarginUsd: 5000,
-            newMarginUsd: 6000,
-          }),
-        );
-        expect(result.current.newLiquidationPrice).toBe(78000);
-      });
+      expect(result.current.newLiquidationPrice).toBe(78000);
     });
 
-    it('calculates new liquidation price when removing margin', () => {
+    it('calculates new liquidation price when removing margin using delta-based approach', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [
           {
@@ -311,9 +282,11 @@ describe('usePerpsAdjustMarginData', () => {
         isInitialLoading: false,
       });
 
-      mockEstimateLiquidationPriceAfterMarginChange.mockResolvedValue('82000');
+      // Delta-based formula for long positions:
+      // marginDelta = newMargin - currentMargin = 7000 - 8000 = -1000
+      // newLiqPrice = 80000 + (-1) * (-1000 / 0.5) = 80000 + 2000 = 82000
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
           symbol: 'BTC',
           mode: 'remove',
@@ -321,22 +294,7 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      return waitForNextUpdate().then(() => {
-        expect(
-          mockEstimateLiquidationPriceAfterMarginChange,
-        ).toHaveBeenCalledWith(
-          expect.objectContaining({
-            asset: 'BTC',
-            entryPrice: 100000,
-            direction: 'long',
-            positionSize: 0.5,
-            positionValueUsd: 50000,
-            currentMarginUsd: 8000,
-            newMarginUsd: 7000,
-          }),
-        );
-        expect(result.current.newLiquidationPrice).toBe(82000);
-      });
+      expect(result.current.newLiquidationPrice).toBe(82000);
     });
   });
 

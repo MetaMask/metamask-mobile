@@ -1,5 +1,10 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react-native';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
 import type { Position } from '../../controllers/types';
 
@@ -7,6 +12,41 @@ import type { Position } from '../../controllers/types';
 jest.mock('react-native-reanimated', () =>
   jest.requireActual('react-native-reanimated/mock'),
 );
+
+jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+  const ReactModule = jest.requireActual('react');
+  const RNModule = jest.requireActual('react-native');
+
+  function MockButton({
+    label,
+    onPress,
+    isDisabled,
+    loading,
+  }: {
+    label: string;
+    onPress?: () => void;
+    isDisabled?: boolean;
+    loading?: boolean;
+  }) {
+    return ReactModule.createElement(
+      RNModule.Pressable,
+      {
+        accessibilityRole: 'button',
+        accessibilityLabel: label,
+        onPress: isDisabled ? undefined : onPress,
+      },
+      loading ? null : ReactModule.createElement(RNModule.Text, null, label),
+    );
+  }
+
+  return {
+    __esModule: true,
+    default: MockButton,
+    ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
+    ButtonWidthTypes: { Full: 'Full' },
+    ButtonSize: { Lg: 'Lg', Md: 'Md' },
+  };
+});
 
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
@@ -124,7 +164,38 @@ jest.mock('../../components/PerpsOrderHeader', () => {
   };
 });
 jest.mock('../../components/PerpsAmountDisplay', () => 'PerpsAmountDisplay');
-jest.mock('../../components/PerpsSlider', () => 'PerpsSlider');
+jest.mock('../../components/PerpsSlider', () => {
+  const ReactModule = jest.requireActual('react');
+  const RNModule = jest.requireActual('react-native');
+  return function MockPerpsSlider({
+    onValueChange,
+  }: {
+    onValueChange: (value: number) => void;
+  }) {
+    return ReactModule.createElement(
+      RNModule.View,
+      null,
+      ReactModule.createElement(
+        RNModule.Pressable,
+        {
+          accessibilityRole: 'button',
+          accessibilityLabel: 'slider-set-100',
+          onPress: () => onValueChange(100),
+        },
+        ReactModule.createElement(RNModule.Text, null, 'slider-set-100'),
+      ),
+      ReactModule.createElement(
+        RNModule.Pressable,
+        {
+          accessibilityRole: 'button',
+          accessibilityLabel: 'slider-set-200',
+          onPress: () => onValueChange(200),
+        },
+        ReactModule.createElement(RNModule.Text, null, 'slider-set-200'),
+      ),
+    );
+  };
+});
 
 describe('PerpsAdjustMarginView', () => {
   const mockPosition: Position = {
@@ -416,6 +487,66 @@ describe('PerpsAdjustMarginView', () => {
         screen.getByText('perps.adjust_margin.margin_available_to_remove'),
       ).toBeOnTheScreen();
       expect(screen.getByText('$200.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('liquidation preview freezing', () => {
+    beforeEach(() => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+    });
+
+    it('unfreezes liquidation values when margin update fails', async () => {
+      mockUsePerpsAdjustMarginData.mockImplementation((opts: unknown) => {
+        const { inputAmount } = opts as { inputAmount: number };
+        const marginAmount = typeof inputAmount === 'number' ? inputAmount : 0;
+
+        return {
+          position: mockPosition,
+          isLoading: false,
+          currentMargin: 500,
+          positionValue: 5000,
+          maxAmount: 1000,
+          currentLiquidationPrice: 1900,
+          newLiquidationPrice: 1900 - marginAmount,
+          currentLiquidationDistance: 5,
+          newLiquidationDistance: 5,
+          availableBalance: 1000,
+          currentPrice: 2000,
+          isAddMode: true,
+          positionLeverage: 10,
+        };
+      });
+
+      mockUsePerpsMarginAdjustment.mockImplementation((opts: unknown) => {
+        const { onError } = opts as { onError?: (error: string) => void };
+        mockHandleAddMargin.mockImplementation(async () => {
+          onError?.('failed');
+        });
+
+        return {
+          handleAddMargin: mockHandleAddMargin,
+          handleRemoveMargin: mockHandleRemoveMargin,
+          isAdjusting: false,
+        };
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      fireEvent.press(screen.getByRole('button', { name: 'slider-set-100' }));
+      expect(screen.getByText('$1800.00')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByRole('button', { name: 'perps.adjust_margin.add_margin' }),
+      );
+      await waitFor(() => expect(mockHandleAddMargin).toHaveBeenCalled());
+
+      fireEvent.press(screen.getByRole('button', { name: 'slider-set-200' }));
+      await waitFor(() =>
+        expect(screen.getByText('$1700.00')).toBeOnTheScreen(),
+      );
     });
   });
 });
