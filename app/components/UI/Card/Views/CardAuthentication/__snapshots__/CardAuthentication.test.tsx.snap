@@ -694,7 +694,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     <TextInput
                                       accessibilityLabel="Email"
                                       autoCapitalize="none"
-                                      autoComplete="email"
+                                      autoComplete="one-time-code"
                                       autoFocus={false}
                                       editable={true}
                                       keyboardType="email-address"
@@ -806,7 +806,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     <TextInput
                                       accessibilityLabel="Password"
                                       autoCapitalize="none"
-                                      autoComplete="password"
+                                      autoComplete="one-time-code"
                                       autoFocus={false}
                                       editable={true}
                                       maxLength={255}

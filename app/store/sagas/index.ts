@@ -2,17 +2,13 @@ import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
-  AuthSuccessAction,
-  AuthErrorAction,
-  InterruptBiometricsAction,
-  lockApp,
   setAppServicesReady,
   UserActionType,
   LoginAction,
   CheckForDeeplinkAction,
 } from '../../actions/user';
 import { NavigationActionType } from '../../actions/navigation';
-import { Task } from 'redux-saga';
+import { EventChannel, Task, eventChannel } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
@@ -36,22 +32,69 @@ import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 import Authentication from '../../core/Authentication';
 import { MetaMetrics } from '../../core/Analytics';
+import { AppState, AppStateStatus } from 'react-native';
+import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+
+/**
+ * Creates a channel to listen to app state changes.
+ */
+function appStateListenerChannel() {
+  return eventChannel<AppStateStatus>((emitter) => {
+    const appStateListener = AppState.addEventListener('change', emitter);
+    return () => {
+      appStateListener.remove();
+    };
+  });
+}
+
+/**
+ * Listens to app state changes and prompts authentication when the app is foregrounded.
+ */
+export function* appStateListenerTask() {
+  // Create channel to listen to app state changes.
+  const channel: EventChannel<AppStateStatus> = yield call(
+    appStateListenerChannel,
+  );
+
+  try {
+    while (true) {
+      const appState: AppStateStatus = yield take(channel);
+      if (appState === 'active') {
+        yield call(async () => {
+          // This is in a try catch since errors are not propogated in event channels.
+          try {
+            // Prompt authentication.
+            await Authentication.unlockWallet();
+          } catch (error) {
+            // Navigate to login.
+            NavigationService.navigation?.reset({
+              routes: [{ name: Routes.ONBOARDING.LOGIN }],
+            });
+            trackErrorAsAnalytics(
+              'Lockscreen: Authentication failed',
+              (error as Error)?.message,
+            );
+          }
+        });
+        // Close channel once authentication is prompted.
+        channel.close();
+      }
+    }
+  } finally {
+    // Unconditionally close channel to prevent memory leaks.
+    channel.close();
+  }
+}
 
 export function* appLockStateMachine() {
-  let biometricsListenerTask: Task<void> | undefined;
   while (true) {
     yield take(UserActionType.LOCKED_APP);
-    if (biometricsListenerTask) {
-      yield cancel(biometricsListenerTask);
-    }
-    const bioStateMachineId = Date.now().toString();
-    biometricsListenerTask = yield fork(
-      biometricsStateMachine,
-      bioStateMachineId,
-    );
-    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN, {
-      bioStateMachineId,
-    });
+
+    // Navigate to lock screen.
+    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);
+
+    // App state listener for prompting authentication when the app is foregrounded.
+    yield call(appStateListenerTask);
   }
 }
 
@@ -79,66 +122,15 @@ export function* authStateMachine() {
   // Start when the user is logged in.
   while (true) {
     yield take(UserActionType.LOGIN);
+    // Listen to the app once it enters the locked state.
     const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
+    // Handles locking the app when the app is backgrounded.
     LockManagerService.startListening();
     // Listen to app lock behavior.
     yield take(UserActionType.LOGOUT);
     LockManagerService.stopListening();
     // Cancels appLockStateMachineTask, which also cancels nested sagas once logged out.
     yield cancel(appLockStateMachineTask);
-  }
-}
-
-/**
- * Locks the KeyringController and dispatches LOCK_APP.
- */
-export function* lockKeyringAndApp() {
-  const { KeyringController } = Engine.context;
-  try {
-    yield call(KeyringController.setLocked);
-  } catch (e) {
-    Logger.log('Failed to lock KeyringController', e);
-  }
-  yield put(lockApp());
-}
-
-/**
- * The state machine, which is responsible for handling the state
- * changes related to biometrics authentication.
- */
-export function* biometricsStateMachine(originalBioStateMachineId: string) {
-  // This state machine is only good for a one time use. After it's finished, it relies on LOCKED_APP to restart it.
-  // Handle next three possible states.
-  let shouldHandleAction = false;
-  let action:
-    | AuthSuccessAction
-    | AuthErrorAction
-    | InterruptBiometricsAction
-    | undefined;
-
-  // Only continue on INTERRUPT_BIOMETRICS action or when actions originated from corresponding state machine.
-  while (!shouldHandleAction) {
-    action = yield take([
-      UserActionType.AUTH_SUCCESS,
-      UserActionType.AUTH_ERROR,
-      UserActionType.INTERRUPT_BIOMETRICS,
-    ]);
-    if (
-      action?.type === UserActionType.INTERRUPT_BIOMETRICS ||
-      action?.payload?.bioStateMachineId === originalBioStateMachineId
-    ) {
-      shouldHandleAction = true;
-    }
-  }
-
-  if (action?.type === UserActionType.INTERRUPT_BIOMETRICS) {
-    // Biometrics was most likely interrupted during authentication with a non-zero lock timer.
-    yield fork(lockKeyringAndApp);
-  } else if (action?.type === UserActionType.AUTH_ERROR) {
-    // Authentication service will automatically log out.
-  } else if (action?.type === UserActionType.AUTH_SUCCESS) {
-    // Authentication successful. Navigate to wallet.
-    NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
   }
 }
 

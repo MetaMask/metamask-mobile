@@ -7,7 +7,7 @@ import { getPolymarketEndpoints } from './utils';
 
 const TEAM_COLOR_OVERRIDES: Record<string, string> = {
   ne: '#1D4E9B',
-  sea: '#69BE28',
+  sea: '#5BA423',
 };
 
 export class TeamsCache {
