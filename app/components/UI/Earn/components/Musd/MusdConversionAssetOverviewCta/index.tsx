@@ -108,10 +108,7 @@ const MusdConversionAssetOverviewCta = ({
           {strings('earn.musd_conversion.boost_title')}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {strings('earn.musd_conversion.boost_description')}{' '}
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
-            mUSD
-          </Text>
+          {strings('earn.musd_conversion.boost_description')}
         </Text>
       </View>
 

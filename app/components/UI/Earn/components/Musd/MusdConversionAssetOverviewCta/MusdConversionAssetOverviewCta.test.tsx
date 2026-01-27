@@ -125,11 +125,12 @@ describe('MusdConversionAssetOverviewCta', () => {
         { state: initialRootState },
       );
 
-      expect(getByText('Boost your stablecoin balance')).toBeOnTheScreen();
+      expect(getByText('Get 3% on your stablecoins')).toBeOnTheScreen();
       expect(
-        getByText(/Earn a bonus every time you convert stablecoins to/),
+        getByText(
+          /Convert your stablecoins to mUSD and receive up to a 3% bonus\./,
+        ),
       ).toBeOnTheScreen();
-      expect(getByText('mUSD')).toBeOnTheScreen();
     });
 
     it('renders close button when onDismiss is provided', () => {
@@ -382,14 +383,16 @@ describe('MusdConversionAssetOverviewCta', () => {
 
       const asset = createMockToken();
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={asset} />,
         { state: initialRootState },
       );
 
       // Act
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       // Assert
@@ -425,14 +428,16 @@ describe('MusdConversionAssetOverviewCta', () => {
 
       const asset = createMockToken();
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={asset} />,
         { state: initialRootState },
       );
 
       // Act
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       // Assert
