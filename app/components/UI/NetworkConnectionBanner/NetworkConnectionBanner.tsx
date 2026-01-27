@@ -318,10 +318,6 @@ export const NetworkConnectionBanner = () => {
     }
   }, [networkConnectionBannerState, updateRpc]);
 
-  const handleSwitchToInfura = useCallback(async () => {
-    await switchToInfura();
-  }, [switchToInfura]);
-
   if (!networkConnectionBannerState.visible) {
     return null;
   }
@@ -331,7 +327,7 @@ export const NetworkConnectionBanner = () => {
       theme,
       networkConnectionBannerState,
       handleUpdateRpc,
-      handleSwitchToInfura,
+      switchToInfura,
     );
 
   return (
