@@ -49,6 +49,7 @@ import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigura
 import { RewardsIntegrationService } from './services/RewardsIntegrationService';
 import type { ServiceContext } from './services/ServiceContext';
 import { type PerpsStreamChannelKey } from '../providers/PerpsStreamManager';
+import { WebSocketConnectionState } from '../services/HyperLiquidClientService';
 import {
   PerpsAnalyticsEvent,
   type AccountState,
@@ -2156,6 +2157,85 @@ export class PerpsController extends BaseController<
    */
   getCurrentNetwork(): 'mainnet' | 'testnet' {
     return this.state.isTestnet ? 'testnet' : 'mainnet';
+  }
+
+  /**
+   * Get the current WebSocket connection state from the active provider.
+   * Used by the UI to monitor connection health and show notifications.
+   *
+   * @returns The current WebSocket connection state, or DISCONNECTED if not supported
+   */
+  getWebSocketConnectionState(): WebSocketConnectionState {
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.getWebSocketConnectionState) {
+        return provider.getWebSocketConnectionState();
+      }
+      // Fallback for providers that don't support this method
+      return WebSocketConnectionState.DISCONNECTED;
+    } catch {
+      // If no provider is active, return disconnected
+      return WebSocketConnectionState.DISCONNECTED;
+    }
+  }
+
+  /**
+   * Subscribe to WebSocket connection state changes from the active provider.
+   * The listener will be called immediately with the current state and whenever the state changes.
+   *
+   * @param listener - Callback function that receives the new connection state and reconnection attempt
+   * @returns Unsubscribe function to remove the listener, or no-op if not supported
+   */
+  subscribeToConnectionState(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.subscribeToConnectionState) {
+        return provider.subscribeToConnectionState(listener);
+      }
+      // Fallback: immediately call with current state and return no-op unsubscribe
+      listener(this.getWebSocketConnectionState(), 0);
+      return () => {
+        // No-op
+      };
+    } catch {
+      // If no provider is active, call with disconnected and return no-op
+      listener(WebSocketConnectionState.DISCONNECTED, 0);
+      return () => {
+        // No-op
+      };
+    }
+  }
+
+  /**
+   * Manually trigger a WebSocket reconnection attempt.
+   * Used by the UI retry button when connection is lost.
+   */
+  async reconnect(): Promise<void> {
+    this.debugLog('[PerpsController] reconnect() called');
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.reconnect) {
+        this.debugLog('[PerpsController] Delegating to provider.reconnect()');
+        await provider.reconnect();
+        this.debugLog('[PerpsController] provider.reconnect() completed');
+      } else {
+        this.debugLog(
+          '[PerpsController] Provider does not support reconnect()',
+        );
+      }
+    } catch (error) {
+      this.logError(
+        ensureError(error),
+        this.getErrorContext('reconnect', {
+          operation: 'websocket_reconnect',
+        }),
+      );
+    }
   }
 
   // Live data delegation (NO Redux) - delegates to active provider

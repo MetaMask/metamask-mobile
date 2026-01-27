@@ -308,6 +308,11 @@ describe('HyperLiquidProvider', () => {
     // Reset all mocks
     jest.clearAllMocks();
 
+    // Initialize mock stream manager instance
+    mockStreamManagerInstance = {
+      clearAllChannels: jest.fn(),
+    };
+
     // Create mocked service instances using factory functions
     mockClientService = {
       initialize: jest.fn(),
@@ -320,9 +325,10 @@ describe('HyperLiquidProvider', () => {
       toggleTestnet: jest.fn(),
       setTestnetMode: jest.fn(),
       getNetwork: jest.fn().mockReturnValue('mainnet'),
-      ensureSubscriptionClient: jest.fn(),
+      ensureSubscriptionClient: jest.fn().mockResolvedValue(undefined),
       getSubscriptionClient: jest.fn(),
       setOnReconnectCallback: jest.fn(),
+      setOnTerminateCallback: jest.fn(),
     } as Partial<HyperLiquidClientService> as jest.Mocked<HyperLiquidClientService>;
 
     mockWalletService = {
@@ -357,6 +363,7 @@ describe('HyperLiquidProvider', () => {
       setDexMetaCache: jest.fn(),
       setDexAssetCtxsCache: jest.fn(),
       getDexAssetCtxsCache: jest.fn().mockReturnValue(undefined),
+      restoreSubscriptions: jest.fn().mockResolvedValue(undefined),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 
     // Mock constructors
@@ -6592,6 +6599,67 @@ describe('HyperLiquidProvider', () => {
         // With buffer (1.003) = 4212.6
         expect(result).toBeCloseTo(4212.6, 1);
       });
+    });
+  });
+
+  describe('WebSocket connection state methods', () => {
+    // Import actual enum to ensure type compatibility
+    const { WebSocketConnectionState } = jest.requireActual(
+      '../../services/HyperLiquidClientService',
+    );
+
+    beforeEach(() => {
+      // Add WebSocket methods to mock client service
+      mockClientService.getConnectionState = jest
+        .fn()
+        .mockReturnValue(WebSocketConnectionState.CONNECTED);
+      mockClientService.subscribeToConnectionState = jest
+        .fn()
+        .mockReturnValue(jest.fn());
+      mockClientService.reconnect = jest.fn().mockResolvedValue(undefined);
+    });
+
+    it('getWebSocketConnectionState delegates to clientService', () => {
+      // Arrange
+      mockClientService.getConnectionState.mockReturnValue(
+        WebSocketConnectionState.CONNECTED,
+      );
+
+      // Act
+      const result = provider.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.CONNECTED);
+      expect(mockClientService.getConnectionState).toHaveBeenCalled();
+    });
+
+    it('subscribeToConnectionState delegates to clientService', () => {
+      // Arrange
+      const mockUnsubscribe = jest.fn();
+      mockClientService.subscribeToConnectionState.mockReturnValue(
+        mockUnsubscribe,
+      );
+      const listener = jest.fn();
+
+      // Act
+      const unsubscribe = provider.subscribeToConnectionState(listener);
+
+      // Assert
+      expect(mockClientService.subscribeToConnectionState).toHaveBeenCalledWith(
+        listener,
+      );
+      expect(unsubscribe).toBe(mockUnsubscribe);
+    });
+
+    it('reconnect delegates to clientService', async () => {
+      // Arrange
+      mockClientService.reconnect.mockResolvedValue(undefined);
+
+      // Act
+      await provider.reconnect();
+
+      // Assert
+      expect(mockClientService.reconnect).toHaveBeenCalled();
     });
   });
 });

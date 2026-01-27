@@ -26,7 +26,10 @@ import {
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
-import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
+import {
+  HyperLiquidClientService,
+  WebSocketConnectionState,
+} from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import {
@@ -386,16 +389,32 @@ export class HyperLiquidProvider implements PerpsProvider {
       const wallet = this.walletService.createWalletAdapter();
       await this.clientService.initialize(wallet);
 
-      // Set reconnection callback to restore subscriptions when WebSocket reconnects
+      // Set termination callback for logging when WebSocket terminates
+      // Note: Do NOT restore subscriptions here - termination means connection failed permanently
+      this.clientService.setOnTerminateCallback((error: Error) => {
+        this.deps.debugLogger.log(
+          '[HyperLiquidProvider] WebSocket terminated',
+          {
+            error: error.message,
+          },
+        );
+      });
+
+      // Set reconnection callback to restore subscriptions after successful reconnection
+      // This is called in handleConnectionDrop() after the WebSocket reconnects successfully
       this.clientService.setOnReconnectCallback(async () => {
         try {
-          // Restore subscription service subscriptions
+          this.deps.debugLogger.log(
+            '[HyperLiquidProvider] WebSocket reconnected, restoring subscriptions',
+          );
           await this.subscriptionService.restoreSubscriptions();
-
           const streamManager = getStreamManagerInstance();
           streamManager.clearAllChannels();
-        } catch {
-          // Ignore errors during reconnection
+        } catch (restoreError) {
+          this.deps.debugLogger.log(
+            '[HyperLiquidProvider] Failed to restore subscriptions',
+            restoreError,
+          );
         }
       });
 
@@ -1127,7 +1146,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         return { success: true };
       }
 
-      return { success: false, error: `Transfer failed: ${result.status}` };
+      return { success: false, error: PERPS_ERROR_CODES.TRANSFER_FAILED };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.deps.debugLogger.log(
@@ -1161,7 +1180,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     if (!usdhToken || !usdcToken) {
       return {
         success: false,
-        error: 'USDH or USDC token not found in spot metadata',
+        error: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND,
       };
     }
 
@@ -1173,7 +1192,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     );
 
     if (!usdhUsdcPair) {
-      return { success: false, error: 'USDH/USDC spot pair not found' };
+      return { success: false, error: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND };
     }
 
     const spotAssetId = 10000 + usdhUsdcPair.index;
@@ -1197,7 +1216,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     if (usdhPrice === 0) {
       return {
         success: false,
-        error: `No price available for USDH/USDC pair (${pairKey})`,
+        error: PERPS_ERROR_CODES.PRICE_UNAVAILABLE,
       };
     }
 
@@ -1260,7 +1279,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       if (result.status !== 'ok') {
         return {
           success: false,
-          error: `Swap failed: ${JSON.stringify(result)}`,
+          error: PERPS_ERROR_CODES.SWAP_FAILED,
         };
       }
 
@@ -3135,7 +3154,10 @@ export class HyperLiquidProvider implements PerpsProvider {
           orderId: order.orderId,
           symbol: order.symbol,
           success: false,
-          error: error instanceof Error ? error.message : 'Batch cancel failed',
+          error:
+            error instanceof Error
+              ? error.message
+              : PERPS_ERROR_CODES.BATCH_CANCEL_FAILED,
         })),
       };
     }
@@ -3356,7 +3378,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         results: positionsToClose.map((position) => ({
           symbol: position.symbol,
           success: false,
-          error: error instanceof Error ? error.message : 'Batch close failed',
+          error:
+            error instanceof Error
+              ? error.message
+              : PERPS_ERROR_CODES.BATCH_CLOSE_FAILED,
         })),
       };
     }
@@ -5619,7 +5644,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         };
       }
 
-      throw new Error(`Transfer failed: ${result.status}`);
+      throw new Error(PERPS_ERROR_CODES.TRANSFER_FAILED);
     } catch (error) {
       this.deps.debugLogger.log('❌ HyperLiquidProvider: TRANSFER FAILED', {
         error: error instanceof Error ? error.message : String(error),
@@ -6448,6 +6473,40 @@ export class HyperLiquidProvider implements PerpsProvider {
     } finally {
       clearTimeout(timeoutId);
     }
+  }
+
+  /**
+   * Get the current WebSocket connection state from the client service.
+   * Used by the UI to monitor connection health and show notifications.
+   *
+   * @returns The current WebSocket connection state
+   */
+  getWebSocketConnectionState(): WebSocketConnectionState {
+    return this.clientService.getConnectionState();
+  }
+
+  /**
+   * Subscribe to WebSocket connection state changes.
+   * The listener will be called immediately with the current state and whenever the state changes.
+   *
+   * @param listener - Callback function that receives the new connection state and reconnection attempt
+   * @returns Unsubscribe function to remove the listener
+   */
+  subscribeToConnectionState(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void {
+    return this.clientService.subscribeToConnectionState(listener);
+  }
+
+  /**
+   * Manually trigger a WebSocket reconnection attempt.
+   * Used by the UI retry button when connection is lost.
+   */
+  async reconnect(): Promise<void> {
+    return this.clientService.reconnect();
   }
 
   /**

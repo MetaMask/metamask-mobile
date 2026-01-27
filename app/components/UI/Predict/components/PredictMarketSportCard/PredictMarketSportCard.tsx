@@ -28,6 +28,7 @@ interface PredictMarketSportCardProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   onDismiss?: () => void;
+  isCarousel?: boolean;
 }
 
 const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
@@ -35,6 +36,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   onDismiss,
+  isCarousel,
 }) => {
   const tw = useTailwind();
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
@@ -49,7 +51,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={tw.style('my-[8px]')}
+      style={tw.style(isCarousel ? '' : 'my-[8px]')}
       testID={testID}
       onPress={() => {
         navigation.navigate(Routes.PREDICT.ROOT, {
@@ -63,7 +65,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
         });
       }}
     >
-      <Box twClassName="bg-muted rounded-xl">
+      <Box twClassName="bg-muted rounded-[16px]">
         {onDismiss && (
           <Box twClassName="absolute top-3 right-3 z-10">
             <ButtonIcon
@@ -96,6 +98,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             market={market}
             entryPoint={resolvedEntryPoint}
             testID={testID ? `${testID}-footer` : undefined}
+            isCarousel={isCarousel}
           />
         </Box>
       </Box>

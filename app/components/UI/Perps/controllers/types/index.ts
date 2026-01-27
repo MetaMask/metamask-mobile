@@ -15,6 +15,10 @@ export * from '../../types/navigation';
 import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
 import type { CandleData } from '../../types/perps-types';
 import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
+import { WebSocketConnectionState } from '../../services/HyperLiquidClientService';
+
+// Re-export WebSocketConnectionState for consumers of types
+export { WebSocketConnectionState };
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -934,6 +938,14 @@ export interface PerpsProvider {
   isReadyToTrade(): Promise<ReadyToTradeResult>;
   disconnect(): Promise<DisconnectResult>;
   ping(timeoutMs?: number): Promise<void>; // Lightweight WebSocket health check with configurable timeout
+  getWebSocketConnectionState?(): WebSocketConnectionState; // Optional: get current WebSocket connection state
+  subscribeToConnectionState?(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void; // Optional: subscribe to WebSocket connection state changes
+  reconnect?(): Promise<void>; // Optional: manually trigger WebSocket reconnection
 
   // Block explorer
   getBlockExplorerUrl(address?: string): string;

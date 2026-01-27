@@ -4,7 +4,7 @@
 
 import { writeFileSync } from 'node:fs';
 import { SelectTagsAnalysis } from '../../types';
-import { smokeTags, flaskTags } from '../../../../tags';
+import { smokeTags, flaskTags } from '../../../../../e2e/tags';
 
 /**
  * Tags to exclude from AI selection (broken/disabled tests)
