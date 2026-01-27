@@ -25,6 +25,7 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         market={market}
         testID={testID}
         entryPoint={entryPoint}
+        isCarousel={isCarousel}
       />
     );
   }

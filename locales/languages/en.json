@@ -193,11 +193,10 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search by token, site or address",
+    "placeholder": "Search by site or address",
     "recents": "Recents",
     "favorites": "Favorites",
-    "sites": "Sites",
-    "tokens": "Tokens"
+    "sites": "Sites"
   },
   "navigation": {
     "back": "Back",
@@ -1721,7 +1720,14 @@
       "retry_connection": "Retry connection",
       "retrying_connection": "Connecting...",
       "connecting_to_perps": "Connecting to Perps",
-      "timeout_title": "Connection taking longer than expected"
+      "timeout_title": "Connection taking longer than expected",
+      "websocket_disconnected": "Your connection is offline.",
+      "websocket_disconnected_message": "Data may not be up to date.",
+      "websocket_connecting": "Connecting to perps...",
+      "websocket_connecting_message": "Restoring connection... Attempt {{attempt}}",
+      "websocket_connected": "Connected",
+      "websocket_connected_message": "Live data updates resumed",
+      "websocket_retry": "Retry"
     },
     "chart": {
       "no_data": "No chart data available",
@@ -3298,7 +3304,8 @@
     "merkl_rewards": {
       "annual_bonus": "{{apy}}% bonus",
       "claimable_bonus": "Claimable bonus",
-      "claim": "Claim"
+      "claim": "Claim",
+      "processing_claim": "Processing claim..."
     },
     "tron": {
       "daily_resource_new_energy": "New daily energy",
@@ -5745,7 +5752,8 @@
       "fee": "Fee"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "ok": "OK",
+      "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
       "toasts": {
@@ -7389,8 +7397,6 @@
   },
   "trending": {
     "title": "Explore",
-    "view_all": "View all",
-    "tokens": "Tokens",
     "trending_tokens": "Trending tokens",
     "price_change": "Price change",
     "all_networks": "All networks",

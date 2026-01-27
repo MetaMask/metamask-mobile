@@ -13,14 +13,13 @@ import {
   revokePermissionsHandler,
 } from '@metamask/eip1193-permission-middleware';
 import RPCMethods from './index.js';
-import { RPC } from '../../constants/network';
-import { ChainId, NetworkType } from '@metamask/controller-utils';
+import { toHex } from '@metamask/controller-utils';
 import {
   PermissionController,
   PermissionDoesNotExistError,
   RequestedPermissions,
 } from '@metamask/permission-controller';
-import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
+import { blockTagParamIndex } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
@@ -31,10 +30,6 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import {
-  selectEvmChainId,
-  selectProviderConfig,
-} from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -47,7 +42,7 @@ import {
   MessageParamsTyped,
   SignatureController,
 } from '@metamask/signature-controller';
-import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
+import type { NetworkController } from '@metamask/network-controller';
 import requestEthereumAccounts from './eth-request-accounts';
 import {
   getCaip25PermissionFromLegacyPermissions,
@@ -123,12 +118,14 @@ export const checkActiveAccountAndChainId = async ({
   channelId,
   hostname,
   isWalletConnect,
+  networkClientId,
 }: {
   address?: string;
-  chainId?: number;
+  chainId?: number | string;
   channelId?: string;
   hostname: string;
   isWalletConnect: boolean;
+  networkClientId?: string;
 }) => {
   let isInvalidAccount = false;
   const origin = channelId ?? hostname;
@@ -181,33 +178,22 @@ export const checkActiveAccountAndChainId = async ({
   );
 
   if (chainId) {
-    const providerConfig = selectProviderConfig(store.getState());
-    const providerConfigChainId = selectEvmChainId(store.getState());
-    const networkType = providerConfig.type as NetworkType;
-    const isInitialNetwork =
-      networkType && getAllNetworks().includes(networkType);
-    let activeChainId;
+    const networkController = (
+      Engine.context as { NetworkController: NetworkController }
+    ).NetworkController;
 
-    if (origin) {
-      const perOriginChainId = selectPerOriginChainId(store.getState(), origin);
-
-      activeChainId = perOriginChainId;
-    } else if (isInitialNetwork) {
-      activeChainId = ChainId[networkType as keyof typeof ChainId];
-    } else if (networkType === RPC) {
-      activeChainId = providerConfigChainId;
+    const networkConfig =
+      networkController.getNetworkConfigurationByNetworkClientId(
+        networkClientId || '',
+      );
+    const activeChainId = networkConfig?.chainId;
+    if (!activeChainId) {
+      throw rpcErrors.internal({
+        message: `Failed to get active chainId.`,
+      });
     }
 
-    if (activeChainId && !activeChainId.startsWith('0x')) {
-      // Convert to hex
-      activeChainId = `0x${parseInt(activeChainId, 10).toString(16)}`;
-    }
-
-    let chainIdRequest = String(chainId);
-    if (chainIdRequest && !chainIdRequest.startsWith('0x')) {
-      // Convert to hex
-      chainIdRequest = `0x${parseInt(chainIdRequest, 10).toString(16)}`;
-    }
+    const chainIdRequest = toHex(chainId);
 
     if (activeChainId !== chainIdRequest) {
       Alert.alert(
@@ -277,6 +263,7 @@ const generateRawSignature = async ({
     address: req.params[0],
     chainId,
     isWalletConnect,
+    networkClientId: req.networkClientId,
   });
 
   const rawSig = await signatureController.newUnsignedTypedMessage(
@@ -718,13 +705,13 @@ export const getRpcMethodMiddleware = ({
             from?: string;
             chainId?: number;
           }) => {
-            // TODO this needs to be modified for per dapp selected network
             await checkActiveAccountAndChainId({
               hostname,
               address: from,
               channelId,
               chainId,
               isWalletConnect,
+              networkClientId: req.networkClientId,
             });
           },
           analytics: transactionAnalytics,
