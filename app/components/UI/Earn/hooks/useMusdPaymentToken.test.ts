@@ -3,14 +3,14 @@ import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
-import { replaceMusdConversionTransactionForPayToken } from '../utils/replaceMusdConversionTransactionForPayToken';
+import { replaceMusdConversionTransactionForPayToken } from '../utils/musdConversionTransaction';
 import { useMusdPaymentToken } from './useMusdPaymentToken';
 
 jest.mock(
   '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
 );
 jest.mock('../../../Views/confirmations/hooks/pay/useTransactionPayToken');
-jest.mock('../utils/replaceMusdConversionTransactionForPayToken');
+jest.mock('../utils/musdConversionTransaction');
 
 const mockUseTransactionMetadataRequest =
   useTransactionMetadataRequest as jest.MockedFunction<

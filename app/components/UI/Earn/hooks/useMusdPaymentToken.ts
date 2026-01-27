@@ -1,10 +1,9 @@
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
-import { replaceMusdConversionTransactionForPayToken } from '../utils/replaceMusdConversionTransactionForPayToken';
+import { replaceMusdConversionTransactionForPayToken } from '../utils/musdConversionTransaction';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 
-// TODO: Add tests.
 export const useMusdPaymentToken = () => {
   const transactionMeta = useTransactionMetadataRequest();
   const { setPayToken } = useTransactionPayToken();

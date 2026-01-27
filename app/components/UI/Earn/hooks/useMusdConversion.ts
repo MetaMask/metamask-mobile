@@ -10,7 +10,7 @@ import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
-import { createMusdConversionTransaction } from '../utils/createMusdConversionTransaction';
+import { createMusdConversionTransaction } from '../utils/musdConversionTransaction';
 
 /**
  * Configuration for mUSD conversion
