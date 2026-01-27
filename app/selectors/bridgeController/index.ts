@@ -27,4 +27,3 @@ export const selectBridgeAppState = (state: RootState) => ({
     bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
   },
 });
-

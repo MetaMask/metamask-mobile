@@ -20,7 +20,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBridgeQuotes: jest.fn(() => mockQuotes),
 }));
 
-
 // Helper to create a mock store with proper state structure
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createMockStore = (quotes: any): Store => {
@@ -32,9 +31,8 @@ const createMockStore = (quotes: any): Store => {
 // Helper to wrap hook with provider
 const wrapper =
   (store: Store) =>
-  ({ children }: { children: React.ReactNode }) => (
-    <Provider store={store}>{children}</Provider>
-  );
+  ({ children }: { children: React.ReactNode }) =>
+    <Provider store={store}>{children}</Provider>;
 
 describe('useIsInsufficientBalance', () => {
   afterEach(() => {

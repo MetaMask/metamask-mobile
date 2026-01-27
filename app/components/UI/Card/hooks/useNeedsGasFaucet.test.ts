@@ -408,7 +408,6 @@ describe('useNeedsGasFaucet', () => {
         expect(result.current.needsFaucet).toBe(true);
       });
     });
-
   });
 
   describe('refetch functionality', () => {
