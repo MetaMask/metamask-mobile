@@ -766,6 +766,14 @@ const ChoosePassword = () => {
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     size={TextFieldSize.Lg}
+                    isError={
+                      password !== '' && password.length < MIN_PASSWORD_LENGTH
+                    }
+                    style={
+                      password !== '' && password.length < MIN_PASSWORD_LENGTH
+                        ? styles.errorBorder
+                        : undefined
+                    }
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
                         <Icon
@@ -780,16 +788,18 @@ const ChoosePassword = () => {
                       </TouchableOpacity>
                     }
                   />
-                  {(!password || password.length < MIN_PASSWORD_LENGTH) && (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('choose_password.must_be_at_least', {
-                        number: MIN_PASSWORD_LENGTH,
-                      })}
-                    </Text>
-                  )}
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={
+                      password !== '' && password.length < MIN_PASSWORD_LENGTH
+                        ? TextColor.Error
+                        : TextColor.Alternative
+                    }
+                  >
+                    {strings('choose_password.must_be_at_least', {
+                      number: MIN_PASSWORD_LENGTH,
+                    })}
+                  </Text>
                 </View>
 
                 <View style={styles.field}>

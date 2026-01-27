@@ -662,6 +662,14 @@ const ImportFromSecretRecoveryPhrase = ({
                   keyboardAppearance={themeAppearance || 'light'}
                   placeholderTextColor={colors.text.muted}
                   onSubmitEditing={jumpToConfirmPassword}
+                  isError={
+                    password !== '' && password.length < MIN_PASSWORD_LENGTH
+                  }
+                  style={
+                    password !== '' && password.length < MIN_PASSWORD_LENGTH
+                      ? styles.errorBorder
+                      : undefined
+                  }
                   endAccessory={
                     <Icon
                       name={
@@ -679,16 +687,18 @@ const ImportFromSecretRecoveryPhrase = ({
                   }
                   testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 />
-                {(!password || password.length < MIN_PASSWORD_LENGTH) && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('choose_password.must_be_at_least', {
-                      number: MIN_PASSWORD_LENGTH,
-                    })}
-                  </Text>
-                )}
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={
+                    password !== '' && password.length < MIN_PASSWORD_LENGTH
+                      ? TextColor.Error
+                      : TextColor.Alternative
+                  }
+                >
+                  {strings('choose_password.must_be_at_least', {
+                    number: MIN_PASSWORD_LENGTH,
+                  })}
+                </Text>
               </View>
 
               <View style={styles.field}>

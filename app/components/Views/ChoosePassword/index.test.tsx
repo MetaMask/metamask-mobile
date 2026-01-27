@@ -504,6 +504,54 @@ describe('ChoosePassword', () => {
     expect(errorMessage).toBeOnTheScreen();
   });
 
+  it('shows helper text in error state when password is too short', async () => {
+    const component = renderWithProviders(<ChoosePassword />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    // Enter a password that is short
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'short');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Helper text should be visible with error styling
+    const helperText = component.getByText(
+      strings('choose_password.must_be_at_least', { number: 8 }),
+    );
+    expect(helperText).toBeOnTheScreen();
+  });
+
+  it('shows helper text in normal state when password meets length requirement', async () => {
+    const component = renderWithProviders(<ChoosePassword />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    // Enter a password
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'ValidPassword123');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Helper text should still be visible
+    const helperText = component.getByText(
+      strings('choose_password.must_be_at_least', { number: 8 }),
+    );
+    expect(helperText).toBeOnTheScreen();
+  });
+
   it('render header left button on press, navigates to previous screen', async () => {
     renderWithProviders(<ChoosePassword />);
 
