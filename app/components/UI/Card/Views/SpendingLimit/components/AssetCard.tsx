@@ -6,6 +6,7 @@ import {
   TextVariant,
   BoxAlignItems,
   BoxJustifyContent,
+  BoxFlexDirection,
   Icon,
   IconName,
   IconSize,
@@ -13,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import BadgeWrapper, {
   BadgePosition,
@@ -24,6 +26,7 @@ import { NetworkBadgeSource } from '../../../../AssetOverview/Balance/Balance';
 import { buildTokenIconUrl } from '../../../util/buildTokenIconUrl';
 import { LINEA_CAIP_CHAIN_ID } from '../../../util/buildTokenList';
 import { safeFormatChainIdToHex } from '../../../util/safeFormatChainIdToHex';
+import { getNetworkImageSource } from '../../../../../../util/networks';
 
 export interface AssetCardProps {
   /** Token symbol (e.g., 'mUSD', 'USDC') or 'Other' */
@@ -102,11 +105,38 @@ const AssetCard: React.FC<AssetCardProps> = ({
           </BadgeWrapper>
         )}
         {isOther && (
-          <Icon
-            name={IconName.MoreHorizontal}
-            size={IconSize.Lg}
-            color={isSelected ? IconColor.IconMuted : IconColor.IconDefault}
-          />
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+          >
+            <AvatarNetwork
+              size={AvatarSize.Sm}
+              name="Base"
+              imageSource={getNetworkImageSource({ chainId: 'eip155:8453' })}
+              style={tw.style('rounded-full overflow-hidden')}
+            />
+            <AvatarNetwork
+              size={AvatarSize.Sm}
+              name="Solana"
+              imageSource={getNetworkImageSource({
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              })}
+              style={tw.style('-ml-2 rounded-full overflow-hidden')}
+            />
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              style={tw.style(
+                'w-6 h-6 -ml-2 rounded-full bg-background-default',
+              )}
+            >
+              <Icon
+                name={IconName.MoreHorizontal}
+                size={IconSize.Xs}
+                color={IconColor.PrimaryDefault}
+              />
+            </Box>
+          </Box>
         )}
 
         <Text
