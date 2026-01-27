@@ -1,12 +1,12 @@
-import { SmokeNetworkAbstractions } from '../../../tags';
-import WalletView from '../../../pages/wallet/WalletView';
-import Assertions from '../../../../tests/framework/Assertions';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../../viewHelper';
+import { SmokeNetworkAbstractions } from '../../../../e2e/tags';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import Assertions from '../../../framework/Assertions';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { loginToApp } from '../../../../e2e/viewHelper';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../../tests/api-mocking/helpers/mockHelpers';
-import { defiPositionsWithData } from '../../../../tests/api-mocking/mock-responses/defi-api-mocks';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { defiPositionsWithData } from '../../../api-mocking/mock-responses/defi-api-mocks';
 
 describe(SmokeNetworkAbstractions('View DeFi details'), () => {
   it('open the Aave V3 position details', async () => {

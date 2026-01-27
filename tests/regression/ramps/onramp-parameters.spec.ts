@@ -1,29 +1,26 @@
-import { loginToApp } from '../../viewHelper';
-import WalletView from '../../pages/wallet/WalletView';
-import FundActionMenu from '../../pages/UI/FundActionMenu';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { CustomNetworks } from '../../../tests/resources/networks.e2e';
-import { RegressionTrade } from '../../tags';
-import Assertions from '../../../tests/framework/Assertions';
-import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import SelectCurrencyView from '../../pages/Ramps/SelectCurrencyView';
-import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
-import SelectRegionView from '../../pages/Ramps/SelectRegionView';
-import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
-import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
+import { loginToApp } from '../../../e2e/viewHelper.ts';
+import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
+import FundActionMenu from '../../../e2e/pages/UI/FundActionMenu.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import { CustomNetworks } from '../../resources/networks.e2e';
+import { RegressionTrade } from '../../../e2e/tags';
+import Assertions from '../../framework/Assertions.ts';
+import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView.ts';
+import SelectCurrencyView from '../../../e2e/pages/Ramps/SelectCurrencyView.ts';
+import TokenSelectBottomSheet from '../../../e2e/pages/Ramps/TokenSelectBottomSheet.ts';
+import SelectRegionView from '../../../e2e/pages/Ramps/SelectRegionView.ts';
+import SelectPaymentMethodView from '../../../e2e/pages/Ramps/SelectPaymentMethodView.ts';
+import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView.ts';
 import {
   EventPayload,
   getEventsPayloads,
-} from '../../../tests/helpers/analytics/helpers';
-import SoftAssert from '../../../tests/framework/SoftAssert';
-import {
-  RampsRegions,
-  RampsRegionsEnum,
-} from '../../../tests/framework/Constants';
-import Matchers from '../../../tests/framework/Matchers';
+} from '../../helpers/analytics/helpers.ts';
+import SoftAssert from '../../framework/SoftAssert.ts';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants.ts';
+import Matchers from '../../framework/Matchers.ts';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../../tests/api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup.ts';
 
 const eventsToCheck: EventPayload[] = [];
 
