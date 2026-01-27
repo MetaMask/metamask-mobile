@@ -1987,7 +1987,9 @@
     "error_title": "Unable to load leaderboard",
     "retry": "Try again",
     "loading": "Loading traders...",
-    "close": "Close"
+    "close": "Close",
+    "follow": "Follow",
+    "following": "Following"
   },
   "predict": {
     "title": "MetaMask Predictions",

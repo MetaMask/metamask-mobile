@@ -140,7 +140,7 @@ const LeaderboardTabView: React.FC<LeaderboardTabViewProps> = ({
         {content}
       </ConditionalScrollView>
 
-      {/* Trader Detail Bottom Sheet */}
+      {/* Trader Detail Bottom Sheet - Uses Modal for proper full-screen overlay */}
       <TraderDetailSheet
         trader={selectedTrader}
         isVisible={isDetailSheetVisible}

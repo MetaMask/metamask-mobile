@@ -114,6 +114,64 @@ class LeaderboardService {
 
     return [];
   }
+
+  /**
+   * Follow one or more target addresses
+   * @see https://docs.clicker.xyz/api-reference/follow
+   * @param userAddress - The address of the user who wants to follow
+   * @param targetAddresses - Array of addresses to follow
+   * @returns Promise resolving to the followed profiles
+   */
+  async followAddress(
+    userAddress: string,
+    targetAddresses: string[],
+  ): Promise<{ targetProfiles: TraderProfile[] }> {
+    const url = `${CLICKER_API_BASE_URL}${PROFILE_ENDPOINT}/${userAddress}/follow`;
+
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ targets: targetAddresses }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to follow address: ${response.status}`,
+      );
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Unfollow one or more target addresses
+   * @see https://docs.clicker.xyz/api-reference/unfollow
+   * @param userAddress - The address of the user who wants to unfollow
+   * @param targetAddresses - Array of addresses to unfollow
+   * @returns Promise resolving to the unfollowed profiles
+   */
+  async unfollowAddress(
+    userAddress: string,
+    targetAddresses: string[],
+  ): Promise<{ targetProfiles: TraderProfile[] }> {
+    const url = `${CLICKER_API_BASE_URL}${PROFILE_ENDPOINT}/${userAddress}/follow`;
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ targets: targetAddresses }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to unfollow address: ${response.status}`,
+      );
+    }
+
+    return response.json();
+  }
 }
 
 export default new LeaderboardService();
