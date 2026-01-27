@@ -284,7 +284,7 @@ describe('usePredictDeposit', () => {
   });
 
   describe('deposit function', () => {
-    it('calls navigateToConfirmation with loader parameter', async () => {
+    it('calls navigateToConfirmation with loader parameter and no stack by default', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({
@@ -297,6 +297,24 @@ describe('usePredictDeposit', () => {
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         loader: ConfirmationLoader.CustomAmount,
+        stack: undefined,
+      });
+    });
+
+    it('calls navigateToConfirmation with stack parameter when provided', async () => {
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockResolvedValue({
+        success: true,
+        response: { batchId: 'batch-123' },
+      });
+      const { result } = setupUsePredictDepositTest({}, { stack: 'Predict' });
+
+      await result.current.deposit();
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: 'Predict',
       });
     });
 

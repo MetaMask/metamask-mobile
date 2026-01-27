@@ -18,10 +18,12 @@ import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 interface UsePredictDepositParams {
   providerId?: string;
+  stack?: string;
 }
 
 export const usePredictDeposit = ({
   providerId = 'polymarket',
+  stack,
 }: UsePredictDepositParams = {}) => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const theme = useAppThemeFromContext();
@@ -45,6 +47,7 @@ export const usePredictDeposit = ({
     try {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
+        stack,
       });
 
       depositWithConfirmation({
@@ -135,6 +138,7 @@ export const usePredictDeposit = ({
     navigateToConfirmation,
     navigation,
     providerId,
+    stack,
     theme.colors.accent04.normal,
     theme.colors.error.default,
     toastRef,

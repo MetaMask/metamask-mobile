@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { usePredictActionGuard } from './usePredictActionGuard';
+import { PredictEventValues } from '../constants/eventNames';
 
 const mockNavigate = jest.fn();
 const mockNavigation = {
@@ -18,6 +19,12 @@ jest.mock('./usePredictBalance', () => ({
   usePredictBalance: () => mockUsePredictBalance(),
 }));
 
+const mockDeposit = jest.fn();
+const mockUsePredictDeposit = jest.fn();
+jest.mock('./usePredictDeposit', () => ({
+  usePredictDeposit: (params: unknown) => mockUsePredictDeposit(params),
+}));
+
 describe('usePredictActionGuard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -27,6 +34,10 @@ describe('usePredictActionGuard', () => {
     });
     mockUsePredictBalance.mockReturnValue({
       hasNoBalance: false,
+    });
+    mockUsePredictDeposit.mockReturnValue({
+      deposit: mockDeposit,
+      isDepositPending: false,
     });
   });
 
@@ -193,7 +204,7 @@ describe('usePredictActionGuard', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to add funds sheet when checkBalance is true', async () => {
+    it('calls deposit when checkBalance is true', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
           providerId: 'polymarket',
@@ -209,10 +220,33 @@ describe('usePredictActionGuard', () => {
         });
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
+      expect(mockDeposit).toHaveBeenCalledTimes(1);
       expect(mockAction).not.toHaveBeenCalled();
+    });
+
+    it('executes action when checkBalance is true but deposit is pending', async () => {
+      mockUsePredictDeposit.mockReturnValue({
+        deposit: mockDeposit,
+        isDepositPending: true,
+      });
+
+      const { result } = renderHook(() =>
+        usePredictActionGuard({
+          providerId: 'polymarket',
+          navigation: mockNavigation,
+        }),
+      );
+
+      const mockAction = jest.fn();
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction, {
+          checkBalance: true,
+        });
+      });
+
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockAction).toHaveBeenCalledTimes(1);
     });
 
     it('returns correct balance state', () => {
@@ -238,7 +272,7 @@ describe('usePredictActionGuard', () => {
       });
     });
 
-    it('checks eligibility before balance (navigates to unavailable, not add funds)', async () => {
+    it('checks eligibility before balance (navigates to unavailable, not deposit)', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
           providerId: 'polymarket',
@@ -257,12 +291,7 @@ describe('usePredictActionGuard', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
       });
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.ROOT,
-        {
-          screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-        },
-      );
+      expect(mockDeposit).not.toHaveBeenCalled();
       expect(mockAction).not.toHaveBeenCalled();
     });
 
@@ -290,6 +319,123 @@ describe('usePredictActionGuard', () => {
 
       expect(result.current.executeGuardedAction).toBeDefined();
       expect(typeof result.current.executeGuardedAction).toBe('function');
+    });
+  });
+
+  describe('entryPoint handling for CAROUSEL', () => {
+    describe('when user is not eligible and entryPoint is CAROUSEL', () => {
+      beforeEach(() => {
+        mockUsePredictEligibility.mockReturnValue({
+          isEligible: false,
+          refreshEligibility: jest.fn(),
+        });
+      });
+
+      it('navigates through PREDICT.ROOT to unavailable modal', async () => {
+        const { result } = renderHook(() =>
+          usePredictActionGuard({
+            providerId: 'polymarket',
+            navigation: mockNavigation,
+            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
+          }),
+        );
+
+        const mockAction = jest.fn();
+
+        await act(async () => {
+          await result.current.executeGuardedAction(mockAction);
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.ROOT,
+          params: {
+            screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+          },
+        });
+        expect(mockAction).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when user has no balance and entryPoint is CAROUSEL', () => {
+      beforeEach(() => {
+        mockUsePredictBalance.mockReturnValue({
+          hasNoBalance: true,
+        });
+      });
+
+      it('calls deposit with stack parameter when entryPoint is CAROUSEL', async () => {
+        const { result } = renderHook(() =>
+          usePredictActionGuard({
+            providerId: 'polymarket',
+            navigation: mockNavigation,
+            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
+          }),
+        );
+
+        const mockAction = jest.fn();
+
+        await act(async () => {
+          await result.current.executeGuardedAction(mockAction, {
+            checkBalance: true,
+          });
+        });
+
+        expect(mockDeposit).toHaveBeenCalledTimes(1);
+        expect(mockAction).not.toHaveBeenCalled();
+      });
+
+      it('calls deposit when entryPoint is not CAROUSEL', async () => {
+        const { result } = renderHook(() =>
+          usePredictActionGuard({
+            providerId: 'polymarket',
+            navigation: mockNavigation,
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+          }),
+        );
+
+        const mockAction = jest.fn();
+
+        await act(async () => {
+          await result.current.executeGuardedAction(mockAction, {
+            checkBalance: true,
+          });
+        });
+
+        expect(mockDeposit).toHaveBeenCalledTimes(1);
+        expect(mockAction).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('usePredictDeposit is called with correct stack parameter', () => {
+      it('passes stack parameter when entryPoint is CAROUSEL', () => {
+        renderHook(() =>
+          usePredictActionGuard({
+            providerId: 'polymarket',
+            navigation: mockNavigation,
+            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
+          }),
+        );
+
+        expect(mockUsePredictDeposit).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          stack: Routes.PREDICT.ROOT,
+        });
+      });
+
+      it('passes undefined stack when entryPoint is not CAROUSEL', () => {
+        renderHook(() =>
+          usePredictActionGuard({
+            providerId: 'polymarket',
+            navigation: mockNavigation,
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+          }),
+        );
+
+        expect(mockUsePredictDeposit).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          stack: undefined,
+        });
+      });
     });
   });
 });

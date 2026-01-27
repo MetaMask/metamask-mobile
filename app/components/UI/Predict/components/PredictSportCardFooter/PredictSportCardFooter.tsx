@@ -54,6 +54,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: market.providerId,
     navigation,
+    entryPoint: resolvedEntryPoint,
   });
 
   const { claim } = usePredictClaim({
