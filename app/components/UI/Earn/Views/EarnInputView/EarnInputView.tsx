@@ -863,6 +863,7 @@ const EarnInputView = () => {
             selected_provider: EVENT_PROVIDERS.CONSENSYS,
             location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
             experience: EARN_EXPERIENCES.POOLED_STAKING,
+            token: token.symbol,
           })
           .build(),
       );
