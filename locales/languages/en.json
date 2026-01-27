@@ -6301,7 +6301,7 @@
     "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
     "market_closed": {
       "title": "Market is closed",
-      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
       "learn_more": "Learn more",
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Done"

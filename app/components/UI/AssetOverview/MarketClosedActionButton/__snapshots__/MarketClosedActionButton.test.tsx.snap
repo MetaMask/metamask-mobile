@@ -76,6 +76,7 @@ exports[`MainActionButton should render correctly 1`] = `
             "width": 24,
           }
         }
+        testID="market-closed-action-button-clock-icon"
         width={24}
       />
       <Text
@@ -94,6 +95,7 @@ exports[`MainActionButton should render correctly 1`] = `
             "minWidth": 0,
           }
         }
+        testID="market-closed-action-button-label"
       >
         Test Button
       </Text>
@@ -110,6 +112,7 @@ exports[`MainActionButton should render correctly 1`] = `
             "width": 24,
           }
         }
+        testID="market-closed-action-button-icon"
         width={24}
       />
     </View>

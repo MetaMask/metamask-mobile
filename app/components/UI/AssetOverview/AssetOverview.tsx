@@ -289,7 +289,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ///: END:ONLY_INCLUDE_IF
 
   const { isTokenTradingOpen } = useRWAToken();
-  const [isTradingOpen, setIsTradingOpen] = useState<boolean | null>(null);
+  const [isTradingOpen, setIsTradingOpen] = useState(true);
 
   const currentAddress = asset.address as Hex;
   const { goToBuy } = useRampNavigation();
@@ -848,7 +848,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           )}
           <AssetDetailsActions
             displayBuyButton={displayBuyButton && isAssetBuyable}
-            displaySwapsButton={displaySwapsButton}
+            displaySwapsButton={displaySwapsButton && isTradingOpen}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}
