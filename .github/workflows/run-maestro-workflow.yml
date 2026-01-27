@@ -1,0 +1,321 @@
+name: Run Maestro Workflow
+
+on:
+  workflow_call:
+    inputs:
+      test-suite-name:
+        description: 'Name of the test suite'
+        required: true
+        type: string
+      test-file:
+        description: 'Path to Maestro test file'
+        required: true
+        type: string
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      branch:
+        description: 'Branch to checkout'
+        required: false
+        type: string
+        default: 'main'
+      enable-recording:
+        description: 'Enable video recording for tests (increases execution time)'
+        required: false
+        type: boolean
+        default: true
+      use-fixtures:
+        description: 'Use fixture server for pre-configured app state'
+        required: false
+        type: boolean
+        default: false
+      fixture-name:
+        description: 'Fixture name to load (e.g., import-srp, default, with-tokens)'
+        required: false
+        type: string
+        default: 'import-srp'
+      mock-preset:
+        description: 'Mock server preset (e.g., feature-flags, default)'
+        required: false
+        type: string
+        default: 'feature-flags'
+
+jobs:
+  test-maestro:
+    name: ${{ inputs.test-suite-name }}
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    timeout-minutes: 30
+
+    env:
+      METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+      METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+      PLATFORM: android
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: "60000"  # 60 seconds for CI emulator startup
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Install Android System Images
+        run: |
+          echo "📱 Installing Android system images..."
+          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
+          echo "✅ System images installed"
+
+      - name: Set up E2E environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: android
+          setup-simulator: true
+          android-avd-name: emulator
+          configure-keystores: false
+
+      - name: Determine Android target paths
+        id: determine-target-paths
+        run: |
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            echo "apk-target-path=android/app/build/outputs/apk/flask/release" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=app-flask-release" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ inputs.build_type }}" == "main" ]]; then
+            echo "apk-target-path=android/app/build/outputs/apk/prod/release" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=app-prod-release" >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
+            exit 1
+          fi
+
+      - name: Setup Android artifacts directories
+        run: |
+          echo "🏗 Setting up Android artifacts directories..."
+          mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
+
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: artifacts/
+
+      - name: Move APK to expected location
+        run: |
+          cp artifacts/${{ steps.determine-target-paths.outputs.artifact_name }}.apk \
+             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          echo "✅ APK ready at: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk"
+
+      - name: Install Maestro CLI
+        run: |
+          echo "📦 Installing Maestro CLI..."
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Verify Maestro installation
+        run: |
+          export PATH="$HOME/.maestro/bin:$PATH"
+          echo "✅ Maestro version:"
+          maestro --version
+          echo "✅ Java version:"
+          java -version
+
+      - name: Start Android Emulator
+        run: |
+          echo "🚀 Starting Android emulator..."
+          # List available AVDs
+          echo "Available AVDs:"
+          "$ANDROID_SDK_ROOT"/emulator/emulator -list-avds
+          
+          # Start emulator in background with no-window for CI
+          nohup "$ANDROID_SDK_ROOT"/emulator/emulator -avd emulator -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect &
+          
+          echo "✅ Emulator starting in background..."
+
+      - name: Wait for emulator to be ready
+        run: |
+          echo "⏳ Waiting for emulator to boot..."
+          # Wait for device to come online
+          adb wait-for-device
+          
+          # Wait for boot to complete (with timeout)
+          TIMEOUT=300
+          ELAPSED=0
+          echo "Waiting for sys.boot_completed..."
+          while [ -z "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" ]; do
+            if [ $ELAPSED -ge $TIMEOUT ]; then
+              echo "❌ Emulator boot timed out after ${TIMEOUT}s"
+              adb devices
+              exit 1
+            fi
+            sleep 5
+            ELAPSED=$((ELAPSED + 5))
+            echo "  Still waiting... ${ELAPSED}s"
+          done
+          
+          echo "✅ Emulator ready after ${ELAPSED}s"
+          adb devices
+
+      - name: Install APK on emulator
+        run: |
+          echo "📲 Installing APK on emulator..."
+          adb install ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          echo "✅ APK installed"
+
+      - name: Setup Maestro artifacts directory
+        run: |
+          # Create artifacts directory similar to Detox's e2e/artifacts/
+          mkdir -p maestro-artifacts
+
+      - name: Start Fixture Server
+        if: inputs.use-fixtures == true
+        run: |
+          echo "🚀 Starting fixture server..."
+          node e2e/maestro/scripts/simple-fixture-server.js ${{ inputs.fixture-name }} &
+          sleep 3
+          # Verify fixture server is running
+          if curl -s http://localhost:12345/state.json | head -c 100 > /dev/null; then
+            echo "✅ Fixture server running (port 12345)"
+          else
+            echo "❌ Fixture server failed to start"
+            exit 1
+          fi
+
+      - name: Start Mock Server
+        if: inputs.use-fixtures == true
+        run: |
+          echo "🚀 Starting mock server..."
+          node e2e/maestro/scripts/mock-server.js --action start --preset ${{ inputs.mock-preset }} &
+          sleep 2
+          echo "✅ Mock server running (port 8000)"
+
+      - name: Setup Port Forwarding for Fixtures
+        if: inputs.use-fixtures == true
+        run: |
+          echo "🔗 Setting up port forwarding..."
+          adb reverse tcp:12345 tcp:12345  # Fixture server
+          adb reverse tcp:8000 tcp:8000    # Mock server
+          echo "✅ Port forwarding configured"
+
+      - name: Clear App Data (for fixtures)
+        if: inputs.use-fixtures == true
+        run: |
+          echo "🧹 Clearing app data..."
+          adb shell pm clear io.metamask
+          echo "✅ App data cleared"
+
+      - name: Launch App (for fixtures)
+        if: inputs.use-fixtures == true
+        run: |
+          echo "📱 Launching app..."
+          adb shell am start -W -n io.metamask/.MainActivity > /dev/null 2>&1
+          echo "✅ App launched"
+          echo "⏳ Waiting for environment to stabilize..."
+          sleep 10
+
+      - name: Run Maestro Test
+        id: maestro-test
+        continue-on-error: true
+        run: |
+          echo "🎭 Running Maestro test: ${{ inputs.test-file }}"
+          echo "📍 Branch: ${{ inputs.branch }}"
+          echo "🎥 Recording enabled: ${{ inputs.enable-recording }}"
+          echo "📦 Use fixtures: ${{ inputs.use-fixtures }}"
+          
+          # --debug-output captures screenshots, logs, and command metadata on failure
+          if [[ "${{ inputs.enable-recording }}" == "true" ]]; then
+            # Use maestro record --local to capture video locally (no external API)
+            # Syntax: maestro record --local [options] <flowFile> [<outputFile>]
+            echo "📹 Running with video recording..."
+            if maestro record --local --debug-output maestro-artifacts ${{ inputs.test-file }} maestro-artifacts/test-recording.mp4; then
+              echo "✅ Maestro test passed"
+              echo "TEST_RESULT=success" >> "$GITHUB_ENV"
+            else
+              echo "❌ Maestro test failed"
+              echo "TEST_RESULT=failure" >> "$GITHUB_ENV"
+            fi
+          else
+            # Use maestro test (no video recording, faster execution)
+            echo "⚡ Running without video recording (faster)..."
+            if maestro test --debug-output maestro-artifacts ${{ inputs.test-file }}; then
+              echo "✅ Maestro test passed"
+              echo "TEST_RESULT=success" >> "$GITHUB_ENV"
+            else
+              echo "❌ Maestro test failed"
+              echo "TEST_RESULT=failure" >> "$GITHUB_ENV"
+            fi
+          fi
+          
+          # List artifacts for debugging
+          echo "📁 Maestro artifacts:"
+          ls -la maestro-artifacts/ || echo "No artifacts directory"
+
+      - name: Stop Servers
+        if: inputs.use-fixtures == true && always()
+        run: |
+          echo "🧹 Stopping servers..."
+          pkill -f "simple-fixture-server.js" 2>/dev/null || true
+          pkill -f "mock-server.js" 2>/dev/null || true
+          echo "✅ Servers stopped"
+
+      - name: Rename artifacts with timestamp and test name
+        if: env.TEST_RESULT == 'failure'
+        run: |
+          echo "📝 Renaming artifacts with timestamp and test name..."
+          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+          TEST_NAME=$(basename "${{ inputs.test-file }}" .yaml)
+          
+          cd maestro-artifacts
+          
+          # Rename screenshots to include date, time, and test name
+          for file in screenshot*.png; do
+            if [ -f "$file" ]; then
+              mv "$file" "${TIMESTAMP}_${TEST_NAME}_${file}"
+              echo "  Renamed: $file -> ${TIMESTAMP}_${TEST_NAME}_${file}"
+            fi
+          done
+          
+          # Rename video recording to include date, time, and test name
+          if [ -f "test-recording.mp4" ]; then
+            mv "test-recording.mp4" "${TIMESTAMP}_${TEST_NAME}_recording.mp4"
+            echo "  Renamed: test-recording.mp4 -> ${TIMESTAMP}_${TEST_NAME}_recording.mp4"
+          fi
+          
+          # Rename log file
+          if [ -f "maestro.log" ]; then
+            mv "maestro.log" "${TIMESTAMP}_${TEST_NAME}_maestro.log"
+            echo "  Renamed: maestro.log -> ${TIMESTAMP}_${TEST_NAME}_maestro.log"
+          fi
+          
+          echo "📁 Renamed artifacts:"
+          ls -la
+          cd ..
+
+      - name: Zip artifacts on failure
+        if: env.TEST_RESULT == 'failure'
+        run: |
+          echo "📦 Zipping Maestro artifacts (screenshots, recordings, logs)..."
+          cd maestro-artifacts
+          zip -r ../maestro-artifacts.zip . || echo "No artifacts to zip"
+          cd ..
+          ls -la maestro-artifacts.zip || echo "Zip file not created"
+
+      - name: Upload artifacts on failure
+        if: env.TEST_RESULT == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-${{ inputs.test-suite-name }}-artifacts
+          path: maestro-artifacts.zip
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Fail job if test failed
+        if: env.TEST_RESULT == 'failure'
+        run: |
+          echo "❌ Maestro test failed - see uploaded artifacts for details"
+          echo "   Artifacts include: screenshots, video recording, logs, and command metadata"
+          exit 1

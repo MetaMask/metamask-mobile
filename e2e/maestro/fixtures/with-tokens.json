@@ -1,0 +1,2270 @@
+{
+  "state": {
+    "legalNotices": {
+      "isPna25Acknowledged": true,
+      "newPrivacyPolicyToastClickedOrClosed": true,
+      "newPrivacyPolicyToastShownDate": 123
+    },
+    "collectibles": {
+      "favorites": {}
+    },
+    "engine": {
+      "backgroundState": {
+        "AccountTrackerController": {
+          "accountsByChainId": {
+            "1": {
+              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
+                "balance": "0x0"
+              }
+            },
+            "64": {
+              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
+                "balance": "0x0"
+              }
+            }
+          }
+        },
+        "AddressBookController": {
+          "addressBook": {}
+        },
+        "NftController": {
+          "allNftContracts": {},
+          "allNfts": {},
+          "ignoredNfts": []
+        },
+        "TokenListController": {
+          "tokensChainsCache": {
+            "0x1": {
+              "data": [
+                {
+                  "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f": {
+                    "address": "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f",
+                    "symbol": "SNX",
+                    "decimals": 18,
+                    "name": "Synthetix Network Token",
+                    "iconUrl": "https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png",
+                    "type": "erc20",
+                    "aggregators": [
+                      "Aave",
+                      "Bancor",
+                      "CMC",
+                      "Crypto.com",
+                      "CoinGecko",
+                      "1inch",
+                      "PMM",
+                      "Synthetix",
+                      "Zerion",
+                      "Lifi"
+                    ],
+                    "occurrences": 10,
+                    "fees": {
+                      "0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f": 0,
+                      "0xda4ef8520b1a57d7d63f1e249606d1a459698876": 0
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "preventPollingOnNetworkRestart": false
+        },
+        "CurrencyRateController": {
+          "currentCurrency": "usd",
+          "currencyRates": {
+            "ETH": {
+              "conversionDate": 1684232383.997,
+              "conversionRate": 1815.41,
+              "usdConversionRate": 1815.41
+            }
+          }
+        },
+        "KeyringController": {
+          "vault": "{\"cipher\":\"ynNI8tAH4fcpmXo8S88A/3T3Dd1w0LY5ftpL59gW0ObYxovgFhrtKpRe/WD7WU42KwGBNKVicB9W9at4ePgOJGS6IMWr//C3jh0vKQTabkDzDy1ZfSvztRxGpVjmrnU3fC5B0eq/MBMSrgu8Bww309pk5jghyRfzp9YsG0ONo1CXUm2brQo/eRve7i9aDbiGXiEK0ch0BO7AvZPGMhHtYRrrOro4QrDVHGUgAF5SA1LD4dv/2AB8ctHwn4YbUmICieqlhJhprx3CNOJ086g7vPQOr21T4IbvtTumFaTibfoD3GWHQo11CvE04z3cN3rRERriP7bww/tZOe8OAMFGWANkmOJHwPPwEo1NBr6w3GD2VObEmqNhXeNc6rrM23Vm1JU40Hl+lVKubnbT1vujdGLmOpDY0GdekscQQrETEQJfhKlXIT0wwyPoLwR+Ja+GjyOhBr0nfWVoVoVrcTUwAk5pStBMt+5OwDRpP29L1+BL9eMwDgKpjVXRTh4MGagKYmFc6eKDf6jV0Yt9pG+jevv5IuyhwX0TRtfQCGgRTtS7oxhDQPxGqu01rr+aI7vGMfRQpaKEEXEWVmMaqCmktyUV35evK9h/xv1Yif00XBll55ShxN8t2/PnATvZxFKQfjJe5f/monbwf8rpfXHuFoh8M9hzjbcS5eh/TPYZZu1KltpeHSIAh5C+4aFyZw0e1DeAg/wdRO3PhBrVztsHSyISHlRdfEyw7QF4Lemr++2MVR1dTxS2I5mUEHjh+hmp64euH1Vb/RUppXlmE8t1RYYXfcsF2DlRwPswP739E/EpVtY3Syf/zOTyHyrOJBldzw22sauIzt8Q5Fe5qA/hGRWiejjK31P/P5j7wEKY7vrOJB1LWNXHSuSjffx9Ai9E\",\"iv\":\"d5dc0252424ac0c08ca49ef320d09569\",\"salt\":\"feAPSGdL4R2MVj2urJFl4A==\",\"lib\":\"original\"}",
+          "keyrings": [
+            {
+              "accounts": ["0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3"],
+              "index": 0,
+              "type": "HD Key Tree"
+            }
+          ]
+        },
+        "NetworkController": {
+          "selectedNetworkClientId": "mainnet",
+          "networksMetadata": {
+            "mainnet": {
+              "status": "available",
+              "EIPS": {
+                "1559": true
+              }
+            },
+            "networkId1": {
+              "status": "available",
+              "EIPS": {
+                "1559": true
+              }
+            }
+          },
+          "networkConfigurationsByChainId": {
+            "0x1": {
+              "chainId": "0x1",
+              "rpcEndpoints": [
+                {
+                  "networkClientId": "mainnet",
+                  "url": "https://mainnet.infura.io/v3/{infuraProjectId}",
+                  "type": "infura",
+                  "name": "Ethereum Network default RPC"
+                }
+              ],
+              "defaultRpcEndpointIndex": 0,
+              "blockExplorerUrls": ["https://etherscan.io"],
+              "defaultBlockExplorerUrlIndex": 0,
+              "name": "Ethereum Main Network",
+              "nativeCurrency": "ETH"
+            },
+            "0x539": {
+              "chainId": "0x539",
+              "rpcEndpoints": [
+                {
+                  "networkClientId": "networkId1",
+                  "url": "http://localhost:8546",
+                  "type": "custom",
+                  "name": "Local RPC"
+                }
+              ],
+              "defaultRpcEndpointIndex": 0,
+              "defaultBlockExplorerUrlIndex": 0,
+              "blockExplorerUrls": ["https://test.io"],
+              "name": "Localhost",
+              "nativeCurrency": "ETH"
+            },
+            "0xaa36a7": {
+              "blockExplorerUrls": [],
+              "chainId": "0xaa36a7",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Sepolia",
+              "nativeCurrency": "SepoliaETH",
+              "rpcEndpoints": [
+                {
+                  "networkClientId": "sepolia",
+                  "type": "infura",
+                  "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
+                }
+              ]
+            },
+            "0xe705": {
+              "blockExplorerUrls": [],
+              "chainId": "0xe705",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Linea Sepolia",
+              "nativeCurrency": "LineaETH",
+              "rpcEndpoints": [
+                {
+                  "networkClientId": "linea-sepolia",
+                  "type": "infura",
+                  "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
+                }
+              ]
+            },
+            "0xe708": {
+              "blockExplorerUrls": [],
+              "chainId": "0xe708",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Linea Main Network",
+              "nativeCurrency": "LineaETH",
+              "rpcEndpoints": [
+                {
+                  "networkClientId": "linea-mainnet",
+                  "type": "infura",
+                  "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
+                }
+              ]
+            }
+          }
+        },
+        "PhishingController": {
+          "listState": {
+            "allowlist": [],
+            "fuzzylist": [
+              "cryptokitties.co",
+              "launchpad.ethereum.org",
+              "etherscan.io",
+              "makerfoundation.com",
+              "metamask.io",
+              "myetherwallet.com",
+              "opensea.io",
+              "satoshilabs.com"
+            ],
+            "version": 2,
+            "name": "MetaMask",
+            "tolerance": 1,
+            "lastUpdated": 1684231917
+          },
+          "whitelist": [],
+          "hotlistLastFetched": 1684231917,
+          "stalelistLastFetched": 1684231917
+        },
+        "AccountsController": {
+          "internalAccounts": {
+            "accounts": {
+              "4d7a5e0b-b261-4aed-8126-43972b0fa0a1": {
+                "address": "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3",
+                "id": "4d7a5e0b-b261-4aed-8126-43972b0fa0a1",
+                "metadata": {
+                  "name": "Account 1",
+                  "importTime": 1684232000456,
+                  "keyring": {
+                    "type": "HD Key Tree"
+                  }
+                },
+                "options": {},
+                "methods": [
+                  "personal_sign",
+                  "eth_signTransaction",
+                  "eth_signTypedData_v1",
+                  "eth_signTypedData_v3",
+                  "eth_signTypedData_v4"
+                ],
+                "type": "eip155:eoa",
+                "scopes": ["eip155:0"]
+              }
+            },
+            "selectedAccount": "4d7a5e0b-b261-4aed-8126-43972b0fa0a1"
+          }
+        },
+        "AccountTreeController": {
+          "accountTree": {
+            "wallets": {}
+          }
+        },
+        "PreferencesController": {
+          "featureFlags": {},
+          "identities": {
+            "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": {
+              "address": "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3",
+              "name": "Account 1",
+              "importTime": 1684232000456
+            }
+          },
+          "ipfsGateway": "https://dweb.link/ipfs/",
+          "lostIdentities": {},
+          "selectedAddress": "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3",
+          "useTokenDetection": true,
+          "useNftDetection": true,
+          "displayNftMedia": true,
+          "useSafeChainsListValidation": false,
+          "isMultiAccountBalancesEnabled": true,
+          "showTestNetworks": true
+        },
+        "TokenBalancesController": {
+          "tokenBalances": {
+            "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0xde06fd40"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0xcab72440"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0xd6fe73c0"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x11a49a000"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0xce3b6900"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x9f437c00"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0xfcaa01c0"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x149048400"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0xa1875180"
+              }
+            },
+            "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x99f573c0"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1293f94c0"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x185d07b00"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x89267940"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x18e65bf00"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x184bdd280"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x107cf6680"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1000fc200"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1826abac0"
+              }
+            },
+            "0x08c215b461932f44fab0d15e5d1ff4c5af591af0": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0xccbdf0c0"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x19bed7dc0"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1b6922b80"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x14d9b7140"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0xf034eb80"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x15a4d9080"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1bd7c3080"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x185a2b440"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x101e8c7c0"
+              }
+            },
+            "0xd529ff10b17889ac5ab067b4427f1c94b339d2d3": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1c447b100"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1ff3aa240"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1207c8a00"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1b6275bc0"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x10c571180"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x126079b40"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1d9614d80"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x18ea2c800"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1e33700c0"
+              }
+            },
+            "0x07afef834b41d8022c8c113341ced29fcc7f7264": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x21f2d5840"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x16fd1fcc0"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1d5dd08c0"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1ac149f80"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x21a8728c0"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1d5be8440"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x159c43c40"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1b040bd00"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2218fb240"
+              }
+            },
+            "0xea68022360336621aa976c03b008e8e045ad2061": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x22b09d800"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x21594ae00"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1e3093a00"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x18aa47140"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1b7a4d400"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x24154a180"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1ad739340"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x265ed8700"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x225da5440"
+              }
+            },
+            "0x2434cf38772e1fb22840dedfbaecc630b5db9b4b": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x214dd9300"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x266e1ab00"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x27f9e10c0"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x295410180"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x26cc849c0"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x29e2290c0"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x269fb2000"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x1f5466a80"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x20d0eac40"
+              }
+            },
+            "0x62fa937a9f25a53656ec70292b7a13a2bce48bc9": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2fe934940"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x20f24bb00"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2cfe7a780"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2f4714ac0"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x305ab1500"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2005c8d00"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2fc403180"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x205e79e40"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2e1ba0840"
+              }
+            },
+            "0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2d0803e00"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2ab20fb40"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x30385c400"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x23957f400"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2a427b400"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x258ef1c80"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x261c16980"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2ae777940"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x33da315c0"
+              }
+            },
+            "0xf49dc341f31ceab883301bd0d82df3d2223d681d": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2ec9321c0"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x34a553500"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x37764da00"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x319fe5440"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2e7545bc0"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x36184e040"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2b1fbbe00"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2a0a36f40"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2e02d4dc0"
+              }
+            },
+            "0x428f04e9ea21b31090d377f24501065cbb48512f": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2ffd3b880"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x39888bd00"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3409e0640"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x37469e980"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x29c7751c0"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2ab5e0440"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x31af27840"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3094dde40"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x38927f880"
+              }
+            },
+            "0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3e5a99c80"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x37900d6c0"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2da09a600"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x39f07f240"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3e2531e80"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3d24a8140"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3cc179740"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3f3c9f1c0"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x2f1ffae80"
+              }
+            },
+            "0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3acfa80c0"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x358d117c0"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x355d62740"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x36ab2bac0"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x340f993c0"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x4151b9b80"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x400a9d7c0"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x4124e71c0"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x384bed200"
+              }
+            },
+            "0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3a8fc2a00"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x433819700"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x42e244c80"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3431ee4c0"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x352db36c0"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x4314d03c0"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x447e41880"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x44fc24180"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3b7a5d380"
+              }
+            },
+            "0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x4a4473800"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x44eeca200"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3920987c0"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x40ee8b180"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x467a907c0"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x45e3e2440"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x4a212a4c0"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x426cf77c0"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3f4fb1ec0"
+              }
+            },
+            "0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4": {
+              "0x1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x473858780"
+              },
+              "0x89": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3e632f0c0"
+              },
+              "0x38": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x48dfc6e80"
+              },
+              "0xa": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x41ad47380"
+              },
+              "0xa4b1": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3ea9c1740"
+              },
+              "0xa86a": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x47235d600"
+              },
+              "0x2105": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x455b82280"
+              },
+              "0x144": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x3c8a294c0"
+              },
+              "0x531": {
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x4abba9140"
+              }
+            }
+          }
+        },
+        "TokenRatesController": {
+          "marketData": {}
+        },
+        "TokensController": {
+          "allTokens": {
+            "0x1": {
+              "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x08c215b461932f44fab0d15e5d1ff4c5af591af0": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xd529ff10b17889ac5ab067b4427f1c94b339d2d3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x07afef834b41d8022c8c113341ced29fcc7f7264": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xea68022360336621aa976c03b008e8e045ad2061": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2434cf38772e1fb22840dedfbaecc630b5db9b4b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x62fa937a9f25a53656ec70292b7a13a2bce48bc9": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf49dc341f31ceab883301bd0d82df3d2223d681d": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x428f04e9ea21b31090d377f24501065cbb48512f": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ]
+            },
+            "0x89": {
+              "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x08c215b461932f44fab0d15e5d1ff4c5af591af0": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xd529ff10b17889ac5ab067b4427f1c94b339d2d3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x07afef834b41d8022c8c113341ced29fcc7f7264": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xea68022360336621aa976c03b008e8e045ad2061": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2434cf38772e1fb22840dedfbaecc630b5db9b4b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x62fa937a9f25a53656ec70292b7a13a2bce48bc9": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf49dc341f31ceab883301bd0d82df3d2223d681d": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x428f04e9ea21b31090d377f24501065cbb48512f": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ]
+            },
+            "0x38": {
+              "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x08c215b461932f44fab0d15e5d1ff4c5af591af0": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xd529ff10b17889ac5ab067b4427f1c94b339d2d3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x07afef834b41d8022c8c113341ced29fcc7f7264": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xea68022360336621aa976c03b008e8e045ad2061": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2434cf38772e1fb22840dedfbaecc630b5db9b4b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x62fa937a9f25a53656ec70292b7a13a2bce48bc9": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf49dc341f31ceab883301bd0d82df3d2223d681d": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x428f04e9ea21b31090d377f24501065cbb48512f": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ]
+            },
+            "0xa": {
+              "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x08c215b461932f44fab0d15e5d1ff4c5af591af0": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xd529ff10b17889ac5ab067b4427f1c94b339d2d3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x07afef834b41d8022c8c113341ced29fcc7f7264": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xea68022360336621aa976c03b008e8e045ad2061": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2434cf38772e1fb22840dedfbaecc630b5db9b4b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x62fa937a9f25a53656ec70292b7a13a2bce48bc9": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf49dc341f31ceab883301bd0d82df3d2223d681d": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x428f04e9ea21b31090d377f24501065cbb48512f": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ]
+            },
+            "0xa4b1": {
+              "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x08c215b461932f44fab0d15e5d1ff4c5af591af0": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xd529ff10b17889ac5ab067b4427f1c94b339d2d3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x07afef834b41d8022c8c113341ced29fcc7f7264": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xea68022360336621aa976c03b008e8e045ad2061": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2434cf38772e1fb22840dedfbaecc630b5db9b4b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x62fa937a9f25a53656ec70292b7a13a2bce48bc9": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf49dc341f31ceab883301bd0d82df3d2223d681d": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x428f04e9ea21b31090d377f24501065cbb48512f": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ]
+            },
+            "0xa86a": {
+              "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x08c215b461932f44fab0d15e5d1ff4c5af591af0": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xd529ff10b17889ac5ab067b4427f1c94b339d2d3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x07afef834b41d8022c8c113341ced29fcc7f7264": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xea68022360336621aa976c03b008e8e045ad2061": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2434cf38772e1fb22840dedfbaecc630b5db9b4b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x62fa937a9f25a53656ec70292b7a13a2bce48bc9": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf49dc341f31ceab883301bd0d82df3d2223d681d": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x428f04e9ea21b31090d377f24501065cbb48512f": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ]
+            },
+            "0x2105": {
+              "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x08c215b461932f44fab0d15e5d1ff4c5af591af0": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xd529ff10b17889ac5ab067b4427f1c94b339d2d3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x07afef834b41d8022c8c113341ced29fcc7f7264": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xea68022360336621aa976c03b008e8e045ad2061": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2434cf38772e1fb22840dedfbaecc630b5db9b4b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x62fa937a9f25a53656ec70292b7a13a2bce48bc9": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf49dc341f31ceab883301bd0d82df3d2223d681d": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x428f04e9ea21b31090d377f24501065cbb48512f": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ]
+            },
+            "0x144": {
+              "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x08c215b461932f44fab0d15e5d1ff4c5af591af0": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xd529ff10b17889ac5ab067b4427f1c94b339d2d3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x07afef834b41d8022c8c113341ced29fcc7f7264": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xea68022360336621aa976c03b008e8e045ad2061": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2434cf38772e1fb22840dedfbaecc630b5db9b4b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x62fa937a9f25a53656ec70292b7a13a2bce48bc9": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf49dc341f31ceab883301bd0d82df3d2223d681d": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x428f04e9ea21b31090d377f24501065cbb48512f": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ]
+            },
+            "0x531": {
+              "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x08c215b461932f44fab0d15e5d1ff4c5af591af0": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xd529ff10b17889ac5ab067b4427f1c94b339d2d3": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x07afef834b41d8022c8c113341ced29fcc7f7264": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xea68022360336621aa976c03b008e8e045ad2061": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2434cf38772e1fb22840dedfbaecc630b5db9b4b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x62fa937a9f25a53656ec70292b7a13a2bce48bc9": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x2b1c9d2b963fa53f72454b9bb47537accfbbfcf1": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf49dc341f31ceab883301bd0d82df3d2223d681d": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x428f04e9ea21b31090d377f24501065cbb48512f": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0xf04d744cf1d81bb702a6e7b8faf0fd7914e230f4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7cc004a80e3a0e2aa88b1a2de5cacc615474008c": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x7c0f9b6dff9ebdcaf4f517e4e097ffdbdc692329": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ],
+              "0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4": [
+                {
+                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                  "symbol": "USDC",
+                  "decimals": 6,
+                  "name": "USD Coin"
+                }
+              ]
+            }
+          },
+          "allIgnoredTokens": {},
+          "allDetectedTokens": {}
+        },
+        "TransactionController": {
+          "methodData": {},
+          "transactions": [],
+          "swapsTransactions": {}
+        },
+        "SwapsController": {
+          "quotes": {},
+          "quoteValues": {},
+          "fetchParams": {
+            "slippage": 0,
+            "sourceToken": "",
+            "sourceAmount": 0,
+            "destinationToken": "",
+            "walletAddress": ""
+          },
+          "fetchParamsMetaData": {
+            "sourceTokenInfo": {
+              "decimals": 0,
+              "address": "",
+              "symbol": ""
+            },
+            "destinationTokenInfo": {
+              "decimals": 0,
+              "address": "",
+              "symbol": ""
+            }
+          },
+          "topAggSavings": null,
+          "aggregatorMetadata": null,
+          "tokens": null,
+          "topAssets": null,
+          "approvalTransaction": null,
+          "aggregatorMetadataLastFetched": 0,
+          "quotesLastFetched": 0,
+          "error": {
+            "key": null,
+            "description": null
+          },
+          "topAggId": null,
+          "tokensLastFetched": 0,
+          "isInPolling": false,
+          "pollingCyclesLeft": 4,
+          "quoteRefreshSeconds": null,
+          "usedGasEstimate": null,
+          "usedCustomGas": null,
+          "chainCache": {
+            "0x1": {
+              "aggregatorMetadata": null,
+              "tokens": null,
+              "topAssets": null,
+              "aggregatorMetadataLastFetched": 0,
+              "topAssetsLastFetched": 0,
+              "tokensLastFetched": 0
+            }
+          }
+        },
+        "GasFeeController": {
+          "gasFeeEstimates": {},
+          "estimatedGasFeeTimeBounds": {},
+          "gasEstimateType": "none",
+          "gasFeeEstimatesByChainId": {},
+          "nonRPCGasFeeApisDisabled": false
+        },
+        "PermissionController": {
+          "subjects": {}
+        },
+        "ApprovalController": {
+          "pendingApprovals": {},
+          "pendingApprovalCount": 0,
+          "approvalFlows": []
+        },
+        "UserStorageController": {},
+        "NotificationServicesController": {
+          "subscriptionAccountsSeen": [],
+          "isMetamaskNotificationsFeatureSeen": false,
+          "isNotificationServicesEnabled": false,
+          "isFeatureAnnouncementsEnabled": false,
+          "metamaskNotificationsList": [],
+          "metamaskNotificationsReadList": [],
+          "isUpdatingMetamaskNotifications": false,
+          "isFetchingMetamaskNotifications": false,
+          "isUpdatingMetamaskNotificationsAccount": [],
+          "isCheckingAccountsPresence": false
+        },
+        "MultichainNetworkController": {
+          "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "multichainNetworkConfigurationsByChainId": {
+            "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
+              "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+              "name": "Solana Mainnet",
+              "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "isEvm": false
+            }
+          },
+          "isEvmSelected": true,
+          "networksWithTransactionActivity": {}
+        },
+        "MultichainAssetsController": {
+          "accountsAssets": {},
+          "assetsMetadata": {}
+        },
+        "MultichainAssetsRatesController": {
+          "conversionRates": {}
+        },
+        "CronJobController": {
+          "jobs": {},
+          "events": {}
+        },
+        "SnapController": {},
+        "PerpsController": {
+          "isFirstTimeUser": {
+            "testnet": false,
+            "mainnet": false
+          }
+        },
+        "NetworkEnablementController": {},
+        "RemoteFeatureFlagController": {
+          "remoteFeatureFlags": {
+            "enableMultichainAccounts": {
+              "enabled": false,
+              "featureVersion": null,
+              "minimumVersion": null
+            },
+            "enableMultichainAccountsState2": {
+              "enabled": false,
+              "featureVersion": null,
+              "minimumVersion": null
+            }
+          }
+        }
+      }
+    },
+    "privacy": {
+      "approvedHosts": {},
+      "revealSRPTimestamps": []
+    },
+    "bookmarks": [],
+    "browser": {
+      "history": [],
+      "whitelist": [],
+      "tabs": [
+        {
+          "url": "http://localhost:8000/health-check",
+          "id": 1692550481062
+        }
+      ],
+      "activeTab": 1692550481062
+    },
+    "modals": {
+      "networkModalVisible": false,
+      "shouldNetworkSwitchPopToWallet": true,
+      "collectibleContractModalVisible": false,
+      "receiveModalVisible": false,
+      "dappTransactionModalVisible": false,
+      "signMessageModalVisible": true
+    },
+    "settings": {
+      "searchEngine": "Google",
+      "primaryCurrency": "ETH",
+      "lockTime": 30000,
+      "avatarAccountType": "Maskicon",
+      "hideZeroBalanceTokens": false,
+      "basicFunctionalityEnabled": true
+    },
+    "alert": {
+      "isVisible": false,
+      "autodismiss": null,
+      "content": null,
+      "data": null
+    },
+    "transaction": {
+      "selectedAsset": {},
+      "transaction": {}
+    },
+    "user": {
+      "loadingMsg": "",
+      "loadingSet": false,
+      "passwordSet": true,
+      "seedphraseBackedUp": true,
+      "backUpSeedphraseVisible": false,
+      "protectWalletModalVisible": false,
+      "gasEducationCarouselSeen": false,
+      "userLoggedIn": true,
+      "isAuthChecked": false,
+      "initialScreen": "",
+      "appTheme": "os",
+      "existingUser": true,
+      "multichainAccountsIntroModalSeen": true
+    },
+    "onboarding": {
+      "events": []
+    },
+    "notification": {
+      "notifications": []
+    },
+    "swaps": {
+      "0x1": {
+        "isLive": true
+      },
+      "isLive": true,
+      "hasOnboarded": false
+    },
+    "fiatOrders": {
+      "orders": [],
+      "customOrderIds": [],
+      "networks": [
+        {
+          "active": true,
+          "chainId": 1,
+          "chainName": "Ethereum Mainnet",
+          "shortName": "Ethereum",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 10,
+          "chainName": "Optimism Mainnet",
+          "shortName": "Optimism",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 25,
+          "chainName": "Cronos Mainnet",
+          "shortName": "Cronos",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 56,
+          "chainName": "BNB Chain Mainnet",
+          "shortName": "BNB Chain",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 137,
+          "chainName": "Polygon Mainnet",
+          "shortName": "Polygon",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 250,
+          "chainName": "Fantom Mainnet",
+          "shortName": "Fantom",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 1284,
+          "chainName": "Moonbeam Mainnet",
+          "shortName": "Moonbeam",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 1285,
+          "chainName": "Moonriver Mainnet",
+          "shortName": "Moonriver",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 42161,
+          "chainName": "Arbitrum Mainnet",
+          "shortName": "Arbitrum",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 42220,
+          "chainName": "Celo Mainnet",
+          "shortName": "Celo",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 43114,
+          "chainName": "Avalanche C-Chain Mainnet",
+          "shortName": "Avalanche C-Chain",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 1313161554,
+          "chainName": "Aurora Mainnet",
+          "shortName": "Aurora",
+          "nativeTokenSupported": false
+        },
+        {
+          "active": true,
+          "chainId": 1666600000,
+          "chainName": "Harmony Mainnet (Shard 0)",
+          "shortName": "Harmony  (Shard 0)",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 11297108109,
+          "chainName": "Palm Mainnet",
+          "shortName": "Palm",
+          "nativeTokenSupported": false
+        },
+        {
+          "active": true,
+          "chainId": 1337,
+          "chainName": "Localhost",
+          "shortName": "Localhost",
+          "nativeTokenSupported": true
+        },
+        {
+          "chainId": 1,
+          "chainName": "Tenderly",
+          "shortName": "Tenderly",
+          "nativeTokenSupported": true
+        }
+      ],
+      "selectedRegionAgg": null,
+      "selectedRegionDeposit": null,
+      "selectedPaymentMethodAgg": null,
+      "getStartedAgg": false,
+      "getStartedSell": false,
+      "getStartedDeposit": false,
+      "authenticationUrls": [],
+      "activationKeys": []
+    },
+    "infuraAvailability": {
+      "isBlocked": false
+    },
+    "navigation": {
+      "currentRoute": "AdvancedSettings",
+      "currentBottomNavRoute": "Wallet"
+    },
+    "networkOnboarded": {
+      "networkOnboardedState": {},
+      "networkState": {
+        "showNetworkOnboarding": false,
+        "nativeToken": "",
+        "networkType": "",
+        "networkUrl": ""
+      },
+      "switchedNetwork": {
+        "networkUrl": "",
+        "networkStatus": false
+      }
+    },
+    "security": {
+      "allowLoginWithRememberMe": false
+    },
+    "experimentalSettings": {
+      "securityAlertsEnabled": true
+    },
+    "inpageProvider": {
+      "networkId": "1"
+    }
+  },
+  "asyncState": {
+    "@MetaMask:existingUser": "true",
+    "@MetaMask:OptinMetaMetricsUISeen": "true",
+    "@MetaMask:UserTermsAcceptedv1.0": "true",
+    "@MetaMask:WhatsNewAppVersionSeen": "7.24.3",
+    "@MetaMask:solanaFeatureModalShownV2": "true",
+    "@MetaMask:predictGTMModalShown": "true"
+  }
+}

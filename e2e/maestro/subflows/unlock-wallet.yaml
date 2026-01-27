@@ -1,0 +1,33 @@
+appId: io.metamask
+---
+# Subflow: Unlock Wallet
+#
+# This subflow unlocks the wallet using the default fixture password.
+# Used after fixtures load to unlock the pre-existing wallet.
+
+# - runFlow: ../pages/loadElements.yaml
+
+# Wait for unlock screen to load (fixtures take time to load)
+- extendedWaitUntil:
+    visible:
+      id: ${output.login.passwordInput}
+    timeout: 60000
+
+# Enter password (default fixture password is "123123123")
+- tapOn:
+    id: ${output.login.passwordInput}
+- inputText: '123123123'
+
+# Tap unlock button
+- tapOn:
+    id: ${output.login.unlockButton}
+
+# Dismiss Perps modal if it appears
+- tapOn:
+    id: ${output.onboarding.perps.notNowBtn}
+    optional: true
+
+# Wait for home screen (look for Account 1 text)
+- extendedWaitUntil:
+    visible: 'Account 1'
+    timeout: 10000

@@ -1,0 +1,21 @@
+appId: io.metamask
+tags:
+  - smoke
+  - account
+---
+- runFlow: ../pages/loadElements.yaml
+- launchApp:
+    clearState: true
+- runFlow: ../flows/onboarding-no-mocks-flow.yaml
+- tapOn:
+    id: ${output.home.accountPicker}
+    waitToSettleTimeoutMs: 500
+- tapOn:
+    id: ${output.home.addAccountBtn}
+    waitToSettleTimeoutMs: 500
+- assertVisible: ${output.home.addWalletTitle}
+- tapOn:
+    id: ${output.home.addSrpAccountBtn}
+    waitToSettleTimeoutMs: 500
+- runFlow: ../flows/add-wallet-flow.yaml
+- assertVisible: Wallet 2 imported

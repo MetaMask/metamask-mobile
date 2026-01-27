@@ -1,0 +1,649 @@
+{
+  "state": {
+    "legalNotices": {
+      "isPna25Acknowledged": true,
+      "newPrivacyPolicyToastClickedOrClosed": true,
+      "newPrivacyPolicyToastShownDate": 123
+    },
+    "collectibles": {
+      "favorites": {}
+    },
+    "engine": {
+      "backgroundState": {
+        "AccountTrackerController": {
+          "accountsByChainId": {
+            "1": {
+              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
+                "balance": "0x0"
+              }
+            },
+            "64": {
+              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
+                "balance": "0x0"
+              }
+            }
+          }
+        },
+        "AddressBookController": {
+          "addressBook": {}
+        },
+        "NftController": {
+          "allNftContracts": {},
+          "allNfts": {},
+          "ignoredNfts": []
+        },
+        "TokenListController": {
+          "tokensChainsCache": {
+            "0x1": {
+              "data": [
+                {
+                  "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f": {
+                    "address": "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f",
+                    "symbol": "SNX",
+                    "decimals": 18,
+                    "name": "Synthetix Network Token",
+                    "iconUrl": "https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png",
+                    "type": "erc20",
+                    "aggregators": [
+                      "Aave",
+                      "Bancor",
+                      "CMC",
+                      "Crypto.com",
+                      "CoinGecko",
+                      "1inch",
+                      "PMM",
+                      "Synthetix",
+                      "Zerion",
+                      "Lifi"
+                    ],
+                    "occurrences": 10,
+                    "fees": {
+                      "0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f": 0,
+                      "0xda4ef8520b1a57d7d63f1e249606d1a459698876": 0
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "preventPollingOnNetworkRestart": false
+        },
+        "CurrencyRateController": {
+          "currentCurrency": "usd",
+          "currencyRates": {
+            "ETH": {
+              "conversionDate": 1684232383.997,
+              "conversionRate": 1815.41,
+              "usdConversionRate": 1815.41
+            }
+          }
+        },
+        "KeyringController": {
+          "vault": "{\"cipher\":\"0ItM5QzNA6pT0De09iJtURXuNiwwoeZnf7vt/Mx7P05EDzh+5m9agA4w2JrPM0favpgKpL6AlZ81CebDkVSdE5OSBon37N1Xs5F0DEbJxdw0NjmeDZaZlAHNcr7XJiXDsRW+Udz67y6DO8S1MdC2Ju/qthj04nEdaofDHR6qEtM5OYLYG9LHsf/UzqtAwe/5LHbaJtQCvM2JLLfk0BQTg9s5Fce5Nk6YkPHQ1JlUc9WXNRv90Iyclwh08lIr93A6RHNlzSYHRyfpGE5lZv5Soe2m5ZlOKBCDUQFLWjh5vCqFHMaMpMkfrqhdNBaZvHERCpppp2FARn0ufmWsn4/KJdCrxL438BRufDaXdbG8KfrEHmx9r10YjBAv3GFDUYahene8GyuwP/OTvL9i4PfN6CUGaS5sLY4kWBFFDIASlCahtMatp23+G+4I1z0x2O2XOIMiegqqkXZU/uXuDoAeSQ7jTuKzoE4rCXm67DXepECoBCrX1/gWwRQ9hLeyz4KpYfmL05tN0fzWEiMeCi50gpy0Da6QYzPoWyYYURFbE5iPU7XIqww/RtIpzw3UBCtAGuohsxf/hkK27SNcN4k1eW+Bym6G1H7BjhQSFAft2/mi4fuOHsUX+seu3Wqy3uhE0/fu0fazqX4NloiHZbDXq90CCnIUn+owW8ORsSSRO4NywjXARdeU3VtW8j25E7Q37vJ9OIoLqVE9GVyDCN7Gdn88eaBUk14qe5YzYrx3K9KSbz3MVcPmYKaZFR1+qeLWPDVzYFsZHcrGQuSgY33qF9KuI2PAZUuzwA1xroHZxZlGIH5JJSvglHKxNLkK57PK5Y6tb0EGjrVFYUhc/xvCQoMHq20aRGHqqhKL2Ij3ASnSdkTvE1Q1pb3/NpO4NVHxowocYjWGQbp7RHGm1h6BwenzGdli/4XX8iocnjkz4dkzlkXyTwmvh9enyt1bAo6ZpiLNTIMYV2Uvc4E8xP+KRoBXHhTuwHqWbu/jTg6byZjh3bJ4CcXk/CB26ymLzH5GaY4wTTpZnkhUYXa/jW1TexvwnVkD5rzin1S7wYv4Qq3cnLP+J1MwOcjl+94eHYvxVk5xBd3hBt1QDINDEfClzHvq4aV3GSuQXMRlKWcnOmtUzpcrHAmiR4hk4w5E3mCgcJeP3MJo3819Do1vWMLXEUpZfT5Z65Q/HAGpaxh9YZ9yuZkJ+rQe1AX6+hMjG0r+IDtY+MtJ0/AjBwic2H5O7w/7Ztkoy9mLTidR4U0eAWxRMo+/Xx8/gEiJk4pxB/jQbyLFCr8+XySmyx0BnVLyE1sYMb9xXrd7ivm2k0iBtUDtM51frR12m60zT90ecxCxwniwuRGZgf1R/ZI2nBru1begmchDGguDbtmv9wO88USFYXLBP24LiJLJw+1TxooFCAz7r78FPW4wuvBonzCEQnJPSZm9wK7Z/ymmz3RMoBhPobrkp0afX8YY2EpExrMF5yUwrQdg8qld6B9kQWz69C8+wn5YOjTgDp1q2oNF4adC21Mz3klldzpk7JAO+KWe4tAJJj8HicP+IBe2PW9SheBM3Xb77SF0q/SKe1suriYh4d5lVcM2lWY1ryky5upw\",\"iv\":\"0df9d14eb4d5c6729eacff6ba9cda8dd\",\"keyMetadata\":{\"algorithm\":\"PBKDF2\",\"params\":{\"iterations\":5000}},\"lib\":\"original\",\"salt\":\"5Dedq0Jg6wCFJ9whKIeUzP6yePVlUFO1aY2ZlmR+q3A=\"}",
+          "keyrings": [
+            {
+              "accounts": [
+                "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3",
+                "0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da"
+              ],
+              "index": 0,
+              "type": "HD Key Tree",
+              "metadata": {
+                "id": "01JX9NJ15HPNS6RRRYBCKDK33R",
+                "name": ""
+              }
+            },
+            {
+              "type": "HD Key Tree",
+              "accounts": ["0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b"],
+              "metadata": {
+                "id": "01JX9NZWRAVQKES02TWSN8GD91",
+                "name": ""
+              }
+            }
+          ]
+        },
+        "NetworkController": {
+          "selectedNetworkClientId": "mainnet",
+          "networksMetadata": {
+            "mainnet": {
+              "status": "available",
+              "EIPS": {
+                "1559": true
+              }
+            },
+            "networkId1": {
+              "status": "available",
+              "EIPS": {
+                "1559": true
+              }
+            }
+          },
+          "networkConfigurationsByChainId": {
+            "0x1": {
+              "chainId": "0x1",
+              "rpcEndpoints": [
+                {
+                  "networkClientId": "mainnet",
+                  "url": "https://mainnet.infura.io/v3/{infuraProjectId}",
+                  "type": "infura",
+                  "name": "Ethereum Network default RPC"
+                }
+              ],
+              "defaultRpcEndpointIndex": 0,
+              "blockExplorerUrls": ["https://etherscan.io"],
+              "defaultBlockExplorerUrlIndex": 0,
+              "name": "Ethereum Main Network",
+              "nativeCurrency": "ETH"
+            },
+            "0x539": {
+              "chainId": "0x539",
+              "rpcEndpoints": [
+                {
+                  "networkClientId": "networkId1",
+                  "url": "http://localhost:8546",
+                  "type": "custom",
+                  "name": "Local RPC"
+                }
+              ],
+              "defaultRpcEndpointIndex": 0,
+              "defaultBlockExplorerUrlIndex": 0,
+              "blockExplorerUrls": ["https://test.io"],
+              "name": "Localhost",
+              "nativeCurrency": "ETH"
+            },
+            "0xaa36a7": {
+              "blockExplorerUrls": [],
+              "chainId": "0xaa36a7",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Sepolia",
+              "nativeCurrency": "SepoliaETH",
+              "rpcEndpoints": [
+                {
+                  "networkClientId": "sepolia",
+                  "type": "infura",
+                  "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
+                }
+              ]
+            },
+            "0xe705": {
+              "blockExplorerUrls": [],
+              "chainId": "0xe705",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Linea Sepolia",
+              "nativeCurrency": "LineaETH",
+              "rpcEndpoints": [
+                {
+                  "networkClientId": "linea-sepolia",
+                  "type": "infura",
+                  "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
+                }
+              ]
+            },
+            "0xe708": {
+              "blockExplorerUrls": [],
+              "chainId": "0xe708",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Linea Main Network",
+              "nativeCurrency": "LineaETH",
+              "rpcEndpoints": [
+                {
+                  "networkClientId": "linea-mainnet",
+                  "type": "infura",
+                  "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
+                }
+              ]
+            }
+          }
+        },
+        "PhishingController": {
+          "listState": {
+            "allowlist": [],
+            "fuzzylist": [
+              "cryptokitties.co",
+              "launchpad.ethereum.org",
+              "etherscan.io",
+              "makerfoundation.com",
+              "metamask.io",
+              "myetherwallet.com",
+              "opensea.io",
+              "satoshilabs.com"
+            ],
+            "version": 2,
+            "name": "MetaMask",
+            "tolerance": 1,
+            "lastUpdated": 1684231917
+          },
+          "whitelist": [],
+          "hotlistLastFetched": 1684231917,
+          "stalelistLastFetched": 1684231917
+        },
+        "AccountsController": {
+          "internalAccounts": {
+            "accounts": {
+              "4d7a5e0b-b261-4aed-8126-43972b0fa0a1": {
+                "address": "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3",
+                "id": "4d7a5e0b-b261-4aed-8126-43972b0fa0a1",
+                "metadata": {
+                  "name": "Account 1",
+                  "importTime": 1684232000456,
+                  "keyring": {
+                    "type": "HD Key Tree"
+                  }
+                },
+                "options": {},
+                "methods": [
+                  "personal_sign",
+                  "eth_signTransaction",
+                  "eth_signTypedData_v1",
+                  "eth_signTypedData_v3",
+                  "eth_signTypedData_v4"
+                ],
+                "type": "eip155:eoa",
+                "scopes": ["eip155:0"]
+              }
+            },
+            "selectedAccount": "4d7a5e0b-b261-4aed-8126-43972b0fa0a1"
+          }
+        },
+        "AccountTreeController": {
+          "accountTree": {
+            "wallets": {}
+          }
+        },
+        "PreferencesController": {
+          "featureFlags": {},
+          "identities": {
+            "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": {
+              "address": "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3",
+              "name": "Account 1",
+              "importTime": 1684232000456
+            }
+          },
+          "ipfsGateway": "https://dweb.link/ipfs/",
+          "lostIdentities": {},
+          "selectedAddress": "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3",
+          "useTokenDetection": true,
+          "useNftDetection": true,
+          "displayNftMedia": true,
+          "useSafeChainsListValidation": false,
+          "isMultiAccountBalancesEnabled": true,
+          "showTestNetworks": true
+        },
+        "TokenBalancesController": {
+          "tokenBalances": {}
+        },
+        "TokenRatesController": {
+          "marketData": {}
+        },
+        "TokensController": {
+          "allTokens": {},
+          "allIgnoredTokens": {},
+          "allDetectedTokens": {}
+        },
+        "TransactionController": {
+          "methodData": {},
+          "transactions": [],
+          "swapsTransactions": {}
+        },
+        "SwapsController": {
+          "quotes": {},
+          "quoteValues": {},
+          "fetchParams": {
+            "slippage": 0,
+            "sourceToken": "",
+            "sourceAmount": 0,
+            "destinationToken": "",
+            "walletAddress": ""
+          },
+          "fetchParamsMetaData": {
+            "sourceTokenInfo": {
+              "decimals": 0,
+              "address": "",
+              "symbol": ""
+            },
+            "destinationTokenInfo": {
+              "decimals": 0,
+              "address": "",
+              "symbol": ""
+            }
+          },
+          "topAggSavings": null,
+          "aggregatorMetadata": null,
+          "tokens": null,
+          "topAssets": null,
+          "approvalTransaction": null,
+          "aggregatorMetadataLastFetched": 0,
+          "quotesLastFetched": 0,
+          "error": {
+            "key": null,
+            "description": null
+          },
+          "topAggId": null,
+          "tokensLastFetched": 0,
+          "isInPolling": false,
+          "pollingCyclesLeft": 4,
+          "quoteRefreshSeconds": null,
+          "usedGasEstimate": null,
+          "usedCustomGas": null,
+          "chainCache": {
+            "0x1": {
+              "aggregatorMetadata": null,
+              "tokens": null,
+              "topAssets": null,
+              "aggregatorMetadataLastFetched": 0,
+              "topAssetsLastFetched": 0,
+              "tokensLastFetched": 0
+            }
+          }
+        },
+        "GasFeeController": {
+          "gasFeeEstimates": {},
+          "estimatedGasFeeTimeBounds": {},
+          "gasEstimateType": "none",
+          "gasFeeEstimatesByChainId": {},
+          "nonRPCGasFeeApisDisabled": false
+        },
+        "PermissionController": {
+          "subjects": {}
+        },
+        "ApprovalController": {
+          "pendingApprovals": {},
+          "pendingApprovalCount": 0,
+          "approvalFlows": []
+        },
+        "UserStorageController": {},
+        "NotificationServicesController": {
+          "subscriptionAccountsSeen": [],
+          "isMetamaskNotificationsFeatureSeen": false,
+          "isNotificationServicesEnabled": false,
+          "isFeatureAnnouncementsEnabled": false,
+          "metamaskNotificationsList": [],
+          "metamaskNotificationsReadList": [],
+          "isUpdatingMetamaskNotifications": false,
+          "isFetchingMetamaskNotifications": false,
+          "isUpdatingMetamaskNotificationsAccount": [],
+          "isCheckingAccountsPresence": false
+        },
+        "MultichainNetworkController": {
+          "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "multichainNetworkConfigurationsByChainId": {
+            "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
+              "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+              "name": "Solana Mainnet",
+              "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "isEvm": false
+            }
+          },
+          "isEvmSelected": true,
+          "networksWithTransactionActivity": {}
+        },
+        "MultichainAssetsController": {
+          "accountsAssets": {},
+          "assetsMetadata": {}
+        },
+        "MultichainAssetsRatesController": {
+          "conversionRates": {}
+        },
+        "CronJobController": {
+          "jobs": {},
+          "events": {}
+        },
+        "SnapController": {},
+        "PerpsController": {
+          "isFirstTimeUser": {
+            "testnet": false,
+            "mainnet": false
+          }
+        },
+        "NetworkEnablementController": {},
+        "RemoteFeatureFlagController": {
+          "remoteFeatureFlags": {
+            "enableMultichainAccounts": {
+              "enabled": false,
+              "featureVersion": null,
+              "minimumVersion": null
+            },
+            "enableMultichainAccountsState2": {
+              "enabled": false,
+              "featureVersion": null,
+              "minimumVersion": null
+            }
+          }
+        }
+      }
+    },
+    "privacy": {
+      "approvedHosts": {},
+      "revealSRPTimestamps": []
+    },
+    "bookmarks": [],
+    "browser": {
+      "history": [],
+      "whitelist": [],
+      "tabs": [
+        {
+          "url": "http://localhost:8000/health-check",
+          "id": 1692550481062
+        }
+      ],
+      "activeTab": 1692550481062
+    },
+    "modals": {
+      "networkModalVisible": false,
+      "shouldNetworkSwitchPopToWallet": true,
+      "collectibleContractModalVisible": false,
+      "receiveModalVisible": false,
+      "dappTransactionModalVisible": false,
+      "signMessageModalVisible": true
+    },
+    "settings": {
+      "searchEngine": "Google",
+      "primaryCurrency": "ETH",
+      "lockTime": 30000,
+      "avatarAccountType": "Maskicon",
+      "hideZeroBalanceTokens": false,
+      "basicFunctionalityEnabled": true
+    },
+    "alert": {
+      "isVisible": false,
+      "autodismiss": null,
+      "content": null,
+      "data": null
+    },
+    "transaction": {
+      "selectedAsset": {},
+      "transaction": {}
+    },
+    "user": {
+      "loadingMsg": "",
+      "loadingSet": false,
+      "passwordSet": true,
+      "seedphraseBackedUp": true,
+      "backUpSeedphraseVisible": false,
+      "protectWalletModalVisible": false,
+      "gasEducationCarouselSeen": false,
+      "userLoggedIn": true,
+      "isAuthChecked": false,
+      "initialScreen": "",
+      "appTheme": "os",
+      "existingUser": true,
+      "multichainAccountsIntroModalSeen": true
+    },
+    "onboarding": {
+      "events": []
+    },
+    "notification": {
+      "notifications": []
+    },
+    "swaps": {
+      "0x1": {
+        "isLive": true
+      },
+      "isLive": true,
+      "hasOnboarded": false
+    },
+    "fiatOrders": {
+      "orders": [],
+      "customOrderIds": [],
+      "networks": [
+        {
+          "active": true,
+          "chainId": 1,
+          "chainName": "Ethereum Mainnet",
+          "shortName": "Ethereum",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 10,
+          "chainName": "Optimism Mainnet",
+          "shortName": "Optimism",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 25,
+          "chainName": "Cronos Mainnet",
+          "shortName": "Cronos",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 56,
+          "chainName": "BNB Chain Mainnet",
+          "shortName": "BNB Chain",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 137,
+          "chainName": "Polygon Mainnet",
+          "shortName": "Polygon",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 250,
+          "chainName": "Fantom Mainnet",
+          "shortName": "Fantom",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 1284,
+          "chainName": "Moonbeam Mainnet",
+          "shortName": "Moonbeam",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 1285,
+          "chainName": "Moonriver Mainnet",
+          "shortName": "Moonriver",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 42161,
+          "chainName": "Arbitrum Mainnet",
+          "shortName": "Arbitrum",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 42220,
+          "chainName": "Celo Mainnet",
+          "shortName": "Celo",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 43114,
+          "chainName": "Avalanche C-Chain Mainnet",
+          "shortName": "Avalanche C-Chain",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 1313161554,
+          "chainName": "Aurora Mainnet",
+          "shortName": "Aurora",
+          "nativeTokenSupported": false
+        },
+        {
+          "active": true,
+          "chainId": 1666600000,
+          "chainName": "Harmony Mainnet (Shard 0)",
+          "shortName": "Harmony  (Shard 0)",
+          "nativeTokenSupported": true
+        },
+        {
+          "active": true,
+          "chainId": 11297108109,
+          "chainName": "Palm Mainnet",
+          "shortName": "Palm",
+          "nativeTokenSupported": false
+        },
+        {
+          "active": true,
+          "chainId": 1337,
+          "chainName": "Localhost",
+          "shortName": "Localhost",
+          "nativeTokenSupported": true
+        },
+        {
+          "chainId": 1,
+          "chainName": "Tenderly",
+          "shortName": "Tenderly",
+          "nativeTokenSupported": true
+        }
+      ],
+      "selectedRegionAgg": null,
+      "selectedRegionDeposit": null,
+      "selectedPaymentMethodAgg": null,
+      "getStartedAgg": false,
+      "getStartedSell": false,
+      "getStartedDeposit": false,
+      "authenticationUrls": [],
+      "activationKeys": []
+    },
+    "infuraAvailability": {
+      "isBlocked": false
+    },
+    "navigation": {
+      "currentRoute": "AdvancedSettings",
+      "currentBottomNavRoute": "Wallet"
+    },
+    "networkOnboarded": {
+      "networkOnboardedState": {},
+      "networkState": {
+        "showNetworkOnboarding": false,
+        "nativeToken": "",
+        "networkType": "",
+        "networkUrl": ""
+      },
+      "switchedNetwork": {
+        "networkUrl": "",
+        "networkStatus": false
+      }
+    },
+    "security": {
+      "allowLoginWithRememberMe": false
+    },
+    "experimentalSettings": {
+      "securityAlertsEnabled": true
+    },
+    "inpageProvider": {
+      "networkId": "1"
+    }
+  },
+  "asyncState": {
+    "@MetaMask:existingUser": "true",
+    "@MetaMask:OptinMetaMetricsUISeen": "true",
+    "@MetaMask:UserTermsAcceptedv1.0": "true",
+    "@MetaMask:WhatsNewAppVersionSeen": "7.24.3",
+    "@MetaMask:solanaFeatureModalShownV2": "true",
+    "@MetaMask:predictGTMModalShown": "true"
+  }
+}

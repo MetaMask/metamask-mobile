@@ -1,0 +1,44 @@
+appId: io.metamask
+tags:
+  - browser
+  - dapp
+---
+- runFlow: ../pages/loadElements.yaml
+- launchApp:
+    clearState: true
+- runFlow: ../flows/onboarding-no-mocks-flow.yaml
+- tapOn:
+    id: ${output.browser.tabBar.browserTab}
+- waitForAnimationToEnd
+- tapOn: ${output.browser.screen.defaultUrl}
+- waitForAnimationToEnd
+- inputText: ${output.testDapp.url}
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      id: ${output.testDapp.autoConnectBtn}
+    timeout: 10000
+- tapOn:
+    id: ${output.testDapp.autoConnectBtn}
+- scrollUntilVisible:
+    element:
+      id: ${output.testDapp.networks.ethereum}
+- tapOn:
+    id: ${output.testDapp.networks.ethereum}
+- tapOn:
+    id: ${output.testDapp.networks.linea}
+- scrollUntilVisible:
+    element:
+      id: ${output.testDapp.networks.solana}
+- tapOn:
+    id: ${output.testDapp.networks.solana}
+- scrollUntilVisible:
+    element:
+      id: ${output.testDapp.createSessionBtn}
+- tapOn:
+    id: ${output.testDapp.createSessionBtn}
+- assertVisible: ${output.browser.connectionModal.title}
+- tapOn:
+    id: ${output.browser.connectionModal.connectBtn}
+    index: 1
+- assertVisible: ${output.browser.connectionModal.successMessage}

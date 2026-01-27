@@ -1,0 +1,62 @@
+appId: io.metamask
+tags:
+  - onboarding
+---
+# - runFlow: ../pages/loadElements.yaml
+# - assertVisible: ${output.onboarding.welcome.text}
+- extendedWaitUntil:
+    visible:
+      id: ${output.onboarding.welcome.createNewWalletBtn}
+    timeout: 60000
+
+- tapOn:
+    id: ${output.onboarding.welcome.createNewWalletBtn}
+    delay: 500
+    retryTapIfNoChange: false
+    waitToSettleTimeoutMs: 1000
+
+# modal shows when running on CI
+- runFlow:
+    when:
+      visible: 'Use Secret Recovery Phrase' # Condition to check
+    commands:
+      - tapOn: 'Use Secret Recovery Phrase'
+
+- assertVisible: ${output.onboarding.createPassword.title}
+- tapOn:
+    id: ${output.onboarding.createPassword.firstPasswordInput}
+- inputText: metapass
+- tapOn:
+    id: ${output.onboarding.createPassword.secondPasswordInput}
+- inputText: metapass
+- doubleTapOn:
+    id: ${output.onboarding.createPassword.termsCheckbox}
+    waitToSettleTimeoutMs: 500
+- tapOn:
+    id: ${output.onboarding.createPassword.submitBtn}
+    waitToSettleTimeoutMs: 500
+- tapOn:
+    id: ${output.onboarding.backup.remindMeLaterBtn}
+    waitToSettleTimeoutMs: 500
+# - assertVisible: ${output.onboarding.backup.skipTitle}
+- tapOn:
+    id: optin-metrics-continue-button-id
+- assertVisible: Your wallet is ready!
+- tapOn:
+    id: onboarding-success-done-button
+    waitToSettleTimeoutMs: 500
+- tapOn: Not now
+
+# - tapOn:
+#     id: ${output.onboarding.backup.skipText}
+# - tapOn:
+#     id: ${output.onboarding.backup.skipBtn}
+# - tapOn:
+#     id: ${output.onboarding.metrics.optinBtn}
+# - assertVisible: ${output.onboarding.default_settings.remindLaterMessage}
+# - tapOn:
+#     id: ${output.onboarding.default_settings.doneBtn}
+# - assertVisible: ${output.onboarding.perps.title}
+# - tapOn:
+#     id: ${output.onboarding.perps.notNowBtn}
+- assertVisible: ${output.home.accountName}

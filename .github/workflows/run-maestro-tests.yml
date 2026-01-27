@@ -1,0 +1,29 @@
+name: Run Maestro Test (POC)
+
+on:
+  push:
+    branches:
+      - poc-maestro-import-srp
+
+jobs:
+  build-android-apks:
+    name: 'Build Android APKs'
+    uses: ./.github/workflows/build-android-e2e-maestro.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
+      branch: ${{ github.ref_name }}
+    secrets: inherit
+
+  maestro-test:
+    name: 'Maestro Add Wallet Test'
+    needs: [build-android-apks]
+    uses: ./.github/workflows/run-maestro-workflow.yml
+    with:
+      test-suite-name: 'maestro-add-wallet'
+      test-file: 'e2e/maestro/tests/add-wallet-test.yaml'
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      branch: ${{ github.ref_name }}
+    secrets: inherit

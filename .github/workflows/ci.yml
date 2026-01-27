@@ -322,6 +322,73 @@ jobs:
         }}
     secrets: inherit
 
+  # POC: Maestro E2E Tests - Check if Maestro files changed
+  check-maestro-changes:
+    name: 'Check Maestro Changes'
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'merge_group' }}
+    outputs:
+      maestro_changed: ${{ steps.filter.outputs.maestro }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+        id: filter
+        with:
+          filters: |
+            maestro:
+              - 'e2e/maestro/**'
+              - '.github/workflows/*maestro*'
+
+  # POC: Maestro E2E Tests - Build APKs when Maestro files change
+  build-android-apks-maestro:
+    name: 'Build Android APKs (Maestro)'
+    if: ${{ needs.check-maestro-changes.outputs.maestro_changed == 'true' }}
+    needs: [check-maestro-changes]
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-android-e2e-maestro.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
+      branch: ${{ github.head_ref || github.ref_name }}
+    secrets: inherit
+
+  maestro-e2e-tests:
+    name: 'Maestro E2E Tests (POC)'
+    if: ${{ needs.check-maestro-changes.outputs.maestro_changed == 'true' }}
+    needs: [check-maestro-changes, build-android-apks-maestro]
+    uses: ./.github/workflows/run-maestro-workflow.yml
+    with:
+      test-suite-name: 'maestro-add-wallet-with-mocks'
+      test-file: 'e2e/maestro/tests/add-wallet-with-mocks.yaml'
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      branch: ${{ github.head_ref || github.ref_name }}
+      enable-recording: false
+      use-fixtures: true
+      fixture-name: 'import-srp'
+      mock-preset: 'feature-flags'
+    secrets: inherit
+
+  # POC: Detox comparison test - runs the same test as Maestro for timing comparison
+  detox-import-srp-comparison:
+    name: 'Detox import-srp (Comparison)'
+    if: ${{ needs.check-maestro-changes.outputs.maestro_changed == 'true' }}
+    needs: [check-maestro-changes, build-android-apks-maestro]
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: 'detox-import-srp-comparison'
+      platform: android
+      test_file: 'e2e/specs/accounts/import-srp.spec.ts'
+      build_type: 'main'
+      metamask_environment: 'e2e'
+    secrets: inherit
+
   build-ios-apps:
     name: 'Build iOS Apps'
     if: >-

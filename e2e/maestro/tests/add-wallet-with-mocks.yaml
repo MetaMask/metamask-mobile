@@ -1,0 +1,48 @@
+appId: io.metamask
+tags:
+  - wallet
+  - import
+  - mocks
+  - fixture
+---
+# Maestro equivalent of e2e/specs/accounts/import-srp.spec.ts
+# This test uses fixtures to bypass onboarding (wallet already exists)
+# and mock server for feature flags (remoteFeatureMultichainAccountsAccountDetailsV2)
+#
+# Run this test with:
+#   ./e2e/maestro/scripts/run-test-with-servers.sh e2e/maestro/tests/add-wallet-with-mocks.yaml import-srp feature-flags
+#
+# This mirrors add-wallet-test.yaml but:
+#   - Skips onboarding via fixtures (import-srp)
+#   - Mocks feature flags via mock server (feature-flags preset)
+
+# Load page objects
+- runFlow: ../pages/loadElements.yaml
+
+# Unlock wallet (fixtures loaded, wallet already exists)
+- runFlow: ../subflows/unlock-wallet.yaml
+
+# Now on home screen - start the import SRP flow
+# (Same steps as add-wallet-test.yaml from this point)
+- tapOn:
+    id: ${output.home.accountPicker}
+    waitToSettleTimeoutMs: 5000
+- tapOn:
+    id: ${output.home.addAccountBtn}
+    waitToSettleTimeoutMs: 5000
+- assertVisible: ${output.home.importWalletLabel}
+- tapOn:
+    id: ${output.home.addSrpAccountBtn}
+    waitToSettleTimeoutMs: 500
+# Import wallet using same flow as add-wallet-test.yaml
+- runFlow: ../flows/add-wallet-flow.yaml
+
+# Wait for import to complete and verify we're back on home screen
+# The toast "Wallet 2 imported" appears briefly, then navigates to home
+- extendedWaitUntil:
+    visible:
+      id: ${output.home.accountPicker}
+    timeout: 10000
+
+# Verify the account name is visible (confirms import succeeded)
+- assertVisible: Account 1

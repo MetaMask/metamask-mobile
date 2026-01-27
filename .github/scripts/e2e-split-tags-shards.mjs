@@ -11,6 +11,7 @@ import { extractTestResults } from './e2e-extract-test-results.mjs';
 
 const env = {
   TEST_SUITE_TAG: process.env.TEST_SUITE_TAG,
+  TEST_FILE: process.env.TEST_FILE || '',  // Specific test file to run (overrides TEST_SUITE_TAG)
   BASE_DIR: process.env.BASE_DIR || './e2e/specs',
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE || 'main',
   PLATFORM: process.env.PLATFORM || 'ios',
@@ -26,7 +27,7 @@ const env = {
 // Example of format of CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs
 
 if (!fs.existsSync(env.BASE_DIR)) throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
-if (!env.TEST_SUITE_TAG) throw new Error('❌ Missing TEST_SUITE_TAG env var');
+if (!env.TEST_SUITE_TAG && !env.TEST_FILE) throw new Error('❌ Missing TEST_SUITE_TAG or TEST_FILE env var');
 
 /**
  * Minimal GitHub GraphQL helper
@@ -333,10 +334,21 @@ async function main() {
   console.log("🚀 Starting E2E tests...");
   console.log(`GitHub Actions: attempt ${env.RUN_ATTEMPT}`);
 
-  // 1) Find all specs files that include the given E2E tags
-  console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
-  let allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
-  if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
+  let allMatches;
+
+  // If TEST_FILE is specified, run only that file (skip tag-based searching and sharding)
+  if (env.TEST_FILE) {
+    console.log(`Running specific test file: ${env.TEST_FILE}`);
+    if (!fs.existsSync(env.TEST_FILE)) {
+      throw new Error(`❌ Test file not found: ${env.TEST_FILE}`);
+    }
+    allMatches = [env.TEST_FILE];
+  } else {
+    // 1) Find all specs files that include the given E2E tags
+    console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
+    allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
+    if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
+  }
   console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 
 

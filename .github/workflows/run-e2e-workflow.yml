@@ -16,8 +16,14 @@ on:
         type: string
       test_suite_tag:
         description: 'The tests tag expression to use for filtering tests'
-        required: true
+        required: false
         type: string
+        default: ''
+      test_file:
+        description: 'Specific test file to run (overrides test_suite_tag)'
+        required: false
+        type: string
+        default: ''
       split_number:
         description: 'Which split number to run (1-based index)'
         required: false
@@ -64,6 +70,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PLATFORM: ${{ inputs.platform }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
+      TEST_FILE: ${{ inputs.test_file }}
       CHANGED_FILES: ${{ inputs.changed_files }}
       GITHUB_CI: 'true'
       SPLIT_NUMBER: ${{ inputs.split_number }}
