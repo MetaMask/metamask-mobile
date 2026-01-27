@@ -23,7 +23,7 @@ import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
@@ -210,7 +210,7 @@ const EarnTokenList = () => {
     }
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_TOKEN_LIST_ITEM_CLICKED)
+      createEventBuilder(EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED)
         .addProperties({
           provider: EVENT_PROVIDERS.CONSENSYS,
           location: EVENT_LOCATIONS.WALLET_ACTIONS_BOTTOM_SHEET,
