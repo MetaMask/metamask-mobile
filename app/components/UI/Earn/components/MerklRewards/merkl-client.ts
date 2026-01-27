@@ -175,11 +175,17 @@ export const fetchMerklRewardsForAsset = async (
     tokenAddress,
   );
 
+  // For mUSD, always search for MUSD_TOKEN_ADDRESS rewards
+  // For other tokens, use the asset's address
+  const rewardTokenAddress = isMusdToken(tokenAddress)
+    ? MUSD_TOKEN_ADDRESS
+    : tokenAddress;
+
   return fetchMerklRewards(
     {
       userAddress,
       chainIds,
-      tokenAddress: MUSD_TOKEN_ADDRESS,
+      tokenAddress: rewardTokenAddress,
       signal,
     },
     throwOnError,
