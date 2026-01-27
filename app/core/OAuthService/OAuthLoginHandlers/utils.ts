@@ -135,7 +135,17 @@ export async function retryWithDelay<T>(
       return await operation();
     } catch (error) {
       const isLastAttempt = attempt === normalizedMaxRetries;
-      const isErrorRetryable = shouldRetry(error);
+
+      // Wrap shouldRetry in try-catch to prevent callback errors from
+      // masking the original operation error. Default to not retrying
+      // if the callback fails (safer to fail fast than mask errors).
+      let isErrorRetryable: boolean;
+      try {
+        isErrorRetryable = shouldRetry(error);
+      } catch {
+        isErrorRetryable = false;
+      }
+
       const willRetry = !isLastAttempt && isErrorRetryable;
 
       const delayMs = willRetry
@@ -147,8 +157,13 @@ export async function retryWithDelay<T>(
           )
         : 0;
 
-      // Fire the onRetry callback for observability
-      onRetry?.({ error, attempt, willRetry, delayMs });
+      // Wrap onRetry in try-catch to prevent logging/observability errors
+      // from masking the original operation error
+      try {
+        onRetry?.({ error, attempt, willRetry, delayMs });
+      } catch {
+        // Silently ignore callback errors to preserve the original error
+      }
 
       if (!willRetry) {
         throw error;

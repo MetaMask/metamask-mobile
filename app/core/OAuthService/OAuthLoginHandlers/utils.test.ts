@@ -4,51 +4,78 @@ import { OAuthError, OAuthErrorType } from '../error';
 describe('isRetryableError', () => {
   it('returns false for 400 Bad Request errors', () => {
     const error = new Error('request failed with status: [400]: Bad Request');
-    expect(isRetryableError(error)).toBe(false);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(false);
   });
 
   it('returns false for 401 Unauthorized errors', () => {
     const error = new Error('request failed with status: [401]: Unauthorized');
-    expect(isRetryableError(error)).toBe(false);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(false);
   });
 
   it('returns false for 403 Forbidden errors', () => {
     const error = new Error('request failed with status: [403]: Forbidden');
-    expect(isRetryableError(error)).toBe(false);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(false);
   });
 
   it('returns false for 404 Not Found errors', () => {
     const error = new Error('request failed with status: [404]: Not Found');
-    expect(isRetryableError(error)).toBe(false);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(false);
   });
 
   it('returns true for 500 Internal Server Error', () => {
     const error = new Error(
       'request failed with status: [500]: Internal Server Error',
     );
-    expect(isRetryableError(error)).toBe(true);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(true);
   });
 
   it('returns true for 502 Bad Gateway errors', () => {
     const error = new Error('request failed with status: [502]: Bad Gateway');
-    expect(isRetryableError(error)).toBe(true);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(true);
   });
 
   it('returns true for 503 Service Unavailable errors', () => {
     const error = new Error(
       'request failed with status: [503]: Service Unavailable',
     );
-    expect(isRetryableError(error)).toBe(true);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(true);
   });
 
   it('returns true for network errors', () => {
     const error = new Error('Network request failed');
-    expect(isRetryableError(error)).toBe(true);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(true);
   });
 
   it('returns true for timeout errors', () => {
     const error = new Error('Request timeout');
-    expect(isRetryableError(error)).toBe(true);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(true);
   });
 
   it('returns true for OAuthError with 5xx status', () => {
@@ -56,7 +83,10 @@ describe('isRetryableError', () => {
       'request failed with status: [500]: Server Error',
       OAuthErrorType.AuthServerError,
     );
-    expect(isRetryableError(error)).toBe(true);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(true);
   });
 
   it('returns false for OAuthError with 4xx status', () => {
@@ -64,14 +94,27 @@ describe('isRetryableError', () => {
       'request failed with status: [400]: Bad Request',
       OAuthErrorType.AuthServerError,
     );
-    expect(isRetryableError(error)).toBe(false);
+
+    const result = isRetryableError(error);
+
+    expect(result).toBe(false);
   });
 
   it('returns true for non-Error objects', () => {
-    expect(isRetryableError('string error')).toBe(true);
-    expect(isRetryableError({ message: 'object error' })).toBe(true);
-    expect(isRetryableError(null)).toBe(true);
-    expect(isRetryableError(undefined)).toBe(true);
+    const stringError = 'string error';
+    const objectError = { message: 'object error' };
+    const nullError = null;
+    const undefinedError = undefined;
+
+    const stringResult = isRetryableError(stringError);
+    const objectResult = isRetryableError(objectError);
+    const nullResult = isRetryableError(nullError);
+    const undefinedResult = isRetryableError(undefinedError);
+
+    expect(stringResult).toBe(true);
+    expect(objectResult).toBe(true);
+    expect(nullResult).toBe(true);
+    expect(undefinedResult).toBe(true);
   });
 });
 
@@ -346,6 +389,85 @@ describe('retryWithDelay', () => {
       expect(delay).toBe(850);
 
       mockRandom.mockRestore();
+    });
+  });
+
+  describe('callback error handling', () => {
+    it('preserves original error when shouldRetry callback throws', async () => {
+      const originalError = new Error('status: [401]: Unauthorized');
+      const operation = jest.fn().mockRejectedValue(originalError);
+      const shouldRetry = jest.fn().mockImplementation(() => {
+        throw new Error('Cannot read property "message" of undefined');
+      });
+
+      await expect(
+        retryWithDelay(operation, {
+          maxRetries: 3,
+          shouldRetry,
+          ...fastRetryOptions,
+        }),
+      ).rejects.toThrow('status: [401]: Unauthorized');
+
+      expect(operation).toHaveBeenCalledTimes(1);
+    });
+
+    it('preserves original error when onRetry callback throws', async () => {
+      const originalError = new Error('status: [400]: Bad Request');
+      const operation = jest.fn().mockRejectedValue(originalError);
+      const onRetry = jest.fn().mockImplementation(() => {
+        throw new Error('Logging failed');
+      });
+
+      await expect(
+        retryWithDelay(operation, {
+          maxRetries: 3,
+          onRetry,
+          ...fastRetryOptions,
+        }),
+      ).rejects.toThrow('status: [400]: Bad Request');
+
+      expect(operation).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not retry when shouldRetry throws (fails safely)', async () => {
+      const originalError = new Error('status: [500]: Server Error');
+      const operation = jest.fn().mockRejectedValue(originalError);
+      const shouldRetry = jest.fn().mockImplementation(() => {
+        throw new Error('shouldRetry crashed');
+      });
+
+      await expect(
+        retryWithDelay(operation, {
+          maxRetries: 3,
+          shouldRetry,
+          ...fastRetryOptions,
+        }),
+      ).rejects.toThrow('status: [500]: Server Error');
+
+      // Should not retry because shouldRetry threw (defaults to false)
+      expect(operation).toHaveBeenCalledTimes(1);
+    });
+
+    it('continues retrying when onRetry throws on retryable errors', async () => {
+      const originalError = new Error('status: [500]: Server Error');
+      const operation = jest
+        .fn()
+        .mockRejectedValueOnce(originalError)
+        .mockRejectedValueOnce(originalError)
+        .mockResolvedValue('success');
+      const onRetry = jest.fn().mockImplementation(() => {
+        throw new Error('onRetry crashed');
+      });
+
+      const result = await retryWithDelay(operation, {
+        maxRetries: 3,
+        onRetry,
+        ...fastRetryOptions,
+      });
+
+      expect(result).toBe('success');
+      expect(operation).toHaveBeenCalledTimes(3);
+      expect(onRetry).toHaveBeenCalledTimes(2);
     });
   });
 
