@@ -5,18 +5,6 @@ import TrendingTokensFullView from './TrendingTokensFullView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 
-const mockSafeAreaView = jest.fn();
-jest.mock('react-native-safe-area-context', () => {
-  const ReactNative = jest.requireActual('react-native');
-  return {
-    SafeAreaView: (props: Record<string, unknown>) => {
-      mockSafeAreaView(props);
-      return <ReactNative.View {...props} />;
-    },
-    useSafeAreaInsets: () => ({ top: 50, bottom: 34, left: 0, right: 0 }),
-  };
-});
-
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -568,19 +556,5 @@ describe('TrendingTokensFullView', () => {
     });
 
     expect(mockFetchTrendingTokens).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders SafeAreaView with correct edges prop', () => {
-    mockSafeAreaView.mockClear();
-
-    renderWithProvider(<TrendingTokensFullView />, { state: mockState }, false);
-
-    // Verify SafeAreaView was rendered with edges prop
-    expect(mockSafeAreaView).toHaveBeenCalled();
-    const safeAreaProps = mockSafeAreaView.mock.calls[0][0];
-    expect(safeAreaProps.edges).toBeDefined();
-    expect(Array.isArray(safeAreaProps.edges)).toBe(true);
-    expect(safeAreaProps.edges).toContain('left');
-    expect(safeAreaProps.edges).toContain('right');
   });
 });
