@@ -27,6 +27,10 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     marketId: market.id,
     autoRefreshTimeout: 10000,
   });
+  const { positions: claimablePositions } = usePredictPositions({
+    marketId: market.id,
+    claimable: true,
+  });
   const { livePositions } = useLivePositions(positions);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -53,7 +57,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     );
   };
 
-  if (livePositions.length === 0) {
+  if (livePositions.length === 0 && claimablePositions.length === 0) {
     return null;
   }
 
@@ -63,6 +67,14 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
         {strings('predict.market_details.your_picks')}
       </Text>
       {livePositions.map((position) => (
+        <PredictPickItem
+          key={position.id}
+          position={position}
+          onCashOut={onCashOut}
+          testID={`${testID}-item-${position.id}`}
+        />
+      ))}
+      {claimablePositions.map((position) => (
         <PredictPickItem
           key={position.id}
           position={position}
