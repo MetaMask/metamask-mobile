@@ -37,10 +37,6 @@ import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
-import {
-  useNetworksByNamespace,
-  NetworkType,
-} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 
@@ -86,9 +82,6 @@ const NetworkManager = () => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
-  useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
   const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
 
   const enabledNetworks = useMemo(() => {
