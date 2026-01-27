@@ -417,13 +417,13 @@ describe('PredictSportCardFooter', () => {
       expect(screen.getByText('Claim $50')).toBeOnTheScreen();
     });
 
-    it('renders positions with claim button when claimable', () => {
+    it('renders claimable positions with claim button when claimable', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
         createMockPosition({ claimable: true, currentValue: 50 }),
       ];
       setupPositionsMock({
-        activePositions: claimablePositions,
+        activePositions: [],
         claimablePositions,
       });
 
