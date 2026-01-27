@@ -22,7 +22,7 @@ import { selectTokenSortConfig } from '../../../../../selectors/preferencesContr
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
-import { renderNumber, renderFiat } from '../../../../../util/number';
+import { renderNumber, addCurrencySymbol } from '../../../../../util/number';
 import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
@@ -229,7 +229,7 @@ export const useTokensWithBalance: ({
         const chainId = token.chainId as Hex | CaipChainId;
 
         const evmBalanceFiat = evmBalances?.[i]?.balanceFiat;
-        const nonEvmBalanceFiat = renderFiat(
+        const nonEvmBalanceFiat = addCurrencySymbol(
           Number(token.balanceFiat ?? 0),
           currentCurrency,
         );
