@@ -26,11 +26,15 @@ const OptionsSheet = () => {
   const styles = createStyles(colors);
 
   // Sort options alphabetically by label
-  const sortedOptions = useMemo(() => [...params.options].sort((a, b) => {
-      const labelA = a.label || '';
-      const labelB = b.label || '';
-      return labelA.localeCompare(labelB);
-    }), [params.options]);
+  const sortedOptions = useMemo(
+    () =>
+      [...params.options].sort((a, b) => {
+        const labelA = a.label || '';
+        const labelB = b.label || '';
+        return labelA.localeCompare(labelB);
+      }),
+    [params.options],
+  );
 
   const onSelectedValueChange = (val?: string) => {
     if (!val) {

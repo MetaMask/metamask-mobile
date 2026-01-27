@@ -24,6 +24,7 @@ jest.mock('../../../../../../reducers/rewards/selectors', () => ({
   selectSeasonId: jest.fn(),
   selectSeasonStartDate: jest.fn(),
   selectSeasonStatusLoading: jest.fn(),
+  selectSeasonActivityTypes: jest.fn(),
 }));
 
 import { selectRewardsSubscriptionId } from '../../../../../../selectors/rewards';
@@ -32,6 +33,7 @@ import {
   selectSeasonId,
   selectSeasonStartDate,
   selectSeasonStatusLoading,
+  selectSeasonActivityTypes,
 } from '../../../../../../reducers/rewards/selectors';
 import { UsePointsEventsResult } from '../../../hooks/usePointsEvents';
 const mockSelectSubscriptionId =
@@ -51,9 +53,44 @@ const mockSelectSeasonStatusLoading =
   selectSeasonStatusLoading as jest.MockedFunction<
     typeof selectSeasonStatusLoading
   >;
+const mockSelectSeasonActivityTypes =
+  selectSeasonActivityTypes as jest.MockedFunction<
+    typeof selectSeasonActivityTypes
+  >;
 
 // Mock data
 const mockSubscriptionId: string = 'sub-12345678';
+
+// Mock activity types that match what the API returns
+const mockSeasonActivityTypes = [
+  { type: 'SWAP', title: 'Swap', description: 'Swap tokens', icon: 'Swap' },
+  { type: 'PERPS', title: 'Perps', description: 'Trade perps', icon: 'Perps' },
+  {
+    type: 'PREDICT',
+    title: 'Predict',
+    description: 'Predict outcomes',
+    icon: 'Predict',
+  },
+  {
+    type: 'REFERRAL',
+    title: 'Referral',
+    description: 'Refer friends',
+    icon: 'Referral',
+  },
+  { type: 'CARD', title: 'Card', description: 'Use card', icon: 'Card' },
+  {
+    type: 'MUSD_DEPOSIT',
+    title: 'MUSD Deposit',
+    description: 'Deposit MUSD',
+    icon: 'Deposit',
+  },
+  {
+    type: 'SHIELD',
+    title: 'Shield',
+    description: 'Shield assets',
+    icon: 'Shield',
+  },
+];
 
 // Mock i18n strings
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -313,7 +350,7 @@ describe('ActivityTab', () => {
       startDate: Date.now(),
       endDate: Date.now() + 1000,
       tiers: [],
-      activityTypes: [],
+      activityTypes: mockSeasonActivityTypes,
     },
     balance: {
       total: 0,
@@ -360,6 +397,7 @@ describe('ActivityTab', () => {
         seasonId: defaultSeasonStatus.season.id,
         seasonStatusLoading: false,
         seasonStartDate: new Date('2024-01-01'),
+        seasonActivityTypes: mockSeasonActivityTypes,
       },
     };
 
@@ -372,6 +410,7 @@ describe('ActivityTab', () => {
     mockSelectSeasonId.mockReturnValue(defaultSeasonStatus.season.id);
     mockSelectSeasonStartDate.mockReturnValue(new Date('2024-01-01'));
     mockSelectSeasonStatusLoading.mockReturnValue(false);
+    mockSelectSeasonActivityTypes.mockReturnValue(mockSeasonActivityTypes);
     mockUseDispatch.mockReturnValue(jest.fn());
 
     mockUseSeasonStatus.mockReturnValue({

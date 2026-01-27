@@ -21,6 +21,7 @@ import {
   selectSeasonId,
   selectSeasonStartDate,
   selectSeasonStatusLoading,
+  selectSeasonActivityTypes,
 } from '../../../../../../reducers/rewards/selectors';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import MetamaskRewardsActivityEmptyImage from '../../../../../../images/rewards/metamask-rewards-activity-empty.svg';
@@ -35,29 +36,6 @@ import type { ISelectOption } from '../../../../SelectOptionSheet/types';
 
 const ALL_FILTER_VALUE = 'ALL';
 
-const FILTER_OPTIONS: ISelectOption[] = [
-  { key: 'all', value: ALL_FILTER_VALUE, label: strings('rewards.filter_all') },
-  { key: 'swap', value: 'SWAP', label: strings('rewards.filter_swap') },
-  { key: 'perps', value: 'PERPS', label: strings('rewards.filter_perps') },
-  {
-    key: 'predict',
-    value: 'PREDICT',
-    label: strings('rewards.filter_predict'),
-  },
-  {
-    key: 'referral',
-    value: 'REFERRAL',
-    label: strings('rewards.filter_referral'),
-  },
-  { key: 'card', value: 'CARD', label: strings('rewards.filter_card') },
-  {
-    key: 'musd_deposit',
-    value: 'MUSD_DEPOSIT',
-    label: strings('rewards.filter_musd_deposit'),
-  },
-  { key: 'shield', value: 'SHIELD', label: strings('rewards.filter_shield') },
-];
-
 interface ActivityFilterProps {
   selectedType: PointsEventEarnType | undefined;
   onSelectType: (type: PointsEventEarnType | undefined) => void;
@@ -67,7 +45,26 @@ const ActivityFilter: React.FC<ActivityFilterProps> = ({
   selectedType,
   onSelectType,
 }) => {
+  const seasonActivityTypes = useSelector(selectSeasonActivityTypes);
   const selectedValue = selectedType ?? ALL_FILTER_VALUE;
+
+  const filterOptions: ISelectOption[] = useMemo(() => {
+    const allOption: ISelectOption = {
+      key: 'all',
+      value: ALL_FILTER_VALUE,
+      label: strings('rewards.filter_all'),
+    };
+
+    const activityOptions: ISelectOption[] = seasonActivityTypes.map(
+      (activityType) => ({
+        key: activityType.type.toLowerCase(),
+        value: activityType.type,
+        label: activityType.title,
+      }),
+    );
+
+    return [allOption, ...activityOptions];
+  }, [seasonActivityTypes]);
 
   const handleValueChange = useCallback(
     (value: string) => {
@@ -83,7 +80,7 @@ const ActivityFilter: React.FC<ActivityFilterProps> = ({
       <Box twClassName="bg-background-muted rounded-lg">
         <SelectOptionSheet
           label={strings('rewards.filter_title')}
-          options={FILTER_OPTIONS}
+          options={filterOptions}
           selectedValue={selectedValue}
           onValueChange={handleValueChange}
         />
