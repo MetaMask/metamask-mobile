@@ -66,7 +66,6 @@ const MusdConversionInfoContent = ({
 
   const lastSameChainPayToken = useRef<PayTokenSelection | null>(null);
   const isReplacementInFlight = useRef(false);
-  const replacementAttemptCount = useRef(0);
 
   const selectedPayToken = useMemo<PayTokenSelection | null>(() => {
     if (!payToken?.address || !payToken?.chainId) {
@@ -156,9 +155,6 @@ const MusdConversionInfoContent = ({
     ) {
       return;
     }
-
-    // TODO: Reminder to remove if not necessary anymore.
-    replacementAttemptCount.current += 1;
 
     const runReplacement = async () => {
       isReplacementInFlight.current = true;
