@@ -6,6 +6,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import {
+  Platform,
   StyleSheet,
   View,
   TouchableOpacity,
@@ -43,7 +44,6 @@ import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingToken
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
-import { SAFE_AREA_EDGES } from '../../../../util/safe-area';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -302,7 +302,10 @@ const TrendingTokensFullView = () => {
   }, [selectedPriceChangeOption]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={SAFE_AREA_EDGES}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']}
+    >
       <View
         style={[
           styles.headerContainer,
