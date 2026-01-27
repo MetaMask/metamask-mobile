@@ -222,7 +222,7 @@ describe('musdConversionTransaction', () => {
         networkClientId,
       });
 
-      expect(result).toEqual({ transactionId: 'tx-123' });
+      expect(result).toEqual({ transactionId: 'tx-123', networkClientId });
       expect(
         networkControllerFindNetworkClientIdByChainId,
       ).not.toHaveBeenCalled();
@@ -265,7 +265,10 @@ describe('musdConversionTransaction', () => {
         amountHex,
       });
 
-      expect(result).toEqual({ transactionId: 'tx-456' });
+      expect(result).toEqual({
+        transactionId: 'tx-456',
+        networkClientId: 'mainnet',
+      });
       expect(
         networkControllerFindNetworkClientIdByChainId,
       ).toHaveBeenCalledWith(outputChainId);
@@ -631,6 +634,55 @@ describe('musdConversionTransaction', () => {
       );
       expect(approvalControllerReject).toHaveBeenCalledTimes(1);
       expect(newTransactionId).toBe('0xnewTransactionId');
+    });
+
+    it('continues replacement when approval rejection of previous transaction throws', async () => {
+      const transactionMeta = createTransactionMeta();
+      const newPayToken = createPayTokenSelection();
+
+      mockedParseStandardTokenTransactionData.mockReturnValue({
+        args: {
+          _to: {
+            toString: () => '0xrecipientAddress',
+          },
+          _value: {
+            _hex: '0x01',
+          },
+        },
+      } as unknown as ReturnType<typeof parseStandardTokenTransactionData>);
+
+      transactionControllerAddTransaction.mockResolvedValue({
+        transactionMeta: { id: '0xnewTransactionId' },
+      });
+
+      approvalControllerReject.mockImplementationOnce(() => {
+        throw new Error('approval missing');
+      });
+
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {
+          // Intentionally empty for test output.
+        });
+
+      const newTransactionId =
+        await replaceMusdConversionTransactionForPayToken(
+          transactionMeta,
+          newPayToken,
+        );
+
+      expect(transactionPayControllerUpdatePaymentToken).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(approvalControllerReject).toHaveBeenCalledTimes(1);
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        '[mUSD Conversion] Failed to reject previous transaction approval during replacement',
+        expect.any(Error),
+      );
+      expect(newTransactionId).toBe('0xnewTransactionId');
+
+      consoleWarnSpy.mockRestore();
     });
 
     it('returns undefined and logs when replacement fails', async () => {

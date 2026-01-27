@@ -149,7 +149,10 @@ export async function createMusdConversionTransaction({
   recipientAddress,
   amountHex,
   networkClientId,
-}: CreateMusdConversionTransactionParams): Promise<{ transactionId: string }> {
+}: CreateMusdConversionTransactionParams): Promise<{
+  transactionId: string;
+  networkClientId: string;
+}> {
   const { NetworkController, TransactionController } = Engine.context;
 
   const resolvedNetworkClientId =
@@ -175,6 +178,7 @@ export async function createMusdConversionTransaction({
 
   return {
     transactionId: transactionMeta.id,
+    networkClientId: resolvedNetworkClientId,
   };
 }
 
@@ -218,7 +222,7 @@ export async function replaceMusdConversionTransactionForPayToken(
     extractMusdConversionTransferDetails(transactionMeta);
 
   try {
-    const { transactionId: newTransactionId } =
+    const { transactionId: newTransactionId, networkClientId } =
       await createMusdConversionTransaction({
         outputChainId: newChainId,
         fromAddress: transactionMeta.txParams.from as Hex,
@@ -226,15 +230,8 @@ export async function replaceMusdConversionTransactionForPayToken(
         amountHex,
       });
 
-    const {
-      GasFeeController,
-      TransactionPayController,
-      ApprovalController,
-      NetworkController,
-    } = Engine.context;
-
-    const networkClientId =
-      NetworkController.findNetworkClientIdByChainId(newChainId);
+    const { GasFeeController, TransactionPayController, ApprovalController } =
+      Engine.context;
 
     GasFeeController.fetchGasFeeEstimates({ networkClientId }).catch(
       () => undefined,
@@ -249,20 +246,28 @@ export async function replaceMusdConversionTransactionForPayToken(
     EngineService.flushState();
 
     // This is an automatic rejection (not user-initiated)
-    ApprovalController.reject(
-      transactionMeta.id,
-      providerErrors.userRejectedRequest({
-        message:
-          'Automatically rejected previous transaction due to same-chain enforcement for mUSD conversions',
-        data: {
-          cause: 'musdConversionSameChainEnforcement',
-          previousTransactionId: transactionMeta.id,
-          previousPayTokenChainId: transactionMeta.txParams.chainId,
-          newTransactionId,
-          newPayTokenChainId: newPayToken.chainId,
-        },
-      }),
-    );
+    try {
+      ApprovalController.reject(
+        transactionMeta.id,
+        providerErrors.userRejectedRequest({
+          message:
+            'Automatically rejected previous transaction due to same-chain enforcement for mUSD conversions',
+          data: {
+            cause: 'musdConversionSameChainEnforcement',
+            previousTransactionId: transactionMeta.id,
+            previousPayTokenChainId: transactionMeta.txParams.chainId,
+            newTransactionId,
+            newPayTokenChainId: newPayToken.chainId,
+          },
+        }),
+      );
+    } catch (rejectError) {
+      // This can throw if the approval doesn't exist or has already been resolved.
+      console.warn(
+        '[mUSD Conversion] Failed to reject previous transaction approval during replacement',
+        rejectError,
+      );
+    }
 
     return newTransactionId;
   } catch (error) {
