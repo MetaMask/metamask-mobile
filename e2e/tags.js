@@ -123,56 +123,6 @@ const flaskTags = {
   },
 };
 
-// Performance tests (AI-selectable for performance impact analysis)
-// Tags are area-specific and tool-agnostic - the same tag can be used by Detox, Appwright, or any other tool
-const performanceTags = {
-  performanceAccountList: {
-    tag: 'PerformanceAccountList:',
-    description:
-      'Account list rendering and dismissal performance - covers account selector, multi-account scenarios, token load impact',
-  },
-  performanceNetworkList: {
-    tag: 'PerformanceNetworkList:',
-    description:
-      'Network list rendering and dismissal performance - covers network selector, multi-network scenarios',
-  },
-  performanceOnboarding: {
-    tag: 'PerformanceOnboarding:',
-    description:
-      'Onboarding flow performance - covers wallet creation, SRP import, initial setup screens, and first-time user experience',
-  },
-  performanceLogin: {
-    tag: 'PerformanceLogin:',
-    description:
-      'Login and unlock performance - covers password entry, biometric unlock, session restoration, and time to wallet ready state',
-  },
-  performanceSwaps: {
-    tag: 'PerformanceSwaps:',
-    description:
-      'Swap flow performance - covers quote fetching, token selection, swap execution, and transaction completion times',
-  },
-  performanceLaunch: {
-    tag: 'PerformanceLaunch:',
-    description:
-      'App launch performance - covers cold start time, warm start time, splash screen duration, and time to interactive',
-  },
-  performanceAssetLoading: {
-    tag: 'PerformanceAssetLoading:',
-    description:
-      'Asset and balance loading performance - covers token list rendering, balance fetching, NFT gallery loading, and portfolio value calculation',
-  },
-  performancePredict: {
-    tag: 'PerformancePredict:',
-    description:
-      'Predict market performance - covers prediction market list loading, market details, deposit flows, and balance display',
-  },
-  performancePreps: {
-    tag: 'PerformancePreps:',
-    description:
-      'Perpetuals trading performance - covers perps market loading, position management, add funds flow, and order execution',
-  },
-};
-
 // Other tags to run on demand or for specific purposes.
 const otherTags = {
   regressionAccounts: 'RegressionAccounts:',
@@ -253,7 +203,6 @@ const SmokePerformance = (testName) => `${otherTags.performance} ${testName}`;
 export {
   smokeTags,
   flaskTags,
-  performanceTags,
   SmokeAccounts,
   SmokeCore,
   SmokeConfirmationsRedesigned,

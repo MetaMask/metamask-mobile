@@ -19,7 +19,6 @@
  *   npx appwright test --grep "@PerformanceSwaps|@PerformanceOnboarding"
  */
 
-// Performance test tags - these match the tags in e2e/tags.js
 export const PerformanceAccountList = '@PerformanceAccountList';
 export const PerformanceNetworkList = '@PerformanceNetworkList';
 export const PerformanceOnboarding = '@PerformanceOnboarding';
@@ -30,7 +29,6 @@ export const PerformanceAssetLoading = '@PerformanceAssetLoading';
 export const PerformancePredict = '@PerformancePredict';
 export const PerformancePreps = '@PerformancePreps';
 
-// Tag descriptions for reference
 export const tagDescriptions = {
   PerformanceAccountList:
     'Account list rendering and dismissal performance - covers account selector, multi-account scenarios, token load impact',
