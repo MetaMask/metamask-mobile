@@ -8,7 +8,7 @@ import {
 import { merge } from 'lodash';
 import { encryptVault } from './helpers.ts';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -25,7 +25,7 @@ import {
 import {
   CustomNetworks,
   PopularNetworksList,
-} from '../../../e2e/resources/networks.e2e';
+} from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types.ts';
 import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants.ts';
 import {
@@ -542,10 +542,22 @@ class FixtureBuilder {
             MultichainNetworkController: {
               selectedMultichainNetworkChainId: SolScope.Mainnet,
               multichainNetworkConfigurationsByChainId: {
+                [BtcScope.Mainnet]: {
+                  chainId: BtcScope.Mainnet,
+                  name: 'Bitcoin',
+                  nativeCurrency: `${BtcScope.Mainnet}/slip44:0`,
+                  isEvm: false,
+                },
                 [SolScope.Mainnet]: {
                   chainId: SolScope.Mainnet,
                   name: 'Solana Mainnet',
                   nativeCurrency: `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+                  isEvm: false,
+                },
+                [TrxScope.Mainnet]: {
+                  chainId: TrxScope.Mainnet,
+                  name: 'Tron',
+                  nativeCurrency: `${TrxScope.Mainnet}/slip44:195`,
                   isEvm: false,
                 },
               },
@@ -579,7 +591,17 @@ class FixtureBuilder {
                   minimumVersion: null,
                 },
                 enableMultichainAccountsState2: {
-                  enabled: false,
+                  enabled: true,
+                  featureVersion: '2',
+                  minimumVersion: '7.46.0',
+                },
+                bitcoinAccounts: {
+                  enabled: true,
+                  featureVersion: null,
+                  minimumVersion: '0.0.0',
+                },
+                tronAccounts: {
+                  enabled: true,
                   featureVersion: null,
                   minimumVersion: null,
                 },

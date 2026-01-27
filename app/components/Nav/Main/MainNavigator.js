@@ -90,6 +90,7 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
+import { MusdConversionTransactionDetails } from '../../UI/Earn/components/MusdConversionTransactionDetails';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -251,6 +252,10 @@ const TransactionsHome = () => (
     <Stack.Screen
       name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
       component={BridgeTransactionDetails}
+    />
+    <Stack.Screen
+      name={Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS}
+      component={MusdConversionTransactionDetails}
     />
   </Stack.Navigator>
 );

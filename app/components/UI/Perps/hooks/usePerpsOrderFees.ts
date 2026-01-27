@@ -205,7 +205,7 @@ export function usePerpsOrderFees({
           address,
           discountBips,
           timestamp: Date.now(),
-          ttl: PERFORMANCE_CONFIG.FEE_DISCOUNT_CACHE_DURATION_MS,
+          ttl: PERFORMANCE_CONFIG.FeeDiscountCacheDurationMs,
         };
 
         return { discountBips };
@@ -342,7 +342,7 @@ export function usePerpsOrderFees({
         const shouldSimulateFeeDiscount =
           __DEV__ &&
           Number.parseFloat(amount) ===
-            DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
+            DEVELOPMENT_CONFIG.SimulateFeeDiscountAmount;
 
         let discountData: { discountBips?: number };
 
@@ -447,7 +447,7 @@ export function usePerpsOrderFees({
               bonusBips: pointsData.bonusBips,
               basePointsPerDollar,
               timestamp: now,
-              ttl: PERFORMANCE_CONFIG.POINTS_CALCULATION_CACHE_DURATION_MS,
+              ttl: PERFORMANCE_CONFIG.PointsCalculationCacheDurationMs,
             };
 
             DevLogger.log('Rewards: Cached points calculation parameters', {
@@ -455,7 +455,7 @@ export function usePerpsOrderFees({
               bonusBips: pointsData.bonusBips,
               basePointsPerDollar,
               cacheExpiry: new Date(
-                now + PERFORMANCE_CONFIG.POINTS_CALCULATION_CACHE_DURATION_MS,
+                now + PERFORMANCE_CONFIG.PointsCalculationCacheDurationMs,
               ).toISOString(),
             });
           }

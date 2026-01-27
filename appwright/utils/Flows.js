@@ -113,6 +113,7 @@ export async function onboardingFlowImportSRP(device, srp) {
 }
 
 export async function dissmissAllModals(device) {
+  await dismissAddAccountModal(device);
   await dismissMultichainAccountsIntroModal(device);
   await dissmissPredictionsModal(device);
 }
@@ -198,9 +199,9 @@ export async function login(device, options = {}) {
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
   if (dismissModals) {
-    await dismissMultichainAccountsIntroModal(device);
-    await dissmissPredictionsModal(device);
+    await dissmissAllModals(device);
   }
+  await AppwrightGestures.wait(5000);
 }
 
 export async function tapPerpsBottomSheetGotItButton(device) {
@@ -209,6 +210,7 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   if (await container.isVisible({ timeout: 5000 })) {
     await PerpsGTMModal.tapNotNowButton();
     console.log('Perps onboarding dismissed');
+    return;
   }
 }
 
@@ -228,5 +230,24 @@ export async function dismissMultichainAccountsIntroModal(
   const closeButton = await MultichainAccountEducationModal.closeButton;
   if (await closeButton.isVisible({ timeout })) {
     await MultichainAccountEducationModal.tapGotItButton();
+    return;
+  }
+}
+
+export async function dismissAddAccountModal(device) {
+  // Fix this for iOS
+  if (!device || !AppwrightSelectors.isAndroid(device)) {
+    return;
+  }
+  const cancelButton = await AppwrightSelectors.getElementByXpath(
+    device,
+    '//android.widget.Button[@content-desc="Cancel"]',
+  );
+  if (await cancelButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(cancelButton);
+    return;
+  }
+  if (await cancelButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(cancelButton);
   }
 }

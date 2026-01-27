@@ -313,6 +313,17 @@ jest.mock('../../Views/confirmations/hooks/useSendNavigation', () => ({
   useSendNavigation: jest.fn(),
 }));
 
+// Perps Discovery Banner mocks
+const mockUsePerpsMarketForAsset = jest.fn();
+jest.mock('../Perps/hooks/usePerpsMarketForAsset', () => ({
+  usePerpsMarketForAsset: () => mockUsePerpsMarketForAsset(),
+}));
+
+const mockSelectPerpsEnabledFlag = jest.fn();
+jest.mock('../Perps', () => ({
+  selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
+}));
+
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -400,6 +411,13 @@ describe('AssetOverview', () => {
       navigateToSendPage: jest.fn((params) => {
         mockNavigate('Send', params);
       }),
+    });
+
+    // Default Perps mock - disabled and no market exists (banner won't show)
+    mockSelectPerpsEnabledFlag.mockReturnValue(false);
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: false,
+      marketData: null,
     });
   });
 
@@ -1849,6 +1867,139 @@ describe('AssetOverview', () => {
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
+    });
+  });
+
+  describe('Perps Discovery Banner Token Trust Validation', () => {
+    const mockMarketData = {
+      symbol: 'ETH',
+      maxLeverage: 50,
+    };
+
+    beforeEach(() => {
+      // Reset Perps mocks before each test
+      mockSelectPerpsEnabledFlag.mockReset();
+      mockUsePerpsMarketForAsset.mockReset();
+    });
+
+    it('does NOT render Perps banner for token with insufficient aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithNoAggregators = {
+        ...asset,
+        aggregators: [], // No aggregators - not trustworthy
+        isETH: false,
+        isNative: false,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithNoAggregators} />,
+        { state: mockInitialState },
+      );
+
+      // Banner NOT rendered
+      expect(queryByTestId('perps-discovery-banner')).toBeNull();
+    });
+
+    it('renders Perps banner for native token regardless of aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const nativeToken = {
+        ...asset,
+        aggregators: [], // No aggregators, but native token is always trusted
+        isNative: true,
+        isETH: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={nativeToken} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for native tokens
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('renders Perps banner for ETH token regardless of aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const ethToken = {
+        ...asset,
+        aggregators: [], // No aggregators, but ETH is always trusted
+        isETH: true,
+        isNative: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={ethToken} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for ETH tokens
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('renders Perps banner for token with sufficient aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithAggregators = {
+        ...asset,
+        aggregators: ['CoinGecko', 'CoinMarketCap'], // 2 aggregators - trustworthy
+        isETH: false,
+        isNative: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithAggregators} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for tokens with sufficient aggregators
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('does NOT render Perps banner for token with only 1 aggregator', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithOneAggregator = {
+        ...asset,
+        aggregators: ['CoinGecko'], // Only 1 aggregator - not enough
+        isETH: false,
+        isNative: false,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithOneAggregator} />,
+        { state: mockInitialState },
+      );
+
+      // Banner NOT rendered - 1 aggregator is not enough
+      expect(queryByTestId('perps-discovery-banner')).toBeNull();
     });
   });
 });
