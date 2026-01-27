@@ -217,18 +217,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => mockMetrics,
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => mockMetrics,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withMetricsAwareness: (Component: any) => Component,
-  MetaMetricsEvents: {
-    ERROR_SCREEN_VIEWED: 'Error Screen Viewed',
-    WALLET_SETUP_FAILURE: 'Wallet Setup Failure',
-    WALLET_CREATION_ATTEMPTED: 'Wallet Creation Attempted',
-    WALLET_CREATED: 'Wallet Created',
-    WALLET_SETUP_COMPLETED: 'Wallet Setup Completed',
-    EXTERNAL_LINK_CLICKED: 'External Link Clicked',
-  },
+  withAnalyticsAwareness: (Component: any) => Component,
 }));
 
 const renderWithProviders = (ui: React.ReactElement) =>

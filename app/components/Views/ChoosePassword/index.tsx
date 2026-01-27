@@ -75,7 +75,7 @@ import TextField from '../../../component-library/components/Form/TextField/Text
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
 import ErrorBoundary from '../ErrorBoundary';
 import {
@@ -147,7 +147,7 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
-  const metrics = useMetrics();
+  const metrics = useAnalytics();
 
   const [isSelected, setIsSelected] = useState(false);
   const [password, setPassword] = useState('');

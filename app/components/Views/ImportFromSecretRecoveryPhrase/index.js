@@ -81,7 +81,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
@@ -160,7 +160,7 @@ const ImportFromSecretRecoveryPhrase = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedPhrase]);
 
-  const { isEnabled: isMetricsEnabled } = useMetrics();
+  const { isEnabled: isMetricsEnabled } = useAnalytics();
 
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
