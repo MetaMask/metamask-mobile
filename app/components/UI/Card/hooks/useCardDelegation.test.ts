@@ -909,7 +909,7 @@ describe('useCardDelegation', () => {
   });
 
   describe('generateSignatureMessage', () => {
-    it('generates SIWE message with correct format', async () => {
+    it('generates multi-line SIWE message for EVM networks', async () => {
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
 
@@ -930,10 +930,99 @@ describe('useCardDelegation', () => {
         'hex',
       ).toString('utf8');
 
+      // Verify content
       expect(signedMessage).toContain(`${mockAddress}`);
       expect(signedMessage).toContain('Chain ID: 59144');
       expect(signedMessage).toContain(`Nonce: ${mockNonce}`);
-      expect(signedMessage).toContain('metamask.app.link wants you to sign in');
+      expect(signedMessage).toContain(
+        'metamask.app.link wants you to sign in with your Ethereum account:',
+      );
+
+      // Verify multi-line format for EVM (contains newlines)
+      expect(signedMessage).toContain('\n');
+      expect(signedMessage).toContain('\nURI:');
+      expect(signedMessage).toContain('\nVersion:');
+      expect(signedMessage).toContain('\nChain ID:');
+      expect(signedMessage).toContain('\nNonce:');
+      expect(signedMessage).toContain('\nIssued At:');
+      expect(signedMessage).toContain('\nExpiration Time:');
+    });
+
+    it('generates single-line message for Solana network', async () => {
+      const mockToken = createMockToken();
+      const mockSolanaAddress = 'SolanaAddress123ABC';
+      const mockAccountId = 'solana-account-uuid-123';
+      const mockTxSignature = 'mock-tx-signature';
+      const params = {
+        ...createMockDelegationParams(),
+        network: 'solana' as const,
+      };
+
+      mockUseSelector.mockReturnValue(
+        jest.fn().mockReturnValue({
+          address: mockSolanaAddress,
+          id: mockAccountId,
+        }),
+      );
+
+      // Mock handleSnapRequest for both signCardMessage and approveCardAmount
+      mockHandleSnapRequest
+        .mockResolvedValueOnce({ signature: 'mock-solana-signature' }) // signCardMessage
+        .mockResolvedValueOnce({ signature: mockTxSignature }); // approveCardAmount
+
+      // Mock controllerMessenger.subscribe for Solana stateChange
+      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (eventName: string, callback: (state: unknown) => void) => {
+          if (eventName === 'MultichainTransactionsController:stateChange') {
+            setImmediate(() => {
+              callback({
+                nonEvmTransactions: {
+                  [mockAccountId]: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      transactions: [
+                        { id: mockTxSignature, status: 'confirmed' },
+                      ],
+                    },
+                  },
+                },
+              });
+            });
+          }
+        },
+      );
+
+      // Mock completeSolanaDelegation
+      mockSDK.completeSolanaDelegation = jest.fn().mockResolvedValue({});
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      // Get the message that was passed to signCardMessage
+      // handleSnapRequest is called with (controllerMessenger, requestObject)
+      const signCardMessageCall = mockHandleSnapRequest.mock.calls[0];
+      const requestObject = signCardMessageCall[1];
+      const base64Message = requestObject.request.params.message;
+
+      // Decode from base64
+      const message = Buffer.from(base64Message, 'base64').toString('utf8');
+
+      // Verify content
+      expect(message).toContain(mockSolanaAddress);
+      expect(message).toContain(
+        'metamask.app.link wants you to sign in with your Solana account:',
+      );
+      expect(message).toContain(`Nonce: ${mockNonce}`);
+
+      // Verify single-line format for Solana (no newlines in message structure)
+      expect(message).not.toContain('\nURI:');
+      expect(message).not.toContain('\nVersion:');
+      expect(message).not.toContain('\nChain ID:');
+      expect(message).toContain(' URI: ');
+      expect(message).toContain(' Version: ');
+      expect(message).toContain(' Chain ID: ');
     });
 
     it('extracts chain ID from token caipChainId', async () => {

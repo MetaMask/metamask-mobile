@@ -95,7 +95,11 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       const capitalizedNetwork =
         network.charAt(0).toUpperCase() + network.slice(1);
 
-      return `${domain} wants you to sign in with your ${capitalizedNetwork} account: ${address} Prove address ownership URI: ${uri} Version: 1 Chain ID: ${chainId} Nonce: ${nonce} Issued At: ${now.toISOString()} Expiration Time: ${expirationTime.toISOString()}`;
+      if (network === 'solana') {
+        return `${domain} wants you to sign in with your ${capitalizedNetwork} account: ${address} Prove address ownership URI: ${uri} Version: 1 Chain ID: ${chainId} Nonce: ${nonce} Issued At: ${now.toISOString()} Expiration Time: ${expirationTime.toISOString()}`;
+      }
+
+      return `${domain} wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
     },
     [],
   );
