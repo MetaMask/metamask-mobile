@@ -2,9 +2,11 @@ import { handleEarnMusd } from '../handleEarnMusd';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
+jest.mock('../../../../../util/Logger');
 
 describe('handleEarnMusd', () => {
   let mockNavigate: jest.Mock;
@@ -18,6 +20,7 @@ describe('handleEarnMusd', () => {
     } as unknown as typeof NavigationService.navigation;
 
     (DevLogger.log as jest.Mock) = jest.fn();
+    (Logger.error as jest.Mock) = jest.fn();
   });
 
   it('navigates to EARN.ROOT with MUSD.CONVERSION_EDUCATION screen and isDeeplink flag', () => {
@@ -59,6 +62,33 @@ describe('handleEarnMusd', () => {
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleEarnMusd] Failed to handle deeplink:',
       error,
+    );
+    expect(Logger.error).toHaveBeenCalledWith(
+      error,
+      '[handleEarnMusd] Error handling earn-musd deeplink',
+    );
+  });
+
+  it('logs error when fallback navigation also fails', () => {
+    const primaryError = new Error('Primary navigation error');
+    const fallbackError = new Error('Fallback navigation error');
+    mockNavigate
+      .mockImplementationOnce(() => {
+        throw primaryError;
+      })
+      .mockImplementationOnce(() => {
+        throw fallbackError;
+      });
+
+    handleEarnMusd();
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      primaryError,
+      '[handleEarnMusd] Error handling earn-musd deeplink',
+    );
+    expect(Logger.error).toHaveBeenCalledWith(
+      fallbackError,
+      '[handleEarnMusd] Failed to navigate to fallback screen',
     );
   });
 });
