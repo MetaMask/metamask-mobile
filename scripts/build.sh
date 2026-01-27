@@ -178,6 +178,86 @@ remapEnvVariable() {
     echo "Successfully remapped $old_var_name to $new_var_name."
 }
 
+# Create .env file from environment variables and optionally export to GITHUB_ENV
+createEnvFile() {
+    echo "📝 Creating .env file from environment variables..."
+
+    # List of environment variable names to export
+    ENV_VARS=(
+        "MM_MUSD_CONVERSION_FLOW_ENABLED"
+        "MM_NETWORK_UI_REDESIGN_ENABLED"
+        "MM_NOTIFICATIONS_UI_ENABLED"
+        "MM_PERMISSIONS_SETTINGS_V1_ENABLED"
+        "MM_PERPS_BLOCKED_REGIONS"
+        "MM_PERPS_ENABLED"
+        "MM_PERPS_HIP3_ALLOWLIST_MARKETS"
+        "MM_PERPS_HIP3_BLOCKLIST_MARKETS"
+        "MM_PERPS_HIP3_ENABLED"
+        "MM_SECURITY_ALERTS_API_ENABLED"
+        "BRIDGE_USE_DEV_APIS"
+        "SEEDLESS_ONBOARDING_ENABLED"
+        "RAMP_INTERNAL_BUILD"
+        "FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
+        "FEATURES_ANNOUNCEMENTS_SPACE_ID"
+        "SEGMENT_WRITE_KEY"
+        "SEGMENT_PROXY_URL"
+        "SEGMENT_DELETE_API_SOURCE_ID"
+        "SEGMENT_REGULATIONS_ENDPOINT"
+        "MM_SENTRY_DSN"
+        "MM_SENTRY_AUTH_TOKEN"
+        "IOS_GOOGLE_CLIENT_ID"
+        "IOS_GOOGLE_REDIRECT_URI"
+        "ANDROID_APPLE_CLIENT_ID"
+        "ANDROID_GOOGLE_CLIENT_ID"
+        "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+        "MM_INFURA_PROJECT_ID"
+        "MM_BRANCH_KEY_LIVE"
+        "MM_BRANCH_KEY_TEST"
+        "MM_CARD_BAANX_API_CLIENT_KEY"
+        "WALLET_CONNECT_PROJECT_ID"
+        "MM_FOX_CODE"
+        "FCM_CONFIG_API_KEY"
+        "FCM_CONFIG_AUTH_DOMAIN"
+        "FCM_CONFIG_STORAGE_BUCKET"
+        "FCM_CONFIG_PROJECT_ID"
+        "FCM_CONFIG_MESSAGING_SENDER_ID"
+        "FCM_CONFIG_APP_ID"
+        "FCM_CONFIG_MEASUREMENT_ID"
+        "QUICKNODE_MAINNET_URL"
+        "QUICKNODE_ARBITRUM_URL"
+        "QUICKNODE_AVALANCHE_URL"
+        "QUICKNODE_BASE_URL"
+        "QUICKNODE_LINEA_MAINNET_URL"
+        "QUICKNODE_MONAD_URL"
+        "QUICKNODE_OPTIMISM_URL"
+        "QUICKNODE_POLYGON_URL"
+    )
+
+    # Create .env file
+    > .env
+    
+    # Export to GITHUB_ENV if in CI environment
+    local exported_count=0
+    for var in "${ENV_VARS[@]}"; do
+        value="${!var}"
+        if [ -n "$value" ]; then
+            echo "${var}=${value}" >> .env
+            
+            # Export to GITHUB_ENV if in GitHub Actions
+            if [ -n "$GITHUB_ENV" ]; then
+                echo "${var}=${value}" >> "$GITHUB_ENV"
+            fi
+            
+            echo "✅ Exported: ${var} (value hidden)"
+            ((exported_count++))
+        else
+            echo "⚠️ Skipped (empty): ${var}"
+        fi
+    done
+
+    echo "📄 .env file created with ${exported_count} variables"
+}
+
 # Mapping for Main env variables in the dev environment
 remapMainDevEnvVariables() {
   	echo "Remapping Main target environment variables for the dev environment"
@@ -631,6 +711,9 @@ generateAndroidBinary() {
 buildExpoUpdate() {
 		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
 
+		# Create .env file from environment variables
+		createEnvFile
+
 		if [ -z "${EXPO_TOKEN}" ]; then
 			echo "EXPO_TOKEN is NOT set in build.sh env"
 		else
@@ -884,7 +967,6 @@ elif [ "$PLATFORM" == "android" ]; then
 		envFileMissing $ANDROID_ENV_FILE
 	fi
 elif [ "$PLATFORM" == "expo-update" ]; then
-	# we don't care about env file in CI
 	buildExpoUpdate
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
