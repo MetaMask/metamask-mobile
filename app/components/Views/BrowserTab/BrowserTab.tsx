@@ -1235,16 +1235,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       (item: AutocompleteSearchResult) => {
         // Unfocus the url bar and hide the autocomplete results
         urlBarRef.current?.hide();
-        if (item.category === 'tokens') {
-          navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
-            chainId: item.chainId,
-            address: item.address,
-          });
-        } else {
-          onSubmitEditing(item.url);
-        }
+        onSubmitEditing(item.url);
       },
-      [onSubmitEditing, navigation],
+      [onSubmitEditing],
     );
 
     /**
