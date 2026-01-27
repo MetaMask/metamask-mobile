@@ -1500,63 +1500,6 @@ class FixtureBuilder {
     return this;
   }
 
-  /**
-   * Enables smart transactions with feature flags for specified chain(s).
-   * Sets both user opt-in preference and network feature flags.
-   * @param chainIds - Optional array of hex chain IDs. Defaults to common chains (mainnet, base, etc.)
-   * @returns FixtureBuilder
-   */
-  withSmartTransactionsEnabled(
-    chainIds: string[] = [
-      '0x1', // Mainnet
-      '0x2105', // Base
-      '0xe708', // Linea
-      '0x38', // BSC
-      '0xa4b1', // Arbitrum
-      '0x89', // Polygon
-    ],
-  ) {
-    // Enable user opt-in preference
-    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
-      smartTransactionsOptInStatus: true,
-    });
-
-    // Enable feature flags for each chain
-    const smartTransactionsNetworks: Record<string, unknown> = {};
-    chainIds.forEach((chainId) => {
-      smartTransactionsNetworks[chainId] = {
-        mobileActive: true,
-        mobileActiveIOS: true,
-        mobileActiveAndroid: true,
-      };
-    });
-
-    merge(
-      this.fixture.state.engine.backgroundState.RemoteFeatureFlagController,
-      {
-        remoteFeatureFlags: {
-          smartTransactionsNetworks,
-        },
-      },
-    );
-
-    // Enable liveness for each chain
-    const livenessByChainId: Record<string, boolean> = {};
-    chainIds.forEach((chainId) => {
-      livenessByChainId[chainId] = true;
-    });
-
-    merge(this.fixture.state.engine.backgroundState, {
-      SmartTransactionsController: {
-        smartTransactionsState: {
-          livenessByChainId,
-        },
-      },
-    });
-
-    return this;
-  }
-
   withPreferencesController(data: Record<string, unknown>) {
     merge(
       this.fixture.state.engine.backgroundState.PreferencesController,
