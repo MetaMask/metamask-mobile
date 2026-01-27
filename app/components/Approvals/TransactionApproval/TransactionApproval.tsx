@@ -7,6 +7,7 @@ import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import { useConfirmationRedesignEnabled } from '../../Views/confirmations/hooks/useConfirmationRedesignEnabled';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
+import Engine from '../../../core/Engine';
 
 export enum TransactionModalType {
   Transaction = 'transaction',
@@ -39,6 +40,17 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
   const onComplete = useCallback(() => {
     propsOnComplete();
   }, [propsOnComplete]);
+
+  const onCancel = useCallback(() => {
+    // Ensure the pending QR scan request is rejected when user cancels
+    // This prevents the modal from reappearing after dismissal
+    if (pendingScanRequest) {
+      Engine.getQrKeyringScanner().rejectPendingScan(
+        new Error('Transaction cancelled'),
+      );
+    }
+    propsOnComplete();
+  }, [pendingScanRequest, propsOnComplete]);
 
   if (
     (approvalRequest?.type !== ApprovalTypes.TRANSACTION && !isQRSigning) ||
@@ -73,8 +85,8 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
         isVisible
         pendingScanRequest={pendingScanRequest}
         onSuccess={onComplete}
-        onCancel={onComplete}
-        onFailure={onComplete}
+        onCancel={onCancel}
+        onFailure={onCancel}
       />
     );
   }

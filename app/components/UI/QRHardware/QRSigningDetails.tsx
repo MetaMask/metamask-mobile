@@ -178,7 +178,10 @@ const QRSigningDetails = ({
   const [hasSentOrCanceled, setSentOrCanceled] = useState(false);
 
   useEffect(() => {
-    navigation.addListener('beforeRemove', (e) => {
+    const handleBeforeRemove = (e: {
+      preventDefault: () => void;
+      data: { action: Parameters<typeof navigation.dispatch>[0] };
+    }) => {
       if (hasSentOrCanceled) {
         return;
       }
@@ -189,7 +192,14 @@ const QRSigningDetails = ({
         );
       }
       navigation.dispatch(e.data.action);
-    });
+    };
+
+    navigation.addListener('beforeRemove', handleBeforeRemove);
+
+    // Cleanup: remove listener when dependencies change or component unmounts
+    return () => {
+      navigation.removeListener('beforeRemove', handleBeforeRemove);
+    };
   }, [pendingScanRequest, hasSentOrCanceled, navigation]);
 
   const resetError = () => {
