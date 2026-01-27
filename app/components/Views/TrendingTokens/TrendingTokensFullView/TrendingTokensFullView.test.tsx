@@ -357,9 +357,9 @@ describe('TrendingTokensFullView', () => {
         const { getByTestId, getByText } = testUtils;
         const priceChangeSelect = getByTestId('price-change-select-volume');
         await userEvent.press(priceChangeSelect);
+        await userEvent.press(getByText('Apply'));
 
-        // Price change button label should update to "Volume"
-        expect(getByText('Volume')).toBeOnTheScreen();
+        expect(getByTestId('price-change-button')).toHaveTextContent('Volume');
       },
     },
   ] as const;
