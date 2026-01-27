@@ -504,6 +504,98 @@ export function isENS(name: string | undefined = undefined) {
 }
 
 /**
+ * Helper function to validate traditional domain name format.
+ * Used by isResolvableName to check domain-style names.
+ *
+ * @param {string} name - The name to validate as a domain
+ * @returns {boolean} - Returns true if name matches domain format
+ */
+function isValidDomainName(name: string): boolean {
+  const match = punycode.toASCII(name).toLowerCase().match(regex.ensName);
+  const OFFSET = 1;
+  const index = name?.lastIndexOf('.');
+  const tld =
+    index &&
+    index >= OFFSET &&
+    tlc(name.substr(index + OFFSET, name.length - OFFSET));
+  return !!(index && tld && match);
+}
+
+/**
+ * Determines if a string is a resolvable name that can be looked up by name resolution snaps.
+ * Supports three formats:
+ * 1. Traditional domain names (e.g., vitalik.eth, example.com)
+ * 2. Email-like formats (e.g., user@protocol)
+ * 3. Scheme-based formats (e.g., lens:username, ens:vitalik)
+ *
+ * @param {string | undefined} name - The name to validate
+ * @returns {boolean} - Returns true if the name can potentially be resolved
+ */
+export function isResolvableName(name: string | undefined): boolean {
+  // Must be a non-empty string
+  if (!name || typeof name !== 'string') {
+    return false;
+  }
+
+  const trimmed = name.trim();
+
+  // Minimum length of 2 characters
+  if (trimmed.length < 2) {
+    return false;
+  }
+
+  // Reject if it looks like an Ethereum address (0x followed by 40 hex chars)
+  if (/^0x[a-fA-F0-9]{40}$/u.test(trimmed)) {
+    return false;
+  }
+
+  // Reject pure numbers
+  if (/^\d+$/u.test(trimmed)) {
+    return false;
+  }
+
+  // Reject URLs - check for common URL schemes early to avoid false positives
+  const URL_SCHEMES = [
+    'http',
+    'https',
+    'ftp',
+    'ftps',
+    'file',
+    'mailto',
+    'tel',
+    'sms',
+    'data',
+    'blob',
+    'javascript',
+    'ws',
+    'wss',
+  ];
+  if (trimmed.includes(':')) {
+    const scheme = trimmed.split(':')[0].toLowerCase();
+    if (URL_SCHEMES.includes(scheme)) {
+      return false;
+    }
+  }
+
+  // Accept if it matches traditional domain name format
+  if (isValidDomainName(trimmed)) {
+    return true;
+  }
+
+  // Accept email-like formats (contains @ with text on both sides)
+  if (/^[^\s@]+@[^\s@]+$/u.test(trimmed)) {
+    return true;
+  }
+
+  // Accept scheme-based formats (e.g., ens:vitalik, lens:username)
+  if (/^[a-zA-Z][a-zA-Z0-9]*:[^\s]+$/u.test(trimmed)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Determines if a given string looks like a valid Ethereum address
  *
  * @param {string} address The 42 character Ethereum address composed of:

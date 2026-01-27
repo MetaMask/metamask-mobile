@@ -34,12 +34,16 @@ describe('useNameValidation', () => {
   const mockSetResolvedAddress = jest.fn();
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockUseSendType.mockReturnValue({
       isEvmSendType: false,
     } as ReturnType<typeof useSendType>);
     mockUseSendFlowEnsResolutions.mockReturnValue({
       setResolvedAddress: mockSetResolvedAddress,
     } as unknown as ReturnType<typeof useSendFlowEnsResolutions>);
+    jest
+      .spyOn(SendValidationUtils, 'getConfusableCharacterInfo')
+      .mockReturnValue({});
   });
 
   it('return function to validate name', () => {
@@ -68,6 +72,7 @@ describe('useNameValidation', () => {
       ),
     ).toStrictEqual({
       resolvedAddress: 'dummy_address',
+      protocol: undefined,
     });
     expect(mockSetResolvedAddress).not.toHaveBeenCalled();
   });
@@ -93,6 +98,7 @@ describe('useNameValidation', () => {
       ),
     ).toStrictEqual({
       resolvedAddress: 'dummy_address',
+      protocol: undefined,
     });
     expect(mockSetResolvedAddress).toHaveBeenCalledWith(
       '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
@@ -127,6 +133,202 @@ describe('useNameValidation', () => {
       error: 'dummy_error',
       warning: 'dummy_warning',
       resolvedAddress: 'dummy_address',
+      protocol: undefined,
+    });
+  });
+
+  it('returns error when name resolver returns zero address', async () => {
+    jest.spyOn(SnapNameResolution, 'useSnapNameResolution').mockReturnValue({
+      fetchResolutions: () =>
+        Promise.resolve([
+          {
+            resolvedAddress: '0x0000000000000000000000000000000000000000',
+          } as unknown as AddressResolution,
+        ]),
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useNameValidation(),
+      mockState,
+    );
+
+    const validationResult = await result.current.validateName(
+      '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      'test.eth',
+    );
+
+    expect(validationResult).toStrictEqual({
+      error:
+        'Name resolver returned an invalid address. Please check the name and try again.',
+    });
+  });
+
+  it('returns error when name resolver returns burn address', async () => {
+    jest.spyOn(SnapNameResolution, 'useSnapNameResolution').mockReturnValue({
+      fetchResolutions: () =>
+        Promise.resolve([
+          {
+            resolvedAddress: '0x0',
+          } as unknown as AddressResolution,
+        ]),
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useNameValidation(),
+      mockState,
+    );
+
+    const validationResult = await result.current.validateName(
+      '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      'test.eth',
+    );
+
+    expect(validationResult).toStrictEqual({
+      error:
+        'Name resolver returned an invalid address. Please check the name and try again.',
+    });
+  });
+
+  it('returns empty object when signal is aborted before resolution', async () => {
+    const mockFetchResolutions = jest.fn();
+    jest.spyOn(SnapNameResolution, 'useSnapNameResolution').mockReturnValue({
+      fetchResolutions: mockFetchResolutions,
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useNameValidation(),
+      mockState,
+    );
+
+    const abortController = new AbortController();
+    abortController.abort();
+
+    const validationResult = await result.current.validateName(
+      '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      'test.eth',
+      abortController.signal,
+    );
+
+    expect(validationResult).toStrictEqual({});
+    expect(mockFetchResolutions).not.toHaveBeenCalled();
+  });
+
+  it('returns empty object when signal is aborted during resolution', async () => {
+    jest.spyOn(SnapNameResolution, 'useSnapNameResolution').mockReturnValue({
+      fetchResolutions: () => Promise.resolve([]),
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useNameValidation(),
+      mockState,
+    );
+
+    const abortController = new AbortController();
+    const validationPromise = result.current.validateName(
+      '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      'test.eth',
+      abortController.signal,
+    );
+
+    abortController.abort();
+    const validationResult = await validationPromise;
+
+    expect(validationResult).toStrictEqual({});
+  });
+
+  it('returns protocol field from resolution', async () => {
+    jest.spyOn(SnapNameResolution, 'useSnapNameResolution').mockReturnValue({
+      fetchResolutions: () =>
+        Promise.resolve([
+          {
+            resolvedAddress: 'dummy_address',
+            protocol: 'lens',
+          } as unknown as AddressResolution,
+        ]),
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useNameValidation(),
+      mockState,
+    );
+
+    const validationResult = await result.current.validateName(
+      '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      'test.lens',
+    );
+
+    expect(validationResult).toStrictEqual({
+      resolvedAddress: 'dummy_address',
+      protocol: 'lens',
+    });
+  });
+
+  it('returns error when name is not resolvable format', async () => {
+    const { result } = renderHookWithProvider(
+      () => useNameValidation(),
+      mockState,
+    );
+
+    const validationResult = await result.current.validateName(
+      '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      '123456',
+    );
+
+    expect(validationResult).toStrictEqual({
+      error: "Couldn't resolve name",
+    });
+  });
+
+  it('supports email-like format names', async () => {
+    jest.spyOn(SnapNameResolution, 'useSnapNameResolution').mockReturnValue({
+      fetchResolutions: () =>
+        Promise.resolve([
+          {
+            resolvedAddress: 'dummy_address',
+          } as unknown as AddressResolution,
+        ]),
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useNameValidation(),
+      mockState,
+    );
+
+    const validationResult = await result.current.validateName(
+      '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      'user@protocol',
+    );
+
+    expect(validationResult).toStrictEqual({
+      resolvedAddress: 'dummy_address',
+      protocol: undefined,
+    });
+  });
+
+  it('supports scheme-based format names', async () => {
+    jest.spyOn(SnapNameResolution, 'useSnapNameResolution').mockReturnValue({
+      fetchResolutions: () =>
+        Promise.resolve([
+          {
+            resolvedAddress: 'dummy_address',
+            protocol: 'lens',
+          } as unknown as AddressResolution,
+        ]),
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useNameValidation(),
+      mockState,
+    );
+
+    const validationResult = await result.current.validateName(
+      '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      'lens:username',
+    );
+
+    expect(validationResult).toStrictEqual({
+      resolvedAddress: 'dummy_address',
+      protocol: 'lens',
     });
   });
 });

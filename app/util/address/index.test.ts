@@ -3,6 +3,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 
 import {
   isENS,
+  isResolvableName,
   renderSlightlyLongAddress,
   formatAddress,
   isValidHexAddress,
@@ -100,20 +101,128 @@ jest.mock('../../util/ENSUtils', () => ({
 }));
 
 describe('isENS', () => {
-  it('should return false by default', () => {
+  it('returns false by default', () => {
     expect(isENS()).toBe(false);
   });
-  it('should return true for normal domain', () => {
+  it('returns true for normal domain', () => {
     expect(isENS('ricky.codes')).toBe(true);
   });
-  it('should return true for ens', () => {
+  it('returns true for ens', () => {
     expect(isENS('rickycodes.eth')).toBe(true);
   });
-  it('should return true for eth ens', () => {
+  it('returns true for eth ens', () => {
     expect(isENS('ricky.eth.eth')).toBe(true);
   });
-  it('should return true for metamask ens', () => {
+  it('returns true for metamask ens', () => {
     expect(isENS('ricky.metamask.eth')).toBe(true);
+  });
+});
+
+describe('isResolvableName', () => {
+  describe('traditional domain names', () => {
+    it('returns true for normal domain', () => {
+      const result = isResolvableName('ricky.codes');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for ENS name', () => {
+      const result = isResolvableName('vitalik.eth');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for multi-level domain', () => {
+      const result = isResolvableName('subdomain.example.com');
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('email-like formats', () => {
+    it('returns true for email-like format', () => {
+      const result = isResolvableName('user@protocol');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for email-like with subdomain', () => {
+      const result = isResolvableName('user@sub.protocol');
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('scheme-based formats', () => {
+    it('returns true for lens protocol format', () => {
+      const result = isResolvableName('lens:username');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for ens scheme format', () => {
+      const result = isResolvableName('ens:vitalik');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for scheme with numeric identifier', () => {
+      const result = isResolvableName('protocol:123');
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('rejects invalid inputs', () => {
+    it('returns false for undefined', () => {
+      const result = isResolvableName(undefined);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for empty string', () => {
+      const result = isResolvableName('');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for single character', () => {
+      const result = isResolvableName('a');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for Ethereum address', () => {
+      const result = isResolvableName(
+        '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for pure numbers', () => {
+      const result = isResolvableName('123456');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for http URL', () => {
+      const result = isResolvableName('http://example.com');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for https URL', () => {
+      const result = isResolvableName('https://example.com');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for mailto URL', () => {
+      const result = isResolvableName('mailto:user@example.com');
+
+      expect(result).toBe(false);
+    });
   });
 });
 
