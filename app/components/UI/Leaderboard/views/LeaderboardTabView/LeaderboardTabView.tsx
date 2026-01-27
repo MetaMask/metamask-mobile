@@ -51,7 +51,6 @@ const LeaderboardTabView: React.FC<LeaderboardTabViewProps> = ({
     }
   }, [onVisibilityChange]);
 
-  // Update visibility when prop changes
   useEffect(() => {
     setCurrentVisibility(isVisible);
   }, [isVisible]);
@@ -105,7 +104,7 @@ const LeaderboardTabView: React.FC<LeaderboardTabViewProps> = ({
   }
 
   const content = (
-    <Box twClassName="px-4" testID={LeaderboardTestIds.CONTAINER}>
+    <Box twClassName="px-1" testID={LeaderboardTestIds.CONTAINER}>
       <LeaderboardHeader />
       {traders.map((trader, index) => (
         <LeaderboardRow
@@ -140,7 +139,6 @@ const LeaderboardTabView: React.FC<LeaderboardTabViewProps> = ({
         {content}
       </ConditionalScrollView>
 
-      {/* Trader Detail Bottom Sheet - Uses Modal for proper full-screen overlay */}
       <TraderDetailSheet
         trader={selectedTrader}
         isVisible={isDetailSheetVisible}

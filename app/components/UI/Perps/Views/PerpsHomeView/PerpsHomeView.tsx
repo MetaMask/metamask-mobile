@@ -59,6 +59,7 @@ import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
 import Logger from '../../../../../util/Logger';
+import NavigationService from '../../../../../core/NavigationService';
 import { TraceName } from '../../../../../util/trace';
 import {
   PerpsEventProperties,
@@ -72,6 +73,10 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import {
+  LeaderboardCTA,
+  selectLeaderboardEnabledFlag,
+} from '../../../Leaderboard';
 
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -83,6 +88,9 @@ const PerpsHomeView = () => {
 
   // Feature flag for feedback button
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
+
+  // Feature flag for leaderboard
+  const isLeaderboardEnabled = useSelector(selectLeaderboardEnabledFlag);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -392,6 +400,21 @@ const PerpsHomeView = () => {
   // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
   const handleBackPress = perpsNavigation.navigateToWallet;
 
+  // Navigate to the Leaderboard tab on wallet screen
+  const handleLeaderboardPress = useCallback(() => {
+    // Navigate to wallet home first
+    NavigationService.navigation.navigate(Routes.WALLET.HOME);
+
+    // Then set params after a delay to select the leaderboard tab
+    // This pattern is required for React Navigation to properly propagate params
+    // Using NavigationService to set params on the newly focused screen (Wallet)
+    setTimeout(() => {
+      NavigationService.navigation.setParams({
+        initialTab: 'leaderboard',
+      });
+    }, 200);
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header - Using extracted component */}
@@ -414,6 +437,15 @@ const PerpsHomeView = () => {
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS}
         />
+
+        {/* Leaderboard CTA */}
+        {isLeaderboardEnabled && (
+          <LeaderboardCTA
+            onPress={handleLeaderboardPress}
+            maxTraders={3}
+            testID="perps-leaderboard-cta"
+          />
+        )}
 
         {/* Positions Section */}
         <PerpsHomeSection

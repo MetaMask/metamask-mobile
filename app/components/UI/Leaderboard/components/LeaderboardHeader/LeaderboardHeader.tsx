@@ -19,22 +19,18 @@ const LeaderboardHeader: React.FC = () => (
     twClassName="border-b border-muted"
     testID={LeaderboardTestIds.HEADER_ROW}
   >
-    {/* Rank */}
-    <Box twClassName="w-10">
-      <Text variant={TextVariant.BodySm} twClassName="text-muted">
-        {strings('leaderboard.rank')}
-      </Text>
-    </Box>
+    {/* Rank - empty column to align with row */}
+    <Box twClassName="w-8" />
 
     {/* Trader */}
-    <Box twClassName="flex-1">
+    <Box twClassName="flex-1 mr-2">
       <Text variant={TextVariant.BodySm} twClassName="text-muted">
         {strings('leaderboard.trader')}
       </Text>
     </Box>
 
     {/* Followers */}
-    <Box twClassName="w-16" alignItems={BoxAlignItems.Center}>
+    <Box twClassName="w-16 mr-2" alignItems={BoxAlignItems.Center}>
       <Text variant={TextVariant.BodySm} twClassName="text-muted">
         {strings('leaderboard.followers')}
       </Text>

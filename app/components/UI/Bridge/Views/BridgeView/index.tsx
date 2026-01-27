@@ -72,6 +72,7 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
+import NavigationService from '../../../../../core/NavigationService';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
@@ -86,6 +87,10 @@ import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
+import {
+  LeaderboardCTA,
+  selectLeaderboardEnabledFlag,
+} from '../../../Leaderboard';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -135,6 +140,8 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const isLeaderboardEnabled = useSelector(selectLeaderboardEnabledFlag);
+
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
@@ -382,6 +389,20 @@ const BridgeView = () => {
       type: 'dest',
     });
 
+  const handleLeaderboardPress = () => {
+    // Navigate to wallet home first
+    NavigationService.navigation.navigate(Routes.WALLET.HOME);
+
+    // Then set params after a delay to select the leaderboard tab
+    // This pattern is required for React Navigation to properly propagate params
+    // Using NavigationService to set params on the newly focused screen (Wallet)
+    setTimeout(() => {
+      NavigationService.navigation.setParams({
+        initialTab: 'leaderboard',
+      });
+    }, 200);
+  };
+
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
@@ -577,6 +598,15 @@ const BridgeView = () => {
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Leaderboard CTA - Always show when leaderboard is enabled */}
+          {isLeaderboardEnabled && (
+            <LeaderboardCTA
+              onPress={handleLeaderboardPress}
+              maxTraders={3}
+              testID="swap-leaderboard-cta"
+            />
+          )}
+
           <Box style={styles.dynamicContent}>
             {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>

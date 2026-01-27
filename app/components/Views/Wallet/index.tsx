@@ -438,7 +438,33 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
         return () => clearTimeout(timer);
       }
-    }, [route.params, isPerpsEnabled, navigationParams, navigation]),
+
+      if (initialTab === 'leaderboard' && isLeaderboardEnabled) {
+        // Calculate the index of the Leaderboard tab
+        // Tokens is always at index 0, Perps is at index 1, Leaderboard is at index 2 (when both enabled)
+        const targetLeaderboardTabIndex = isPerpsEnabled ? 2 : 1;
+
+        // Small delay ensures the TabsList is fully rendered before selection
+        const timer = setTimeout(() => {
+          tabsListRef.current?.goToTabIndex(targetLeaderboardTabIndex);
+
+          // Clear the params to prevent re-selection on subsequent focuses
+          if (navigation?.setParams) {
+            navigation.setParams({
+              initialTab: undefined,
+            });
+          }
+        }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+
+        return () => clearTimeout(timer);
+      }
+    }, [
+      route.params,
+      isPerpsEnabled,
+      isLeaderboardEnabled,
+      navigationParams,
+      navigation,
+    ]),
   );
 
   // Build tabs array dynamically based on enabled features

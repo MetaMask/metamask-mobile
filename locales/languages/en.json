@@ -1989,7 +1989,9 @@
     "loading": "Loading traders...",
     "close": "Close",
     "follow": "Follow",
-    "following": "Following"
+    "following": "Following",
+    "cta_title": "Top Traders",
+    "cta_subtitle": "#1 trader {{pnl}} this month"
   },
   "predict": {
     "title": "MetaMask Predictions",

@@ -117,22 +117,12 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
                   color={IconColor.Muted}
                 />
               )}
-              {trader.metadata.farcasterUsername && (
-                <View style={tw.style('w-3 h-3 items-center justify-center')}>
-                  <Text
-                    variant={TextVariant.BodyXs}
-                    twClassName="text-muted font-bold"
-                  >
-                    ⌐
-                  </Text>
-                </View>
-              )}
             </Box>
           </Box>
         </Box>
 
         {/* Followers */}
-        <Box twClassName="w-16" alignItems={BoxAlignItems.Center}>
+        <Box twClassName="w-16 mr-2" alignItems={BoxAlignItems.Center}>
           <Text
             variant={TextVariant.BodyMd}
             testID={`${LeaderboardTestIds.TRADER_FOLLOWERS}-${rank}`}
@@ -142,7 +132,7 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
         </Box>
 
         {/* PnL (30D) */}
-        <Box twClassName="w-16" alignItems={BoxAlignItems.End}>
+        <Box twClassName="w-20" alignItems={BoxAlignItems.End}>
           <Text
             variant={TextVariant.BodyMd}
             twClassName={
