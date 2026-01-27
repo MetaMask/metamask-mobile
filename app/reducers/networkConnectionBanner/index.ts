@@ -20,10 +20,10 @@ export type NetworkConnectionBannerState =
       rpcUrl: string;
       isInfuraEndpoint: boolean;
       /**
-       * Index of an available Infura endpoint (for custom networks that have one)
+       * Network client ID of an available Infura endpoint (for custom networks that have one)
        * that can be used to switch to Infura. Undefined if no Infura endpoint is available.
        */
-      infuraEndpointIndex?: number;
+      infuraNetworkClientId?: string;
     };
 
 /**
@@ -54,7 +54,7 @@ const networkConnectionBannerReducer = (
         networkName: action.networkName,
         rpcUrl: action.rpcUrl,
         isInfuraEndpoint: action.isInfuraEndpoint,
-        infuraEndpointIndex: action.infuraEndpointIndex,
+        infuraNetworkClientId: action.infuraNetworkClientId,
       };
     case NetworkConnectionBannerActionType.HIDE_NETWORK_CONNECTION_BANNER:
       return {

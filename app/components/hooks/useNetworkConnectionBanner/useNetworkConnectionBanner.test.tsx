@@ -455,7 +455,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
     });
 
@@ -504,7 +504,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
     });
 
@@ -550,7 +550,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/test-infura-project-id',
         isInfuraEndpoint: true,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
     });
 
@@ -619,7 +619,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
     });
 
@@ -644,7 +644,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
 
       expect(actions[1]).toStrictEqual({
@@ -654,7 +654,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
     });
 
@@ -754,7 +754,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
     });
 
@@ -785,7 +785,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
     });
 
@@ -830,7 +830,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
       expect(actions[1]).toStrictEqual({
         type: 'SHOW_NETWORK_CONNECTION_BANNER',
@@ -839,7 +839,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
       expect(actions[1].status).toBe('unavailable');
       expect(actions[1].networkName).toBe('Polygon Mainnet');
@@ -1321,7 +1321,7 @@ describe('useNetworkConnectionBanner', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('does nothing when infuraEndpointIndex is undefined', async () => {
+    it('does nothing when infuraNetworkClientId is undefined', async () => {
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: true,
         chainId: '0x89',
@@ -1329,7 +1329,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
 
       const { result } = renderHookWithProvider();
@@ -1355,7 +1355,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: 1,
+        infuraNetworkClientId: 'polygon-mainnet',
       });
 
       const { result } = renderHookWithProvider();
@@ -1407,7 +1407,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: 1,
+        infuraNetworkClientId: 'polygon-mainnet',
       });
 
       const { result } = renderHookWithProvider();
@@ -1438,7 +1438,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: 1,
+        infuraNetworkClientId: 'polygon-mainnet',
       });
 
       const { result } = renderHookWithProvider();
@@ -1463,7 +1463,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: 1,
+        infuraNetworkClientId: 'polygon-mainnet',
       });
 
       const { result } = renderHookWithProvider();
@@ -1479,15 +1479,15 @@ describe('useNetworkConnectionBanner', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('recalculates fresh Infura endpoint index from current config', async () => {
-      // Config where Infura endpoint is now at index 0 (different from banner state index 1)
+    it('finds correct endpoint index by networkClientId even when endpoints are reordered', async () => {
+      // Config where Infura endpoint moved to index 0 (was originally at index 1)
       const reorderedConfig: NetworkConfiguration = {
         chainId: '0x89',
         name: 'Polygon Mainnet',
         rpcEndpoints: [
           {
             url: 'https://polygon-mainnet.infura.io/v3/test-infura-project-id',
-            networkClientId: '0x89-infura',
+            networkClientId: 'polygon-mainnet', // Same networkClientId, different index
             type: RpcEndpointType.Custom,
           },
           {
@@ -1512,7 +1512,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: 1, // Stale index - Infura is now at index 0
+        infuraNetworkClientId: 'polygon-mainnet',
       });
 
       const { result } = renderHookWithProvider();
@@ -1521,7 +1521,7 @@ describe('useNetworkConnectionBanner', () => {
         await result.current.switchToInfura();
       });
 
-      // Uses fresh index 0 instead of stale index 1
+      // Finds endpoint by networkClientId and uses its current index (0)
       expect(mockNetworkController.updateNetwork).toHaveBeenCalledWith(
         '0x89',
         {
@@ -1562,7 +1562,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: 1, // Stale - Infura endpoint was removed
+        infuraNetworkClientId: 'polygon-mainnet', // The Infura endpoint was removed
       });
 
       const { result } = renderHookWithProvider();
@@ -1588,7 +1588,7 @@ describe('useNetworkConnectionBanner', () => {
           },
           {
             url: 'https://polygon-mainnet.infura.io/v3/test-infura-project-id',
-            networkClientId: '0x89-infura',
+            networkClientId: 'polygon-mainnet',
             type: RpcEndpointType.Custom,
           },
         ],
@@ -1601,15 +1601,15 @@ describe('useNetworkConnectionBanner', () => {
         configWithInfuraAsDefault,
       );
 
-      // Banner state is stale - still shows switch button
+      // Banner state may be stale - still shows switch button
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: true,
         chainId: '0x89',
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
-        isInfuraEndpoint: false, // Stale - user manually switched
-        infuraEndpointIndex: 1,
+        isInfuraEndpoint: false,
+        infuraNetworkClientId: 'polygon-mainnet',
       });
 
       const { result } = renderHookWithProvider();
@@ -1624,8 +1624,8 @@ describe('useNetworkConnectionBanner', () => {
     });
   });
 
-  describe('infuraEndpointIndex detection', () => {
-    it('includes infuraEndpointIndex in banner action when Infura endpoint is available', () => {
+  describe('infuraNetworkClientId detection', () => {
+    it('includes infuraNetworkClientId in banner action when Infura endpoint is available', () => {
       // Setup network with custom endpoint as default but Infura endpoint available
       const networkConfigWithInfuraEndpoint: NetworkConfiguration = {
         chainId: '0x89',
@@ -1638,7 +1638,7 @@ describe('useNetworkConnectionBanner', () => {
           },
           {
             url: 'https://polygon-mainnet.infura.io/v3/test-infura-project-id',
-            networkClientId: '0x89-infura',
+            networkClientId: 'polygon-mainnet',
             type: RpcEndpointType.Custom,
           },
         ],
@@ -1683,11 +1683,11 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: 1,
+        infuraNetworkClientId: 'polygon-mainnet',
       });
     });
 
-    it('does not include infuraEndpointIndex when no Infura endpoint is available', () => {
+    it('does not include infuraNetworkClientId when no Infura endpoint is available', () => {
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: false,
       });
@@ -1707,7 +1707,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraEndpointIndex: undefined,
+        infuraNetworkClientId: undefined,
       });
     });
   });

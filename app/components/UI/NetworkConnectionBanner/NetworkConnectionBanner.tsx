@@ -200,7 +200,7 @@ const getBannerContent = (
 } => {
   // Check if we have an Infura endpoint available to switch to
   const hasInfuraEndpoint =
-    networkConnectionBannerState.infuraEndpointIndex !== undefined;
+    networkConnectionBannerState.infuraNetworkClientId !== undefined;
 
   if (networkConnectionBannerState.status === 'degraded') {
     const primaryMessage = (

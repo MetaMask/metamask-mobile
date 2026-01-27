@@ -122,7 +122,7 @@ const useNetworkConnectionBanner = (): {
         networkName: string;
         rpcUrl: string;
         isInfuraEndpoint: boolean;
-        infuraEndpointIndex?: number;
+        infuraNetworkClientId?: string;
       } | null = null;
 
       for (const evmEnabledNetworkChainId of evmEnabledNetworksChainIds) {
@@ -160,15 +160,15 @@ const useNetworkConnectionBanner = (): {
 
             // For custom endpoints (non-Infura), check if there's an Infura
             // endpoint available for this network that we can switch to
-            let infuraEndpointIndex: number | undefined;
+            let infuraNetworkClientId: string | undefined;
             if (!isInfuraEndpoint) {
-              const foundIndex = networkConfig.rpcEndpoints.findIndex(
+              const infuraEndpoint = networkConfig.rpcEndpoints.find(
                 (endpoint, index) =>
                   index !== defaultRpcEndpointIndex &&
                   getIsMetaMaskInfuraEndpointUrl(endpoint.url, infuraProjectId),
               );
-              // If no Infura endpoint found, set to undefined
-              infuraEndpointIndex = foundIndex === -1 ? undefined : foundIndex;
+              // Store the networkClientId of the Infura endpoint
+              infuraNetworkClientId = infuraEndpoint?.networkClientId;
             }
 
             firstUnavailableNetwork = {
@@ -177,7 +177,7 @@ const useNetworkConnectionBanner = (): {
               networkName: networkConfig.name,
               rpcUrl,
               isInfuraEndpoint,
-              infuraEndpointIndex,
+              infuraNetworkClientId,
             };
 
             break; // Only show one banner at a time
@@ -211,7 +211,8 @@ const useNetworkConnectionBanner = (): {
               networkName: firstUnavailableNetwork.networkName,
               rpcUrl: firstUnavailableNetwork.rpcUrl,
               isInfuraEndpoint: firstUnavailableNetwork.isInfuraEndpoint,
-              infuraEndpointIndex: firstUnavailableNetwork.infuraEndpointIndex,
+              infuraNetworkClientId:
+                firstUnavailableNetwork.infuraNetworkClientId,
             }),
           );
         }
@@ -304,16 +305,19 @@ const useNetworkConnectionBanner = (): {
       return;
     }
 
-    // Get fresh infuraEndpointIndex from current config instead of using the
-    // stored value, which may be outdated if endpoints were added/removed/reordered
-    const freshInfuraEndpointIndex =
-      networkConfiguration.rpcEndpoints.findIndex((endpoint) =>
-        getIsMetaMaskInfuraEndpointUrl(endpoint.url, infuraProjectId),
-      );
-    // Skip if no Infura endpoint found or it's already the default
+    const { infuraNetworkClientId } = networkConnectionBannerState;
+    if (!infuraNetworkClientId) {
+      return;
+    }
+
+    // Find the endpoint index by networkClientId
+    const infuraEndpointIndex = networkConfiguration.rpcEndpoints.findIndex(
+      (endpoint) => endpoint.networkClientId === infuraNetworkClientId,
+    );
+    // Skip if endpoint not found or it's already the default
     if (
-      freshInfuraEndpointIndex === -1 ||
-      freshInfuraEndpointIndex === networkConfiguration.defaultRpcEndpointIndex
+      infuraEndpointIndex === -1 ||
+      infuraEndpointIndex === networkConfiguration.defaultRpcEndpointIndex
     ) {
       return;
     }
@@ -339,10 +343,10 @@ const useNetworkConnectionBanner = (): {
         chainId,
         {
           ...networkConfiguration,
-          defaultRpcEndpointIndex: freshInfuraEndpointIndex,
+          defaultRpcEndpointIndex: infuraEndpointIndex,
         },
         {
-          replacementSelectedRpcEndpointIndex: freshInfuraEndpointIndex,
+          replacementSelectedRpcEndpointIndex: infuraEndpointIndex,
         },
       );
 
