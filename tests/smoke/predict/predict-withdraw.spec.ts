@@ -1,21 +1,21 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { SmokeTrade } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { SmokeTrade } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
 
 import {
   remoteFeatureFlagPredictEnabled,
   confirmationsRedesignedFeatureFlags,
-} from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
   POLYMARKET_USDC_BALANCE_MOCKS,
-} from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
+} from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {

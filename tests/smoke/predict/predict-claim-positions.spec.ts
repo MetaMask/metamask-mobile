@@ -1,13 +1,13 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../../tests/framework/Assertions';
-import WalletView from '../../pages/wallet/WalletView';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { SmokePredictions } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import Assertions from '../../framework/Assertions';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
 import {
   remoteFeatureFlagPredictEnabled,
   confirmationsRedesignedFeatureFlags,
-} from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
@@ -15,23 +15,23 @@ import {
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
   POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS,
-} from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
+} from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import PredictClaimPage from '../../pages/Predict/PredictClaimPage';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
-import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../../e2e/pages/Transactions/predictionsActivityDetails';
+import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import {
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
-} from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-positions-response';
+} from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
 import { PredictHelpers } from './helpers/predict-helpers';
-import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-activity-response';
-import Utilities from '../../../tests/framework/Utilities';
-import { getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../../tests/framework/SoftAssert';
+import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response';
+import Utilities from '../../framework/Utilities';
+import { getEventsPayloads } from '../../../e2e/specs/analytics/helpers';
+import SoftAssert from '../../framework/SoftAssert';
 
 /*
 Test Scenario: Claim winning positions

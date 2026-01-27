@@ -1,6 +1,6 @@
-import Assertions from '../../../tests/framework/Assertions';
-import Gestures from '../../../tests/framework/Gestures';
-import Matchers from '../../../tests/framework/Matchers';
+import Assertions from '../../framework/Assertions';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import { PredictUnavailableSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 
 class PredictUnavailableView {

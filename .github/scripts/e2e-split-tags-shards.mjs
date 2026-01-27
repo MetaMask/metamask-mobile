@@ -11,7 +11,7 @@ import { extractTestResults } from './e2e-extract-test-results.mjs';
 
 const env = {
   TEST_SUITE_TAG: process.env.TEST_SUITE_TAG,
-  BASE_DIR: process.env.BASE_DIR || './e2e/specs',
+  BASE_DIR: process.env.BASE_DIR || './',
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE || 'main',
   PLATFORM: process.env.PLATFORM || 'ios',
   SPLIT_NUMBER: Number(process.env.SPLIT_NUMBER || '1'),

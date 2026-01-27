@@ -1,16 +1,16 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import PredictMarketList from '../../pages/Predict/PredictMarketList';
-import Assertions from '../../../tests/framework/Assertions';
-import { POLYMARKET_API_DOWN } from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { SmokePredictions } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
+import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
+import Assertions from '../../framework/Assertions';
+import { POLYMARKET_API_DOWN } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 
-import { remoteFeatureFlagPredictEnabled } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const testSpecificMock = async (mockServer: Mockttp) => {
   await POLYMARKET_API_DOWN(mockServer);
