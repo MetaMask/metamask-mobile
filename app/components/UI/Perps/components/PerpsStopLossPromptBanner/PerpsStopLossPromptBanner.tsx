@@ -77,6 +77,14 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
       // Animation value for fade-out effect
       const fadeAnim = useRef(new Animated.Value(1)).current;
 
+      // Reset opacity when isSuccess transitions to false (e.g., market change during animation)
+      // This ensures the banner is visible when shown for a new market
+      useEffect(() => {
+        if (!isSuccess) {
+          fadeAnim.setValue(1);
+        }
+      }, [isSuccess, fadeAnim]);
+
       // Trigger fade-out animation when isSuccess becomes true
       // Wait for SUCCESS_DISPLAY_DELAY_MS first so user sees success checkmark
       useEffect(() => {
