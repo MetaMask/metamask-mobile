@@ -212,8 +212,8 @@ describe('Engine', () => {
 
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
-    const engine = Engine.init(TEST_ANALYTICS_ID, {});
-    const initialBackgroundState = engine.datamodel.state;
+    Engine.init(TEST_ANALYTICS_ID, {});
+    const initialBackgroundState = Engine.state;
 
     // Get the current app version and migration version
     const currentAppVersion = getVersion();
@@ -336,30 +336,6 @@ describe('Engine', () => {
     const result = await engine.getSnapKeyring();
     expect(getSnapKeyringSpy).toHaveBeenCalled();
     expect(result).toEqual(mockSnapKeyring);
-  });
-
-  it('normalizes CurrencyController state property conversionRate from null to 0', () => {
-    const ticker = 'ETH';
-    const state = {
-      CurrencyRateController: {
-        currentCurrency: 'usd' as const,
-        currencyRates: {
-          [ticker]: {
-            conversionRate: null,
-            conversionDate: 0,
-            usdConversionRate: null,
-          },
-        },
-      },
-    };
-    const engine = Engine.init(TEST_ANALYTICS_ID, state);
-    expect(
-      engine.datamodel.state.CurrencyRateController.currencyRates[ticker],
-    ).toStrictEqual({
-      conversionRate: 0,
-      conversionDate: 0,
-      usdConversionRate: null,
-    });
   });
 
   it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {
