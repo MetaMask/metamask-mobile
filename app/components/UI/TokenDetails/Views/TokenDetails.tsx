@@ -117,10 +117,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
-    marketDataRate,
-    nativeCurrency,
     currentCurrency,
-    conversionRateByTicker,
   } = useTokenPrice({ asset: token });
 
   // Balance data hook
@@ -132,14 +129,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     isTronNative,
     stakedTrxAsset,
     ///: END:ONLY_INCLUDE_IF
-  } = useTokenBalance({
-    asset: token,
-    currentPrice,
-    currentCurrency,
-    nativeCurrency,
-    marketDataRate,
-    conversionRateByTicker,
-  });
+  } = useTokenBalance(token);
 
   // Buyability check
   const { isAssetBuyable } = useAssetBuyability(token);
