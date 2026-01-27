@@ -30,7 +30,7 @@ import {
 import { PredictHelpers } from './helpers/predict-helpers';
 import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response';
 import Utilities from '../../framework/Utilities';
-import { getEventsPayloads } from '../../../e2e/specs/analytics/helpers';
+import { getEventsPayloads } from '../../helpers/analytics/helpers.ts';
 import SoftAssert from '../../framework/SoftAssert';
 
 /*

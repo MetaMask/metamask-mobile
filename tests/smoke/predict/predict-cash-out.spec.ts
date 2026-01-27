@@ -18,7 +18,7 @@ import PredictCashOutPage from '../../page-objects/Predict/PredictCashOutPage';
 import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
 import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../../e2e/pages/Transactions/predictionsActivityDetails';
-import { getEventsPayloads } from '../../../e2e/specs/analytics/helpers';
+import { getEventsPayloads } from '../../helpers/analytics/helpers.ts';
 import SoftAssert from '../../framework/SoftAssert';
 
 /*
