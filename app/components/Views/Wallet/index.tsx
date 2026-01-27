@@ -168,10 +168,6 @@ import {
   selectPredictGtmOnboardingModalEnabledFlag,
 } from '../../UI/Predict/selectors/featureFlags';
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
-import {
-  LeaderboardTabView,
-  selectLeaderboardEnabledFlag,
-} from '../../UI/Leaderboard';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
@@ -258,11 +254,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => isPredictFlagEnabled,
     [isPredictFlagEnabled],
   );
-  const isLeaderboardFlagEnabled = useSelector(selectLeaderboardEnabledFlag);
-  const isLeaderboardEnabled = useMemo(
-    () => isLeaderboardFlagEnabled,
-    [isLeaderboardFlagEnabled],
-  );
 
   const {
     navigation,
@@ -308,15 +299,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     [navigation],
   );
 
-  const leaderboardTabProps = useMemo(
-    () => ({
-      key: 'leaderboard-tab',
-      tabLabel: strings('wallet.leaderboard'),
-      navigation,
-    }),
-    [navigation],
-  );
-
   const predictTabProps = useMemo(
     () => ({
       key: 'predict-tab',
@@ -357,20 +339,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const perpsTabIndex = isPerpsEnabled ? 1 : -1;
   const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
 
-  // Calculate Leaderboard tab visibility
-  let leaderboardTabIndex = -1;
-  if (isPerpsEnabled && isLeaderboardEnabled) {
-    leaderboardTabIndex = 2;
-  } else if (isLeaderboardEnabled) {
-    leaderboardTabIndex = 1;
-  }
-  const isLeaderboardTabVisible = currentTabIndex === leaderboardTabIndex;
-
   // Calculate Predict tab visibility
   let predictTabIndex = -1;
-  if (isPerpsEnabled && isLeaderboardEnabled && isPredictEnabled) {
-    predictTabIndex = 3;
-  } else if ((isPerpsEnabled || isLeaderboardEnabled) && isPredictEnabled) {
+  if (isPerpsEnabled && isPredictEnabled) {
     predictTabIndex = 2;
   } else if (isPredictEnabled) {
     predictTabIndex = 1;
@@ -382,29 +353,12 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     null,
   );
 
-  // Store the visibility update callback from LeaderboardTabView
-  const leaderboardVisibilityCallback = useRef<
-    ((visible: boolean) => void) | null
-  >(null);
-
   // Update Perps visibility when tab changes
   useEffect(() => {
     if (isPerpsEnabled && perpsVisibilityCallback.current) {
       perpsVisibilityCallback.current(isPerpsTabVisible);
     }
   }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
-
-  // Update Leaderboard visibility when tab changes
-  useEffect(() => {
-    if (isLeaderboardEnabled && leaderboardVisibilityCallback.current) {
-      leaderboardVisibilityCallback.current(isLeaderboardTabVisible);
-    }
-  }, [
-    currentTabIndex,
-    leaderboardTabIndex,
-    isLeaderboardTabVisible,
-    isLeaderboardEnabled,
-  ]);
 
   // Handle tab selection from navigation params (e.g., from deeplinks)
   // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
@@ -439,32 +393,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
         return () => clearTimeout(timer);
       }
 
-      if (initialTab === 'leaderboard' && isLeaderboardEnabled) {
-        // Calculate the index of the Leaderboard tab
-        // Tokens is always at index 0, Perps is at index 1, Leaderboard is at index 2 (when both enabled)
-        const targetLeaderboardTabIndex = isPerpsEnabled ? 2 : 1;
-
-        // Small delay ensures the TabsList is fully rendered before selection
-        const timer = setTimeout(() => {
-          tabsListRef.current?.goToTabIndex(targetLeaderboardTabIndex);
-
-          // Clear the params to prevent re-selection on subsequent focuses
-          if (navigation?.setParams) {
-            navigation.setParams({
-              initialTab: undefined,
-            });
-          }
-        }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
-
-        return () => clearTimeout(timer);
-      }
-    }, [
-      route.params,
-      isPerpsEnabled,
-      isLeaderboardEnabled,
-      navigationParams,
-      navigation,
-    ]),
+    }, [route.params, isPerpsEnabled, navigationParams, navigation]),
   );
 
   // Build tabs array dynamically based on enabled features
@@ -479,19 +408,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
           isVisible={isPerpsTabVisible}
           onVisibilityChange={(callback) => {
             perpsVisibilityCallback.current = callback;
-          }}
-        />,
-      );
-    }
-
-    if (isLeaderboardEnabled) {
-      tabs.push(
-        <LeaderboardTabView
-          {...leaderboardTabProps}
-          key={leaderboardTabProps.key}
-          isVisible={isLeaderboardTabVisible}
-          onVisibilityChange={(callback) => {
-            leaderboardVisibilityCallback.current = callback;
           }}
         />,
       );
@@ -530,9 +446,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsEnabled,
     perpsTabProps,
     isPerpsTabVisible,
-    isLeaderboardEnabled,
-    leaderboardTabProps,
-    isLeaderboardTabVisible,
     isPredictEnabled,
     predictTabProps,
     isPredictTabVisible,
@@ -547,7 +460,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const tabsKey = useMemo(() => {
     const enabledFeatures = [
       isPerpsEnabled ? 'perps' : '',
-      isLeaderboardEnabled ? 'leaderboard' : '',
       isPredictEnabled ? 'predict' : '',
       defiEnabled ? 'defi' : '',
       collectiblesEnabled ? 'nfts' : '',
@@ -558,7 +470,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     return `tabs-${enabledFeatures}`;
   }, [
     isPerpsEnabled,
-    isLeaderboardEnabled,
     isPredictEnabled,
     defiEnabled,
     collectiblesEnabled,

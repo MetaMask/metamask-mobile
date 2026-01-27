@@ -15,8 +15,9 @@ import LeaderboardRow from '../../components/LeaderboardRow';
 import LeaderboardEmpty from '../../components/LeaderboardEmpty';
 import LeaderboardError from '../../components/LeaderboardError';
 import TraderDetailSheet from '../../components/TraderDetailSheet';
+import ChainFilter from '../../components/ChainFilter';
 import { LeaderboardTestIds } from '../../Leaderboard.testIds';
-import { LeaderboardTrader } from '../../types';
+import { LeaderboardTrader, LeaderboardChainFilter } from '../../types';
 
 interface LeaderboardTabViewProps {
   /** Whether the tab is currently visible */
@@ -39,6 +40,8 @@ const LeaderboardTabView: React.FC<LeaderboardTabViewProps> = ({
   const [selectedTrader, setSelectedTrader] =
     useState<LeaderboardTrader | null>(null);
   const [isDetailSheetVisible, setIsDetailSheetVisible] = useState(false);
+  const [selectedChain, setSelectedChain] =
+    useState<LeaderboardChainFilter>('all');
 
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
@@ -58,7 +61,12 @@ const LeaderboardTabView: React.FC<LeaderboardTabViewProps> = ({
   const { traders, isLoading, error, refresh } = useLeaderboard({
     isVisible: currentVisibility,
     limit: 50,
+    chainFilter: selectedChain,
   });
+
+  const handleChainSelect = useCallback((chain: LeaderboardChainFilter) => {
+    setSelectedChain(chain);
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -79,43 +87,47 @@ const LeaderboardTabView: React.FC<LeaderboardTabViewProps> = ({
     setSelectedTrader(null);
   }, []);
 
-  // Loading state
-  if (isLoading && traders.length === 0) {
+  // Render content based on state
+  const renderContent = () => {
+    // Loading state
+    if (isLoading && traders.length === 0) {
+      return (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="flex-1 py-16"
+          testID={LeaderboardTestIds.LOADING_INDICATOR}
+        >
+          <ActivityIndicator size="large" />
+        </Box>
+      );
+    }
+
+    // Error state
+    if (error && traders.length === 0) {
+      return <LeaderboardError error={error} onRetry={handleRefresh} />;
+    }
+
+    // Empty state
+    if (!isLoading && traders.length === 0) {
+      return <LeaderboardEmpty />;
+    }
+
+    // Normal content - table
     return (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1 py-16"
-        testID={LeaderboardTestIds.LOADING_INDICATOR}
-      >
-        <ActivityIndicator size="large" />
+      <Box twClassName="px-1">
+        <LeaderboardHeader />
+        {traders.map((trader, index) => (
+          <LeaderboardRow
+            key={trader.id}
+            trader={trader}
+            rank={index + 1}
+            onPress={handleTraderPress}
+          />
+        ))}
       </Box>
     );
-  }
-
-  // Error state
-  if (error && traders.length === 0) {
-    return <LeaderboardError error={error} onRetry={handleRefresh} />;
-  }
-
-  // Empty state
-  if (!isLoading && traders.length === 0) {
-    return <LeaderboardEmpty />;
-  }
-
-  const content = (
-    <Box twClassName="px-1" testID={LeaderboardTestIds.CONTAINER}>
-      <LeaderboardHeader />
-      {traders.map((trader, index) => (
-        <LeaderboardRow
-          key={trader.id}
-          trader={trader}
-          rank={index + 1}
-          onPress={handleTraderPress}
-        />
-      ))}
-    </Box>
-  );
+  };
 
   return (
     <View
@@ -123,21 +135,33 @@ const LeaderboardTabView: React.FC<LeaderboardTabViewProps> = ({
         isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
       )}
     >
-      <ConditionalScrollView
-        isScrollEnabled={!isHomepageRedesignV1Enabled}
-        scrollViewProps={{
-          testID: LeaderboardTestIds.SCROLL_VIEW,
-          refreshControl: (
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-              testID={LeaderboardTestIds.REFRESH_CONTROL}
-            />
-          ),
-        }}
-      >
-        {content}
-      </ConditionalScrollView>
+      {/* Chain Filter - always visible, fixed height */}
+      <View>
+        <ChainFilter
+          selectedChain={selectedChain}
+          onChainSelect={handleChainSelect}
+          testID={LeaderboardTestIds.CHAIN_FILTER}
+        />
+      </View>
+
+      {/* Content area - takes remaining space */}
+      <View style={tw.style('flex-1')}>
+        <ConditionalScrollView
+          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          scrollViewProps={{
+            testID: LeaderboardTestIds.SCROLL_VIEW,
+            refreshControl: (
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                testID={LeaderboardTestIds.REFRESH_CONTROL}
+              />
+            ),
+          }}
+        >
+          <Box testID={LeaderboardTestIds.CONTAINER}>{renderContent()}</Box>
+        </ConditionalScrollView>
+      </View>
 
       <TraderDetailSheet
         trader={selectedTrader}

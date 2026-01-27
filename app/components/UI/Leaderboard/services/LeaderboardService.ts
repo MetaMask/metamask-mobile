@@ -104,16 +104,20 @@ class LeaderboardService {
   /**
    * Fetches the top traders for the overall PnL leaderboard
    * @param limit - Number of traders to fetch (default 50)
+   * @param section - Optional section/chain filter (e.g., 'base', 'solana', 'ethereum')
    * @returns Promise resolving to array of traders
    */
-  async getTopTraders(limit = 50) {
-    const response = await this.fetchLeaderboard({ limit });
+  async getTopTraders(limit = 50, section?: string) {
+    const response = await this.fetchLeaderboard({
+      limit,
+      sections: section,
+    });
 
     // Return traders from the first section (overall leaderboard)
     if (response.sections.length > 0) {
       // Combine commenters and others, prioritizing commenters
-      const section = response.sections[0];
-      return [...section.commenters, ...section.others];
+      const firstSection = response.sections[0];
+      return [...firstSection.commenters, ...firstSection.others];
     }
 
     return [];

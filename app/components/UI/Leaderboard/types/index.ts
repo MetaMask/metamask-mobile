@@ -116,6 +116,36 @@ export interface LeaderboardResponse {
 }
 
 /**
+ * Chain filter options for the leaderboard
+ */
+export type LeaderboardChainFilter =
+  | 'all'
+  | 'base'
+  | 'solana'
+  | 'ethereum'
+  | 'hyperliquid';
+
+/**
+ * Chain filter configuration
+ */
+export interface ChainFilterOption {
+  id: LeaderboardChainFilter;
+  label: string;
+  section?: string; // API section value
+}
+
+/**
+ * Available chain filters for the leaderboard
+ */
+export const LEADERBOARD_CHAIN_FILTERS: ChainFilterOption[] = [
+  { id: 'all', label: 'All', section: undefined },
+  { id: 'base', label: 'Base', section: 'base' },
+  { id: 'solana', label: 'Solana', section: 'solana' },
+  { id: 'ethereum', label: 'Ethereum', section: 'ethereum' },
+  { id: 'hyperliquid', label: 'Hyperliquid', section: 'hyperliquid' },
+];
+
+/**
  * Parameters for the leaderboard API request
  */
 export interface LeaderboardParams {

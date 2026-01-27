@@ -24,8 +24,9 @@ import LeaderboardRow from '../../components/LeaderboardRow';
 import LeaderboardEmpty from '../../components/LeaderboardEmpty';
 import LeaderboardError from '../../components/LeaderboardError';
 import TraderDetailSheet from '../../components/TraderDetailSheet';
+import ChainFilter from '../../components/ChainFilter';
 import { LeaderboardTestIds } from '../../Leaderboard.testIds';
-import { LeaderboardTrader } from '../../types';
+import { LeaderboardTrader, LeaderboardChainFilter } from '../../types';
 import styleSheet from './LeaderboardScreen.styles';
 
 /**
@@ -40,11 +41,18 @@ const LeaderboardScreen: React.FC = () => {
   const [selectedTrader, setSelectedTrader] =
     useState<LeaderboardTrader | null>(null);
   const [isDetailSheetVisible, setIsDetailSheetVisible] = useState(false);
+  const [selectedChain, setSelectedChain] =
+    useState<LeaderboardChainFilter>('all');
 
   const { traders, isLoading, error, refresh } = useLeaderboard({
     isVisible: true,
     limit: 50,
+    chainFilter: selectedChain,
   });
+
+  const handleChainSelect = useCallback((chain: LeaderboardChainFilter) => {
+    setSelectedChain(chain);
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -69,93 +77,34 @@ const LeaderboardScreen: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // Loading state
-  if (isLoading && traders.length === 0) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSizes.Lg}
-            onPress={handleGoBack}
-            testID="leaderboard-back-button"
-          />
-          <Text variant={TextVariant.HeadingMd} style={styles.title}>
-            {strings('leaderboard.title')}
-          </Text>
-          <View style={styles.placeholder} />
-        </View>
+  // Render content based on state
+  const renderContent = () => {
+    // Loading state
+    if (isLoading && traders.length === 0) {
+      return (
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1"
+          twClassName="flex-1 py-16"
           testID={LeaderboardTestIds.LOADING_INDICATOR}
         >
           <ActivityIndicator size="large" />
         </Box>
-      </SafeAreaView>
-    );
-  }
+      );
+    }
 
-  // Error state
-  if (error && traders.length === 0) {
+    // Error state
+    if (error && traders.length === 0) {
+      return <LeaderboardError error={error} onRetry={handleRefresh} />;
+    }
+
+    // Empty state
+    if (!isLoading && traders.length === 0) {
+      return <LeaderboardEmpty />;
+    }
+
+    // Normal content
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSizes.Lg}
-            onPress={handleGoBack}
-            testID="leaderboard-back-button"
-          />
-          <Text variant={TextVariant.HeadingMd} style={styles.title}>
-            {strings('leaderboard.title')}
-          </Text>
-          <View style={styles.placeholder} />
-        </View>
-        <LeaderboardError error={error} onRetry={handleRefresh} />
-      </SafeAreaView>
-    );
-  }
-
-  // Empty state
-  if (!isLoading && traders.length === 0) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSizes.Lg}
-            onPress={handleGoBack}
-            testID="leaderboard-back-button"
-          />
-          <Text variant={TextVariant.HeadingMd} style={styles.title}>
-            {strings('leaderboard.title')}
-          </Text>
-          <View style={styles.placeholder} />
-        </View>
-        <LeaderboardEmpty />
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Header with back button */}
-      <View style={styles.header}>
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSizes.Lg}
-          onPress={handleGoBack}
-          testID="leaderboard-back-button"
-        />
-        <Text variant={TextVariant.HeadingMd} style={styles.title}>
-          {strings('leaderboard.title')}
-        </Text>
-        <View style={styles.placeholder} />
-      </View>
-
-      {/* Content */}
       <ConditionalScrollView
         isScrollEnabled
         scrollViewProps={{
@@ -181,6 +130,36 @@ const LeaderboardScreen: React.FC = () => {
           ))}
         </Box>
       </ConditionalScrollView>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header with back button */}
+      <View style={styles.header}>
+        <ButtonIcon
+          iconName={IconName.ArrowLeft}
+          size={ButtonIconSizes.Lg}
+          onPress={handleGoBack}
+          testID="leaderboard-back-button"
+        />
+        <Text variant={TextVariant.HeadingMd} style={styles.title}>
+          {strings('leaderboard.title')}
+        </Text>
+        <View style={styles.placeholder} />
+      </View>
+
+      {/* Chain Filter - always visible, fixed height */}
+      <View>
+        <ChainFilter
+          selectedChain={selectedChain}
+          onChainSelect={handleChainSelect}
+          testID={LeaderboardTestIds.CHAIN_FILTER}
+        />
+      </View>
+
+      {/* Content area - takes remaining space */}
+      <View style={styles.contentArea}>{renderContent()}</View>
 
       {/* Trader Detail Sheet */}
       <TraderDetailSheet

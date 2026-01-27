@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { LeaderboardTrader } from '../types';
+import { LeaderboardTrader, LeaderboardChainFilter } from '../types';
 import LeaderboardService from '../services/LeaderboardService';
 
 interface UseLeaderboardOptions {
@@ -9,6 +9,8 @@ interface UseLeaderboardOptions {
   limit?: number;
   /** Whether the leaderboard tab is currently visible */
   isVisible?: boolean;
+  /** Chain filter for the leaderboard */
+  chainFilter?: LeaderboardChainFilter;
 }
 
 interface UseLeaderboardReturn {
@@ -33,7 +35,12 @@ interface UseLeaderboardReturn {
 export const useLeaderboard = (
   options: UseLeaderboardOptions = {},
 ): UseLeaderboardReturn => {
-  const { autoFetch = true, limit = 50, isVisible = true } = options;
+  const {
+    autoFetch = true,
+    limit = 50,
+    isVisible = true,
+    chainFilter = 'all',
+  } = options;
 
   const [traders, setTraders] = useState<LeaderboardTrader[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,16 +49,21 @@ export const useLeaderboard = (
 
   // Track if we've fetched data at least once
   const hasFetchedRef = useRef(false);
+  // Track the last chain filter used
+  const lastChainFilterRef = useRef<LeaderboardChainFilter>(chainFilter);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const data = await LeaderboardService.getTopTraders(limit);
+      // Convert chain filter to API section parameter
+      const section = chainFilter === 'all' ? undefined : chainFilter;
+      const data = await LeaderboardService.getTopTraders(limit, section);
       setTraders(data);
       setLastFetched(Date.now());
       hasFetchedRef.current = true;
+      lastChainFilterRef.current = chainFilter;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to fetch leaderboard';
@@ -59,7 +71,7 @@ export const useLeaderboard = (
     } finally {
       setIsLoading(false);
     }
-  }, [limit]);
+  }, [limit, chainFilter]);
 
   const refresh = useCallback(async () => {
     await fetchData();
@@ -71,6 +83,17 @@ export const useLeaderboard = (
       fetchData();
     }
   }, [autoFetch, isVisible, isLoading, fetchData]);
+
+  // Refetch when chain filter changes
+  useEffect(() => {
+    if (
+      hasFetchedRef.current &&
+      chainFilter !== lastChainFilterRef.current &&
+      !isLoading
+    ) {
+      fetchData();
+    }
+  }, [chainFilter, isLoading, fetchData]);
 
   return {
     traders,

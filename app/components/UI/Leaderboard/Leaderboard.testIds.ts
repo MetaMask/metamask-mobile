@@ -11,6 +11,8 @@ export const LeaderboardTestIds = {
   ERROR_STATE: 'leaderboard-error',
   EMPTY_STATE: 'leaderboard-empty',
   REFRESH_CONTROL: 'leaderboard-refresh-control',
+  // Chain Filter
+  CHAIN_FILTER: 'leaderboard-chain-filter',
   // Trader Detail Sheet
   DETAIL_SHEET: 'leaderboard-detail-sheet',
   DETAIL_CLOSE_BUTTON: 'leaderboard-detail-close',

@@ -26,6 +26,9 @@ const styleSheet = (params: { theme: Theme }) => {
     placeholder: {
       width: 40,
     },
+    contentArea: {
+      flex: 1,
+    },
   });
 };
 
