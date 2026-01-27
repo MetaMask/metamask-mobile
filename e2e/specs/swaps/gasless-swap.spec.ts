@@ -41,6 +41,9 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
               },
             })
             .withMetaMetricsOptIn()
+            .withPreferencesController({
+              smartTransactionsOptInStatus: true,
+            })
             .build();
         },
         localNodeOptions: [
