@@ -292,6 +292,8 @@ function createSummary(groupedResults) {
   let profilingTestCount = 0;
   const failedTestsByTeam = {};
   let totalFailedTests = 0;
+  // Track failures per platform separately
+  const failedTestsByPlatform = { android: 0, ios: 0 };
   
   Object.keys(groupedResults).forEach(platform => {
     Object.keys(groupedResults[platform]).forEach(device => {
@@ -315,24 +317,34 @@ function createSummary(groupedResults) {
           profilingTestCount++;
         }
         
-        // Track failed tests by team
-        if (test.testFailed && test.team) {
+        // Track failed tests by team and platform
+        if (test.testFailed) {
           totalFailedTests++;
-          const teamId = test.team.teamId || 'unknown';
-          if (!failedTestsByTeam[teamId]) {
-            failedTestsByTeam[teamId] = {
-              team: test.team,
-              tests: []
-            };
+          
+          // Track per-platform failures
+          const platformKey = platform.toLowerCase();
+          if (platformKey === 'android' || platformKey === 'ios') {
+            failedTestsByPlatform[platformKey]++;
           }
-          failedTestsByTeam[teamId].tests.push({
-            testName: test.testName,
-            testFilePath: test.testFilePath,
-            tags: test.tags || [],
-            platform,
-            device,
-            failureReason: test.failureReason
-          });
+          
+          // Track by team if team info available
+          if (test.team) {
+            const teamId = test.team.teamId || 'unknown';
+            if (!failedTestsByTeam[teamId]) {
+              failedTestsByTeam[teamId] = {
+                team: test.team,
+                tests: []
+              };
+            }
+            failedTestsByTeam[teamId].tests.push({
+              testName: test.testName,
+              testFilePath: test.testFilePath,
+              tags: test.tags || [],
+              platform,
+              device,
+              failureReason: test.failureReason
+            });
+          }
         }
       });
     });
@@ -389,9 +401,10 @@ function createSummary(groupedResults) {
       totalReports: summaryDevices.length,
       platforms,
       jobResults: {
-        android: totalFailedTests > 0 ? "failure" : "success",
-        ios: totalFailedTests > 0 ? "failure" : "success"
+        android: failedTestsByPlatform.android > 0 ? "failure" : "success",
+        ios: failedTestsByPlatform.ios > 0 ? "failure" : "success"
       },
+      failedTestsByPlatform,
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
       workflowRun: process.env.GITHUB_RUN_ID || 'unknown'

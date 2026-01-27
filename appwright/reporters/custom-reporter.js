@@ -91,7 +91,10 @@ class CustomReporter {
     }
 
     // Track failed tests by team for Slack notification
-    if (result.status !== 'passed') {
+    // Only include actual failures (failed, timedOut), not skipped or interrupted tests
+    const isActualFailure =
+      result.status === 'failed' || result.status === 'timedOut';
+    if (isActualFailure) {
       const teamId = teamInfo.teamId;
       if (!this.failedTestsByTeam[teamId]) {
         this.failedTestsByTeam[teamId] = {
@@ -138,8 +141,8 @@ class CustomReporter {
           ...metrics,
         };
 
-        // Always mark failed tests appropriately
-        if (result.status !== 'passed') {
+        // Mark actual failures (not skipped or interrupted tests)
+        if (result.status === 'failed' || result.status === 'timedOut') {
           metricsEntry.testFailed = true;
           metricsEntry.failureReason = result.status;
         }
@@ -190,8 +193,9 @@ class CustomReporter {
       } catch (error) {
         console.error('Error processing metrics:', error);
       }
-    } else if (result.status !== 'passed') {
-      // For failed tests without metrics, create a basic entry
+    } else if (result.status === 'failed' || result.status === 'timedOut') {
+      // For actual failed tests without metrics, create a basic entry
+      // Skip creating entries for skipped/interrupted tests
       console.log(`⚠️ Test failed without metrics, creating basic entry`);
 
       const deviceInfo = this.getDeviceInfo(test, result);
