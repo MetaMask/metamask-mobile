@@ -278,8 +278,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
  * Feature flag wrapper that toggles between new TokenDetails (V2) and legacy Asset view.
  */
 const TokenDetailsFeatureFlagWrapper: React.FC<TokenDetailsProps> = (props) => {
-  // const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
-  const isTokenDetailsV2Enabled = true;
+  const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
 
   return isTokenDetailsV2Enabled ? (
     <TokenDetails token={props.route.params} />
