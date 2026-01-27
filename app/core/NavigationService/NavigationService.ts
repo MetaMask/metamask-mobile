@@ -8,10 +8,7 @@ import Logger from '../../util/Logger';
  * - navigate: Navigate to a screen
  * - reset: Reset navigation state to a new state
  */
-const DEFERRED_NAVIGATION_METHODS = [
-  'navigate',
-  'reset',
-] as const;
+const DEFERRED_NAVIGATION_METHODS = ['navigate', 'reset'] as const;
 
 /**
  * Navigation service that manages the navigation object.
