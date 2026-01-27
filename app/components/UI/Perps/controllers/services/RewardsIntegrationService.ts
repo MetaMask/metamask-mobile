@@ -37,14 +37,6 @@ export class RewardsIntegrationService {
   }): Promise<number | undefined> {
     const { controllers, messenger } = options;
 
-    // Fee discount may not be available in all environments (e.g., extension)
-    if (!controllers.rewards?.getFeeDiscount) {
-      this.deps.debugLogger.log(
-        'RewardsIntegrationService: getFeeDiscount not available, no discount',
-      );
-      return undefined;
-    }
-
     try {
       const evmAccount = controllers.accounts.getSelectedEvmAccount();
 

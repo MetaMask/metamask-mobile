@@ -1408,10 +1408,10 @@ export interface PerpsControllerAccess {
   network: PerpsNetworkOperations;
   /** Transaction operations - wraps TransactionController for TX submission */
   transaction: PerpsTransactionOperations;
-  /** Rewards operations (optional) - wraps RewardsController for fee discounts */
-  rewards?: PerpsRewardsOperations;
-  /** Authentication operations (optional) - wraps AuthenticationController for bearer tokens */
-  authentication?: PerpsAuthenticationOperations;
+  /** Rewards operations - wraps RewardsController for fee discounts */
+  rewards: PerpsRewardsOperations;
+  /** Authentication operations - wraps AuthenticationController for bearer tokens */
+  authentication: PerpsAuthenticationOperations;
 }
 
 /**

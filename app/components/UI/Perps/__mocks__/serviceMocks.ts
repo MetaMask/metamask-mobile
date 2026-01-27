@@ -83,6 +83,10 @@ export const createMockInfrastructure =
         rewards: {
           getFeeDiscount: jest.fn().mockResolvedValue(0),
         },
+        // Authentication operations (wraps AuthenticationController)
+        authentication: {
+          getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+        },
       },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 

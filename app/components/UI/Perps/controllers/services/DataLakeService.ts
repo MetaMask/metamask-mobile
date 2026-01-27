@@ -124,14 +124,7 @@ export class DataLakeService {
     const apiCallStartTime = this.deps.performance.now();
 
     try {
-      // Ensure messenger is available
-      if (!context.messenger) {
-        throw new Error('Messenger not available in ServiceContext');
-      }
-
-      const token = await context.messenger.call(
-        'AuthenticationController:getBearerToken',
-      );
+      const token = await this.deps.controllers.authentication.getBearerToken();
       const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
 
       if (!evmAccount || !token) {

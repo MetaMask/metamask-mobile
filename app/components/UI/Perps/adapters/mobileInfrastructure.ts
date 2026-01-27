@@ -297,32 +297,20 @@ function createControllerAccessAdapter(): PerpsControllerAccess {
         }),
     },
 
-    // === Rewards Operations (wraps RewardsController, optional) ===
-    // Check if RewardsController exists - may not in all environments (e.g., extension)
-    // Uses getter to defer Engine.context access until actually needed (lazy evaluation)
-    get rewards() {
-      if (!Engine.context.RewardsController) {
-        return undefined;
-      }
-      return {
-        getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
-          Engine.context.RewardsController.getPerpsDiscountForAccount(
-            caipAccountId,
-          ),
-      };
+    // === Rewards Operations (wraps RewardsController) ===
+    // Provides fee discount capabilities for MetaMask rewards program
+    rewards: {
+      getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
+        Engine.context.RewardsController.getPerpsDiscountForAccount(
+          caipAccountId,
+        ),
     },
 
-    // === Authentication Operations (wraps AuthenticationController, optional) ===
+    // === Authentication Operations (wraps AuthenticationController) ===
     // Provides bearer token access for authenticated API calls (e.g., Data Lake)
-    // Uses getter to defer Engine.context access until actually needed (lazy evaluation)
-    get authentication() {
-      if (!Engine.context.AuthenticationController) {
-        return undefined;
-      }
-      return {
-        getBearerToken: () =>
-          Engine.context.AuthenticationController.getBearerToken(),
-      };
+    authentication: {
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
     },
   };
 }
