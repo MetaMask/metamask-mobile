@@ -16,6 +16,11 @@ IS_LOCAL=false
 SHOULD_CLEAN_WATCHER_CACHE=false
 WATCHER_PORT=${WATCHER_PORT:-8081}
 
+# Save user-provided environment variables before loading .js.env
+# (which may override them)
+USER_METAMASK_ENVIRONMENT="$METAMASK_ENVIRONMENT"
+USER_METAMASK_BUILD_TYPE="$METAMASK_BUILD_TYPE"
+
 loadJSEnv(){
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
@@ -29,8 +34,27 @@ loadJSEnv(){
 # Load JS env variables
 loadJSEnv
 
-if [ "$PLATFORM" != "watcher" ]; then
-	# Use the values from the environment variables when platform is watcher
+# Restore user-provided environment variables (they take priority over .js.env)
+if [ -n "$USER_METAMASK_ENVIRONMENT" ]; then
+	export METAMASK_ENVIRONMENT="$USER_METAMASK_ENVIRONMENT"
+fi
+if [ -n "$USER_METAMASK_BUILD_TYPE" ]; then
+	export METAMASK_BUILD_TYPE="$USER_METAMASK_BUILD_TYPE"
+fi
+
+# For watcher platform, MODE might be --clean flag, not a build type
+# In this case, use existing environment variables
+if [ "$PLATFORM" = "watcher" ]; then
+	# For watcher, prefer existing environment variables over args
+	# (args might be flags like --clean)
+	if [[ "$MODE" != --* ]]; then
+		export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
+	fi
+	if [[ "$ENVIRONMENT" != --* ]]; then
+		export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
+	fi
+else
+	# For other platforms, use args or existing environment variables
 	export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
 	export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
 fi

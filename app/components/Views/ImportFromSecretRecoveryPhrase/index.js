@@ -567,8 +567,8 @@ const ImportFromSecretRecoveryPhrase = ({
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
-        bottomOffset={180}
         showsVerticalScrollIndicator={false}
+        enabled={currentStep === 0}
       >
         <Animated.View
           style={[

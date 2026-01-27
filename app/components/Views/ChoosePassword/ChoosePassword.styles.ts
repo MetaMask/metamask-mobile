@@ -50,6 +50,7 @@ const createStyles = (colors: Theme['colors']) =>
       width: '100%',
       flexDirection: 'column',
       rowGap: 18,
+      marginTop: 'auto',
       marginBottom: Platform.select({
         ios: 16,
         android: 24,
