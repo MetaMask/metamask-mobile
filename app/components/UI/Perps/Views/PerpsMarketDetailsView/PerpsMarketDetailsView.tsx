@@ -819,12 +819,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         stopLossPrice?: string,
         trackingData?: TPSLTrackingData,
       ) => {
-        await handleUpdateTPSL(
+        // Return value checked for consistency - error toast is shown internally by hook
+        const result = await handleUpdateTPSL(
           existingPosition,
           takeProfitPrice,
           stopLossPrice,
           trackingData,
         );
+        return result;
       },
     });
   }, [existingPosition, currentPrice, navigation, handleUpdateTPSL]);
