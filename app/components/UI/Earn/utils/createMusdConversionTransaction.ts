@@ -1,9 +1,9 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import { generateTransferData } from '../../../../util/transactions';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 export interface CreateMusdConversionTransactionParams {
   outputChainId: Hex;
@@ -58,7 +58,6 @@ export async function createMusdConversionTransaction({
       from: fromAddress,
       data: transferData,
       value: '0x0',
-      chainId: outputChainId,
     },
     {
       /**
@@ -66,7 +65,7 @@ export async function createMusdConversionTransaction({
        */
       skipInitialGasEstimate: true,
       networkClientId: resolvedNetworkClientId,
-      origin: MMM_ORIGIN,
+      origin: ORIGIN_METAMASK,
       type: TransactionType.musdConversion,
     },
   );
