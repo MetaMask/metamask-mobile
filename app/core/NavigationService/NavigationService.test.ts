@@ -2,11 +2,10 @@ import NavigationService from './NavigationService';
 import Logger from '../../util/Logger';
 import type {
   NavigationContainerRef,
-  ParamListBase,
 } from '@react-navigation/native';
 
 describe('NavigationService', () => {
-  let mockNavigation: NavigationContainerRef<ParamListBase>;
+  let mockNavigation: NavigationContainerRef;
   let mockRequestAnimationFrame: jest.SpyInstance;
 
   beforeEach(() => {
@@ -25,7 +24,7 @@ describe('NavigationService', () => {
       reset: jest.fn(),
       goBack: jest.fn(),
       dispatch: jest.fn(),
-    } as unknown as NavigationContainerRef<ParamListBase>;
+    } as unknown as NavigationContainerRef;
 
     jest.spyOn(Logger, 'error');
   });
@@ -57,7 +56,7 @@ describe('NavigationService', () => {
 
   describe('navigation setter', () => {
     it('throws error when navigation is invalid', () => {
-      const invalidNavigation = {} as NavigationContainerRef<ParamListBase>;
+      const invalidNavigation = {} as NavigationContainerRef;
 
       expect(() => {
         NavigationService.navigation = invalidNavigation;
@@ -76,7 +75,7 @@ describe('NavigationService', () => {
     it('throws error when navigation is missing required methods', () => {
       const incompleteNavigation = {
         // missing navigate
-      } as unknown as NavigationContainerRef<ParamListBase>;
+      } as unknown as NavigationContainerRef;
 
       expect(() => {
         NavigationService.navigation = incompleteNavigation;
@@ -119,11 +118,11 @@ describe('NavigationService', () => {
       const navWithProperty = {
         ...mockNavigation,
         key: 'test-nav-key',
-      } as unknown as NavigationContainerRef<ParamListBase>;
+      } as unknown as NavigationContainerRef;
       NavigationService.navigation = navWithProperty;
 
       const navigation =
-        NavigationService.navigation as NavigationContainerRef<ParamListBase> & {
+        NavigationService.navigation as NavigationContainerRef & {
           key: string;
         };
 
