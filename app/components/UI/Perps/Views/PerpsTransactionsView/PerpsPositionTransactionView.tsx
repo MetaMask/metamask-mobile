@@ -72,6 +72,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     // Handle missing transaction data
     return (
       <ScreenView>
+        <HeaderCenter includesTopInset onBack={() => navigation.goBack()} />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>

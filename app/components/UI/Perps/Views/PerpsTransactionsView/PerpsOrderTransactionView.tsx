@@ -59,6 +59,7 @@ const PerpsOrderTransactionView: React.FC = () => {
   if (!transaction) {
     return (
       <ScreenView>
+        <HeaderCenter includesTopInset onBack={() => navigation.goBack()} />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
