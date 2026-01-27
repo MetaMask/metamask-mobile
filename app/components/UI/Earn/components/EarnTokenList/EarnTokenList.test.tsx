@@ -84,6 +84,7 @@ jest.mock(
 );
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -91,7 +92,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      goBack: jest.fn(),
+      goBack: mockGoBack,
     }),
     useRoute: () => ({
       params: {
@@ -834,12 +835,11 @@ describe('EarnTokenList', () => {
 
     expect(closeButton).toBeDefined();
 
-    // Press the close button - this exercises the handleClose callback
-    // and calls bottomSheetRef.current?.onCloseBottomSheet()
+    // Press the close button - this should trigger the handleClose callback
     fireEvent.press(closeButton);
 
-    // If we get here without throwing, the close handler executed successfully
-    expect(closeButton).toBeDefined();
+    // Verify that navigation.goBack() was called to close the bottom sheet
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   describe('Tron tokens', () => {
