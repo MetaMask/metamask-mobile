@@ -23,7 +23,6 @@ import {
   type GetMarketsParams,
   type GetAvailableDexsParams,
   type LiquidationPriceParams,
-  type EstimateLiquidationPriceAfterMarginChangeParams,
   type MaintenanceMarginParams,
   type FeeCalculationParams,
   type FeeCalculationResult,
@@ -760,35 +759,6 @@ export class MarketDataService {
       this.deps.logger.error(ensureError(error), {
         context: {
           name: 'MarketDataService.calculateLiquidationPrice',
-          data: { params },
-        },
-      });
-      throw error;
-    }
-  }
-
-  /**
-   * Estimate liquidation price after a margin change (provider-specific).
-   */
-  async estimateLiquidationPriceAfterMarginChange(options: {
-    provider: IPerpsProvider;
-    params: EstimateLiquidationPriceAfterMarginChangeParams;
-    context: ServiceContext;
-  }): Promise<string> {
-    const { provider, params } = options;
-
-    if (!provider.estimateLiquidationPriceAfterMarginChange) {
-      throw new Error(
-        'Provider does not support estimateLiquidationPriceAfterMarginChange',
-      );
-    }
-
-    try {
-      return await provider.estimateLiquidationPriceAfterMarginChange(params);
-    } catch (error) {
-      this.deps.logger.error(ensureError(error), {
-        context: {
-          name: 'MarketDataService.estimateLiquidationPriceAfterMarginChange',
           data: { params },
         },
       });

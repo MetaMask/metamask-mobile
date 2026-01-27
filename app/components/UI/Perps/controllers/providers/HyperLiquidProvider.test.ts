@@ -2746,46 +2746,6 @@ describe('HyperLiquidProvider', () => {
     });
   });
 
-  describe('estimateLiquidationPriceAfterMarginChange', () => {
-    beforeEach(() => {
-      // Set up mock for asset info with maxLeverage: 20 for BTC (test expectations)
-      mockClientService.getInfoClient = jest.fn().mockReturnValue(
-        createMockInfoClient({
-          meta: jest.fn().mockResolvedValue({
-            universe: [
-              { name: 'BTC', szDecimals: 3, maxLeverage: 20 },
-              { name: 'ETH', szDecimals: 4, maxLeverage: 20 },
-            ],
-          }),
-        }),
-      );
-    });
-
-    it('calculates correct liquidation price using margin and position size', async () => {
-      // Position: 0.5 BTC at $50,000 entry, $2,500 margin
-      // maxLeverage=20 from mock, so l = 1/(2*20) = 0.025
-      // For long: denominator = 1 - 0.025 = 0.975
-      // liq_price = 50000 - (2500/0.5) / 0.975 = 50000 - 5128.205... = 44871.79...
-      const estimate =
-        await provider.estimateLiquidationPriceAfterMarginChange?.({
-          asset: 'BTC',
-          entryPrice: 50000,
-          direction: 'long',
-          positionSize: 0.5,
-          positionValueUsd: 25000,
-          currentMarginUsd: 2500,
-          newMarginUsd: 2500,
-          marginType: 'isolated',
-        });
-
-      expect(estimate).toBeDefined();
-
-      // Verify the correct formula is used (without double-counting maintenance margin)
-      // Expected = 50000 - (2500/0.5) / 0.975 ≈ 44871.79
-      expect(parseFloat(estimate as string)).toBeCloseTo(44871.79, 1);
-    });
-  });
-
   describe('calculateMaintenanceMargin', () => {
     it('calculates maintenance margin correctly for 40x max leverage asset', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(

@@ -255,10 +255,11 @@ describe('usePerpsAdjustMarginData', () => {
 
     it('calculates new liquidation price when adding margin using delta-based approach', () => {
       // Delta-based formula for long positions:
-      // newLiqPrice = currentLiqPrice + directionMultiplier * (marginDelta / positionSize)
+      // newLiqPrice = currentLiqPrice + directionMultiplier * (marginDelta / positionSize) / maintenanceDenominator
       // directionMultiplier = -1 for long (adding margin moves liq price down)
       // marginDelta = newMargin - currentMargin = 6000 - 5000 = 1000
-      // newLiqPrice = 80000 + (-1) * (1000 / 0.5) = 80000 - 2000 = 78000
+      // maxLeverage = 50 -> l = 1/(2*50) = 0.01 -> maintenanceDenominator = 1 - l = 0.99
+      // newLiqPrice = 80000 + (-1) * (1000 / 0.5) / 0.99 = 80000 - 2020.202... = 77979.797...
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
@@ -268,7 +269,7 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      expect(result.current.newLiquidationPrice).toBe(78000);
+      expect(result.current.newLiquidationPrice).toBeCloseTo(77979.798, 3);
     });
 
     it('calculates new liquidation price when removing margin using delta-based approach', () => {
@@ -284,7 +285,8 @@ describe('usePerpsAdjustMarginData', () => {
 
       // Delta-based formula for long positions:
       // marginDelta = newMargin - currentMargin = 7000 - 8000 = -1000
-      // newLiqPrice = 80000 + (-1) * (-1000 / 0.5) = 80000 + 2000 = 82000
+      // maxLeverage = 50 -> l = 0.01 -> maintenanceDenominator = 0.99
+      // newLiqPrice = 80000 + (-1) * (-1000 / 0.5) / 0.99 = 80000 + 2020.202... = 82020.202...
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
@@ -294,7 +296,7 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      expect(result.current.newLiquidationPrice).toBe(82000);
+      expect(result.current.newLiquidationPrice).toBeCloseTo(82020.202, 3);
     });
   });
 
