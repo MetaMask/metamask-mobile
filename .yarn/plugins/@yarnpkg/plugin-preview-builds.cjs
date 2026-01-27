@@ -54,6 +54,7 @@
  * @property {string} previewScope - The scope for the preview build (defaults
  * @property {string} previewVersion - The preview version string.
  * to "metamask-previews").
+ * @property {string} previewVersion - The preview version string.
  */
 
 /**
