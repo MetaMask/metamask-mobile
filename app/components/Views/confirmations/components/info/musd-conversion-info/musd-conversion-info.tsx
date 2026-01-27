@@ -57,7 +57,8 @@ export const MusdConversionInfo = () => {
     );
   }
 
-  useMusdConversionNavbar(outputChainId);
+  useMusdConversionNavbar();
+
   const { startQuoteTrace } = useMusdConversionQuoteTrace();
 
   // End navigation trace on first paint

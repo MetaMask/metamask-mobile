@@ -5,7 +5,7 @@ import {
   ToastSelectorsText,
 } from '../../app/component-library/components/Toast/ToastModal.testIds';
 import { CommonSelectorsIDs } from '../../app/util/Common.testIds';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 
 class CommonScreen {
 
