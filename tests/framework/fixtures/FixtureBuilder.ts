@@ -27,7 +27,10 @@ import {
   PopularNetworksList,
 } from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types.ts';
-import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants.ts';
+import {
+  MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
+  TEST_ANALYTICS_ID,
+} from './constants.ts';
 import {
   MOCK_ENTROPY_SOURCE,
   MOCK_ENTROPY_SOURCE_2,
@@ -1851,7 +1854,7 @@ class FixtureBuilder {
     // Also set up AnalyticsController state so analytics.isEnabled() returns true
     this.fixture.state.engine.backgroundState.AnalyticsController = {
       optedIn: true,
-      analyticsId: 'a5f3c2e1-7b4d-4e9a-8c6f-1d2e3f4a5b6c',
+      analyticsId: TEST_ANALYTICS_ID,
     };
     return this;
   }
