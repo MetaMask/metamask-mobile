@@ -10,6 +10,16 @@ import {
   DISTRIBUTOR_CLAIMED_ABI,
 } from './constants';
 
+// Mock @metamask/transaction-controller to avoid import issues in tests
+jest.mock('@metamask/transaction-controller', () => ({
+  CHAIN_IDS: {
+    MAINNET: '0x1',
+    LINEA_MAINNET: '0xe708',
+  },
+  TransactionType: {},
+  WalletDevice: {},
+}));
+
 // Use chain IDs directly to avoid import issues in tests
 const MAINNET_CHAIN_ID = '0x1' as const;
 const LINEA_MAINNET_CHAIN_ID = '0xe708' as const;
