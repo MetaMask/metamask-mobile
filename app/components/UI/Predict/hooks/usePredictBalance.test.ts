@@ -123,22 +123,23 @@ describe('usePredictBalance', () => {
         usePredictBalance({ loadOnMount: false }),
       );
 
-      // Assert
+      // Assert - isLoading is false when loadOnMount is false
       expect(result.current.balance).toBe(0);
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(result.current.hasNoBalance).toBe(false);
+      expect(result.current.hasNoBalance).toBe(true);
       expect(typeof result.current.loadBalance).toBe('function');
     });
 
-    it('returns hasNoBalance as false when loading', () => {
-      // Given loading is true and balance is 0
+    it('returns correct initial state when loadOnMount is true', () => {
+      // Given loadOnMount is true
       const { result } = renderHook(() =>
-        usePredictBalance({ loadOnMount: false }),
+        usePredictBalance({ loadOnMount: true }),
       );
 
-      // Then hasNoBalance should be false
+      // Then isLoading should be true and hasNoBalance should be false
+      expect(result.current.isLoading).toBe(true);
       expect(result.current.hasNoBalance).toBe(false);
     });
   });
@@ -229,13 +230,22 @@ describe('usePredictBalance', () => {
       );
 
       // When loadBalance is called without isRefresh flag
-      const loadPromise = result.current.loadBalance();
+      let loadPromise: Promise<void> | undefined;
+      act(() => {
+        loadPromise = result.current.loadBalance();
+      });
 
       // Then isLoading should be true
-      expect(result.current.isLoading).toBe(true);
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(true);
+      });
       expect(result.current.isRefreshing).toBe(false);
 
-      await loadPromise;
+      await act(async () => {
+        if (loadPromise) {
+          await loadPromise;
+        }
+      });
     });
 
     it('sets isRefreshing to true when loading with refresh flag', async () => {
@@ -537,7 +547,7 @@ describe('usePredictBalance', () => {
 
       // Then default options should be applied (loadOnMount and refreshOnFocus are false by default)
       expect(result.current.balance).toBe(0);
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeNull();
 
