@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
-  Dimensions,
 } from 'react-native';
 import {
   Camera,
@@ -36,17 +35,12 @@ import Icon, {
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-import LinearGradient from 'react-native-linear-gradient';
 
 const FRAME_SIZE = 250;
+const OVERLAY_COLOR = 'rgba(0, 0, 0, 0.6)';
 
-const createStyles = (theme: Theme) => {
-  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-  // Calculate the vertical offset to center the frame
-  const topOverlayHeight = (screenHeight - FRAME_SIZE) / 2;
-  const sideOverlayWidth = (screenWidth - FRAME_SIZE) / 2;
-
-  return StyleSheet.create({
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
     modal: {
       margin: 0,
     },
@@ -71,49 +65,31 @@ const createStyles = (theme: Theme) => {
       right: 20,
       zIndex: 10,
     },
-    overlayContainer: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+    // Overlay layout using flexbox to center the frame
+    overlayColumn: {
+      flex: 1,
+      flexDirection: 'column',
     },
-    // Top overlay with gradient blur effect
+    // Top overlay section
     topOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: topOverlayHeight,
+      flex: 1,
+      backgroundColor: OVERLAY_COLOR,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      paddingBottom: 20,
     },
-    // Bottom overlay with gradient blur effect
-    bottomOverlay: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: topOverlayHeight,
-    },
-    // Left overlay
-    leftOverlay: {
-      position: 'absolute',
-      top: topOverlayHeight,
-      left: 0,
-      width: sideOverlayWidth,
+    // Middle row containing left overlay, frame, right overlay
+    middleRow: {
+      flexDirection: 'row',
       height: FRAME_SIZE,
     },
-    // Right overlay
-    rightOverlay: {
-      position: 'absolute',
-      top: topOverlayHeight,
-      right: 0,
-      width: sideOverlayWidth,
-      height: FRAME_SIZE,
+    // Side overlays
+    sideOverlay: {
+      flex: 1,
+      backgroundColor: OVERLAY_COLOR,
     },
+    // Frame container (transparent area)
     frameContainer: {
-      position: 'absolute',
-      top: topOverlayHeight,
-      left: sideOverlayWidth,
       width: FRAME_SIZE,
       height: FRAME_SIZE,
       alignItems: 'center',
@@ -123,13 +99,13 @@ const createStyles = (theme: Theme) => {
       width: FRAME_SIZE,
       height: FRAME_SIZE,
     },
-    hintTextContainer: {
-      position: 'absolute',
-      top: topOverlayHeight - 60,
-      left: 0,
-      right: 0,
+    // Bottom overlay section
+    bottomOverlay: {
+      flex: 1,
+      backgroundColor: OVERLAY_COLOR,
+      justifyContent: 'flex-start',
       alignItems: 'center',
-      justifyContent: 'center',
+      paddingTop: 20,
     },
     hintText: {
       maxWidth: '80%',
@@ -141,20 +117,18 @@ const createStyles = (theme: Theme) => {
     bold: {
       ...fontStyles.bold,
     },
-    scanningTextContainer: {
-      position: 'absolute',
-      top: topOverlayHeight + FRAME_SIZE + 20,
-      left: 0,
-      right: 0,
-      alignItems: 'center',
-    },
     scanningText: {
       fontSize: 17,
       color: theme.brandColors.white,
       textAlign: 'center',
     },
+    // For no camera permission state
+    noCameraContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   });
-};
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -363,9 +337,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     }
   }, [visible, hasPermission, onScanError]);
 
-  // Semi-transparent overlay color
-  const overlayColor = 'rgba(0, 0, 0, 0.6)';
-
   return (
     <Modal
       isVisible={visible}
@@ -393,50 +364,22 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
                 <Icon name={IconName.Close} size={IconSize.Xl} />
               </TouchableOpacity>
 
-              {/* Overlay container with blur edges */}
-              <View style={styles.overlayContainer}>
-                {/* Top overlay with gradient blur */}
-                <LinearGradient
-                  colors={[overlayColor, overlayColor, 'rgba(0, 0, 0, 0.3)']}
-                  locations={[0, 0.7, 1]}
-                  style={styles.topOverlay}
-                />
+              {/* Overlay layout */}
+              <View style={styles.overlayColumn}>
+                {/* Top overlay with hint text */}
+                <View style={styles.topOverlay}>{hintText}</View>
 
-                {/* Left overlay with gradient blur */}
-                <LinearGradient
-                  colors={[overlayColor, 'rgba(0, 0, 0, 0.3)']}
-                  locations={[0, 1]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.leftOverlay}
-                />
-
-                {/* Right overlay with gradient blur */}
-                <LinearGradient
-                  colors={['rgba(0, 0, 0, 0.3)', overlayColor]}
-                  locations={[0, 1]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.rightOverlay}
-                />
-
-                {/* Bottom overlay with gradient blur */}
-                <LinearGradient
-                  colors={['rgba(0, 0, 0, 0.3)', overlayColor, overlayColor]}
-                  locations={[0, 0.3, 1]}
-                  style={styles.bottomOverlay}
-                />
-
-                {/* Frame */}
-                <View style={styles.frameContainer}>
-                  <Image source={frameImage} style={styles.frame} />
+                {/* Middle row: left overlay, frame, right overlay */}
+                <View style={styles.middleRow}>
+                  <View style={styles.sideOverlay} />
+                  <View style={styles.frameContainer}>
+                    <Image source={frameImage} style={styles.frame} />
+                  </View>
+                  <View style={styles.sideOverlay} />
                 </View>
 
-                {/* Hint text above the frame */}
-                <View style={styles.hintTextContainer}>{hintText}</View>
-
-                {/* Scanning text below the frame */}
-                <View style={styles.scanningTextContainer}>
+                {/* Bottom overlay with scanning text */}
+                <View style={styles.bottomOverlay}>
                   <Text style={styles.scanningText}>{`${strings(
                     'qr_scanner.scanning',
                   )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
@@ -449,12 +392,10 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
               <Icon name={IconName.Close} size={IconSize.Xl} />
             </TouchableOpacity>
-            <View style={styles.overlayContainer}>
-              <View style={styles.scanningTextContainer}>
-                <Text style={styles.scanningText}>
-                  {strings('transaction.no_camera_permission')}
-                </Text>
-              </View>
+            <View style={styles.noCameraContainer}>
+              <Text style={styles.scanningText}>
+                {strings('transaction.no_camera_permission')}
+              </Text>
             </View>
           </SafeAreaView>
         )}
