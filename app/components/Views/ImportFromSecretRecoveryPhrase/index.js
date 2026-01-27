@@ -395,6 +395,11 @@ const ImportFromSecretRecoveryPhrase = ({
     [password, confirmPassword, learnMore],
   );
 
+  const isPasswordTooShort = useMemo(
+    () => password !== '' && password.length < MIN_PASSWORD_LENGTH,
+    [password],
+  );
+
   const toggleShowPassword = (index) => {
     setShowPasswordIndex((prev) => {
       if (prev.includes(index)) {
@@ -662,14 +667,8 @@ const ImportFromSecretRecoveryPhrase = ({
                   keyboardAppearance={themeAppearance || 'light'}
                   placeholderTextColor={colors.text.muted}
                   onSubmitEditing={jumpToConfirmPassword}
-                  isError={
-                    password !== '' && password.length < MIN_PASSWORD_LENGTH
-                  }
-                  style={
-                    password !== '' && password.length < MIN_PASSWORD_LENGTH
-                      ? styles.errorBorder
-                      : undefined
-                  }
+                  isError={isPasswordTooShort}
+                  style={isPasswordTooShort ? styles.errorBorder : undefined}
                   endAccessory={
                     <Icon
                       name={
@@ -690,9 +689,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 <Text
                   variant={TextVariant.BodySM}
                   color={
-                    password !== '' && password.length < MIN_PASSWORD_LENGTH
-                      ? TextColor.Error
-                      : TextColor.Alternative
+                    isPasswordTooShort ? TextColor.Error : TextColor.Alternative
                   }
                 >
                   {strings('choose_password.must_be_at_least', {

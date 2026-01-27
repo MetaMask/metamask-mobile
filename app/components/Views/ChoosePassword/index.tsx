@@ -679,6 +679,8 @@ const ChoosePassword = () => {
 
   const renderContent = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
+    const isPasswordTooShort =
+      password !== '' && password.length < MIN_PASSWORD_LENGTH;
     let canSubmit;
     if (getOauth2LoginSuccess()) {
       canSubmit = passwordsMatch && password.length >= MIN_PASSWORD_LENGTH;
@@ -766,14 +768,8 @@ const ChoosePassword = () => {
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     size={TextFieldSize.Lg}
-                    isError={
-                      password !== '' && password.length < MIN_PASSWORD_LENGTH
-                    }
-                    style={
-                      password !== '' && password.length < MIN_PASSWORD_LENGTH
-                        ? styles.errorBorder
-                        : undefined
-                    }
+                    isError={isPasswordTooShort}
+                    style={isPasswordTooShort ? styles.errorBorder : undefined}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
                         <Icon
@@ -791,7 +787,7 @@ const ChoosePassword = () => {
                   <Text
                     variant={TextVariant.BodySM}
                     color={
-                      password !== '' && password.length < MIN_PASSWORD_LENGTH
+                      isPasswordTooShort
                         ? TextColor.Error
                         : TextColor.Alternative
                     }

@@ -1388,19 +1388,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('shows password field in error state when password is too short', async () => {
+    it('helper text remains visible after password meets minimum length requirement', async () => {
       const { getByText, getByTestId } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
 
-      // Enter a password
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'short');
-      });
-
-      // Helper text should be visible
+      // Verify helper text is visible initially
       await waitFor(() => {
         expect(
           getByText(
@@ -1410,21 +1405,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           ),
         ).toBeOnTheScreen();
       });
-    });
 
-    it('shows password field in normal state when password meets length requirement', async () => {
-      const { getByText, getByTestId } = await renderCreatePasswordUI();
-
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-      );
-
-      // Enter a password
+      // Enter a valid password that meets minimum length
       await act(async () => {
         fireEvent.changeText(passwordInput, 'ValidPassword123');
       });
 
-      // Helper text should still be visible
+      // Helper text should persist even after password meets requirement
       await waitFor(() => {
         expect(
           getByText(
