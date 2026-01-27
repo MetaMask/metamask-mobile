@@ -1,4 +1,5 @@
-import { renderHook, waitFor } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-hooks';
+import { waitFor } from '@testing-library/react-native';
 import { useHasExistingPosition } from './useHasExistingPosition';
 import { usePerpsLivePositions, usePerpsLiveFills } from './stream';
 import type { Position, OrderFill } from '../controllers/types';

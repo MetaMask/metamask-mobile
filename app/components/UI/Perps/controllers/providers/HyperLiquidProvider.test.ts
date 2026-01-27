@@ -769,7 +769,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.editOrder(editParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('No price available for BTC');
+      expect(result.error).toContain('Invalid price for BTC');
     });
 
     it('falls back to REST API when cached price is zero', async () => {
