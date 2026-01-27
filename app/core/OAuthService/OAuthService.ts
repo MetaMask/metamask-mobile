@@ -1,6 +1,7 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
+import { whenEngineReady } from '../Analytics/whenEngineReady';
 
 import {
   HandleOAuthLoginResult,
@@ -138,6 +139,8 @@ export class OAuthService {
           'No revoke token found',
         );
       }
+
+      await whenEngineReady();
 
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
