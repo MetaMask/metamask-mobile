@@ -8,12 +8,7 @@ import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
 // @ts-expect-error - No types declarations
 import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
-import {
-  JsonRpcParams,
-  Json,
-  CaipChainId,
-  JsonRpcRequest,
-} from '@metamask/utils';
+import { JsonRpcParams, Json, JsonRpcRequest } from '@metamask/utils';
 import {
   createSelectedNetworkMiddleware,
   SelectedNetworkControllerMessenger,
@@ -280,11 +275,10 @@ export default class SnapBridge {
           PermissionController,
           origin,
         ),
-        getNonEvmSupportedMethods: (scope: CaipChainId) =>
-          Engine.controllerMessenger.call(
-            'MultichainRouter:getSupportedMethods',
-            scope,
-          ),
+        getNonEvmSupportedMethods: Engine.controllerMessenger.call.bind(
+          Engine.controllerMessenger,
+          'MultichainRouter:getSupportedMethods',
+        ),
         isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
           'MultichainRouter:isSupportedScope',
@@ -300,7 +294,7 @@ export default class SnapBridge {
           Engine.controllerMessenger,
           'MultichainRouter:getSupportedAccounts',
         ),
-        trackSessionCreatedEvent: () => undefined,
+        trackSessionCreatedEvent: undefined,
       }),
     );
 
@@ -360,6 +354,7 @@ export default class SnapBridge {
 
     const caipProviderStream = createEngineStream({ engine: caipEngine });
 
+    /* istanbul ignore next 2 */
     pump(caipStream, caipProviderStream, caipStream, (error: Error | null) => {
       caipEngine.destroy();
 
