@@ -477,5 +477,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.BOB]: require('../../images/bob.png'),
   [NETWORK_CHAIN_ID.ROOTSTOCK]: require('../../images/rootstock.png'),
   [NETWORK_CHAIN_ID.ROOTSTOCK_TESTNET]: require('../../images/rootstock.png'),
-  [NETWORK_CHAIN_ID.TEMPO_TESTNET]: require('../../images/tempo-testnet.png'),
+  [NETWORK_CHAIN_ID.TEMPO_TESTNET]: require('../../images/tempo.png'),
 };
