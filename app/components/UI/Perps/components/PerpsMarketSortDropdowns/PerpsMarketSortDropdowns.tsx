@@ -44,7 +44,7 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
 
   // Get display label for current sort option
   const sortLabel = useMemo(() => {
-    const option = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
+    const option = MARKET_SORTING_CONFIG.SortOptions.find(
       (opt) => opt.id === selectedOptionId,
     );
     return option ? strings(option.labelKey) : strings('perps.sort.volume');

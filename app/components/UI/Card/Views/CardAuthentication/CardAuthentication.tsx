@@ -406,7 +406,7 @@ const CardAuthentication = () => {
             <Label>{strings('card.card_authentication.email_label')}</Label>
             <TextField
               autoCapitalize={'none'}
-              autoComplete="email"
+              autoComplete="one-time-code"
               onChangeText={handleEmailChange}
               numberOfLines={1}
               size={TextFieldSize.Lg}
@@ -425,7 +425,7 @@ const CardAuthentication = () => {
             <TextField
               autoCapitalize={'none'}
               onChangeText={handlePasswordChange}
-              autoComplete="password"
+              autoComplete="one-time-code"
               numberOfLines={1}
               size={TextFieldSize.Lg}
               value={password}

@@ -5,7 +5,7 @@
  * Tags marked "Reserved" are placeholders without active tests - their functionality
  * is currently covered by other active tags as noted in the description.
  *
- * Selection logic is defined in: e2e/tools/e2e-ai-analyzer/modes/select-tags/prompt.ts
+ * Selection logic is defined in: tests/tools/e2e-ai-analyzer/modes/select-tags/prompt.ts
  */
 const smokeTags = {
   smokeAccounts: {
