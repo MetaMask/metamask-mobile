@@ -6,7 +6,6 @@ import {
   selectBalanceTotal,
   selectReferralCount,
   selectReferredByCode,
-  selectReferralPoints,
   selectCurrentTier,
   selectNextTier,
   selectNextTierPointsNeeded,
@@ -189,32 +188,6 @@ describe('Rewards selectors', () => {
 
       const { result } = renderHook(() => useSelector(selectReferredByCode));
       expect(result.current).toBe('');
-    });
-  });
-
-  describe('selectReferralPoints', () => {
-    it('returns zero when referral points is zero', () => {
-      const mockState = { rewards: { referralPoints: 0 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectReferralPoints));
-      expect(result.current).toBe(0);
-    });
-
-    it('returns referral points when set', () => {
-      const mockState = { rewards: { referralPoints: 500 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectReferralPoints));
-      expect(result.current).toBe(500);
-    });
-
-    it('handles large referral points values', () => {
-      const mockState = { rewards: { referralPoints: 99999 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectReferralPoints));
-      expect(result.current).toBe(99999);
     });
   });
 
@@ -1361,18 +1334,6 @@ describe('Rewards selectors', () => {
       it('returns referred by code when set', () => {
         const state = createMockRootState({ referredByCode: 'REFERRER456' });
         expect(selectReferredByCode(state)).toBe('REFERRER456');
-      });
-    });
-
-    describe('selectReferralPoints direct calls', () => {
-      it('returns zero when referral points is zero', () => {
-        const state = createMockRootState({ referralPoints: 0 });
-        expect(selectReferralPoints(state)).toBe(0);
-      });
-
-      it('returns referral points when set', () => {
-        const state = createMockRootState({ referralPoints: 1500 });
-        expect(selectReferralPoints(state)).toBe(1500);
       });
     });
 

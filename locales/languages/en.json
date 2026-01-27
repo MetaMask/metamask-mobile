@@ -7067,6 +7067,7 @@
         "stop_loss": "TP/SL",
         "predict": "Prediction",
         "musd_deposit": "mUSD deposit",
+        "apply_referral_bonus": "Referral code bonus",
         "uncategorized_event": "Uncategorized event"
       },
       "date": "Date",

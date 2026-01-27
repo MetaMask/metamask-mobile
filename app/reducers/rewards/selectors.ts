@@ -16,9 +16,6 @@ export const selectReferralCount = (state: RootState) =>
 export const selectReferredByCode = (state: RootState) =>
   state.rewards.referredByCode;
 
-export const selectReferralPoints = (state: RootState) =>
-  state.rewards.referralPoints;
-
 export const selectCurrentTier = (state: RootState) =>
   state.rewards.currentTier;
 
