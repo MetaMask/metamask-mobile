@@ -9,7 +9,6 @@ import UrlAutocomplete, {
 import { screen, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -84,42 +83,6 @@ describe('DiscoveryTab', () => {
     await waitFor(() => {
       expect(screen.getByText('Token Discovery placeholder')).toBeOnTheScreen();
     });
-  });
-
-  it('should navigate to the asset loader when selecting a token from the autocomplete', () => {
-    let onSelectProp: (item: AutocompleteSearchResult) => void = jest.fn();
-    jest.mocked(UrlAutocomplete).mockImplementation(({ onSelect }) => {
-      onSelectProp = onSelect;
-      return 'UrlAutocomplete';
-    });
-    renderWithProvider(
-      <NavigationContainer independent>
-        <Stack.Navigator>
-          <Stack.Screen name="Browser">
-            {() => <DiscoveryTab {...mockProps} />}
-          </Stack.Screen>
-        </Stack.Navigator>
-      </NavigationContainer>,
-      { state: mockInitialState },
-    );
-    onSelectProp?.({
-      category: UrlAutocompleteCategory.Tokens,
-      address: '0x123',
-      chainId: '0x1',
-      name: 'Test Token',
-      symbol: 'TEST',
-      decimals: 18,
-      price: 100,
-      percentChange: 100,
-      isFromSearch: true,
-    });
-    expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      Routes.BROWSER.ASSET_LOADER,
-      {
-        chainId: '0x1',
-        address: '0x123',
-      },
-    );
   });
 
   it('should navigate to a site when selecting a URL from the autocomplete', () => {

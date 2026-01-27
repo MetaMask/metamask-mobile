@@ -13,12 +13,7 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
-import {
-  ARBITRUM_MAINNET_CHAIN_ID_HEX,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-  USDC_SYMBOL,
-} from '../constants/hyperLiquidConfig';
+import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
@@ -73,7 +68,7 @@ import {
   type GetOrderFillsParams,
   type GetOrdersParams,
   type GetPositionsParams,
-  type IPerpsProvider,
+  type PerpsProvider,
   type LiquidationPriceParams,
   type LiveDataConfig,
   type MaintenanceMarginParams,
@@ -103,14 +98,14 @@ import {
   type HistoricalPortfolioResult,
   type OrderType,
   // Platform dependencies interface for core migration (bundles all platform-specific deps)
-  type IPerpsPlatformDependencies,
-  type IPerpsLogger,
+  type PerpsPlatformDependencies,
+  type PerpsLogger,
   type PerpsActiveProviderMode,
   type PerpsProviderType,
 } from './types';
 
-/** Derived type for logger options from IPerpsLogger interface */
-type PerpsLoggerOptions = Parameters<IPerpsLogger['error']>[1];
+/** Derived type for logger options from PerpsLogger interface */
+type PerpsLoggerOptions = Parameters<PerpsLogger['error']>[1];
 import type {
   RemoteFeatureFlagControllerState,
   RemoteFeatureFlagControllerStateChangeEvent,
@@ -330,8 +325,8 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     mainnet: {},
   },
   marketFilterPreferences: {
-    optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
-    direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+    optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
+    direction: MARKET_SORTING_CONFIG.DefaultDirection,
   },
   hip3ConfigVersion: 0,
 });
@@ -666,7 +661,7 @@ export interface PerpsControllerOptions {
    * Provides logging, metrics, tracing, stream management, and account utilities.
    * Must be provided by the platform (mobile/extension) at instantiation time.
    */
-  infrastructure: IPerpsPlatformDependencies;
+  infrastructure: PerpsPlatformDependencies;
 }
 
 interface BlockedRegionList {
@@ -687,7 +682,7 @@ export class PerpsController extends BaseController<
   PerpsControllerState,
   PerpsControllerMessenger
 > {
-  protected providers: Map<PerpsProviderType, IPerpsProvider>;
+  protected providers: Map<PerpsProviderType, PerpsProvider>;
   protected isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
@@ -716,7 +711,7 @@ export class PerpsController extends BaseController<
    * When activeProvider is 'hyperliquid' or 'myx': points to specific provider directly
    * When activeProvider is 'aggregated': points to AggregatedPerpsProvider wrapper
    */
-  protected activeProviderInstance: IPerpsProvider | null = null;
+  protected activeProviderInstance: PerpsProvider | null = null;
 
   // Store options for dependency injection (allows core package to inject platform-specific services)
   private readonly options: PerpsControllerOptions;
@@ -842,7 +837,7 @@ export class PerpsController extends BaseController<
   /**
    * Get metrics instance from platform dependencies
    */
-  private getMetrics(): IPerpsPlatformDependencies['metrics'] {
+  private getMetrics(): PerpsPlatformDependencies['metrics'] {
     return this.options.infrastructure.metrics;
   }
 
@@ -1131,7 +1126,7 @@ export class PerpsController extends BaseController<
         // - Some might not need auth at all: new DydxProvider()
 
         // Wait for WebSocket transport to be ready before marking as initialized
-        await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+        await wait(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
 
         this.isInitialized = true;
         this.update((state) => {
@@ -1208,7 +1203,7 @@ export class PerpsController extends BaseController<
   ): PerpsLoggerOptions {
     return {
       tags: {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         provider: this.state.activeProvider,
         network: this.state.isTestnet ? 'testnet' : 'mainnet',
       },
@@ -1272,7 +1267,7 @@ export class PerpsController extends BaseController<
    * @returns The active provider (aggregated wrapper or direct provider based on mode)
    * @throws Error if provider is not initialized or reinitializing
    */
-  getActiveProvider(): IPerpsProvider {
+  getActiveProvider(): PerpsProvider {
     // Check if we're in the middle of reinitializing
     if (this.isReinitializing) {
       this.update((state) => {
@@ -1317,7 +1312,7 @@ export class PerpsController extends BaseController<
    * (e.g., UI components during initialization or reconnection)
    * @returns The active provider, or null if not initialized/reinitializing
    */
-  getActiveProviderOrNull(): IPerpsProvider | null {
+  getActiveProviderOrNull(): PerpsProvider | null {
     // Return null during reinitialization
     if (this.isReinitializing) {
       return null;
@@ -1534,14 +1529,6 @@ export class PerpsController extends BaseController<
         );
       }
 
-      const gasFeeToken =
-        transaction.to &&
-        assetChainId.toLowerCase() === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
-        transaction.to.toLowerCase() ===
-          USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()
-          ? (transaction.to as Hex)
-          : undefined;
-
       // submit shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
       const { result, transactionMeta } = await controllers.transaction.submit(
@@ -1551,7 +1538,6 @@ export class PerpsController extends BaseController<
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
           skipInitialGasEstimate: true,
-          gasFeeToken,
         },
       );
 
@@ -2820,15 +2806,15 @@ export class PerpsController extends BaseController<
       // Handle other simple legacy strings (e.g., 'volume', 'openInterest', etc.)
       return {
         optionId: pref as SortOptionId,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       };
     }
 
     // Return new object format or default
     return (
       pref ?? {
-        optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       }
     );
   }
