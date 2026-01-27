@@ -138,6 +138,10 @@ import { toAssetId } from '../Bridge/hooks/useAssetMetadata/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { parseCAIP19AssetId } from '../Ramp/Aggregator/utils/parseCaip19AssetId';
 import { toLowerCaseEquals } from '../../../util/general';
+import MarketClosedActionButton from './MarketClosedActionButton';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useRWAToken } from '../Bridge/hooks/useRWAToken';
+import { hasRwaData } from '../../../util/swaps/rwaUtils';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -283,6 +287,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       : undefined,
   );
   ///: END:ONLY_INCLUDE_IF
+
+  const { isTokenTradingOpen } = useRWAToken();
+  const [isTradingOpen, setIsTradingOpen] = useState<boolean | null>(null);
 
   const currentAddress = asset.address as Hex;
   const { goToBuy } = useRampNavigation();
@@ -611,6 +618,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     conversionRateByTicker,
   ]);
 
+  useEffect(() => {
+    const checkTradingStatus = async () => {
+      if (hasRwaData(asset)) {
+        const isOpen = await isTokenTradingOpen(asset as BridgeToken);
+        setIsTradingOpen(isOpen);
+      } else {
+        // If no token provided or no rwaData, assume trading is open (no icon)
+        setIsTradingOpen(true);
+      }
+    };
+
+    checkTradingStatus();
+  }, [asset, isTokenTradingOpen]);
+
   const exchangeRate = marketDataRate ?? fetchedRate;
 
   let balance;
@@ -790,6 +811,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     return matchingToken?.tokenSupported ?? false;
   }, [allTokens, asset.isNative, asset.chainId, asset.address]);
 
+  const handleMarketClosedButtonPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+    });
+  };
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {asset.hasBalanceError ? (
@@ -809,6 +836,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
+          {!isTradingOpen && (
+            <View style={styles.marketClosedActionButtonContainer}>
+              <MarketClosedActionButton
+                iconName={IconName.Info}
+                label={strings('asset_overview.market_closed')}
+                onPress={handleMarketClosedButtonPress}
+                testID={'test'}
+              />
+            </View>
+          )}
           <AssetDetailsActions
             displayBuyButton={displayBuyButton && isAssetBuyable}
             displaySwapsButton={displaySwapsButton}

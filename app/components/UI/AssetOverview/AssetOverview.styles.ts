@@ -96,6 +96,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingTop: 24,
     },
+    marketClosedActionButtonContainer: {
+      marginBottom: 8,
+    },
   });
 };
 
