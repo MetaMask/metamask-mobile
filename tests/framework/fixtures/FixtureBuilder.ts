@@ -1540,6 +1540,20 @@ class FixtureBuilder {
       },
     );
 
+    // Enable liveness for each chain
+    const livenessByChainId: Record<string, boolean> = {};
+    chainIds.forEach((chainId) => {
+      livenessByChainId[chainId] = true;
+    });
+
+    merge(this.fixture.state.engine.backgroundState, {
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          livenessByChainId,
+        },
+      },
+    });
+
     return this;
   }
 
