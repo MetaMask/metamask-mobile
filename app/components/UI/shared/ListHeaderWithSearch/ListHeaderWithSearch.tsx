@@ -143,6 +143,9 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
     <HeaderCenter
       title={title || defaultTitle}
       onBack={handleBack}
+      backButtonProps={{
+        testID: testID ? `${testID}-back-button` : undefined,
+      }}
       endButtonIconProps={[
         {
           iconName: DSIconName.Search,
