@@ -1,12 +1,10 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
 import {
   selectProviders,
   selectProvidersRequest,
 } from '../../../../selectors/rampsController';
 import {
-  ExecuteRequestOptions,
   RequestSelectorResult,
   type Provider,
 } from '@metamask/ramps-controller';
@@ -27,18 +25,6 @@ export interface UseRampsProvidersResult {
    * The error message if the request failed, or null.
    */
   error: string | null;
-  /**
-   * Fetch providers for a given region.
-   */
-  fetchProviders: (
-    region?: string,
-    options?: ExecuteRequestOptions & {
-      provider?: string | string[];
-      crypto?: string | string[];
-      fiat?: string | string[];
-      payments?: string | string[];
-    },
-  ) => Promise<{ providers: Provider[] }>;
 }
 
 /**
@@ -47,7 +33,7 @@ export interface UseRampsProvidersResult {
  *
  * @param region - Optional region code to use for request state. If not provided, uses userRegion from state.
  * @param filterOptions - Optional filter options for the request cache key.
- * @returns Providers state and fetch function.
+ * @returns Providers state.
  */
 export function useRampsProviders(
   region?: string,
@@ -78,28 +64,10 @@ export function useRampsProviders(
     requestSelector,
   ) as RequestSelectorResult<{ providers: Provider[] }>;
 
-  const fetchProviders = useCallback(
-    async (
-      fetchRegion?: string,
-      options?: ExecuteRequestOptions & {
-        provider?: string | string[];
-        crypto?: string | string[];
-        fiat?: string | string[];
-        payments?: string | string[];
-      },
-    ) =>
-      await Engine.context.RampsController.getProviders(
-        fetchRegion ?? regionCode,
-        options,
-      ),
-    [regionCode],
-  );
-
   return {
     providers,
     isLoading: isFetching,
     error,
-    fetchProviders,
   };
 }
 

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RegionSelector calls fetchCountries when regions are null 1`] = `
+exports[`RegionSelector clears search and scrolls to top when clear button is pressed 1`] = `
 <View
   style={
     {
@@ -500,107 +500,6 @@ exports[`RegionSelector calls fetchCountries when regions are null 1`] = `
   </RNCSafeAreaProvider>
 </View>
 `;
-
-exports[`RegionSelector clears search and scrolls to top when clear button is pressed 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
->
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
-    style={
-      [
-        {
-          "flex": 1,
-        },
-        undefined,
-      ]
-    }
-  >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
             <View
               collapsable={false}
               pointerEvents="box-none"

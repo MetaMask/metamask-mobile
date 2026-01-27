@@ -25,9 +25,6 @@ jest.mock('@react-navigation/native', () => {
 
 const mockSetUserRegion = jest.fn().mockResolvedValue(undefined);
 const mockFetchUserRegion = jest.fn().mockResolvedValue(null);
-const mockFetchCountries = jest.fn().mockResolvedValue([]);
-const mockFetchProviders = jest.fn().mockResolvedValue({ providers: [] });
-const mockFetchTokens = jest.fn().mockResolvedValue(null);
 const mockSetSelectedProvider = jest.fn();
 
 const createMockCountry = (
@@ -106,15 +103,12 @@ const mockUseRampsControllerInitialValues: ReturnType<
   providers: [],
   providersLoading: false,
   providersError: null,
-  fetchProviders: mockFetchProviders,
   tokens: null,
   tokensLoading: false,
   tokensError: null,
-  fetchTokens: mockFetchTokens,
   countries: mockRegions,
   countriesLoading: false,
   countriesError: null,
-  fetchCountries: mockFetchCountries,
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
@@ -155,48 +149,22 @@ describe('RegionSelector', () => {
   it('renders loading state when regions are loading', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
-      countries: null,
+      countries: [],
       countriesLoading: true,
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('calls fetchCountries when regions are null', () => {
-    mockUseRampsControllerValues = {
-      ...mockUseRampsControllerInitialValues,
-      countries: null,
-      countriesLoading: false,
-      countriesError: null,
-    };
-    render(RegionSelector);
-    expect(mockFetchCountries).toHaveBeenCalled();
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
   it('renders error state when countries error occurs', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: 'Failed to fetch countries',
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('calls fetchCountries when retry button is pressed on error', () => {
-    mockUseRampsControllerValues = {
-      ...mockUseRampsControllerInitialValues,
-      countries: null,
-      countriesLoading: false,
-      countriesError: 'Failed to fetch countries',
-    };
-    render(RegionSelector);
-    jest.clearAllMocks();
-    const retryButton = screen.getByTestId('retry-countries-button');
-    fireEvent.press(retryButton);
-    expect(mockFetchCountries).toHaveBeenCalled();
   });
 
   it('renders with selected user region', () => {

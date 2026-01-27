@@ -12,6 +12,7 @@ import {
   selectSelectedProvider,
   selectProviders,
   selectTokens,
+  selectCountries,
   selectCountriesRequest,
   selectTokensRequest,
   selectProvidersRequest,
@@ -258,11 +259,25 @@ describe('RampsController Selectors', () => {
     });
   });
 
+  describe('selectCountries', () => {
+    it('returns countries from state', () => {
+      const state = createMockState({ countries: mockCountries });
+
+      expect(selectCountries(state)).toEqual(mockCountries);
+    });
+
+    it('returns empty array when countries are not available', () => {
+      const state = createMockState();
+
+      expect(selectCountries(state)).toEqual([]);
+    });
+  });
+
   describe('selectCountriesRequest', () => {
-    it('returns request state for buy action', () => {
+    it('returns request state', () => {
       const state = createMockState({
         requests: {
-          'getCountries:["buy"]': {
+          'getCountries:[]': {
             status: RequestStatus.SUCCESS,
             data: mockCountries,
             error: null,
@@ -272,7 +287,7 @@ describe('RampsController Selectors', () => {
         },
       });
 
-      const result = selectCountriesRequest('buy')(state);
+      const result = selectCountriesRequest(state);
 
       expect(result).toEqual({
         data: mockCountries,
@@ -281,12 +296,12 @@ describe('RampsController Selectors', () => {
       });
     });
 
-    it('returns request state for sell action', () => {
+    it('returns loading state when request is in progress', () => {
       const state = createMockState({
         requests: {
-          'getCountries:["sell"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockCountries,
+          'getCountries:[]': {
+            status: RequestStatus.LOADING,
+            data: null,
             error: null,
             timestamp: Date.now(),
             lastFetchedAt: Date.now(),
@@ -294,37 +309,41 @@ describe('RampsController Selectors', () => {
         },
       });
 
-      const result = selectCountriesRequest('sell')(state);
+      const result = selectCountriesRequest(state);
 
       expect(result).toEqual({
-        data: mockCountries,
-        isFetching: false,
+        data: null,
+        isFetching: true,
         error: null,
       });
     });
 
-    it('defaults to buy action when not provided', () => {
+    it('returns error state when request fails', () => {
       const state = createMockState({
         requests: {
-          'getCountries:["buy"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockCountries,
-            error: null,
+          'getCountries:[]': {
+            status: RequestStatus.ERROR,
+            data: null,
+            error: 'Network error',
             timestamp: Date.now(),
             lastFetchedAt: Date.now(),
           },
         },
       });
 
-      const result = selectCountriesRequest()(state);
+      const result = selectCountriesRequest(state);
 
-      expect(result.data).toEqual(mockCountries);
+      expect(result).toEqual({
+        data: null,
+        isFetching: false,
+        error: 'Network error',
+      });
     });
 
     it('returns default state when request does not exist', () => {
       const state = createMockState();
 
-      const result = selectCountriesRequest('buy')(state);
+      const result = selectCountriesRequest(state);
 
       expect(result).toEqual({
         data: null,

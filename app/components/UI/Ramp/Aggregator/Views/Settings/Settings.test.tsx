@@ -86,9 +86,6 @@ jest.mock('../../hooks/useActivationKeys', () =>
 
 const mockSetUserRegion = jest.fn();
 const mockFetchUserRegion = jest.fn();
-const mockFetchProviders = jest.fn();
-const mockFetchTokens = jest.fn();
-const mockFetchCountries = jest.fn();
 const mockSetSelectedProvider = jest.fn();
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
@@ -129,15 +126,12 @@ const mockUseRampsControllerInitialValues: ReturnType<
   providers: [],
   providersLoading: false,
   providersError: null,
-  fetchProviders: mockFetchProviders,
   tokens: null,
   tokensLoading: false,
   tokensError: null,
-  fetchTokens: mockFetchTokens,
-  countries: null,
+  countries: [],
   countriesLoading: false,
   countriesError: null,
-  fetchCountries: mockFetchCountries,
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;

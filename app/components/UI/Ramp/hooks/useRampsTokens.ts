@@ -1,12 +1,10 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
 import {
   selectTokens,
   selectTokensRequest,
 } from '../../../../selectors/rampsController';
 import {
-  ExecuteRequestOptions,
   RequestSelectorResult,
   type RampsControllerState,
 } from '@metamask/ramps-controller';
@@ -29,14 +27,6 @@ export interface UseRampsTokensResult {
    * The error message if the request failed, or null.
    */
   error: string | null;
-  /**
-   * Fetch tokens for a given region and action.
-   */
-  fetchTokens: (
-    region?: string,
-    action?: 'buy' | 'sell',
-    options?: ExecuteRequestOptions,
-  ) => Promise<TokensResponse>;
 }
 
 /**
@@ -45,7 +35,7 @@ export interface UseRampsTokensResult {
  *
  * @param region - Optional region code to use for request state. If not provided, uses userRegion from state.
  * @param action - Optional action type ('buy' or 'sell'). Defaults to 'buy'.
- * @returns Tokens state and fetch function.
+ * @returns Tokens state.
  */
 export function useRampsTokens(
   region?: string,
@@ -71,25 +61,10 @@ export function useRampsTokens(
     requestSelector,
   ) as RequestSelectorResult<TokensResponse>;
 
-  const fetchTokens = useCallback(
-    async (
-      fetchRegion?: string,
-      fetchAction: 'buy' | 'sell' = action,
-      options?: ExecuteRequestOptions,
-    ) =>
-      await Engine.context.RampsController.getTokens(
-        fetchRegion ?? regionCode,
-        fetchAction,
-        options,
-      ),
-    [action, regionCode],
-  );
-
   return {
     tokens,
     isLoading: isFetching,
     error,
-    fetchTokens,
   };
 }
 

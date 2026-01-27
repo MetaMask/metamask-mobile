@@ -44,7 +44,6 @@ jest.mock('./useRampsProviders', () => ({
     providers: [],
     isLoading: false,
     error: null,
-    fetchProviders: jest.fn(),
   })),
 }));
 
@@ -53,16 +52,14 @@ jest.mock('./useRampsTokens', () => ({
     tokens: null,
     isLoading: false,
     error: null,
-    fetchTokens: jest.fn(),
   })),
 }));
 
 jest.mock('./useRampsCountries', () => ({
   useRampsCountries: jest.fn(() => ({
-    countries: null,
+    countries: [],
     isLoading: false,
     error: null,
-    fetchCountries: jest.fn(),
   })),
 }));
 
@@ -117,7 +114,7 @@ describe('useRampsController', () => {
       tokens: null,
       tokensLoading: false,
       tokensError: null,
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
     });
@@ -125,9 +122,6 @@ describe('useRampsController', () => {
     expect(typeof result.current.fetchUserRegion).toBe('function');
     expect(typeof result.current.setUserRegion).toBe('function');
     expect(typeof result.current.setSelectedProvider).toBe('function');
-    expect(typeof result.current.fetchProviders).toBe('function');
-    expect(typeof result.current.fetchTokens).toBe('function');
-    expect(typeof result.current.fetchCountries).toBe('function');
   });
 
   it('passes options to child hooks', () => {
@@ -152,7 +146,7 @@ describe('useRampsController', () => {
       crypto: 'ETH',
     });
     expect(useRampsTokens).toHaveBeenCalledWith('us-ny', 'sell');
-    expect(useRampsCountries).toHaveBeenCalledWith('sell');
+    expect(useRampsCountries).toHaveBeenCalled();
   });
 
   it('passes undefined options when not provided', () => {
@@ -163,6 +157,6 @@ describe('useRampsController', () => {
 
     expect(useRampsProviders).toHaveBeenCalledWith(undefined, undefined);
     expect(useRampsTokens).toHaveBeenCalledWith(undefined, undefined);
-    expect(useRampsCountries).toHaveBeenCalledWith(undefined);
+    expect(useRampsCountries).toHaveBeenCalled();
   });
 });

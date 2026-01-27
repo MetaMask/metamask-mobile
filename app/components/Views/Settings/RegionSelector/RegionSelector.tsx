@@ -102,12 +102,11 @@ function RegionSelector() {
     countries,
     countriesLoading,
     countriesError,
-    fetchCountries,
   } = useRampsController();
 
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
-  const [currentData, setCurrentData] = useState<RegionItem[]>(countries || []);
+  const [currentData, setCurrentData] = useState<RegionItem[]>(countries);
   const [regionInTransit, setRegionInTransit] = useState<Country | null>(null);
   const { styles } = useStyles(styleSheet, {});
 
@@ -126,13 +125,7 @@ function RegionSelector() {
   }, [colors, navigation, activeView, regionInTransit]);
 
   useEffect(() => {
-    if (!countries && !countriesLoading && !countriesError) {
-      fetchCountries();
-    }
-  }, [countries, countriesLoading, countriesError, fetchCountries]);
-
-  useEffect(() => {
-    if (countries && activeView === RegionViewType.COUNTRY) {
+    if (countries.length > 0 && activeView === RegionViewType.COUNTRY) {
       setCurrentData(countries);
     }
   }, [countries, activeView]);
@@ -542,7 +535,7 @@ function RegionSelector() {
   );
 
   const renderEmptyList = useCallback(() => {
-    if (countriesLoading && !countries) {
+    if (countriesLoading && countries.length === 0) {
       return (
         <View style={styles.emptyList}>
           <ActivityIndicator size="large" color={colors.primary.default} />
@@ -550,7 +543,7 @@ function RegionSelector() {
       );
     }
 
-    if (countriesError && !countries) {
+    if (countriesError && countries.length === 0) {
       return (
         <View style={styles.emptyList}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.errorText}>
@@ -559,13 +552,6 @@ function RegionSelector() {
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {countriesError}
           </Text>
-          <ButtonIcon
-            size={ButtonIconSizes.Md}
-            iconName={IconName.Refresh}
-            onPress={() => fetchCountries()}
-            style={styles.retryButton}
-            testID="retry-countries-button"
-          />
         </View>
       );
     }
@@ -590,9 +576,7 @@ function RegionSelector() {
     searchString,
     styles.emptyList,
     styles.errorText,
-    styles.retryButton,
     colors.primary.default,
-    fetchCountries,
   ]);
 
   const handleSearchTextChange = useCallback(

@@ -62,19 +62,16 @@ export interface UseRampsControllerResult {
   providers: UseRampsProvidersResult['providers'];
   providersLoading: UseRampsProvidersResult['isLoading'];
   providersError: UseRampsProvidersResult['error'];
-  fetchProviders: UseRampsProvidersResult['fetchProviders'];
 
   // Tokens
   tokens: UseRampsTokensResult['tokens'];
   tokensLoading: UseRampsTokensResult['isLoading'];
   tokensError: UseRampsTokensResult['error'];
-  fetchTokens: UseRampsTokensResult['fetchTokens'];
 
   // Countries
   countries: UseRampsCountriesResult['countries'];
   countriesLoading: UseRampsCountriesResult['isLoading'];
   countriesError: UseRampsCountriesResult['error'];
-  fetchCountries: UseRampsCountriesResult['fetchCountries'];
 }
 
 /**
@@ -102,19 +99,16 @@ export interface UseRampsControllerResult {
  *   providers,
  *   providersLoading,
  *   providersError,
- *   fetchProviders,
  *
  *   // Tokens
  *   tokens,
  *   tokensLoading,
  *   tokensError,
- *   fetchTokens,
  *
  *   // Countries
  *   countries,
  *   countriesLoading,
  *   countriesError,
- *   fetchCountries,
  *
  * } = useRampsController({ action: 'buy' });
  * ```
@@ -144,22 +138,19 @@ export function useRampsController(
     providers,
     isLoading: providersLoading,
     error: providersError,
-    fetchProviders,
   } = useRampsProviders(options?.region, options?.providerFilters);
 
   const {
     tokens,
     isLoading: tokensLoading,
     error: tokensError,
-    fetchTokens,
   } = useRampsTokens(options?.region, options?.action);
 
   const {
     countries,
     isLoading: countriesLoading,
     error: countriesError,
-    fetchCountries,
-  } = useRampsCountries(options?.action);
+  } = useRampsCountries();
 
   return {
     // User region
@@ -173,23 +164,19 @@ export function useRampsController(
     selectedProvider,
     setSelectedProvider,
 
-    // Providers
     providers,
     providersLoading,
     providersError,
-    fetchProviders,
 
     // Tokens
     tokens,
     tokensLoading,
     tokensError,
-    fetchTokens,
 
     // Countries
     countries,
     countriesLoading,
     countriesError,
-    fetchCountries,
   };
 }
 

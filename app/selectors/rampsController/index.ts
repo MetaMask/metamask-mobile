@@ -52,6 +52,14 @@ export const selectTokens = createSelector(
 );
 
 /**
+ * Selects the list of countries available for ramp actions.
+ */
+export const selectCountries = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.countries ?? [],
+);
+
+/**
  * Selects the user region request state.
  */
 export const selectUserRegionRequest = createRequestSelector<
@@ -60,17 +68,14 @@ export const selectUserRegionRequest = createRequestSelector<
 >(selectRampsControllerState, 'updateUserRegion', []);
 
 /**
- * Selects the countries request state for a given action.
+ * Selects the countries request state.
  *
- * @param action - The ramp action type ('buy' or 'sell').
  * @returns Request selector for countries.
  */
-export const selectCountriesRequest = (action: 'buy' | 'sell' = 'buy') =>
-  createRequestSelector<RootState, Country[]>(
-    selectRampsControllerState,
-    'getCountries',
-    [action],
-  );
+export const selectCountriesRequest = createRequestSelector<
+  RootState,
+  Country[]
+>(selectRampsControllerState, 'getCountries', []);
 
 /**
  * Selects the tokens request state for a given region and action.
