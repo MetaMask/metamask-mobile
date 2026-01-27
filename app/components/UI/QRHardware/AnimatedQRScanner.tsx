@@ -45,8 +45,7 @@ const createStyles = (theme: Theme) =>
       margin: 0,
     },
     container: {
-      width: '100%',
-      height: '100%',
+      flex: 1,
       backgroundColor: theme.brandColors.black,
     },
     preview: {
@@ -59,11 +58,15 @@ const createStyles = (theme: Theme) =>
       right: 0,
       bottom: 0,
     },
-    closeIcon: {
+    closeButtonContainer: {
       position: 'absolute',
-      top: 50,
-      right: 20,
+      top: 0,
+      right: 0,
       zIndex: 10,
+    },
+    closeIcon: {
+      marginTop: 10,
+      marginRight: 20,
     },
     // Overlay layout using flexbox to center the frame
     overlayColumn: {
@@ -358,16 +361,13 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               torch="off"
               onError={onError}
             />
-            <SafeAreaView style={styles.innerView}>
-              {/* Close button */}
-              <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-                <Icon name={IconName.Close} size={IconSize.Xl} />
-              </TouchableOpacity>
-
-              {/* Overlay layout */}
+            {/* Overlay layout - outside SafeAreaView to extend to screen edges */}
+            <View style={styles.innerView}>
               <View style={styles.overlayColumn}>
                 {/* Top overlay with hint text */}
-                <View style={styles.topOverlay}>{hintText}</View>
+                <View style={styles.topOverlay}>
+                  <SafeAreaView>{hintText}</SafeAreaView>
+                </View>
 
                 {/* Middle row: left overlay, frame, right overlay */}
                 <View style={styles.middleRow}>
@@ -380,24 +380,34 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
                 {/* Bottom overlay with scanning text */}
                 <View style={styles.bottomOverlay}>
-                  <Text style={styles.scanningText}>{`${strings(
-                    'qr_scanner.scanning',
-                  )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                  <SafeAreaView>
+                    <Text style={styles.scanningText}>{`${strings(
+                      'qr_scanner.scanning',
+                    )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                  </SafeAreaView>
                 </View>
               </View>
+            </View>
+            {/* Close button - inside SafeAreaView for proper positioning */}
+            <SafeAreaView style={styles.closeButtonContainer}>
+              <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
+                <Icon name={IconName.Close} size={IconSize.Xl} />
+              </TouchableOpacity>
             </SafeAreaView>
           </>
         ) : (
-          <SafeAreaView style={styles.innerView}>
-            <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-              <Icon name={IconName.Close} size={IconSize.Xl} />
-            </TouchableOpacity>
+          <View style={styles.innerView}>
+            <SafeAreaView style={styles.closeButtonContainer}>
+              <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
+                <Icon name={IconName.Close} size={IconSize.Xl} />
+              </TouchableOpacity>
+            </SafeAreaView>
             <View style={styles.noCameraContainer}>
               <Text style={styles.scanningText}>
                 {strings('transaction.no_camera_permission')}
               </Text>
             </View>
-          </SafeAreaView>
+          </View>
         )}
       </View>
     </Modal>
