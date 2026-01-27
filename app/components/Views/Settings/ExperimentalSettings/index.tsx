@@ -35,7 +35,7 @@ import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagC
 /**
  * Main view for app Experimental Settings
  */
-const ExperimentalSettings = ({ navigation, route }: Props) => {
+const ExperimentalSettings = ({ navigation }: Props) => {
   const dispatch = useDispatch();
   const performanceMetrics = useSelector(selectPerformanceMetrics);
   const cardExperimentalSwitch = useSelector(selectCardExperimentalSwitch);

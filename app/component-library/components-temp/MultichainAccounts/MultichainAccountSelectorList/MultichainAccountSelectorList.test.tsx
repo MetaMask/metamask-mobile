@@ -1,5 +1,11 @@
 import React from 'react';
-import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
+import {
+  fireEvent,
+  waitFor,
+  within,
+  act,
+  cleanup,
+} from '@testing-library/react-native';
 import '@shopify/flash-list/jestSetup';
 import {
   AccountGroupObject,
@@ -11,6 +17,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
+  MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
 } from './MultichainAccountSelectorList.constants';
 import {
   createMockAccountGroup,
@@ -75,10 +82,14 @@ describe('MultichainAccountSelectorList', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    cleanup();
+  });
+
   // Helper function to perform search and wait for results
+  // Uses scoped queries within the list container to avoid test pollution
   const performSearch = async (
     getByTestId: ReturnType<typeof renderWithProvider>['getByTestId'],
-    queryByText: ReturnType<typeof renderWithProvider>['queryByText'],
     searchTerm: string,
     expectedVisible: string[],
     expectedHidden: string[],
@@ -92,14 +103,18 @@ describe('MultichainAccountSelectorList', () => {
     });
 
     // Wait for debounce to complete and filtering to occur
-    // Check both visible and hidden items to ensure filtering has completed
+    // Use scoped queries within the list container to avoid finding elements from other tests
     await waitFor(
       () => {
+        const listContainer = getByTestId(
+          MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
+        );
+        const scopedQueries = within(listContainer);
         expectedVisible.forEach((text) => {
-          expect(queryByText(text)).toBeTruthy();
+          expect(scopedQueries.queryByText(text)).toBeTruthy();
         });
         expectedHidden.forEach((text) => {
-          expect(queryByText(text)).toBeFalsy();
+          expect(scopedQueries.queryByText(text)).toBeFalsy();
         });
       },
       { timeout: 500 },
@@ -336,7 +351,6 @@ describe('MultichainAccountSelectorList', () => {
       // Search for "Test"
       await performSearch(
         getByTestId,
-        queryByText,
         'Test',
         ['Test Account'],
         ['My Account', 'Another Account'],
@@ -441,7 +455,6 @@ describe('MultichainAccountSelectorList', () => {
       // Search for "fedcba" (only matches Account 3)
       await performSearch(
         getByTestId,
-        queryByText,
         'fedcba',
         ['Account 3'],
         ['Account 1', 'Account 2'],
@@ -485,13 +498,7 @@ describe('MultichainAccountSelectorList', () => {
       expect(queryByText('Group 2')).toBeTruthy();
 
       // Search for "2222" (matches one account in Group 1)
-      await performSearch(
-        getByTestId,
-        queryByText,
-        '2222',
-        ['Group 1'],
-        ['Group 2'],
-      );
+      await performSearch(getByTestId, '2222', ['Group 1'], ['Group 2']);
     });
 
     it('filters across multiple wallets', async () => {
@@ -535,7 +542,6 @@ describe('MultichainAccountSelectorList', () => {
       // Search for "Account 2"
       await performSearch(
         getByTestId,
-        queryByText,
         'Account 2',
         ['Account 2'],
         ['Account 1', 'Account 3'],
