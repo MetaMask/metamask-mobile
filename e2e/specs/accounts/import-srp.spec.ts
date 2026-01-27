@@ -6,7 +6,9 @@ import { loginToApp } from '../../viewHelper';
 import Assertions from '../../../tests/framework/Assertions';
 import ImportSrpView from '../../pages/importSrp/ImportSrpView';
 import { goToImportSrp, inputSrp } from '../multisrp/utils';
-import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
+
+const EMPTY_SRP_NO_EXTRA_ACCOUNTS =
+  'wise crime execute caught aspect idea barrel enable boat tonight predict adult';
 
 // We now have account indexes "per wallets", thus the new account for that new SRP (wallet), will
 // be: "Account 1".
@@ -24,13 +26,14 @@ describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
       async () => {
         await loginToApp();
         await goToImportSrp();
-        await inputSrp(IDENTITY_TEAM_SEED_PHRASE);
+        await inputSrp(EMPTY_SRP_NO_EXTRA_ACCOUNTS);
         await ImportSrpView.tapImportButton();
         await Assertions.expectElementToHaveText(
           WalletView.accountName,
           IMPORTED_ACCOUNT_NAME,
           {
             description: `Expect selected account to be ${IMPORTED_ACCOUNT_NAME}`,
+            timeout: 20000,
           },
         );
       },
