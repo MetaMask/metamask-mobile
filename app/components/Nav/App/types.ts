@@ -19,7 +19,7 @@ export interface RootModalFlowParamList {
   FundActionMenu: FundActionMenuParams | undefined;
 
   // Modals
-  DeleteWalletModal: undefined;
+  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
   ModalConfirmation: object | undefined;
   ModalMandatory: object | undefined;
 
@@ -31,7 +31,7 @@ export interface RootModalFlowParamList {
   AssetHideConfirmation:
     | {
         asset?: object;
-        onConfirm?: () => Promise<void>;
+        onConfirm?: () => void | Promise<void>;
       }
     | undefined;
 
@@ -41,7 +41,7 @@ export interface RootModalFlowParamList {
   OTAUpdatesModal: undefined;
 
   // Quiz/Reveal
-  SRPRevealQuiz: { page?: number } | undefined;
+  SRPRevealQuiz: { page?: number; keyringId?: string } | undefined;
 
   // NFT/Token Detection
   NFTAutoDetectionModal: undefined;
@@ -84,12 +84,30 @@ export interface RootModalFlowParamList {
 
   // SDK
   SDKLoading: undefined;
-  SDKManageConnections: undefined;
-  SDKDisconnect: undefined;
+  SDKManageConnections:
+    | {
+        channelId?: string;
+        icon?: string;
+        urlOrTitle?: string;
+        version?: string;
+        platform?: string;
+        isV2?: boolean;
+      }
+    | undefined;
+  SDKDisconnect:
+    | {
+        channelId?: string;
+        accountsLength?: number;
+        account?: string;
+        accountName?: string;
+        dapp?: string;
+        isV2?: boolean;
+      }
+    | undefined;
   ReturnToDappToast: undefined;
 
   // Basic Functionality / Data
-  BasicFunctionality: undefined;
+  BasicFunctionality: { caller?: string } | undefined;
   DataCollection: undefined;
   ExperienceEnhancer: undefined;
   ConfirmTurnOnBackupAndSync: object | undefined;

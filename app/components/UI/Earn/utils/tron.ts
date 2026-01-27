@@ -1,4 +1,3 @@
-import type { RootNavigationProp } from '../../../../util/navigation/types';
 import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 import {
   normalizeToDotDecimal,
@@ -144,7 +143,11 @@ export const getLocalizedErrorMessage = (errors?: string[]): string => {
 };
 
 export const handleTronStakingNavigationResult = (
-  navigation: RootNavigationProp,
+  navigation: {
+    goBack: () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    navigate: (...args: any[]) => void;
+  },
   result: TronStakingNavigationResult,
   action: TronStakingAction,
   accountId?: string,

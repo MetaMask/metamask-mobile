@@ -43,7 +43,15 @@ export enum BridgeViewMode {
  * Param list for the Bridge screen stack navigator.
  */
 export interface BridgeScreenParamList {
-  BridgeView: undefined;
+  BridgeView:
+    | {
+        sourcePage?: string;
+        bridgeViewMode?: BridgeViewMode;
+        sourceToken?: BridgeToken;
+        destToken?: BridgeToken;
+        sourceAmount?: string;
+      }
+    | undefined;
 }
 
 /**

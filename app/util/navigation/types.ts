@@ -14,7 +14,6 @@ import type { CollectibleModalParams } from '../../components/UI/CollectibleModa
 import type { FundActionMenuParams } from '../../components/UI/FundActionMenu/FundActionMenu.types';
 import type { PerpsRouteParams } from '../../components/UI/Perps/controllers/types';
 import type { AccountSelectorParams } from '../../components/Views/AccountSelector/AccountSelector.types';
-import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher';
 import type { OptionsSheetParams } from '../../components/UI/SelectOptionSheet/types';
 import type { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
 import type { AccountConnectParams } from '../../components/Views/AccountConnect/AccountConnect.types';
@@ -101,8 +100,13 @@ export type RootParamList = {
 
   // Asset Screens
   Asset:
-    | (TokenI & {
+    | (Partial<TokenI> & {
         chainId?: string | `0x${string}`;
+        address?: string;
+        symbol?: string;
+        name?: string;
+        decimals?: number;
+        image?: string;
         isFromSearch?: boolean;
         isFromTrending?: boolean;
         pricePercentChange1d?: number;
@@ -333,7 +337,7 @@ export type RootParamList = {
   DepositErrorDetailsModal: undefined;
 
   // Bridge Flow
-  Bridge: NavigatorScreenParams<BridgeParamList> | undefined;
+  Bridge: NavigatorScreenParams<BridgeParamList>;
   BridgeRoot: undefined;
   BridgeModalsRoot: undefined;
   BridgeModals:
@@ -493,7 +497,26 @@ export type RootParamList = {
   PerpsPositions: undefined;
   PerpsClosePosition: undefined;
   PerpsHIP3Debug: undefined;
-  PerpsTPSL: undefined;
+  PerpsTPSL:
+    | {
+        asset: string;
+        currentPrice?: number;
+        direction?: 'long' | 'short';
+        position?: object;
+        initialTakeProfitPrice?: string;
+        initialStopLossPrice?: string;
+        leverage?: number;
+        orderType?: 'market' | 'limit';
+        limitPrice?: string;
+        amount?: string;
+        szDecimals?: number;
+        onConfirm: (
+          takeProfitPrice?: string,
+          stopLossPrice?: string,
+          trackingData?: object,
+        ) => Promise<void>;
+      }
+    | undefined;
   PerpsAdjustMargin: undefined;
   PerpsSelectModifyAction: undefined;
   PerpsSelectAdjustMarginAction: undefined;
@@ -522,7 +545,7 @@ export type RootParamList = {
   PerpsCrossMarginWarning: undefined;
 
   // Predict Flow
-  Predict: NavigatorScreenParams<PredictNavigationParamList> | undefined;
+  Predict: NavigatorScreenParams<PredictNavigationParamList>;
   PredictRoot: undefined;
   PredictModalsRoot: undefined;
   PredictModals: NavigatorScreenParams<PredictNavigationParamList> | undefined;
@@ -685,21 +708,22 @@ export type RootParamList = {
 
   // QR Scanner
   QRTabSwitcher:
-    | (QRTabSwitcherParams & {
-        initialScreen?: string;
-        disableTabber?: boolean;
-        onScanSuccess?: (
-          data: object,
-          content?: string,
-        ) => void | Promise<void>;
+    | {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onScanSuccess?: (...args: any[]) => any;
+        onStartScan?: (...args: unknown[]) => Promise<void>;
         onScanError?: (error: unknown) => void;
-      })
+        initialScreen?: unknown;
+        disableTabber?: boolean;
+        origin?: string;
+        networkName?: string;
+      }
     | undefined;
   QRScanner: undefined;
 
   // Modals
   DeleteWalletModal: undefined;
-  RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
+  RootModalFlow: NavigatorScreenParams<RootModalFlowParamList>;
   ModalConfirmation: object | undefined;
   ModalMandatory: object | undefined;
   WhatsNewModal: undefined;
@@ -783,7 +807,7 @@ export type RootParamList = {
         params?: {
           maxValueMode?: boolean;
         };
-        loader?: object;
+        loader?: string | object;
         preferredPaymentToken?: {
           address: string;
           chainId: string;
@@ -794,7 +818,7 @@ export type RootParamList = {
   NoHeaderConfirmations:
     | {
         amount?: string;
-        loader?: object;
+        loader?: string | object;
         maxValueMode?: boolean;
       }
     | undefined;
