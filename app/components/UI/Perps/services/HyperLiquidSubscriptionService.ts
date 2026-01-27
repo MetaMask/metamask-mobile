@@ -1897,14 +1897,6 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
-   * Check if price cache has been initialized from WebSocket allMids subscription
-   * @returns true if WebSocket has sent at least one allMids update, false otherwise
-   */
-  public isPriceCacheInitialized(): boolean {
-    return this.cachedPriceData !== null && this.cachedPriceData.size > 0;
-  }
-
-  /**
    * Create subscription with common error handling
    */
   private createSubscription<T>(
