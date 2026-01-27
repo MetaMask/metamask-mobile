@@ -18,7 +18,10 @@ import {
 } from '../../../../tests/api-mocking/mock-responses/simulations';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../tests/framework/Constants';
-import { EventPayload, getEventsPayloads } from '../../analytics/helpers';
+import {
+  EventPayload,
+  getEventsPayloads,
+} from '../../../../tests/helpers/analytics/helpers';
 import SoftAssert from '../../../../tests/framework/SoftAssert';
 import { Mockttp } from 'mockttp';
 import {

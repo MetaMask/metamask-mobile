@@ -260,8 +260,8 @@ const PerpsHomeView = () => {
     navigation.navigate(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
-        url: SUPPORT_CONFIG.URL,
-        title: strings(SUPPORT_CONFIG.TITLE_KEY),
+        url: SUPPORT_CONFIG.Url,
+        title: strings(SUPPORT_CONFIG.TitleKey),
       },
     });
     // Track contact support interaction for Perps analytics
@@ -296,9 +296,9 @@ const PerpsHomeView = () => {
         .build(),
     );
     // Open survey in external browser
-    Linking.openURL(FEEDBACK_CONFIG.URL).catch((error: unknown) => {
+    Linking.openURL(FEEDBACK_CONFIG.Url).catch((error: unknown) => {
       Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         message: 'Failed to open feedback survey URL',
       });
     });
@@ -307,7 +307,7 @@ const PerpsHomeView = () => {
   const navigationItems: NavigationItem[] = useMemo(() => {
     const items: NavigationItem[] = [
       {
-        label: strings(SUPPORT_CONFIG.TITLE_KEY),
+        label: strings(SUPPORT_CONFIG.TitleKey),
         onPress: () => navigateToContactSupport(),
         testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
       },
@@ -316,7 +316,7 @@ const PerpsHomeView = () => {
     // Add feedback button when feature flag is enabled
     if (isFeedbackEnabled) {
       items.push({
-        label: strings(FEEDBACK_CONFIG.TITLE_KEY),
+        label: strings(FEEDBACK_CONFIG.TitleKey),
         onPress: handleGiveFeedback,
         testID: PerpsHomeViewSelectorsIDs.FEEDBACK_BUTTON,
       });
@@ -325,7 +325,7 @@ const PerpsHomeView = () => {
     // Avoid duplicate "Learn more" button (shown in empty state card)
     if (!isBalanceEmpty) {
       items.push({
-        label: strings(LEARN_MORE_CONFIG.TITLE_KEY),
+        label: strings(LEARN_MORE_CONFIG.TitleKey),
         onPress: () => navigtateToTutorial(),
         testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
       });
@@ -412,7 +412,7 @@ const PerpsHomeView = () => {
       >
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
-          showActionButtons={HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS}
+          showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
         />
 
         {/* Positions Section */}
@@ -533,7 +533,7 @@ const PerpsHomeView = () => {
       {!isBalanceEmpty &&
         !showCloseAllSheet &&
         !showCancelAllSheet &&
-        !HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS && (
+        !HOME_SCREEN_CONFIG.ShowHeaderActionButtons && (
           <View style={fixedFooterStyle}>
             <View style={styles.footerButtonsContainer}>
               <View style={styles.footerButton}>
