@@ -575,6 +575,7 @@ describe('PerpsMarketDetailsView', () => {
       error: null,
       existingPosition: null,
       refreshPosition: jest.fn(),
+      positionOpenedTimestamp: undefined,
     });
 
     // Reset navigation mocks
@@ -838,6 +839,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
         refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
       });
 
       const { getByTestId, queryByText, queryByTestId } = renderWithProvider(
@@ -928,6 +930,7 @@ describe('PerpsMarketDetailsView', () => {
         error: null,
         existingPosition: null,
         refreshPosition: mockRefreshPosition, // No-op function for WebSocket positions
+        positionOpenedTimestamp: undefined,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -979,6 +982,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
         refreshPosition: mockRefreshPosition,
+        positionOpenedTimestamp: undefined,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1015,6 +1019,7 @@ describe('PerpsMarketDetailsView', () => {
         error: null,
         existingPosition: null,
         refreshPosition: mockRefreshPosition,
+        positionOpenedTimestamp: undefined,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1079,6 +1084,7 @@ describe('PerpsMarketDetailsView', () => {
         error: null,
         existingPosition: null,
         refreshPosition: mockRefreshPosition,
+        positionOpenedTimestamp: undefined,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1696,10 +1702,13 @@ describe('PerpsMarketDetailsView', () => {
     });
   });
 
-  describe('Position opened timestamp calculation', () => {
-    it('computes position opened timestamp from order fills data', () => {
-      // Arrange
-      const timestamp = Date.now();
+  describe('Position opened timestamp', () => {
+    // Note: The timestamp calculation logic has been moved to useHasExistingPosition hook
+    // These tests verify the component correctly uses the hook's positionOpenedTimestamp
+
+    it('uses positionOpenedTimestamp from useHasExistingPosition hook', () => {
+      // Arrange - Hook provides the timestamp
+      const timestamp = Date.now() - 5 * 60 * 1000;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -1722,48 +1731,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
         refreshPosition: jest.fn(),
-      });
-
-      mockUsePerpsLiveFillsImpl.mockReturnValue({
-        fills: [
-          {
-            orderId: 'order-1',
-            symbol: 'BTC',
-            side: 'buy',
-            direction: 'Open Long',
-            timestamp: timestamp - 2000,
-            size: '0.3',
-            price: '43000',
-            pnl: '0',
-            fee: '0.001',
-            feeToken: 'USDC',
-          },
-          {
-            orderId: 'order-2',
-            symbol: 'BTC',
-            side: 'buy',
-            direction: 'Open Long',
-            timestamp,
-            size: '0.5',
-            price: '44000',
-            pnl: '0',
-            fee: '0.001',
-            feeToken: 'USDC',
-          },
-          {
-            orderId: 'order-3',
-            symbol: 'ETH',
-            side: 'sell',
-            direction: 'Open Short',
-            timestamp: timestamp - 1000,
-            size: '1.0',
-            price: '3000',
-            pnl: '0',
-            fee: '0.001',
-            feeToken: 'USDC',
-          },
-        ],
-        isInitialLoading: false,
+        positionOpenedTimestamp: timestamp, // Hook now provides this
       });
 
       // Act
@@ -1776,103 +1744,14 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Assert
+      // Assert - component renders with position data
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
       ).toBeTruthy();
-      expect(mockUsePerpsLiveFillsImpl).toHaveBeenCalled();
     });
 
-    it('falls back to REST API when WebSocket does not have position-opening fill', async () => {
-      // Arrange - WebSocket has no matching Open fill for the position
-      const timestamp = Date.now() - 5 * 60 * 1000; // 5 minutes ago
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: true,
-        isLoading: false,
-        error: null,
-        existingPosition: {
-          symbol: 'ETH',
-          size: '1.0',
-          entryPrice: '3000',
-          positionValue: '3000',
-          unrealizedPnl: '-100',
-          marginUsed: '300',
-          leverage: { type: 'isolated', value: 10 },
-          liquidationPrice: '2700',
-          maxLeverage: 20,
-          returnOnEquity: '-0.33',
-          cumulativeFunding: {
-            allTime: '0',
-            sinceOpen: '0',
-            sinceChange: '0',
-          },
-        },
-        refreshPosition: jest.fn(),
-      });
-
-      // WebSocket fills only has BTC fills, not ETH
-      mockUsePerpsLiveFillsImpl.mockReturnValue({
-        fills: [
-          {
-            orderId: 'order-1',
-            symbol: 'BTC',
-            side: 'buy',
-            direction: 'Open Long',
-            timestamp: timestamp - 1000,
-            size: '0.1',
-            price: '45000',
-            pnl: '0',
-            fee: '0.001',
-            feeToken: 'USDC',
-          },
-        ],
-        isInitialLoading: false,
-      });
-
-      // REST API returns the ETH position-opening fill
-      mockGetOrderFills.mockResolvedValue([
-        {
-          orderId: 'order-eth-1',
-          symbol: 'ETH',
-          side: 'buy',
-          direction: 'Open Long',
-          timestamp,
-          size: '1.0',
-          price: '3000',
-          pnl: '0',
-          fee: '0.01',
-          feeToken: 'USDC',
-        },
-      ]);
-
-      // Act
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Assert - component renders
-      expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
-      ).toBeTruthy();
-
-      // Wait for REST fallback to be called
-      await waitFor(() => {
-        expect(mockGetOrderFills).toHaveBeenCalledWith(
-          expect.objectContaining({
-            startTime: expect.any(Number),
-          }),
-        );
-      });
-    });
-
-    it('does not call REST API when WebSocket has matching Open fill', async () => {
-      // Arrange - WebSocket has the matching Open fill
-      const timestamp = Date.now();
+    it('handles undefined positionOpenedTimestamp from hook', () => {
+      // Arrange - Hook returns undefined timestamp (e.g., new position)
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -1895,82 +1774,8 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
         refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined, // No timestamp available yet
       });
-
-      // WebSocket has matching BTC Open fill
-      mockUsePerpsLiveFillsImpl.mockReturnValue({
-        fills: [
-          {
-            orderId: 'order-1',
-            symbol: 'BTC',
-            side: 'buy',
-            direction: 'Open Long',
-            timestamp,
-            size: '0.5',
-            price: '44000',
-            pnl: '0',
-            fee: '0.001',
-            feeToken: 'USDC',
-          },
-        ],
-        isInitialLoading: false,
-      });
-
-      mockGetOrderFills.mockClear();
-
-      // Act
-      renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Assert - REST API should NOT be called since WebSocket has the fill
-      // Wait a tick to ensure no async call is made
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      expect(mockGetOrderFills).not.toHaveBeenCalled();
-    });
-
-    it('handles REST API error gracefully', async () => {
-      // Arrange
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: true,
-        isLoading: false,
-        error: null,
-        existingPosition: {
-          symbol: 'ETH',
-          size: '1.0',
-          entryPrice: '3000',
-          positionValue: '3000',
-          unrealizedPnl: '-100',
-          marginUsed: '300',
-          leverage: { type: 'isolated', value: 10 },
-          liquidationPrice: '2700',
-          maxLeverage: 20,
-          returnOnEquity: '-0.33',
-          cumulativeFunding: {
-            allTime: '0',
-            sinceOpen: '0',
-            sinceChange: '0',
-          },
-        },
-        refreshPosition: jest.fn(),
-      });
-
-      // WebSocket has no ETH fills
-      mockUsePerpsLiveFillsImpl.mockReturnValue({
-        fills: [],
-        isInitialLoading: false,
-      });
-
-      // REST API throws error
-      mockGetOrderFills.mockRejectedValue(new Error('Network error'));
 
       // Act
       const { getByTestId } = renderWithProvider(
@@ -1982,329 +1787,7 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Assert - component still renders despite REST error
-      expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
-      ).toBeTruthy();
-
-      // Wait for REST fallback attempt
-      await waitFor(() => {
-        expect(mockGetOrderFills).toHaveBeenCalled();
-      });
-
-      // Logger should have logged the error
-      expect(mockLoggerLog).toHaveBeenCalledWith(
-        'Failed to fetch historical fills for position timestamp',
-        expect.objectContaining({
-          error: expect.any(Error),
-          symbol: 'ETH',
-        }),
-      );
-    });
-
-    it('cancels stale REST fetch when market changes rapidly (race condition prevention)', async () => {
-      // Arrange - Start with BTC position
-      const btcTimestamp = Date.now() - 10 * 60 * 1000; // 10 minutes ago
-      const ethTimestamp = Date.now() - 5 * 60 * 1000; // 5 minutes ago
-
-      const btcPosition = {
-        symbol: 'BTC',
-        size: '0.1',
-        entryPrice: '45000',
-        positionValue: '4500',
-        unrealizedPnl: '50',
-        marginUsed: '450',
-        leverage: { type: 'isolated' as const, value: 10 },
-        liquidationPrice: '42000',
-        maxLeverage: 20,
-        returnOnEquity: '0.11',
-        cumulativeFunding: {
-          allTime: '0',
-          sinceOpen: '0',
-          sinceChange: '0',
-        },
-      };
-
-      const ethPosition = {
-        symbol: 'ETH',
-        size: '1.0',
-        entryPrice: '3000',
-        positionValue: '3000',
-        unrealizedPnl: '-100',
-        marginUsed: '300',
-        leverage: { type: 'isolated' as const, value: 10 },
-        liquidationPrice: '2700',
-        maxLeverage: 20,
-        returnOnEquity: '-0.33',
-        cumulativeFunding: {
-          allTime: '0',
-          sinceOpen: '0',
-          sinceChange: '0',
-        },
-      };
-
-      // Start with BTC position
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: true,
-        isLoading: false,
-        error: null,
-        existingPosition: btcPosition,
-        refreshPosition: jest.fn(),
-      });
-
-      // WebSocket has no fills for either
-      mockUsePerpsLiveFillsImpl.mockReturnValue({
-        fills: [],
-        isInitialLoading: false,
-      });
-
-      // REST API will return BTC fill first, then ETH fill
-      // But BTC fetch will be delayed (simulating slow network)
-      let btcResolve: (value: unknown) => void = () => {
-        // No-op, will be replaced
-      };
-      const btcPromise = new Promise((resolve) => {
-        btcResolve = resolve;
-      });
-
-      mockGetOrderFills
-        .mockImplementationOnce(() => btcPromise) // First call (BTC) - delayed
-        .mockResolvedValueOnce([
-          // Second call (ETH) - immediate
-          {
-            orderId: 'order-eth-1',
-            symbol: 'ETH',
-            side: 'buy',
-            direction: 'Open Long',
-            timestamp: ethTimestamp,
-            size: '1.0',
-            price: '3000',
-            pnl: '0',
-            fee: '0.01',
-            feeToken: 'USDC',
-          },
-        ]);
-
-      // Act - Initial render with BTC position
-      const { rerender, getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
-      ).toBeTruthy();
-
-      // Wait for BTC REST fetch to be initiated
-      await waitFor(() => {
-        expect(mockGetOrderFills).toHaveBeenCalledTimes(1);
-      });
-
-      // User switches to ETH position before BTC fetch completes
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: true,
-        isLoading: false,
-        error: null,
-        existingPosition: ethPosition,
-        refreshPosition: jest.fn(),
-      });
-
-      // Rerender with new position
-      rerender(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-      );
-
-      // Wait for ETH REST fetch to be initiated
-      await waitFor(() => {
-        expect(mockGetOrderFills).toHaveBeenCalledTimes(2);
-      });
-
-      // Now BTC fetch completes (delayed) - should be ignored due to cleanup
-      await act(async () => {
-        btcResolve([
-          {
-            orderId: 'order-btc-1',
-            symbol: 'BTC',
-            side: 'buy',
-            direction: 'Open Long',
-            timestamp: btcTimestamp,
-            size: '0.1',
-            price: '45000',
-            pnl: '0',
-            fee: '0.001',
-            feeToken: 'USDC',
-          },
-        ]);
-        // Allow promises to resolve
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      });
-
-      // Assert - Component should still render without errors
-      // The stale BTC timestamp should NOT have been applied
-      expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
-      ).toBeTruthy();
-
-      // Both fetches were called
-      expect(mockGetOrderFills).toHaveBeenCalledTimes(2);
-    });
-
-    it('clears stale timestamp immediately when switching to new position', async () => {
-      // This test verifies the fix for the stale timestamp race condition
-      // The timestamp should be cleared BEFORE the ref is updated to prevent
-      // the old position's timestamp from leaking to the new position
-
-      const btcPosition = {
-        symbol: 'BTC',
-        size: '0.1',
-        entryPrice: '45000',
-        positionValue: '4500',
-        unrealizedPnl: '50',
-        marginUsed: '450',
-        leverage: { type: 'isolated' as const, value: 10 },
-        liquidationPrice: '42000',
-        maxLeverage: 20,
-        returnOnEquity: '0.11',
-        cumulativeFunding: {
-          allTime: '0',
-          sinceOpen: '0',
-          sinceChange: '0',
-        },
-      };
-
-      const ethPosition = {
-        symbol: 'ETH',
-        size: '1.0',
-        entryPrice: '3000',
-        positionValue: '3000',
-        unrealizedPnl: '-100',
-        marginUsed: '300',
-        leverage: { type: 'isolated' as const, value: 10 },
-        liquidationPrice: '2700',
-        maxLeverage: 20,
-        returnOnEquity: '-0.33',
-        cumulativeFunding: {
-          allTime: '0',
-          sinceOpen: '0',
-          sinceChange: '0',
-        },
-      };
-
-      // Start with BTC position
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: true,
-        isLoading: false,
-        error: null,
-        existingPosition: btcPosition,
-        refreshPosition: jest.fn(),
-      });
-
-      // WebSocket has no fills
-      mockUsePerpsLiveFillsImpl.mockReturnValue({
-        fills: [],
-        isInitialLoading: false,
-      });
-
-      // BTC fetch returns immediately with a timestamp
-      const btcTimestamp = Date.now() - 10 * 60 * 1000;
-      mockGetOrderFills.mockResolvedValueOnce([
-        {
-          orderId: 'order-btc-1',
-          symbol: 'BTC',
-          side: 'buy',
-          direction: 'Open Long',
-          timestamp: btcTimestamp,
-          size: '0.1',
-          price: '45000',
-          pnl: '0',
-          fee: '0.001',
-          feeToken: 'USDC',
-        },
-      ]);
-
-      // Render with BTC position
-      const { rerender, getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Wait for BTC timestamp to be fetched and set
-      await waitFor(() => {
-        expect(mockGetOrderFills).toHaveBeenCalledTimes(1);
-      });
-
-      // Allow the state to settle
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      });
-
-      // Now switch to ETH - ETH fetch will be delayed
-      let ethResolve: (value: unknown) => void = () => {
-        // No-op, will be replaced
-      };
-      const ethPromise = new Promise((resolve) => {
-        ethResolve = resolve;
-      });
-
-      mockGetOrderFills.mockImplementationOnce(() => ethPromise);
-
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: true,
-        isLoading: false,
-        error: null,
-        existingPosition: ethPosition,
-        refreshPosition: jest.fn(),
-      });
-
-      // Rerender with ETH position
-      rerender(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-      );
-
-      // Wait for ETH fetch to be initiated (timestamp should be cleared at this point)
-      await waitFor(() => {
-        expect(mockGetOrderFills).toHaveBeenCalledTimes(2);
-      });
-
-      // Component should render correctly while waiting for ETH timestamp
-      // The key assertion: BTC's stale timestamp is NOT being used
-      expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
-      ).toBeTruthy();
-
-      // Complete the ETH fetch
-      const ethTimestamp = Date.now() - 5 * 60 * 1000;
-      await act(async () => {
-        ethResolve([
-          {
-            orderId: 'order-eth-1',
-            symbol: 'ETH',
-            side: 'buy',
-            direction: 'Open Long',
-            timestamp: ethTimestamp,
-            size: '1.0',
-            price: '3000',
-            pnl: '0',
-            fee: '0.01',
-            feeToken: 'USDC',
-          },
-        ]);
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      });
-
-      // Component should still render correctly
+      // Assert - component still renders correctly
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
       ).toBeTruthy();
