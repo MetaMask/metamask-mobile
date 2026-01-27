@@ -122,9 +122,10 @@ describe('NavigationService', () => {
       } as unknown as NavigationContainerRef<ParamListBase>;
       NavigationService.navigation = navWithProperty;
 
-      const navigation = NavigationService.navigation as NavigationContainerRef<ParamListBase> & {
-        key: string;
-      };
+      const navigation =
+        NavigationService.navigation as NavigationContainerRef<ParamListBase> & {
+          key: string;
+        };
 
       expect(navigation.key).toBe('test-nav-key');
     });
