@@ -1991,7 +1991,11 @@
     "follow": "Follow",
     "following": "Following",
     "cta_title": "Top Traders",
-    "cta_subtitle": "#1 trader {{pnl}} this month"
+    "cta_subtitle": "#1 trader {{pnl}} this month",
+    "menu_title": "Follow Trade",
+    "menu_description": "Copy top traders automatically",
+    "recent_trades": "Recent Trades",
+    "no_recent_trades": "No recent trades found"
   },
   "predict": {
     "title": "MetaMask Predictions",

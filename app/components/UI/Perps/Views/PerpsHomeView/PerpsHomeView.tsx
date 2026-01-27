@@ -59,7 +59,6 @@ import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
 import Logger from '../../../../../util/Logger';
-import NavigationService from '../../../../../core/NavigationService';
 import { TraceName } from '../../../../../util/trace';
 import {
   PerpsEventProperties,
@@ -400,20 +399,10 @@ const PerpsHomeView = () => {
   // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
   const handleBackPress = perpsNavigation.navigateToWallet;
 
-  // Navigate to the Leaderboard tab on wallet screen
+  // Navigate to the Leaderboard screen
   const handleLeaderboardPress = useCallback(() => {
-    // Navigate to wallet home first
-    NavigationService.navigation.navigate(Routes.WALLET.HOME);
-
-    // Then set params after a delay to select the leaderboard tab
-    // This pattern is required for React Navigation to properly propagate params
-    // Using NavigationService to set params on the newly focused screen (Wallet)
-    setTimeout(() => {
-      NavigationService.navigation.setParams({
-        initialTab: 'leaderboard',
-      });
-    }, 200);
-  }, []);
+    navigation.navigate(Routes.LEADERBOARD.ROOT);
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.container}>

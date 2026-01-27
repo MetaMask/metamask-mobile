@@ -1,5 +1,12 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { View, Image, Linking, Modal, ActivityIndicator } from 'react-native';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
+import {
+  View,
+  Image,
+  Linking,
+  Modal,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import {
@@ -23,11 +30,13 @@ import BottomSheet, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { LeaderboardTrader } from '../../types';
+import { LeaderboardTrader, FeedItem } from '../../types';
 import {
   formatPnL,
   formatFollowers,
   truncateAddress,
+  formatTimeAgo,
+  formatUsdValue,
 } from '../../utils/formatters';
 import { LeaderboardTestIds } from '../../Leaderboard.testIds';
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
@@ -54,10 +63,75 @@ const TraderDetailSheet: React.FC<TraderDetailSheetProps> = ({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [recentTrades, setRecentTrades] = useState<FeedItem[]>([]);
+  const [isTradesLoading, setIsTradesLoading] = useState(false);
 
   const userAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+
+  // Fetch follow status when trader changes or sheet becomes visible
+  useEffect(() => {
+    const fetchFollowStatus = async () => {
+      if (!userAddress || !trader?.id) {
+        setIsFollowing(false);
+        return;
+      }
+
+      setIsFollowLoading(true);
+      try {
+        const following = await LeaderboardService.isFollowing(
+          userAddress,
+          trader.id,
+        );
+        setIsFollowing(following);
+      } catch (error) {
+        console.warn('Failed to fetch follow status:', error);
+        setIsFollowing(false);
+      } finally {
+        setIsFollowLoading(false);
+      }
+    };
+
+    if (isVisible && trader) {
+      fetchFollowStatus();
+    } else {
+      setIsFollowing(false);
+      setIsFollowLoading(false);
+    }
+  }, [trader?.id, userAddress, isVisible]);
+
+  // Fetch recent trades when trader changes or sheet becomes visible
+  useEffect(() => {
+    const fetchRecentTrades = async () => {
+      if (!trader?.addresses.length) {
+        setRecentTrades([]);
+        return;
+      }
+
+      setIsTradesLoading(true);
+      try {
+        // Fetch last 10 trades (no time filter to ensure we get some results)
+        const trades = await LeaderboardService.getRecentTrades(
+          trader.addresses,
+          10,
+        );
+        setRecentTrades(trades);
+      } catch (error) {
+        console.warn('Failed to fetch recent trades:', error);
+        setRecentTrades([]);
+      } finally {
+        setIsTradesLoading(false);
+      }
+    };
+
+    if (isVisible && trader) {
+      fetchRecentTrades();
+    } else {
+      setRecentTrades([]);
+      setIsTradesLoading(false);
+    }
+  }, [trader?.id, trader?.addresses, isVisible]);
 
   const handleSheetClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -306,6 +380,145 @@ const TraderDetailSheet: React.FC<TraderDetailSheetProps> = ({
                 {/* Empty space for alignment */}
                 <Box twClassName="flex-1" />
               </Box>
+            </Box>
+
+            {/* Recent Trades Section */}
+            <Box twClassName="mb-4">
+              <Text variant={TextVariant.BodyMd} twClassName="mb-2 font-medium">
+                {strings('leaderboard.recent_trades')}
+              </Text>
+
+              {isTradesLoading ? (
+                <Box
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Center}
+                  twClassName="py-4"
+                >
+                  <ActivityIndicator size="small" />
+                </Box>
+              ) : recentTrades.length === 0 ? (
+                <Box twClassName="bg-muted rounded-xl p-3">
+                  <Text
+                    variant={TextVariant.BodySm}
+                    twClassName="text-muted text-center"
+                  >
+                    {strings('leaderboard.no_recent_trades')}
+                  </Text>
+                </Box>
+              ) : (
+                <View style={tw.style('bg-muted rounded-xl overflow-hidden')}>
+                  {/* ScrollView with max height for ~5 items (44px each) */}
+                  <ScrollView
+                    style={tw.style('max-h-56')}
+                    showsVerticalScrollIndicator
+                    nestedScrollEnabled
+                  >
+                    {recentTrades.map((trade, index) => {
+                      // Get trade info from metadata
+                      const latestTrade = trade.metadata?.trades?.[0];
+                      const isBuy = latestTrade?.direction === 'buy';
+                      const isSell = latestTrade?.direction === 'sell';
+                      const tokenSymbol =
+                        trade.metadata?.tokenSymbol || 'Token';
+                      const chain = trade.metadata?.tokenChain;
+                      const usdValue = latestTrade?.usdCost;
+
+                      return (
+                        <Box
+                          key={trade.itemId}
+                          flexDirection={BoxFlexDirection.Row}
+                          alignItems={BoxAlignItems.Center}
+                          justifyContent={BoxJustifyContent.Between}
+                          twClassName={`px-3 py-2 ${index < recentTrades.length - 1 ? 'border-b border-muted' : ''}`}
+                        >
+                          <Box
+                            flexDirection={BoxFlexDirection.Row}
+                            alignItems={BoxAlignItems.Center}
+                            twClassName="flex-1"
+                          >
+                            {/* Trade type indicator */}
+                            <View
+                              style={tw.style(
+                                'w-7 h-7 rounded-full items-center justify-center mr-2',
+                                isBuy
+                                  ? 'bg-success-muted'
+                                  : isSell
+                                    ? 'bg-error-muted'
+                                    : 'bg-alternative',
+                              )}
+                            >
+                              <Icon
+                                name={
+                                  isBuy
+                                    ? IconName.Add
+                                    : isSell
+                                      ? IconName.Minus
+                                      : IconName.SwapHorizontal
+                                }
+                                size={IconSize.Xs}
+                                color={
+                                  isBuy
+                                    ? IconColor.Success
+                                    : isSell
+                                      ? IconColor.Error
+                                      : IconColor.Muted
+                                }
+                              />
+                            </View>
+
+                            {/* Trade details */}
+                            <Box twClassName="flex-1">
+                              <Box
+                                flexDirection={BoxFlexDirection.Row}
+                                alignItems={BoxAlignItems.Center}
+                                gap={1}
+                              >
+                                <Text variant={TextVariant.BodySm}>
+                                  {isBuy
+                                    ? 'Bought'
+                                    : isSell
+                                      ? 'Sold'
+                                      : 'Swapped'}
+                                </Text>
+                                <Text
+                                  variant={TextVariant.BodySm}
+                                  twClassName="font-medium"
+                                >
+                                  {tokenSymbol}
+                                </Text>
+                              </Box>
+                              <Text
+                                variant={TextVariant.BodyXs}
+                                twClassName="text-muted"
+                              >
+                                {formatTimeAgo(trade.timestamp)}
+                                {chain ? ` · ${chain}` : ''}
+                              </Text>
+                            </Box>
+                          </Box>
+
+                          {/* Trade value */}
+                          {usdValue !== undefined && (
+                            <Text
+                              variant={TextVariant.BodySm}
+                              twClassName={
+                                isBuy
+                                  ? 'text-success-default'
+                                  : isSell
+                                    ? 'text-error-default'
+                                    : ''
+                              }
+                            >
+                              {isBuy ? '+' : isSell ? '-' : ''}
+                              {formatUsdValue(usdValue)}
+                            </Text>
+                          )}
+                        </Box>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
             </Box>
 
             {/* Close Button */}

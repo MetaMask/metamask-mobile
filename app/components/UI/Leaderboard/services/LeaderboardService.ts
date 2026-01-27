@@ -2,11 +2,15 @@ import {
   LeaderboardParams,
   LeaderboardResponse,
   TraderProfile,
+  FeedParams,
+  FeedResponse,
+  FeedItem,
 } from '../types';
 
 const CLICKER_API_BASE_URL = 'https://api.clicker.xyz';
 const LEADERBOARD_ENDPOINT = '/v1/leaderboard';
 const PROFILE_ENDPOINT = '/v1/addresses';
+const FEED_ENDPOINT = '/v1/feed';
 
 /**
  * Service for interacting with the Clicker Leaderboard API
@@ -171,6 +175,136 @@ class LeaderboardService {
     }
 
     return response.json();
+  }
+
+  /**
+   * Get the list of profiles that the given address follows
+   * @see https://docs.clicker.xyz/api-reference/profile-follows
+   * @param userAddress - The address to get follows for
+   * @returns Promise resolving to array of followed profile IDs
+   */
+  async getFollows(userAddress: string): Promise<string[]> {
+    const url = `${CLICKER_API_BASE_URL}${PROFILE_ENDPOINT}/${userAddress}/follows`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to fetch follows: ${response.status}`,
+      );
+    }
+
+    const data = await response.json();
+    // Extract profile IDs or addresses from the response
+    // The API returns profiles, we extract their IDs for easy lookup
+    return data.profiles?.map((profile: TraderProfile) => profile.id) ?? [];
+  }
+
+  /**
+   * Check if the user is following a specific trader
+   * @param userAddress - The user's address
+   * @param traderIdOrAddress - The trader's ID or address to check
+   * @returns Promise resolving to boolean indicating if following
+   */
+  async isFollowing(
+    userAddress: string,
+    traderIdOrAddress: string,
+  ): Promise<boolean> {
+    try {
+      const follows = await this.getFollows(userAddress);
+      return follows.includes(traderIdOrAddress);
+    } catch {
+      // If we can't fetch follows, assume not following
+      return false;
+    }
+  }
+
+  /**
+   * Fetches the feed/trades for specific addresses
+   * @see https://docs.clicker.xyz/api-reference/feed
+   * @param params - Feed parameters including addresses
+   * @returns Promise resolving to the feed response
+   */
+  async getFeed(params: FeedParams): Promise<FeedResponse> {
+    const url = new URL(`${CLICKER_API_BASE_URL}${FEED_ENDPOINT}`);
+
+    // Add addresses as query parameters
+    params.addresses.forEach((address) => {
+      url.searchParams.append('addresses', address);
+    });
+
+    if (params.limit) {
+      url.searchParams.append('limit', params.limit.toString());
+    }
+
+    if (params.newerThan) {
+      url.searchParams.append('newerThan', params.newerThan);
+    }
+
+    if (params.olderThan) {
+      url.searchParams.append('olderThan', params.olderThan);
+    }
+
+    if (params.chains) {
+      params.chains.forEach((chain) => {
+        url.searchParams.append('chains', chain);
+      });
+    }
+
+    if (params.onlyWithComments !== undefined) {
+      url.searchParams.append(
+        'onlyWithComments',
+        params.onlyWithComments.toString(),
+      );
+    }
+
+    if (params.minTradeUsd) {
+      url.searchParams.append('minTradeUsd', params.minTradeUsd.toString());
+    }
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to fetch feed: ${response.status}`,
+      );
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Fetches recent trades for a trader
+   * @param addresses - Array of trader's addresses
+   * @param limit - Number of trades to fetch (default 5)
+   * @param minutesAgo - Only fetch trades from the last N minutes (optional)
+   * @returns Promise resolving to array of feed items
+   */
+  async getRecentTrades(
+    addresses: string[],
+    limit = 5,
+    minutesAgo?: number,
+  ): Promise<FeedItem[]> {
+    const params: FeedParams = {
+      addresses,
+      limit,
+    };
+
+    if (minutesAgo) {
+      const newerThan = new Date(Date.now() - minutesAgo * 60 * 1000);
+      params.newerThan = newerThan.toISOString();
+    }
+
+    const response = await this.getFeed(params);
+    return response.items;
   }
 }
 

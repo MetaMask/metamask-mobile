@@ -72,7 +72,6 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
-import NavigationService from '../../../../../core/NavigationService';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
@@ -390,17 +389,8 @@ const BridgeView = () => {
     });
 
   const handleLeaderboardPress = () => {
-    // Navigate to wallet home first
-    NavigationService.navigation.navigate(Routes.WALLET.HOME);
-
-    // Then set params after a delay to select the leaderboard tab
-    // This pattern is required for React Navigation to properly propagate params
-    // Using NavigationService to set params on the newly focused screen (Wallet)
-    setTimeout(() => {
-      NavigationService.navigation.setParams({
-        initialTab: 'leaderboard',
-      });
-    }, 200);
+    // Navigate to the Leaderboard screen
+    navigation.navigate(Routes.LEADERBOARD.ROOT);
   };
 
   const getButtonLabel = () => {

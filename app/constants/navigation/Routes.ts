@@ -302,6 +302,10 @@ const Routes = {
       GTM_MODAL: 'PredictGTMModal',
     },
   },
+  LEADERBOARD: {
+    ROOT: 'Leaderboard',
+    HOME: 'LeaderboardHome',
+  },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',

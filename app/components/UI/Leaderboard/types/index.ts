@@ -147,3 +147,120 @@ export interface TraderProfile {
   metadata: ProfileMetadata;
   metrics?: ProfileMetrics;
 }
+
+/**
+ * Supported chains for the Feed API
+ */
+export type FeedChain =
+  | 'ethereum'
+  | 'base'
+  | 'solana'
+  | 'arbitrum'
+  | 'optimism'
+  | 'polygon'
+  | 'bsc'
+  | 'avalanche'
+  | 'zora';
+
+/**
+ * Individual trade within a feed item
+ */
+export interface FeedTrade {
+  tokenAmount: number;
+  usdCost: number;
+  marketCap?: number;
+  timestamp: number;
+  transactionHash?: string;
+  direction: 'buy' | 'sell';
+  perpPositionType?: 'long' | 'short';
+  perpLeverage?: number;
+}
+
+/**
+ * Position stats for a trade
+ */
+export interface PositionStats {
+  boughtUsd: number;
+  soldUsd: number;
+  realizedGainsUsd: number;
+  holdingsCostBasisUsd: number;
+}
+
+/**
+ * Trade metadata from the Feed API
+ */
+export interface FeedMetadata {
+  tokenChain: FeedChain;
+  tokenSymbol: string;
+  tokenName: string;
+  tokenAddress: string;
+  metadataType?: string;
+  totalSupply?: string;
+  positionAmount?: number;
+  positionStats?: PositionStats;
+  trades?: FeedTrade[];
+}
+
+/**
+ * Trade metrics
+ */
+export interface FeedMetrics {
+  copyCount?: number;
+  copyVolume?: string;
+  replyCount?: number;
+  commentCount?: number;
+}
+
+/**
+ * A trade/transaction item from the Feed API
+ * @see https://docs.clicker.xyz/api-reference/feed
+ */
+export interface FeedItem {
+  itemId: string;
+  itemTitle?: string;
+  timestamp: number; // Unix timestamp
+  transactionHash?: string;
+  cardLatestTradeAt?: number;
+  actor: {
+    type: string;
+    address: string;
+    name: string;
+    images: ProfileImages;
+    profile?: TraderProfile;
+  };
+  metadata?: FeedMetadata;
+  metrics?: FeedMetrics;
+  insights?: Array<{ text: string }>;
+  imageUrl?: string;
+}
+
+/**
+ * Response from the Feed API
+ */
+export interface FeedResponse {
+  items: FeedItem[];
+  pagination: {
+    hasMore: boolean;
+    oldestTimestamp?: string;
+  };
+}
+
+/**
+ * Parameters for the Feed API request
+ */
+export interface FeedParams {
+  /** Array of addresses to get feed for (required) */
+  addresses: string[];
+  /** Number of items to return (default 25) */
+  limit?: number;
+  /** Filter to trades newer than this timestamp */
+  newerThan?: string;
+  /** Filter to trades older than this timestamp */
+  olderThan?: string;
+  /** Filter to specific chains */
+  chains?: FeedChain[];
+  /** Only include trades with comments */
+  onlyWithComments?: boolean;
+  /** Minimum trade USD value */
+  minTradeUsd?: number;
+}
