@@ -4,22 +4,35 @@ import type { NavigationContainerRef } from '@react-navigation/native';
 
 describe('NavigationService', () => {
   let mockNavigation: NavigationContainerRef;
+  let mockRequestAnimationFrame: jest.SpyInstance;
 
   beforeEach(() => {
-    // Reset any internal state
     jest.clearAllMocks();
 
-    // Create a mock navigation
+    // Mock requestAnimationFrame - execute callback immediately for testing
+    mockRequestAnimationFrame = jest
+      .spyOn(global, 'requestAnimationFrame')
+      .mockImplementation((cb) => {
+        cb(0);
+        return 0;
+      });
+
     mockNavigation = {
       navigate: jest.fn(),
+      reset: jest.fn(),
+      goBack: jest.fn(),
+      dispatch: jest.fn(),
     } as unknown as NavigationContainerRef;
 
-    // Spy on Logger
     jest.spyOn(Logger, 'error');
   });
 
+  afterEach(() => {
+    mockRequestAnimationFrame.mockRestore();
+  });
+
   describe('navigation getter', () => {
-    it('should throw error if navigation does not exist', () => {
+    it('throws error when navigation does not exist', () => {
       expect(() => NavigationService.navigation).toThrow(
         'Navigation reference does not exist!',
       );
@@ -28,31 +41,36 @@ describe('NavigationService', () => {
       );
     });
 
-    it('should return navigation if it exists', () => {
+    it('returns navigation proxy when navigation exists', () => {
       NavigationService.navigation = mockNavigation;
-      expect(NavigationService.navigation).toBe(mockNavigation);
+
+      const navigation = NavigationService.navigation;
+
+      expect(navigation).toBeDefined();
+      expect(typeof navigation.navigate).toBe('function');
+      expect(typeof navigation.reset).toBe('function');
     });
   });
 
   describe('navigation setter', () => {
-    it('should throw error if navigation is invalid', () => {
+    it('throws error when navigation is invalid', () => {
       const invalidNavigation = {} as NavigationContainerRef;
 
       expect(() => {
         NavigationService.navigation = invalidNavigation;
       }).toThrow('Navigation reference is not valid!');
-
       expect(Logger.error).toHaveBeenCalledWith(
         new Error('Navigation reference is not valid!'),
       );
     });
 
-    it('should set navigation if valid', () => {
+    it('sets navigation when valid', () => {
       NavigationService.navigation = mockNavigation;
-      expect(NavigationService.navigation).toBe(mockNavigation);
+
+      expect(() => NavigationService.navigation).not.toThrow();
     });
 
-    it('should validate navigation has required methods', () => {
+    it('throws error when navigation is missing required methods', () => {
       const incompleteNavigation = {
         // missing navigate
       } as unknown as NavigationContainerRef;
@@ -60,6 +78,27 @@ describe('NavigationService', () => {
       expect(() => {
         NavigationService.navigation = incompleteNavigation;
       }).toThrow('Navigation reference is not valid!');
+    });
+  });
+
+  describe('deferred navigation methods', () => {
+    it('defers navigate calls via requestAnimationFrame', () => {
+      NavigationService.navigation = mockNavigation;
+
+      NavigationService.navigation.navigate('TestScreen');
+
+      expect(mockRequestAnimationFrame).toHaveBeenCalled();
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('TestScreen');
+    });
+
+    it('defers reset calls via requestAnimationFrame', () => {
+      NavigationService.navigation = mockNavigation;
+      const resetState = { routes: [{ name: 'Login' }] };
+
+      NavigationService.navigation.reset(resetState);
+
+      expect(mockRequestAnimationFrame).toHaveBeenCalled();
+      expect(mockNavigation.reset).toHaveBeenCalledWith(resetState);
     });
   });
 });
