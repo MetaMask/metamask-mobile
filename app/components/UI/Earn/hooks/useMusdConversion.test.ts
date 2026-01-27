@@ -177,7 +177,6 @@ describe('useMusdConversion', () => {
           from: '0x123456789abcdef',
           data: '0xmockedTransferData',
           value: '0x0',
-          chainId: '0x1',
         },
         {
           networkClientId: 'mainnet',
