@@ -518,11 +518,11 @@ export const STOP_LOSS_PROMPT_CONFIG = {
   // Debounce duration for ROE threshold (milliseconds)
   // User must have ROE below threshold for this duration before showing banner
   // Prevents banner from appearing during temporary price fluctuations
-  ROE_DEBOUNCE_MS: 60_000,
+  ROE_DEBOUNCE_MS: 60_000, // 60 seconds
 
   // Minimum position age before showing any banner (milliseconds)
   // Prevents banner from appearing immediately after opening a position
-  POSITION_MIN_AGE_MS: 60_000,
+  POSITION_MIN_AGE_MS: 60_000, // 60 seconds
 
   // Suggested stop loss ROE percentage
   // When suggesting a stop loss, calculate price at this ROE from entry
