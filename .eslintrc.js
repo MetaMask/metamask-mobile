@@ -21,8 +21,12 @@ module.exports = {
   ],
   overrides: [
     {
-      files: ['e2e/**/*.{js,ts}', 'appwright/**/*.{js,ts}'],
-      extends: ['./e2e/framework/.eslintrc.js'],
+      files: [
+        'e2e/**/*.{js,ts}',
+        'tests/**/*.{js,ts}',
+        'appwright/**/*.{js,ts}',
+      ],
+      extends: ['./tests/framework/.eslintrc.js'],
     },
     {
       files: ['*.{ts,tsx}'],
@@ -73,7 +77,24 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/**/*.js', 'e2e/tools/**/*.{js,ts}', 'app.config.js'],
+      files: ['scripts/**/*.mjs'],
+      parser: '@babel/eslint-parser',
+      parserOptions: {
+        requireConfigFile: false,
+        babelOptions: {
+          presets: ['@babel/preset-env'],
+        },
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+      rules: {
+        'no-console': 'off',
+        'import/no-commonjs': 'off',
+        'import/no-nodejs-modules': 'off',
+      },
+    },
+    {
+      files: ['scripts/**/*.js', 'tests/tools/**/*.{js,ts}', 'app.config.js'],
       rules: {
         'no-console': 'off',
         'import/no-commonjs': 'off',

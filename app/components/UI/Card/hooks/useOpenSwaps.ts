@@ -29,7 +29,7 @@ export interface UseOpenSwapsOptions {
 }
 
 export const useOpenSwaps = ({
-  location = SwapBridgeNavigationLocation.TokenDetails,
+  location = SwapBridgeNavigationLocation.TokenView,
   sourcePage = Routes.CARD.HOME,
   priorityToken,
 }: UseOpenSwapsOptions = {}) => {
@@ -62,17 +62,21 @@ export const useOpenSwaps = ({
       if (!priorityToken) return;
 
       const destToken: BridgeToken = {
-        ...priorityToken,
+        address: priorityToken.address ?? '',
+        symbol: priorityToken.symbol ?? '',
+        name: priorityToken.name ?? '',
+        decimals: priorityToken.decimals ?? 0,
         chainId: priorityToken.caipChainId,
         image: buildTokenIconUrl(
           priorityToken.caipChainId,
           priorityToken.address ?? '',
         ),
-      } as BridgeToken;
+        aggregators: [],
+      };
       dispatch(setDestToken(destToken));
 
       const navigate = () => {
-        goToSwaps();
+        goToSwaps(sourceToken, destToken);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED)
             .addProperties({

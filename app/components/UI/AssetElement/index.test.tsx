@@ -3,7 +3,11 @@ import { shallow } from 'enzyme';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetElement from './';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
+import {
+  BALANCE_TEST_ID,
+  SECONDARY_BALANCE_BUTTON_TEST_ID,
+  SECONDARY_BALANCE_TEST_ID,
+} from './index.constants';
 import { TOKEN_BALANCE_LOADING } from '../Tokens/constants';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { mockTheme } from '../../../util/theme';
@@ -11,6 +15,7 @@ import { mockTheme } from '../../../util/theme';
 describe('AssetElement', () => {
   const onPressMock = jest.fn();
   const onLongPressMock = jest.fn();
+  const onSecondaryBalancePressMock = jest.fn();
 
   const erc20Token = {
     name: 'Dai',
@@ -26,7 +31,11 @@ describe('AssetElement', () => {
     image: '',
   };
 
-  it('should render correctly', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders correctly', () => {
     const wrapper = shallow(<AssetElement asset={erc20Token} />);
     expect(wrapper).toMatchSnapshot();
   });
@@ -204,5 +213,53 @@ describe('AssetElement', () => {
       color: mockTheme.colors.text.alternative,
     });
     expect(secondaryBalance.props.children).toBe('0.00%');
+  });
+
+  describe('onSecondaryBalancePress', () => {
+    it('calls onSecondaryBalancePress with asset when secondary balance is pressed', () => {
+      const { getByTestId } = render(
+        <AssetElement
+          asset={erc20Token}
+          balance="$100.00"
+          secondaryBalance="Convert to mUSD"
+          onSecondaryBalancePress={onSecondaryBalancePressMock}
+        />,
+      );
+
+      fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+
+      expect(onSecondaryBalancePressMock).toHaveBeenCalledTimes(1);
+      expect(onSecondaryBalancePressMock).toHaveBeenCalledWith(erc20Token);
+    });
+
+    it('does not call onSecondaryBalancePress when handler is undefined', () => {
+      const { getByTestId } = render(
+        <AssetElement
+          asset={erc20Token}
+          balance="$100.00"
+          secondaryBalance="+5.67%"
+        />,
+      );
+
+      fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+
+      expect(onSecondaryBalancePressMock).not.toHaveBeenCalled();
+    });
+
+    it('does not call onSecondaryBalancePress when disabled prop is true', () => {
+      const { getByTestId } = render(
+        <AssetElement
+          asset={erc20Token}
+          balance="$100.00"
+          secondaryBalance="Convert to mUSD"
+          onSecondaryBalancePress={onSecondaryBalancePressMock}
+          disabled
+        />,
+      );
+
+      fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+
+      expect(onSecondaryBalancePressMock).not.toHaveBeenCalled();
+    });
   });
 });

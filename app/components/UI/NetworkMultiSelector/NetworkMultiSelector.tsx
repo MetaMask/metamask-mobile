@@ -7,6 +7,7 @@ import {
   Hex,
 } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // external dependencies
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -24,6 +25,7 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
+import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { useSelector } from 'react-redux';
 import {
   selectEvmNetworkConfigurationsByChainId,
@@ -47,10 +49,7 @@ import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constant
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell/index.ts';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar/index.ts';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/index.ts';
 import { IconName } from '../../../component-library/components/Icons/Icon/Icon.types';
 
 interface ModalState {
@@ -73,7 +72,6 @@ const CUSTOM_NETWORK_PROPS = {
   allowNetworkSwitch: false,
   hideWarningIcons: true,
   listHeader: strings('networks.additional_networks'),
-  compactMode: true,
 } as const;
 
 const NetworkMultiSelector = ({
@@ -81,6 +79,7 @@ const NetworkMultiSelector = ({
   dismissModal,
   openRpcModal,
 }: NetworkMultiSelectorProps) => {
+  const insets = useSafeAreaInsets();
   const { styles } = useStyles(stylesheet, {});
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
@@ -149,6 +148,18 @@ const NetworkMultiSelector = ({
       networks: networksToUse,
     });
 
+  const { addPopularNetwork } = useAddPopularNetwork();
+
+  /**
+   * Handler for adding a popular network directly without confirmation.
+   */
+  const handleAddPopularNetwork = useCallback(
+    async (networkConfiguration: ExtendedNetwork) => {
+      await addPopularNetwork(networkConfiguration);
+    },
+    [addPopularNetwork],
+  );
+
   const selectedChainIds = useMemo(
     () =>
       Object.keys(enabledNetworksByNamespace[namespace] || {}).filter(
@@ -200,6 +211,8 @@ const NetworkMultiSelector = ({
       toggleWarningModal,
       showNetworkModal,
       customNetworksList: PopularList,
+      skipConfirmation: true,
+      onNetworkAdd: handleAddPopularNetwork,
     }),
     [
       modalState.showPopularNetworkModal,
@@ -207,6 +220,7 @@ const NetworkMultiSelector = ({
       onCancel,
       toggleWarningModal,
       showNetworkModal,
+      handleAddPopularNetwork,
     ],
   );
 
@@ -425,17 +439,21 @@ const NetworkMultiSelector = ({
         avatarProps={{
           variant: AvatarVariant.Icon,
           name: IconName.Global,
-          size: AvatarSize.Sm,
         }}
+        style={styles.selectAllPopularNetworksCell}
       />
     ),
-    [areAllNetworksSelectedCombined, onSelectAllPopularNetworks],
+    [
+      areAllNetworksSelectedCombined,
+      onSelectAllPopularNetworks,
+      styles.selectAllPopularNetworksCell,
+    ],
   );
 
   return (
     <ScrollView
       style={styles.bodyContainer}
-      contentContainerStyle={styles.scrollContentContainer}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       testID={NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER}
     >
       <NetworkMultiSelectorList

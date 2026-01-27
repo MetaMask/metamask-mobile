@@ -1,13 +1,13 @@
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import NftDetectionModal from '../../pages/wallet/NftDetectionModal';
 import { RegressionAssets } from '../../tags';
 
-import { NftDetectionModalSelectorsText } from '../../selectors/wallet/NftDetectionModal.selectors';
+import { NftDetectionModalSelectorsText } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds';
 
 describe.skip(RegressionAssets('NFT Detection Modal'), () => {
   beforeAll(async () => {

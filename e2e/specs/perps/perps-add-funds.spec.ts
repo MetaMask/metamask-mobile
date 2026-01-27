@@ -1,20 +1,19 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { LocalNodeType, TestSuiteParams } from '../../framework/types';
-import { Hardfork } from '../../seeder/anvil-manager';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { LocalNodeType, TestSuiteParams } from '../../../tests/framework/types';
+import { Hardfork } from '../../../tests/seeder/anvil-manager';
 import { SmokePerps } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
-import Assertions from '../../framework/Assertions';
+import { PERPS_ARBITRUM_MOCKS } from '../../../tests/api-mocking/mock-responses/perps-arbitrum-mocks';
+import Assertions from '../../../tests/framework/Assertions';
 import PerpsTabView from '../../pages/Perps/PerpsTabView';
 import { PerpsHelpers } from './helpers/perps-helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import PerpsDepositView from '../../pages/Perps/PerpsDepositView';
 import PerpsE2EModifiers from './helpers/perps-modifiers';
 import ToastModal from '../../pages/wallet/ToastModal';
-import Utilities from '../../framework/Utilities';
-import { createLogger, LogLevel } from '../../framework/logger';
-import PerpsDepositProcessingView from '../../pages/Perps/PerpsDepositProcessingView';
+import Utilities from '../../../tests/framework/Utilities';
+import { createLogger, LogLevel } from '../../../tests/framework/logger';
 
 const logger = createLogger({
   name: 'PerpsAddFundsSpec',
@@ -26,7 +25,7 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
     jest.setTimeout(150000);
   });
 
-  it.skip('deposits $80 from Add funds and verifies updated balance', async () => {
+  it('deposits $80 from Add funds and verifies updated balance', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -116,10 +115,10 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
 
         // Continue and Confirm
         await PerpsDepositView.tapContinue();
-        await PerpsDepositView.tapConfirm();
+        // Verify review screen shows quote
+        await Assertions.expectTextDisplayed('Transaction fee');
+        await PerpsDepositView.tapAddFunds();
 
-        await PerpsDepositProcessingView.expectProcessingVisible();
-        // Apply deposit mock and verify balance update
         await PerpsE2EModifiers.applyDepositUSDServer(commandQueueServer, '80');
         logger.info('🔥 E2E Mock: Deposit applied');
         await Utilities.executeWithRetry(

@@ -4,7 +4,6 @@ import {
   BoxFlexDirection,
   Text,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import MetamaskRewardsPointsAlternativeImage from '../../../../../images/rewards/metamask-rewards-points-alternative.svg';
 import PreviousSeasonSummaryTile from './PreviousSeasonSummaryTile';
@@ -31,25 +30,21 @@ const PreviousSeasonBalance: React.FC = () => {
 
   return (
     <PreviousSeasonSummaryTile
-      twClassName="flex-col gap-4 flex-grow"
+      twClassName="flex-col gap-3 flex-grow"
       testID={REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_BALANCE}
       isLoading={seasonLoading && !seasonId}
       loadingHeight={106}
     >
-      <Box twClassName="justify-center h-10 w-10">
+      <Box twClassName="justify-center">
         <MetamaskRewardsPointsAlternativeImage
           name="MetamaskRewardsPointsAlternative"
-          height={25}
-          width={25}
+          height={24}
+          width={24}
         />
       </Box>
 
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
-        <Text
-          variant={TextVariant.BodyLg}
-          fontWeight={FontWeight.Bold}
-          twClassName="text-default"
-        >
+      <Box flexDirection={BoxFlexDirection.Column}>
+        <Text variant={TextVariant.HeadingSm} twClassName="text-default">
           {formatNumber(balanceTotal)}
         </Text>
 

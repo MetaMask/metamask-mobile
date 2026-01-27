@@ -1,9 +1,5 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import {
-  useNavigation,
-  useRoute,
-  useNavigationState,
-} from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
@@ -26,7 +22,6 @@ import { useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
-  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
@@ -36,11 +31,13 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import PerpsWebSocketHealthToast, {
+  WebSocketHealthToastProvider,
+} from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
-import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
+import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
-import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
@@ -55,8 +52,8 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -84,8 +81,6 @@ import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Con
 import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
-import { MetaMetrics } from '../../../core/Analytics';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
@@ -104,7 +99,6 @@ import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
-import TokenInsightsSheet from '../../UI/Bridge/components/TokenInsightsSheet';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
@@ -150,18 +144,15 @@ import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/Mult
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
-import { useMetrics } from '../../hooks/useMetrics';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
-import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -486,10 +477,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={TokenSortBottomSheet}
     />
     <Stack.Screen
-      name={Routes.SHEET.TOKEN_FILTER}
-      component={TokenFilterBottomSheet}
-    />
-    <Stack.Screen
       name={Routes.SHEET.NETWORK_MANAGER}
       component={NetworkManager}
     />
@@ -521,6 +508,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
+    <Stack.Screen
+      name={Routes.MODAL.OTA_UPDATES_MODAL}
+      component={OTAUpdatesModal}
+    />
     {
       <Stack.Screen
         name={Routes.SHEET.SELECT_SRP}
@@ -572,10 +563,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
-    <Stack.Screen
-      name={Routes.SHEET.TOKEN_INSIGHTS}
-      component={TokenInsightsSheet}
-    />
     <Stack.Screen
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}
@@ -740,6 +727,14 @@ const MultichainAccountGroupDetails = () => {
           animationEnabled: true,
         }}
       />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
+        component={EditMultichainAccountName}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -768,12 +763,6 @@ const MultichainAccountDetailsActions = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS}
         component={MultichainAccountActions}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
-        component={EditMultichainAccountName}
         initialParams={route?.params}
         options={commonScreenOptions}
       />
@@ -1093,15 +1082,14 @@ const AppFlow = () => {
   );
 };
 
-const AppContent: React.FC = () => {
-  const navigation = useNavigation();
-  const routes = useNavigationState((state) => state.routes);
+const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const isFirstRender = useRef(true);
-  const { isEnabled: checkMetricsEnabled } = useMetrics();
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
+
+  useOTAUpdates();
 
   if (isFirstRender.current) {
     trace({
@@ -1139,111 +1127,6 @@ const AppContent: React.FC = () => {
   const existingUser = useSelector(selectExistingUser);
 
   useEffect(() => {
-    const appTriggeredAuth = async () => {
-      try {
-        if (existingUser) {
-          // Check if we came from Settings screen to skip auto-authentication
-          const previousRoute = routes[routes.length - 2]?.name;
-
-          if (previousRoute === Routes.SETTINGS_VIEW) {
-            return;
-          }
-
-          // only proceed if biometric is enabled else rerouted to lock screen
-          const authType = await Authentication.getType();
-          if (authType.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
-            navigation.reset({ routes: [{ name: Routes.ONBOARDING.LOGIN }] });
-            return;
-          }
-
-          // This should only be called if the auth type is not password, which is not the case so consider removing it
-          await trace(
-            {
-              name: TraceName.AppStartBiometricAuthentication,
-              op: TraceOperation.BiometricAuthentication,
-            },
-            async () => {
-              await Authentication.appTriggeredAuth();
-            },
-          );
-
-          // Only show metrics optin for SRP users
-          if (!isSeedlessOnboardingLoginFlow) {
-            const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-              OPTIN_META_METRICS_UI_SEEN,
-            );
-
-            if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
-              const resetParams = {
-                routes: [
-                  {
-                    name: Routes.ONBOARDING.ROOT_NAV,
-                    params: {
-                      screen: Routes.ONBOARDING.NAV,
-                      params: {
-                        screen: Routes.ONBOARDING.OPTIN_METRICS,
-                      },
-                    },
-                  },
-                ],
-              };
-              navigation.reset(resetParams);
-              return;
-            }
-          }
-
-          // Navigate to home for both SRP users (who have seen metrics) and social login users
-          navigation.reset({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          });
-        } else {
-          navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
-        }
-      } catch (error) {
-        const errorMessage = (error as Error).message;
-        // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
-        const locked =
-          errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
-
-        // Track vault corruption with enabled state checking
-        trackVaultCorruption(errorMessage, {
-          error_type: 'app_startup_authentication_failure',
-          context: 'app_initialization_unlock_failed',
-        });
-
-        // Only call lockApp if there is an existing user to prevent unnecessary calls
-        await Authentication.lockApp({ reset: false, locked });
-        trackErrorAsAnalytics(
-          'App: Max Attempts Reached',
-          errorMessage,
-          `Unlock attempts: 1`,
-        );
-        if (locked) {
-          Logger.error(
-            new Error(errorMessage),
-            'Nav/App: Error in appTriggeredAuth:',
-          );
-        }
-        // We are not logging when it's a keychain error
-      }
-    };
-    appTriggeredAuth().catch((error) => {
-      Logger.error(error, 'App: Error in appTriggeredAuth');
-    });
-    // existingUser and isMetaMetricsUISeen are not present in the dependency array because they are not needed to re-run the effect when they change and it will cause a bug.
-  }, [navigation]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const initMetrics = async () => {
-      await MetaMetrics.getInstance().configure();
-    };
-
-    initMetrics().catch((err) => {
-      Logger.error(err, 'Error initializing MetaMetrics');
-    });
-  }, []);
-
-  useEffect(() => {
     async function startApp() {
       try {
         const currentVersion = getVersion();
@@ -1277,22 +1160,13 @@ const AppContent: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <WebSocketHealthToastProvider>
       <AppFlow />
       <Toast ref={toastRef} />
+      <PerpsWebSocketHealthToast />
       <ProfilerManager />
-    </>
+    </WebSocketHealthToastProvider>
   );
-};
-
-const App: React.FC = () => {
-  const { isCheckingUpdates } = useOTAUpdates();
-
-  if (isCheckingUpdates) {
-    return <FoxLoader />;
-  }
-
-  return <AppContent />;
 };
 
 export default App;

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import NetworkModals from '../../../../../UI/NetworkModal';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -50,8 +50,10 @@ const CustomNetwork = ({
   showCompletionMessage = true,
   hideWarningIcons = false,
   allowNetworkSwitch = true,
-  compactMode = false,
+  showActionLabels = false,
   listHeader = '',
+  skipConfirmation = false,
+  onNetworkAdd,
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
@@ -103,6 +105,24 @@ const CustomNetwork = ({
     ? supportedNetworkList
     : supportedNetworkList.filter((n) => !n.isAdded);
 
+  const handleNetworkPress = useCallback(
+    async (networkConfiguration: Network & { isAdded: boolean }) => {
+      // When skipConfirmation is true and we have onNetworkAdd callback,
+      // add the network directly without showing the confirmation modal
+      if (skipConfirmation && onNetworkAdd) {
+        try {
+          await onNetworkAdd(networkConfiguration);
+        } catch (error) {
+          console.error('Failed to add network:', error);
+        }
+      } else {
+        // Fallback to showing the modal for confirmation
+        showNetworkModal(networkConfiguration);
+      }
+    },
+    [skipConfirmation, onNetworkAdd, showNetworkModal],
+  );
+
   if (filteredPopularList.length === 0 && showCompletionMessage) {
     return (
       <EmptyPopularList goToCustomNetwork={() => switchTab?.goToPage?.(1)} />
@@ -114,7 +134,7 @@ const CustomNetwork = ({
       {!!listHeader && filteredPopularList.length > 0 && (
         <Text
           style={customNetworkStyles.listHeader}
-          variant={TextVariant.BodyMDBold}
+          variant={TextVariant.BodyMDMedium}
         >
           {listHeader}
         </Text>
@@ -133,13 +153,13 @@ const CustomNetwork = ({
         <TouchableOpacity
           key={index}
           style={networkSettingsStyles.popularNetwork}
-          onPress={() => showNetworkModal(networkConfiguration)}
+          onPress={() => handleNetworkPress(networkConfiguration)}
         >
           <View style={networkSettingsStyles.popularWrapper}>
             <View style={networkSettingsStyles.popularNetworkImage}>
               <AvatarNetwork
                 name={networkConfiguration.nickname}
-                size={AvatarSize.Sm}
+                size={AvatarSize.Md}
                 imageSource={
                   networkConfiguration.rpcPrefs.imageSource ||
                   (networkConfiguration.rpcPrefs.imageUrl
@@ -185,7 +205,7 @@ const CustomNetwork = ({
             networkConfiguration.chainId === selectedChainId ? (
               <CustomText link>{strings('networks.continue')}</CustomText>
             ) : (
-              !compactMode && (
+              showActionLabels && (
                 <Text variant={TextVariant.BodyMD}>
                   {networkConfiguration.isAdded
                     ? strings('networks.switch')
@@ -194,12 +214,12 @@ const CustomNetwork = ({
               )
             )}
           </View>
-          {compactMode && (
-            <View style={customNetworkStyles.iconContainer}>
+          {!showActionLabels && (
+            <View>
               <Icon
+                style={customNetworkStyles.icon}
                 name={IconName.Add}
                 size={IconSize.Lg}
-                color={colors.icon.alternative}
               />
             </View>
           )}

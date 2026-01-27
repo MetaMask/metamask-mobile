@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 
 class PerpsMarketDetailsView {
   get device() {
@@ -19,11 +19,11 @@ class PerpsMarketDetailsView {
   }
 
   async tapLongButton() {
-    await AppwrightGestures.tap(this.longButton);
+    await AppwrightGestures.tap(await this.longButton);
   }
 
   async tapShortButton() {
-    await AppwrightGestures.tap(this.shortButton);
+    await AppwrightGestures.tap(await this.shortButton);
   }
 }
 

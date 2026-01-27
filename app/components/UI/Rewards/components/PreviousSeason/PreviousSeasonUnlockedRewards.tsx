@@ -1,38 +1,27 @@
 import React, { useCallback, useMemo } from 'react';
-import { Linking, Platform } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
-  TextButton,
   TextVariant,
   FontWeight,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  MM_APP_STORE_LINK,
-  MM_PLAY_STORE_LINK,
-} from '../../../../../constants/urls';
-import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
-import { RewardsMetricsButtons } from '../../utils';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
   selectUnlockedRewards,
   selectSeasonTiers,
-  selectSeasonShouldInstallNewVersion,
   selectUnlockedRewardLoading,
   selectUnlockedRewardError,
   selectCurrentTier,
 } from '../../../../../reducers/rewards/selectors';
 import { useSelector } from 'react-redux';
 import {
+  EndOfSeasonUrlData,
   RewardDto,
   SeasonRewardDto,
+  SeasonRewardType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useUnlockedRewards } from '../../hooks/useUnlockedRewards';
 import RewardsSeasonEndedNoUnlockedRewardsImage from '../../../../../images/rewards/rewards-season-ended-no-unlocked-rewards.svg';
@@ -40,37 +29,81 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardItem from '../RewardItem/RewardItem';
+import { useTheme } from '../../../../../util/theme';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
 
 const PreviousSeasonUnlockedRewards = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const navigation = useNavigation();
   const { fetchUnlockedRewards } = useUnlockedRewards();
   const tw = useTailwind();
+  const theme = useTheme();
   const unlockedRewards = useSelector(selectUnlockedRewards);
   const unlockedRewardsLoading = useSelector(selectUnlockedRewardLoading);
   const unlockedRewardsError = useSelector(selectUnlockedRewardError);
   const seasonTiers = useSelector(selectSeasonTiers);
   const currentTier = useSelector(selectCurrentTier);
-  const seasonShouldInstallNewVersion = useSelector(
-    selectSeasonShouldInstallNewVersion,
+
+  // Requires special modal actions for end of season reward claims
+  const handleEndOfSeasonClaim = useCallback(
+    (reward: RewardDto, seasonReward: SeasonRewardDto) => {
+      switch (seasonReward.rewardType) {
+        case SeasonRewardType.METAL_CARD:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              description: strings('rewards.metal_card_claim.description'),
+              contactInfo: strings('rewards.metal_card_claim.contact_info'),
+              rewardType: SeasonRewardType.METAL_CARD,
+              showEmail: 'required',
+              showTelegram: 'optional',
+            },
+          );
+          break;
+        case SeasonRewardType.NANSEN:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              description: seasonReward.longUnlockedDescription,
+              url: (reward.claim?.data as EndOfSeasonUrlData)?.url,
+              rewardType: SeasonRewardType.NANSEN,
+            },
+          );
+          break;
+        case SeasonRewardType.OTHERSIDE:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              description: seasonReward.longUnlockedDescription,
+              url: (reward.claim?.data as EndOfSeasonUrlData)?.url,
+              rewardType: SeasonRewardType.OTHERSIDE,
+            },
+          );
+          break;
+        case SeasonRewardType.LINEA_TOKENS:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              rewardType: SeasonRewardType.LINEA_TOKENS,
+              showAccount: true,
+            },
+          );
+      }
+    },
+    [navigation],
   );
-  const openAppStore = useCallback(() => {
-    const storeUrl =
-      Platform.OS === 'ios' ? MM_APP_STORE_LINK : MM_PLAY_STORE_LINK;
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
-        .addProperties({
-          ...generateDeviceAnalyticsMetaData(),
-          button_type: RewardsMetricsButtons.VISIT_APP_STORE,
-          store_url: storeUrl,
-        })
-        .build(),
-    );
-
-    Linking.openURL(storeUrl).catch((error) => {
-      console.warn('Error opening MetaMask store:', error);
-    });
-  }, [trackEvent, createEventBuilder]);
 
   const endOfSeasonRewards = useMemo(() => {
     if (unlockedRewards != null && unlockedRewards !== undefined) {
@@ -112,7 +145,7 @@ const PreviousSeasonUnlockedRewards = () => {
 
   return (
     <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-col mt-2">
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-8">
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
@@ -137,62 +170,65 @@ const PreviousSeasonUnlockedRewards = () => {
                 flexDirection={BoxFlexDirection.Column}
                 twClassName="gap-4 w-full"
               >
-                <Box twClassName="flex-col gap-4">
-                  {endOfSeasonRewards?.map((unlockedReward: RewardDto) => (
-                    <RewardItem
-                      key={unlockedReward.id}
-                      reward={unlockedReward}
-                      seasonReward={
-                        seasonTiers
-                          ?.flatMap((tier) => tier.rewards)
-                          ?.find(
-                            (sr) => sr.id === unlockedReward.seasonRewardId,
-                          ) as SeasonRewardDto
-                      }
-                      canPressToNavigateToInfo={false}
-                      isLocked
-                      isLast={unlockedReward === endOfSeasonRewards.at(-1)}
-                      isEndOfSeasonReward
-                    />
-                  ))}
-                </Box>
+                <Box twClassName="flex-col">
+                  {endOfSeasonRewards?.map((unlockedReward: RewardDto) => {
+                    const seasonReward = seasonTiers
+                      ?.flatMap((tier) => tier.rewards)
+                      ?.find(
+                        (sr) => sr.id === unlockedReward.seasonRewardId,
+                      ) as SeasonRewardDto;
 
-                <Box twClassName="flex-row justify-center w-full">
-                  <TextButton
-                    startIconName={IconName.Warning}
-                    onPress={openAppStore}
-                    startIconProps={{
-                      size: IconSize.Md,
-                      color: IconColor.PrimaryAlternative,
-                    }}
-                    textProps={{
-                      twClassName: 'text-alternative underline',
-                    }}
-                  >
-                    {seasonShouldInstallNewVersion
-                      ? strings(
-                          'rewards.previous_season_summary.update_metamask_version',
-                          {
-                            version: seasonShouldInstallNewVersion,
-                          },
-                        )
-                      : strings(
-                          'rewards.previous_season_summary.update_metamask',
-                        )}
-                  </TextButton>
+                    const claimIsRedeem =
+                      seasonReward?.rewardType ===
+                        SeasonRewardType.METAL_CARD ||
+                      seasonReward?.rewardType ===
+                        SeasonRewardType.LINEA_TOKENS;
+
+                    const rewardUrl = (
+                      unlockedReward.claim?.data as
+                        | EndOfSeasonUrlData
+                        | undefined
+                    )?.url;
+
+                    return (
+                      <RewardItem
+                        key={unlockedReward.id}
+                        reward={unlockedReward}
+                        seasonReward={seasonReward}
+                        isLast={unlockedReward === endOfSeasonRewards.at(-1)}
+                        isEndOfSeasonReward
+                        endOfSeasonClaimedDescription={
+                          claimIsRedeem
+                            ? strings(
+                                'rewards.end_of_season_rewards.arriving_soon',
+                              )
+                            : undefined
+                        }
+                        compact
+                        // Can't do anything if we don't have reward url allocated yet
+                        isLocked={!rewardUrl && !claimIsRedeem}
+                        onPress={handleEndOfSeasonClaim}
+                      />
+                    );
+                  })}
                 </Box>
               </Box>
             ) : (
               <>
                 <RewardsSeasonEndedNoUnlockedRewardsImage
                   name="RewardsSeasonEndedNoUnlockedRewardsImage"
-                  width={125}
-                  height={125}
+                  color={
+                    theme.themeAppearance === 'dark'
+                      ? theme.colors.background.default
+                      : theme.colors.text.muted
+                  }
+                  width={80}
+                  height={80}
                 />
 
                 <Text
                   variant={TextVariant.BodyMd}
-                  twClassName="text-alternative max-w-sm text-center"
+                  twClassName="text-alternative max-w-xs text-center"
                 >
                   {currentTier?.pointsNeeded
                     ? strings(

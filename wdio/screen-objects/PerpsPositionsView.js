@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 
 class PerpsPositionsView {
   get device() {
@@ -15,7 +15,7 @@ class PerpsPositionsView {
   }
 
   async tapPositionItem() {
-    await AppwrightGestures.tap(this.positionItem);
+    await AppwrightGestures.tap(await this.positionItem);
   }
 }
 

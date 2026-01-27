@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class PredictConfirmationScreen {
@@ -68,11 +68,11 @@ class PredictConfirmationScreen {
   }
 
   async tapConfirm() {
-    await AppwrightGestures.tap(this.confirmButton);
+    await AppwrightGestures.tap(await this.confirmButton);
   }
 
   async tapCancel() {
-    await AppwrightGestures.tap(this.cancelButton);
+    await AppwrightGestures.tap(await this.cancelButton);
   }
 }
 

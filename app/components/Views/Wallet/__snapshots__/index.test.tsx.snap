@@ -42,10 +42,13 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
+              },
+              {
+                "alignItems": "center",
+                "height": 72,
               },
             ]
           }
@@ -53,10 +56,16 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
         >
           <View
             style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "flex-start",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -118,13 +127,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
               />
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -1217,10 +1220,13 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
+              },
+              {
+                "alignItems": "center",
+                "height": 72,
               },
             ]
           }
@@ -1228,10 +1234,16 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
         >
           <View
             style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "flex-start",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -1293,13 +1305,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
               />
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -2392,10 +2398,13 @@ exports[`Wallet should render correctly 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
+              },
+              {
+                "alignItems": "center",
+                "height": 72,
               },
             ]
           }
@@ -2403,10 +2412,16 @@ exports[`Wallet should render correctly 1`] = `
         >
           <View
             style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "flex-start",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -2468,13 +2483,7 @@ exports[`Wallet should render correctly 1`] = `
               />
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -3567,10 +3576,13 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
+              },
+              {
+                "alignItems": "center",
+                "height": 72,
               },
             ]
           }
@@ -3578,10 +3590,16 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
         >
           <View
             style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "flex-start",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -3643,13 +3661,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
               />
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -4742,10 +4754,13 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
+              },
+              {
+                "alignItems": "center",
+                "height": 72,
               },
             ]
           }
@@ -4753,10 +4768,16 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
         >
           <View
             style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "flex-start",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -4818,13 +4839,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
               />
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >

@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class PredictDepositScreen {
@@ -100,7 +100,7 @@ class PredictDepositScreen {
 
   async fillUsdAmount(amount) {
     // Tap on the amount display to activate it
-    await AppwrightGestures.tap(this.amountInput);
+    await AppwrightGestures.tap(await this.amountInput);
 
     // Type the amount using the keypad with platform-specific selectors
     const amountString = String(amount);
@@ -130,15 +130,15 @@ class PredictDepositScreen {
   }
 
   async tapPayWith() {
-    await AppwrightGestures.tap(this.payWithButton);
+    await AppwrightGestures.tap(await this.payWithButton);
   }
 
   async tapContinue() {
-    await AppwrightGestures.tap(this.continueButton);
+    await AppwrightGestures.tap(await this.continueButton);
   }
 
   async tapCancel() {
-    await AppwrightGestures.tap(this.cancelButton);
+    await AppwrightGestures.tap(await this.cancelButton);
   }
 }
 

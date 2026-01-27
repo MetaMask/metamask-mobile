@@ -17,7 +17,7 @@ import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../util/networks';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from './WalletActionsBottomSheet.testIds';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
@@ -40,8 +40,8 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -60,13 +60,13 @@ const WalletActions = () => {
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
+    location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
   });
+  const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -112,24 +112,7 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       goToSwapsBase();
     });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Swap',
-          tokenSymbol: '',
-          location: 'TabBar',
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [
-    closeBottomSheetAndNavigate,
-    goToSwapsBase,
-    trackEvent,
-    chainId,
-    createEventBuilder,
-  ]);
+  }, [closeBottomSheetAndNavigate, goToSwapsBase]);
 
   const onPerps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
@@ -157,6 +140,7 @@ const WalletActions = () => {
 
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
+      !isEarnEligible ||
       !isStablecoinLendingEnabled ||
       (earnTokens.length <= 1 &&
         earnTokens[0]?.isETH &&
@@ -165,7 +149,13 @@ const WalletActions = () => {
       return false;
     }
     return true;
-  }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
+  }, [
+    isEarnEligible,
+    isStablecoinLendingEnabled,
+    earnTokens,
+    isPooledStakingEnabled,
+  ]);
+
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
@@ -180,7 +170,7 @@ const WalletActions = () => {
           />
         )}
 
-        {isPerpsEnabled && isEvmSelected && (
+        {isPerpsEnabled && (
           <ActionListItem
             label={strings('asset_overview.perps_button')}
             description={strings('asset_overview.perps_description')}

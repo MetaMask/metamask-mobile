@@ -1,6 +1,6 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
-import Utilities from '../../e2e/framework/Utilities';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
+import Utilities from '../../tests/framework/Utilities';
 
 class PerpsPositionDetailsView {
   get device() {
@@ -24,8 +24,8 @@ class PerpsPositionDetailsView {
   }
 
   async tapClosePositionButton() {
-    await AppwrightGestures.tap(this.closePositionButton);
-    await AppwrightGestures.tap(this.confirmClosePositionButton);
+    await AppwrightGestures.tap(await this.closePositionButton);
+    await AppwrightGestures.tap(await this.confirmClosePositionButton);
   }
 
   async isPositionOpen() {
@@ -48,7 +48,7 @@ class PerpsPositionDetailsView {
       description: 'close position',
       elemDescription: 'Close Position Button',
     });
-  }  
+  }
 }
 
 export default new PerpsPositionDetailsView();

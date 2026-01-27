@@ -443,6 +443,24 @@ export interface SeasonRewardDto {
   isEndOfSeasonReward?: boolean;
   endOfSeasonName?: string;
   endOfSeasonShortDescription?: string;
+  claimEndDate?: string;
+}
+
+/**
+ * DTO for Linea token reward from Season 1
+ */
+export interface LineaTokenRewardDto {
+  /**
+   * The subscription ID
+   * @example 'example-uuid'
+   */
+  subscriptionId: string;
+
+  /**
+   * The amount of Linea tokens as a string
+   * @example '1000'
+   */
+  amount: string;
 }
 
 export enum SeasonRewardType {
@@ -450,6 +468,10 @@ export enum SeasonRewardType {
   PERPS_DISCOUNT = 'PERPS_DISCOUNT',
   POINTS_BOOST = 'POINTS_BOOST',
   ALPHA_FOX_INVITE = 'ALPHA_FOX_INVITE',
+  METAL_CARD = 'METAL_CARD',
+  LINEA_TOKENS = 'LINEA_TOKENS',
+  NANSEN = 'NANSEN',
+  OTHERSIDE = 'OTHERSIDE',
 }
 
 export interface SeasonDto {
@@ -506,6 +528,7 @@ export interface RewardDto {
 export type RewardClaimData =
   | PointsBoostRewardData
   | AlphaFoxInviteRewardData
+  | EndOfSeasonUrlData
   | null;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -518,6 +541,11 @@ export type PointsBoostRewardData = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type AlphaFoxInviteRewardData = {
   telegramHandle: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type EndOfSeasonUrlData = {
+  url: string;
 };
 
 export interface RewardClaim {
@@ -564,6 +592,7 @@ export type SeasonRewardDtoState = {
   isEndOfSeasonReward?: boolean;
   endOfSeasonName?: string;
   endOfSeasonShortDescription?: string;
+  claimEndDate?: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -1011,6 +1040,14 @@ export interface RewardsControllerClaimRewardAction {
 }
 
 /**
+ * Action for getting Season 1 Linea token reward
+ */
+export interface RewardsControllerGetSeasonOneLineaRewardTokensAction {
+  type: 'RewardsController:getSeasonOneLineaRewardTokens';
+  handler: (subscriptionId: string) => Promise<LineaTokenRewardDto | null>;
+}
+
+/**
  * Action for resetting controller state
  */
 export interface RewardsControllerResetAllAction {
@@ -1047,6 +1084,7 @@ export type RewardsControllerActions =
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerClaimRewardAction
+  | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction;
 
 /**

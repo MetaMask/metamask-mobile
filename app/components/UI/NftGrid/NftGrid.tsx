@@ -24,11 +24,11 @@ import ActionSheet from '@metamask/react-native-actionsheet';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
 import NftGridHeader from './NftGridHeader';
 import NftGridSkeleton from './NftGridSkeleton';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import {
   Box,
   Button,

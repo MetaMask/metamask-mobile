@@ -169,6 +169,24 @@ describe('useTronUnstake', () => {
       expect(result.current.tronWithdrawalToken).toBeDefined();
       expect(result.current.tronWithdrawalToken?.symbol).toBe('TRX');
     });
+
+    it('returns tronAccountId from selected account', () => {
+      const { result } = renderHook(() =>
+        useTronUnstake({ token: mockTrxToken }),
+      );
+
+      expect(result.current.tronAccountId).toBe(mockAccount.id);
+    });
+
+    it('returns undefined tronAccountId when account is not selected', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(undefined);
+
+      const { result } = renderHook(() =>
+        useTronUnstake({ token: mockTrxToken }),
+      );
+
+      expect(result.current.tronAccountId).toBeUndefined();
+    });
   });
 
   describe('validate', () => {

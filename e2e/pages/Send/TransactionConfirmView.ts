@@ -1,14 +1,15 @@
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import { ConfirmationTopSheetSelectorsIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
-} from '../../selectors/SendFlow/EditGasView.selectors';
+} from '../../../app/components/Views/confirmations/legacy/components/EditGasView.testIds';
 import {
   TransactionConfirmViewSelectorsIDs,
   TransactionConfirmViewSelectorsText,
-} from '../../selectors/SendFlow/TransactionConfirmView.selectors';
+} from '../../../app/components/Views/confirmations/legacy/components/Confirm/TransactionConfirmView.testIds';
+import RowComponents from '../Browser/Confirmations/RowComponents';
 
 class TransactionConfirmationView {
   get confirmButton(): DetoxElement {
@@ -138,6 +139,12 @@ class TransactionConfirmationView {
   async tapAdvancedOptionsPriorityGasOption(): Promise<void> {
     await Gestures.waitAndTap(this.EditPriorityAdvancedOptionsText, {
       elemDescription: 'Advanced Options Priority Gas Option',
+    });
+  }
+
+  async tapGasFeeTokenPill(): Promise<void> {
+    await Gestures.waitAndTap(RowComponents.NetworkFeeGasFeeTokenPill, {
+      elemDescription: 'Gas Fee Token Pill in Confirmation View',
     });
   }
 }

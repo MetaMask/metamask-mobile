@@ -43,6 +43,11 @@ export const selectTransactionPaySourceAmountsByTransactionId = createSelector(
   (transactionData) => transactionData?.sourceAmounts,
 );
 
+export const selectTransactionPayIsMaxAmountByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.isMaxAmount ?? false,
+);
+
 export const selectTransactionPayTransactionData = createSelector(
   selectTransactionPayControllerState,
   (state) => state.transactionData,

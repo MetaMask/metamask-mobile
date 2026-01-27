@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
+import { PerpsEventValues } from '../../constants/eventNames';
+import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -15,14 +18,19 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({
     params: {
-      source: 'main_action_button',
+      source: 'main_action_button', // PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON
     },
   }),
+  useFocusEffect: (callback: () => void) => {
+    // Call the callback immediately in tests
+    callback();
+  },
 }));
 
-// Mock Redux
+// Mock Redux - default feedback disabled
+const mockUseSelector = jest.fn<boolean, [unknown]>(() => false);
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => false), // isRewardsEnabled
+  useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
 // Mock components to prevent complex module initialization chains
@@ -66,6 +74,11 @@ jest.mock('../../hooks', () => ({
     isProcessing: false,
     error: null,
   })),
+  usePerpsHomeSectionTracking: jest.fn(() => ({
+    handleSectionLayout: jest.fn(() => jest.fn()),
+    handleScroll: jest.fn(),
+    resetTracking: jest.fn(),
+  })),
 }));
 
 // Mock direct import of usePerpsHomeActions (component imports it directly now)
@@ -95,6 +108,9 @@ jest.mock('../../hooks/stream', () => ({
     },
     isInitialLoading: false,
   })),
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+  })),
 }));
 
 // Use real BigNumber library - mocking it causes issues with module initialization
@@ -103,12 +119,16 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
-      build: jest.fn(),
+      addProperties: jest.fn((props: Record<string, unknown>) => ({
+        build: jest.fn(() => props),
+      })),
+      build: jest.fn(() => ({})),
     })),
   }),
   MetaMetricsEvents: {
     NAVIGATION_TAPS_GET_HELP: 'NAVIGATION_TAPS_GET_HELP',
     PERPS_SCREEN_VIEWED: 'PERPS_SCREEN_VIEWED',
+    PERPS_UI_INTERACTION: 'PERPS_UI_INTERACTION',
   },
 }));
 
@@ -129,15 +149,29 @@ jest.mock('react-native-safe-area-context', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: 'Box',
-  BoxFlexDirection: {
-    Row: 'Row',
-  },
-  BoxAlignItems: {
-    Center: 'Center',
-  },
-}));
+// Mock design system - needed because real module requires tailwind setup
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const React = jest.requireActual('react');
+  return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    ButtonIcon: ({
+      testID,
+      onPress,
+    }: {
+      testID?: string;
+      onPress?: () => void;
+    }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    Text: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(RNText, { testID }, children),
+    Box: 'Box',
+  };
+});
 
 // Mock stylesheet
 jest.mock('./PerpsHomeView.styles', () => ({}));
@@ -189,14 +223,35 @@ jest.mock('../../constants/eventNames', () => ({
   PerpsEventProperties: {
     SCREEN_TYPE: 'screen_type',
     SOURCE: 'source',
+    BUTTON_CLICKED: 'button_clicked',
+    BUTTON_LOCATION: 'button_location',
+    INTERACTION_TYPE: 'interaction_type',
+    LOCATION: 'location',
   },
   PerpsEventValues: {
     SCREEN_TYPE: {
       MARKETS: 'markets',
+      HOMESCREEN: 'homescreen',
+      PERPS_HOME: 'perps_home',
+      WALLET_HOME_PERPS_TAB: 'wallet_home_perps_tab',
     },
     SOURCE: {
       MAIN_ACTION_BUTTON: 'main_action_button',
       HOMESCREEN_TAB: 'homescreen_tab',
+    },
+    BUTTON_LOCATION: {
+      PERPS_HOME: 'perps_home',
+      PERPS_HOME_EMPTY_STATE: 'perps_home_empty_state',
+      PERPS_TAB: 'perps_tab',
+      PERPS_ASSET_SCREEN: 'perps_asset_screen',
+    },
+    BUTTON_CLICKED: {
+      TUTORIAL: 'tutorial',
+      MAGNIFYING_GLASS: 'magnifying_glass',
+    },
+    INTERACTION_TYPE: {
+      BUTTON_CLICKED: 'button_clicked',
+      CONTACT_SUPPORT: 'contact_support',
     },
   },
 }));
@@ -341,6 +396,37 @@ jest.mock(
   },
 );
 jest.mock('../../components/PerpsCard', () => 'PerpsCard');
+jest.mock('../../components/PerpsNavigationCard/PerpsNavigationCard', () => {
+  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: function MockPerpsNavigationCard({
+      items,
+    }: {
+      items: { label: string; onPress: () => void; testID?: string }[];
+    }) {
+      return (
+        <View testID="perps-navigation-card">
+          {items.map(
+            (
+              item: { label: string; onPress: () => void; testID?: string },
+              index: number,
+            ) => (
+              <TouchableOpacity
+                key={index}
+                testID={item.testID}
+                onPress={item.onPress}
+              >
+                <Text>{item.label}</Text>
+              </TouchableOpacity>
+            ),
+          )}
+        </View>
+      );
+    },
+  };
+});
 jest.mock(
   '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets',
   () => 'PerpsWatchlistMarkets',
@@ -470,8 +556,10 @@ describe('PerpsHomeView', () => {
     // Assert - Should navigate to MarketListView with search enabled
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultSearchVisible: true,
-      source: 'homescreen_tab',
+      source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
+      button_clicked: 'magnifying_glass',
+      button_location: 'perps_home',
     });
     // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
@@ -483,7 +571,7 @@ describe('PerpsHomeView', () => {
       ...mockDefaultData,
       positions: [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
           positionValue: '25000',
@@ -525,7 +613,7 @@ describe('PerpsHomeView', () => {
       orders: [
         {
           orderId: '123',
-          coin: 'ETH',
+          symbol: 'ETH',
           side: 'buy' as const,
           size: '1.0',
           limitPrice: '3000',
@@ -589,7 +677,7 @@ describe('PerpsHomeView', () => {
       ...mockDefaultData,
       positions: [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
           positionValue: '25000',
@@ -634,7 +722,7 @@ describe('PerpsHomeView', () => {
       orders: [
         {
           orderId: '123',
-          coin: 'ETH',
+          symbol: 'ETH',
           side: 'buy' as const,
           size: '1.0',
           limitPrice: '3000',
@@ -663,7 +751,7 @@ describe('PerpsHomeView', () => {
     // Assert - Verify navigation card is rendered (if it has a testID)
     // Or just verify component renders without error
     // The navigation card is tested separately
-    expect(getByTestId('perps-home-back-button')).toBeTruthy();
+    expect(getByTestId('back-button')).toBeTruthy();
   });
 
   it('renders main sections', () => {
@@ -712,5 +800,62 @@ describe('PerpsHomeView', () => {
 
     // Assert - Component is rendered, it handles empty state internally
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
+  });
+
+  describe('Feedback Feature', () => {
+    beforeEach(() => {
+      jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('does not show feedback button when feature flag is disabled', () => {
+      // Arrange - Feature flag disabled (default)
+      mockUseSelector.mockReturnValue(false);
+
+      // Act
+      const { queryByTestId } = render(<PerpsHomeView />);
+
+      // Assert
+      expect(queryByTestId('perps-home-feedback-button')).toBeNull();
+    });
+
+    it('shows feedback button when feature flag is enabled', () => {
+      // Arrange - Enable feedback feature flag
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsFeedbackEnabledFlag) {
+          return true;
+        }
+        return false;
+      });
+
+      // Act
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      // Assert
+      expect(getByTestId('perps-home-feedback-button')).toBeTruthy();
+    });
+
+    it('opens survey URL in external browser when feedback button is pressed', () => {
+      // Arrange - Enable feedback feature flag
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsFeedbackEnabledFlag) {
+          return true;
+        }
+        return false;
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      // Act
+      fireEvent.press(getByTestId('perps-home-feedback-button'));
+
+      // Assert
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
+      );
+    });
   });
 });

@@ -1,10 +1,10 @@
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import Utilities from '../../framework/Utilities';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Utilities from '../../../tests/framework/Utilities';
 import {
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsTabViewSelectorsIDs,
-} from '../../selectors/Perps/Perps.selectors';
+} from '../../../app/components/UI/Perps/Perps.testIds';
 
 class PerpsTabView {
   get balanceButton(): DetoxElement {
@@ -20,7 +20,13 @@ class PerpsTabView {
   }
 
   get onboardingButton(): DetoxElement {
-    return Matchers.getElementByID(PerpsTabViewSelectorsIDs.ONBOARDING_BUTTON);
+    return Matchers.getElementByText('Start trading');
+  }
+
+  get startNewTradeButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA,
+    );
   }
 
   get balanceValue(): DetoxElement {
@@ -68,6 +74,12 @@ class PerpsTabView {
   async tapOnboardingButton(): Promise<void> {
     await Gestures.waitAndTap(this.onboardingButton, {
       elemDescription: 'Perps Onboarding Button',
+    });
+  }
+
+  async tapStartNewTradeButton(): Promise<void> {
+    await Gestures.waitAndTap(this.startNewTradeButton, {
+      elemDescription: 'Perps Start New Trade Button',
     });
   }
 

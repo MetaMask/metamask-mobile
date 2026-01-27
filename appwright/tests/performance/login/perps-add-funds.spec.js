@@ -33,36 +33,49 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
 
   const selectPerpsMainScreenTimer = new TimerHelper(
     'Select Perps Main Screen',
+    { ios: 1500, android: 2500 },
+    device,
   );
-  const openAddFundsTimer = new TimerHelper('Open Add Funds');
-  const getQuoteTimer = new TimerHelper('Get Quote');
+  const openAddFundsTimer = new TimerHelper(
+    'Open Add Funds',
+    { ios: 5000, android: 4500 },
+    device,
+  );
+  const getQuoteTimer = new TimerHelper(
+    'Get Quote',
+    { ios: 6000, android: 7000 },
+    device,
+  );
   await screensSetup(device);
 
   await login(device);
   await TabBarModal.tapActionButton();
 
   // Open Perps Main Screen
-  selectPerpsMainScreenTimer.start();
-  await WalletActionModal.tapPerpsButton();
-  selectPerpsMainScreenTimer.stop();
-  performanceTracker.addTimer(selectPerpsMainScreenTimer);
+  await selectPerpsMainScreenTimer.measure(() =>
+    WalletActionModal.tapPerpsButton(),
+  );
 
   // Skip tutorial
   await PerpsTutorialScreen.tapSkip();
 
-  // Open Add Funds flow
-  openAddFundsTimer.start();
   await PerpsTutorialScreen.tapAddFunds();
-  await PerpsDepositScreen.isAmountInputVisible();
-  openAddFundsTimer.stop();
-  performanceTracker.addTimer(openAddFundsTimer);
+  // Open Add Funds flow
+  await openAddFundsTimer.measure(async () => {
+    await PerpsDepositScreen.isAmountInputVisible();
+  });
 
-  // Get quote
-  getQuoteTimer.start();
   await PerpsDepositScreen.fillUsdAmount(5);
-  await PerpsDepositScreen.isAddFundsVisible();
-  await PerpsDepositScreen.isTotalVisible();
-  getQuoteTimer.stop();
-  performanceTracker.addTimer(getQuoteTimer);
+  // Get quote
+  await getQuoteTimer.measure(async () => {
+    await PerpsDepositScreen.isAddFundsVisible();
+    await PerpsDepositScreen.isTotalVisible();
+  });
+
+  performanceTracker.addTimers(
+    selectPerpsMainScreenTimer,
+    openAddFundsTimer,
+    getQuoteTimer,
+  );
   await performanceTracker.attachToTest(testInfo);
 });

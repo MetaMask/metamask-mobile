@@ -1,7 +1,7 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from "../../../e2e/framework/AppwrightGestures";
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from "../../../tests/framework/AppwrightGestures";
 import { expect } from 'appwright';
 import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from '../../../app/components/Views/MultichainAccounts/IntroModal/testIds';
 
@@ -37,7 +37,7 @@ class MultichainAccountEducationModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.closeButton);
     } else {
-      await AppwrightGestures.tap(this.closeButton);
+      await AppwrightGestures.tap(await this.closeButton);
     }
   }
 }

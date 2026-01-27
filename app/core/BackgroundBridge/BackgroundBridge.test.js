@@ -1,4 +1,4 @@
-import getDefaultBridgeParams from '../SDKConnect/AndroidSDK/getDefaultBridgeParams';
+import getDefaultBridgeParams from '../SDKConnect/getDefaultBridgeParams';
 import BackgroundBridge from './BackgroundBridge';
 import Engine from '../Engine';
 import { getPermittedAccounts } from '../Permissions';
@@ -11,6 +11,8 @@ import {
   EthAccountType,
   SolAccountType,
   SolScope,
+  TrxAccountType,
+  TrxScope,
 } from '@metamask/keyring-api';
 
 jest.mock('../Engine', () => ({
@@ -40,17 +42,6 @@ jest.mock('../Engine', () => ({
     subscribe: jest.fn(),
     tryUnsubscribe: jest.fn(),
     unsubscribe: jest.fn(),
-  },
-  datamodel: {
-    state: {
-      PreferencesController: {
-        selectedAddress: '0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571',
-      },
-      AccountTreeController: {
-        selectedAccountGroup:
-          'eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571',
-      },
-    },
   },
   context: {
     AccountsController: {
@@ -657,7 +648,7 @@ describe('BackgroundBridge', () => {
         previousValue,
       );
 
-      expect(sendNotificationSpy).not.toHaveBeenCalledWith();
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
     });
 
     it('emits nothing if currently and previously selected solana accounts did not change', () => {
@@ -699,7 +690,7 @@ describe('BackgroundBridge', () => {
         previousValue,
       );
 
-      expect(sendNotificationSpy).not.toHaveBeenCalledWith();
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
     });
 
     it('emits the currently selected solana account if the currently selected solana accounts did change', () => {
@@ -1044,6 +1035,610 @@ describe('BackgroundBridge', () => {
       );
       expect(handleSolanaAccountSpy).toHaveBeenCalledWith(mockSolanaAccount1);
       expect(handleSolanaAccountSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('notifyTronAccountChangedForCurrentAccount', () => {
+    it('emits nothing if there is no CAIP-25 permission', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+
+      bridge.notifyTronAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing if there are no permitted tron scopes and `tron_accountChanged_notifications` session property is set', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            'eip155:1': {
+              accounts: [],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            tron_accountChanged_notifications: true,
+          },
+        },
+      });
+
+      bridge.notifyTronAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing if there are permitted tron accounts, but the `tron_accountChanged_notifications` session property is not set', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [TrxScope.Mainnet]: {
+              accounts: [`${TrxScope.Mainnet}:someaddress`],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {},
+        },
+      });
+
+      bridge.notifyTronAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing if there are permitted tron scopes but no accounts and the `tron_accountChanged_notifications` session property is set', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [TrxScope.Mainnet]: {
+              accounts: [],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            tron_accountChanged_notifications: true,
+          },
+        },
+      });
+
+      bridge.notifyTronAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits a tron accountChanged event when there are permitted tron accounts and the `tron_accountChanged_notifications` session property is set', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [TrxScope.Mainnet]: {
+              accounts: [`${TrxScope.Mainnet}:someaddress`],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            tron_accountChanged_notifications: true,
+          },
+        },
+      });
+
+      bridge.notifyTronAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).toHaveBeenCalledWith({
+        method: 'wallet_notify',
+        params: {
+          notification: {
+            method: 'metamask_accountsChanged',
+            params: ['someaddress'],
+          },
+          scope: TrxScope.Mainnet,
+        },
+      });
+    });
+
+    it('prioritizes tron account from selected account group over scope accounts', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+
+      const selectedGroupTronAccount = {
+        type: TrxAccountType.Eoa,
+        address: 'TRXAddressExample123456789',
+      };
+      mockAccountTreeController([selectedGroupTronAccount]);
+
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [TrxScope.Mainnet]: {
+              accounts: [`${TrxScope.Mainnet}:TDifferentAddress987654321`],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            [KnownSessionProperties.TronAccountChangedNotifications]: true,
+          },
+        },
+      });
+
+      bridge.notifyTronAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).toHaveBeenCalledWith({
+        method: 'wallet_notify',
+        params: {
+          notification: {
+            method: 'metamask_accountsChanged',
+            params: ['TRXAddressExample123456789'],
+          },
+          scope: TrxScope.Mainnet,
+        },
+      });
+    });
+  });
+
+  describe('handleTronAccountChangedFromScopeChanges', () => {
+    it('emits nothing if the current and previous permissions both did not have `tron_accountChanged_notifications` session property set', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+
+      const currentValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [TrxScope.Mainnet]: {
+            accounts: [`${TrxScope.Mainnet}:456`],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      const previousValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [TrxScope.Mainnet]: {
+            accounts: [`${TrxScope.Mainnet}:123`],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      bridge.handleTronAccountChangedFromScopeChanges(
+        currentValue,
+        previousValue,
+      );
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing if currently and previously selected tron accounts did not change', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+
+      const currentValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [TrxScope.Mainnet]: {
+            accounts: [`${TrxScope.Mainnet}:123`],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {
+          tron_accountChanged_notifications: true,
+        },
+      };
+
+      const previousValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [TrxScope.Mainnet]: {
+            accounts: [`${TrxScope.Mainnet}:123`],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {
+          tron_accountChanged_notifications: true,
+        },
+      };
+
+      bridge.handleTronAccountChangedFromScopeChanges(
+        currentValue,
+        previousValue,
+      );
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits the currently selected tron account if the currently selected tron accounts did change', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+
+      const currentValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [TrxScope.Mainnet]: {
+            accounts: [`${TrxScope.Mainnet}:456`],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {
+          tron_accountChanged_notifications: true,
+        },
+      };
+
+      const previousValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [TrxScope.Mainnet]: {
+            accounts: [`${TrxScope.Mainnet}:123`],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {
+          tron_accountChanged_notifications: true,
+        },
+      };
+
+      bridge.handleTronAccountChangedFromScopeChanges(
+        currentValue,
+        previousValue,
+      );
+
+      expect(sendNotificationSpy).toHaveBeenCalledWith({
+        method: 'wallet_notify',
+        params: {
+          notification: {
+            method: 'metamask_accountsChanged',
+            params: ['456'],
+          },
+          scope: TrxScope.Mainnet,
+        },
+      });
+    });
+  });
+
+  describe('handleTronAccountChangedFromSelectedAccountChanges', () => {
+    it('emits nothing if the selected account is not a tron account', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [TrxScope.Mainnet]: {
+              accounts: [`${TrxScope.Mainnet}:someaddress`],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            tron_accountChanged_notifications: true,
+          },
+        },
+      });
+
+      bridge.handleTronAccountChangedFromSelectedAccountChanges({
+        type: EthAccountType.Eoa,
+        address: 'someaddress',
+      });
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing if the selected account did not change from the last seen tron account', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [TrxScope.Mainnet]: {
+              accounts: [`${TrxScope.Mainnet}:someaddress`],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            tron_accountChanged_notifications: true,
+          },
+        },
+      });
+      bridge.lastSelectedTronAccountAddress = 'someaddress';
+
+      bridge.handleTronAccountChangedFromSelectedAccountChanges({
+        type: TrxAccountType.Eoa,
+        address: 'someaddress',
+      });
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing if there is no CAIP-25 permission', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+      PermissionController.getCaveat.mockReturnValue();
+
+      bridge.handleTronAccountChangedFromSelectedAccountChanges({
+        type: TrxAccountType.Eoa,
+        address: 'someaddress',
+      });
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing if the `tron_accountChanged_notifications` session property is not set', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [TrxScope.Mainnet]: {
+              accounts: [`${TrxScope.Mainnet}:someaddress`],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {},
+        },
+      });
+
+      bridge.handleTronAccountChangedFromSelectedAccountChanges({
+        type: TrxAccountType.Eoa,
+        address: 'someaddress',
+      });
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing if the selected account does not match a permitted tron account', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [TrxScope.Mainnet]: {
+              accounts: [`${TrxScope.Mainnet}:someaddress`],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            tron_accountChanged_notifications: true,
+          },
+        },
+      });
+
+      bridge.handleTronAccountChangedFromSelectedAccountChanges({
+        type: TrxAccountType.Eoa,
+        address: 'differentaddress',
+      });
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits a tron accountChanged event for the selected account if it does match a permitted tron account', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [TrxScope.Mainnet]: {
+              accounts: [`${TrxScope.Mainnet}:someaddress`],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            tron_accountChanged_notifications: true,
+          },
+        },
+      });
+
+      bridge.handleTronAccountChangedFromSelectedAccountChanges({
+        type: TrxAccountType.Eoa,
+        address: 'someaddress',
+      });
+
+      expect(sendNotificationSpy).toHaveBeenCalledWith({
+        method: 'wallet_notify',
+        params: {
+          notification: {
+            method: 'metamask_accountsChanged',
+            params: ['someaddress'],
+          },
+          scope: TrxScope.Mainnet,
+        },
+      });
+    });
+  });
+
+  describe('handleTronAccountChangedFromSelectedAccountGroupChanges', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('emits nothing when AccountTreeController returns no accounts', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const handleTronAccountSpy = jest.spyOn(
+        bridge,
+        'handleTronAccountChangedFromSelectedAccountChanges',
+      );
+
+      mockAccountTreeController([]);
+
+      bridge.handleTronAccountChangedFromSelectedAccountGroupChanges();
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        { type: TrxAccountType.Eoa },
+      );
+      expect(handleTronAccountSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing when AccountTreeController returns only non-Tron accounts', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const handleTronAccountSpy = jest.spyOn(
+        bridge,
+        'handleTronAccountChangedFromSelectedAccountChanges',
+      );
+
+      const mockAccounts = [
+        { type: EthAccountType.Eoa, address: 'eth-address-1' },
+        { type: EthAccountType.Erc4337, address: 'eth-address-2' },
+      ];
+
+      mockAccountTreeController(mockAccounts);
+
+      bridge.handleTronAccountChangedFromSelectedAccountGroupChanges();
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        { type: TrxAccountType.Eoa },
+      );
+      expect(handleTronAccountSpy).not.toHaveBeenCalled();
+    });
+
+    it('calls handleTronAccountChangedFromSelectedAccountChanges when AccountTreeController returns a Tron account', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const handleTronAccountSpy = jest.spyOn(
+        bridge,
+        'handleTronAccountChangedFromSelectedAccountChanges',
+      );
+
+      const mockTronAccount = {
+        type: TrxAccountType.Eoa,
+        address: 'tron-address-1',
+      };
+      const mockAccounts = [mockTronAccount];
+
+      mockAccountTreeController(mockAccounts);
+
+      bridge.handleTronAccountChangedFromSelectedAccountGroupChanges();
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        { type: TrxAccountType.Eoa },
+      );
+      expect(handleTronAccountSpy).toHaveBeenCalledWith(mockTronAccount);
+    });
+
+    it('processes only the first Tron account when multiple valid Tron accounts exist', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const handleTronAccountSpy = jest.spyOn(
+        bridge,
+        'handleTronAccountChangedFromSelectedAccountChanges',
+      );
+
+      const mockTronAccount1 = {
+        type: TrxAccountType.Eoa,
+        address: 'first-tron-address',
+      };
+      const mockTronAccount2 = {
+        type: TrxAccountType.Eoa,
+        address: 'second-tron-address',
+      };
+      const mockTronAccount3 = {
+        type: TrxAccountType.Eoa,
+        address: 'third-tron-address',
+      };
+
+      mockAccountTreeController([
+        mockTronAccount1,
+        mockTronAccount2,
+        mockTronAccount3,
+      ]);
+
+      bridge.handleTronAccountChangedFromSelectedAccountGroupChanges();
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        { type: TrxAccountType.Eoa },
+      );
+      expect(handleTronAccountSpy).toHaveBeenCalledWith(mockTronAccount1);
+      expect(handleTronAccountSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,14 +1,15 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import SimpleWebview from './';
-import { getWebviewNavbar } from '../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
 import Share from 'react-native-share';
 import Logger from '../../../util/Logger';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 
-jest.mock('../../UI/Navbar', () => ({
-  getWebviewNavbar: jest.fn(),
-}));
+jest.mock(
+  '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions',
+  () => jest.fn(() => ({})),
+);
 
 const mockNavigation = {
   setOptions: jest.fn(),
@@ -33,41 +34,44 @@ describe('SimpleWebview', () => {
     (Share.open as jest.Mock).mockImplementation(() => Promise.resolve());
   });
 
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { toJSON } = render(<SimpleWebview />);
 
-    // Test that WebView is rendered with correct URL
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should set navigation options on mount', () => {
+  it('sets navigation options on mount', () => {
     render(<SimpleWebview />);
 
-    // Test that getWebviewNavbar is called with the correct arguments
     expect(mockNavigation.setOptions).toHaveBeenCalled();
-    expect(mockNavigation.setParams).toHaveBeenCalled();
-    expect(getWebviewNavbar).toHaveBeenCalled();
+    expect(getHeaderCenterNavbarOptions).toHaveBeenCalled();
   });
 
-  it('should call share function when dispatch is called', () => {
-    mockNavigation.setParams = jest.fn(({ dispatch }) => dispatch());
+  it('calls Share.open when share button is pressed', () => {
     render(<SimpleWebview />);
 
-    const open = jest.spyOn(Share, 'open');
-    expect(open).toHaveBeenCalled();
+    const call = (getHeaderCenterNavbarOptions as jest.Mock).mock.calls[0][0];
+    const shareButton = call.endButtonIconProps[0];
+    shareButton.onPress();
+
+    expect(Share.open).toHaveBeenCalledWith({ url: 'https://etherscan.io' });
   });
 
-  it('should log error when share function fails', async () => {
+  it('logs error when share function fails', async () => {
     const log = jest.spyOn(Logger, 'log');
-    jest
-      .spyOn(Share, 'open')
-      .mockImplementation(() => Promise.reject(new Error('Test error')));
-    mockNavigation.setParams = jest.fn(({ dispatch }) => dispatch());
+    (Share.open as jest.Mock).mockRejectedValueOnce(new Error('Test error'));
 
     render(<SimpleWebview />);
+
+    const call = (getHeaderCenterNavbarOptions as jest.Mock).mock.calls[0][0];
+    const shareButton = call.endButtonIconProps[0];
+    shareButton.onPress();
 
     await waitFor(() => {
-      expect(log).toHaveBeenCalled();
+      expect(log).toHaveBeenCalledWith(
+        'Error while trying to share simple web view',
+        expect.any(Error),
+      );
     });
   });
 });

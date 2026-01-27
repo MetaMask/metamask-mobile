@@ -252,7 +252,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
         <View
           style={
             {
-              "paddingRight": 20,
+              "paddingRight": 8,
             }
           }
         >
@@ -486,7 +486,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
         <View
           style={
             {
-              "paddingRight": 20,
+              "paddingRight": 8,
             }
           }
         >
@@ -746,7 +746,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
         <View
           style={
             {
-              "paddingRight": 20,
+              "paddingRight": 8,
             }
           }
         >
@@ -943,7 +943,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
         <View
           style={
             {
-              "paddingRight": 20,
+              "paddingRight": 8,
             }
           }
         >
@@ -1240,7 +1240,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
         <View
           style={
             {
-              "paddingRight": 20,
+              "paddingRight": 8,
             }
           }
         >
@@ -1474,7 +1474,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
         <View
           style={
             {
-              "paddingRight": 20,
+              "paddingRight": 8,
             }
           }
         >
@@ -1771,7 +1771,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
         <View
           style={
             {
-              "paddingRight": 20,
+              "paddingRight": 8,
             }
           }
         >
@@ -2005,7 +2005,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
         <View
           style={
             {
-              "paddingRight": 20,
+              "paddingRight": 8,
             }
           }
         >

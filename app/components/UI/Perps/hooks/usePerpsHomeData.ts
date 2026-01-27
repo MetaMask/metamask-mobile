@@ -59,10 +59,10 @@ interface UsePerpsHomeDataReturn {
  * Uses object parameters pattern for maintainability
  */
 export const usePerpsHomeData = ({
-  positionsLimit = HOME_SCREEN_CONFIG.POSITIONS_CAROUSEL_LIMIT,
-  ordersLimit = HOME_SCREEN_CONFIG.ORDERS_CAROUSEL_LIMIT,
-  trendingLimit = HOME_SCREEN_CONFIG.TRENDING_MARKETS_LIMIT,
-  activityLimit = HOME_SCREEN_CONFIG.RECENT_ACTIVITY_LIMIT,
+  positionsLimit = HOME_SCREEN_CONFIG.PositionsCarouselLimit,
+  ordersLimit = HOME_SCREEN_CONFIG.OrdersCarouselLimit,
+  trendingLimit = HOME_SCREEN_CONFIG.TrendingMarketsLimit,
+  activityLimit = HOME_SCREEN_CONFIG.RecentActivityLimit,
   searchQuery = '',
 }: UsePerpsHomeDataParams = {}): UsePerpsHomeDataReturn => {
   // Fetch positions via WebSocket with throttling for performance
@@ -87,17 +87,17 @@ export const usePerpsHomeData = ({
   // REST API fills state - WebSocket snapshot only contains recent fills,
   // so we need to fetch complete history via REST API
   const [restFills, setRestFills] = useState<OrderFill[]>([]);
-  const [isRestFillsLoading, setIsRestFillsLoading] = useState(true);
 
-  // Fetch historical fills via REST API on mount
+  // Fetch historical fills via REST API on mount (background, non-blocking)
   // This ensures we have complete fill history, not just WebSocket snapshot
+  // Note: We don't track loading state - WebSocket data displays immediately,
+  // REST fills merge silently in the background via mergedFills
   useEffect(() => {
     const fetchFills = async () => {
       try {
         const controller = Engine.context.PerpsController;
         const provider = controller?.getActiveProvider();
         if (!provider) {
-          setIsRestFillsLoading(false);
           return;
         }
 
@@ -106,8 +106,6 @@ export const usePerpsHomeData = ({
       } catch (error) {
         // Log error but don't fail - WebSocket fills still work
         console.error('[usePerpsHomeData] Failed to fetch REST fills:', error);
-      } finally {
-        setIsRestFillsLoading(false);
       }
     };
     fetchFills();
@@ -167,16 +165,15 @@ export const usePerpsHomeData = ({
     [allMarkets, watchlistSymbols],
   );
 
-  // Derive sort field and direction from saved preference
+  // Derive sort field from saved preference
   const { sortBy, direction } = useMemo(() => {
-    const sortOption = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
-      (opt) => opt.id === savedSortPreference,
+    const sortOption = MARKET_SORTING_CONFIG.SortOptions.find(
+      (opt) => opt.id === savedSortPreference.optionId,
     );
 
     return {
-      sortBy: sortOption?.field ?? MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
-      direction:
-        sortOption?.direction ?? MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+      sortBy: sortOption?.field ?? MARKET_SORTING_CONFIG.SortFields.Volume,
+      direction: savedSortPreference.direction,
     };
   }, [savedSortPreference]);
 
@@ -259,9 +256,9 @@ export const usePerpsHomeData = ({
       const lowerQuery = query.toLowerCase().trim();
 
       return {
-        // Position only has 'coin' field (no 'symbol')
+        // Position has 'symbol' field
         positions: positions.filter((pos: Position) =>
-          pos.coin?.toLowerCase().includes(lowerQuery),
+          pos.symbol?.toLowerCase().includes(lowerQuery),
         ),
         // Order only has 'symbol' field (no 'coin')
         orders: allOrders.filter((order: Order) =>
@@ -372,7 +369,9 @@ export const usePerpsHomeData = ({
       positions: isPositionsLoading,
       orders: isOrdersLoading,
       markets: isMarketsLoading,
-      activity: isFillsLoading || isRestFillsLoading,
+      // Only wait for WebSocket fills (fast ~100ms), not REST fills (slow 3s+)
+      // REST fills merge in background via mergedFills without blocking initial render
+      activity: isFillsLoading,
     },
     refresh,
   };

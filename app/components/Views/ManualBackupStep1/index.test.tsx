@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
 import { AppThemeKey } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
 import { InteractionManager, Platform } from 'react-native';
@@ -401,7 +401,7 @@ describe('ManualBackupStep1', () => {
       expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep2', {
         words: mockWords,
         steps: [
-          'Create Password',
+          'Create password',
           'Secure wallet',
           'Confirm Secret Recovery Phrase',
         ],

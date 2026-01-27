@@ -135,7 +135,7 @@ Render Wallet with its preset:
 
 ```ts
 import { renderWalletView } from '../../util/test/component-view/renderers/wallet';
-import { WalletViewSelectorsIDs } from '../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../components/Views/Wallet/WalletView.testIds';
 
 const { getByTestId } = renderWalletView({
   overrides: {

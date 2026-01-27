@@ -1,7 +1,7 @@
 import {
   assessMarginRemovalRisk,
   calculateMaxRemovableMargin,
-  calculateNewLiquidationPrice,
+  estimateLiquidationPrice,
 } from './marginUtils';
 
 describe('marginUtils', () => {
@@ -15,98 +15,114 @@ describe('marginUtils', () => {
 
   describe('calculateMaxRemovableMargin', () => {
     it('uses 10% minimum when it exceeds leverage-based minimum (high leverage)', () => {
-      // For 50x leverage: initial margin = 2%, but 10% is higher
+      // For 50x position leverage: initial margin = 2%, but 10% is higher
       const result = calculateMaxRemovableMargin({
-        currentMargin: 1000,
+        currentMargin: 3000,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 50,
+        positionLeverage: 50,
       });
 
       // notionalValue = 10 * 2000 = 20000
       // initialMarginRequired = 20000 / 50 = 400 (2%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
-      // baseMinimumRequired = max(400, 2000) = 2000
-      // minimumMarginRequired = 2000 * 3 = 6000 (with 3x safety buffer)
-      // maxRemovable = 1000 - 6000 = -5000 -> 0 (capped)
-      expect(result).toBe(0);
+      // transferMarginRequired = max(400, 2000) = 2000
+      // maxRemovable = 3000 - 2000 = 1000
+      expect(result).toBe(1000);
     });
 
     it('uses leverage-based minimum when it exceeds 10% (low leverage)', () => {
-      // For 5x leverage: initial margin = 20%, which is > 10%
+      // For 5x position leverage: initial margin = 20%, which is > 10%
       const result = calculateMaxRemovableMargin({
-        currentMargin: 15000,
+        currentMargin: 5000,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 5,
+        positionLeverage: 5,
       });
 
       // notionalValue = 10 * 2000 = 20000
       // initialMarginRequired = 20000 / 5 = 4000 (20%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
-      // baseMinimumRequired = max(4000, 2000) = 4000
-      // minimumMarginRequired = 4000 * 3 = 12000 (with 3x safety buffer)
-      // maxRemovable = 15000 - 12000 = 3000
-      expect(result).toBe(3000);
+      // transferMarginRequired = max(4000, 2000) = 4000
+      // maxRemovable = 5000 - 4000 = 1000
+      expect(result).toBe(1000);
     });
 
-    it('uses higher of entry and current price for conservative calculation', () => {
+    it('uses current price (mark price) per Hyperliquid docs', () => {
       const result = calculateMaxRemovableMargin({
-        currentMargin: 20000,
+        currentMargin: 6000,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2500, // Higher than entry
-        maxLeverage: 5,
+        positionLeverage: 5,
       });
 
-      // Uses currentPrice (2500) since it's higher
+      // Uses currentPrice (2500) - mark price per Hyperliquid docs
       // notionalValue = 10 * 2500 = 25000
       // initialMarginRequired = 25000 / 5 = 5000 (20%)
       // tenPercentMargin = 25000 * 0.1 = 2500 (10%)
-      // baseMinimumRequired = max(5000, 2500) = 5000
-      // minimumMarginRequired = 5000 * 3 = 15000 (with 3x safety buffer)
-      // maxRemovable = 20000 - 15000 = 5000
-      expect(result).toBe(5000);
+      // transferMarginRequired = max(5000, 2500) = 5000
+      // maxRemovable = 6000 - 5000 = 1000
+      expect(result).toBe(1000);
     });
 
-    it('allows margin removal when current margin exceeds minimum with safety buffer', () => {
-      // User has 8000 margin for a position requiring 6000 minimum (with buffer)
+    it('allows margin removal when current margin exceeds transfer margin required', () => {
+      // User has 8000 margin for a position requiring 2000 minimum
       const result = calculateMaxRemovableMargin({
         currentMargin: 8000,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 50,
+        positionLeverage: 50,
       });
 
       // notionalValue = 10 * 2000 = 20000
       // initialMarginRequired = 20000 / 50 = 400 (2%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
-      // baseMinimumRequired = max(400, 2000) = 2000
-      // minimumMarginRequired = 2000 * 3 = 6000 (with 3x safety buffer)
-      // maxRemovable = 8000 - 6000 = 2000
-      expect(result).toBe(2000);
+      // transferMarginRequired = max(400, 2000) = 2000
+      // maxRemovable = 8000 - 2000 = 6000
+      expect(result).toBe(6000);
     });
 
-    it('correctly limits small positions (real-world scenario)', () => {
-      // Real scenario: ~$10.39 notional, $3.50 margin, 3x leverage
+    it('correctly calculates for position at exact initial margin (no removable)', () => {
+      // Position at 10x leverage with exactly the required margin
+      // $1000 notional, $100 margin (10% = initial margin at 10x)
       const result = calculateMaxRemovableMargin({
-        currentMargin: 3.5,
-        positionSize: 0.1,
-        entryPrice: 103.9,
-        currentPrice: 103.9,
-        maxLeverage: 3,
+        currentMargin: 100,
+        positionSize: 0.01,
+        entryPrice: 100000,
+        currentPrice: 100000,
+        positionLeverage: 10,
       });
 
-      // notionalValue = 0.1 * 103.9 = 10.39
-      // initialMarginRequired = 10.39 / 3 = 3.46 (33%)
-      // tenPercentMargin = 10.39 * 0.1 = 1.04 (10%)
-      // baseMinimumRequired = max(3.46, 1.04) = 3.46
-      // minimumMarginRequired = 3.46 * 3 = 10.38 (with 3x safety buffer)
-      // maxRemovable = 3.5 - 10.38 = -6.88 -> 0 (capped)
-      // With only 3.5 margin at 3x leverage, no margin can be removed!
+      // notionalValue = 0.01 * 100000 = 1000
+      // initialMarginRequired = 1000 / 10 = 100 (10%)
+      // tenPercentMargin = 1000 * 0.1 = 100 (10%)
+      // transferMarginRequired = max(100, 100) = 100
+      // maxRemovable = 100 - 100 = 0
+      expect(result).toBe(0);
+    });
+
+    it('does not include unrealized PnL in withdrawal calculation', () => {
+      // Per Hyperliquid docs: unrealized PnL helps prevent liquidation
+      // but doesn't increase withdrawal limits
+      // Position at exact initial margin - nothing removable
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 100,
+        positionSize: 0.01,
+        entryPrice: 100000,
+        currentPrice: 100000,
+        positionLeverage: 10,
+      });
+
+      // notionalValue = 0.01 * 100000 = 1000
+      // initialMarginRequired = 1000 / 10 = 100
+      // tenPercentMargin = 1000 * 0.1 = 100
+      // transferMarginRequired = max(100, 100) = 100
+      // maxRemovable = 100 - 100 = 0
+      // Even if position has positive unrealized PnL, it's not withdrawable
       expect(result).toBe(0);
     });
 
@@ -116,7 +132,7 @@ describe('marginUtils', () => {
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 50,
+        positionLeverage: 50,
       });
 
       expect(result).toBe(0);
@@ -128,142 +144,86 @@ describe('marginUtils', () => {
         positionSize: 0,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 50,
+        positionLeverage: 50,
       });
 
       expect(result).toBe(0);
     });
 
-    it('returns 0 when max leverage is 0', () => {
+    it('returns 0 when position leverage is 0', () => {
       const result = calculateMaxRemovableMargin({
         currentMargin: 500,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 2000,
-        maxLeverage: 0,
+        positionLeverage: 0,
       });
 
       expect(result).toBe(0);
     });
 
-    it('returns 0 when entry price is 0', () => {
-      const result = calculateMaxRemovableMargin({
-        currentMargin: 500,
-        positionSize: 10,
-        entryPrice: 0,
-        currentPrice: 2000,
-        maxLeverage: 50,
-      });
-
-      expect(result).toBe(0);
-    });
-
-    it('returns 0 when current price is 0', () => {
+    it('returns 0 when current price is 0 and no notionalValue provided', () => {
       const result = calculateMaxRemovableMargin({
         currentMargin: 500,
         positionSize: 10,
         entryPrice: 2000,
         currentPrice: 0,
-        maxLeverage: 50,
+        positionLeverage: 50,
       });
 
       expect(result).toBe(0);
     });
-  });
 
-  describe('calculateNewLiquidationPrice', () => {
-    it('calculates liquidation price below entry for long position', () => {
-      const newMargin = 200;
-      const positionSize = 10;
-      const entryPrice = 2000;
-      const isLong = true;
-      const currentLiquidationPrice = 1900;
-      const expectedMarginPerUnit = newMargin / positionSize; // 20
-      const expectedLiquidation = entryPrice - expectedMarginPerUnit; // 1980
-
-      const result = calculateNewLiquidationPrice({
-        newMargin,
-        positionSize,
-        entryPrice,
-        isLong,
-        currentLiquidationPrice,
+    it('uses provided notionalValue when currentPrice is 0', () => {
+      // Simulates when live price hasn't loaded yet but we have position.positionValue
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 3000,
+        positionSize: 10,
+        entryPrice: 2000,
+        currentPrice: 0, // Live price not loaded
+        positionLeverage: 50,
+        notionalValue: 20000, // From position.positionValue
       });
 
-      expect(result).toBe(expectedLiquidation);
+      // notionalValue = 20000 (provided)
+      // initialMarginRequired = 20000 / 50 = 400 (2%)
+      // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
+      // transferMarginRequired = max(400, 2000) = 2000
+      // maxRemovable = 3000 - 2000 = 1000
+      expect(result).toBe(1000);
     });
 
-    it('calculates liquidation price above entry for short position', () => {
-      const newMargin = 200;
-      const positionSize = 10;
-      const entryPrice = 2000;
-      const isLong = false;
-      const currentLiquidationPrice = 2100;
-      const expectedMarginPerUnit = newMargin / positionSize; // 20
-      const expectedLiquidation = entryPrice + expectedMarginPerUnit; // 2020
-
-      const result = calculateNewLiquidationPrice({
-        newMargin,
-        positionSize,
-        entryPrice,
-        isLong,
-        currentLiquidationPrice,
+    it('uses calculated notionalValue when provided value is 0', () => {
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 3000,
+        positionSize: 10,
+        entryPrice: 2000,
+        currentPrice: 2000,
+        positionLeverage: 50,
+        notionalValue: 0, // Invalid, should fall back to calculated
       });
 
-      expect(result).toBe(expectedLiquidation);
+      // Falls back to: notionalValue = 10 * 2000 = 20000
+      // Same calculation as above
+      expect(result).toBe(1000);
     });
 
-    it('returns current liquidation price when new margin is 0', () => {
-      const newMargin = 0;
-      const positionSize = 10;
-      const entryPrice = 2000;
-      const isLong = true;
-      const currentLiquidationPrice = 1900;
-
-      const result = calculateNewLiquidationPrice({
-        newMargin,
-        positionSize,
-        entryPrice,
-        isLong,
-        currentLiquidationPrice,
+    it('prefers provided notionalValue over calculated when both available', () => {
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 5000,
+        positionSize: 10,
+        entryPrice: 2000,
+        currentPrice: 2500, // Would give notional of 25000
+        positionLeverage: 5,
+        notionalValue: 20000, // Provided value takes precedence
       });
 
-      expect(result).toBe(currentLiquidationPrice);
-    });
-
-    it('returns current liquidation price when position size is 0', () => {
-      const newMargin = 200;
-      const positionSize = 0;
-      const entryPrice = 2000;
-      const isLong = true;
-      const currentLiquidationPrice = 1900;
-
-      const result = calculateNewLiquidationPrice({
-        newMargin,
-        positionSize,
-        entryPrice,
-        isLong,
-        currentLiquidationPrice,
-      });
-
-      expect(result).toBe(currentLiquidationPrice);
-    });
-
-    it('returns 0 for long position when liquidation would be negative', () => {
-      const newMargin = 25000; // Very high margin
-      const positionSize = 10;
-      const entryPrice = 2000;
-      const isLong = true;
-      const currentLiquidationPrice = 1900;
-
-      const result = calculateNewLiquidationPrice({
-        newMargin,
-        positionSize,
-        entryPrice,
-        isLong,
-        currentLiquidationPrice,
-      });
-
-      expect(result).toBe(0);
+      // Uses provided notionalValue = 20000
+      // initialMarginRequired = 20000 / 5 = 4000 (20%)
+      // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
+      // transferMarginRequired = max(4000, 2000) = 4000
+      // maxRemovable = 5000 - 4000 = 1000
+      expect(result).toBe(1000);
     });
   });
 
@@ -385,6 +345,126 @@ describe('marginUtils', () => {
       expect(result.riskLevel).toBe('safe');
       expect(result.priceDiff).toBe(0);
       expect(result.riskRatio).toBe(0);
+    });
+  });
+
+  describe('estimateLiquidationPrice', () => {
+    it('returns current liquidation price when no margin change', () => {
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 5000,
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 20,
+      });
+
+      expect(result).toBe(80000);
+    });
+
+    it('applies maintenance factor when adding margin (long)', () => {
+      // Adding $1000 margin to long position
+      // maxLeverage=20 => l=0.025 => denominator=0.975
+      // delta=+1000, move = -1000/0.5/0.975 = -2051.28
+      // new liq = 80000 - 2051.28 = 77948.72
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 6000,
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 20,
+      });
+
+      expect(result).toBeCloseTo(77948.72, 0);
+    });
+
+    it('applies maintenance factor when removing margin (long)', () => {
+      // Removing $1000 margin from long position
+      // delta=-1000, move = +1000/0.5/0.975 = +2051.28
+      // new liq = 80000 + 2051.28 = 82051.28
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 4000,
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 20,
+      });
+
+      expect(result).toBeCloseTo(82051.28, 0);
+    });
+
+    it('applies maintenance factor for short position', () => {
+      // Removing $500 margin from short position
+      // maxLeverage=20 => l=0.025 => denominator=1.025 (for short)
+      // delta=-500, move = -500/10/1.025 = -48.78
+      // new liq = 2100 - 48.78 = 2051.22
+      const result = estimateLiquidationPrice({
+        isLong: false,
+        currentMargin: 1000,
+        newMargin: 500,
+        positionSize: 10,
+        currentLiquidationPrice: 2100,
+        maxLeverage: 20,
+      });
+
+      expect(result).toBeCloseTo(2051.22, 0);
+    });
+
+    it('returns currentLiquidationPrice when newMargin is invalid', () => {
+      expect(
+        estimateLiquidationPrice({
+          isLong: true,
+          currentMargin: 5000,
+          newMargin: 0,
+          positionSize: 0.5,
+          currentLiquidationPrice: 80000,
+          maxLeverage: 20,
+        }),
+      ).toBe(80000);
+    });
+
+    it('returns currentLiquidationPrice when positionSize is invalid', () => {
+      expect(
+        estimateLiquidationPrice({
+          isLong: true,
+          currentMargin: 5000,
+          newMargin: 6000,
+          positionSize: 0,
+          currentLiquidationPrice: 80000,
+          maxLeverage: 20,
+        }),
+      ).toBe(80000);
+    });
+
+    it('falls back to no maintenance factor when maxLeverage is invalid', () => {
+      // Without maintenance factor: move = -1000/0.5/1 = -2000
+      // new liq = 80000 - 2000 = 78000
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 6000,
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 0,
+      });
+
+      expect(result).toBe(78000);
+    });
+
+    it('clamps to 0 when margin addition would push liquidation price negative', () => {
+      // Adding massive margin to long position
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 500000, // Huge margin addition
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 20,
+      });
+
+      expect(result).toBe(0);
     });
   });
 });

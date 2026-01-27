@@ -147,11 +147,24 @@ jest.mock('@metamask/design-system-react-native', () => {
   }: React.PropsWithChildren<Record<string, unknown>>) =>
     React.createElement(RNText, props, children);
 
+  const Icon = ({ name, size, ...props }: { name: string; size: string }) =>
+    React.createElement(View, { testID: 'icon', ...props });
+
   return {
     Box,
     Text,
+    Icon,
     TextVariant: {
       BodySm: 'BodySm',
+      BodyMd: 'BodyMd',
+    },
+    IconName: {
+      ArrowDown: 'arrow-down',
+    },
+    IconSize: {
+      Sm: 'sm',
+      Md: 'md',
+      Lg: 'lg',
     },
   };
 });
@@ -271,52 +284,6 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-// Mock SelectComponent
-jest.mock('../../../SelectComponent', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-
-  return ({
-    testID,
-    onValueChange,
-    options,
-    selectedValue,
-    defaultValue,
-    disabled,
-  }: {
-    testID?: string;
-    onValueChange?: (value: string) => void;
-    options?: { key: string; value: string; label: string }[];
-    selectedValue?: string;
-    defaultValue?: string;
-    disabled?: boolean;
-  }) => {
-    const handlePress = () => {
-      if (!disabled && options && options.length > 0 && onValueChange) {
-        onValueChange(options[0].value);
-      }
-    };
-
-    // Find the label for the selected value
-    const selectedLabel =
-      options?.find((opt) => opt.value === selectedValue)?.label ||
-      selectedValue ||
-      defaultValue ||
-      'Select';
-
-    return React.createElement(
-      TouchableOpacity,
-      {
-        testID,
-        onPress: handlePress,
-        disabled,
-      },
-      React.createElement(Text, {}, selectedLabel),
-    );
-  };
-});
-
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -366,7 +333,12 @@ const createTestStore = (initialState = {}) =>
       card: (
         state = {
           onboarding: {
-            selectedCountry: 'US',
+            selectedCountry: {
+              key: 'US',
+              name: 'United States',
+              emoji: '🇺🇸',
+              areaCode: '1',
+            },
             onboardingId: 'test-id',
             contactVerificationId: 'contact-id',
             user: {
@@ -513,6 +485,7 @@ describe('PhysicalAddress Component', () => {
 
     // Mock useCardSDK
     mockUseCardSDK.mockReturnValue({
+      isReturningSession: false,
       sdk: null,
       isLoading: false,
       user: {
@@ -530,7 +503,12 @@ describe('PhysicalAddress Component', () => {
       selector({
         card: {
           onboarding: {
-            selectedCountry: 'US',
+            selectedCountry: {
+              key: 'US',
+              name: 'United States',
+              emoji: '🇺🇸',
+              areaCode: '1',
+            },
             onboardingId: 'test-id',
             user: {
               id: 'user-id',
@@ -591,16 +569,6 @@ describe('PhysicalAddress Component', () => {
       );
 
       expect(getByTestId('state-select')).toBeTruthy();
-    });
-
-    it('renders country field', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <PhysicalAddress />
-        </Provider>,
-      );
-
-      expect(getByTestId('country-select')).toBeTruthy();
     });
 
     it('renders continue button', () => {
@@ -694,6 +662,21 @@ describe('PhysicalAddress Component', () => {
     });
 
     it('enables continue button when all required fields are filled', async () => {
+      // Mock useCardSDK with user data that includes usState
+      mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
+        sdk: null,
+        isLoading: false,
+        user: {
+          id: 'user-id',
+          email: 'test@example.com',
+          usState: 'CA',
+        },
+        fetchUserData: jest.fn(),
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+      });
+
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -704,7 +687,6 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-      fireEvent.press(getByTestId('state-select'));
       // Check the electronic consent checkbox
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
@@ -718,6 +700,20 @@ describe('PhysicalAddress Component', () => {
     });
 
     it('requires state for US users', () => {
+      // User has no usState set
+      mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
+        sdk: null,
+        isLoading: false,
+        user: {
+          id: 'user-id',
+          email: 'test@example.com',
+        },
+        fetchUserData: jest.fn(),
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+      });
+
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -735,7 +731,7 @@ describe('PhysicalAddress Component', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to VALIDATING_KYC when registration is complete', async () => {
+    it('navigates to VERIFYING_REGISTRATION when registration is complete', async () => {
       const mockGetOnboardingConsentSetByOnboardingId = jest
         .fn()
         .mockResolvedValue(null);
@@ -772,6 +768,28 @@ describe('PhysicalAddress Component', () => {
         reset: jest.fn(),
       });
 
+      // Mock useCardSDK with user data that includes usState and SDK with getUserDetails
+      // The SDK is needed for verification polling after registration
+      const mockSetUser = jest.fn();
+      mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
+        sdk: {
+          getUserDetails: jest.fn().mockResolvedValue({
+            verificationState: 'VERIFIED',
+            userId: 'user-id',
+          }),
+        } as any,
+        isLoading: false,
+        user: {
+          id: 'user-id',
+          email: 'test@example.com',
+          usState: 'CA',
+        },
+        fetchUserData: jest.fn(),
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -781,7 +799,6 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-      fireEvent.press(getByTestId('state-select'));
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
@@ -813,10 +830,15 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
+            routes: [
+              {
+                name: Routes.CARD.SPENDING_LIMIT,
+                params: { flow: 'onboarding' },
+              },
+            ],
           });
         },
-        { timeout: 3000 },
+        { timeout: 5000 },
       );
     });
   });
@@ -859,6 +881,21 @@ describe('PhysicalAddress Component', () => {
         reset: jest.fn(),
       });
 
+      // Mock useCardSDK with user data that includes usState
+      mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
+        sdk: null,
+        isLoading: false,
+        user: {
+          id: 'user-id',
+          email: 'test@example.com',
+          usState: 'CA',
+        },
+        fetchUserData: jest.fn(),
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+      });
+
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -868,7 +905,6 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-      fireEvent.press(getByTestId('state-select'));
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
@@ -934,6 +970,21 @@ describe('PhysicalAddress Component', () => {
         reset: jest.fn(),
       });
 
+      // Mock useCardSDK with user data that includes usState
+      mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
+        sdk: null,
+        isLoading: false,
+        user: {
+          id: 'user-id',
+          email: 'test@example.com',
+          usState: 'CA',
+        },
+        fetchUserData: jest.fn(),
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+      });
+
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -943,7 +994,6 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-      fireEvent.press(getByTestId('state-select'));
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
@@ -1014,6 +1064,28 @@ describe('PhysicalAddress Component', () => {
         reset: jest.fn(),
       });
 
+      // Mock useCardSDK with user data that includes usState and SDK with getUserDetails
+      // The SDK is needed for verification polling after registration
+      const mockSetUser = jest.fn();
+      mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
+        sdk: {
+          getUserDetails: jest.fn().mockResolvedValue({
+            verificationState: 'VERIFIED',
+            userId: 'user-id',
+          }),
+        } as any,
+        isLoading: false,
+        user: {
+          id: 'user-id',
+          email: 'test@example.com',
+          usState: 'CA',
+        },
+        fetchUserData: jest.fn(),
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -1023,7 +1095,6 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-      fireEvent.press(getByTestId('state-select'));
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
@@ -1052,10 +1123,15 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
+            routes: [
+              {
+                name: Routes.CARD.SPENDING_LIMIT,
+                params: { flow: 'onboarding' },
+              },
+            ],
           });
         },
-        { timeout: 3000 },
+        { timeout: 5000 },
       );
     });
   });
@@ -1163,7 +1239,12 @@ describe('PhysicalAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
               onboardingId: 'test-id',
             },
           },
@@ -1185,7 +1266,12 @@ describe('PhysicalAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: 'CA',
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
               onboardingId: 'test-id',
             },
           },
@@ -1199,16 +1285,6 @@ describe('PhysicalAddress Component', () => {
       );
 
       expect(queryByTestId('state-select')).toBeFalsy();
-    });
-
-    it('shows country field for all users', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <PhysicalAddress />
-        </Provider>,
-      );
-
-      expect(getByTestId('country-select')).toBeTruthy();
     });
   });
 
@@ -1320,6 +1396,21 @@ describe('PhysicalAddress Component', () => {
     });
 
     it('disables continue button when checkbox is unchecked', () => {
+      // Mock useCardSDK with user data that includes usState
+      mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
+        sdk: null,
+        isLoading: false,
+        user: {
+          id: 'user-id',
+          email: 'test@example.com',
+          usState: 'CA',
+        },
+        fetchUserData: jest.fn(),
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+      });
+
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -1330,13 +1421,27 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-      fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('physical-address-continue-button');
       expect(button.props.disabled).toBe(true);
     });
 
     it('enables continue button when checkbox is checked and all fields filled', async () => {
+      // Mock useCardSDK with user data that includes usState
+      mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
+        sdk: null,
+        isLoading: false,
+        user: {
+          id: 'user-id',
+          email: 'test@example.com',
+          usState: 'CA',
+        },
+        fetchUserData: jest.fn(),
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+      });
+
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -1347,7 +1452,6 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-      fireEvent.press(getByTestId('state-select'));
 
       // Button should be disabled without checkbox
       const buttonBefore = getByTestId('physical-address-continue-button');

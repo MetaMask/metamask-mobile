@@ -5,18 +5,18 @@ import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 
 // Stable empty candle data reference to prevent re-renders
 const EMPTY_CANDLE_DATA: CandleData = {
-  coin: '',
+  symbol: '',
   interval: CandlePeriod.ONE_HOUR,
   candles: [],
 };
 
 export interface UsePerpsLiveCandlesOptions {
-  /** The coin symbol (e.g., "BTC", "ETH") */
-  coin: string;
+  /** The asset symbol (e.g., "BTC", "ETH") */
+  symbol: string;
   /** The candle interval (e.g., "1m", "5m", "15m") */
   interval: CandlePeriod;
   /** The duration for historical data (e.g., "1d", "7d", "1M") - currently informational only */
@@ -52,7 +52,7 @@ export interface UsePerpsLiveCandlesReturn {
  * Example usage:
  * ```
  * const { candleData, isLoading } = usePerpsLiveCandles({
- *   coin: 'BTC',
+ *   symbol: 'BTC',
  *   interval: CandlePeriod.ONE_HOUR,
  *   duration: TimeDuration.ONE_DAY,
  *   throttleMs: 1000
@@ -65,7 +65,7 @@ export interface UsePerpsLiveCandlesReturn {
 export function usePerpsLiveCandles(
   options: UsePerpsLiveCandlesOptions,
 ): UsePerpsLiveCandlesReturn {
-  const { coin, interval, duration, throttleMs = 1000 } = options;
+  const { symbol, interval, duration, throttleMs = 1000 } = options;
   const stream = usePerpsStream();
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,13 +74,13 @@ export function usePerpsLiveCandles(
   const hasReceivedFirstUpdate = useRef(false);
 
   useEffect(() => {
-    // Reset state immediately when coin or interval changes to prevent stale data
+    // Reset state immediately when symbol or interval changes to prevent stale data
     setCandleData(null);
     setIsLoading(true);
     setError(null);
     hasReceivedFirstUpdate.current = false;
 
-    if (!coin) {
+    if (!symbol) {
       setCandleData(EMPTY_CANDLE_DATA);
       setIsLoading(false);
       return;
@@ -88,7 +88,7 @@ export function usePerpsLiveCandles(
 
     try {
       const unsubscribe = stream.candles.subscribe({
-        coin,
+        symbol,
         interval,
         duration,
         callback: (newCandleData) => {
@@ -98,16 +98,16 @@ export function usePerpsLiveCandles(
           }
 
           // DEFENSIVE: Validate incoming data matches current subscription
-          // This prevents race conditions when switching coins where old subscription
+          // This prevents race conditions when switching symbols where old subscription
           // might deliver data after new subscription starts
           if (
-            newCandleData.coin !== coin ||
+            newCandleData.symbol !== symbol ||
             newCandleData.interval !== interval
           ) {
             DevLogger.log('usePerpsLiveCandles: REJECTED - Validation failed', {
-              reason: 'Coin or interval mismatch',
-              expectedCoin: coin,
-              receivedCoin: newCandleData.coin,
+              reason: 'Symbol or interval mismatch',
+              expectedSymbol: symbol,
+              receivedSymbol: newCandleData.symbol,
               expectedInterval: interval,
               receivedInterval: newCandleData.interval,
             });
@@ -129,14 +129,14 @@ export function usePerpsLiveCandles(
           // Log to Sentry: async subscription initialization failure
           Logger.error(errorInstance, {
             tags: {
-              feature: PERPS_CONSTANTS.FEATURE_NAME,
+              feature: PERPS_CONSTANTS.FeatureName,
               component: 'usePerpsLiveCandles',
             },
             context: {
               name: 'candle_subscription_async',
               data: {
                 operation: 'subscribe_async_error',
-                coin,
+                symbol,
                 interval,
               },
             },
@@ -156,14 +156,14 @@ export function usePerpsLiveCandles(
       // Log to Sentry: subscription setup failure prevents live updates
       Logger.error(ensureError(errorInstance), {
         tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
           component: 'usePerpsLiveCandles',
         },
         context: {
           name: 'candle_subscription',
           data: {
             operation: 'subscribe',
-            coin,
+            symbol,
             interval,
           },
         },
@@ -173,7 +173,7 @@ export function usePerpsLiveCandles(
       setIsLoading(false);
       return;
     }
-  }, [stream, coin, interval, duration, throttleMs]);
+  }, [stream, symbol, interval, duration, throttleMs]);
 
   const hasHistoricalData =
     candleData !== null && candleData.candles.length > 0;
@@ -183,28 +183,28 @@ export function usePerpsLiveCandles(
    * Used when user scrolls to the left edge of the chart
    */
   const fetchMoreHistory = async (): Promise<void> => {
-    if (!coin || isLoadingMore) {
+    if (!symbol || isLoadingMore) {
       return;
     }
 
     try {
       setIsLoadingMore(true);
       DevLogger.log('usePerpsLiveCandles: Fetching more historical candles', {
-        coin,
+        symbol,
         interval,
         duration,
       });
 
-      await stream.candles.fetchHistoricalCandles(coin, interval, duration);
+      await stream.candles.fetchHistoricalCandles(symbol, interval, duration);
 
       DevLogger.log(
         'usePerpsLiveCandles: Successfully fetched more historical candles',
-        { coin, interval, duration },
+        { symbol, interval, duration },
       );
     } catch (err) {
       const errorInstance = err instanceof Error ? err : new Error(String(err));
       DevLogger.log('usePerpsLiveCandles: Error fetching more history', {
-        coin,
+        symbol,
         interval,
         error: errorInstance.message,
       });

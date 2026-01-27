@@ -1,10 +1,10 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
-import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
-import { QuoteViewSelectorIDs,QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
-import { SwapsViewSelectorsIDs } from '../../e2e/selectors/swaps/SwapsView.selectors';
+import { PerpsWithdrawViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
+import { QuoteViewSelectorIDs,QuoteViewSelectorText } from '../../app/components/UI/Swaps/QuoteView.testIds';
+import { SwapsViewSelectorsIDs } from '../../app/components/UI/Swaps/SwapsView.testIds';
 import { splitAmountIntoDigits } from 'appwright/utils/Utils';
 
 class SwapScreen {
@@ -30,7 +30,7 @@ class SwapScreen {
   }
   get destinationTokenArea(){
     return AppwrightSelectors.getElementByID(this._device, PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA);
-    
+
   }
   get seeAllDropDown(){
     return AppwrightSelectors.getElementByText(this._device, "See all");
@@ -48,7 +48,7 @@ class SwapScreen {
 
     }
     else{
-      const element = await this.quoteDisplayed; // bridge swap view shows on 
+      const element = await this.quoteDisplayed; // bridge swap view shows on
       await appwrightExpect(element).toBeVisible({ timeout: 10000 });
       const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, QuoteViewSelectorText.FEE_DISCLAIMER);
       await appwrightExpect(mmFee).toBeVisible({ timeout: 10000 });
@@ -116,7 +116,7 @@ class SwapScreen {
   }
 
   async enterDestinationTokenAmount(amount) {
-    await AppwrightGestures.typeText(this.destTokenInput, amount);
+    await AppwrightGestures.typeText(await this.destTokenInput, amount);
   }
 
   async isVisible() {

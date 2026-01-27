@@ -106,7 +106,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
           ]
         }
       >
-        Hide All
+        Hide all
       </Text>
     </TouchableOpacity>
     <View
@@ -810,7 +810,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
           ]
         }
       >
-        Hide All
+        Hide all
       </Text>
     </TouchableOpacity>
     <View

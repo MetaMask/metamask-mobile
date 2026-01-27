@@ -5,6 +5,7 @@ import { usePerpsTrading } from './usePerpsTrading';
 import type { Position, TPSLTrackingData } from '../controllers/types';
 import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
+import { usePerpsStream } from '../providers/PerpsStreamManager';
 
 interface UseTPSLUpdateOptions {
   onSuccess?: () => void;
@@ -19,6 +20,7 @@ interface UseTPSLUpdateOptions {
 export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
   const { updatePositionTPSL } = usePerpsTrading();
   const [isUpdating, setIsUpdating] = useState(false);
+  const stream = usePerpsStream();
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
@@ -34,7 +36,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
       try {
         const result = await updatePositionTPSL({
-          coin: position.coin,
+          symbol: position.symbol,
           takeProfitPrice,
           stopLossPrice,
           trackingData,
@@ -42,6 +44,14 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
         if (result.success) {
           DevLogger.log('Position TP/SL updated successfully:', result);
+
+          // Apply optimistic update immediately for better UX
+          // This updates the UI before the WebSocket confirms the change
+          stream.positions.updatePositionTPSLOptimistic(
+            position.symbol,
+            takeProfitPrice,
+            stopLossPrice,
+          );
 
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLSuccess,
@@ -77,7 +87,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
             },
             extra: {
               positionContext: {
-                coin: position.coin,
+                symbol: position.symbol,
                 size: position.size,
                 entryPrice: position.entryPrice,
                 unrealizedPnl: position.unrealizedPnl,
@@ -112,6 +122,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       showToast,
       PerpsToastOptions.positionManagement.tpsl,
       options,
+      stream,
     ],
   );
 

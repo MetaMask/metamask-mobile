@@ -7,10 +7,13 @@ import { useRoute } from '@react-navigation/native';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
+import { strings } from '../../../../../../../locales/i18n';
 
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../hooks/earn/useCustomAmount');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
+jest.mock('../../../../../UI/Earn/hooks/useMusdConversionNavbar');
 
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
@@ -41,9 +44,11 @@ describe('MusdConversionInfo', () => {
   const mockUseTransactionPayAvailableTokens = jest.mocked(
     useTransactionPayAvailableTokens,
   );
+  const mockUseMusdConversionNavbar = jest.mocked(useMusdConversionNavbar);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMusdConversionNavbar.mockReturnValue(undefined);
     mockUseCustomAmount.mockReturnValue({
       shouldShowOutputAmountTag: false,
       outputAmount: null,
@@ -146,6 +151,27 @@ describe('MusdConversionInfo', () => {
     });
   });
 
+  describe('footerText', () => {
+    it('passes footerText to CustomAmountInfo', () => {
+      mockRoute.params = {
+        outputChainId: '0x1' as Hex,
+      };
+
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<MusdConversionInfo />, {
+        state: {},
+      });
+
+      expect(CustomAmountInfo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          footerText: strings('earn.musd_conversion.powered_by_relay'),
+        }),
+        expect.anything(),
+      );
+    });
+  });
+
   describe('MusdOverrideContent', () => {
     it('calls useTransactionPayAvailableTokens when rendered', () => {
       mockRoute.params = {
@@ -170,6 +196,18 @@ describe('MusdConversionInfo', () => {
       });
 
       expect(mockUseTransactionPayAvailableTokens).toHaveBeenCalled();
+    });
+  });
+
+  describe('useMusdConversionNavbar', () => {
+    it('calls useMusdConversionNavbar', () => {
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<MusdConversionInfo />, {
+        state: {},
+      });
+
+      expect(mockUseMusdConversionNavbar).toHaveBeenCalledWith();
     });
   });
 });

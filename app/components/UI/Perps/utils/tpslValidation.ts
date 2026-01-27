@@ -12,6 +12,13 @@
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
+// Re-export significant figures utilities from formatUtils for backwards compatibility
+// These utilities are now consolidated in formatUtils.ts to avoid duplication
+export {
+  countSignificantFigures,
+  hasExceededSignificantFigures,
+  roundToSignificantFigures,
+} from './formatUtils';
 
 interface ValidationParams {
   currentPrice: number;
@@ -321,7 +328,7 @@ export const calculatePriceForRoE = (
   if (calculatedPrice < 0.01) {
     precision = 8; // For prices less than $0.01, use 8 decimal places
   } else if (calculatedPrice < 1) {
-    precision = DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS; // For prices less than $1, use MAX_PRICE_DECIMALS decimal places
+    precision = DECIMAL_PRECISION_CONFIG.MaxPriceDecimals; // For prices less than $1, use MAX_PRICE_DECIMALS decimal places
   } else if (calculatedPrice < 100) {
     precision = 4; // For prices less than $100, use 4 decimal places
   }

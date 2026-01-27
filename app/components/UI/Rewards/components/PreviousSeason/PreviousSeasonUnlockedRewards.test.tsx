@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { Linking, Platform } from 'react-native';
+import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import PreviousSeasonUnlockedRewards from './PreviousSeasonUnlockedRewards';
 import {
@@ -12,17 +11,11 @@ import {
 import {
   selectUnlockedRewards,
   selectSeasonTiers,
-  selectSeasonShouldInstallNewVersion,
   selectUnlockedRewardLoading,
   selectUnlockedRewardError,
   selectCurrentTier,
 } from '../../../../../reducers/rewards/selectors';
 import { useUnlockedRewards } from '../../hooks/useUnlockedRewards';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  MM_APP_STORE_LINK,
-  MM_PLAY_STORE_LINK,
-} from '../../../../../constants/urls';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -30,6 +23,14 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+// Mock navigation
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 // Mock selectors
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
@@ -50,19 +51,24 @@ const mockUseUnlockedRewards = useUnlockedRewards as jest.MockedFunction<
   typeof useUnlockedRewards
 >;
 
-// Mock useMetrics hook
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
-  },
+// Mock useTheme
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: () => ({
+    themeAppearance: 'light',
+    colors: {
+      background: {
+        default: '#FFFFFF',
+      },
+      text: {
+        muted: '#999999',
+      },
+    },
+  }),
 }));
-
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
+  strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.unlocked_rewards.title': 'Unlocked Rewards',
       'rewards.unlocked_rewards_error.error_fetching_title':
@@ -70,21 +76,22 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.unlocked_rewards_error.error_fetching_description':
         'Unable to load rewards. Please try again.',
       'rewards.unlocked_rewards_error.retry_button': 'Retry',
-      'rewards.previous_season_summary.update_metamask_version':
-        'Update MetaMask to version {version}',
-      'rewards.previous_season_summary.update_metamask': 'Update MetaMask',
       'rewards.previous_season_summary.no_end_of_season_rewards':
         "You didn't earn rewards this season, but there's always next time.",
       'rewards.previous_season_summary.verifying_rewards':
         "We're making sure everything's correct before you claim your rewards.",
+      'rewards.end_of_season_rewards.success_description':
+        'Redeem claim success description',
+      'rewards.end_of_season_rewards.confirm_label_default': 'Redeem',
+      'rewards.end_of_season_rewards.arriving_soon': 'Arriving soon',
+      'rewards.end_of_season_rewards.check_back_soon':
+        'Check back soon to claim',
+      'rewards.metal_card_claim.description':
+        'Enter your email to claim your metal card.',
+      'rewards.metal_card_claim.contact_info':
+        'We will contact you with delivery details.',
     };
-    let result = translations[key] || key;
-    if (params) {
-      Object.keys(params).forEach((paramKey) => {
-        result = result.replace(`{${paramKey}}`, String(params[paramKey]));
-      });
-    }
-    return result;
+    return translations[key] || key;
   }),
 }));
 
@@ -119,14 +126,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   const TextComponent = ({
     children,
-    ...props
-  }: {
-    children?: React.ReactNode;
-    [key: string]: unknown;
-  }) => ReactActual.createElement(Text, props, children);
-
-  const TextButton = ({
-    children,
     onPress,
     ...props
   }: {
@@ -134,16 +133,25 @@ jest.mock('@metamask/design-system-react-native', () => {
     onPress?: () => void;
     [key: string]: unknown;
   }) =>
+    onPress
+      ? ReactActual.createElement(
+          TouchableOpacity,
+          { onPress, ...props },
+          ReactActual.createElement(Text, {}, children),
+        )
+      : ReactActual.createElement(Text, props, children);
+
+  const Icon = ({ name, ...props }: { name: string; [key: string]: unknown }) =>
     ReactActual.createElement(
-      TouchableOpacity,
-      { onPress, ...props },
-      ReactActual.createElement(Text, {}, children),
+      View,
+      { testID: `icon-${name}`, ...props },
+      ReactActual.createElement(Text, {}, `Icon-${name}`),
     );
 
   return {
     Box,
     Text: TextComponent,
-    TextButton,
+    Icon,
     BoxFlexDirection: {
       Row: 'row',
       Column: 'column',
@@ -159,18 +167,22 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: {
       HeadingMd: 'HeadingMd',
       BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
     },
     FontWeight: {
       Bold: 'bold',
       Medium: 'medium',
     },
     IconName: {
-      Warning: 'Warning',
+      Danger: 'Danger',
+      Question: 'Question',
     },
     IconSize: {
+      Sm: 'Sm',
       Md: 'Md',
     },
     IconColor: {
+      IconAlternative: 'IconAlternative',
       PrimaryAlternative: 'PrimaryAlternative',
     },
   };
@@ -200,19 +212,39 @@ jest.mock('../../../../../component-library/components/Skeleton', () => {
 // Mock RewardItem
 jest.mock('../RewardItem/RewardItem', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
+      reward,
       seasonReward,
       testID,
+      isLocked,
+      isEndOfSeasonReward,
+      isLast,
+      compact,
+      onPress,
+      endOfSeasonClaimedDescription,
+      claimCtaLabel,
     }: {
+      reward: RewardDto;
       seasonReward: SeasonRewardDto;
       testID?: string;
+      isLocked?: boolean;
+      isEndOfSeasonReward?: boolean;
+      isLast?: boolean;
+      compact?: boolean;
+      onPress?: (reward: RewardDto, sr: SeasonRewardDto) => void;
+      endOfSeasonClaimedDescription?: string;
+      claimCtaLabel?: string;
     }) =>
       ReactActual.createElement(
-        View,
-        { testID: testID || 'reward-item' },
+        TouchableOpacity,
+        {
+          testID: testID || `reward-item-${reward.id}`,
+          accessibilityLabel: `isLocked:${isLocked},isEndOfSeasonReward:${isEndOfSeasonReward},isLast:${isLast},compact:${compact},endOfSeasonClaimedDescription:${endOfSeasonClaimedDescription},claimCtaLabel:${claimCtaLabel}`,
+          onPress: () => onPress?.(reward, seasonReward),
+        },
         ReactActual.createElement(Text, {}, seasonReward.name),
       ),
   };
@@ -278,39 +310,8 @@ jest.mock(
   },
 );
 
-// Mock generateDeviceAnalyticsMetaData
-jest.mock('../../../../../util/metrics', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    device_type: 'mobile',
-    platform: 'ios',
-  })),
-}));
-
-// Mock Linking
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    Linking: {
-      ...RN.Linking,
-      openURL: jest.fn(() => Promise.resolve()),
-    },
-  };
-});
-
-const mockLinkingOpenURL = Linking.openURL as jest.MockedFunction<
-  typeof Linking.openURL
->;
-
 describe('PreviousSeasonUnlockedRewards', () => {
   const mockFetchUnlockedRewards = jest.fn();
-  const mockTrackEvent = jest.fn();
-  const mockCreateEventBuilder = jest.fn(() => ({
-    addProperties: jest.fn(() => ({
-      build: jest.fn(() => ({})),
-    })),
-  }));
 
   const mockSeasonReward1: SeasonRewardDto = {
     id: 'season-reward-1',
@@ -348,6 +349,54 @@ describe('PreviousSeasonUnlockedRewards', () => {
     isEndOfSeasonReward: false,
   };
 
+  const mockMetalCardSeasonReward: SeasonRewardDto = {
+    id: 'season-reward-metal-card',
+    name: 'Metal Card Reward',
+    shortDescription: 'Metal card description',
+    longDescription: 'Metal card long description',
+    shortUnlockedDescription: 'Metal card short unlocked',
+    longUnlockedDescription: 'Metal card long unlocked',
+    iconName: 'Card',
+    rewardType: SeasonRewardType.METAL_CARD,
+    isEndOfSeasonReward: true,
+  };
+
+  const mockNansenSeasonReward: SeasonRewardDto = {
+    id: 'season-reward-nansen',
+    name: 'Nansen Reward',
+    shortDescription: 'Nansen description',
+    longDescription: 'Nansen long description',
+    shortUnlockedDescription: 'Nansen short unlocked',
+    longUnlockedDescription: 'Nansen long unlocked',
+    iconName: 'Chart',
+    rewardType: SeasonRewardType.NANSEN,
+    isEndOfSeasonReward: true,
+  };
+
+  const mockLineaTokensSeasonReward: SeasonRewardDto = {
+    id: 'season-reward-linea-tokens',
+    name: 'Linea Tokens Reward',
+    shortDescription: 'Linea tokens description',
+    longDescription: 'Linea tokens long description',
+    shortUnlockedDescription: 'Linea tokens short unlocked',
+    longUnlockedDescription: 'Linea tokens long unlocked',
+    iconName: 'Token',
+    rewardType: SeasonRewardType.LINEA_TOKENS,
+    isEndOfSeasonReward: true,
+  };
+
+  const mockOthersideSeasonReward: SeasonRewardDto = {
+    id: 'season-reward-otherside',
+    name: 'Otherside Reward',
+    shortDescription: 'Otherside description',
+    longDescription: 'Otherside long description',
+    shortUnlockedDescription: 'Otherside short unlocked',
+    longUnlockedDescription: 'Otherside long unlocked',
+    iconName: 'World',
+    rewardType: SeasonRewardType.OTHERSIDE,
+    isEndOfSeasonReward: true,
+  };
+
   const mockUnlockedReward1: RewardDto = {
     id: 'reward-1',
     seasonRewardId: 'season-reward-1',
@@ -366,6 +415,52 @@ describe('PreviousSeasonUnlockedRewards', () => {
     claimStatus: RewardClaimStatus.UNCLAIMED,
   };
 
+  const mockMetalCardUnlockedReward: RewardDto = {
+    id: 'reward-metal-card',
+    seasonRewardId: 'season-reward-metal-card',
+    claimStatus: RewardClaimStatus.UNCLAIMED,
+  };
+
+  const mockNansenUnlockedRewardWithUrl: RewardDto = {
+    id: 'reward-nansen-with-url',
+    seasonRewardId: 'season-reward-nansen',
+    claimStatus: RewardClaimStatus.UNCLAIMED,
+    claim: {
+      id: 'claim-1',
+      rewardId: 'reward-nansen-with-url',
+      accountId: 'account-1',
+      data: {
+        url: 'https://nansen.ai/claim/abc123',
+      },
+    },
+  };
+
+  const mockNansenUnlockedRewardWithoutUrl: RewardDto = {
+    id: 'reward-nansen-without-url',
+    seasonRewardId: 'season-reward-nansen',
+    claimStatus: RewardClaimStatus.UNCLAIMED,
+  };
+
+  const mockLineaTokensUnlockedReward: RewardDto = {
+    id: 'reward-linea-tokens',
+    seasonRewardId: 'season-reward-linea-tokens',
+    claimStatus: RewardClaimStatus.UNCLAIMED,
+  };
+
+  const mockOthersideUnlockedRewardWithUrl: RewardDto = {
+    id: 'reward-otherside-with-url',
+    seasonRewardId: 'season-reward-otherside',
+    claimStatus: RewardClaimStatus.UNCLAIMED,
+    claim: {
+      id: 'claim-otherside',
+      rewardId: 'reward-otherside-with-url',
+      accountId: 'account-1',
+      data: {
+        url: 'https://otherside.xyz/claim/xyz789',
+      },
+    },
+  };
+
   const mockSeasonTiers = [
     {
       id: 'tier-1',
@@ -376,7 +471,15 @@ describe('PreviousSeasonUnlockedRewards', () => {
         darkModeUrl: 'https://example.com/dark.png',
       },
       levelNumber: 'Level 1',
-      rewards: [mockSeasonReward1, mockSeasonReward2, mockRegularSeasonReward],
+      rewards: [
+        mockSeasonReward1,
+        mockSeasonReward2,
+        mockRegularSeasonReward,
+        mockMetalCardSeasonReward,
+        mockNansenSeasonReward,
+        mockLineaTokensSeasonReward,
+        mockOthersideSeasonReward,
+      ],
     },
   ];
 
@@ -387,22 +490,14 @@ describe('PreviousSeasonUnlockedRewards', () => {
       fetchUnlockedRewards: mockFetchUnlockedRewards,
     });
 
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
-
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards) return [];
       if (selector === selectUnlockedRewardLoading) return false;
       if (selector === selectUnlockedRewardError) return false;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
-
-    mockLinkingOpenURL.mockResolvedValue(undefined);
   });
 
   it('renders error banner when there is an error and not loading and endOfSeasonRewards is null', () => {
@@ -412,7 +507,6 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return true;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
 
@@ -434,7 +528,6 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return true;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
 
@@ -453,7 +546,6 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return false;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
 
@@ -469,7 +561,6 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return false;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
 
@@ -486,7 +577,6 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return false;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
 
@@ -505,7 +595,6 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return false;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
 
@@ -518,168 +607,6 @@ describe('PreviousSeasonUnlockedRewards', () => {
     expect(queryByText('Regular Reward')).not.toBeOnTheScreen();
   });
 
-  it('renders update MetaMask button when no version specified', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
-      if (selector === selectUnlockedRewardLoading) return false;
-      if (selector === selectUnlockedRewardError) return false;
-      if (selector === selectSeasonTiers) return mockSeasonTiers;
-      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
-      return undefined;
-    });
-
-    const { getByText } = render(<PreviousSeasonUnlockedRewards />);
-
-    expect(getByText('Update MetaMask')).toBeOnTheScreen();
-  });
-
-  it('renders update MetaMask version button when version is specified', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
-      if (selector === selectUnlockedRewardLoading) return false;
-      if (selector === selectUnlockedRewardError) return false;
-      if (selector === selectSeasonTiers) return mockSeasonTiers;
-      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return '1.2.3';
-      return undefined;
-    });
-
-    const { getByText } = render(<PreviousSeasonUnlockedRewards />);
-
-    expect(getByText('Update MetaMask to version 1.2.3')).toBeOnTheScreen();
-  });
-
-  it('opens iOS app store when button is pressed on iOS', () => {
-    Platform.OS = 'ios';
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
-      if (selector === selectUnlockedRewardLoading) return false;
-      if (selector === selectUnlockedRewardError) return false;
-      if (selector === selectSeasonTiers) return mockSeasonTiers;
-      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
-      return undefined;
-    });
-
-    const { getByText } = render(<PreviousSeasonUnlockedRewards />);
-
-    const updateButton = getByText('Update MetaMask');
-    fireEvent.press(updateButton);
-
-    expect(mockLinkingOpenURL).toHaveBeenCalledWith(MM_APP_STORE_LINK);
-    expect(mockTrackEvent).toHaveBeenCalled();
-  });
-
-  it('opens Android play store when button is pressed on Android', () => {
-    Platform.OS = 'android';
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
-      if (selector === selectUnlockedRewardLoading) return false;
-      if (selector === selectUnlockedRewardError) return false;
-      if (selector === selectSeasonTiers) return mockSeasonTiers;
-      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
-      return undefined;
-    });
-
-    const { getByText } = render(<PreviousSeasonUnlockedRewards />);
-
-    const updateButton = getByText('Update MetaMask');
-    fireEvent.press(updateButton);
-
-    expect(mockLinkingOpenURL).toHaveBeenCalledWith(MM_PLAY_STORE_LINK);
-    expect(mockTrackEvent).toHaveBeenCalled();
-  });
-
-  it('tracks analytics event when app store button is pressed', () => {
-    Platform.OS = 'ios';
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
-      if (selector === selectUnlockedRewardLoading) return false;
-      if (selector === selectUnlockedRewardError) return false;
-      if (selector === selectSeasonTiers) return mockSeasonTiers;
-      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
-      return undefined;
-    });
-
-    const { getByText } = render(<PreviousSeasonUnlockedRewards />);
-
-    const updateButton = getByText('Update MetaMask');
-    fireEvent.press(updateButton);
-
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
-    );
-    expect(mockTrackEvent).toHaveBeenCalled();
-  });
-
-  it('handles Linking.openURL error gracefully', () => {
-    Platform.OS = 'ios';
-    const consoleWarnSpy = jest
-      .spyOn(console, 'warn')
-      .mockImplementation(() => {
-        // Do nothing
-      });
-
-    mockLinkingOpenURL.mockRejectedValue(new Error('Failed to open URL'));
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
-      if (selector === selectUnlockedRewardLoading) return false;
-      if (selector === selectUnlockedRewardError) return false;
-      if (selector === selectSeasonTiers) return mockSeasonTiers;
-      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
-      return undefined;
-    });
-
-    const { getByText } = render(<PreviousSeasonUnlockedRewards />);
-
-    const updateButton = getByText('Update MetaMask');
-    fireEvent.press(updateButton);
-
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          'Error opening MetaMask store:',
-          expect.any(Error),
-        );
-        consoleWarnSpy.mockRestore();
-        resolve();
-      }, 0);
-    });
-  });
-
-  it('returns empty array when unlockedRewards is undefined and currentTier has no pointsNeeded', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectUnlockedRewards) return undefined;
-      if (selector === selectUnlockedRewardLoading) return false;
-      if (selector === selectUnlockedRewardError) return false;
-      if (selector === selectSeasonTiers) return mockSeasonTiers;
-      if (selector === selectCurrentTier) return { pointsNeeded: undefined };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
-      return undefined;
-    });
-
-    const { getByTestId, getByText } = render(
-      <PreviousSeasonUnlockedRewards />,
-    );
-
-    expect(
-      getByTestId('rewards-season-ended-no-unlocked-rewards-image'),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        "You didn't earn rewards this season, but there's always next time.",
-      ),
-    ).toBeOnTheScreen();
-  });
-
   it('shows verifying rewards message when currentTier has pointsNeeded and no end of season rewards', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards) return [];
@@ -687,7 +614,6 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return false;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
 
@@ -705,14 +631,13 @@ describe('PreviousSeasonUnlockedRewards', () => {
     ).toBeOnTheScreen();
   });
 
-  it('returns null when unlockedRewards is undefined and currentTier has pointsNeeded', () => {
+  it('renders skeleton when unlockedRewards is undefined and currentTier has pointsNeeded', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards) return undefined;
       if (selector === selectUnlockedRewardLoading) return false;
       if (selector === selectUnlockedRewardError) return false;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
 
@@ -728,7 +653,6 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return true;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
 
@@ -747,12 +671,366 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return true;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
       return undefined;
     });
 
     const { queryByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     expect(queryByTestId('rewards-error-banner')).not.toBeOnTheScreen();
+  });
+
+  it('passes isLocked=true for GENERIC end of season rewards without URL', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-1');
+    // GENERIC rewards without URL and not requiring manual claim are locked
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:true');
+  });
+
+  it('passes isLocked=false for METAL_CARD end of season rewards', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockMetalCardUnlockedReward];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-metal-card');
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:false');
+  });
+
+  it('passes arriving_soon description for METAL_CARD rewards', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockMetalCardUnlockedReward];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-metal-card');
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'endOfSeasonClaimedDescription:Arriving soon',
+    );
+  });
+
+  it('passes undefined redeem props for non-METAL_CARD rewards', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-1');
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'endOfSeasonClaimedDescription:undefined',
+    );
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'claimCtaLabel:undefined',
+    );
+  });
+
+  it('passes isEndOfSeasonReward=true to RewardItem', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-1');
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'isEndOfSeasonReward:true',
+    );
+  });
+
+  it('passes compact=true to RewardItem', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-1');
+    expect(rewardItem.props.accessibilityLabel).toContain('compact:true');
+  });
+
+  it('passes isLast=true to last RewardItem in list', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockUnlockedReward1, mockUnlockedReward2];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const firstRewardItem = getByTestId('reward-item-reward-1');
+    const lastRewardItem = getByTestId('reward-item-reward-2');
+
+    expect(firstRewardItem.props.accessibilityLabel).toContain('isLast:false');
+    expect(lastRewardItem.props.accessibilityLabel).toContain('isLast:true');
+  });
+
+  it('navigates to end of season claim sheet when METAL_CARD reward is pressed', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockMetalCardUnlockedReward];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-metal-card');
+    rewardItem.props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
+      rewardId: mockMetalCardUnlockedReward.id,
+      seasonRewardId: 'season-reward-metal-card',
+      title: 'Metal Card Reward',
+      description: 'Enter your email to claim your metal card.',
+      contactInfo: 'We will contact you with delivery details.',
+      rewardType: SeasonRewardType.METAL_CARD,
+      showEmail: 'required',
+      showTelegram: 'optional',
+    });
+  });
+
+  it('does not pass onPress handler for non-METAL_CARD rewards', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-1');
+    rewardItem.props.onPress();
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('passes isLocked=true and undefined description for NANSEN reward without URL', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockNansenUnlockedRewardWithoutUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-nansen-without-url');
+    // NANSEN without URL is locked since there's no URL to claim and it's not a redeemable reward
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:true');
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'endOfSeasonClaimedDescription:undefined',
+    );
+  });
+
+  it('passes isLocked=false for NANSEN reward with URL', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockNansenUnlockedRewardWithUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-nansen-with-url');
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:false');
+  });
+
+  it('navigates to end of season claim sheet when NANSEN reward without URL is pressed', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockNansenUnlockedRewardWithoutUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-nansen-without-url');
+    rewardItem.props.onPress();
+
+    // NANSEN requires manual claim, so it navigates even without URL
+    expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
+      rewardId: mockNansenUnlockedRewardWithoutUrl.id,
+      seasonRewardId: 'season-reward-nansen',
+      title: 'Nansen Reward',
+      description: 'Nansen long unlocked',
+      url: undefined,
+      rewardType: SeasonRewardType.NANSEN,
+    });
+  });
+
+  it('navigates to end of season claim sheet when NANSEN reward with URL is pressed', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockNansenUnlockedRewardWithUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-nansen-with-url');
+    rewardItem.props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
+      rewardId: mockNansenUnlockedRewardWithUrl.id,
+      seasonRewardId: 'season-reward-nansen',
+      title: 'Nansen Reward',
+      description: 'Nansen long unlocked',
+      url: 'https://nansen.ai/claim/abc123',
+      rewardType: SeasonRewardType.NANSEN,
+    });
+  });
+
+  it('navigates to end of season claim sheet when LINEA_TOKENS reward is pressed', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockLineaTokensUnlockedReward];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-linea-tokens');
+    rewardItem.props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
+      rewardId: mockLineaTokensUnlockedReward.id,
+      seasonRewardId: 'season-reward-linea-tokens',
+      title: 'Linea Tokens Reward',
+      rewardType: SeasonRewardType.LINEA_TOKENS,
+      showAccount: true,
+    });
+  });
+
+  it('passes isLocked=false and arriving_soon description for LINEA_TOKENS reward', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockLineaTokensUnlockedReward];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-linea-tokens');
+    // LINEA_TOKENS requires manual claim, so isLocked is false
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:false');
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'endOfSeasonClaimedDescription:Arriving soon',
+    );
+  });
+
+  it('navigates to end of season claim sheet when OTHERSIDE reward with URL is pressed', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockOthersideUnlockedRewardWithUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-otherside-with-url');
+    rewardItem.props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
+      rewardId: mockOthersideUnlockedRewardWithUrl.id,
+      seasonRewardId: 'season-reward-otherside',
+      title: 'Otherside Reward',
+      description: 'Otherside long unlocked',
+      url: 'https://otherside.xyz/claim/xyz789',
+      rewardType: SeasonRewardType.OTHERSIDE,
+    });
+  });
+
+  it('passes isLocked=false for OTHERSIDE reward with URL', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockOthersideUnlockedRewardWithUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-otherside-with-url');
+    // OTHERSIDE requires manual claim, so isLocked is false
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:false');
   });
 });

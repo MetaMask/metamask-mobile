@@ -1,16 +1,16 @@
 import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { RegressionTrade } from '../../tags';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { PerpsHelpers } from './helpers/perps-helpers';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { PERPS_ARBITRUM_MOCKS } from '../../../tests/api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 import PerpsView from '../../pages/Perps/PerpsView';
-import { createLogger, LogLevel } from '../../framework/logger';
+import { createLogger, LogLevel } from '../../../tests/framework/logger';
 
 // E2E environment setup - mocks auto-configure via isE2E flag
 
@@ -20,7 +20,7 @@ const logger = createLogger({
 });
 
 describe(RegressionTrade('Perps Position'), () => {
-  it.skip('should open a long position with custom profit and close it', async () => {
+  it('opens a long position with custom profit and closes it', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -38,9 +38,11 @@ describe(RegressionTrade('Perps Position'), () => {
         // Navigate to actions
         await TabBarComponent.tapActions();
 
+        // This is needed due to disable animations on the next modal
+        await device.disableSynchronization();
         await WalletActionsBottomSheet.tapPerpsButton();
 
-        await PerpsMarketListView.tapFirstMarketRowItem();
+        await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.tapLongButton();
         await PerpsOrderView.tapTakeProfitButton();
         await PerpsView.tapTakeProfitPercentageButton(1);

@@ -5,7 +5,6 @@ import {
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import Icon from 'react-native-vector-icons/Feather';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
@@ -17,8 +16,11 @@ import Text, {
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
-import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
+import StockBadge from '../../shared/StockBadge/StockBadge';
+import { BridgeToken } from '../../Bridge/types';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 
 interface PriceProps {
   asset: TokenI;
@@ -42,6 +44,7 @@ const Price = ({
   timePeriod,
 }: PriceProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
+  const { isStockToken } = useRWAToken();
 
   const distributedPriceData = useMemo(() => {
     if (prices.length > 0) {
@@ -85,18 +88,36 @@ const Price = ({
 
   const { styles, theme } = useStyles(styleSheet, { priceDiff: diff });
   const ticker = asset.ticker || asset.symbol;
+
+  const stockTokenBadge = isStockToken(asset as BridgeToken) && (
+    <StockBadge style={styles.stockBadge} token={asset as BridgeToken} />
+  );
   return (
     <>
       <View style={styles.wrapper}>
         {asset.name ? (
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-          >
-            {asset.name} ({ticker})
-          </Text>
+          <View>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {asset.name}
+            </Text>
+            <View style={styles.assetWrapper}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
+              >
+                {ticker}
+              </Text>
+              {stockTokenBadge}
+            </View>
+          </View>
         ) : (
-          <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
+          <View style={styles.assetWrapper}>
+            <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
+            {stockTokenBadge}
+          </View>
         )}
         {!isNaN(price) && (
           <Text
@@ -121,7 +142,7 @@ const Price = ({
             )}
           </Text>
         )}
-        <Text>
+        <Text allowFontScaling={false}>
           {isLoading ? (
             <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder
@@ -136,40 +157,25 @@ const Price = ({
               </SkeletonPlaceholder>
             </View>
           ) : distributedPriceData.length > 0 ? (
-            <View style={styles.priceDiffContainer}>
+            <Text
+              style={styles.priceDiff}
+              variant={TextVariant.BodyMDMedium}
+              allowFontScaling={false}
+            >
+              {diff > 0 ? '+' : ''}
+              {addCurrencySymbol(diff, currentCurrency, true)} (
+              {diff > 0 ? '+' : ''}
+              {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
+              %){' '}
               <Text
-                style={styles.priceDiff}
+                testID="price-label"
+                color={TextColor.Alternative}
                 variant={TextVariant.BodyMDMedium}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.5}
+                allowFontScaling={false}
               >
-                {
-                  <Icon
-                    name={
-                      diff > 0
-                        ? 'trending-up'
-                        : diff < 0
-                          ? 'trending-down'
-                          : 'minus'
-                    }
-                    size={16}
-                    style={styles.priceDiffIcon}
-                  />
-                }{' '}
-                {addCurrencySymbol(diff, currentCurrency, true)} (
-                {diff > 0 ? '+' : ''}
-                {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
-                %){' '}
-                <Text
-                  testID="price-label"
-                  color={TextColor.Alternative}
-                  variant={TextVariant.BodyMDMedium}
-                >
-                  {date}
-                </Text>
+                {date}
               </Text>
-            </View>
+            </Text>
           ) : null}
         </Text>
       </View>

@@ -1868,6 +1868,49 @@ PODS:
     - ReactCommon/turbomodule/core
   - react-native-in-app-review (4.3.3):
     - React-Core
+  - react-native-keyboard-controller (1.20.3):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - react-native-keyboard-controller/common (= 1.20.3)
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-keyboard-controller/common (1.20.3):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-launch-arguments (4.0.1):
     - React
   - react-native-mmkv (3.2.0):
@@ -3003,6 +3046,7 @@ DEPENDENCIES:
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-gzip (from `../node_modules/react-native-gzip`)
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
+  - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
@@ -3271,6 +3315,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-gzip"
   react-native-in-app-review:
     :path: "../node_modules/react-native-in-app-review"
+  react-native-keyboard-controller:
+    :path: "../node_modules/react-native-keyboard-controller"
   react-native-launch-arguments:
     :path: "../node_modules/react-native-launch-arguments"
   react-native-mmkv:
@@ -3522,6 +3568,7 @@ SPEC CHECKSUMS:
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-gzip: 794e0e964a0d9e1dfd1773fee938adb4d4310e26
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
+  react-native-keyboard-controller: fde18b076785d47705f7db81214adaeafc51faeb
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: ef0ad6b44a71c90c660234cae828bfb3c0e43a26
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187

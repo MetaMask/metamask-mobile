@@ -18,15 +18,11 @@ import {
   KnownCaipNamespace,
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { debounce } from 'lodash';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks/index.ts';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar/index.ts';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/index.ts';
 import { IconName } from '../../../component-library/components/Icons/Icon/index.ts';
 import Cell, {
   CellVariant,
@@ -36,8 +32,6 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
-import Device from '../../../util/device/index.js';
-import { selectChainId } from '../../../selectors/networkController';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 
@@ -53,13 +47,17 @@ import {
 import styleSheet from './NetworkMultiSelectorList.styles';
 import {
   MAIN_CHAIN_IDS,
-  DEVICE_HEIGHT_MULTIPLIER,
   ADDITIONAL_NETWORK_SECTION_ID,
   ITEM_TYPE_ADDITIONAL_SECTION,
   ITEM_TYPE_NETWORK,
   SELECT_ALL_NETWORKS_SECTION_ID,
 } from './NetworkMultiSelectorList.constants';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/index.ts';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored/index.ts';
@@ -93,9 +91,17 @@ const NetworkMultiSelectList = ({
   const networkListRef = useRef<any>(null);
   const networksLengthRef = useRef<number>(0);
   const safeAreaInsets = useSafeAreaInsets();
-  const selectedChainId = useSelector(selectChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const selectedChainIdCaip = formatChainIdToCaip(selectedChainId);
+  const evmChainId = useSelector(selectEvmChainId);
+  const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
+  // Use the appropriate chain ID based on whether EVM is selected
+  // For EVM: convert hex chain ID to CAIP format (e.g., "0x1" -> "eip155:1")
+  // For non-EVM: use the already CAIP-formatted chain ID (e.g., "solana:mainnet")
+  // Fallback to EVM chain ID if non-EVM chain ID is undefined (prevents edit/delete
+  // options from incorrectly appearing on all networks)
+  const selectedChainIdCaip = isEvmSelected
+    ? formatChainIdToCaip(evmChainId)
+    : (nonEvmChainId ?? formatChainIdToCaip(evmChainId));
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
@@ -164,15 +170,6 @@ const NetworkMultiSelectList = ({
     isMultichainAccountsState2Enabled,
   ]);
 
-  const contentContainerStyle = useMemo(
-    () => ({
-      paddingBottom:
-        safeAreaInsets.bottom +
-        Device.getDeviceHeight() * DEVICE_HEIGHT_MULTIPLIER,
-    }),
-    [safeAreaInsets.bottom],
-  );
-
   const debouncedSelectNetwork = useMemo(
     () =>
       debounce(
@@ -236,7 +233,6 @@ const NetworkMultiSelectList = ({
       variant: AvatarVariant.Network as const,
       name: network.name,
       imageSource: network.imageSource as ImageSourcePropType,
-      size: AvatarSize.Md,
     }),
     [],
   );
@@ -364,7 +360,9 @@ const NetworkMultiSelectList = ({
       renderItem={renderNetworkItem}
       getItemType={getItemType}
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={contentContainerStyle}
+      contentContainerStyle={{
+        paddingBottom: safeAreaInsets.bottom,
+      }}
       removeClippedSubviews
       viewabilityConfig={{
         waitForInteraction: true,

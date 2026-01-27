@@ -500,7 +500,7 @@ describe('OrderDetails', () => {
 
     render(OrderDetails, [testOrder as FiatOrder]);
 
-    fireEvent.press(screen.getByText('Contact Support'));
+    fireEvent.press(screen.getByText('Contact support'));
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_EXTERNAL_LINK_CLICKED',
       {

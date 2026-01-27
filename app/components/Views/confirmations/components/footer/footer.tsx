@@ -3,7 +3,7 @@ import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useNavigation } from '@react-navigation/native';
 
-import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonsAlignment } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';

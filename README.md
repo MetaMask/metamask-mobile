@@ -55,7 +55,7 @@ Expo is the fastest way to start developing. With the Expo framework, developers
 
 #### Expo Environment Setup
 
-[Install node, yarn v3 and watchman.](./docs/readme/expo-environment.md)
+[Install node, yarn v4 and watchman.](./docs/readme/expo-environment.md)
 
 #### Clone the project
 

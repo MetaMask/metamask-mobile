@@ -15,11 +15,13 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsFillTag from '../PerpsFillTag';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { PerpsEventValues } from '../../constants/eventNames';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -30,7 +32,7 @@ interface PerpsRecentActivityListProps {
 const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   transactions,
   isLoading,
-  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -44,13 +46,10 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   const handleTransactionPress = useCallback(
     (transaction: PerpsTransaction) => {
-      // Navigate to appropriate transaction detail view
+      // Navigate to position transaction detail view for trades
       if (transaction.fill) {
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market: { symbol: transaction.asset, name: transaction.asset },
-          },
+        navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
+          transaction,
         });
       }
     },
@@ -96,13 +95,19 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
               />
             </View>
             <View style={styles.activityInfo}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-                style={styles.activityType}
-              >
-                {item.title}
-              </Text>
+              <View style={styles.activityTitleRow}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                  style={styles.activityType}
+                >
+                  {item.title}
+                </Text>
+                <PerpsFillTag
+                  transaction={item}
+                  screenName={PerpsEventValues.SCREEN_NAME.PERPS_HOME}
+                />
+              </View>
               {!!item.subtitle && (
                 <Text
                   variant={TextVariant.BodySM}

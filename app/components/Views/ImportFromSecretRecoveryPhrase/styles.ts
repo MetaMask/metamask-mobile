@@ -226,6 +226,20 @@ const createStyles = (colors: any) =>
         default: 16,
       }),
     },
+    animatedContainer: {
+      flex: 1,
+    },
+    keyboardStickyView: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
+    fixedBottomContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: colors.background.default,
+    },
   });
 
 export default createStyles;

@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class PerpsMarketListView {
@@ -21,13 +21,13 @@ class PerpsMarketListView {
     return AppwrightSelectors.getElementByID(this._device, 'perps-market-list-header');
   }
 
-  async isHeaderVisible() { 
+  async isHeaderVisible() {
     const header = await this.listHeader;
     await appwrightExpect(header).toBeVisible({ timeout: 10000 });
   }
 
   async tapBackButtonMarketList() {
-    await AppwrightGestures.tap(this.backButtonMarketList); // Use static tap method with retry logic
+    await AppwrightGestures.tap(await this.backButtonMarketList); // Use static tap method with retry logic
   }
 
   async selectMarket(symbol) {

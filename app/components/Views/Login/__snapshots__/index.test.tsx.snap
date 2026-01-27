@@ -9,295 +9,245 @@ exports[`Login renders matching snapshot 1`] = `
     }
   }
 >
-  <RCTScrollView
-    automaticallyAdjustContentInsets={false}
-    contentContainerStyle={
-      {
-        "flex": 1,
-      }
-    }
-    contentInset={
-      {
-        "bottom": 0,
-      }
-    }
-    enableAutomaticScroll={true}
-    enableOnAndroid={false}
-    enableResetScrollToCoords={false}
-    extraHeight={75}
-    extraScrollHeight={0}
-    getScrollResponder={[Function]}
-    handleOnScroll={[Function]}
-    keyboardDismissMode="interactive"
-    keyboardOpeningTime={250}
-    keyboardShouldPersistTaps="handled"
-    keyboardSpace={0}
-    onScroll={[Function]}
-    resetKeyboardSpace={[Function]}
-    resetScrollToCoords={
-      {
-        "x": 0,
-        "y": 0,
-      }
-    }
-    scrollEventThrottle={1}
-    scrollForExtraHeightOnAndroid={[Function]}
-    scrollIntoView={[Function]}
-    scrollToEnd={[Function]}
-    scrollToFocusedInput={[Function]}
-    scrollToPosition={[Function]}
-    showsVerticalScrollIndicator={true}
+  <View
     style={
       {
+        "alignItems": "center",
         "flex": 1,
+        "flexDirection": "column",
+        "justifyContent": "flex-start",
+        "paddingHorizontal": 24,
+        "paddingTop": 80,
+        "width": "100%",
       }
     }
-    update={[Function]}
-    viewIsInsideTabBar={false}
+    testID="login"
   >
-    <View>
+    <Image
+      resizeMethod="auto"
+      resizeMode="contain"
+      source={1}
+      style={
+        {
+          "alignSelf": "center",
+          "height": 80,
+          "marginBottom": 80,
+          "marginTop": 40,
+          "tintColor": "#121314",
+          "width": 160,
+        }
+      }
+    />
+    <View
+      style={
+        {
+          "flexDirection": "column",
+          "justifyContent": "flex-start",
+          "marginBottom": 8,
+          "marginTop": 80,
+          "rowGap": 8,
+          "width": "100%",
+        }
+      }
+    >
       <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "column",
-            "justifyContent": "flex-start",
-            "paddingHorizontal": 24,
-            "paddingTop": 80,
-            "width": "100%",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#b7bbc8",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "opacity": 1,
+            "paddingHorizontal": 16,
           }
         }
-        testID="login"
+        testID="textfield"
       >
-        <Image
-          resizeMethod="auto"
-          resizeMode="contain"
-          source={1}
-          style={
-            {
-              "alignSelf": "center",
-              "height": 80,
-              "marginBottom": 80,
-              "marginTop": 40,
-              "tintColor": "#121314",
-              "width": 160,
-            }
-          }
-        />
         <View
           style={
             {
-              "flexDirection": "column",
-              "justifyContent": "flex-start",
-              "marginBottom": 8,
-              "marginTop": 80,
-              "rowGap": 8,
-              "width": "100%",
+              "flex": 1,
             }
           }
         >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
+          <TextInput
+            autoCapitalize="none"
+            autoFocus={false}
+            editable={true}
+            keyboardAppearance="light"
             onBlur={[Function]}
-            onClick={[Function]}
+            onChangeText={[Function]}
             onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+            onSubmitEditing={[Function]}
+            placeholder="Enter password"
+            placeholderTextColor="#686e7d"
+            returnKeyType="done"
+            secureTextEntry={true}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#b7bbc8",
-                "borderRadius": 8,
+                "backgroundColor": "inherit",
+                "borderColor": "transparent",
                 "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
+                "color": "#121314",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "height": 46,
+                "letterSpacing": 0,
                 "opacity": 1,
-                "paddingHorizontal": 16,
+                "paddingVertical": 2,
+                "textAlignVertical": "center",
               }
             }
-            testID="textfield"
-          >
-            <View
-              style={
-                {
-                  "flex": 1,
-                }
-              }
-            >
-              <TextInput
-                autoCapitalize="none"
-                autoFocus={false}
-                editable={true}
-                keyboardAppearance="light"
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onFocus={[Function]}
-                onSubmitEditing={[Function]}
-                placeholder="Enter password"
-                placeholderTextColor="#686e7d"
-                returnKeyType="done"
-                secureTextEntry={true}
-                style={
-                  {
-                    "backgroundColor": "inherit",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                    "color": "#121314",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "height": 46,
-                    "letterSpacing": 0,
-                    "lineHeight": 20,
-                    "opacity": 1,
-                    "paddingVertical": 2,
-                    "textAlignVertical": "center",
-                  }
-                }
-                testID="login-password-input"
-                value=""
-              />
-            </View>
-            <View
-              style={
-                {
-                  "marginLeft": 8,
-                }
-              }
-              testID="textfield-endacccessory"
-            />
-          </View>
+            testID="login-password-input"
+            value=""
+          />
         </View>
         <View
           style={
             {
-              "alignItems": "flex-start",
-              "alignSelf": "flex-start",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "rowGap": 2,
+              "marginLeft": 8,
             }
           }
+          testID="textfield-endacccessory"
         />
-        <View
-          pointerEvents="box-none"
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "column",
-              "width": "100%",
-            }
-          }
-        >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={true}
-            loading={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "stretch",
-                "backgroundColor": "#121314",
-                "borderRadius": 12,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "marginTop": 16,
-                "opacity": 0.5,
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="log-in-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#ffffff",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Unlock
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 12,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "marginVertical": 0,
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="reset-wallet-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Forgot password?
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </View>
-  </RCTScrollView>
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "alignSelf": "flex-start",
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+          "rowGap": 2,
+        }
+      }
+    />
+    <View
+      pointerEvents="box-none"
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "column",
+          "width": "100%",
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={true}
+        loading={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginTop": 16,
+            "opacity": 0.5,
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="log-in-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Unlock
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "center",
+            "backgroundColor": "transparent",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginVertical": 0,
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="reset-wallet-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Forgot password?
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
   <View
     collapsable={false}
     style={
@@ -360,294 +310,244 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
     }
   }
 >
-  <RCTScrollView
-    automaticallyAdjustContentInsets={false}
-    contentContainerStyle={
-      {
-        "flex": 1,
-      }
-    }
-    contentInset={
-      {
-        "bottom": 0,
-      }
-    }
-    enableAutomaticScroll={true}
-    enableOnAndroid={false}
-    enableResetScrollToCoords={false}
-    extraHeight={75}
-    extraScrollHeight={0}
-    getScrollResponder={[Function]}
-    handleOnScroll={[Function]}
-    keyboardDismissMode="interactive"
-    keyboardOpeningTime={250}
-    keyboardShouldPersistTaps="handled"
-    keyboardSpace={0}
-    onScroll={[Function]}
-    resetKeyboardSpace={[Function]}
-    resetScrollToCoords={
-      {
-        "x": 0,
-        "y": 0,
-      }
-    }
-    scrollEventThrottle={1}
-    scrollForExtraHeightOnAndroid={[Function]}
-    scrollIntoView={[Function]}
-    scrollToEnd={[Function]}
-    scrollToFocusedInput={[Function]}
-    scrollToPosition={[Function]}
-    showsVerticalScrollIndicator={true}
+  <View
     style={
       {
+        "alignItems": "center",
         "flex": 1,
+        "flexDirection": "column",
+        "justifyContent": "flex-start",
+        "paddingHorizontal": 24,
+        "paddingTop": 80,
+        "width": "100%",
       }
     }
-    update={[Function]}
-    viewIsInsideTabBar={false}
+    testID="login"
   >
-    <View>
+    <Image
+      resizeMethod="auto"
+      resizeMode="contain"
+      source={1}
+      style={
+        {
+          "alignSelf": "center",
+          "height": 80,
+          "marginBottom": 80,
+          "marginTop": 40,
+          "tintColor": "#121314",
+          "width": 160,
+        }
+      }
+    />
+    <View
+      style={
+        {
+          "flexDirection": "column",
+          "justifyContent": "flex-start",
+          "marginBottom": 8,
+          "marginTop": 80,
+          "rowGap": 8,
+          "width": "100%",
+        }
+      }
+    >
       <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "column",
-            "justifyContent": "flex-start",
-            "paddingHorizontal": 24,
-            "paddingTop": 80,
-            "width": "100%",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#b7bbc8",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "opacity": 1,
+            "paddingHorizontal": 16,
           }
         }
-        testID="login"
+        testID="textfield"
       >
-        <Image
-          resizeMethod="auto"
-          resizeMode="contain"
-          source={1}
-          style={
-            {
-              "alignSelf": "center",
-              "height": 80,
-              "marginBottom": 80,
-              "marginTop": 40,
-              "tintColor": "#121314",
-              "width": 160,
-            }
-          }
-        />
         <View
           style={
             {
-              "flexDirection": "column",
-              "justifyContent": "flex-start",
-              "marginBottom": 8,
-              "marginTop": 80,
-              "rowGap": 8,
-              "width": "100%",
+              "flex": 1,
             }
           }
         >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
+          <TextInput
+            autoCapitalize="none"
+            autoFocus={false}
+            editable={true}
+            keyboardAppearance="light"
             onBlur={[Function]}
-            onClick={[Function]}
+            onChangeText={[Function]}
             onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+            onSubmitEditing={[Function]}
+            placeholder="Enter password"
+            placeholderTextColor="#686e7d"
+            returnKeyType="done"
+            secureTextEntry={true}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#b7bbc8",
-                "borderRadius": 8,
+                "backgroundColor": "inherit",
+                "borderColor": "transparent",
                 "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
+                "color": "#121314",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "height": 46,
+                "letterSpacing": 0,
                 "opacity": 1,
-                "paddingHorizontal": 16,
+                "paddingVertical": 2,
+                "textAlignVertical": "center",
               }
             }
-            testID="textfield"
-          >
-            <View
-              style={
-                {
-                  "flex": 1,
-                }
-              }
-            >
-              <TextInput
-                autoCapitalize="none"
-                autoFocus={false}
-                editable={true}
-                keyboardAppearance="light"
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onFocus={[Function]}
-                onSubmitEditing={[Function]}
-                placeholder="Enter password"
-                placeholderTextColor="#686e7d"
-                returnKeyType="done"
-                secureTextEntry={true}
-                style={
-                  {
-                    "backgroundColor": "inherit",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                    "color": "#121314",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "height": 46,
-                    "letterSpacing": 0,
-                    "lineHeight": 20,
-                    "opacity": 1,
-                    "paddingVertical": 2,
-                    "textAlignVertical": "center",
-                  }
-                }
-                testID="login-password-input"
-                value="password"
-              />
-            </View>
-            <View
-              style={
-                {
-                  "marginLeft": 8,
-                }
-              }
-              testID="textfield-endacccessory"
-            />
-          </View>
+            testID="login-password-input"
+            value="password"
+          />
         </View>
         <View
           style={
             {
-              "alignItems": "flex-start",
-              "alignSelf": "flex-start",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "rowGap": 2,
+              "marginLeft": 8,
             }
           }
+          testID="textfield-endacccessory"
         />
-        <View
-          pointerEvents="box-none"
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "column",
-              "width": "100%",
-            }
-          }
-        >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            loading={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "stretch",
-                "backgroundColor": "#121314",
-                "borderRadius": 12,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "marginTop": 16,
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="log-in-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#ffffff",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Unlock
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 12,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "marginVertical": 0,
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="reset-wallet-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Forgot password?
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </View>
-  </RCTScrollView>
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "alignSelf": "flex-start",
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+          "rowGap": 2,
+        }
+      }
+    />
+    <View
+      pointerEvents="box-none"
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "column",
+          "width": "100%",
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        loading={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginTop": 16,
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="log-in-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Unlock
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "center",
+            "backgroundColor": "transparent",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginVertical": 0,
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="reset-wallet-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Forgot password?
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
   <View
     collapsable={false}
     style={

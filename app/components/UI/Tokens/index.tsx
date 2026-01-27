@@ -1,7 +1,5 @@
 import React, {
-  useRef,
   useState,
-  LegacyRef,
   forwardRef,
   useCallback,
   useEffect,
@@ -10,7 +8,6 @@ import React, {
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { InteractionManager, View } from 'react-native';
-import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -18,9 +15,9 @@ import {
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
-import { TokenList } from './TokenList';
+import { TokenList } from './TokenList/TokenList';
 import { TokenI } from './types';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { strings } from '../../../../locales/i18n';
 import {
   refreshTokens,
@@ -28,15 +25,13 @@ import {
   removeNonEvmToken,
   goToAddEvmToken,
 } from './util';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
-import { TokenListControlBar } from './TokenListControlBar';
+import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
-import { ScamWarningModal } from './TokenList/ScamWarningModal';
-import TokenListSkeleton from './TokenList/TokenListSkeleton';
-import { selectSortedTokenKeys } from '../../../selectors/tokenList';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
+import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
@@ -46,6 +41,8 @@ import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagC
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
+import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
+import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -74,9 +71,10 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     );
     const currentChainId = useSelector(selectChainId);
 
-    const actionSheet = useRef<typeof ActionSheet>();
-    const tokenToRemoveRef = useRef<TokenI | undefined>();
     const [refreshing, setRefreshing] = useState(false);
+    const [removeTokenState, setRemoveTokenState] = useState<
+      { isVisible: true; token: TokenI } | { isVisible: false }
+    >({ isVisible: false });
     const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
     const selectInternalAccountByScope = useSelector(
@@ -95,24 +93,25 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
+    const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
     const [showScamWarningModal, setShowScamWarningModal] = useState(false);
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
-    // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
-    const isMultichainAccountsState2Enabled = useSelector(
-      selectMultichainAccountsState2Enabled,
-    );
-
     // Memoize selector computation for better performance
     const sortedTokenKeys = useSelector(
-      useMemo(
-        () =>
-          isMultichainAccountsState2Enabled
-            ? selectSortedAssetsBySelectedAccountGroup
-            : selectSortedTokenKeys,
-        [isMultichainAccountsState2Enabled],
-      ),
+      selectSortedAssetsBySelectedAccountGroup,
+    );
+
+    const [, forceUpdate] = useState(0);
+
+    // Force re-render when coming back into focus to ensure the component
+    // picks up any network changes that happened while navigated away
+    // (e.g., when returning from trending flow after network switch)
+    useFocusEffect(
+      useCallback(() => {
+        forceUpdate((n) => n + 1);
+      }, []),
     );
 
     // Mark as loaded once we have data (even if empty)
@@ -125,24 +124,21 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     }, [sortedTokenKeys, hasInitialLoad]);
 
     const showRemoveMenu = useCallback((token: TokenI) => {
-      if (actionSheet.current) {
-        tokenToRemoveRef.current = token;
-        actionSheet.current.show();
-      }
+      setRemoveTokenState({ isVisible: true, token });
     }, []);
 
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
-      try {
-        // @ts-expect-error - evmNetworkConfigurationsByChainId has the required properties (chainId, nativeCurrency) but TypeScript type is more specific
-        await refreshTokens({
+
+      // Use InteractionManager for better performance during refresh
+      InteractionManager.runAfterInteractions(() => {
+        refreshTokens({
           isSolanaSelected,
           evmNetworkConfigurationsByChainId,
           selectedAccountId,
         });
-      } finally {
         setRefreshing(false);
-      }
+      });
     }, [
       isSolanaSelected,
       evmNetworkConfigurationsByChainId,
@@ -154,7 +150,13 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     }));
 
     const removeToken = useCallback(async () => {
-      const tokenToRemove = tokenToRemoveRef.current;
+      if (!removeTokenState.isVisible) return;
+
+      const tokenToRemove = removeTokenState.token;
+
+      // Reset state immediately to prevent issues if onClose fires first
+      setRemoveTokenState({ isVisible: false });
+
       if (tokenToRemove?.chainId !== undefined) {
         if (isNonEvmChainId(tokenToRemove.chainId)) {
           await removeNonEvmToken({
@@ -174,6 +176,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         }
       }
     }, [
+      removeTokenState,
       currentChainId,
       trackEvent,
       createEventBuilder,
@@ -190,14 +193,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       });
     }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
-    const onActionSheetPress = useCallback(
-      (index: number) => {
-        if (index === 0) {
-          removeToken();
-        }
-      },
-      [removeToken],
-    );
+    const handleCloseRemoveTokenBottomSheet = useCallback(() => {
+      setRemoveTokenState({ isVisible: false });
+    }, []);
 
     const handleScamWarningModal = useCallback(() => {
       setShowScamWarningModal((prev) => !prev);
@@ -210,26 +208,20 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       return isHomepageRedesignV1Enabled ? 10 : undefined;
     }, [isFullView, isHomepageRedesignV1Enabled]);
 
-    return (
-      <Box
-        twClassName={
-          isHomepageRedesignV1Enabled && !isFullView
-            ? 'bg-default'
-            : 'flex-1 bg-default'
-        }
-        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-      >
-        <TokenListControlBar
-          goToAddToken={goToAddToken}
-          style={isFullView ? tw`px-4 pb-4` : undefined}
-        />
-        {!hasInitialLoad ? (
+    // Determine which content to render based on loading and token state
+    const tokenContent = useMemo(() => {
+      if (!hasInitialLoad) {
+        return (
           <Box twClassName={isFullView ? 'px-4' : undefined}>
             <TokenListSkeleton />
           </Box>
-        ) : sortedTokenKeys.length > 0 ? (
+        );
+      }
+
+      if (sortedTokenKeys.length > 0) {
+        return (
           <>
-            {isMusdConversionFlowEnabled && (
+            {isMusdConversionFlowEnabled && isGeoEligible && (
               <View style={isFullView ? tw`px-4` : undefined}>
                 <MusdConversionAssetListCta />
               </View>
@@ -244,24 +236,50 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               isFullView={isFullView}
             />
           </>
-        ) : (
-          <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-            <TokensEmptyState />
-          </Box>
-        )}
-        {showScamWarningModal && (
-          <ScamWarningModal
-            showScamWarningModal={showScamWarningModal}
-            setShowScamWarningModal={setShowScamWarningModal}
-          />
-        )}
-        <ActionSheet
-          ref={actionSheet as LegacyRef<typeof ActionSheet>}
-          title={strings('wallet.remove_token_title')}
-          options={[strings('wallet.remove'), strings('wallet.cancel')]}
-          cancelButtonIndex={1}
-          destructiveButtonIndex={0}
-          onPress={onActionSheetPress}
+        );
+      }
+
+      return (
+        <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+          <TokensEmptyState />
+        </Box>
+      );
+    }, [
+      hasInitialLoad,
+      isFullView,
+      sortedTokenKeys,
+      isMusdConversionFlowEnabled,
+      tw,
+      refreshing,
+      onRefresh,
+      showRemoveMenu,
+      handleScamWarningModal,
+      maxItems,
+      isGeoEligible,
+    ]);
+
+    return (
+      <Box
+        twClassName={
+          isHomepageRedesignV1Enabled && !isFullView
+            ? 'bg-default'
+            : 'flex-1 bg-default'
+        }
+        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+      >
+        <TokenListControlBar
+          goToAddToken={goToAddToken}
+          style={isFullView ? tw`px-4 pb-4` : undefined}
+        />
+        {tokenContent}
+        <ScamWarningModal
+          showScamWarningModal={showScamWarningModal}
+          setShowScamWarningModal={setShowScamWarningModal}
+        />
+        <RemoveTokenBottomSheet
+          isVisible={removeTokenState.isVisible}
+          onClose={handleCloseRemoveTokenBottomSheet}
+          onRemove={removeToken}
         />
       </Box>
     );

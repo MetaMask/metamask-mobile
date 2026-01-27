@@ -1,12 +1,12 @@
 import { Image } from 'expo-image';
-import React, { memo, useMemo } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTokenLogo } from '../../../../hooks/useTokenLogo';
 import {
-  getAssetIconUrl,
+  getAssetIconUrls,
   getPerpsDisplaySymbol,
 } from '../../utils/marketUtils';
 import {
@@ -23,11 +23,26 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   testID,
   recyclingKey,
 }) => {
-  // SVG URL - expo-image handles SVG rendering properly
-  const imageUri = useMemo(() => {
+  // Track if we should use fallback URL (after primary fails)
+  const [useFallbackUrl, setUseFallbackUrl] = useState(false);
+
+  // Get both primary (MetaMask) and fallback (HyperLiquid) URLs
+  const iconUrls = useMemo(() => {
     if (!symbol) return null;
-    return getAssetIconUrl(symbol, K_PREFIX_ASSETS);
+    return getAssetIconUrls(symbol, K_PREFIX_ASSETS);
   }, [symbol]);
+
+  // Reset fallback state when symbol changes
+  useEffect(() => {
+    setUseFallbackUrl(false);
+  }, [symbol]);
+
+  // Select current image URL based on fallback state
+  const imageUri = iconUrls
+    ? useFallbackUrl
+      ? iconUrls.fallback
+      : iconUrls.primary
+    : null;
 
   // Extract display symbol (e.g., "TSLA" from "xyz:TSLA")
   const fallbackText = useMemo(() => {
@@ -53,6 +68,22 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
     assetsRequiringDarkBg: ASSETS_REQUIRING_DARK_BG,
   });
 
+  // Handle image error with fallback logic:
+  // 1. If primary URL fails, try fallback URL
+  // 2. If fallback URL also fails, show text fallback
+  const handleImageError = useCallback(() => {
+    if (!useFallbackUrl && iconUrls?.fallback) {
+      // Primary failed - try fallback URL
+      setUseFallbackUrl(true);
+    } else {
+      // Both URLs failed - show text fallback
+      handleError();
+    }
+  }, [useFallbackUrl, iconUrls?.fallback, handleError]);
+
+  // Image key includes fallback state for proper re-render when switching URLs
+  const imageKey = `${recyclingKey || symbol}-${useFallbackUrl ? 'fallback' : 'primary'}`;
+
   // Show custom two-letter fallback if no symbol or error
   if (!symbol || !imageUri || hasError) {
     return (
@@ -72,15 +103,15 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
         </View>
       )}
       <Image
-        key={recyclingKey || symbol} // Use recyclingKey for proper recycling
+        key={imageKey}
         source={{ uri: imageUri }}
         style={imageStyle}
         onLoadStart={handleLoadStart}
         onLoadEnd={handleLoadEnd}
-        onError={handleError}
+        onError={handleImageError}
         contentFit="contain"
         cachePolicy="memory-disk" // Persistent caching across app sessions
-        recyclingKey={recyclingKey || symbol} // For FlashList optimization
+        recyclingKey={imageKey} // For FlashList optimization
         transition={0} // Disable transition for faster rendering
         priority="high" // High priority loading
         placeholder={null} // No placeholder for cleaner loading

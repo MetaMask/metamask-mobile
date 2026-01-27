@@ -2,23 +2,12 @@ import { DataLakeService } from './DataLakeService';
 import {
   createMockServiceContext,
   createMockEvmAccount,
+  createMockInfrastructure,
 } from '../../__mocks__/serviceMocks';
-import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils';
-import Logger from '../../../../../util/Logger';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { trace, endTrace } from '../../../../../util/trace';
-import { setMeasurement } from '@sentry/react-native';
 import type { ServiceContext } from './ServiceContext';
+import type { PerpsPlatformDependencies } from '../types';
 
-jest.mock('../../utils/accountUtils');
-jest.mock('../../../../../util/Logger');
-jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
-jest.mock('../../../../../util/trace');
-jest.mock('@sentry/react-native');
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
-jest.mock('react-native-performance', () => ({
-  now: jest.fn(() => 1000),
-}));
 
 global.fetch = jest.fn();
 global.setTimeout = jest.fn((fn: () => void) => {
@@ -28,25 +17,29 @@ global.setTimeout = jest.fn((fn: () => void) => {
 
 describe('DataLakeService', () => {
   let mockContext: ServiceContext;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
+  let dataLakeService: DataLakeService;
   const mockEvmAccount = createMockEvmAccount();
   const mockToken = 'mock-bearer-token';
 
   beforeEach(() => {
+    mockDeps = createMockInfrastructure();
+    dataLakeService = new DataLakeService(mockDeps);
+
     mockContext = createMockServiceContext({
       errorContext: { controller: 'DataLakeService', method: 'test' },
-      messenger: {
-        call: jest.fn().mockResolvedValue(mockToken),
-      } as never,
       tracingContext: {
         provider: 'hyperliquid',
         isTestnet: false,
       },
     });
 
-    (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
-      mockEvmAccount,
-    );
-    (trace as jest.Mock).mockReturnValue({ spanId: 'mock-span' });
+    (
+      mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+    ).mockReturnValue(mockEvmAccount);
+    (
+      mockDeps.controllers.authentication.getBearerToken as jest.Mock
+    ).mockResolvedValue(mockToken);
     jest.clearAllMocks();
   });
 
@@ -56,15 +49,15 @@ describe('DataLakeService', () => {
 
   describe('reportOrder', () => {
     it('skips reporting for testnet', async () => {
-      const result = await DataLakeService.reportOrder({
+      const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: true,
         context: mockContext,
       });
 
       expect(result).toEqual({ success: true, error: 'Skipped for testnet' });
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'DataLake API: Skipping for testnet',
         expect.objectContaining({ network: 'testnet' }),
       );
@@ -78,9 +71,9 @@ describe('DataLakeService', () => {
         text: jest.fn().mockResolvedValue(''),
       });
 
-      const result = await DataLakeService.reportOrder({
+      const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         sl_price: 45000,
         tp_price: 55000,
         isTestnet: false,
@@ -88,9 +81,9 @@ describe('DataLakeService', () => {
       });
 
       expect(result).toEqual({ success: true });
-      expect(mockContext.messenger?.call).toHaveBeenCalledWith(
-        'AuthenticationController:getBearerToken',
-      );
+      expect(
+        mockDeps.controllers.authentication.getBearerToken,
+      ).toHaveBeenCalled();
       expect(fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -101,19 +94,19 @@ describe('DataLakeService', () => {
           }),
           body: JSON.stringify({
             user_id: mockEvmAccount.address,
-            coin: 'BTC',
+            symbol: 'BTC',
             sl_price: 45000,
             tp_price: 55000,
           }),
         }),
       );
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Perps Data Lake Report',
-          tags: expect.objectContaining({ action: 'open', coin: 'BTC' }),
+          tags: expect.objectContaining({ action: 'open', symbol: 'BTC' }),
         }),
       );
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ success: true, retries: 0 }),
         }),
@@ -127,29 +120,28 @@ describe('DataLakeService', () => {
         text: jest.fn().mockResolvedValue(''),
       });
 
-      await DataLakeService.reportOrder({
+      await dataLakeService.reportOrder({
         action: 'close',
-        coin: 'ETH',
+        symbol: 'ETH',
         isTestnet: false,
         context: mockContext,
       });
 
-      expect(setMeasurement).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.setMeasurement).toHaveBeenCalledWith(
         'perps.api.data_lake_call',
         expect.any(Number),
         'millisecond',
-        expect.anything(),
       );
     });
 
     it('returns error when account is missing', async () => {
-      (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
-        null,
-      );
+      (
+        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+      ).mockReturnValue(null);
 
-      const result = await DataLakeService.reportOrder({
+      const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
@@ -159,25 +151,22 @@ describe('DataLakeService', () => {
         error: 'No account or token available',
       });
       expect(fetch).not.toHaveBeenCalled();
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'DataLake API: Missing requirements',
         expect.objectContaining({ hasAccount: false }),
       );
     });
 
     it('returns error when token is missing', async () => {
-      const contextWithoutToken = {
-        ...mockContext,
-        messenger: {
-          call: jest.fn().mockResolvedValue(null),
-        } as never,
-      };
+      (
+        mockDeps.controllers.authentication.getBearerToken as jest.Mock
+      ).mockResolvedValue(null);
 
-      const result = await DataLakeService.reportOrder({
+      const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
-        context: contextWithoutToken,
+        context: mockContext,
       });
 
       expect(result).toEqual({
@@ -185,26 +174,6 @@ describe('DataLakeService', () => {
         error: 'No account or token available',
       });
       expect(fetch).not.toHaveBeenCalled();
-    });
-
-    it('returns error when messenger is not available', async () => {
-      const contextWithoutMessenger = createMockServiceContext({
-        errorContext: { controller: 'DataLakeService', method: 'test' },
-        messenger: undefined,
-      });
-
-      const result = await DataLakeService.reportOrder({
-        action: 'open',
-        coin: 'BTC',
-        isTestnet: false,
-        context: contextWithoutMessenger,
-      });
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Messenger not available in ServiceContext',
-      });
-      expect(Logger.error).toHaveBeenCalled();
     });
 
     it('retries on network error with exponential backoff', async () => {
@@ -217,16 +186,16 @@ describe('DataLakeService', () => {
           text: jest.fn().mockResolvedValue(''),
         });
 
-      const result = await DataLakeService.reportOrder({
+      const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
 
       expect(result).toEqual({ success: false, error: 'Network error' });
-      expect(Logger.error).toHaveBeenCalled();
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'DataLake API: Scheduling retry',
         expect.objectContaining({ nextAttempt: 2 }),
       );
@@ -236,9 +205,9 @@ describe('DataLakeService', () => {
     it('retries up to 3 times then gives up', async () => {
       (fetch as jest.Mock).mockRejectedValue(new Error('Persistent error'));
 
-      const result = await DataLakeService.reportOrder({
+      const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         retryCount: 3,
@@ -248,14 +217,18 @@ describe('DataLakeService', () => {
         success: false,
         error: 'Persistent error',
       });
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
-          operation: 'finalFailure',
-          retryCount: 3,
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              operation: 'finalFailure',
+              retryCount: 3,
+            }),
+          }),
         }),
       );
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             success: false,
@@ -268,9 +241,9 @@ describe('DataLakeService', () => {
     it('calculates exponential backoff delays correctly', async () => {
       (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
-      await DataLakeService.reportOrder({
+      await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         retryCount: 0,
@@ -279,9 +252,9 @@ describe('DataLakeService', () => {
 
       jest.clearAllMocks();
 
-      await DataLakeService.reportOrder({
+      await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         retryCount: 1,
@@ -290,9 +263,9 @@ describe('DataLakeService', () => {
 
       jest.clearAllMocks();
 
-      await DataLakeService.reportOrder({
+      await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         retryCount: 2,
@@ -307,16 +280,16 @@ describe('DataLakeService', () => {
         text: jest.fn().mockResolvedValue('Internal Server Error'),
       });
 
-      const result = await DataLakeService.reportOrder({
+      const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('DataLake API error: 500');
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
 
     it('handles API 4xx error responses', async () => {
@@ -326,9 +299,9 @@ describe('DataLakeService', () => {
         text: jest.fn().mockResolvedValue('Bad Request'),
       });
 
-      const result = await DataLakeService.reportOrder({
+      const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'INVALID',
+        symbol: 'INVALID',
         isTestnet: false,
         context: mockContext,
       });
@@ -340,14 +313,14 @@ describe('DataLakeService', () => {
     it('logs all retry attempts correctly', async () => {
       (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
-      await DataLakeService.reportOrder({
+      await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
 
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'DataLake API: Starting order report',
         expect.objectContaining({ attempt: 1, maxAttempts: 4 }),
       );
@@ -360,15 +333,15 @@ describe('DataLakeService', () => {
         text: jest.fn().mockResolvedValue(''),
       });
 
-      await DataLakeService.reportOrder({
+      await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         _traceId: 'custom-trace-id',
       });
 
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'custom-trace-id' }),
       );
     });
@@ -380,9 +353,9 @@ describe('DataLakeService', () => {
         text: jest.fn().mockResolvedValue(''),
       });
 
-      await DataLakeService.reportOrder({
+      await dataLakeService.reportOrder({
         action: 'close',
-        coin: 'BTC',
+        symbol: 'BTC',
         sl_price: 45000,
         tp_price: 55000,
         isTestnet: false,
@@ -394,7 +367,7 @@ describe('DataLakeService', () => {
         expect.objectContaining({
           body: JSON.stringify({
             user_id: mockEvmAccount.address,
-            coin: 'BTC',
+            symbol: 'BTC',
             sl_price: 45000,
             tp_price: 55000,
           }),
@@ -409,9 +382,9 @@ describe('DataLakeService', () => {
         text: jest.fn().mockResolvedValue(''),
       });
 
-      await DataLakeService.reportOrder({
+      await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'ETH',
+        symbol: 'ETH',
         isTestnet: false,
         context: mockContext,
       });
@@ -421,7 +394,7 @@ describe('DataLakeService', () => {
         expect.objectContaining({
           body: JSON.stringify({
             user_id: mockEvmAccount.address,
-            coin: 'ETH',
+            symbol: 'ETH',
             sl_price: undefined,
             tp_price: undefined,
           }),
@@ -436,15 +409,15 @@ describe('DataLakeService', () => {
         text: jest.fn().mockResolvedValue('{"orderId": "123"}'),
       });
 
-      const result = await DataLakeService.reportOrder({
+      const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
 
       expect(result).toEqual({ success: true });
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'DataLake API: Order reported successfully',
         expect.objectContaining({ responseBody: '{"orderId": "123"}' }),
       );
@@ -457,15 +430,15 @@ describe('DataLakeService', () => {
         text: jest.fn().mockResolvedValue(''),
       });
 
-      const result = await DataLakeService.reportOrder({
+      const result = await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
       });
 
       expect(result).toEqual({ success: true });
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'DataLake API: Order reported successfully',
         expect.objectContaining({ responseBody: 'empty' }),
       );
@@ -478,15 +451,15 @@ describe('DataLakeService', () => {
         text: jest.fn().mockResolvedValue(''),
       });
 
-      await DataLakeService.reportOrder({
+      await dataLakeService.reportOrder({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         isTestnet: false,
         context: mockContext,
         retryCount: 2,
       });
 
-      expect(trace).not.toHaveBeenCalled();
+      expect(mockDeps.tracer.trace).not.toHaveBeenCalled();
     });
   });
 });

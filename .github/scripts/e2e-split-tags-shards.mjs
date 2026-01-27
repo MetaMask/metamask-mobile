@@ -1,15 +1,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { extractTestResults } from './e2e-extract-test-results.mjs';
 
 // 1) Find all specs files that include the given E2E tags
 // 2) Compute sharding split (evenly across runners)
-// 3) Flaky test detector mechanism in PRs (test retries)
-// 4) Log and run the selected specs for the given shard split
+// 3) On re-runs, skip passed tests and only run failed/not-executed tests
+// 4) Flaky test detector mechanism in PRs (test retries)
+// 5) Log and run the selected specs for the given shard split
 
 const env = {
   TEST_SUITE_TAG: process.env.TEST_SUITE_TAG,
-  BASE_DIR: process.env.BASE_DIR || './e2e/specs',
+  // Starting at the root drastically affects the performance of the script. 
+  // This will be reverted as soon as all specs are migrated to the new folder 
+  // structure.
+  BASE_DIR: process.env.BASE_DIR || './',
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE || 'main',
   PLATFORM: process.env.PLATFORM || 'ios',
   SPLIT_NUMBER: Number(process.env.SPLIT_NUMBER || '1'),
@@ -18,6 +23,8 @@ const env = {
   REPOSITORY: process.env.REPOSITORY || 'MetaMask/metamask-mobile',
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
   CHANGED_FILES: process.env.CHANGED_FILES || '',
+  RUN_ATTEMPT: Number(process.env.RUN_ATTEMPT || '1'),
+  PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
 };
 // Example of format of CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs
 
@@ -327,6 +334,7 @@ function applyFlakinessDetection(splitFiles) {
 async function main() {
 
   console.log("🚀 Starting E2E tests...");
+  console.log(`GitHub Actions: attempt ${env.RUN_ATTEMPT}`);
 
   // 1) Find all specs files that include the given E2E tags
   console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
@@ -344,15 +352,59 @@ async function main() {
     process.exit(0);
   }
 
-  // 3) Flaky test detector mechanism in PRs (test retries)
-  //    - Only duplicates changed files that are in this shard's split
-  //    - Creates base + retry files for flakiness detection
-  const shouldSkipFlakinessGate = await shouldSkipFlakinessDetection();
-  if (!shouldSkipFlakinessGate) {
-    runFiles = applyFlakinessDetection(splitFiles);
+  // 3) On re-runs, skip passed tests and only run failed/not-executed tests
+  //    This avoids running all tests over and over again on re-runs
+  if (env.RUN_ATTEMPT > 1 && env.PREVIOUS_RESULTS_PATH) {
+    console.log(`\n🔄 Re-run detected (attempt ${env.RUN_ATTEMPT}), checking for failed tests to re-run...`);
+
+    const { passed, failed, executed } = await extractTestResults(env.PREVIOUS_RESULTS_PATH);
+
+    // If no tests were executed in previous run, something is wrong - run all tests
+    if (executed.length === 0) {
+      console.log('⚠️  No test results found from previous run, running all tests in chunk.');
+    } else {
+      // Re-run tests that failed OR were never executed in previous run
+      // Only skip tests that explicitly passed - this ensures:
+      // 1. Failed tests get re-run
+      // 2. Tests that never executed (due to crash/cancel) also get run
+      // 3. Only confirmed passing tests are skipped
+      const passedSet = new Set(passed.map(normalizePathForCompare));
+      const testsToRerun = splitFiles.filter(
+        (testPath) => !passedSet.has(normalizePathForCompare(testPath))
+      );
+
+      const failedInChunk = testsToRerun.filter((t) =>
+        failed.map(normalizePathForCompare).includes(normalizePathForCompare(t))
+      ).length;
+      const notExecutedInChunk = testsToRerun.length - failedInChunk;
+
+      console.log(`Previous run results: ${passed.length} passed, ${failed.length} failed`);
+      console.log(`This chunk: ${failedInChunk} failed, ${notExecutedInChunk} not executed`);
+
+      if (testsToRerun.length > 0) {
+        console.log(`\n🔁 Re-running ${testsToRerun.length} tests (${failedInChunk} failed, ${notExecutedInChunk} not executed):`);
+        testsToRerun.forEach((t) => console.log(`  - ${t}`));
+        runFiles = testsToRerun;
+      } else {
+        // No tests to re-run - all tests in this chunk passed
+        console.log('✅ All tests in this chunk passed, skipping.');
+        process.exit(0);
+      }
+    }
   }
 
-  // 4) Log and run the selected specs for the given shard split
+  // 4) Flaky test detector mechanism in PRs (test retries)
+  //    - Only duplicates changed files that are in this shard's split
+  //    - Creates base + retry files for flakiness detection
+  //    - Skip flakiness detection on re-runs since we're already re-running failed tests
+  if (env.RUN_ATTEMPT === 1) {
+    const shouldSkipFlakinessGate = await shouldSkipFlakinessDetection();
+    if (!shouldSkipFlakinessGate) {
+      runFiles = applyFlakinessDetection(runFiles);
+    }
+  }
+
+  // 5) Log and run the selected specs for the given shard split
   console.log(`\n🧪 Running ${runFiles.length} spec files for this given shard split (${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS}):`);
   for (const f of runFiles) {
     console.log(`  - ${f}`);

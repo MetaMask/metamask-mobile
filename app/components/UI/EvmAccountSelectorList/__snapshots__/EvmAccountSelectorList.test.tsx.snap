@@ -275,7 +275,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
               <View
                 style={
                   {
-                    "paddingRight": 20,
+                    "paddingRight": 8,
                   }
                 }
               >
@@ -524,7 +524,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
               <View
                 style={
                   {
-                    "paddingRight": 20,
+                    "paddingRight": 8,
                   }
                 }
               >
@@ -809,7 +809,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
               <View
                 style={
                   {
-                    "paddingRight": 20,
+                    "paddingRight": 8,
                   }
                 }
               >
@@ -1020,7 +1020,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
               <View
                 style={
                   {
-                    "paddingRight": 20,
+                    "paddingRight": 8,
                   }
                 }
               >
@@ -1343,7 +1343,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
               <View
                 style={
                   {
-                    "paddingRight": 20,
+                    "paddingRight": 8,
                   }
                 }
               >
@@ -1592,7 +1592,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
               <View
                 style={
                   {
-                    "paddingRight": 20,
+                    "paddingRight": 8,
                   }
                 }
               >
@@ -1915,7 +1915,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
               <View
                 style={
                   {
-                    "paddingRight": 20,
+                    "paddingRight": 8,
                   }
                 }
               >
@@ -2164,7 +2164,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
               <View
                 style={
                   {
-                    "paddingRight": 20,
+                    "paddingRight": 8,
                   }
                 }
               >

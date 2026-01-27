@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { cloneDeep } from 'lodash';
 import Engine from '../../core/Engine';
@@ -22,6 +22,7 @@ import {
 export const useNftDetection = () => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -43,62 +44,84 @@ export const useNftDetection = () => {
     }
   }, []);
 
-  const detectNfts = useCallback(async () => {
-    if (!selectedAddress) return;
+  const detectNfts = useCallback(
+    async (firstPageOnly = true) => {
+      if (!selectedAddress) return;
 
-    const { NftDetectionController, NftController, PreferencesController } =
-      Engine.context;
+      const { NftDetectionController, NftController, PreferencesController } =
+        Engine.context;
 
-    // Read fresh state from the controller to avoid stale closure values
-    const isNftDetectionCurrentlyEnabled =
-      PreferencesController.state.useNftDetection;
+      // Read fresh state from the controller to avoid stale closure values
+      const isNftDetectionCurrentlyEnabled =
+        PreferencesController.state.useNftDetection;
 
-    if (!isNftDetectionCurrentlyEnabled) return;
+      if (!isNftDetectionCurrentlyEnabled) return;
 
-    const formattedSelectedAddress = selectedAddress.toLowerCase();
+      // Abort any in-progress detection
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
 
-    const previousNfts = cloneDeep(
-      NftController.state.allNfts[formattedSelectedAddress],
-    );
+      // Create new AbortController for this detection
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
 
-    try {
-      trace({ name: TraceName.DetectNfts });
-      dispatch(showNftFetchingLoadingIndicator());
+      const formattedSelectedAddress = selectedAddress.toLowerCase();
 
-      await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
-    } finally {
-      endTrace({ name: TraceName.DetectNfts });
-      dispatch(hideNftFetchingLoadingIndicator());
-    }
-
-    const newNfts = cloneDeep(
-      NftController.state.allNfts[formattedSelectedAddress],
-    );
-
-    const eventParams = prepareNftDetectionEvents(
-      previousNfts,
-      newNfts,
-      getNftDetectionAnalyticsParams,
-    );
-
-    eventParams.forEach((params) => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
-          .addProperties({
-            chain_id: params.chain_id,
-            source: params.source,
-          })
-          .build(),
+      const previousNfts = cloneDeep(
+        NftController.state.allNfts[formattedSelectedAddress],
       );
-    });
-  }, [
-    selectedAddress,
-    chainIdsToDetectNftsFor,
-    dispatch,
-    trackEvent,
-    createEventBuilder,
-    getNftDetectionAnalyticsParams,
-  ]);
 
-  return { detectNfts, chainIdsToDetectNftsFor };
+      try {
+        trace({ name: TraceName.DetectNfts });
+        dispatch(showNftFetchingLoadingIndicator());
+
+        await NftDetectionController.detectNfts(chainIdsToDetectNftsFor, {
+          firstPageOnly,
+          signal: abortController.signal,
+        });
+      } finally {
+        endTrace({ name: TraceName.DetectNfts });
+        dispatch(hideNftFetchingLoadingIndicator());
+      }
+
+      const newNfts = cloneDeep(
+        NftController.state.allNfts[formattedSelectedAddress],
+      );
+
+      const eventParams = prepareNftDetectionEvents(
+        previousNfts,
+        newNfts,
+        getNftDetectionAnalyticsParams,
+      );
+
+      eventParams.forEach((params) => {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+            .addProperties({
+              chain_id: params.chain_id,
+              source: params.source,
+            })
+            .build(),
+        );
+      });
+    },
+    [
+      selectedAddress,
+      chainIdsToDetectNftsFor,
+      dispatch,
+      trackEvent,
+      createEventBuilder,
+      getNftDetectionAnalyticsParams,
+    ],
+  );
+
+  const abortDetection = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
+  return { detectNfts, abortDetection, chainIdsToDetectNftsFor };
 };

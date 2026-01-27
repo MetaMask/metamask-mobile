@@ -1,7 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useRef } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TouchableOpacity, View } from 'react-native';
+import {
+  Text,
+  TextVariant,
+  Icon,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
@@ -9,11 +14,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { strings } from '../../../../locales/i18n';
-import Icon, {
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 import { selectEvmChainId } from '../../../selectors/networkController';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './AssetOptions.styles';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import Logger from '../../../util/Logger';
@@ -31,6 +32,10 @@ import { removeNonEvmToken } from '../../UI/Tokens/util';
 import { toChecksumAddress, areAddressesEqual } from '../../../util/address';
 import { selectAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -90,10 +95,9 @@ const AssetOptions = (props: Props) => {
     chainId: networkId,
     asset,
   } = props.route.params;
-  const { styles } = useStyles(styleSheet, {});
-  const safeAreaInsets = useSafeAreaInsets();
+  const { styles } = useStyles(styleSheet);
   const navigation = useNavigation();
-  const modalRef = useRef<ReusableModalRef>(null);
+  const modalRef = useRef<BottomSheetRef>(null);
   const tokenList = useSelector(selectTokenList);
   const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -129,7 +133,7 @@ const AssetOptions = (props: Props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
-    modalRef.current?.dismissModal(() => {
+    modalRef.current?.onCloseBottomSheet(() => {
       (async () => {
         if (await InAppBrowser.isAvailable()) {
           await InAppBrowser.open(url);
@@ -168,7 +172,7 @@ const AssetOptions = (props: Props) => {
   };
 
   const openTokenDetails = () => {
-    modalRef.current?.dismissModal(() => {
+    modalRef.current?.onCloseBottomSheet(() => {
       // Extract the actual token address from CAIP format only for non-EVM chains
       const tokenAddress = isNonEvmChainId(networkId)
         ? extractTokenAddressFromCaip(address)
@@ -317,8 +321,8 @@ const AssetOptions = (props: Props) => {
           return (
             <View key={label}>
               <TouchableOpacity style={styles.optionButton} onPress={onPress}>
-                <Icon name={icon} style={styles.icon} />
-                <Text style={styles.optionLabel}>{label}</Text>
+                <Icon name={icon} />
+                <Text>{label}</Text>
               </TouchableOpacity>
             </View>
           );
@@ -328,12 +332,14 @@ const AssetOptions = (props: Props) => {
   };
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen}>
-      <View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
-        <View style={styles.notch} />
-        {renderOptions()}
-      </View>
-    </ReusableModal>
+    <BottomSheet ref={modalRef}>
+      <BottomSheetHeader onClose={() => modalRef.current?.onCloseBottomSheet()}>
+        <Text variant={TextVariant.HeadingMd}>
+          {strings('asset_details.options.title')}
+        </Text>
+      </BottomSheetHeader>
+      <View>{renderOptions()}</View>
+    </BottomSheet>
   );
 };
 

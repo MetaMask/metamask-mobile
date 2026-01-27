@@ -2,17 +2,23 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import FundActionMenu from '../../pages/UI/FundActionMenu';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { CustomNetworks } from '../../resources/networks.e2e';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { CustomNetworks } from '../../../tests/resources/networks.e2e';
 import { SmokeTrade } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import QuotesView from '../../pages/Ramps/QuotesView';
-import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
-import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import {
+  EventPayload,
+  getEventsPayloads,
+} from '../../../tests/helpers/analytics/helpers';
+import SoftAssert from '../../../tests/framework/SoftAssert';
+import {
+  RampsRegions,
+  RampsRegionsEnum,
+} from '../../../tests/framework/Constants';
 import TestHelpers from '../../helpers';
 
 describe(SmokeTrade('Off-Ramp'), () => {

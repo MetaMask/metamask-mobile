@@ -1,8 +1,8 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import { SuccessImportAccountIDs } from '../../selectors/ImportAccount/SuccessImportAccount.selectors';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import { SuccessImportAccountIDs } from '../../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds';
 import WalletView from '../wallet/WalletView';
-import { Utilities } from '../../framework';
+import { Utilities } from '../../../tests/framework';
 
 class SuccessImportAccountView {
   get container(): DetoxElement {

@@ -12,7 +12,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { isNumber } from '../../../../../../../util/number';
 import ConnectHeader from '../../../../../../UI/ConnectHeader';
 import Device from '../../../../../../../util/device';
-import ErrorMessage from '../../../SendFlow/ErrorMessage';
+import ErrorMessage from '../../ErrorMessage';
 import { useTheme } from '../../../../../../../util/theme';
 import formatNumber from '../../../../../../../util/formatNumber';
 

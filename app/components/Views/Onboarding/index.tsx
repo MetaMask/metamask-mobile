@@ -41,9 +41,13 @@ import { getVaultFromBackup } from '../../../core/BackupVault';
 import Logger from '../../../util/Logger';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
+import {
+  markMetricsOptInUISeen,
+  resetMetricsOptInUISeen,
+} from '../../../util/metrics/metricsOptInUIUtils';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isE2E } from '../../../util/test/utils';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -295,8 +299,7 @@ const Onboarding = () => {
       await Authentication.resetVault();
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } else {
-      await Authentication.lockApp();
-      navigation.replace(Routes.ONBOARDING.LOGIN);
+      await Authentication.lockApp({ navigateToLogin: true });
     }
   }, [navigation, passwordSet]);
 
@@ -327,6 +330,10 @@ const Onboarding = () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    // Reset metrics opt-in UI flag so the user sees the consent screen again.
+    // This ensures users starting a new wallet flow are prompted to make a fresh choice.
+    await resetMetricsOptInUISeen();
+
     await metrics.enable(false);
     // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
@@ -356,6 +363,10 @@ const Onboarding = () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    // Reset metrics opt-in UI flag so the user sees the consent screen again.
+    // This ensures users starting a new wallet flow are prompted to make a fresh choice.
+    await resetMetricsOptInUISeen();
+
     await metrics.enable(false);
     await hasMetricsConsent();
 
@@ -506,16 +517,25 @@ const Onboarding = () => {
           error.code === OAuthErrorType.UserCancelled ||
           error.code === OAuthErrorType.UserDismissed ||
           error.code === OAuthErrorType.GoogleLoginError ||
-          error.code === OAuthErrorType.AppleLoginError ||
-          error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature
+          error.code === OAuthErrorType.AppleLoginError
         ) {
           // QA: do not show error sheet if user cancelled
           return;
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
-          error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
+          error.code === OAuthErrorType.GoogleLoginNoMatchingCredential ||
+          // GoogleLoginUserDisabledOneTapFeature: User has disabled One Tap in their Google
+          // account settings. While this is a user preference, we still offer browser-based
+          // login as an alternative since the user's intent is to sign in - they just prefer
+          // not to use the One Tap UI. Browser OAuth provides a familiar login experience.
+          error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature ||
+          error.code === OAuthErrorType.GoogleLoginOneTapFailure
         ) {
-          // For Android Google, try browser fallback instead of showing error
+          // For Android Google, try browser fallback instead of showing error.
+          // Note: We intentionally call handleOAuthLoginError (not handleLoginError) in the
+          // fallback catch block to prevent nested fallback attempts. The browser-based
+          // fallback handler won't throw ACM-specific errors, but this pattern ensures
+          // we don't accidentally create infinite fallback loops if the code is refactored.
           if (Platform.OS === 'android' && socialConnectionType === 'google') {
             try {
               setLoading();
@@ -548,9 +568,20 @@ const Onboarding = () => {
               ) {
                 return;
               }
+              // Handle both OAuthError and unexpected errors from browser fallback
               if (fallbackError instanceof OAuthError) {
                 handleOAuthLoginError(fallbackError);
+              } else {
+                // Wrap unexpected errors as OAuthError to ensure they're properly handled
+                const wrappedError = new OAuthError(
+                  fallbackError instanceof Error
+                    ? fallbackError.message
+                    : 'Browser fallback failed with unknown error',
+                  OAuthErrorType.UnknownError,
+                );
+                handleOAuthLoginError(wrappedError);
               }
+              return;
             }
           }
           return;
@@ -671,6 +702,10 @@ const Onboarding = () => {
             createWallet,
             provider,
           );
+
+          // Mark metrics opt-in UI as seen since OAuth users auto-consent to metrics.
+          // Set AFTER OAuth succeeds to avoid marking as seen if the flow fails.
+          await markMetricsOptInUISeen();
 
           // delay unset loading to avoid flash of loading state
           setTimeout(() => {

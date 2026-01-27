@@ -7,8 +7,7 @@ import { useTransactionMetadataRequest } from './transactions/useTransactionMeta
 import { useHasInsufficientBalance } from './useHasInsufficientBalance';
 
 export function useAutomaticGasFeeTokenSelect() {
-  const { isSupported: isGaslessSupported, isSmartTransaction } =
-    useIsGaslessSupported();
+  const { isSmartTransaction } = useIsGaslessSupported();
   const { hasInsufficientBalance } = useHasInsufficientBalance();
   const transactionMeta =
     (useTransactionMetadataRequest() as TransactionMeta) ??
@@ -36,7 +35,6 @@ export function useAutomaticGasFeeTokenSelect() {
 
   const shouldSelect =
     !checked &&
-    isGaslessSupported &&
     hasInsufficientBalance &&
     !selectedGasFeeToken &&
     Boolean(firstGasFeeTokenAddress);

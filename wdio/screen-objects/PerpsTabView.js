@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class PerpsTabView {
@@ -30,21 +30,21 @@ class PerpsTabView {
   }
 
   async tapPerpsTab() {
-    await AppwrightGestures.tap(this.perpsTabButton); // Use static tap method with retry logic
+    await AppwrightGestures.tap(await this.perpsTabButton); // Use static tap method with retry logic
   }
 
   async tapStartTradingButton() {
-    await AppwrightGestures.tap(this.startTradingButton); // Use static tap method with retry logic
+    await AppwrightGestures.tap(await this.startTradingButton); // Use static tap method with retry logic
   }
 
   async tapAddFunds() {
-    await AppwrightGestures.tap(this.addFundsButton); // Use static tap method with retry logic
+    await AppwrightGestures.tap(await this.addFundsButton); // Use static tap method with retry logic
   }
 
   async tapOnboardingButton() {
     const button = await this.onboardingButton;
     await appwrightExpect(button).toBeVisible({ timeout: 5000 });
-    await AppwrightGestures.tap(this.onboardingButton); // Use static tap method with retry logic
+    await AppwrightGestures.tap(button); // Use static tap method with retry logic
   }
 }
 

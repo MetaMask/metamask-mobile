@@ -15,10 +15,12 @@ import {
   getStopLossErrorDirection,
   getStopLossLiquidationErrorDirection,
   getTakeProfitErrorDirection,
+  hasExceededSignificantFigures,
   hasTPSLValuesChanged,
   isStopLossSafeFromLiquidation,
   isValidStopLossPrice,
   isValidTakeProfitPrice,
+  roundToSignificantFigures,
   safeParseRoEPercentage,
   sanitizePercentageInput,
   validateTPSLPrices,
@@ -325,7 +327,13 @@ export function usePerpsTPSLForm(
       if (parts.length > 2) return;
       // Allow erasing but prevent adding when there are more than MAX_PRICE_DECIMALS decimal places
       if (
-        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
+        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MaxPriceDecimals &&
+        sanitized.length >= takeProfitPrice.length
+      )
+        return;
+
+      if (
+        hasExceededSignificantFigures(sanitized) &&
         sanitized.length >= takeProfitPrice.length
       )
         return;
@@ -374,7 +382,7 @@ export function usePerpsTPSLForm(
       const finalValue = sanitizePercentageInput(
         text,
         takeProfitPercentage,
-        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+        DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
       );
       if (finalValue === null) return; // Invalid input, don't update state
 
@@ -397,7 +405,9 @@ export function usePerpsTPSLForm(
           leverage,
           entryPrice,
         });
-        setTakeProfitPrice(price.toString());
+        // Round to 5 significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(price.toString());
+        setTakeProfitPrice(roundedPrice);
         setSelectedTpPercentage(roeValue);
       } else if (!finalValue) {
         setTakeProfitPrice('');
@@ -424,7 +434,13 @@ export function usePerpsTPSLForm(
       if (parts.length > 2) return;
       // Allow erasing but prevent adding when there are more than MAX_PRICE_DECIMALS decimal places
       if (
-        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
+        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MaxPriceDecimals &&
+        sanitized.length >= stopLossPrice.length
+      )
+        return;
+
+      if (
+        hasExceededSignificantFigures(sanitized) &&
         sanitized.length >= stopLossPrice.length
       )
         return;
@@ -474,7 +490,7 @@ export function usePerpsTPSLForm(
       const finalValue = sanitizePercentageInput(
         text,
         stopLossPercentage,
-        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+        DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
       );
       if (finalValue === null) return; // Invalid input, don't update state
 
@@ -497,7 +513,9 @@ export function usePerpsTPSLForm(
           leverage,
           entryPrice,
         });
-        setStopLossPrice(price.toString());
+        // Round to 5 significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(price.toString());
+        setStopLossPrice(roundedPrice);
         setSelectedSlPercentage(roeValue); // Store absolute value for button comparison
       } else if (!finalValue) {
         setStopLossPrice('');
@@ -556,7 +574,11 @@ export function usePerpsTPSLForm(
             entryPrice,
           });
           if (zeroRoePrice && zeroRoePrice !== takeProfitPrice) {
-            setTakeProfitPrice(zeroRoePrice.toString());
+            // Round to 5 significant figures to match input validation
+            const roundedPrice = roundToSignificantFigures(
+              zeroRoePrice.toString(),
+            );
+            setTakeProfitPrice(roundedPrice);
           }
         }
       }
@@ -591,7 +613,9 @@ export function usePerpsTPSLForm(
         leverage,
         entryPrice,
       });
-      setTakeProfitPrice(price.toString());
+      // Round to 5 significant figures to match input validation
+      const roundedPrice = roundToSignificantFigures(price.toString());
+      setTakeProfitPrice(roundedPrice);
     }
   }, [
     takeProfitPercentage,
@@ -641,7 +665,11 @@ export function usePerpsTPSLForm(
             entryPrice,
           });
           if (zeroRoePrice && zeroRoePrice !== stopLossPrice) {
-            setStopLossPrice(zeroRoePrice.toString());
+            // Round to 5 significant figures to match input validation
+            const roundedPrice = roundToSignificantFigures(
+              zeroRoePrice.toString(),
+            );
+            setStopLossPrice(roundedPrice);
           }
         }
       }
@@ -676,7 +704,9 @@ export function usePerpsTPSLForm(
         leverage,
         entryPrice,
       });
-      setStopLossPrice(price.toString());
+      // Round to 5 significant figures to match input validation
+      const roundedPrice = roundToSignificantFigures(price.toString());
+      setStopLossPrice(roundedPrice);
     }
   }, [stopLossPercentage, leverage, currentPrice, actualDirection, entryPrice]);
 
@@ -708,8 +738,9 @@ export function usePerpsTPSLForm(
 
       // Only set values if we got a valid price
       if (price && price !== '' && Number.parseFloat(price) > 0) {
-        const priceString = price.toString();
-        const formattedPriceString = formatPerpsFiat(priceString, {
+        // Round to 5 significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(price.toString());
+        const formattedPriceString = formatPerpsFiat(roundedPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
         const sanitizedPriceString = formattedPriceString.replace(
@@ -761,8 +792,9 @@ export function usePerpsTPSLForm(
 
       // Only set values if we got a valid price
       if (price && price !== '' && Number.parseFloat(price) > 0) {
-        const priceString = price.toString();
-        const formattedPriceString = formatPerpsFiat(priceString, {
+        // Round to 5 significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(price.toString());
+        const formattedPriceString = formatPerpsFiat(roundedPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
         const sanitizedPriceString = formattedPriceString.replace(
@@ -920,7 +952,7 @@ export function usePerpsTPSLForm(
     orderType: 'market',
     amount: tpNotionalValue,
     isClosing: true,
-    coin: asset,
+    symbol: asset,
   });
 
   const expectedTakeProfitPnL =
@@ -946,7 +978,7 @@ export function usePerpsTPSLForm(
     orderType: 'market',
     amount: slNotionalValue,
     isClosing: true,
-    coin: asset,
+    symbol: asset,
   });
 
   const expectedStopLossPnL =

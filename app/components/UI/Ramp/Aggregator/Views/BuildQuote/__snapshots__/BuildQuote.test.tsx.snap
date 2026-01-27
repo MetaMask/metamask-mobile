@@ -36,85 +36,27 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -169,14 +111,142 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -188,142 +258,8 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -2552,85 +2488,27 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -2685,14 +2563,142 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -2704,142 +2710,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -3147,7 +3019,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     }
                                   }
                                 >
-                                  No Tokens Available
+                                  No tokens available
                                 </Text>
                               </View>
                               <View
@@ -3297,122 +3169,27 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Sell
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -3467,27 +3244,25 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="ArrowLeft"
                     style={
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -3496,6 +3271,56 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 </View>
               </View>
             </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Sell
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -3795,7 +3620,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     }
                                   }
                                 >
-                                  No Tokens Available
+                                  No tokens available
                                 </Text>
                               </View>
                               <View
@@ -3945,85 +3770,27 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -4078,14 +3845,142 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -4097,142 +3992,8 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -4690,85 +4451,27 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -4823,14 +4526,142 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -4842,142 +4673,8 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -7052,85 +6749,27 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -7185,14 +6824,142 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -7204,142 +6971,8 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -7797,85 +7430,27 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -7930,14 +7505,142 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -7949,142 +7652,8 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -10139,85 +9708,27 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -10272,14 +9783,142 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -10291,142 +9930,8 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -10884,85 +10389,27 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -11017,14 +10464,142 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -11036,142 +10611,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -13357,85 +12798,27 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -13490,14 +12873,142 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -13509,142 +13020,8 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -15823,85 +15200,27 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -15956,14 +15275,142 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -15975,142 +15422,8 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -16568,85 +15881,27 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -16701,14 +15956,142 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -16720,142 +16103,8 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -18886,85 +18135,27 @@ exports[`BuildQuote View renders correctly 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -19019,14 +18210,142 @@ exports[`BuildQuote View renders correctly 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -19038,142 +18357,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -21402,122 +20587,27 @@ exports[`BuildQuote View renders correctly 2`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Sell
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -21572,27 +20662,25 @@ exports[`BuildQuote View renders correctly 2`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="ArrowLeft"
                     style={
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -21601,6 +20689,56 @@ exports[`BuildQuote View renders correctly 2`] = `
                 </View>
               </View>
             </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Sell
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -23836,85 +22974,27 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -23969,14 +23049,142 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Buy
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
                       {
-                        "marginHorizontal": 16,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
+                      undefined,
                     ]
                   }
                   testID="deposit-configuration-menu-button"
@@ -23988,142 +23196,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Buy
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -24524,7 +23598,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                       }
                                     }
                                   >
-                                    Return to Home Screen
+                                    Return to home screen
                                   </Text>
                                 </TouchableOpacity>
                               </View>
@@ -24581,122 +23655,27 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Sell
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -24751,27 +23730,25 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="ArrowLeft"
                     style={
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -24780,6 +23757,56 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 </View>
               </View>
             </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Sell
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -25172,7 +24199,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                       }
                                     }
                                   >
-                                    Return to Home Screen
+                                    Return to home screen
                                   </Text>
                                 </TouchableOpacity>
                               </View>

@@ -9,8 +9,8 @@ import React, {
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
+import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
@@ -362,11 +362,14 @@ const ActivityView = () => {
               tabLabel={strings('perps.transactions.title')}
               style={styles.tabWrapper}
             >
-              <PerpsConnectionProvider isVisible={isPerpsTabActive}>
-                <PerpsStreamProvider>
-                  <PerpsTransactionsView />
-                </PerpsStreamProvider>
-              </PerpsConnectionProvider>
+              {/* Only mount providers when tab is active to prevent polling when hidden */}
+              {isPerpsTabActive ? (
+                <PerpsConnectionProvider isVisible={isPerpsTabActive}>
+                  <PerpsStreamProvider>
+                    <PerpsTransactionsView />
+                  </PerpsStreamProvider>
+                </PerpsConnectionProvider>
+              ) : null}
             </View>
           )}
 

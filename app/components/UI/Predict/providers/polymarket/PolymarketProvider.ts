@@ -14,6 +14,7 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
+import { SUPPORTED_SPORTS_LEAGUES } from '../../constants/sports';
 import {
   GetPriceHistoryParams,
   GetPriceParams,
@@ -32,6 +33,8 @@ import {
   AccountState,
   ClaimOrderParams,
   ClaimOrderResponse,
+  ConnectionStatus,
+  GameUpdateCallback,
   GeoBlockResponse,
   GetBalanceParams,
   GetMarketsParams,
@@ -45,6 +48,7 @@ import {
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
   PreviewOrderParams,
+  PriceUpdateCallback,
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
@@ -96,6 +100,9 @@ import {
   submitClobOrder,
 } from './utils';
 import { PredictFeeCollection } from '../../types/flags';
+import { GameCache } from './GameCache';
+import { TeamsCache } from './TeamsCache';
+import { WebSocketManager } from './WebSocketManager';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -167,8 +174,10 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarketDetails({
     marketId,
+    liveSportsLeagues = [],
   }: {
     marketId: string;
+    liveSportsLeagues?: string[];
   }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
@@ -179,19 +188,76 @@ export class PolymarketProvider implements PredictProvider {
         marketId,
       });
 
-      const [parsedMarket] = parsePolymarketEvents(
-        [event],
-        PolymarketProvider.FALLBACK_CATEGORY,
-      );
+      const liveSportsEnabled = liveSportsLeagues.length > 0;
+
+      if (liveSportsEnabled) {
+        await TeamsCache.getInstance().ensureLeaguesLoaded(
+          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
+        );
+      }
+
+      const teamLookup = liveSportsEnabled
+        ? (
+            league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
+            abbreviation: string,
+          ) => TeamsCache.getInstance().getTeam(league, abbreviation)
+        : undefined;
+
+      const [parsedMarket] = parsePolymarketEvents([event], {
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        teamLookup,
+      });
 
       if (!parsedMarket) {
         throw new Error('Failed to parse market details');
       }
 
-      return parsedMarket;
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarket(parsedMarket)
+        : parsedMarket;
     } catch (error) {
       DevLogger.log('Error getting market details via Polymarket API:', error);
       throw error;
+    }
+  }
+
+  public async getMarketsByIds(
+    marketIds: string[],
+    liveSportsLeagues: string[] = [],
+  ): Promise<PredictMarket[]> {
+    if (!marketIds || marketIds.length === 0) {
+      return [];
+    }
+
+    try {
+      const marketPromises = marketIds.map((marketId) =>
+        this.getMarketDetails({ marketId, liveSportsLeagues }).catch(
+          (error) => {
+            DevLogger.log(
+              `PolymarketProvider: Failed to fetch market ${marketId}`,
+              error,
+            );
+            return null;
+          },
+        ),
+      );
+
+      const results = await Promise.all(marketPromises);
+
+      return results.filter(
+        (market): market is PredictMarket => market !== null,
+      );
+    } catch (error) {
+      DevLogger.log('Error fetching markets by IDs:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getMarketsByIds', {
+          marketIdsCount: marketIds.length,
+        }),
+      );
+
+      return [];
     }
   }
 
@@ -233,12 +299,33 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const markets = await getParsedMarketsFromPolymarketApi(params);
-      return markets;
+      const liveSportsLeagues = params?.liveSportsLeagues ?? [];
+      const liveSportsEnabled = liveSportsLeagues.length > 0;
+
+      if (liveSportsEnabled) {
+        await TeamsCache.getInstance().ensureLeaguesLoaded(
+          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
+        );
+      }
+
+      const teamLookup = liveSportsEnabled
+        ? (
+            league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
+            abbreviation: string,
+          ) => TeamsCache.getInstance().getTeam(league, abbreviation)
+        : undefined;
+
+      const markets = await getParsedMarketsFromPolymarketApi({
+        ...params,
+        teamLookup,
+      });
+
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarkets(markets)
+        : markets;
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
-      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getMarkets', {
@@ -257,6 +344,8 @@ export class PolymarketProvider implements PredictProvider {
     marketId,
     fidelity,
     interval,
+    startTs,
+    endTs,
   }: GetPriceHistoryParams): Promise<PredictPriceHistoryPoint[]> {
     if (!marketId) {
       throw new Error('marketId parameter is required');
@@ -270,7 +359,10 @@ export class PolymarketProvider implements PredictProvider {
         searchParams.set('fidelity', String(fidelity));
       }
 
-      if (interval) {
+      if (startTs !== undefined && endTs !== undefined) {
+        searchParams.set('startTs', String(startTs));
+        searchParams.set('endTs', String(endTs));
+      } else if (interval) {
         searchParams.set('interval', interval);
       }
 
@@ -305,13 +397,14 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error getting price history via Polymarket API:', error);
 
-      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getPriceHistory', {
           marketId,
           fidelity,
           interval,
+          startTs,
+          endTs,
         }),
       );
 
@@ -1556,6 +1649,31 @@ export class PolymarketProvider implements PredictProvider {
     return {
       callData: signedCallData,
       amount,
+    };
+  }
+
+  public subscribeToGameUpdates(
+    gameId: string,
+    callback: GameUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToGame(gameId, callback);
+  }
+
+  public subscribeToMarketPrices(
+    tokenIds: string[],
+    callback: PriceUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToMarketPrices(
+      tokenIds,
+      callback,
+    );
+  }
+
+  public getConnectionStatus(): ConnectionStatus {
+    const status = WebSocketManager.getInstance().getConnectionStatus();
+    return {
+      sportsConnected: status.sportsConnected,
+      marketConnected: status.marketConnected,
     };
   }
 }

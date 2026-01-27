@@ -17,6 +17,10 @@ import type {
 } from '../controllers/types';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
+import {
+  countSignificantFigures,
+  roundToSignificantFigures,
+} from './formatUtils';
 
 /**
  * HyperLiquid SDK Adapter Utilities
@@ -29,20 +33,20 @@ import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
 /**
  * Transform MetaMask Perps API OrderParams to HyperLiquid SDK format
  * @param order - MetaMask Perps order parameters
- * @param coinToAssetId - Mapping from coin symbols to asset IDs
+ * @param symbolToAssetId - Mapping from symbols to asset IDs
  * @returns HyperLiquid SDK-compatible order parameters
  */
 export function adaptOrderToSDK(
   order: PerpsOrderParams,
-  coinToAssetId: Map<string, number>,
+  symbolToAssetId: Map<string, number>,
 ): SDKOrderParams {
-  const assetId = coinToAssetId.get(order.coin);
+  const assetId = symbolToAssetId.get(order.symbol);
   if (assetId === undefined) {
     // Extract available DEX names from asset map for helpful error message
     const availableDexs = new Set<string>();
-    coinToAssetId.forEach((_, coin) => {
-      if (coin.includes(':')) {
-        const dex = coin.split(':')[0];
+    symbolToAssetId.forEach((_, symbol) => {
+      if (symbol.includes(':')) {
+        const dex = symbol.split(':')[0];
         availableDexs.add(dex);
       }
     });
@@ -53,7 +57,7 @@ export function adaptOrderToSDK(
         : ' No HIP-3 DEXs currently available.';
 
     throw new Error(
-      `Asset ${order.coin} not found in asset mapping.${dexHint} Check console logs for "HyperLiquidProvider: Asset mapping built" to see available assets.`,
+      `Asset ${order.symbol} not found in asset mapping.${dexHint} Check console logs for "HyperLiquidProvider: Asset mapping built" to see available assets.`,
     );
   }
 
@@ -86,7 +90,7 @@ export function adaptOrderToSDK(
 export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
   const pos = assetPosition.position;
   return {
-    coin: pos.coin,
+    symbol: pos.coin, // HyperLiquid API uses 'coin', we normalize to 'symbol'
     size: pos.szi,
     entryPrice: pos.entryPx,
     positionValue: pos.positionValue,
@@ -167,7 +171,8 @@ export function adaptOrderFromSDK(
   // TODO: We assume that there can only be 1 TP and 1 SL as children but there can be several TPSLs as children
   // We need to handle this properly in the future
   if (rawOrder.children && rawOrder.children.length > 0) {
-    rawOrder.children.forEach((child: FrontendOrder) => {
+    rawOrder.children.forEach((childUnknown) => {
+      const child = childUnknown as FrontendOrder;
       if (child.isTrigger && child.orderType) {
         if (child.orderType.includes('Take Profit')) {
           takeProfitPrice = child.triggerPx || child.limitPx;
@@ -206,6 +211,10 @@ export function adaptOrderFromSDK(
   if (stopLossPrice) {
     order.stopLossPrice = stopLossPrice;
     order.stopLossOrderId = stopLossOrderId;
+  }
+  // Store trigger condition price for trigger orders (used for TP/SL display)
+  if (rawOrder.triggerPx) {
+    order.triggerPrice = rawOrder.triggerPx;
   }
 
   return order;
@@ -318,12 +327,12 @@ export function buildAssetMapping(params: {
   dex?: string | null;
   perpDexIndex: number;
 }): {
-  coinToAssetId: Map<string, number>;
-  assetIdToCoin: Map<number, string>;
+  symbolToAssetId: Map<string, number>;
+  assetIdToSymbol: Map<number, string>;
 } {
   const { metaUniverse, perpDexIndex } = params;
-  const coinToAssetId = new Map<string, number>();
-  const assetIdToCoin = new Map<number, string>();
+  const symbolToAssetId = new Map<string, number>();
+  const assetIdToSymbol = new Map<number, string>();
 
   metaUniverse.forEach((asset, index) => {
     // Calculate global asset ID using HIP-3 formula
@@ -335,16 +344,16 @@ export function buildAssetMapping(params: {
     // - Main DEX: asset.name = "BTC", "ETH", etc. (no prefix)
     // - HIP-3 DEX: asset.name = "xyz:XYZ100", "xyz:XYZ200", etc. (already prefixed!)
     // We use asset.name as-is - no manual prefixing needed
-    coinToAssetId.set(asset.name, assetId);
-    assetIdToCoin.set(assetId, asset.name);
+    symbolToAssetId.set(asset.name, assetId);
+    assetIdToSymbol.set(assetId, asset.name);
   });
 
-  return { coinToAssetId, assetIdToCoin };
+  return { symbolToAssetId, assetIdToSymbol };
 }
 
 /**
  * Format price according to HyperLiquid validation rules
- * - Max 5 significant figures
+ * - Max 5 significant figures (uses MAX_SIGNIFICANT_FIGURES from config)
  * - Max (MAX_PRICE_DECIMALS - szDecimals) decimal places for perps
  * - Integer prices always allowed
  * @param params - Price formatting parameters
@@ -364,7 +373,7 @@ export function formatHyperLiquidPrice(params: {
 
   // Calculate max decimal places allowed
   const maxDecimalPlaces =
-    DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS - szDecimals;
+    DECIMAL_PRECISION_CONFIG.MaxPriceDecimals - szDecimals;
 
   // Format with proper decimal places
   let formattedPrice = priceNum.toFixed(maxDecimalPlaces);
@@ -372,21 +381,12 @@ export function formatHyperLiquidPrice(params: {
   // Remove trailing zeros
   formattedPrice = parseFloat(formattedPrice).toString();
 
-  // Check significant figures (max 5)
-  const [integerPart, decimalPart = ''] = formattedPrice.split('.');
-  const significantDigits =
-    integerPart.replace(/^0+/, '').length + decimalPart.length;
+  // Check and enforce max significant figures using shared utility
+  const significantDigits = countSignificantFigures(formattedPrice);
 
-  if (significantDigits > 5) {
-    // Need to reduce precision to maintain max 5 significant figures
-    const totalDigits = integerPart.length + decimalPart.length;
-    const digitsToRemove = totalDigits - 5;
-
-    if (digitsToRemove > 0 && decimalPart.length > 0) {
-      const newDecimalPlaces = Math.max(0, decimalPart.length - digitsToRemove);
-      formattedPrice = priceNum.toFixed(newDecimalPlaces);
-      formattedPrice = parseFloat(formattedPrice).toString();
-    }
+  if (significantDigits > DECIMAL_PRECISION_CONFIG.MaxSignificantFigures) {
+    // Use shared utility to round to max significant figures
+    formattedPrice = roundToSignificantFigures(formattedPrice);
   }
 
   return formattedPrice;
@@ -455,8 +455,8 @@ export function calculateHip3AssetId(
     return indexInMeta;
   }
   return (
-    HIP3_ASSET_ID_CONFIG.BASE_ASSET_ID +
-    perpDexIndex * HIP3_ASSET_ID_CONFIG.DEX_MULTIPLIER +
+    HIP3_ASSET_ID_CONFIG.BaseAssetId +
+    perpDexIndex * HIP3_ASSET_ID_CONFIG.DexMultiplier +
     indexInMeta
   );
 }

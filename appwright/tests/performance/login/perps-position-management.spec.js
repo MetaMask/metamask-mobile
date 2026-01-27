@@ -48,13 +48,39 @@ test('Perps open position and close it', async ({
 
   const selectPerpsMainScreenTimer = new TimerHelper(
     'Select Perps Main Screen',
+    { ios: 2000, android: 2000 },
+    device,
   );
-  const skipTutorialTimer = new TimerHelper('Skip Tutorial');
-  const selectMarketTimer = new TimerHelper('Select Market BTC');
-  const openOrderScreenTimer = new TimerHelper('Open Order Screen');
-  const openPositionTimer = new TimerHelper('Open Long Position');
-  const setLeverageTimer = new TimerHelper('Set Leverage');
-  const closePositionTimer = new TimerHelper('Close Position');
+  const skipTutorialTimer = new TimerHelper(
+    'Skip Tutorial',
+    { ios: 1600, android: 2500 },
+    device,
+  );
+  const selectMarketTimer = new TimerHelper(
+    'Select Market BTC',
+    { ios: 7500, android: 7500 },
+    device,
+  );
+  const openOrderScreenTimer = new TimerHelper(
+    'Open Order Screen',
+    { ios: 1500, android: 1500 },
+    device,
+  );
+  const openPositionTimer = new TimerHelper(
+    'Open Long Position',
+    { ios: 10500, android: 20000 },
+    device,
+  );
+  const setLeverageTimer = new TimerHelper(
+    'Set Leverage',
+    { ios: 13500, android: 13500 },
+    device,
+  );
+  const closePositionTimer = new TimerHelper(
+    'Close Position',
+    { ios: 8500, android: 9500 },
+    device,
+  );
   await screensSetup(device);
   await login(device);
 
@@ -63,22 +89,17 @@ test('Perps open position and close it', async ({
 
   await TabBarModal.tapActionButton();
 
-  selectPerpsMainScreenTimer.start();
-  await WalletActionModal.tapPerpsButton();
-  selectPerpsMainScreenTimer.stop();
-  performanceTracker.addTimer(selectPerpsMainScreenTimer);
+  await selectPerpsMainScreenTimer.measure(() =>
+    WalletActionModal.tapPerpsButton(),
+  );
 
   // Skip tutorial
-  skipTutorialTimer.start();
-  await PerpsTutorialScreen.tapSkip();
-  skipTutorialTimer.stop();
-  performanceTracker.addTimer(skipTutorialTimer);
+  await skipTutorialTimer.measure(() => PerpsTutorialScreen.tapSkip());
 
-  selectMarketTimer.start();
   // Selecting BTC market
-  await PerpsMarketListView.selectMarket('BTC');
-  selectMarketTimer.stop();
-  performanceTracker.addTimer(selectMarketTimer);
+  await selectMarketTimer.measure(() =>
+    PerpsMarketListView.selectMarket('BTC'),
+  );
 
   // TODO: Add a check to see if the position is open
   // If position open, fail the test
@@ -87,27 +108,28 @@ test('Perps open position and close it', async ({
   }
 
   // Open Position
-  openOrderScreenTimer.start();
-  await PerpsMarketDetailsView.tapLongButton();
-  openOrderScreenTimer.stop();
-  performanceTracker.addTimer(openOrderScreenTimer);
+  await openOrderScreenTimer.measure(() =>
+    PerpsMarketDetailsView.tapLongButton(),
+  );
 
   // Set leverage to 40x
-  setLeverageTimer.start();
-  await PerpsOrderView.setLeverage(40);
-  setLeverageTimer.stop();
-  performanceTracker.addTimer(setLeverageTimer);
+  await setLeverageTimer.measure(() => PerpsOrderView.setLeverage(40));
 
-  openPositionTimer.start();
-  await PerpsOrderView.tapPlaceOrder();
-  openPositionTimer.stop();
-  performanceTracker.addTimer(openPositionTimer);
+  await openPositionTimer.measure(() => PerpsOrderView.tapPlaceOrder());
 
   // Close Position
-  closePositionTimer.start();
-  await PerpsPositionDetailsView.closePositionWithRetry();
-  closePositionTimer.stop();
-  performanceTracker.addTimer(closePositionTimer);
+  await closePositionTimer.measure(() =>
+    PerpsPositionDetailsView.closePositionWithRetry(),
+  );
 
+  performanceTracker.addTimers(
+    selectPerpsMainScreenTimer,
+    skipTutorialTimer,
+    selectMarketTimer,
+    openOrderScreenTimer,
+    setLeverageTimer,
+    openPositionTimer,
+    closePositionTimer,
+  );
   await performanceTracker.attachToTest(testInfo);
 });

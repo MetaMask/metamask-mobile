@@ -125,11 +125,73 @@ describe('useAccounts', () => {
     expect(result.current.ensByAccountAddress).toStrictEqual(expectedENSNames);
   });
 
-  it('return scopes for evm accounts', async () => {
+  it('returns scopes for evm accounts', async () => {
     const { result, waitForNextUpdate } = renderHook(() => useAccounts());
     await act(async () => {
       await waitForNextUpdate();
     });
     expect(result.current.accounts[0].scopes).toStrictEqual([EthScope.Eoa]);
+  });
+
+  describe('fetchENS parameter', () => {
+    it('fetches ENS names when fetchENS is true (default)', async () => {
+      const expectedENSNames = {
+        [MOCK_ACCOUNT_1.address]: MOCK_ENS_CACHED_NAME,
+      };
+
+      const { result, waitForNextUpdate } = renderHook(() => useAccounts());
+      await act(async () => {
+        await waitForNextUpdate();
+      });
+
+      expect(result.current.ensByAccountAddress).toStrictEqual(
+        expectedENSNames,
+      );
+    });
+
+    it('fetches ENS names when fetchENS is explicitly true', async () => {
+      const expectedENSNames = {
+        [MOCK_ACCOUNT_1.address]: MOCK_ENS_CACHED_NAME,
+      };
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useAccounts({ fetchENS: true }),
+      );
+      await act(async () => {
+        await waitForNextUpdate();
+      });
+
+      expect(result.current.ensByAccountAddress).toStrictEqual(
+        expectedENSNames,
+      );
+    });
+
+    it('does not fetch ENS names when fetchENS is false', async () => {
+      const { result } = renderHook(() => useAccounts({ fetchENS: false }));
+
+      // Give some time for any potential async operations
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(result.current.ensByAccountAddress).toStrictEqual({});
+    });
+
+    it('returns accounts but not ENS names when fetchENS is false', async () => {
+      const expectedInternalAccounts: Account[] = [
+        MOCK_ACCOUNT_1,
+        MOCK_ACCOUNT_2,
+      ];
+
+      const { result } = renderHook(() => useAccounts({ fetchENS: false }));
+
+      // Give some time for accounts to be populated
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(result.current.accounts).toStrictEqual(expectedInternalAccounts);
+      expect(result.current.ensByAccountAddress).toStrictEqual({});
+    });
   });
 });

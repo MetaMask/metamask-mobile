@@ -239,6 +239,8 @@ export const selectCardFeatureFlag = createSelector(
   (remoteFeatureFlags) => {
     const cardFeatureFlag = remoteFeatureFlags?.cardFeature;
 
-    return cardFeatureFlag ?? defaultCardFeatureFlag;
+    return Object.keys(cardFeatureFlag ?? {}).length > 0
+      ? cardFeatureFlag
+      : defaultCardFeatureFlag;
   },
 );

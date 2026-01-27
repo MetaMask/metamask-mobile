@@ -6,8 +6,8 @@ import {
 } from './common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
-import Assertions from '../../framework/Assertions';
-import Matchers from '../../framework/Matchers';
+import Assertions from '../../../tests/framework/Assertions';
+import Matchers from '../../../tests/framework/Matchers';
 import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';

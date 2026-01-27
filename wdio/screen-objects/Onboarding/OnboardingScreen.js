@@ -1,8 +1,8 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import { OnboardingSelectorIDs } from '../../../e2e/selectors/Onboarding/Onboarding.selectors';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
+import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class OnBoardingScreen {
@@ -39,7 +39,7 @@ class OnBoardingScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.existingWalletButton);
     } else {
-      await AppwrightGestures.tap(this.existingWalletButton); 
+      await AppwrightGestures.tap(await this.existingWalletButton);
     }
   }
 
@@ -47,7 +47,7 @@ class OnBoardingScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.createNewWalletButton);
     } else {
-      await AppwrightGestures.tap(this.createNewWalletButton); 
+      await AppwrightGestures.tap(await this.createNewWalletButton);
     }
   }
 

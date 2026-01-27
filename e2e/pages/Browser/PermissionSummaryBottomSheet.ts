@@ -1,9 +1,9 @@
 import {
   PermissionSummaryBottomSheetSelectorsIDs,
   PermissionSummaryBottomSheetSelectorsText,
-} from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+} from '../../../app/components/Views/AccountConnect/PermissionSummaryBottomSheet.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class PermissionSummaryBottomSheet {
   get container(): DetoxElement {

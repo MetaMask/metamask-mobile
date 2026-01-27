@@ -20,9 +20,10 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { PerpsEventValues } from '../constants/eventNames';
 import { OrderDirection } from '../types/perps-types';
 import { formatPerpsFiat } from '../utils/formatUtils';
-import { handlePerpsError } from '../utils/perpsErrorHandler';
+import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
 import { Position } from '../controllers/types';
 import { getPerpsDisplaySymbol } from '../utils/marketUtils';
@@ -294,6 +295,7 @@ const usePerpsToasts = (): {
         navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
           position,
           marketPrice,
+          source: PerpsEventValues.SOURCE.CLOSE_TOAST,
         });
       },
     }),
@@ -421,7 +423,10 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.withdrawal.error'),
-              error || strings('perps.withdrawal.error_generic'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings('perps.withdrawal.error_generic'),
+              }),
             ),
           }),
         },
@@ -811,17 +816,13 @@ const usePerpsToasts = (): {
               strings('perps.position.tpsl.update_success'),
             ),
           },
-          updateTPSLError: (error?: string) => {
-            const errorMessage = error || strings('perps.errors.unknown');
-
-            return {
-              ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.position.tpsl.update_failed'),
-                errorMessage,
-              ),
-            };
-          },
+          updateTPSLError: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.tpsl.update_failed'),
+              error || strings('perps.errors.tpslUpdateFailed'),
+            ),
+          }),
         },
         margin: {
           addSuccess: (assetSymbol: string, amount: string) => ({
@@ -842,17 +843,13 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          adjustmentFailed: (error?: string) => {
-            const errorMessage = error || strings('perps.errors.unknown');
-
-            return {
-              ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.position.margin.adjustment_failed'),
-                errorMessage,
-              ),
-            };
-          },
+          adjustmentFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.margin.adjustment_failed'),
+              error || strings('perps.errors.marginAdjustmentFailed'),
+            ),
+          }),
         },
       },
       formValidation: {
@@ -861,7 +858,7 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.validation.failed'),
-              error,
+              error, // Pass through directly - validation errors are already localized
             ),
           }),
           limitPriceRequired: {

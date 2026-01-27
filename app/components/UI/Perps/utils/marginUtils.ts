@@ -23,15 +23,19 @@ export interface CalculateMaxRemovableMarginParams {
   positionSize: number;
   entryPrice: number;
   currentPrice: number;
-  maxLeverage: number;
+  /** The actual leverage of the position (not the asset's max leverage) */
+  positionLeverage: number;
+  /** Optional pre-calculated notional value (e.g., from position.positionValue) for immediate display before live prices load */
+  notionalValue?: number;
 }
 
-export interface CalculateNewLiquidationPriceParams {
+export interface EstimateLiquidationPriceParams {
+  isLong: boolean;
+  currentMargin: number;
   newMargin: number;
   positionSize: number;
-  entryPrice: number;
-  isLong: boolean;
   currentLiquidationPrice: number;
+  maxLeverage: number;
 }
 
 /**
@@ -67,11 +71,11 @@ export function assessMarginRemovalRisk(
   const riskRatio = priceDiff / newLiquidationPrice;
 
   let riskLevel: RiskLevel;
-  if (riskRatio < MARGIN_ADJUSTMENT_CONFIG.LIQUIDATION_RISK_THRESHOLD - 1) {
+  if (riskRatio < MARGIN_ADJUSTMENT_CONFIG.LiquidationRiskThreshold - 1) {
     riskLevel = 'danger'; // <20% buffer - critical risk
   } else if (
     riskRatio <
-    MARGIN_ADJUSTMENT_CONFIG.LIQUIDATION_WARNING_THRESHOLD - 1
+    MARGIN_ADJUSTMENT_CONFIG.LiquidationWarningThreshold - 1
   ) {
     riskLevel = 'warning'; // <50% buffer - moderate risk
   } else {
@@ -86,106 +90,146 @@ export function assessMarginRemovalRisk(
  *
  * HyperLiquid enforces: transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
  * See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
+ * See also: docs/perps/hyperliquid/margining.md
  *
- * For high leverage assets (e.g., 50x where initial margin = 2%),
- * the 10% requirement is the binding constraint.
+ * Key insight from Hyperliquid support (Xulian, Dec 6, 2025):
+ * "you need to account for initial margin for withdrawal, maintenance is what is needed to not be liquidated"
  *
- * IMPORTANT: We apply an additional 50% safety buffer on top of the minimum required
- * because HyperLiquid's actual margin requirements can vary based on market conditions,
- * unrealized PnL, and other factors not captured in this simplified calculation.
+ * The initial margin is calculated using the POSITION'S leverage (not the asset's max leverage).
+ * For example, a position opened at 10x leverage requires 10% initial margin,
+ * not 2% (which would be for 50x max leverage).
  *
- * @param params - Current margin, position size, entry price, current price, and max leverage limit
+ * @param params - Current margin, position size, prices, and position leverage
  * @returns Maximum removable margin amount in USD
  */
 export function calculateMaxRemovableMargin(
   params: CalculateMaxRemovableMarginParams,
 ): number {
-  const { currentMargin, positionSize, entryPrice, currentPrice, maxLeverage } =
-    params;
-
-  // Validate inputs
-  if (
-    isNaN(currentMargin) ||
-    isNaN(positionSize) ||
-    isNaN(entryPrice) ||
-    isNaN(currentPrice) ||
-    isNaN(maxLeverage) ||
-    currentMargin <= 0 ||
-    positionSize <= 0 ||
-    entryPrice <= 0 ||
-    currentPrice <= 0 ||
-    maxLeverage <= 0
-  ) {
-    return 0;
-  }
-
-  // Use the higher price to be conservative (HyperLiquid uses current mark price)
-  const price = Math.max(entryPrice, currentPrice);
-
-  // Calculate notional value
-  const notionalValue = positionSize * price;
-
-  // HyperLiquid's transfer margin requirement:
-  // transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
-  const initialMarginRequired = notionalValue / maxLeverage;
-  const tenPercentMargin =
-    notionalValue * MARGIN_ADJUSTMENT_CONFIG.MARGIN_REMOVAL_SAFETY_BUFFER;
-
-  // Minimum margin is the MAX of these two constraints
-  const baseMinimumRequired = Math.max(initialMarginRequired, tenPercentMargin);
-
-  // Apply 3x safety buffer because HyperLiquid's actual requirements are significantly higher
-  // than the documented formula due to:
-  // - Maintenance margin requirements
-  // - Unrealized PnL impact
-  // - Market volatility adjustments
-  // - Funding rate considerations
-  // Testing showed 1.5x was insufficient - $2 removal rejected when calc showed $2.95 available
-  const minimumMarginRequired = baseMinimumRequired * 3;
-
-  // Maximum removable = current - minimum (must be non-negative)
-  return Math.max(0, currentMargin - minimumMarginRequired);
-}
-
-/**
- * Calculate new liquidation price after margin adjustment
- * Estimates where the liquidation price will move based on margin change
- * Note: This is a simplified calculation; actual liquidation price may vary based on protocol
- * @param params - New margin amount, position size, entry price, direction, and current liquidation price
- * @returns Estimated new liquidation price
- */
-export function calculateNewLiquidationPrice(
-  params: CalculateNewLiquidationPriceParams,
-): number {
   const {
-    newMargin,
+    currentMargin,
     positionSize,
-    entryPrice,
-    isLong,
-    currentLiquidationPrice,
+    currentPrice,
+    positionLeverage,
+    notionalValue: providedNotionalValue,
   } = params;
 
   // Validate inputs
   if (
-    isNaN(newMargin) ||
-    isNaN(positionSize) ||
-    isNaN(entryPrice) ||
-    newMargin <= 0 ||
-    positionSize <= 0 ||
-    entryPrice <= 0
+    isNaN(currentMargin) ||
+    isNaN(positionLeverage) ||
+    currentMargin <= 0 ||
+    positionLeverage <= 0
   ) {
-    return currentLiquidationPrice; // Return current if invalid inputs
+    return 0;
   }
 
-  // Calculate margin per unit of position
-  const marginPerUnit = newMargin / positionSize;
-
-  // For long positions: liquidation price is below entry price
-  // liquidationPrice = entryPrice - marginPerUnit
-  // For short positions: liquidation price is above entry price
-  // liquidationPrice = entryPrice + marginPerUnit
-  if (isLong) {
-    return Math.max(0, entryPrice - marginPerUnit);
+  // Use provided notional value (e.g., from position.positionValue) or calculate from price
+  // This allows immediate display before live prices load
+  let notionalValue = providedNotionalValue;
+  if (
+    notionalValue === undefined ||
+    isNaN(notionalValue) ||
+    notionalValue <= 0
+  ) {
+    // Fall back to calculating from price if not provided or invalid
+    if (
+      isNaN(positionSize) ||
+      isNaN(currentPrice) ||
+      positionSize <= 0 ||
+      currentPrice <= 0
+    ) {
+      return 0;
+    }
+    notionalValue = positionSize * currentPrice;
   }
-  return entryPrice + marginPerUnit;
+
+  // Hyperliquid's transfer margin requirement formula:
+  // transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
+  //
+  // IMPORTANT: Use the position's actual leverage, not the asset's max leverage
+  // A position at 10x leverage needs 10% initial margin ($100 for $1000 notional)
+  // NOT the 2% that 50x max leverage would imply
+  const initialMarginRequired = notionalValue / positionLeverage;
+  const tenPercentMargin =
+    notionalValue * MARGIN_ADJUSTMENT_CONFIG.MarginRemovalSafetyBuffer;
+
+  // Transfer margin required is the MAX of these two constraints
+  const transferMarginRequired = Math.max(
+    initialMarginRequired,
+    tenPercentMargin,
+  );
+
+  // Note: Unrealized PnL is NOT counted as part of "remaining margin" for withdrawals
+  // Per Hyperliquid docs, unrealized PnL helps prevent liquidation but doesn't
+  // increase your available withdrawal limit for margin transfers
+  // Maximum removable = current margin - required (must be non-negative)
+  return Math.max(0, currentMargin - transferMarginRequired);
+}
+
+/**
+ * Estimate liquidation price after margin change using anchored + delta approach.
+ *
+ * Core formula:
+ * newLiqPrice = currentLiqPrice + (direction × marginDelta / positionSize) / adjustmentFactor
+ *
+ * - direction: -1 for long (adding margin moves liq down), +1 for short (adding margin moves liq up)
+ * - adjustmentFactor: accounts for maintenance margin's effect on liquidation dynamics
+ *
+ * Hyperliquid-specific:
+ * adjustmentFactor = 1 - (maintenanceMarginRate × side)
+ * where maintenanceMarginRate = 1/(2 × maxLeverage)
+ *
+ * This anchors to the provider's authoritative liquidation price rather than recalculating
+ * from scratch, avoiding protocol-specific edge cases we might miss.
+ *
+ * See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
+ *
+ * Future: Could abstract adjustmentFactor as a provider-supplied parameter for multi-provider support.
+ */
+export function estimateLiquidationPrice(
+  params: EstimateLiquidationPriceParams,
+): number {
+  const {
+    isLong,
+    currentMargin,
+    newMargin,
+    positionSize,
+    currentLiquidationPrice,
+    maxLeverage,
+  } = params;
+
+  // Return current price if no change or invalid inputs
+  if (
+    !Number.isFinite(newMargin) ||
+    newMargin <= 0 ||
+    !Number.isFinite(positionSize) ||
+    positionSize <= 0 ||
+    !Number.isFinite(currentLiquidationPrice) ||
+    currentLiquidationPrice <= 0 ||
+    !Number.isFinite(currentMargin) ||
+    currentMargin <= 0
+  ) {
+    return currentLiquidationPrice;
+  }
+
+  const marginDelta = newMargin - currentMargin;
+  if (!Number.isFinite(marginDelta)) {
+    return currentLiquidationPrice;
+  }
+
+  const side = isLong ? 1 : -1;
+  const maintenanceMarginRate =
+    Number.isFinite(maxLeverage) && maxLeverage > 0 ? 1 / (2 * maxLeverage) : 0;
+  const denominator = 1 - maintenanceMarginRate * side;
+  const safeDenominator = Math.abs(denominator) < 0.0001 ? 1 : denominator;
+
+  // For long: adding margin moves liquidation price down (safer)
+  // For short: adding margin moves liquidation price up (safer)
+  const directionMultiplier = isLong ? -1 : 1;
+
+  const estimatedLiquidationPrice =
+    currentLiquidationPrice +
+    (directionMultiplier * marginDelta) / positionSize / safeDenominator;
+
+  return Math.max(0, estimatedLiquidationPrice);
 }

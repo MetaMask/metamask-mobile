@@ -42,7 +42,7 @@ import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
-import { EVENT_LOCATIONS } from '../../constants/events';
+import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
@@ -133,6 +133,7 @@ const EarnInputView = () => {
     preview: tronPreview,
     validateStakeAmount: tronValidateStakeAmount,
     confirmStake: tronConfirmStake,
+    tronAccountId,
   } = useTronStake({ token });
   const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
@@ -238,6 +239,17 @@ const EarnInputView = () => {
 
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
+
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      // Navigate to TRX staking learn more modal
+      if (isTronNative) {
+        navigation.navigate('StakeModals', {
+          screen: Routes.STAKING.MODALS.TRX_LEARN_MORE,
+        });
+        return;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
         params: { chainId: earnToken?.chainId },
@@ -469,7 +481,10 @@ const EarnInputView = () => {
       });
     };
 
-    if (isStakingDepositRedesignedEnabled) {
+    // Temp: Will be brought back in subsequent PR.
+    const isBatchDepositEnabled = false;
+
+    if (isBatchDepositEnabled) {
       createRedesignedLendingDepositConfirmation(earnToken, selectedAccount);
     } else {
       createLegacyLendingDepositConfirmation(
@@ -481,13 +496,13 @@ const EarnInputView = () => {
     selectedAccount,
     earnToken,
     shouldLogStablecoinEvent,
+    amountTokenMinimalUnit,
     trackEvent,
     createEventBuilder,
     network?.name,
     balanceValue,
     amountToken,
     isFiat,
-    amountTokenMinimalUnit,
     networkClientId,
     navigation,
     token,
@@ -495,7 +510,6 @@ const EarnInputView = () => {
     annualRewardsToken,
     annualRewardsFiat,
     annualRewardRate,
-    isStakingDepositRedesignedEnabled,
   ]);
 
   const handlePooledStakingFlow = useCallback(async () => {
@@ -625,7 +639,12 @@ const EarnInputView = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronEnabled) {
       const result = await tronConfirmStake?.(amountToken);
-      handleTronStakingNavigationResult(navigation, result, 'stake');
+      handleTronStakingNavigationResult(
+        navigation,
+        result,
+        'stake',
+        tronAccountId,
+      );
       return;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -649,6 +668,7 @@ const EarnInputView = () => {
     isTronEnabled,
     navigation,
     tronConfirmStake,
+    tronAccountId,
     ///: END:ONLY_INCLUDE_IF
     handlePooledStakingFlow,
     handleLendingFlow,
@@ -713,8 +733,15 @@ const EarnInputView = () => {
 
   // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as Max
   const onRightActionPress = React.useCallback(() => {
-    if (isTronEnabled && isTronNative && isNonZeroAmount && !isPreviewVisible) {
-      setIsPreviewVisible(true);
+    // For TRON: if we have a non-zero amount, show preview; otherwise just set max directly (skip modal)
+    if (isTronEnabled && isTronNative) {
+      if (isNonZeroAmount && !isPreviewVisible) {
+        setIsPreviewVisible(true);
+      } else {
+        // Directly call handleMax for Tron - the MaxInputModal is EVM-specific
+        lastQuickAmountButtonPressed.current = 'MAX';
+        handleMax();
+      }
       return;
     }
     handleMaxPressWithTracking();
@@ -724,6 +751,7 @@ const EarnInputView = () => {
     isNonZeroAmount,
     isPreviewVisible,
     handleMaxPressWithTracking,
+    handleMax,
   ]);
 
   const handleCurrencySwitchWithTracking = useCallback(() => {
@@ -873,7 +901,7 @@ const EarnInputView = () => {
         navBarEventOptions,
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         earnToken,
-        tronApyPercent,
+        isTronEnabled ? tronApyPercent : null,
         ///: END:ONLY_INCLUDE_IF
       ),
     );
@@ -889,6 +917,7 @@ const EarnInputView = () => {
     earnToken?.name,
     earnToken,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronEnabled,
     tronApyPercent,
     ///: END:ONLY_INCLUDE_IF
   ]);

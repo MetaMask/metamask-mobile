@@ -32,11 +32,13 @@ import { ARBITRUM_USDC } from '../../../constants/perps';
 export function TransactionDetailsStatus({
   gap,
   isBridgeReceive,
+  testId,
   text,
   transactionMeta,
 }: {
   gap?: number;
   isBridgeReceive?: boolean;
+  testId?: string;
   text?: string;
   transactionMeta: TransactionMeta;
 }) {
@@ -75,7 +77,11 @@ export function TransactionDetailsStatus({
         alignItems={AlignItems.center}
       >
         <StatusIcon status={status} transactionMeta={transactionMeta} />
-        <Text color={textColour} variant={TextVariant.BodyMDMedium}>
+        <Text
+          color={textColour}
+          variant={TextVariant.BodyMDMedium}
+          testID={testId}
+        >
           {statusText}
         </Text>
       </Box>

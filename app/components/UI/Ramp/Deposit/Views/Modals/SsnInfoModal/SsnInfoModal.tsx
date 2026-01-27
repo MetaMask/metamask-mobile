@@ -10,7 +10,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../../../component-library/components-temp/HeaderCenter';
 
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
@@ -29,11 +29,10 @@ function SsnInfoModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
-          {strings('deposit.ssn_info_modal.title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('deposit.ssn_info_modal.title')}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
 
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>

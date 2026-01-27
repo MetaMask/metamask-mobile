@@ -59,6 +59,9 @@ const createControlBarStyles = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 4,
     },
+    networkAvatarWrapper: {
+      marginRight: 4,
+    },
   });
 };
 

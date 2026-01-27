@@ -52,6 +52,8 @@ interface UseTronUnstakeReturn {
   validateUnstakeAmount: (amount: string) => Promise<TronUnstakeResult | null>;
   /** Confirm unstake with current resource type */
   confirmUnstake: (amount: string) => Promise<TronUnstakeResult | null>;
+  /** The Tron account ID for balance refresh */
+  tronAccountId?: string;
 }
 
 /**
@@ -202,6 +204,7 @@ const useTronUnstake = ({
     preview,
     validateUnstakeAmount,
     confirmUnstake,
+    tronAccountId: selectedTronAccount?.id,
   };
 };
 

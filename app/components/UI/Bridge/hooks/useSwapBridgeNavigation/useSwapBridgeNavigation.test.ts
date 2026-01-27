@@ -3,7 +3,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { Hex } from '@metamask/utils';
-import { EthScope, SolScope } from '@metamask/keyring-api';
+import { EthScope, SolScope, BtcScope } from '@metamask/keyring-api';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { ethers } from 'ethers';
 import {
@@ -39,6 +39,7 @@ jest.mock('../../../../hooks/useMetrics', () => {
 
 const mockGetIsBridgeEnabledSource = jest.fn(() => true);
 const mockSetIsDestTokenManuallySet = jest.fn();
+const mockSetDestToken = jest.fn();
 jest.mock('../../../../../core/redux/slices/bridge', () => {
   const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
   return {
@@ -49,6 +50,10 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     setIsDestTokenManuallySet: (...args: unknown[]) => {
       mockSetIsDestTokenManuallySet(...args);
       return actual.setIsDestTokenManuallySet(...args);
+    },
+    setDestToken: (...args: unknown[]) => {
+      mockSetDestToken(...args);
+      return actual.setDestToken(...args);
     },
   };
 });
@@ -108,9 +113,20 @@ jest.mock('@metamask/bridge-controller', () => ({
   isSolanaChainId: jest.fn(),
 }));
 
+// Mock token utilities
+import {
+  getDefaultDestToken,
+  getNativeSourceToken,
+} from '../../utils/tokenUtils';
+
+jest.mock('../../utils/tokenUtils', () => ({
+  getDefaultDestToken: jest.fn(),
+  getNativeSourceToken: jest.fn(),
+}));
+
 describe('useSwapBridgeNavigation', () => {
   const mockChainId = '0x1' as Hex;
-  const mockLocation = SwapBridgeNavigationLocation.TabBar;
+  const mockLocation = SwapBridgeNavigationLocation.MainView;
   const mockSourcePage = 'test-source-page';
   const mockNativeAsset = {
     address: '0x0000000000000000000000000000000000000000',
@@ -119,6 +135,14 @@ describe('useSwapBridgeNavigation', () => {
     decimals: 18,
     chainId: mockChainId,
     image: '',
+  };
+
+  const mockSourceToken: BridgeToken = {
+    address: '0x0000000000000000000000000000000000000001',
+    symbol: 'SRC',
+    name: 'Source Token',
+    decimals: 18,
+    chainId: mockChainId,
   };
 
   beforeEach(() => {
@@ -157,6 +181,24 @@ describe('useSwapBridgeNavigation', () => {
 
     // Reset setIsDestTokenManuallySet mock
     mockSetIsDestTokenManuallySet.mockClear();
+    mockSetDestToken.mockClear();
+
+    // Setup default mocks for token utilities
+    (getDefaultDestToken as jest.Mock).mockReturnValue({
+      address: '0x6B175474E89094C44Da98b954EesdfDcD0E0e6F',
+      symbol: 'DAI',
+      name: 'Dai Stablecoin',
+      decimals: 18,
+      chainId: mockChainId,
+    });
+    (getNativeSourceToken as jest.Mock).mockReturnValue({
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      name: 'Ether',
+      decimals: 18,
+      chainId: mockChainId,
+      image: '',
+    });
   });
 
   it('uses native token when no token is provided', () => {
@@ -457,8 +499,231 @@ describe('useSwapBridgeNavigation', () => {
     });
   });
 
-  describe('Solana', () => {
-    it('keeps Solana chain ID in CAIP format for Bridge', () => {
+  describe('destToken handling', () => {
+    it('dispatches provided destToken when different from sourceToken', () => {
+      const destToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000002',
+        symbol: 'DEST',
+        name: 'Destination Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            destToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(destToken);
+    });
+
+    it('uses destTokenOverride when passed to goToSwaps', () => {
+      const configuredDestToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000002',
+        symbol: 'CONFIGURED',
+        name: 'Configured Dest Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const overrideDestToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000003',
+        symbol: 'OVERRIDE',
+        name: 'Override Dest Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            destToken: configuredDestToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps(undefined, overrideDestToken);
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(overrideDestToken);
+    });
+
+    it('falls back to default when destToken same as sourceToken', () => {
+      const sameAsSourceToken: BridgeToken = {
+        ...mockSourceToken,
+      };
+
+      const defaultToken = {
+        address: '0x6B175474E89094C44Da98b954EesdfDcD0E0e6F',
+        symbol: 'DAI',
+        name: 'Dai Stablecoin',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      (getDefaultDestToken as jest.Mock).mockReturnValue(defaultToken);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            destToken: sameAsSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(defaultToken);
+    });
+
+    it('uses both sourceTokenOverride and destTokenOverride when passed to goToSwaps', () => {
+      const sourceOverride: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000004',
+        symbol: 'SRC_OVERRIDE',
+        name: 'Source Override Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const destOverride: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000005',
+        symbol: 'DEST_OVERRIDE',
+        name: 'Dest Override Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps(sourceOverride, destOverride);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: sourceOverride,
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+        },
+      });
+      expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
+    });
+
+    it('falls back to native token when default dest same as source', () => {
+      const nativeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ether',
+        decimals: 18,
+        chainId: mockChainId,
+        image: '',
+      };
+
+      // Make default token same as source token
+      (getDefaultDestToken as jest.Mock).mockReturnValue({
+        ...mockSourceToken,
+      });
+      (getNativeSourceToken as jest.Mock).mockReturnValue(nativeToken);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(nativeToken);
+    });
+
+    it('falls back to native token when getDefaultDestToken returns null', () => {
+      const nativeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ether',
+        decimals: 18,
+        chainId: mockChainId,
+        image: '',
+      };
+
+      (getDefaultDestToken as jest.Mock).mockReturnValue(null);
+      (getNativeSourceToken as jest.Mock).mockReturnValue(nativeToken);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(nativeToken);
+    });
+
+    it('does not dispatch destToken when native token same as source', () => {
+      // Source token is the native token
+      const nativeSourceToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ether',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      // Default and native both match source
+      (getDefaultDestToken as jest.Mock).mockReturnValue(nativeSourceToken);
+      (getNativeSourceToken as jest.Mock).mockReturnValue(nativeSourceToken);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: nativeSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      // setDestToken should not be called since all options match source
+      expect(mockSetDestToken).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Non-EVM chains', () => {
+    it('uses assetId for Solana native token address', () => {
+      const solanaAssetId =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
       // Mock home page filter network as Solana
       mockUseCurrentNetworkInfo.mockReturnValue({
         enabledNetworks: [{ chainId: SolScope.Mainnet, enabled: true }],
@@ -473,6 +738,7 @@ describe('useSwapBridgeNavigation', () => {
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
       (getNativeAssetForChainId as jest.Mock).mockReturnValue({
         address: ethers.constants.AddressZero,
+        assetId: solanaAssetId,
         name: 'Solana',
         symbol: 'SOL',
         decimals: 9,
@@ -493,12 +759,112 @@ describe('useSwapBridgeNavigation', () => {
         screen: 'BridgeView',
         params: {
           sourceToken: {
-            address: ethers.constants.AddressZero,
+            address: solanaAssetId, // Should use assetId for balance lookup
+            name: 'Solana',
+            symbol: 'SOL',
+            image: '',
+            decimals: 9,
+            chainId: SolScope.Mainnet,
+          },
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+        },
+      });
+    });
+
+    it('keeps Solana chain ID in CAIP format for Bridge', () => {
+      // Mock home page filter network as Solana
+      mockUseCurrentNetworkInfo.mockReturnValue({
+        enabledNetworks: [{ chainId: SolScope.Mainnet, enabled: true }],
+        getNetworkInfo: jest.fn().mockReturnValue({
+          caipChainId: SolScope.Mainnet,
+          networkName: 'Solana Mainnet',
+        }),
+        isDisabled: false,
+        hasEnabledNetworks: true,
+      });
+
+      (isSolanaChainId as jest.Mock).mockReturnValue(true);
+      (getNativeAssetForChainId as jest.Mock).mockReturnValue({
+        address: ethers.constants.AddressZero,
+        assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        name: 'Solana',
+        symbol: 'SOL',
+        decimals: 9,
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: {
+            address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
             name: 'Solana',
             symbol: 'SOL',
             image: '',
             decimals: 9,
             chainId: SolScope.Mainnet, // Should keep CAIP format for Solana
+          },
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+        },
+      });
+    });
+
+    it('uses assetId for Bitcoin native token address', () => {
+      const bitcoinAssetId = 'bip122:000000000019d6689c085ae165831e93/slip44:0';
+
+      // Mock home page filter network as Bitcoin
+      mockUseCurrentNetworkInfo.mockReturnValue({
+        enabledNetworks: [{ chainId: BtcScope.Mainnet, enabled: true }],
+        getNetworkInfo: jest.fn().mockReturnValue({
+          caipChainId: BtcScope.Mainnet,
+          networkName: 'Bitcoin Mainnet',
+        }),
+        isDisabled: false,
+        hasEnabledNetworks: true,
+      });
+
+      (isSolanaChainId as jest.Mock).mockReturnValue(false);
+      (getNativeAssetForChainId as jest.Mock).mockReturnValue({
+        address: ethers.constants.AddressZero,
+        assetId: bitcoinAssetId,
+        name: 'Bitcoin',
+        symbol: 'BTC',
+        decimals: 8,
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: {
+            address: bitcoinAssetId, // Should use assetId for balance lookup
+            name: 'Bitcoin',
+            symbol: 'BTC',
+            image: '',
+            decimals: 8,
+            chainId: BtcScope.Mainnet,
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
@@ -525,6 +891,7 @@ describe('useSwapBridgeNavigation', () => {
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
       (getNativeAssetForChainId as jest.Mock).mockReturnValue({
         address: ethers.constants.AddressZero,
+        assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
         name: 'Solana',
         symbol: 'SOL',
         decimals: 9,
@@ -545,12 +912,63 @@ describe('useSwapBridgeNavigation', () => {
         screen: 'BridgeView',
         params: {
           sourceToken: {
-            address: ethers.constants.AddressZero,
+            address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
             name: 'Solana',
             symbol: 'SOL',
             image: '',
             decimals: 9,
             chainId: SolScope.Mainnet,
+          },
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+        },
+      });
+    });
+
+    it('uses EVM address for EVM chains', () => {
+      const evmAddress = '0x0000000000000000000000000000000000000000';
+
+      // Mock home page filter network as Ethereum
+      mockUseCurrentNetworkInfo.mockReturnValue({
+        enabledNetworks: [{ chainId: '1', enabled: true }],
+        getNetworkInfo: jest.fn().mockReturnValue({
+          caipChainId: EthScope.Mainnet,
+          networkName: 'Ethereum Mainnet',
+        }),
+        isDisabled: false,
+        hasEnabledNetworks: true,
+      });
+
+      (isSolanaChainId as jest.Mock).mockReturnValue(false);
+      (getNativeAssetForChainId as jest.Mock).mockReturnValue({
+        address: evmAddress,
+        assetId: 'eip155:1/slip44:60',
+        name: 'Ether',
+        symbol: 'ETH',
+        decimals: 18,
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: {
+            address: evmAddress, // Should use address for EVM chains
+            name: 'Ether',
+            symbol: 'ETH',
+            image: '',
+            decimals: 18,
+            chainId: mockChainId,
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
@@ -577,6 +995,7 @@ describe('useSwapBridgeNavigation', () => {
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
       (getNativeAssetForChainId as jest.Mock).mockReturnValue({
         address: ethers.constants.AddressZero,
+        assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
         name: 'Solana',
         symbol: 'SOL',
         decimals: 9,
@@ -597,7 +1016,7 @@ describe('useSwapBridgeNavigation', () => {
         screen: 'BridgeView',
         params: {
           sourceToken: {
-            address: ethers.constants.AddressZero,
+            address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
             name: 'Solana',
             symbol: 'SOL',
             image: '',
@@ -609,14 +1028,41 @@ describe('useSwapBridgeNavigation', () => {
         },
       });
     });
-  });
 
-  describe('Analytics Tracking', () => {
-    it('tracks action button click with correct properties when location is TabBar', () => {
+    it('dispatches destToken with CAIP chain ID format', () => {
+      const solanaDestToken: BridgeToken = {
+        symbol: 'SOL',
+        name: 'Solana',
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        decimals: 9,
+        image:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+        chainId: SolScope.Mainnet,
+      };
+
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TabBar,
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            destToken: solanaDestToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(solanaDestToken);
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks action button click with correct properties when location is MainView', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.MainView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -628,7 +1074,7 @@ describe('useSwapBridgeNavigation', () => {
         MetaMetricsEvents.ACTION_BUTTON_CLICKED,
       );
 
-      // When location is TabBar, action_position is omitted and location is navbar
+      // When location is MainView, action_position is omitted and location is navbar
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: ActionButtonType.SWAP,
         button_label: 'Swap',
@@ -639,31 +1085,11 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
     });
 
-    it('tracks action button click with correct properties when location is TokenDetails', () => {
+    it('tracks action button click with correct properties when location is TokenView', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenDetails,
-            sourcePage: mockSourcePage,
-          }),
-        { state: initialState },
-      );
-
-      result.current.goToSwaps();
-
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SECOND_POSITION,
-        button_label: 'Swap',
-        location: ActionLocation.ASSET_DETAILS,
-      });
-    });
-
-    it('tracks action button click when location is Swaps', () => {
-      const { result } = renderHookWithProvider(
-        () =>
-          useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.Swaps,
+            location: SwapBridgeNavigationLocation.TokenView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -703,7 +1129,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TabBar,
+            location: SwapBridgeNavigationLocation.MainView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -730,7 +1156,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenDetails,
+            location: SwapBridgeNavigationLocation.TokenView,
             sourcePage: mockSourcePage,
             sourceToken: mockToken,
           }),

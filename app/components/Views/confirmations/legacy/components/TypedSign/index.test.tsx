@@ -14,10 +14,23 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetrics } from '../../../../../../core/Analytics';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
-import { SigningBottomSheetSelectorsIDs } from '../../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../SigningBottomSheet.testIds';
 import { Reason, ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 
 jest.mock('../../../../../../core/Analytics/MetaMetrics');
+
+jest.mock('../../../../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
 
 jest.mock('../../../../../UI/AccountInfoCard', () => ({
   __esModule: true,
@@ -26,6 +39,7 @@ jest.mock('../../../../../UI/AccountInfoCard', () => ({
 
 const mockMetrics = {
   trackEvent: jest.fn(),
+  updateDataRecordingFlag: jest.fn(),
 };
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);

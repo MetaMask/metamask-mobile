@@ -2,6 +2,17 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  IconColor,
+} from '@metamask/design-system-react-native';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
 import {
   TX_CONFIRMED,
@@ -11,7 +22,6 @@ import {
   TX_UNAPPROVED,
 } from '../../../constants/transaction';
 import AppConstants from '../../../core/AppConstants';
-import { swapsTokensMultiChainObjectSelector } from '../../../reducers/swaps';
 import FIRST_PARTY_CONTRACT_NAMES from '../../../constants/first-party-contracts';
 import {
   selectNetworkClientId,
@@ -33,7 +43,6 @@ import {
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import AssetOverview from '../../UI/AssetOverview';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
 import {
@@ -66,14 +75,12 @@ import {
   selectTransactions,
 } from '../../../selectors/transactionController';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
-import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
-import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
@@ -129,6 +136,93 @@ const createStyles = (colors) =>
     },
   });
 
+// Styles for inline header
+const inlineHeaderStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 48,
+    gap: 16,
+  },
+  leftButton: {
+    marginLeft: 16,
+  },
+  titleWrapper: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  rightButton: {
+    marginRight: 16,
+  },
+  rightPlaceholder: {
+    marginRight: 16,
+    width: 24,
+  },
+});
+
+/**
+ * Inline header component for instant rendering during transitions
+ */
+const AssetInlineHeader = ({
+  title,
+  networkName,
+  onBackPress,
+  onOptionsPress,
+  colors,
+}) => {
+  const insets = useSafeAreaInsets();
+  return (
+    <View
+      style={[
+        inlineHeaderStyles.container,
+        { marginTop: insets.top, backgroundColor: colors.background.default },
+      ]}
+    >
+      <ButtonIcon
+        style={inlineHeaderStyles.leftButton}
+        onPress={onBackPress}
+        size={ButtonIconSize.Lg}
+        iconName={IconName.ArrowLeft}
+        iconColor={IconColor.Default}
+        testID="back-arrow-button"
+      />
+      <View style={inlineHeaderStyles.titleWrapper}>
+        <Text variant={TextVariant.HeadingSM} numberOfLines={1}>
+          {title}
+        </Text>
+        {networkName ? (
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            numberOfLines={1}
+          >
+            {networkName}
+          </Text>
+        ) : null}
+      </View>
+      {onOptionsPress ? (
+        <ButtonIcon
+          style={inlineHeaderStyles.rightButton}
+          onPress={onOptionsPress}
+          size={ButtonIconSize.Lg}
+          iconName={IconName.MoreVertical}
+          iconColor={IconColor.Default}
+        />
+      ) : (
+        <View style={inlineHeaderStyles.rightPlaceholder} />
+      )}
+    </View>
+  );
+};
+
+AssetInlineHeader.propTypes = {
+  title: PropTypes.string,
+  networkName: PropTypes.string,
+  onBackPress: PropTypes.func,
+  onOptionsPress: PropTypes.func,
+  colors: PropTypes.object,
+};
+
 /**
  * View that displays a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
@@ -169,9 +263,6 @@ class Asset extends PureComponent {
      * Array of ERC20 assets
      */
     tokens: PropTypes.array,
-    swapsIsLive: PropTypes.bool,
-    swapsTokens: PropTypes.object,
-    searchDiscoverySwapsTokens: PropTypes.array,
     swapsTransactions: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it
@@ -215,60 +306,12 @@ class Asset extends PureComponent {
     ? safeToChecksumAddress(this.props.selectedAddressForAsset)
     : this.props.selectedAddressForAsset;
 
-  updateNavBar = (contentOffset = 0) => {
-    const {
-      route: { params },
-      navigation,
-      route,
-      chainId,
-      rpcUrl,
-      networkConfigurations,
-    } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const isNativeToken = route.params.isNative ?? route.params.isETH;
-    const isMainnet = isMainnetByChainId(chainId);
-    const blockExplorer = isNonEvmChainId(chainId)
-      ? findBlockExplorerForNonEvmChainId(chainId)
-      : findBlockExplorerForRpc(rpcUrl, networkConfigurations);
-
-    const shouldShowMoreOptionsInNavBar =
-      isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
-    const asset = navigation && params;
-    const currentNetworkName =
-      this.props.networkConfigurations[asset.chainId]?.name;
-    navigation.setOptions(
-      getNetworkNavbarOptions(
-        route.params?.symbol ?? '',
-        false,
-        navigation,
-        colors,
-        // TODO: remove !isNonEvmChainId check once bottom sheet options are fixed for non-EVM chains
-        shouldShowMoreOptionsInNavBar
-          ? () =>
-              navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                screen: 'AssetOptions',
-                params: {
-                  isNativeCurrency: isNativeToken,
-                  address: route.params?.address,
-                  chainId: route.params?.chainId || '0x1',
-                  asset,
-                },
-              })
-          : undefined,
-        true,
-        contentOffset,
-        currentNetworkName,
-      ),
-    );
-  };
-
-  onScrollThroughContent = (contentOffset = 0) => {
-    this.updateNavBar(contentOffset);
+  // No-op: inline header doesn't need scroll updates
+  onScrollThroughContent = () => {
+    // Intentionally empty - inline header doesn't respond to scroll
   };
 
   componentDidMount() {
-    this.updateNavBar();
-
     this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
     this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
 
@@ -557,12 +600,9 @@ class Asset extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const asset = navigation && params;
-    const isSwapsFeatureLive = this.props.swapsIsLive;
 
     const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
       asset,
-      searchDiscoverySwapsTokens: this.props.searchDiscoverySwapsTokens,
-      swapsTokens: this.props.swapsTokens,
     });
 
     const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
@@ -576,8 +616,43 @@ class Asset extends PureComponent {
 
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
+    // Inline header props
+    const isNativeToken = params.isNative ?? params.isETH;
+    const isMainnet = isMainnetByChainId(chainId);
+    const blockExplorer = isNonEvmChainId(chainId)
+      ? findBlockExplorerForNonEvmChainId(chainId)
+      : findBlockExplorerForRpc(
+          this.props.rpcUrl,
+          this.props.networkConfigurations,
+        );
+    const shouldShowMoreOptionsInNavBar =
+      isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
+    const currentNetworkName =
+      this.props.networkConfigurations[asset.chainId]?.name;
+
+    const openAssetOptions = () => {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: 'AssetOptions',
+        params: {
+          isNativeCurrency: isNativeToken,
+          address: params?.address,
+          chainId: params?.chainId || '0x1',
+          asset,
+        },
+      });
+    };
+
     return (
       <View style={styles.wrapper}>
+        <AssetInlineHeader
+          title={params?.symbol ?? ''}
+          networkName={currentNetworkName}
+          onBackPress={() => navigation.pop()}
+          onOptionsPress={
+            shouldShowMoreOptionsInNavBar ? openAssetOptions : undefined
+          }
+          colors={colors}
+        />
         {loading ? (
           this.renderLoader()
         ) : isNonEvmAsset ? (
@@ -589,7 +664,6 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
-                  swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
@@ -614,7 +688,6 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
-                  swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
@@ -768,12 +841,6 @@ const mapStateToProps = (state, { route }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return {
-    swapsIsLive: selectIsSwapsLive(state, route.params.chainId),
-    swapsTokens: swapsTokensMultiChainObjectSelector(state),
-    searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
-      state,
-      route.params.chainId,
-    ),
     swapsTransactions: selectSwapsTransactions(state),
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),

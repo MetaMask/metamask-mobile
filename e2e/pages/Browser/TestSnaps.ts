@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Browser from './BrowserView';
-import Matchers from '../../framework/Matchers';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import Matchers from '../../../tests/framework/Matchers';
+import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
   TestSnapViewSelectorWebIDS,
   TestSnapInputSelectorWebIDS,
@@ -10,17 +10,17 @@ import {
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
 } from '../../selectors/Browser/TestSnaps.selectors';
-import Gestures from '../../framework/Gestures';
+import Gestures from '../../../tests/framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
-import Utilities from '../../framework/Utilities';
-import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import Utilities from '../../../tests/framework/Utilities';
+import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../viewHelper';
-import { RetryOptions } from '../../framework';
+import { RetryOptions } from '../../../tests/framework';
 import { Json } from '@metamask/utils';
 
 export const TEST_SNAPS_URL =

@@ -234,7 +234,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                     }
                   }
                 >
-                  Add Activation Key
+                  Add activation key
                 </Text>
               </Text>
             </View>
@@ -483,7 +483,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 }
                               }
                             >
-                              Add Activation Key
+                              Add activation key
                             </Text>
                             <View
                               style={
@@ -586,7 +586,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "fontWeight": "400",
                                         "height": 38,
                                         "letterSpacing": 0,
-                                        "lineHeight": 20,
                                         "opacity": 1,
                                         "paddingVertical": 2,
                                         "textAlignVertical": "center",
@@ -686,7 +685,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
-                                    placeholder="Paste or type an Activation Key"
+                                    placeholder="Paste or type an activation key"
                                     returnKeyType="done"
                                     spellCheck={false}
                                     style={
@@ -700,7 +699,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "fontWeight": "400",
                                         "height": 38,
                                         "letterSpacing": 0,
-                                        "lineHeight": 20,
                                         "opacity": 1,
                                         "paddingVertical": 2,
                                         "textAlignVertical": "center",

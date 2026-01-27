@@ -21,8 +21,9 @@ function createResource(
   max: number,
 ): TronResource {
   const currentBN = new BigNumber(current);
-  const maxBN = new BigNumber(max);
-  const percentageBN = currentBN.dividedBy(maxBN).multipliedBy(100);
+  // Use max of 1 only for percentage calculation to avoid division by zero
+  const divisor = new BigNumber(Math.max(1, max));
+  const percentageBN = currentBN.dividedBy(divisor).multipliedBy(100);
 
   const percentage = BigNumber.min(
     100,
@@ -32,7 +33,7 @@ function createResource(
   return {
     type,
     current,
-    max,
+    max, // Keep actual max for display (can be 0)
     percentage,
   };
 }
@@ -91,12 +92,13 @@ export const useTronResources = (): {
     const maxEnergyValue = parseValue(maxEnergy?.balance);
     const maxBandwidthValue = parseValue(maxBandwidth?.balance);
 
-    const energyMax = Math.max(1, maxEnergyValue);
-    const bandwidthMax = Math.max(1, maxBandwidthValue);
-
     return {
-      energy: createResource('energy', energyCurrent, energyMax),
-      bandwidth: createResource('bandwidth', bandwidthCurrent, bandwidthMax),
+      energy: createResource('energy', energyCurrent, maxEnergyValue),
+      bandwidth: createResource(
+        'bandwidth',
+        bandwidthCurrent,
+        maxBandwidthValue,
+      ),
     };
   }, [tronResources]);
 };

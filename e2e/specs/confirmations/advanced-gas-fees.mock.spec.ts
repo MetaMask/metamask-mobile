@@ -1,19 +1,18 @@
 import { RegressionConfirmations } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
-import AmountView from '../../pages/Send/AmountView';
+import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import Assertions from '../../framework/Assertions';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import Assertions from '../../../tests/framework/Assertions';
 import { Mockttp } from 'mockttp';
-import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { LocalNode } from '../../framework/types';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { oldConfirmationsRemoteFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import { LocalNode } from '../../../tests/framework/types';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const testSpecificMock = async (mockServer: Mockttp) => {
@@ -60,14 +59,9 @@ describe(
           //Tap send Icon
           await WalletView.tapWalletSendButton();
 
-          await SendView.inputAddress(VALID_ADDRESS);
-          await SendView.tapNextButton();
-          // Check that we are on the amount view
-          await Assertions.expectElementToBeVisible(AmountView.title);
-
-          // Input acceptable value
-          await AmountView.typeInTransactionAmount('0.00004');
-          await AmountView.tapNextButton();
+          await RedesignedSendView.inputRecipientAddress(VALID_ADDRESS);
+          await RedesignedSendView.typeInTransactionAmount('0.00004');
+          await RedesignedSendView.pressReviewButton();
 
           // Check that we are on the confirm view
           await Assertions.expectElementToBeVisible(

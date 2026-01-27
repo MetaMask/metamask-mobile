@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
+import { useNeedsGasFaucet } from './useNeedsGasFaucet';
 import { CardSDK } from '../sdk/CardSDK';
 import { CardTokenAllowance, AllowanceState } from '../types';
 import Engine from '../../../../core/Engine';
@@ -28,6 +29,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
+}));
+
+jest.mock('./useNeedsGasFaucet', () => ({
+  useNeedsGasFaucet: jest.fn(),
 }));
 
 jest.mock('../../../hooks/useMetrics', () => ({
@@ -74,6 +79,9 @@ jest.mock('../../../../core/Engine', () => ({
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseNeedsGasFaucet = useNeedsGasFaucet as jest.MockedFunction<
+  typeof useNeedsGasFaucet
+>;
 const mockToTokenMinimalUnit = toTokenMinimalUnit as jest.MockedFunction<
   typeof toTokenMinimalUnit
 >;
@@ -121,9 +129,19 @@ describe('useCardDelegation', () => {
   let mockCreateEventBuilder: jest.Mock;
   let mockBuild: jest.Mock;
   let mockAddProperties: jest.Mock;
+  let mockRefetchFaucetCheck: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Setup useNeedsGasFaucet mock
+    mockRefetchFaucetCheck = jest.fn();
+    mockUseNeedsGasFaucet.mockReturnValue({
+      needsFaucet: false,
+      isLoading: false,
+      error: null,
+      refetch: mockRefetchFaucetCheck,
+    });
 
     // Setup SDK mock
     mockSDK = {
@@ -222,6 +240,9 @@ describe('useCardDelegation', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(typeof result.current.submitDelegation).toBe('function');
+      expect(result.current.needsFaucet).toBe(false);
+      expect(result.current.isFaucetCheckLoading).toBe(false);
+      expect(typeof result.current.refetchFaucetCheck).toBe('function');
     });
 
     it('accepts token parameter', () => {
@@ -257,6 +278,7 @@ describe('useCardDelegation', () => {
       expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
         params.network,
         mockAddress,
+        false, // needsFaucet
       );
       expect(
         Engine.context.KeyringController.signPersonalMessage,
@@ -1143,6 +1165,7 @@ describe('useCardDelegation', () => {
       expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
         'solana',
         mockSolanaAddress,
+        false, // needsFaucet
       );
     });
 
@@ -1170,6 +1193,7 @@ describe('useCardDelegation', () => {
       expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
         'linea',
         mockChecksummedAddress,
+        false, // needsFaucet
       );
     });
 
@@ -1260,6 +1284,113 @@ describe('useCardDelegation', () => {
           currency: 'usdc',
         }),
       );
+    });
+  });
+
+  describe('faucet check', () => {
+    it('exposes needsFaucet state from useNeedsGasFaucet hook', () => {
+      mockUseNeedsGasFaucet.mockReturnValue({
+        needsFaucet: true,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchFaucetCheck,
+      });
+
+      const mockToken = createMockToken();
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      expect(result.current.needsFaucet).toBe(true);
+    });
+
+    it('exposes isFaucetCheckLoading state from useNeedsGasFaucet hook', () => {
+      mockUseNeedsGasFaucet.mockReturnValue({
+        needsFaucet: false,
+        isLoading: true,
+        error: null,
+        refetch: mockRefetchFaucetCheck,
+      });
+
+      const mockToken = createMockToken();
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      expect(result.current.isFaucetCheckLoading).toBe(true);
+    });
+
+    it('exposes refetchFaucetCheck function from useNeedsGasFaucet hook', () => {
+      const mockToken = createMockToken();
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      result.current.refetchFaucetCheck();
+
+      expect(mockRefetchFaucetCheck).toHaveBeenCalled();
+    });
+
+    it('passes needsFaucet=true to generateDelegationToken when user needs faucet', async () => {
+      mockUseNeedsGasFaucet.mockReturnValue({
+        needsFaucet: true,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchFaucetCheck,
+      });
+
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
+        params.network,
+        mockAddress,
+        true, // needsFaucet
+      );
+    });
+
+    it('passes needsFaucet=false to generateDelegationToken when user has sufficient funds', async () => {
+      mockUseNeedsGasFaucet.mockReturnValue({
+        needsFaucet: false,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchFaucetCheck,
+      });
+
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
+        params.network,
+        mockAddress,
+        false, // needsFaucet
+      );
+    });
+
+    it('passes token to useNeedsGasFaucet hook', () => {
+      const mockToken = createMockToken();
+
+      renderHook(() => useCardDelegation(mockToken));
+
+      expect(mockUseNeedsGasFaucet).toHaveBeenCalledWith(mockToken);
+    });
+
+    it('passes null token to useNeedsGasFaucet hook when no token provided', () => {
+      renderHook(() => useCardDelegation(null));
+
+      expect(mockUseNeedsGasFaucet).toHaveBeenCalledWith(null);
+    });
+
+    it('passes undefined token to useNeedsGasFaucet hook when undefined', () => {
+      renderHook(() => useCardDelegation(undefined));
+
+      expect(mockUseNeedsGasFaucet).toHaveBeenCalledWith(undefined);
     });
   });
 });

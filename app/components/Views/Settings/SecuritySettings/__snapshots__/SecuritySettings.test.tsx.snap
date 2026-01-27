@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SecuritySettings should render correctly 1`] = `
+exports[`SecuritySettings renders correctly 1`] = `
 <RCTScrollView
   style={
     {
@@ -400,6 +400,14 @@ exports[`SecuritySettings should render correctly 1`] = `
         </View>
       </View>
       <View
+        style={
+          [
+            {
+              "display": "flex",
+            },
+            undefined,
+          ]
+        }
         testID="login-options"
       />
       <View
@@ -492,82 +500,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             When Remember me is on, anyone with access to your phone can access your MetaMask account.
           </Text>
         </View>
-      </View>
-      <View
-        style={
-          {
-            "marginTop": 32,
-          }
-        }
-        testID="reveal-private-key-section"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 18,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Show private key for "Account 2"
-        </Text>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "marginTop": 8,
-            }
-          }
-        >
-          This is the private key for the current selected account: Account 2. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
-        </Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "stretch",
-              "backgroundColor": "#121314",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "marginTop": 16,
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-            }
-          }
-          testID="show-private-key"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Show private key
-          </Text>
-        </TouchableOpacity>
       </View>
       <View
         style={
@@ -1683,7 +1615,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
           >
-            IPFS Gateway
+            IPFS gateway
           </Text>
           <View
             style={

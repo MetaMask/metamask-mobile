@@ -15,8 +15,8 @@ import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors.js';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures.js';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors.js';
 import { expect } from 'appwright';
 
 export async function selectAccountDevice(device, testInfo) {
@@ -113,6 +113,7 @@ export async function onboardingFlowImportSRP(device, srp) {
 }
 
 export async function dissmissAllModals(device) {
+  await dismissAddAccountModal(device);
   await dismissMultichainAccountsIntroModal(device);
   await dissmissPredictionsModal(device);
 }
@@ -135,7 +136,7 @@ export async function checkPredictionsModalIsVisible(device) {
   await expect(notNowPredictionsModalButton).toBeVisible({ timeout: 10000 });
 }
 
-export async function importSRPFlow(device, srp, dismissModals = true) {
+export async function importSRPFlow(device, srp, dismissModals = false) {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
@@ -143,22 +144,30 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
   const timers = [];
   const timer = new TimerHelper(
     'Time since the user clicks on "Account list" button until the account list is visible',
+    { ios: 2500, android: 3000 },
+    device,
   );
   const timer2 = new TimerHelper(
     'Time since the user clicks on "Add account" button until the next modal is visible',
+    { ios: 1000, android: 1700 },
+    device,
   );
   const timer3 = new TimerHelper(
     'Time since the user clicks on "Import SRP" button until SRP field is displayed',
+    { ios: 1700, android: 1700 },
+    device,
   );
   const timer4 = new TimerHelper(
     'Time since the user clicks on "Continue" button on SRP screen until Wallet main screen is visible',
+    { ios: 5000, android: 2000 },
+    device,
   );
 
   await WalletMainScreen.tapIdenticon();
   timer.start();
   await AccountListComponent.isComponentDisplayed();
   timer.stop();
-
+  await AccountListComponent.waitForSyncingToComplete();
   await AccountListComponent.tapOnAddWalletButton();
   timer2.start();
   await AddAccountModal.isVisible();
@@ -183,17 +192,16 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-  const { scenarioType = 'login', dismissModals = true } = options;
+  const { scenarioType = 'login', dismissModals = false } = options;
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
-  await new Promise((resolve) => setTimeout(resolve, 5000)); // workaround for notification modal to appear
   if (dismissModals) {
-    await dismissMultichainAccountsIntroModal(device);
-    await dissmissPredictionsModal(device);
+    await dissmissAllModals(device);
   }
+  await AppwrightGestures.wait(5000);
 }
 
 export async function tapPerpsBottomSheetGotItButton(device) {
@@ -202,6 +210,7 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   if (await container.isVisible({ timeout: 5000 })) {
     await PerpsGTMModal.tapNotNowButton();
     console.log('Perps onboarding dismissed');
+    return;
   }
 }
 
@@ -221,5 +230,24 @@ export async function dismissMultichainAccountsIntroModal(
   const closeButton = await MultichainAccountEducationModal.closeButton;
   if (await closeButton.isVisible({ timeout })) {
     await MultichainAccountEducationModal.tapGotItButton();
+    return;
+  }
+}
+
+export async function dismissAddAccountModal(device) {
+  // Fix this for iOS
+  if (!device || !AppwrightSelectors.isAndroid(device)) {
+    return;
+  }
+  const cancelButton = await AppwrightSelectors.getElementByXpath(
+    device,
+    '//android.widget.Button[@content-desc="Cancel"]',
+  );
+  if (await cancelButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(cancelButton);
+    return;
+  }
+  if (await cancelButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(cancelButton);
   }
 }

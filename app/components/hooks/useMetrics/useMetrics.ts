@@ -1,10 +1,15 @@
 import { IUseMetricsHook } from './useMetrics.types';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../util/analytics/analytics';
 import { MetaMetrics } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useMemo } from 'react';
+import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
+import type { UserTraits } from '@segment/analytics-react-native';
+import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 
 /**
- * Hook to use MetaMetrics
+ * Hook to use analytics
  *
  * The hook allows to track non-anonymous and anonymous events,
  * with properties and without properties,
@@ -18,7 +23,10 @@ import { useMemo } from 'react';
  * - The anonymous event includes sensitive properties so you can know **what** but not **who**
  * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
  *
- * @returns MetaMetrics functions
+ * @deprecated Use useAnalytics from
+ * app/components/hooks/useAnalytics/useAnalytics to migrate
+ * away from MetaMetrics.
+ * @returns Analytics functions
  *
  * @example basic non-anonymous tracking with no properties:
  * const { trackEvent, createEventBuilder } = useMetrics();
@@ -81,17 +89,43 @@ import { useMemo } from 'react';
 const useMetrics = (): IUseMetricsHook =>
   useMemo(
     () => ({
-      trackEvent: MetaMetrics.getInstance().trackEvent,
-      enable: MetaMetrics.getInstance().enable,
-      addTraitsToUser: MetaMetrics.getInstance().addTraitsToUser,
+      trackEvent: (
+        event: ITrackingEvent,
+        saveDataRecording?: boolean,
+      ): void => {
+        // Convert ITrackingEvent to AnalyticsTrackingEvent format
+        const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
+          .setSaveDataRecording(saveDataRecording ?? true)
+          .build();
+        analytics.trackEvent(analyticsEvent);
+
+        // Update data recording flag if needed
+        // TODO: Remove this call when data recording flag logic is migrated out of MetaMetrics
+        MetaMetrics.getInstance().updateDataRecordingFlag(
+          analyticsEvent.saveDataRecording,
+        );
+      },
+      enable: async (enable?: boolean): Promise<void> => {
+        if (enable === false) {
+          await analytics.optOut();
+        } else {
+          await analytics.optIn();
+        }
+      },
+      addTraitsToUser: async (userTraits: UserTraits): Promise<void> => {
+        analytics.identify(userTraits as unknown as AnalyticsUserTraits);
+      },
       createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,
       checkDataDeleteStatus: MetaMetrics.getInstance().checkDataDeleteStatus,
       getDeleteRegulationCreationDate:
         MetaMetrics.getInstance().getDeleteRegulationCreationDate,
       getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
       isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
-      isEnabled: MetaMetrics.getInstance().isEnabled,
-      getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId,
+      isEnabled: (): boolean => analytics.isEnabled(),
+      getMetaMetricsId: async (): Promise<string | undefined> => {
+        const id = await analytics.getAnalyticsId();
+        return id;
+      },
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
     }),
     [],

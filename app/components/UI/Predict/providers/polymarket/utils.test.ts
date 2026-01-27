@@ -2266,7 +2266,7 @@ describe('polymarket utils', () => {
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&exclude_tag_id=100639&order=volume24hr',
+        'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&order=volume24hr',
       );
     });
 
@@ -2294,6 +2294,61 @@ describe('polymarket utils', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         'https://gamma-api.polymarket.com/public-search?q=weather&type=events&events_status=active&sort=volume_24hr&presets=EventsTitle&limit_per_type=10&page=1',
       );
+    });
+
+    it('returns empty array when search results omit markets', async () => {
+      const eventWithoutMarkets = {
+        ...mockEvent,
+        markets: undefined,
+      } as unknown as PolymarketApiEvent;
+
+      const mockResponse = {
+        events: [eventWithoutMarkets],
+      };
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const params: GetMarketsParams = {
+        providerId: 'polymarket',
+        q: 'nhl',
+        limit: 10,
+        offset: 0,
+      };
+
+      const result = await getParsedMarketsFromPolymarketApi(params);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty tags when search results omit tags', async () => {
+      const eventWithoutTags = {
+        ...mockEvent,
+        tags: undefined,
+      } as unknown as PolymarketApiEvent;
+
+      const mockResponse = {
+        events: [eventWithoutTags],
+      };
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const params: GetMarketsParams = {
+        providerId: 'polymarket',
+        q: 'nhl',
+        limit: 10,
+        offset: 0,
+      };
+
+      const result = await getParsedMarketsFromPolymarketApi(params);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].tags).toEqual([]);
     });
 
     it('handle different categories', async () => {

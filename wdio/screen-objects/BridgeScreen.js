@@ -1,11 +1,11 @@
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
-import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
-import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
+import { PerpsWithdrawViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
+import { QuoteViewSelectorText } from '../../e2e/selectors/Bridge/QuoteView.selectors';
 import Selectors from '../helpers/Selectors.js';
-import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 import { splitAmountIntoDigits } from 'appwright/utils/Utils.js';
 import AmountScreen from './AmountScreen';
 
@@ -32,7 +32,7 @@ class BridgeScreen {
   }
   get destinationTokenArea(){
     return AppwrightSelectors.getElementByID(this._device, PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA);
-    
+
   }
   get seeAllDropDown(){
     return AppwrightSelectors.getElementByText(this._device, "See all");
@@ -46,21 +46,17 @@ class BridgeScreen {
       );
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${networkName}"]`);
+        return AppwrightSelectors.getElementByCatchAll(this._device, networkName);
       } else {
         return AppwrightSelectors.getElementByID(this._device, `${networkName}`);
       }
     }
   }
 
-  get getETHQuotesButton(){
-    return AppwrightSelectors.getElementByText(this._device, QuoteViewSelectorText.GET_QUOTES);
-  }
-
   async isQuoteDisplayed() {
       const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MM fee");
       await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
-    
+
 
   }
 
@@ -90,16 +86,8 @@ class BridgeScreen {
     await AppwrightGestures.tap(tokenButton);
   }
 
-  async tapGetQuotes(network){
-    if (network == 'Ethereum'){
-    const quotesButton = this.getETHQuotesButton;
-    await appwrightExpect(quotesButton).toBeVisible({ timeout: 10000 });
-    await AppwrightGestures.tap(quotesButton);
-    }
-  }
-
   async enterDestinationTokenAmount(amount) {
-    const element = this.destTokenInput;
+    const element = await this.destTokenInput;
     await AppwrightGestures.typeText(element, amount);
   }
 

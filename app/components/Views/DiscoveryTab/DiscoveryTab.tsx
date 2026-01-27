@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { processUrlForBrowser } from '../../../util/browser';
 import Device from '../../../util/device';
 import ErrorBoundary from '../ErrorBoundary';
-import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
@@ -30,6 +29,7 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
 export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
   id: tabId,
   showTabs,
+  newTab,
   updateTabInfo,
 }) => {
   // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
@@ -58,10 +58,11 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
 
   const onSubmitEditing = useCallback(
     async (text: string) => {
-      if (!text) return;
+      const trimmedText = text.trim();
+      if (!trimmedText) return;
       hideAutocomplete();
       // Format url for browser to be navigatable by webview
-      const processedUrl = processUrlForBrowser(text, searchEngine);
+      const processedUrl = processUrlForBrowser(trimmedText, searchEngine);
       updateTabInfo(tabId, { url: processedUrl });
     },
     [searchEngine, updateTabInfo, tabId, hideAutocomplete],
@@ -72,18 +73,11 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
    */
   const onSelect = useCallback(
     (item: AutocompleteSearchResult) => {
-      if (item.category === 'tokens') {
-        navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
-          chainId: item.chainId,
-          address: item.address,
-        });
-      } else {
-        // Unfocus the url bar and hide the autocomplete results
-        urlBarRef.current?.hide();
-        onSubmitEditing(item.url);
-      }
+      // Unfocus the url bar and hide the autocomplete results
+      urlBarRef.current?.hide();
+      onSubmitEditing(item.url);
     },
-    [onSubmitEditing, navigation],
+    [onSubmitEditing],
   );
 
   /**
@@ -109,20 +103,21 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
     autocompleteRef.current?.search(text);
   }, []);
 
-  const toggleUrlModal = useCallback(() => {
-    urlBarRef.current?.focus();
-  }, []);
-
   /**
    * Render the bottom (navigation/options) bar
+   * Note: DiscoveryTab uses minimal browser bar functionality
    */
   const renderBottomBar = () =>
     isTabActive && !isUrlBarFocused ? (
       <BrowserBottomBar
         canGoBack={false}
         canGoForward={false}
-        showTabs={showTabs}
-        showUrlModal={toggleUrlModal}
+        openNewTab={() => newTab()}
+        activeUrl=""
+        getMaskedUrl={(url) => url}
+        title=""
+        sessionENSNames={{}}
+        favicon={{ uri: '' }}
       />
     ) : null;
 
@@ -151,6 +146,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
             onBlur={noop}
             activeUrl=""
             connectedAccounts={[]}
+            showTabs={showTabs}
           />
           <View style={styles.wrapper}>
             <View style={styles.webview}>

@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -21,7 +21,13 @@ import { strings } from '../../../../../../locales/i18n';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 import createStyles from './PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from './content/contentRegistry';
-import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsEventValues,
+  PerpsEventProperties,
+} from '../../constants/eventNames';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
 /**
  * Tip: If want to render the PerpsBottomSheetTooltip from the root (not constrained by a parent component),
@@ -82,10 +88,25 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
       );
     };
 
-    // Memoize the button handler to prevent recreation
-    const handleGotItPress = useCallback(() => {
+    const { track } = usePerpsEventTracking();
+
+    const handleClose = useCallback(() => {
       bottomSheetRef.current?.onCloseBottomSheet();
     }, []);
+
+    // Memoize the button handler to prevent recreation
+    const handleGotItPress = useCallback(() => {
+      // Track tooltip button click
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PerpsEventProperties.BUTTON_CLICKED]:
+          PerpsEventValues.BUTTON_CLICKED.TOOLTIP,
+        [PerpsEventProperties.BUTTON_LOCATION]:
+          PerpsEventValues.BUTTON_LOCATION.TOOLTIP,
+      });
+      handleClose();
+    }, [track, handleClose]);
 
     // Memoize button label and footer buttons
     const buttonLabel = useMemo(
@@ -126,14 +147,11 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         testID={testID}
       >
         {!hasCustomHeader && (
-          <BottomSheetHeader>
-            <Text
-              variant={TextVariant.HeadingMD}
-              testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
-            >
-              {title}
-            </Text>
-          </BottomSheetHeader>
+          <HeaderCenter
+            title={title}
+            testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
+            onClose={handleClose}
+          />
         )}
         <View style={styles.contentContainer}>{renderContent()}</View>
         <BottomSheetFooter

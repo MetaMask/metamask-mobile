@@ -39,7 +39,7 @@ import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   getPerpsTPSLViewSelector,
   PerpsTPSLViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import { createStyles } from './PerpsTPSLView.styles';
@@ -91,7 +91,7 @@ const PerpsTPSLView: React.FC = () => {
   // Use throttle for TP/SL screen to reduce re-renders
   const priceData = usePerpsLivePrices({
     symbols: asset ? [asset] : [],
-    throttleMs: TP_SL_VIEW_CONFIG.PRICE_THROTTLE_MS,
+    throttleMs: TP_SL_VIEW_CONFIG.PriceThrottleMs,
   });
   const livePrice = priceData[asset]?.price
     ? parseFloat(priceData[asset].price)
@@ -209,15 +209,24 @@ const PerpsTPSLView: React.FC = () => {
     expectedStopLossPnL,
   } = tpslForm.display;
 
+  // Determine if this is create (new order) or edit (existing position) TP/SL
+  const isEditingExistingPosition = !!position;
+  const tpslScreenType = isEditingExistingPosition
+    ? PerpsEventValues.SCREEN_TYPE.EDIT_TPSL
+    : PerpsEventValues.SCREEN_TYPE.CREATE_TPSL;
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.TP_SL,
+      [PerpsEventProperties.SCREEN_TYPE]: tpslScreenType,
       [PerpsEventProperties.ASSET]: asset,
       [PerpsEventProperties.DIRECTION]:
         actualDirection === 'long'
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
+      // Add initial TP/SL state to understand what user already has set
+      [PerpsEventProperties.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
+      [PerpsEventProperties.HAS_STOP_LOSS]: !!initialStopLossPrice,
     },
   });
 
@@ -355,10 +364,23 @@ const PerpsTPSLView: React.FC = () => {
     setIsUpdating(true);
     try {
       // Pass tracking data to avoid duplicate position fetch in controller
+      // Use appropriate source based on context:
+      // - POSITION_SCREEN when editing TP/SL on an existing position
+      // - TRADE_SCREEN when setting TP/SL for a new order
       const trackingData = {
         direction: actualDirection,
-        source: 'tp_sl_view',
+        source: isEditingExistingPosition
+          ? PerpsEventValues.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
+          : PerpsEventValues.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
+        takeProfitPercentage: formattedTakeProfitPercentage
+          ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
+          : undefined,
+        stopLossPercentage: formattedStopLossPercentage
+          ? parseFloat(formattedStopLossPercentage.replace('%', ''))
+          : undefined,
+        isEditingExistingPosition,
+        entryPrice: effectiveEntryPrice,
       };
       await onConfirm(parseTakeProfitPrice, parseStopLossPrice, trackingData);
       navigation.goBack();
@@ -374,6 +396,10 @@ const PerpsTPSLView: React.FC = () => {
     navigation,
     actualDirection,
     position,
+    formattedTakeProfitPercentage,
+    formattedStopLossPercentage,
+    isEditingExistingPosition,
+    effectiveEntryPrice,
   ]);
 
   const confirmDisabled = !hasChanges || !isValid || isUpdating;
@@ -445,7 +471,7 @@ const PerpsTPSLView: React.FC = () => {
                     ? formatPerpsFiat(position.entryPrice, {
                         ranges: PRICE_RANGES_UNIVERSAL,
                       })
-                    : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
+                    : PERPS_CONSTANTS.FallbackPriceDisplay}
                 </Text>
               </View>
             )}
@@ -462,7 +488,7 @@ const PerpsTPSLView: React.FC = () => {
                   ? formatPerpsFiat(currentPrice, {
                       ranges: PRICE_RANGES_UNIVERSAL,
                     })
-                  : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
+                  : PERPS_CONSTANTS.FallbackPriceDisplay}
               </Text>
             </View>
             <View style={styles.priceInfoRow}>
@@ -477,7 +503,7 @@ const PerpsTPSLView: React.FC = () => {
                   ? formatPerpsFiat(displayLiquidationPrice, {
                       ranges: PRICE_RANGES_UNIVERSAL,
                     })
-                  : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
+                  : PERPS_CONSTANTS.FallbackPriceDisplay}
               </Text>
             </View>
           </View>
@@ -505,7 +531,7 @@ const PerpsTPSLView: React.FC = () => {
 
             {/* Percentage buttons */}
             <View style={styles.percentageButtonsContainer}>
-              {TP_SL_VIEW_CONFIG.TAKE_PROFIT_ROE_PRESETS.map((percentage) => (
+              {TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={styles.percentageButton}
@@ -548,7 +574,7 @@ const PerpsTPSLView: React.FC = () => {
                   value={takeProfitPrice}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
+                    if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleTakeProfitPriceChange(text);
                   }}
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
@@ -580,7 +606,7 @@ const PerpsTPSLView: React.FC = () => {
                   value={formattedTakeProfitPercentage}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
+                    if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleTakeProfitPercentageChange(text);
                   }}
                   placeholder={strings('perps.tpsl.profit_roe_placeholder')}
@@ -640,7 +666,7 @@ const PerpsTPSLView: React.FC = () => {
                   color={TextColor.Alternative}
                   style={styles.expectedPnLText}
                 >
-                  {PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
+                  {PERPS_CONSTANTS.FallbackDataDisplay}
                 </Text>
               )}
 
@@ -675,7 +701,7 @@ const PerpsTPSLView: React.FC = () => {
 
             {/* Percentage buttons */}
             <View style={styles.percentageButtonsContainer}>
-              {TP_SL_VIEW_CONFIG.STOP_LOSS_ROE_PRESETS.map((percentage) => (
+              {TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={styles.percentageButton}
@@ -718,7 +744,7 @@ const PerpsTPSLView: React.FC = () => {
                   value={stopLossPrice}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
+                    if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleStopLossPriceChange(text);
                   }}
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
@@ -750,7 +776,7 @@ const PerpsTPSLView: React.FC = () => {
                   value={formattedStopLossPercentage}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
+                    if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleStopLossPercentageChange(text);
                   }}
                   placeholder={strings('perps.tpsl.loss_roe_placeholder')}
@@ -802,7 +828,7 @@ const PerpsTPSLView: React.FC = () => {
                 color={TextColor.Alternative}
                 style={styles.expectedPnLText}
               >
-                {PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
+                {PERPS_CONSTANTS.FallbackDataDisplay}
               </Text>
             )}
 
@@ -838,8 +864,8 @@ const PerpsTPSLView: React.FC = () => {
                   return formattedStopLossPercentage;
                 })()}
                 onChange={handleKeypadChange}
-                currency={TP_SL_VIEW_CONFIG.KEYPAD_CURRENCY_CODE}
-                decimals={TP_SL_VIEW_CONFIG.KEYPAD_DECIMALS}
+                currency={TP_SL_VIEW_CONFIG.KeypadCurrencyCode}
+                decimals={TP_SL_VIEW_CONFIG.KeypadDecimals}
               />
             </View>
           </>

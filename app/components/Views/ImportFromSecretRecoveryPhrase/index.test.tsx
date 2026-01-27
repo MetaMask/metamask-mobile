@@ -5,10 +5,10 @@ import renderWithProvider, {
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
+import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { strings } from '../../../../locales/i18n';
 import { Authentication } from '../../../core';
-import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
@@ -26,12 +26,28 @@ import {
   endTrace,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
+import ReduxService from '../../../core/redux/ReduxService';
+import { RootState } from '../../../reducers';
+import { ReduxStore } from '../../../core/redux/types';
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
   dismiss: jest.fn(),
   addListener: jest.fn(() => ({ remove: jest.fn() })),
   removeListener: jest.fn(),
 }));
+
+// Mock for keyboard state visibility
+const mockUseKeyboardState = jest.fn();
+jest.mock('react-native-keyboard-controller', () => {
+  const { ScrollView, View } = jest.requireActual('react-native');
+  return {
+    KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
+    KeyboardAwareScrollView: ScrollView,
+    KeyboardStickyView: View,
+    useKeyboardState: (selector: (state: { isVisible: boolean }) => boolean) =>
+      mockUseKeyboardState(selector),
+  };
+});
 
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
@@ -73,6 +89,13 @@ const initialState = {
   },
 };
 
+jest.mock(
+  '../../../selectors/featureFlagController/importSrpWordSuggestion',
+  () => ({
+    selectImportSrpWordSuggestionEnabledFlag: () => true,
+  }),
+);
+
 const mockIsEnabled = jest.fn().mockReturnValue(true);
 
 jest.mock('../../hooks/useMetrics', () => {
@@ -87,12 +110,50 @@ jest.mock('../../hooks/useMetrics', () => {
 });
 
 describe('ImportFromSecretRecoveryPhrase', () => {
+  const createMockReduxStore = (
+    stateOverrides?: Partial<RootState>,
+  ): ReduxStore => {
+    const defaultState = {
+      user: {
+        existingUser: false,
+        passwordSet: true,
+        seedphraseBackedUp: false,
+      },
+      security: {
+        allowLoginWithRememberMe: false,
+      },
+      settings: {
+        lockTime: -1,
+      },
+      ...(stateOverrides || {}),
+    } as RootState;
+
+    return {
+      dispatch: jest.fn(),
+      getState: jest.fn(() => defaultState),
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+      [Symbol.observable]: jest.fn(),
+    } as unknown as ReduxStore;
+  };
+
   afterEach(() => {
     jest.clearAllMocks();
+    // Restore Redux store mock after clearing mocks
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock Redux store for all tests
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+
+    mockUseKeyboardState.mockImplementation(
+      (selector: (state: { isVisible: boolean }) => boolean) =>
+        selector({ isVisible: false }),
+    );
   });
 
   jest
@@ -118,22 +179,15 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('has current step as 1 on initial render when currentStep is 0', () => {
+    it('renders SRP input screen on initial render', () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // The component shows steps as "Step 1 of 2" when currentStep is 0
-      expect(
-        getByText(
-          strings('import_from_seed.steps', {
-            currentStep: 1,
-            totalSteps: 2,
-          }),
-        ),
-      ).toBeOnTheScreen();
+      // The component shows the SRP input screen initially
+      expect(getByText(strings('import_from_seed.title'))).toBeOnTheScreen();
     });
 
     it('renders Import wallet title and description', () => {
@@ -280,14 +334,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
     });
 
-    it('on enter key press, the new input field value is created', async () => {
-      const { getByPlaceholderText, getByTestId } = renderScreen(
+    it('on submit editing, keyboard dismisses without creating new input', async () => {
+      const { getByPlaceholderText, getByTestId, queryByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // Enter a valid 12-word seed phrase
+      // Enter a word
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
@@ -313,11 +367,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent(firstGridInput, 'onSubmitEditing');
       });
 
+      // Verify no new input was created (keyboard just dismisses)
       await waitFor(() => {
-        const secondInput = getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
-        );
-        expect(secondInput).toBeOnTheScreen();
+        expect(
+          queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
+        ).toBeNull();
       });
     });
 
@@ -388,17 +442,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.press(continueButton);
       });
 
-      // Wait for step 2 to appear and verify
+      // Wait for password screen to appear and verify
       await waitFor(
         () => {
-          expect(
-            getByText(
-              strings('import_from_seed.steps', {
-                currentStep: 2,
-                totalSteps: 2,
-              }),
-            ),
-          ).toBeOnTheScreen();
           expect(
             getByText(strings('import_from_seed.metamask_password')),
           ).toBeOnTheScreen();
@@ -529,7 +575,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('on entering an invalid seed phrase, spellcheck error message is shown', async () => {
-      const { getByPlaceholderText, getByText } = renderScreen(
+      const { getByPlaceholderText, getAllByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
@@ -549,10 +595,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const errorMessage = getByText(
+        const errorMessages = getAllByText(
           strings('import_from_seed.spellcheck_error'),
         );
-        expect(errorMessage).toBeOnTheScreen();
+        expect(errorMessages.length).toBeGreaterThan(0);
+        expect(errorMessages[0]).toBeOnTheScreen();
       });
     });
 
@@ -600,18 +647,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(inputFields[0].props.value).toBe('say');
       });
 
-      // Press continue and verify step 2
+      // Press continue and verify password screen
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(
-          getByText(
-            strings('import_from_seed.steps', {
-              currentStep: 2,
-              totalSteps: 2,
-            }),
-          ),
-        ).toBeOnTheScreen();
         expect(
           getByText(strings('import_from_seed.metamask_password')),
         ).toBeOnTheScreen();
@@ -1371,30 +1410,18 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     it('navigates to Import Wallet UI when back button is pressed', async () => {
       const { getByTestId, getByText } = await renderCreatePasswordUI();
 
-      // Verify we're on step 2
+      // Verify we're on password screen
       expect(
-        getByText(
-          strings('import_from_seed.steps', {
-            currentStep: 2,
-            totalSteps: 2,
-          }),
-        ),
+        getByText(strings('import_from_seed.metamask_password')),
       ).toBeOnTheScreen();
 
       // Press back button
       const backButton = getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID);
       fireEvent.press(backButton);
 
-      // Verify we're back on step 1
+      // Verify we're back on SRP input screen
       await waitFor(() => {
-        expect(
-          getByText(
-            strings('import_from_seed.steps', {
-              currentStep: 1,
-              totalSteps: 2,
-            }),
-          ),
-        ).toBeOnTheScreen();
+        expect(getByText(strings('import_from_seed.title'))).toBeOnTheScreen();
       });
     });
 
@@ -1795,6 +1822,159 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           name: TraceName.OnboardingPasswordSetupError,
         });
       });
+    });
+  });
+
+  describe('SRP Word Suggestions Feature', () => {
+    it('renders SRP input grid with word suggestions support', async () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        {
+          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        },
+        {
+          state: initialState,
+        },
+      );
+
+      const srpInput = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+      );
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('passes onCurrentWordChange callback to SrpInputGrid', async () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        {
+          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        },
+        {
+          state: initialState,
+        },
+      );
+
+      const srpInput = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('renders with KeyboardProvider wrapper', async () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        {
+          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        },
+        {
+          state: initialState,
+        },
+      );
+
+      const srpInput = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+      );
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('renders KeyboardStickyView with SrpWordSuggestions when keyboard is visible', async () => {
+      // Arrange
+      mockUseKeyboardState.mockImplementation(
+        (selector: (state: { isVisible: boolean }) => boolean) =>
+          selector({ isVisible: true }),
+      );
+
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        {
+          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        },
+        {
+          state: initialState,
+        },
+      );
+
+      // Act
+      const srpInput = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+      );
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      // Assert
+      expect(getByTestId('srp-word-suggestions')).toBeTruthy();
+    });
+
+    it('does not render KeyboardStickyView when keyboard is not visible', async () => {
+      // Arrange
+      mockUseKeyboardState.mockImplementation(
+        (selector: (state: { isVisible: boolean }) => boolean) =>
+          selector({ isVisible: false }),
+      );
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        {
+          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        },
+        {
+          state: initialState,
+        },
+      );
+
+      // Act
+      const srpInput = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+      );
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      // Assert
+      expect(queryByTestId('srp-word-suggestions')).toBeNull();
+    });
+  });
+
+  describe('Step Navigation and Animation', () => {
+    it('transitions from SRP step to password step with valid mnemonic', async () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        {
+          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        },
+        {
+          state: initialState,
+        },
+      );
+
+      const srpInput = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          srpInput,
+          'lazy youth dentist air relief leave neither liquid belt aspect bone frame',
+        );
+      });
+
+      const continueButton = getByTestId(
+        ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(continueButton).toBeTruthy();
     });
   });
 });

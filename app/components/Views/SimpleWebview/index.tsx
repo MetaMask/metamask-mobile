@@ -2,11 +2,11 @@
 import React, { useCallback, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from '@metamask/react-native-webview';
-import { getWebviewNavbar } from '../../UI/Navbar';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import { IconName } from '@metamask/design-system-react-native';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
-import { useTheme } from '../../../util/theme';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 
 // TODO: This will be replaced with the actual route params type once navigation is refactored
@@ -19,7 +19,6 @@ type RouteParams = {
 const SimpleWebView = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RouteParams, 'SimpleWebView'>>();
-  const { colors } = useTheme();
   const url = route.params.url;
 
   const share = useCallback(() => {
@@ -33,12 +32,16 @@ const SimpleWebView = () => {
   }, [url]);
 
   useEffect(() => {
-    navigation.setOptions(getWebviewNavbar(navigation, route, colors));
-  }, [navigation, route, colors]);
-
-  useEffect(() => {
-    navigation.setParams({ dispatch: share });
-  }, [navigation, share]);
+    const title = (route.params as { title?: string })?.title ?? '';
+    navigation.setOptions(
+      getHeaderCenterNavbarOptions({
+        title,
+        onBack: () => navigation.goBack(),
+        includesTopInset: true,
+        endButtonIconProps: [{ iconName: IconName.Share, onPress: share }],
+      }),
+    );
+  }, [navigation, route, share]);
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>

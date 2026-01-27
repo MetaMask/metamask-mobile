@@ -16,7 +16,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import { BigNumber } from 'bignumber.js';
@@ -358,7 +358,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
     amount: orderForm.amount,
-    coin: orderForm.asset,
+    symbol: orderForm.asset,
     isClosing: false,
     limitPrice: orderForm.limitPrice,
     direction: orderForm.direction,
@@ -407,7 +407,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const positionSize = useMemo(() => {
     // During loading, show '--' placeholder (consistent with other unavailable data displays)
     if (isLoadingMarketData) {
-      return PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY;
+      return PERPS_CONSTANTS.FallbackDataDisplay;
     }
 
     return calculatePositionSize({
@@ -416,8 +416,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // Defensive fallback if market data fails to load - prevents crashes
       // Real szDecimals should come from market data (varies by asset)
       szDecimals:
-        marketData?.szDecimals ??
-        DECIMAL_PRECISION_CONFIG.FALLBACK_SIZE_DECIMALS,
+        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     });
   }, [
     orderForm.amount,
@@ -750,6 +749,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           [PerpsEventProperties.ERROR_TYPE]:
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]: firstError,
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
         });
 
         isSubmittingRef.current = false; // Reset flag on early return
@@ -767,6 +770,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]:
             'Cross margin position detected',
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
         });
 
         isSubmittingRef.current = false;
@@ -811,7 +818,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // 2. Recalculate size with fresh price from usdAmount
       // 3. Use the recalculated size for order execution
       const orderParams: OrderParams = {
-        coin: orderForm.asset,
+        symbol: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize, // Kept for backward compatibility, provider recalculates from usdAmount
         orderType: orderForm.type,
@@ -822,8 +829,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         priceAtCalculation: assetData.price, // Price snapshot when size was calculated (for slippage validation)
         maxSlippageBps:
           orderForm.type === 'limit'
-            ? ORDER_SLIPPAGE_CONFIG.DEFAULT_LIMIT_SLIPPAGE_BPS // 1% for limit orders
-            : ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // 3% for market orders
+            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders
+            : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps, // 3% for market orders
         // Only add TP/SL/Limit if they are truthy and/or not empty strings
         ...(orderForm.type === 'limit' && orderForm.limitPrice
           ? { price: orderForm.limitPrice }
@@ -841,6 +848,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           estimatedPoints: feeResults.estimatedPoints,
           inputMethod: inputMethodRef.current,
           source,
+          // Trade action: 'create_position' for first trade, 'increase_exposure' for adding to existing
+          // Note: flip_position is tracked separately via TradingService.flipPosition
+          tradeAction: currentMarketPosition
+            ? 'increase_exposure'
+            : 'create_position',
         },
       };
 
@@ -859,7 +871,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         await executeOrder(orderWithoutTPSL);
         await updatePositionTPSL({
-          coin: orderForm.asset,
+          symbol: orderForm.asset,
           takeProfitPrice: orderForm.takeProfitPrice,
           stopLossPrice: orderForm.stopLossPrice,
         });
@@ -999,7 +1011,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {!isInputFocused && (
           <View style={styles.detailsWrapper}>
             {/* Leverage */}
-            <View style={[styles.detailItem, styles.detailItemOnly]}>
+            <View
+              style={[
+                styles.detailItem,
+                // If there are items below (limit price or TP/SL), only round top corners
+                // Otherwise, round all corners
+                orderForm.type === 'limit' || !hideTPSL
+                  ? styles.detailItemFirst
+                  : styles.detailItemOnly,
+              ]}
+            >
               <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -1037,7 +1058,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
             {/* Limit price - only show for limit orders */}
             {orderForm.type === 'limit' && (
-              <View style={styles.detailItem}>
+              <View
+                style={[
+                  styles.detailItem,
+                  // If TP/SL is hidden, this is the last item so round bottom corners
+                  hideTPSL && styles.detailItemLast,
+                ]}
+              >
                 <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                   <ListItem style={styles.detailItemWrapper}>
                     <ListItemColumn widthType={WidthType.Fill}>
@@ -1154,7 +1181,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 ? formatPerpsFiat(marginRequired, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
-                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
+                : PERPS_CONSTANTS.FallbackDataDisplay}
             </Text>
           </View>
 
@@ -1182,7 +1209,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 ? formatPerpsFiat(liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })
-                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
+                : PERPS_CONSTANTS.FallbackDataDisplay}
             </Text>
           </View>
           <View style={styles.infoRow}>
@@ -1206,7 +1233,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               feeDiscountPercentage={rewardsState.feeDiscountPercentage}
               formatFeeText={
                 !hasValidAmount || feeResults.isLoadingMetamaskFee
-                  ? PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+                  ? PERPS_CONSTANTS.FallbackDataDisplay
                   : formatPerpsFiat(estimatedFees, {
                       ranges: PRICE_RANGES_MINIMAL_VIEW,
                     })
@@ -1412,7 +1439,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             ...eventProperties,
             [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.SETTING_CHANGED,
+              PerpsEventValues.INTERACTION_TYPE.LEVERAGE_CHANGED,
             [PerpsEventProperties.SETTING_TYPE]:
               PerpsEventValues.SETTING_TYPE.LEVERAGE,
           });
@@ -1420,7 +1447,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         leverage={orderForm.leverage}
         minLeverage={1}
         maxLeverage={
-          marketData?.maxLeverage || PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE
+          marketData?.maxLeverage || PERPS_CONSTANTS.DefaultMaxLeverage
         }
         currentPrice={assetData.price}
         direction={orderForm.direction}

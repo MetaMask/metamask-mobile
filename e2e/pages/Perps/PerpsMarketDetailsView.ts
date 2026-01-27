@@ -2,13 +2,12 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsCandlestickChartSelectorsIDs,
-  PerpsMarketTabsSelectorsIDs,
   PerpsOpenOrderCardSelectorsIDs,
-} from '../../selectors/Perps/Perps.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import Utilities from '../../framework/Utilities';
-import Assertions from '../../framework/Assertions';
+} from '../../../app/components/UI/Perps/Perps.testIds';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Utilities from '../../../tests/framework/Utilities';
+import Assertions from '../../../tests/framework/Assertions';
 
 class PerpsMarketDetailsView {
   // Container elements
@@ -210,12 +209,6 @@ class PerpsMarketDetailsView {
 
   // Verify that Orders tab has at least one open order card
   async expectOpenOrderVisible() {
-    const ordersTab = Matchers.getElementByID(
-      PerpsMarketTabsSelectorsIDs.ORDERS_TAB,
-    );
-    await Gestures.waitAndTap(ordersTab, {
-      elemDescription: 'Open Orders tab',
-    });
     const openOrderCard = Matchers.getElementByID(
       PerpsOpenOrderCardSelectorsIDs.CARD,
     ) as DetoxElement;

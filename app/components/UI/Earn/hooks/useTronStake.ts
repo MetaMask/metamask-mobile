@@ -42,6 +42,8 @@ interface UseTronStakeReturn {
   validateStakeAmount: (amount: string) => Promise<TronStakeResult | null>;
   /** Confirm stake with current resource type */
   confirmStake: (amount: string) => Promise<TronStakeResult | null>;
+  /** The Tron account ID for balance refresh */
+  tronAccountId?: string;
 }
 
 /**
@@ -156,6 +158,7 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
     preview,
     validateStakeAmount,
     confirmStake,
+    tronAccountId: selectedTronAccount?.id,
   };
 };
 

@@ -7,6 +7,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -15,9 +16,8 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
       {
         "backgroundColor": "#f3f5f9",
         "borderRadius": 10,
-        "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -93,8 +93,11 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
-              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -103,6 +106,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -127,7 +131,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_0"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -186,16 +190,21 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={true}
+              blurOnSubmit={false}
               editable={true}
-              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              importantForAutofill="no"
+              keyboardType="visible-password"
               multiline={true}
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
+              onSubmitEditing={[Function]}
               placeholder="Enter your Secret Recovery Phrase"
               placeholderTextColor="#686e7d"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -220,7 +229,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -239,8 +248,8 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
-        "paddingBottom": 16,
-        "paddingTop": 12,
+        "paddingBottom": 1,
+        "paddingTop": 8,
         "textAlign": "right",
       }
     }
@@ -257,6 +266,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -265,9 +275,8 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
       {
         "backgroundColor": "#f3f5f9",
         "borderRadius": 10,
-        "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -343,8 +352,11 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={false}
-              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -353,6 +365,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -377,7 +390,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_0"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -436,16 +449,21 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={true}
+              blurOnSubmit={false}
               editable={false}
-              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              importantForAutofill="no"
+              keyboardType="visible-password"
               multiline={true}
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
+              onSubmitEditing={[Function]}
               placeholder="Enter your Secret Recovery Phrase"
               placeholderTextColor="#686e7d"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -470,7 +488,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -489,8 +507,8 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
-        "paddingBottom": 16,
-        "paddingTop": 12,
+        "paddingBottom": 1,
+        "paddingTop": 8,
         "textAlign": "right",
       }
     }
@@ -507,6 +525,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -515,9 +534,8 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
       {
         "backgroundColor": "#f3f5f9",
         "borderRadius": 10,
-        "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -593,8 +611,11 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
-              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -603,6 +624,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -627,7 +649,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_0"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -686,16 +708,21 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={true}
+              blurOnSubmit={false}
               editable={true}
-              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              importantForAutofill="no"
+              keyboardType="visible-password"
               multiline={true}
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
+              onSubmitEditing={[Function]}
               placeholder="Enter your Secret Recovery Phrase"
               placeholderTextColor="#686e7d"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -720,7 +747,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -739,8 +766,8 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
-        "paddingBottom": 16,
-        "paddingTop": 12,
+        "paddingBottom": 1,
+        "paddingTop": 8,
         "textAlign": "right",
       }
     }
@@ -757,6 +784,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -765,9 +793,8 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
       {
         "backgroundColor": "#f3f5f9",
         "borderRadius": 10,
-        "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -878,8 +905,11 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
-              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -888,6 +918,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -912,7 +943,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_0"
               textAlignVertical="center"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value="word1"
             />
           </View>
@@ -1007,8 +1038,11 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
-              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -1017,6 +1051,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -1041,7 +1076,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_1"
               textAlignVertical="center"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value="word2"
             />
           </View>
@@ -1136,8 +1171,11 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
-              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -1146,6 +1184,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -1170,7 +1209,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_2"
               textAlignVertical="center"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value="word3"
             />
           </View>
@@ -1230,16 +1269,21 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
-              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              importantForAutofill="no"
+              keyboardType="visible-password"
               multiline={true}
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
+              onSubmitEditing={[Function]}
               placeholder="Enter your Secret Recovery Phrase"
               placeholderTextColor="#686e7d"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -1264,7 +1308,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value="word1"
             />
           </View>
@@ -1283,8 +1327,8 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
-        "paddingBottom": 16,
-        "paddingTop": 12,
+        "paddingBottom": 1,
+        "paddingTop": 8,
         "textAlign": "right",
       }
     }

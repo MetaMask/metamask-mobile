@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
-import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOpenOrderCardSelectorsIDs } from '../../Perps.testIds';
 import PerpsOpenOrderCard from './PerpsOpenOrderCard';
 import type { Order } from '../../controllers/types';
 

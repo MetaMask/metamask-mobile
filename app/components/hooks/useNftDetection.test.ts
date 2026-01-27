@@ -232,7 +232,7 @@ describe('useNftDetection', () => {
       );
     });
 
-    it('calls NftDetectionController.detectNfts with correct chain IDs', async () => {
+    it('calls NftDetectionController.detectNfts with firstPageOnly true by default', async () => {
       mockEngine.context.PreferencesController.state.useNftDetection = true;
 
       const { result } = renderHook(() => useNftDetection());
@@ -242,7 +242,58 @@ describe('useNftDetection', () => {
       });
 
       expect(mockDetectNfts).toHaveBeenCalledTimes(1);
-      expect(mockDetectNfts).toHaveBeenCalledWith(mockChainIds);
+      expect(mockDetectNfts).toHaveBeenCalledWith(mockChainIds, {
+        firstPageOnly: true,
+        signal: expect.any(AbortSignal),
+      });
+    });
+
+    it('calls NftDetectionController.detectNfts with firstPageOnly false when specified', async () => {
+      mockEngine.context.PreferencesController.state.useNftDetection = true;
+
+      const { result } = renderHook(() => useNftDetection());
+
+      await act(async () => {
+        await result.current.detectNfts(false);
+      });
+
+      expect(mockDetectNfts).toHaveBeenCalledTimes(1);
+      expect(mockDetectNfts).toHaveBeenCalledWith(mockChainIds, {
+        firstPageOnly: false,
+        signal: expect.any(AbortSignal),
+      });
+    });
+
+    it('aborts previous detection when detectNfts is called again', async () => {
+      mockEngine.context.PreferencesController.state.useNftDetection = true;
+      let firstAbortSignal: AbortSignal | undefined;
+      let secondAbortSignal: AbortSignal | undefined;
+
+      mockDetectNfts.mockImplementation(
+        (_chainIds, options?: { signal?: AbortSignal }) => {
+          if (!firstAbortSignal) {
+            firstAbortSignal = options?.signal;
+          } else if (!secondAbortSignal) {
+            secondAbortSignal = options?.signal;
+          }
+          return Promise.resolve();
+        },
+      );
+
+      const { result } = renderHook(() => useNftDetection());
+
+      await act(async () => {
+        await result.current.detectNfts();
+      });
+
+      await act(async () => {
+        await result.current.detectNfts();
+      });
+
+      expect(firstAbortSignal).toBeDefined();
+      expect(firstAbortSignal?.aborted).toBe(true);
+      expect(secondAbortSignal).toBeDefined();
+      expect(secondAbortSignal?.aborted).toBe(false);
     });
 
     it('starts trace before detection', async () => {
@@ -434,12 +485,49 @@ describe('useNftDetection', () => {
     });
   });
 
+  describe('abortDetection', () => {
+    it('aborts in-progress detection', async () => {
+      mockEngine.context.PreferencesController.state.useNftDetection = true;
+      let capturedSignal: AbortSignal | undefined;
+
+      mockDetectNfts.mockImplementation(
+        async (_chainIds, options?: { signal?: AbortSignal }) => {
+          capturedSignal = options?.signal;
+        },
+      );
+
+      const { result } = renderHook(() => useNftDetection());
+
+      await act(async () => {
+        await result.current.detectNfts();
+      });
+
+      act(() => {
+        result.current.abortDetection();
+      });
+
+      expect(capturedSignal).toBeDefined();
+      expect(capturedSignal?.aborted).toBe(true);
+    });
+
+    it('does nothing when no detection is in progress', () => {
+      const { result } = renderHook(() => useNftDetection());
+
+      expect(() => {
+        act(() => {
+          result.current.abortDetection();
+        });
+      }).not.toThrow();
+    });
+  });
+
   describe('return value', () => {
-    it('returns detectNfts function and chainIdsToDetectNftsFor', () => {
+    it('returns detectNfts, abortDetection functions and chainIdsToDetectNftsFor', () => {
       const { result } = renderHook(() => useNftDetection());
 
       expect(result.current).toEqual({
         detectNfts: expect.any(Function),
+        abortDetection: expect.any(Function),
         chainIdsToDetectNftsFor: mockChainIds,
       });
     });

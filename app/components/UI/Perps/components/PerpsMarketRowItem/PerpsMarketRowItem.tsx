@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -33,7 +34,7 @@ import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 const PerpsMarketRowItem = ({
   market,
   onPress,
-  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
   showBadge = true,
 }: PerpsMarketRowItemProps) => {
@@ -104,14 +105,14 @@ const PerpsMarketRowItem = ({
         updatedMarket.volume = formatVolume(volume);
       } else {
         // Only show $0 if volume is truly 0
-        updatedMarket.volume = PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
+        updatedMarket.volume = PERPS_CONSTANTS.ZeroAmountDetailedDisplay;
       }
     } else if (
       !market.volume ||
-      market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY
+      market.volume === PERPS_CONSTANTS.ZeroAmountDisplay
     ) {
       // Fallback: ensure volume field always has a value
-      updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+      updatedMarket.volume = PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
     // Update funding rate from live data if available
@@ -133,7 +134,7 @@ const PerpsMarketRowItem = ({
         return displayMarket.change24hPercent;
       case 'openInterest':
         return (
-          displayMarket.openInterest || PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+          displayMarket.openInterest || PERPS_CONSTANTS.FallbackPriceDisplay
         );
       case 'fundingRate':
         // Use formatFundingRate utility for consistent formatting with asset detail screen
@@ -143,6 +144,26 @@ const PerpsMarketRowItem = ({
         return displayMarket.volume;
     }
   }, [displayMetric, displayMarket]);
+
+  // Helper to get shortcut label for the metric indicator
+  const getMetricLabel = useMemo(() => {
+    switch (displayMetric) {
+      case 'priceChange':
+        return ''; // Price change doesn't need label (% suffix indicates metric)
+      case 'openInterest':
+        return strings('perps.sort.open_interest_short');
+      case 'fundingRate':
+        return strings('perps.sort.funding_rate_short');
+      case 'volume':
+      default:
+        return strings('perps.sort.volume_short');
+    }
+  }, [displayMetric]);
+
+  // Combine value and label for display (e.g., "$1.2B Vol")
+  const displayText = getMetricLabel
+    ? `${getDisplayValue} ${getMetricLabel}`
+    : getDisplayValue;
 
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
@@ -174,8 +195,12 @@ const PerpsMarketRowItem = ({
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
           <View style={styles.secondRow}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {getDisplayValue}
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              numberOfLines={1}
+            >
+              {displayText}
             </Text>
             {showBadge && badgeType && (
               <PerpsBadge
