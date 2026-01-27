@@ -4,11 +4,13 @@ import { useEffect } from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
-import { isRedesignedConfirmationType } from '../../utils/confirm';
+import { shouldNavigateConfirmationModal } from '../../utils/confirm';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 
 export const ConfirmRoot = () => {
   const { approvalRequest } = useApprovalRequest();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const transactionMetadata = useTransactionMetadataRequest();
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -16,16 +18,23 @@ export const ConfirmRoot = () => {
       return;
     }
 
-    if (!isRedesignedConfirmationType(approvalRequest.type)) {
-      return;
-    }
-
-    if (isFullScreenConfirmation) {
+    if (
+      !shouldNavigateConfirmationModal(
+        approvalRequest.type,
+        transactionMetadata,
+        isFullScreenConfirmation,
+      )
+    ) {
       return;
     }
 
     navigation.navigate(Routes.CONFIRMATION_REQUEST_MODAL);
-  }, [approvalRequest, isFullScreenConfirmation, navigation]);
+  }, [
+    approvalRequest,
+    isFullScreenConfirmation,
+    navigation,
+    transactionMetadata,
+  ]);
 
   return null;
 };
