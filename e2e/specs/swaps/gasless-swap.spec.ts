@@ -43,28 +43,6 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
             .withPreferencesController({
               smartTransactionsOptInStatus: true,
             })
-            .withSmartTransactionsController({
-              smartTransactionsState: {
-                smartTransactions: {
-                  [chainId]: [],
-                },
-                liveness: true,
-                livenessByChainId: {
-                  [chainId]: true,
-                },
-              },
-            })
-            .withRemoteFeatureFlagController({
-              remoteFeatureFlags: {
-                smartTransactionsNetworks: {
-                  [chainId]: {
-                    mobileActive: true,
-                    mobileActiveIOS: true,
-                    mobileActiveAndroid: true,
-                  },
-                },
-              },
-            })
             .build();
         },
         localNodeOptions: [
