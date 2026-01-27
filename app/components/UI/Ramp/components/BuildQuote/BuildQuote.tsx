@@ -115,7 +115,6 @@ function BuildQuote() {
               >
                 {formatCurrency(amountAsNumber, currency, {
                   currencyDisplay: 'narrowSymbol',
-                  maximumFractionDigits: 0,
                 })}
               </Text>
               <PaymentMethodPill
