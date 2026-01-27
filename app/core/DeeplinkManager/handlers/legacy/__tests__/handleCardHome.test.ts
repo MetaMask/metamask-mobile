@@ -36,28 +36,6 @@ jest.mock('../../../../../selectors/featureFlagController/card');
 jest.mock('../../../../../selectors/accountsController');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
-jest.mock('../../../../../util/analytics/analytics', () => ({
-  analytics: {
-    trackEvent: jest.fn(),
-  },
-}));
-jest.mock('../../../../../util/analytics/AnalyticsEventBuilder', () => {
-  const mockBuilder = {
-    addProperties: jest.fn(),
-    build: jest.fn().mockReturnValue({ event: 'mocked_event' }),
-  };
-  mockBuilder.addProperties.mockReturnValue(mockBuilder);
-  return {
-    AnalyticsEventBuilder: {
-      createEventBuilder: jest.fn(() => mockBuilder),
-    },
-  };
-});
-jest.mock('../../../../Analytics', () => ({
-  MetaMetricsEvents: {
-    CARD_DEEPLINK_HANDLED: 'Card Deeplink Handled',
-  },
-}));
 
 describe('handleCardHome', () => {
   const mockGetState = jest.fn();

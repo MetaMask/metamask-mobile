@@ -1,5 +1,5 @@
 import { Mockttp } from 'mockttp';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 import { LocalNode } from '../../../tests/framework';
 import { getEventsPayloads } from '../analytics/helpers';
 

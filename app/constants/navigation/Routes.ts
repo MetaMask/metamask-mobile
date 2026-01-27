@@ -18,6 +18,7 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    AMOUNT_INPUT: 'RampAmountInput',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -334,6 +335,7 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+      CONVERSION_TRANSACTION_DETAILS: 'MusdConversionTransactionDetails',
     },
     MODALS: {
       ROOT: 'EarnModals',

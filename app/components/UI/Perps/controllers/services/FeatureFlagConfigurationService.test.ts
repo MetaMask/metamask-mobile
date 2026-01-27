@@ -4,7 +4,10 @@ import {
   createMockInfrastructure,
 } from '../../__mocks__/serviceMocks';
 import { validatedVersionGatedFeatureFlag } from '../../../../../util/remoteFeatureFlag';
-import { parseCommaSeparatedString } from '../../utils/stringParseUtils';
+import {
+  parseCommaSeparatedString,
+  stripQuotes,
+} from '../../utils/stringParseUtils';
 import type { ServiceContext } from './ServiceContext';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import type { IPerpsPlatformDependencies } from '../types';
@@ -74,6 +77,9 @@ describe('FeatureFlagConfigurationService', () => {
         .map((s) => s.trim())
         .filter((s) => s.length > 0),
     );
+
+    // stripQuotes is called after parseCommaSeparatedString - mock it to pass through values
+    (stripQuotes as jest.Mock).mockImplementation((s: string) => s);
 
     jest.clearAllMocks();
   });
@@ -183,6 +189,33 @@ describe('FeatureFlagConfigurationService', () => {
         context: mockContext,
       });
 
+      expect(mockContext.setHip3Config).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowlistMarkets: ['BTC', 'ETH', 'SOL'],
+        }),
+      );
+    });
+
+    it('strips quotes from array values', () => {
+      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
+        undefined,
+      );
+      // Mock stripQuotes to actually strip quotes for this test
+      (stripQuotes as jest.Mock).mockImplementation((s: string) =>
+        s.replace(/^["']|["']$/g, ''),
+      );
+      mockRemoteFeatureFlagState.remoteFeatureFlags = {
+        perpsHip3AllowlistMarkets: ['"BTC"', '"ETH"', "'SOL'"],
+      };
+
+      featureFlagConfigurationService.refreshHip3Config({
+        remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
+        context: mockContext,
+      });
+
+      expect(stripQuotes).toHaveBeenCalledWith('"BTC"');
+      expect(stripQuotes).toHaveBeenCalledWith('"ETH"');
+      expect(stripQuotes).toHaveBeenCalledWith("'SOL'");
       expect(mockContext.setHip3Config).toHaveBeenCalledWith(
         expect.objectContaining({
           allowlistMarkets: ['BTC', 'ETH', 'SOL'],
