@@ -65,7 +65,11 @@ class NavigationService {
           // Return a wrapped version that defers to the next frame
           return (...args: unknown[]) => {
             requestAnimationFrame(() => {
-              (target[prop as keyof typeof target] as Function)(...args);
+              (
+                target[prop as keyof typeof target] as (
+                  ...params: unknown[]
+                ) => void
+              )(...args);
             });
           };
         }
