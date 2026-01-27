@@ -404,8 +404,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // This avoids REST API calls on mount that can deplete rate limits
   const { fills: orderFills } = usePerpsLiveFills();
 
-  // Get position opened timestamp from fills data
-  const positionOpenedTimestamp = useMemo(() => {
+  // State for REST-fetched position opened timestamp (fallback when WebSocket doesn't have the fill)
+  const [restPositionTimestamp, setRestPositionTimestamp] = useState<
+    number | undefined
+  >(undefined);
+  // Track which position symbol we've already fetched REST data for to avoid duplicate calls
+  const restFetchedForSymbolRef = useRef<string | null>(null);
+
+  // Get position opened timestamp from WebSocket fills data
+  const wsPositionOpenedTimestamp = useMemo(() => {
     if (!existingPosition || !orderFills) return undefined;
 
     // Find the most recent "Open" fill for this asset
@@ -419,6 +426,71 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     return openFill?.timestamp;
   }, [existingPosition, orderFills]);
+
+  // Fallback: Fetch historical fills via REST when WebSocket doesn't have the position-opening fill
+  // This handles older positions where the "Open" fill is no longer in the WebSocket snapshot
+  useEffect(() => {
+    // Skip if no position or if WebSocket already has the timestamp
+    if (!existingPosition || wsPositionOpenedTimestamp) {
+      return;
+    }
+
+    // Skip if we've already fetched for this position symbol
+    if (restFetchedForSymbolRef.current === existingPosition.symbol) {
+      return;
+    }
+
+    // Mark that we're fetching for this symbol to prevent duplicate calls
+    restFetchedForSymbolRef.current = existingPosition.symbol;
+
+    const fetchHistoricalFills = async () => {
+      try {
+        // Fetch fills from the last 90 days to find position-opening fill
+        const startTime = Date.now() - 90 * 24 * 60 * 60 * 1000;
+        const controller = Engine.context.PerpsController;
+        const fills = await controller.getOrderFills({ startTime });
+
+        if (!fills || fills.length === 0) {
+          return;
+        }
+
+        // Find the most recent "Open" fill for this position's symbol
+        const openFill = fills
+          .filter((fill) => {
+            const isMatchingAsset = fill.symbol === existingPosition.symbol;
+            const isOpenDirection = fill.direction?.startsWith('Open');
+            return isMatchingAsset && isOpenDirection;
+          })
+          .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+        if (openFill?.timestamp) {
+          setRestPositionTimestamp(openFill.timestamp);
+        }
+      } catch (error) {
+        // Non-critical error - fall back to debounce timer if REST fails
+        Logger.log('Failed to fetch historical fills for position timestamp', {
+          error,
+          symbol: existingPosition.symbol,
+        });
+      }
+    };
+
+    fetchHistoricalFills();
+  }, [existingPosition, wsPositionOpenedTimestamp]);
+
+  // Reset REST state when position changes to a different symbol
+  useEffect(() => {
+    if (
+      existingPosition?.symbol &&
+      restFetchedForSymbolRef.current !== existingPosition.symbol
+    ) {
+      setRestPositionTimestamp(undefined);
+    }
+  }, [existingPosition?.symbol]);
+
+  // Combine WebSocket and REST timestamps - prefer WebSocket (faster), fall back to REST
+  const positionOpenedTimestamp =
+    wsPositionOpenedTimestamp ?? restPositionTimestamp;
 
   // Compute TP/SL lines for the chart based on existing position
   // Use chartCurrentPrice (from candle close) to ensure price line syncs with live candle
