@@ -435,10 +435,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
+    // Check if this is a new symbol (different from what we last fetched)
+    const isNewSymbol =
+      restFetchedForSymbolRef.current !== existingPosition.symbol;
+
     // Skip if we've already fetched for this position symbol
-    if (restFetchedForSymbolRef.current === existingPosition.symbol) {
+    if (!isNewSymbol) {
       return;
     }
+
+    // IMPORTANT: Clear stale timestamp BEFORE updating ref to prevent race condition
+    // This ensures the old position's timestamp doesn't leak to the new position
+    setRestPositionTimestamp(undefined);
 
     // Mark that we're fetching for this symbol to prevent duplicate calls
     restFetchedForSymbolRef.current = existingPosition.symbol;
@@ -494,16 +502,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       isCurrent = false;
     };
   }, [existingPosition, wsPositionOpenedTimestamp]);
-
-  // Reset REST state when position changes to a different symbol
-  useEffect(() => {
-    if (
-      existingPosition?.symbol &&
-      restFetchedForSymbolRef.current !== existingPosition.symbol
-    ) {
-      setRestPositionTimestamp(undefined);
-    }
-  }, [existingPosition?.symbol]);
 
   // Combine WebSocket and REST timestamps - prefer WebSocket (faster), fall back to REST
   const positionOpenedTimestamp =
