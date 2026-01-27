@@ -525,6 +525,9 @@ describe('WC2Manager', () => {
     it('logs a warning and returns early for WalletConnect v1 URIs', async () => {
       const mockWcUri = 'wc:00e46b69-d0cc-4b3e-b6a2-cee442f97188@1';
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
+      const pairingSpy = jest.spyOn(mockWeb3Wallet.core.pairing, 'pair');
 
       await manager.connect({
         wcUri: mockWcUri,
@@ -532,9 +535,20 @@ describe('WC2Manager', () => {
         origin: 'qrcode',
       });
 
+      // Verify the deprecation warning is logged
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('WalletConnect V1 is no longer supported'),
       );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('V1 was shut down on June 28, 2023'),
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(mockWcUri),
+      );
+
+      // Verify that V2 pairing was NOT called (early return)
+      expect(pairingSpy).not.toHaveBeenCalled();
+
       consoleSpy.mockRestore();
     });
 
@@ -548,7 +562,10 @@ describe('WC2Manager', () => {
         origin: 'qrcode',
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Invalid wallet connect uri',
+        mockWcUri,
+      );
       consoleSpy.mockRestore();
     });
   });
