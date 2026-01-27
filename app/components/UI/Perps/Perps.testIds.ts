@@ -676,3 +676,12 @@ export const PerpsOrderBookTableSelectorsIDs = {
 export const PerpsOrderBookDepthChartSelectorsIDs = {
   CONTAINER: 'perps-order-book-depth-chart',
 } as const;
+
+// ========================================
+// PERPS WEBSOCKET HEALTH TOAST SELECTORS
+// ========================================
+
+export const PerpsWebSocketHealthToastSelectorsIDs = {
+  TOAST: 'perps-websocket-health-toast',
+  RETRY_BUTTON: 'perps-websocket-health-toast-retry-button',
+} as const;

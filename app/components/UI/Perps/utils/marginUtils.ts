@@ -70,11 +70,11 @@ export function assessMarginRemovalRisk(
   const riskRatio = priceDiff / newLiquidationPrice;
 
   let riskLevel: RiskLevel;
-  if (riskRatio < MARGIN_ADJUSTMENT_CONFIG.LIQUIDATION_RISK_THRESHOLD - 1) {
+  if (riskRatio < MARGIN_ADJUSTMENT_CONFIG.LiquidationRiskThreshold - 1) {
     riskLevel = 'danger'; // <20% buffer - critical risk
   } else if (
     riskRatio <
-    MARGIN_ADJUSTMENT_CONFIG.LIQUIDATION_WARNING_THRESHOLD - 1
+    MARGIN_ADJUSTMENT_CONFIG.LiquidationWarningThreshold - 1
   ) {
     riskLevel = 'warning'; // <50% buffer - moderate risk
   } else {
@@ -150,7 +150,7 @@ export function calculateMaxRemovableMargin(
   // NOT the 2% that 50x max leverage would imply
   const initialMarginRequired = notionalValue / positionLeverage;
   const tenPercentMargin =
-    notionalValue * MARGIN_ADJUSTMENT_CONFIG.MARGIN_REMOVAL_SAFETY_BUFFER;
+    notionalValue * MARGIN_ADJUSTMENT_CONFIG.MarginRemovalSafetyBuffer;
 
   // Transfer margin required is the MAX of these two constraints
   const transferMarginRequired = Math.max(
