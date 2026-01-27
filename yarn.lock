@@ -19039,6 +19039,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@veriff/react-native-sdk@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "@veriff/react-native-sdk@npm:11.1.0"
+  peerDependencies:
+    react: ^19.1.0
+    react-native: ^0.81.0
+  checksum: 10/db7d3e9a45d03b389a1b6b407bd3174606d072907c9500f9bef7e01a7fe17b008bffb3cd08d0ee6d652e57e30a5b18d5fe8d5abacf9768fe87038c302d1d5b27
+  languageName: node
+  linkType: hard
+
 "@viem/anvil@npm:^0.0.10":
   version: 0.0.10
   resolution: "@viem/anvil@npm:0.0.10"
@@ -34721,6 +34731,7 @@ __metadata:
     "@types/valid-url": "npm:^1.0.4"
     "@typescript-eslint/eslint-plugin": "npm:^7.10.0"
     "@typescript-eslint/parser": "npm:^7.10.0"
+    "@veriff/react-native-sdk": "npm:^11.1.0"
     "@viem/anvil": "npm:^0.0.10"
     "@walletconnect/client": "npm:^1.8.0"
     "@walletconnect/core": "npm:^2.19.2"
