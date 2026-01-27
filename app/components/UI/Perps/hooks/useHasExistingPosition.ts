@@ -3,6 +3,7 @@ import type { Position } from '../controllers/types';
 import { usePerpsLivePositions, usePerpsLiveFills } from './stream';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 interface UseHasExistingPositionParams {
   /** Asset symbol to check for existing position */
@@ -120,7 +121,7 @@ export function useHasExistingPosition(
 
       try {
         // Fetch fills from the last 90 days to find position-opening fill
-        const startTime = Date.now() - 90 * 24 * 60 * 60 * 1000;
+        const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
         const controller = Engine.context.PerpsController;
         const fills = await controller.getOrderFills({ startTime });
 
