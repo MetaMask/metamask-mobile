@@ -174,8 +174,13 @@ function withRequest<ReturnValue>(
       'TransactionController:getNonceLock',
       'TransactionController:getTransactions',
       'TransactionController:updateTransaction',
+      'RemoteFeatureFlagController:getState',
+      'ErrorReportingService:captureException',
     ],
-    events: ['NetworkController:stateChange'],
+    events: [
+      'NetworkController:stateChange',
+      'RemoteFeatureFlagController:stateChange',
+    ],
     messenger: smartTransactionControllerMessenger,
   });
 
@@ -235,20 +240,13 @@ function withRequest<ReturnValue>(
       pendingApprovals,
     }),
     featureFlags: {
-      extensionActive: true,
       mobileActive: true,
       mobileActiveIOS: true,
       mobileActiveAndroid: true,
-      smartTransactions: {
-        expectedDeadline: 45,
-        maxDeadline: 150,
-        mobileReturnTxHashAsap: false,
-        batchStatusPollingInterval: 1000,
-      },
-      mobile_active: true,
-      extension_active: true,
-      fallback_to_v1: false,
-      fallbackToV1: false,
+      expectedDeadline: 45,
+      maxDeadline: 150,
+      mobileReturnTxHashAsap: false,
+      batchStatusPollingInterval: 1000,
     },
     ...options,
   };
@@ -292,7 +290,7 @@ describe('submitSmartTransactionHook', () => {
 
   it('returns a txHash asap if the feature flag requires it', async () => {
     withRequest(async ({ request }) => {
-      request.featureFlags.smartTransactions.mobileReturnTxHashAsap = true;
+      request.featureFlags.mobileReturnTxHashAsap = true;
       const result = await submitSmartTransactionHook(request);
       expect(result).toEqual({ transactionHash });
     });
@@ -435,7 +433,7 @@ describe('submitSmartTransactionHook', () => {
   it('submits a smart transaction without the smart transaction status page', async () => {
     withRequest(
       async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
-        request.featureFlags.smartTransactions.mobileReturnTxHashAsap = true;
+        request.featureFlags.mobileReturnTxHashAsap = true;
         setImmediate(() => {
           controllerMessenger.publish(
             'SmartTransactionsController:smartTransaction',
@@ -739,7 +737,7 @@ describe('submitSmartTransactionHook', () => {
         'setStatusRefreshInterval',
       );
 
-      request.featureFlags.smartTransactions.batchStatusPollingInterval = 2000;
+      request.featureFlags.batchStatusPollingInterval = 2000;
 
       await submitSmartTransactionHook(request);
 
@@ -754,7 +752,7 @@ describe('submitSmartTransactionHook', () => {
         'setStatusRefreshInterval',
       );
 
-      request.featureFlags.smartTransactions.batchStatusPollingInterval = 0;
+      request.featureFlags.batchStatusPollingInterval = 0;
 
       await submitSmartTransactionHook(request);
 
@@ -960,7 +958,7 @@ describe('submitBatchSmartTransactionHook', () => {
         ],
       },
       async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
-        request.featureFlags.smartTransactions.mobileReturnTxHashAsap = true;
+        request.featureFlags.mobileReturnTxHashAsap = true;
         submitSignedTransactionsSpy.mockResolvedValue({
           uuid: stxUuid,
           txHash: transactionHash,
@@ -1030,7 +1028,7 @@ describe('submitBatchSmartTransactionHook', () => {
           'setStatusRefreshInterval',
         );
 
-        request.featureFlags.smartTransactions.batchStatusPollingInterval = 2000;
+        request.featureFlags.batchStatusPollingInterval = 2000;
 
         await submitBatchSmartTransactionHook(request);
 

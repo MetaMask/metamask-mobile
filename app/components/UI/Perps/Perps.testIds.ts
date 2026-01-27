@@ -384,6 +384,16 @@ export const PerpsTestnetToggleSelectorsIDs = {
 };
 
 // ========================================
+// PERPS PROVIDER TOGGLE SELECTORS
+// ========================================
+
+export const PerpsProviderToggleSelectorsIDs = {
+  ROOT: 'perps-provider-toggle-root',
+  SWITCH: 'perps-provider-toggle-switch',
+  LOADING_INDICATOR: 'perps-provider-toggle-loading-indicator',
+};
+
+// ========================================
 // PERPS TRANSACTION SELECTORS
 // ========================================
 
@@ -663,4 +673,13 @@ export const PerpsOrderBookTableSelectorsIDs = {
 
 export const PerpsOrderBookDepthChartSelectorsIDs = {
   CONTAINER: 'perps-order-book-depth-chart',
+} as const;
+
+// ========================================
+// PERPS WEBSOCKET HEALTH TOAST SELECTORS
+// ========================================
+
+export const PerpsWebSocketHealthToastSelectorsIDs = {
+  TOAST: 'perps-websocket-health-toast',
+  RETRY_BUTTON: 'perps-websocket-health-toast-retry-button',
 } as const;

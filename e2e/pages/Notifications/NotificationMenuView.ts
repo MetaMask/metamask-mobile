@@ -2,8 +2,8 @@ import {
   NotificationMenuViewSelectorsIDs,
   NotificationMenuViewSelectorsText,
 } from '../../../app/components/Views/Notifications/NotificationMenuView.testIds';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 
 class EnableNotificationsModal {
   get title() {

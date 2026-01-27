@@ -13,12 +13,7 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
-import {
-  ARBITRUM_MAINNET_CHAIN_ID_HEX,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-  USDC_SYMBOL,
-} from '../constants/hyperLiquidConfig';
+import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
@@ -35,8 +30,10 @@ import {
   MARKET_SORTING_CONFIG,
   type SortOptionId,
 } from '../constants/perpsConfig';
+import type { SortDirection } from '../utils/sortMarkets';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import { AggregatedPerpsProvider } from './providers/AggregatedPerpsProvider';
 import { MarketDataService } from './services/MarketDataService';
 import { TradingService } from './services/TradingService';
 import { AccountService } from './services/AccountService';
@@ -47,6 +44,7 @@ import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigura
 import { RewardsIntegrationService } from './services/RewardsIntegrationService';
 import type { ServiceContext } from './services/ServiceContext';
 import { type PerpsStreamChannelKey } from '../providers/PerpsStreamManager';
+import { WebSocketConnectionState } from '../services/HyperLiquidClientService';
 import {
   PerpsAnalyticsEvent,
   type AccountState,
@@ -70,7 +68,7 @@ import {
   type GetOrderFillsParams,
   type GetOrdersParams,
   type GetPositionsParams,
-  type IPerpsProvider,
+  type PerpsProvider,
   type LiquidationPriceParams,
   type LiveDataConfig,
   type MaintenanceMarginParams,
@@ -100,12 +98,14 @@ import {
   type HistoricalPortfolioResult,
   type OrderType,
   // Platform dependencies interface for core migration (bundles all platform-specific deps)
-  type IPerpsPlatformDependencies,
-  type IPerpsLogger,
+  type PerpsPlatformDependencies,
+  type PerpsLogger,
+  type PerpsActiveProviderMode,
+  type PerpsProviderType,
 } from './types';
 
-/** Derived type for logger options from IPerpsLogger interface */
-type PerpsLoggerOptions = Parameters<IPerpsLogger['error']>[1];
+/** Derived type for logger options from PerpsLogger interface */
+type PerpsLoggerOptions = Parameters<PerpsLogger['error']>[1];
 import type {
   RemoteFeatureFlagControllerState,
   RemoteFeatureFlagControllerStateChangeEvent,
@@ -132,7 +132,7 @@ export enum InitializationState {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsControllerState = {
   // Active provider
-  activeProvider: string;
+  activeProvider: PerpsActiveProviderMode;
   isTestnet: boolean; // Dev toggle for testnet
 
   // Initialization state machine
@@ -263,7 +263,10 @@ export type PerpsControllerState = {
   };
 
   // Market filter preferences (network-independent) - includes both sorting and filtering options
-  marketFilterPreferences: SortOptionId;
+  marketFilterPreferences: {
+    optionId: SortOptionId;
+    direction: SortDirection;
+  };
 
   // Error handling
   lastError: string | null;
@@ -276,6 +279,11 @@ export type PerpsControllerState = {
 
 /**
  * Get default PerpsController state
+ *
+ * To change the active provider, modify the `activeProvider` value below:
+ * - 'hyperliquid': HyperLiquid provider (default, production)
+ * - 'aggregated': Multi-provider aggregation mode
+ * - 'myx': MYX provider (future implementation)
  */
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
@@ -316,7 +324,10 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     testnet: {},
     mainnet: {},
   },
-  marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+  marketFilterPreferences: {
+    optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
+    direction: MARKET_SORTING_CONFIG.DefaultDirection,
+  },
   hip3ConfigVersion: 0,
 });
 
@@ -650,7 +661,7 @@ export interface PerpsControllerOptions {
    * Provides logging, metrics, tracing, stream management, and account utilities.
    * Must be provided by the platform (mobile/extension) at instantiation time.
    */
-  infrastructure: IPerpsPlatformDependencies;
+  infrastructure: PerpsPlatformDependencies;
 }
 
 interface BlockedRegionList {
@@ -671,7 +682,7 @@ export class PerpsController extends BaseController<
   PerpsControllerState,
   PerpsControllerMessenger
 > {
-  protected providers: Map<string, IPerpsProvider>;
+  protected providers: Map<PerpsProviderType, PerpsProvider>;
   protected isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
@@ -694,6 +705,13 @@ export class PerpsController extends BaseController<
   private hip3AllowlistMarkets: string[];
   private hip3BlocklistMarkets: string[];
   private hip3ConfigSource: 'remote' | 'fallback' = 'fallback';
+
+  /**
+   * Active provider instance for routing operations.
+   * When activeProvider is 'hyperliquid' or 'myx': points to specific provider directly
+   * When activeProvider is 'aggregated': points to AggregatedPerpsProvider wrapper
+   */
+  protected activeProviderInstance: PerpsProvider | null = null;
 
   // Store options for dependency injection (allows core package to inject platform-specific services)
   private readonly options: PerpsControllerOptions;
@@ -819,7 +837,7 @@ export class PerpsController extends BaseController<
   /**
    * Get metrics instance from platform dependencies
    */
-  private getMetrics(): IPerpsPlatformDependencies['metrics'] {
+  private getMetrics(): PerpsPlatformDependencies['metrics'] {
     return this.options.infrastructure.metrics;
   }
 
@@ -1051,6 +1069,8 @@ export class PerpsController extends BaseController<
         }
         this.providers.clear();
 
+        const { activeProvider } = this.state;
+
         this.debugLog(
           'PerpsController: Creating provider with HIP-3 configuration',
           {
@@ -1059,19 +1079,46 @@ export class PerpsController extends BaseController<
             hip3BlocklistMarkets: this.hip3BlocklistMarkets,
             hip3ConfigSource: this.hip3ConfigSource,
             isTestnet: this.state.isTestnet,
+            activeProvider,
           },
         );
 
-        this.providers.set(
-          'hyperliquid',
-          new HyperLiquidProvider({
-            isTestnet: this.state.isTestnet,
-            hip3Enabled: this.hip3Enabled,
-            allowlistMarkets: this.hip3AllowlistMarkets,
-            blocklistMarkets: this.hip3BlocklistMarkets,
-            platformDependencies: this.options.infrastructure,
-          }),
-        );
+        // Always create HyperLiquid provider as the base provider
+        const hyperLiquidProvider = new HyperLiquidProvider({
+          isTestnet: this.state.isTestnet,
+          hip3Enabled: this.hip3Enabled,
+          allowlistMarkets: this.hip3AllowlistMarkets,
+          blocklistMarkets: this.hip3BlocklistMarkets,
+          platformDependencies: this.options.infrastructure,
+        });
+        this.providers.set('hyperliquid', hyperLiquidProvider);
+
+        // Set up active provider based on activeProvider value in state
+        // 'aggregated' is treated as just another provider that wraps others
+        if (activeProvider === 'aggregated') {
+          // Aggregated mode: wrap in AggregatedPerpsProvider for multi-provider support
+          // Future: register additional providers here (MYX, etc.)
+          this.activeProviderInstance = new AggregatedPerpsProvider({
+            providers: this.providers,
+            defaultProvider: 'hyperliquid',
+            infrastructure: this.options.infrastructure,
+          });
+          this.debugLog(
+            'PerpsController: Using aggregated provider (multi-provider)',
+            { registeredProviders: Array.from(this.providers.keys()) },
+          );
+        } else if (activeProvider === 'hyperliquid') {
+          // Direct provider mode: use HyperLiquid provider directly
+          this.activeProviderInstance = hyperLiquidProvider;
+          this.debugLog(
+            `PerpsController: Using direct provider (${activeProvider})`,
+          );
+        } else {
+          // Unsupported provider - throw error to prevent silent misconfiguration
+          throw new Error(
+            `Unsupported provider: ${activeProvider}. Currently only 'hyperliquid' and 'aggregated' are supported.`,
+          );
+        }
 
         // Future providers can be added here with their own authentication patterns:
         // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
@@ -1079,7 +1126,7 @@ export class PerpsController extends BaseController<
         // - Some might not need auth at all: new DydxProvider()
 
         // Wait for WebSocket transport to be ready before marking as initialized
-        await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+        await wait(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
 
         this.isInitialized = true;
         this.update((state) => {
@@ -1089,7 +1136,7 @@ export class PerpsController extends BaseController<
 
         this.debugLog('PerpsController: Providers initialized successfully', {
           providerCount: this.providers.size,
-          activeProvider: this.state.activeProvider,
+          activeProvider,
           timestamp: new Date().toISOString(),
           attempts: attempt,
         });
@@ -1156,7 +1203,7 @@ export class PerpsController extends BaseController<
   ): PerpsLoggerOptions {
     return {
       tags: {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         provider: this.state.activeProvider,
         network: this.state.isTestnet ? 'testnet' : 'mainnet',
       },
@@ -1213,11 +1260,14 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Get the currently active provider
-   * @returns The active provider
+   * Get the currently active provider.
+   * In aggregated mode, returns AggregatedPerpsProvider which routes to underlying providers.
+   * In single provider mode, returns HyperLiquidProvider directly.
+   *
+   * @returns The active provider (aggregated wrapper or direct provider based on mode)
    * @throws Error if provider is not initialized or reinitializing
    */
-  getActiveProvider(): IPerpsProvider {
+  getActiveProvider(): PerpsProvider {
     // Check if we're in the middle of reinitializing
     if (this.isReinitializing) {
       this.update((state) => {
@@ -1244,8 +1294,8 @@ export class PerpsController extends BaseController<
       throw new Error(errorMessage);
     }
 
-    const provider = this.providers.get(this.state.activeProvider);
-    if (!provider) {
+    // Return the active provider instance (set during initialization based on providerMode)
+    if (!this.activeProviderInstance) {
       this.update((state) => {
         state.lastError = PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE;
         state.lastUpdateTimestamp = Date.now();
@@ -1253,7 +1303,31 @@ export class PerpsController extends BaseController<
       throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
     }
 
-    return provider;
+    return this.activeProviderInstance;
+  }
+
+  /**
+   * Get the currently active provider, returning null if not available
+   * Use this method when the caller can gracefully handle a missing provider
+   * (e.g., UI components during initialization or reconnection)
+   * @returns The active provider, or null if not initialized/reinitializing
+   */
+  getActiveProviderOrNull(): PerpsProvider | null {
+    // Return null during reinitialization
+    if (this.isReinitializing) {
+      return null;
+    }
+
+    // Return null if not initialized
+    if (
+      this.state.initializationState !== InitializationState.INITIALIZED ||
+      !this.isInitialized
+    ) {
+      return null;
+    }
+
+    // Return the active provider instance or null if not found
+    return this.activeProviderInstance || null;
   }
 
   /**
@@ -1455,14 +1529,6 @@ export class PerpsController extends BaseController<
         );
       }
 
-      const gasFeeToken =
-        transaction.to &&
-        assetChainId.toLowerCase() === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
-        transaction.to.toLowerCase() ===
-          USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()
-          ? (transaction.to as Hex)
-          : undefined;
-
       // submit shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
       const { result, transactionMeta } = await controllers.transaction.submit(
@@ -1472,7 +1538,6 @@ export class PerpsController extends BaseController<
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
           skipInitialGasEstimate: true,
-          gasFeeToken,
         },
       );
 
@@ -1830,7 +1895,12 @@ export class PerpsController extends BaseController<
     // This allows discovery use cases (checking if market exists) without full perps setup
     if (params?.readOnly) {
       // Try to get existing provider, or create a temporary one for readOnly queries
-      let provider = this.providers.get(this.state.activeProvider);
+      // Note: 'aggregated' mode uses activeProviderInstance directly, not the providers map
+      const { activeProvider } = this.state;
+      let provider =
+        activeProvider === 'aggregated'
+          ? undefined
+          : this.providers.get(activeProvider);
       // Create a temporary provider instance for readOnly queries
       // The readOnly path in provider creates a standalone InfoClient without full init
       provider ??= new HyperLiquidProvider({
@@ -2046,8 +2116,14 @@ export class PerpsController extends BaseController<
   /**
    * Switch to a different provider
    */
-  async switchProvider(providerId: string): Promise<SwitchProviderResult> {
-    if (!this.providers.has(providerId)) {
+  async switchProvider(
+    providerId: PerpsActiveProviderMode,
+  ): Promise<SwitchProviderResult> {
+    // 'aggregated' is always valid, individual providers must exist in the map
+    const isValidProvider =
+      providerId === 'aggregated' || this.providers.has(providerId);
+
+    if (!isValidProvider) {
       return {
         success: false,
         providerId: this.state.activeProvider,
@@ -2067,6 +2143,85 @@ export class PerpsController extends BaseController<
    */
   getCurrentNetwork(): 'mainnet' | 'testnet' {
     return this.state.isTestnet ? 'testnet' : 'mainnet';
+  }
+
+  /**
+   * Get the current WebSocket connection state from the active provider.
+   * Used by the UI to monitor connection health and show notifications.
+   *
+   * @returns The current WebSocket connection state, or DISCONNECTED if not supported
+   */
+  getWebSocketConnectionState(): WebSocketConnectionState {
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.getWebSocketConnectionState) {
+        return provider.getWebSocketConnectionState();
+      }
+      // Fallback for providers that don't support this method
+      return WebSocketConnectionState.DISCONNECTED;
+    } catch {
+      // If no provider is active, return disconnected
+      return WebSocketConnectionState.DISCONNECTED;
+    }
+  }
+
+  /**
+   * Subscribe to WebSocket connection state changes from the active provider.
+   * The listener will be called immediately with the current state and whenever the state changes.
+   *
+   * @param listener - Callback function that receives the new connection state and reconnection attempt
+   * @returns Unsubscribe function to remove the listener, or no-op if not supported
+   */
+  subscribeToConnectionState(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.subscribeToConnectionState) {
+        return provider.subscribeToConnectionState(listener);
+      }
+      // Fallback: immediately call with current state and return no-op unsubscribe
+      listener(this.getWebSocketConnectionState(), 0);
+      return () => {
+        // No-op
+      };
+    } catch {
+      // If no provider is active, call with disconnected and return no-op
+      listener(WebSocketConnectionState.DISCONNECTED, 0);
+      return () => {
+        // No-op
+      };
+    }
+  }
+
+  /**
+   * Manually trigger a WebSocket reconnection attempt.
+   * Used by the UI retry button when connection is lost.
+   */
+  async reconnect(): Promise<void> {
+    this.debugLog('[PerpsController] reconnect() called');
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.reconnect) {
+        this.debugLog('[PerpsController] Delegating to provider.reconnect()');
+        await provider.reconnect();
+        this.debugLog('[PerpsController] provider.reconnect() completed');
+      } else {
+        this.debugLog(
+          '[PerpsController] Provider does not support reconnect()',
+        );
+      }
+    } catch (error) {
+      this.logError(
+        ensureError(error),
+        this.getErrorContext('reconnect', {
+          operation: 'websocket_reconnect',
+        }),
+      );
+    }
   }
 
   // Live data delegation (NO Redux) - delegates to active provider
@@ -2622,26 +2777,65 @@ export class PerpsController extends BaseController<
 
   /**
    * Get saved market filter preferences
+   * Handles backward compatibility with legacy string format
    */
-  getMarketFilterPreferences(): SortOptionId {
+  getMarketFilterPreferences(): {
+    optionId: SortOptionId;
+    direction: SortDirection;
+  } {
+    const pref = this.state.marketFilterPreferences;
+
+    // Handle legacy string format (backward compatibility)
+    if (typeof pref === 'string') {
+      // Map legacy compound IDs to new format
+      // Old format: 'priceChange-desc' or 'priceChange-asc'
+      // New format: { optionId: 'priceChange', direction: 'desc'/'asc' }
+      if (pref === 'priceChange-desc') {
+        return {
+          optionId: 'priceChange',
+          direction: 'desc',
+        };
+      }
+      if (pref === 'priceChange-asc') {
+        return {
+          optionId: 'priceChange',
+          direction: 'asc',
+        };
+      }
+
+      // Handle other simple legacy strings (e.g., 'volume', 'openInterest', etc.)
+      return {
+        optionId: pref as SortOptionId,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
+      };
+    }
+
+    // Return new object format or default
     return (
-      this.state.marketFilterPreferences ??
-      MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID
+      pref ?? {
+        optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
+      }
     );
   }
 
   /**
    * Save market filter preferences
    * @param optionId - Sort/filter option ID
+   * @param direction - Sort direction ('asc' or 'desc')
    */
-  saveMarketFilterPreferences(optionId: SortOptionId): void {
+  saveMarketFilterPreferences(
+    optionId: SortOptionId,
+    direction: SortDirection,
+  ): void {
     this.debugLog('PerpsController: Saving market filter preferences', {
       optionId,
+      direction,
       timestamp: new Date().toISOString(),
     });
 
     this.update((state) => {
-      state.marketFilterPreferences = optionId;
+      state.marketFilterPreferences = { optionId, direction };
     });
   }
 

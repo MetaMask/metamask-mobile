@@ -193,11 +193,10 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search by token, site or address",
+    "placeholder": "Search by site or address",
     "recents": "Recents",
     "favorites": "Favorites",
-    "sites": "Sites",
-    "tokens": "Tokens"
+    "sites": "Sites"
   },
   "navigation": {
     "back": "Back",
@@ -1419,6 +1418,7 @@
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
       "failed_to_toggle_network": "Failed to toggle network",
+      "failed_to_switch_provider": "Failed to switch provider",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1457,6 +1457,24 @@
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
+      "clientReinitializing": "Service is reinitializing. Please wait a moment and try again.",
+      "transferFailed": "Unable to transfer funds. Please try again.",
+      "swapFailed": "Unable to swap tokens. Please try again.",
+      "spotPairNotFound": "Trading pair is not available at this time.",
+      "priceUnavailable": "Price data is unavailable. Please refresh and try again.",
+      "batchCancelFailed": "Some orders couldn't be cancelled. Please try again.",
+      "batchCloseFailed": "Some positions couldn't be closed. Please try again.",
+      "insufficientMargin": "Insufficient margin to execute this trade. Consider adding more funds or reducing your position size.",
+      "reduceOnlyViolation": "This order would increase your position. Only reduce-only orders are allowed.",
+      "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
+      "marginAdjustmentFailed": "Unable to adjust margin. Please try again.",
+      "tpslUpdateFailed": "Unable to update take profit/stop loss. Please try again.",
+      "orderRejected": "Order was rejected. Please check your parameters and try again.",
+      "slippageExceeded": "Price moved too much. Try using a limit order or increase slippage tolerance.",
+      "rateLimitExceeded": "Too many requests. Please wait a moment and try again.",
+      "serviceUnavailable": "Service is temporarily unavailable. Please try again later.",
+      "networkErrorSimple": "Network error occurred. Please check your connection and try again.",
+      "insufficientBalance": "Insufficient balance to complete this operation. Please check your available funds.",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",
@@ -1702,7 +1720,14 @@
       "retry_connection": "Retry connection",
       "retrying_connection": "Connecting...",
       "connecting_to_perps": "Connecting to Perps",
-      "timeout_title": "Connection taking longer than expected"
+      "timeout_title": "Connection taking longer than expected",
+      "websocket_disconnected": "Your connection is offline.",
+      "websocket_disconnected_message": "Data may not be up to date.",
+      "websocket_connecting": "Connecting to perps...",
+      "websocket_connecting_message": "Restoring connection... Attempt {{attempt}}",
+      "websocket_connected": "Connected",
+      "websocket_connected_message": "Live data updates resumed",
+      "websocket_retry": "Retry"
     },
     "chart": {
       "no_data": "No chart data available",
@@ -1814,7 +1839,11 @@
       "price_change_low_to_high": "Price change: low to high",
       "past_hour": "Past hour",
       "past_24_hours": "Past 24 hours",
-      "time": "Time"
+      "time": "Time",
+      "apply": "Apply"
+    },
+    "market_type": {
+      "filter_by": "Filter by"
     },
     "perps_markets": "Perps markets",
     "volume": "Volume",
@@ -1831,6 +1860,7 @@
     "mainnet": "Mainnet",
     "developer_options": {
       "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "provider_mode_toggle": "Provider Mode",
       "simulate_connection_error": "Simulate connection error"
     },
     "transactions": {
@@ -3274,7 +3304,8 @@
     "merkl_rewards": {
       "annual_bonus": "{{apy}}% bonus",
       "claimable_bonus": "Claimable bonus",
-      "claim": "Claim"
+      "claim": "Claim",
+      "processing_claim": "Processing claim..."
     },
     "tron": {
       "daily_resource_new_energy": "New daily energy",
@@ -4620,6 +4651,10 @@
   "fiat_on_ramp": {
     "buy_eth": "Buy ETH",
     "buy": "Buy {{ticker}}",
+    "on_network": "on {{networkName}}",
+    "debit_card": "Debit card",
+    "continue": "Continue",
+    "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
     "network_not_supported": "Current network not supported",
     "switch_network": "Please switch to Mainnet",
@@ -5633,6 +5668,7 @@
     "claimable_bonus_tooltip": "An annual bonus claimable daily from your wallet.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
+    "claim_bonus": "Claim bonus",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
@@ -5716,7 +5752,8 @@
       "fee": "Fee"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "ok": "OK",
+      "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
       "toasts": {
@@ -5726,7 +5763,7 @@
         "failed": "mUSD conversion failed"
       },
       "education": {
-        "heading": "GET {{percentage}}% ON STABLECOINS",
+        "heading": "GET {{percentage}}% ON\nSTABLECOINS",
         "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus. Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now"
@@ -6056,7 +6093,8 @@
       },
       "title": {
         "transaction_fee": "Fees"
-      }
+      },
+      "network_fee": "Network fees depend on how busy the network is and how complex your transaction is."
     },
     "spending_cap": "Spending cap",
     "withdraw": "Withdraw",
@@ -6191,6 +6229,8 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
     "select_network": "Select network",
     "all_networks": "All networks",
     "num_networks": "{{numNetworks}} networks",
@@ -6198,6 +6238,7 @@
     "select_all_networks": "Select all",
     "deselect_all_networks": "Deselect all",
     "see_all": "See all",
+    "all": "All",
     "apply": "Apply",
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
@@ -6727,6 +6768,7 @@
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
       "enable_card_error": "Failed to enable card. Please try again later.",
+      "view_card_details_error": "Unable to load card details. Please try again.",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6755,6 +6797,12 @@
           "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
         }
       },
+      "messages": {
+        "card_provisioning": {
+          "title": "Card being created",
+          "description": "Your card is being created. This may take a few moments."
+        }
+      },
       "kyc_status": {
         "pending": {
           "title": "Verification in progress",
@@ -6776,13 +6824,16 @@
         "ok_button": "OK"
       },
       "manage_card_options": {
+        "view_card_details": "View card details",
+        "hide_card_details": "Hide card details",
+        "view_card_details_description": "Card number, expiration and CVV",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Manage card",
         "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
-        "travel_description": "Travel the world, earn points, live life",
+        "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions"
       }
     },
@@ -7346,8 +7397,6 @@
   },
   "trending": {
     "title": "Explore",
-    "view_all": "View all",
-    "tokens": "Tokens",
     "trending_tokens": "Trending tokens",
     "price_change": "Price change",
     "all_networks": "All networks",
