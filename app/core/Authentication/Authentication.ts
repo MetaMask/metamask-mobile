@@ -765,8 +765,9 @@ class AuthenticationService {
     try {
       const existingUser = selectExistingUser(ReduxService.store.getState());
 
-      if (existingUser) {
+      if (existingUser || authPreference?.oauth2Login) {
         // User exists. Attempt to unlock wallet.
+        // existing user is always false when user try to rehydrate
 
         if (password) {
           // Explicitly provided password.
