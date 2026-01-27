@@ -81,6 +81,7 @@ class BridgeScreen {
       tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
     }
     const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+    await appwrightExpect(tokenButton).toBeVisible({ timeout: 15000 });
     await AppwrightGestures.tap(tokenButton);
   }
 

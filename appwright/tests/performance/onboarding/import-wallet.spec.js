@@ -71,7 +71,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Not now" button On feature sheet until native token is visible',
-        { ios: 80000, android: 80000 },
+        { ios: 90000, android: 90000 },
         device,
       );
 

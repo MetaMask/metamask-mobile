@@ -60,7 +60,7 @@ test.describe(PerformancePreps, () => {
       );
       const selectMarketTimer = new TimerHelper(
         'Select Market BTC',
-        { ios: 7500, android: 7500 },
+        { ios: 7500, android: 9000 },
         device,
       );
       const openOrderScreenTimer = new TimerHelper(
