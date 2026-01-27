@@ -2,6 +2,7 @@ import {
   assessMarginRemovalRisk,
   calculateMaxRemovableMargin,
   calculateNewLiquidationPrice,
+  estimateLiquidationPrice,
 } from './marginUtils';
 
 describe('marginUtils', () => {
@@ -441,6 +442,112 @@ describe('marginUtils', () => {
       expect(result.riskLevel).toBe('safe');
       expect(result.priceDiff).toBe(0);
       expect(result.riskRatio).toBe(0);
+    });
+  });
+
+  describe('estimateLiquidationPrice', () => {
+    it('returns current liquidation price when no margin change', () => {
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 5000,
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 20,
+      });
+
+      expect(result).toBe(80000);
+    });
+
+    it('applies maintenance factor when adding margin (long)', () => {
+      // Adding $1000 margin to long position
+      // maxLeverage=20 => l=0.025 => denominator=0.975
+      // delta=+1000, move = -1000/0.5/0.975 = -2051.28
+      // new liq = 80000 - 2051.28 = 77948.72
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 6000,
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 20,
+      });
+
+      expect(result).toBeCloseTo(77948.72, 0);
+    });
+
+    it('applies maintenance factor when removing margin (long)', () => {
+      // Removing $1000 margin from long position
+      // delta=-1000, move = +1000/0.5/0.975 = +2051.28
+      // new liq = 80000 + 2051.28 = 82051.28
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 4000,
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 20,
+      });
+
+      expect(result).toBeCloseTo(82051.28, 0);
+    });
+
+    it('applies maintenance factor for short position', () => {
+      // Removing $500 margin from short position
+      // maxLeverage=20 => l=0.025 => denominator=1.025 (for short)
+      // delta=-500, move = -500/10/1.025 = -48.78
+      // new liq = 2100 - 48.78 = 2051.22
+      const result = estimateLiquidationPrice({
+        isLong: false,
+        currentMargin: 1000,
+        newMargin: 500,
+        positionSize: 10,
+        currentLiquidationPrice: 2100,
+        maxLeverage: 20,
+      });
+
+      expect(result).toBeCloseTo(2051.22, 0);
+    });
+
+    it('returns currentLiquidationPrice when newMargin is invalid', () => {
+      expect(
+        estimateLiquidationPrice({
+          isLong: true,
+          currentMargin: 5000,
+          newMargin: 0,
+          positionSize: 0.5,
+          currentLiquidationPrice: 80000,
+          maxLeverage: 20,
+        }),
+      ).toBe(80000);
+    });
+
+    it('returns currentLiquidationPrice when positionSize is invalid', () => {
+      expect(
+        estimateLiquidationPrice({
+          isLong: true,
+          currentMargin: 5000,
+          newMargin: 6000,
+          positionSize: 0,
+          currentLiquidationPrice: 80000,
+          maxLeverage: 20,
+        }),
+      ).toBe(80000);
+    });
+
+    it('falls back to no maintenance factor when maxLeverage is invalid', () => {
+      // Without maintenance factor: move = -1000/0.5/1 = -2000
+      // new liq = 80000 - 2000 = 78000
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 6000,
+        positionSize: 0.5,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 0,
+      });
+
+      expect(result).toBe(78000);
     });
   });
 });

@@ -37,6 +37,15 @@ export interface CalculateNewLiquidationPriceParams {
   currentLiquidationPrice: number;
 }
 
+export interface EstimateLiquidationPriceParams {
+  isLong: boolean;
+  currentMargin: number;
+  newMargin: number;
+  positionSize: number;
+  currentLiquidationPrice: number;
+  maxLeverage: number;
+}
+
 /**
  * Assess liquidation risk after margin removal
  * Compares new liquidation price against current market price to determine risk level
@@ -206,4 +215,61 @@ export function calculateNewLiquidationPrice(
     return Math.max(0, entryPrice - marginPerUnit);
   }
   return entryPrice + marginPerUnit;
+}
+
+/**
+ * Estimate liquidation price after margin change using anchored + delta approach.
+ *
+ * Anchors to the current provider liquidation price and applies the margin delta,
+ * accounting for Hyperliquid's maintenance margin factor.
+ *
+ * Formula: newLiqPrice = currentLiqPrice + (directionMultiplier * marginDelta / positionSize) / (1 - l * side)
+ * where l = 1 / (2 * maxLeverage) is the maintenance margin rate
+ */
+export function estimateLiquidationPrice(
+  params: EstimateLiquidationPriceParams,
+): number {
+  const {
+    isLong,
+    currentMargin,
+    newMargin,
+    positionSize,
+    currentLiquidationPrice,
+    maxLeverage,
+  } = params;
+
+  // Return current price if no change or invalid inputs
+  if (
+    !Number.isFinite(newMargin) ||
+    newMargin <= 0 ||
+    !Number.isFinite(positionSize) ||
+    positionSize <= 0 ||
+    !Number.isFinite(currentLiquidationPrice) ||
+    currentLiquidationPrice <= 0 ||
+    !Number.isFinite(currentMargin) ||
+    currentMargin <= 0
+  ) {
+    return currentLiquidationPrice;
+  }
+
+  const marginDelta = newMargin - currentMargin;
+  if (!Number.isFinite(marginDelta)) {
+    return currentLiquidationPrice;
+  }
+
+  const side = isLong ? 1 : -1;
+  const maintenanceMarginRate =
+    Number.isFinite(maxLeverage) && maxLeverage > 0 ? 1 / (2 * maxLeverage) : 0;
+  const denominator = 1 - maintenanceMarginRate * side;
+  const safeDenominator = Math.abs(denominator) < 0.0001 ? 1 : denominator;
+
+  // For long: adding margin moves liquidation price down (safer)
+  // For short: adding margin moves liquidation price up (safer)
+  const directionMultiplier = isLong ? -1 : 1;
+
+  const estimatedLiquidationPrice =
+    currentLiquidationPrice +
+    (directionMultiplier * marginDelta) / positionSize / safeDenominator;
+
+  return Math.max(0, estimatedLiquidationPrice);
 }

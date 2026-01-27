@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -59,6 +59,14 @@ const PerpsAdjustMarginView: React.FC = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
+  // Captures the estimated liquidation values at submission time.
+  // Displayed during exit animation so users see consistent values as the form closes,
+  // rather than values recalculating as position data updates from WebSocket.
+  // Uses ref (not state) since setting this shouldn't trigger a re-render.
+  const submittedEstimateRef = useRef<{
+    price: number;
+    distance: number;
+  } | null>(null);
 
   // Derived numeric value from string
   const marginAmount = useMemo(
@@ -173,6 +181,12 @@ const PerpsAdjustMarginView: React.FC = () => {
       return;
     }
 
+    // Capture estimates at submission - displayed during exit animation
+    submittedEstimateRef.current = {
+      price: newLiquidationPrice,
+      distance: newLiquidationDistance,
+    };
+
     try {
       if (isAddMode) {
         await handleAddMargin(position.symbol, marginAmount);
@@ -180,6 +194,8 @@ const PerpsAdjustMarginView: React.FC = () => {
         await handleRemoveMargin(position.symbol, marginAmount);
       }
     } catch (error) {
+      // Clear on error so user sees live values again
+      submittedEstimateRef.current = null;
       Logger.error(
         ensureError(error),
         `Failed to ${isAddMode ? 'add' : 'remove'} margin for ${position.symbol}`,
@@ -191,6 +207,8 @@ const PerpsAdjustMarginView: React.FC = () => {
     position,
     isAddMode,
     maxAmount,
+    newLiquidationPrice,
+    newLiquidationDistance,
     handleAddMargin,
     handleRemoveMargin,
   ]);
@@ -218,6 +236,14 @@ const PerpsAdjustMarginView: React.FC = () => {
 
   // Floor maxAmount for display and comparison
   const flooredMaxAmount = Math.floor(maxAmount * 100) / 100;
+
+  // Use submitted estimate during exit animation, otherwise use live calculated values.
+  const submittedEstimate = submittedEstimateRef.current;
+  const displayNewLiquidationPrice =
+    submittedEstimate?.price ?? newLiquidationPrice;
+  const displayNewLiquidationDistance =
+    submittedEstimate?.distance ?? newLiquidationDistance;
+  const showTransition = marginAmount > 0 || submittedEstimate !== null;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -306,7 +332,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                 />
               </TouchableOpacity>
             </View>
-            {marginAmount > 0 ? (
+            {showTransition ? (
               <View style={styles.changeContainer}>
                 <Text
                   variant={TextVariant.BodyMD}
@@ -322,7 +348,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   color={colors.icon.alternative}
                 />
                 <Text variant={TextVariant.BodyMD}>
-                  {formatPerpsFiat(newLiquidationPrice, {
+                  {formatPerpsFiat(displayNewLiquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })}
                 </Text>
@@ -353,7 +379,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                 />
               </TouchableOpacity>
             </View>
-            {marginAmount > 0 ? (
+            {showTransition ? (
               <View style={styles.changeContainer}>
                 <Text
                   variant={TextVariant.BodyMD}
@@ -371,8 +397,8 @@ const PerpsAdjustMarginView: React.FC = () => {
                 />
                 <Text variant={TextVariant.BodyMD}>
                   {formatLiquidationDistance(
-                    newLiquidationDistance,
-                    newLiquidationPrice,
+                    displayNewLiquidationDistance,
+                    displayNewLiquidationPrice,
                   )}
                 </Text>
               </View>
