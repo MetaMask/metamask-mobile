@@ -29,7 +29,6 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../../../../util/errorUtils';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
@@ -78,8 +77,12 @@ const PerpsAdjustMarginView: React.FC = () => {
   const { handleAddMargin, handleRemoveMargin, isAdjusting } =
     usePerpsMarginAdjustment({
       onSuccess: () => navigation.goBack(),
-      onError: () => {
+      onError: (errorMessage) => {
         submittedEstimateRef.current = null;
+        Logger.error(
+          new Error(errorMessage),
+          `Failed to ${mode} margin for ${routePosition?.symbol}`,
+        );
       },
     });
 
@@ -190,20 +193,10 @@ const PerpsAdjustMarginView: React.FC = () => {
       distance: newLiquidationDistance,
     };
 
-    try {
-      if (isAddMode) {
-        await handleAddMargin(position.symbol, marginAmount);
-      } else {
-        await handleRemoveMargin(position.symbol, marginAmount);
-      }
-    } catch (error) {
-      // Clear on error so user sees live values again
-      submittedEstimateRef.current = null;
-      Logger.error(
-        ensureError(error),
-        `Failed to ${isAddMode ? 'add' : 'remove'} margin for ${position.symbol}`,
-      );
-      // Note: Toast notification is handled by usePerpsMarginAdjustment hook
+    if (isAddMode) {
+      await handleAddMargin(position.symbol, marginAmount);
+    } else {
+      await handleRemoveMargin(position.symbol, marginAmount);
     }
   }, [
     marginAmount,
