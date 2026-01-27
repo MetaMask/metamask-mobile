@@ -229,6 +229,7 @@ describe('DefaultSlippageModal', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL,
+        network: '0x1',
       });
     });
 
