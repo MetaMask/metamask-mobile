@@ -150,7 +150,10 @@ export const waitForNetworkModalOnboarding = async ({
       await wait(1000);
     }
 
-    if (loopCounter >= networkModalOnboardingConfig.MAX_LOOP_COUNTER) {
+    if (
+      waitForNetworkModalOnboarded &&
+      loopCounter >= networkModalOnboardingConfig.MAX_LOOP_COUNTER
+    ) {
       throw new Error('Timeout error');
     }
   }
