@@ -198,7 +198,7 @@ describe('useTransactionPayToken', () => {
       expect(updateTransactionMock).toHaveBeenCalledWith(
         expect.objectContaining({
           selectedGasFeeToken: PAY_TOKEN_MOCK.address,
-          isGasFeeTokenIgnoredIfBalance: false,
+          isGasFeeTokenIgnoredIfBalance: true,
         }),
         TRANSACTION_ID_MOCK,
       );

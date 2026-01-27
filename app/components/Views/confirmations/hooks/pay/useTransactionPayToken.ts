@@ -72,7 +72,7 @@ export function useTransactionPayToken(): {
             ? newPayToken.address
             : undefined,
           isGasFeeTokenIgnoredIfBalance: isNewPayTokenRequiredToken
-            ? false
+            ? true
             : undefined,
         };
 
