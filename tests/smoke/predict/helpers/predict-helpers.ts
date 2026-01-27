@@ -1,4 +1,4 @@
-import { createLogger, LogLevel } from '../../../../tests/framework/logger';
+import { createLogger, LogLevel } from '../../../framework/logger';
 
 const logger = createLogger({
   name: 'PredictHelpers',

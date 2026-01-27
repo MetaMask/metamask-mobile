@@ -1,13 +1,13 @@
-import { Matchers, Gestures, Assertions } from '../../../tests/framework';
+import { Matchers, Gestures, Assertions } from '../../framework';
 import {
   TrendingViewSelectorsIDs,
   SECTION_BACK_BUTTONS,
   DETAILS_BACK_BUTTONS,
   SECTION_FULL_VIEW_HEADERS,
-} from '../../selectors/Trending/TrendingView.selectors';
-import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
-import TabBarComponent from '../wallet/TabBarComponent';
-import BrowserView from '../Browser/BrowserView';
+} from '../../locators/Trending/TrendingView.selectors.ts';
+import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds.ts';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
+import BrowserView from '../../../e2e/pages/Browser/BrowserView.ts';
 
 class TrendingView {
   get searchButton(): DetoxElement {

@@ -1,25 +1,25 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
-import Assertions from '../../../tests/framework/Assertions';
-import WalletView from '../../pages/wallet/WalletView';
-import { remoteFeatureFlagPredictEnabled } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { SmokePredictions } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
+import Assertions from '../../framework/Assertions';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_CASH_OUT_MOCKS,
   POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS,
-} from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
+} from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import PredictCashOutPage from '../../pages/Predict/PredictCashOutPage';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
-import { getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../../tests/framework/SoftAssert';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import PredictCashOutPage from '../../page-objects/Predict/PredictCashOutPage';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../../e2e/pages/Transactions/predictionsActivityDetails';
+import { getEventsPayloads } from '../../../e2e/specs/analytics/helpers';
+import SoftAssert from '../../framework/SoftAssert';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
