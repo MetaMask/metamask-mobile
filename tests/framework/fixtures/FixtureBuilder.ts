@@ -2194,6 +2194,7 @@ class FixtureBuilder {
   ) {
     const stateToMerge: NetworkEnablementControllerState = {
       enabledNetworkMap: data,
+      nativeAssetIdentifiers: {},
     };
 
     merge(
