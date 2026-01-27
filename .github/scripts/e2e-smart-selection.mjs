@@ -113,7 +113,6 @@ async function main() {
     const analysis = {
       tags: JSON.stringify(selectedTags),  // JSON array format: [] or ["SmokeCore", "SmokeAccounts"]
       tagDisplay: selectedTags.length > 0 ? selectedTags.join(', ') : 'None (no tests recommended)',
-      tagCount: selectedTags.length,
       riskLevel: parsedResult.riskLevel || '',
       confidence: parsedResult.confidence || '',
       reasoning: parsedResult.reasoning || '',
