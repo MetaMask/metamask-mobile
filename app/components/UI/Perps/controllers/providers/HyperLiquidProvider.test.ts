@@ -770,6 +770,58 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('No price available for BTC');
     });
 
+    it('falls back to REST API when cached price is zero', async () => {
+      // Mock WebSocket cache to return "0" (invalid price)
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce('0');
+      // Mock REST API to return valid price
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({ BTC: '50000' });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      // Should succeed because it fell back to REST API
+      expect(result.success).toBe(true);
+      // Verify REST API was called as fallback
+      expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+    });
+
+    it('falls back to REST API when cached price is NaN', async () => {
+      // Mock WebSocket cache to return invalid string
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce('invalid');
+      // Mock REST API to return valid price
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({ BTC: '50000' });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      // Should succeed because it fell back to REST API
+      expect(result.success).toBe(true);
+      // Verify REST API was called as fallback
+      expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+    });
+
     it('handles editOrder when asset ID is not found', async () => {
       // Create a spy on the symbolToAssetId.get method to return undefined for BTC
       // eslint-disable-next-line dot-notation

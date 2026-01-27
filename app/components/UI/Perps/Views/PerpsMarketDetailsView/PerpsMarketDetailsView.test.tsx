@@ -266,6 +266,16 @@ jest.mock('../../hooks/stream/usePerpsLiveFills', () => ({
   usePerpsLiveFills: () => mockUsePerpsLiveFillsImpl(),
 }));
 
+// Mock Engine for REST fallback tests
+const mockGetOrderFills = jest.fn();
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      getOrderFills: (...args: unknown[]) => mockGetOrderFills(...args),
+    },
+  },
+}));
+
 // Mock for usePerpsMarkets that can be modified per test
 const mockUsePerpsMarketsImpl = jest.fn<
   ReturnType<typeof import('../../hooks/usePerpsMarkets').usePerpsMarkets>,
@@ -1771,6 +1781,225 @@ describe('PerpsMarketDetailsView', () => {
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
       ).toBeTruthy();
       expect(mockUsePerpsLiveFillsImpl).toHaveBeenCalled();
+    });
+
+    it('falls back to REST API when WebSocket does not have position-opening fill', async () => {
+      // Arrange - WebSocket has no matching Open fill for the position
+      const timestamp = Date.now() - 5 * 60 * 1000; // 5 minutes ago
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'ETH',
+          size: '1.0',
+          entryPrice: '3000',
+          positionValue: '3000',
+          unrealizedPnl: '-100',
+          marginUsed: '300',
+          leverage: { type: 'isolated', value: 10 },
+          liquidationPrice: '2700',
+          maxLeverage: 20,
+          returnOnEquity: '-0.33',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+      });
+
+      // WebSocket fills only has BTC fills, not ETH
+      mockUsePerpsLiveFillsImpl.mockReturnValue({
+        fills: [
+          {
+            orderId: 'order-1',
+            symbol: 'BTC',
+            side: 'buy',
+            direction: 'Open Long',
+            timestamp: timestamp - 1000,
+            size: '0.1',
+            price: '45000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+        ],
+        isInitialLoading: false,
+      });
+
+      // REST API returns the ETH position-opening fill
+      mockGetOrderFills.mockResolvedValue([
+        {
+          orderId: 'order-eth-1',
+          symbol: 'ETH',
+          side: 'buy',
+          direction: 'Open Long',
+          timestamp,
+          size: '1.0',
+          price: '3000',
+          pnl: '0',
+          fee: '0.01',
+          feeToken: 'USDC',
+        },
+      ]);
+
+      // Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Assert - component renders
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeTruthy();
+
+      // Wait for REST fallback to be called
+      await waitFor(() => {
+        expect(mockGetOrderFills).toHaveBeenCalledWith(
+          expect.objectContaining({
+            startTime: expect.any(Number),
+          }),
+        );
+      });
+    });
+
+    it('does not call REST API when WebSocket has matching Open fill', async () => {
+      // Arrange - WebSocket has the matching Open fill
+      const timestamp = Date.now();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '44000',
+          positionValue: '22000',
+          unrealizedPnl: '50',
+          marginUsed: '500',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '1.14',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+      });
+
+      // WebSocket has matching BTC Open fill
+      mockUsePerpsLiveFillsImpl.mockReturnValue({
+        fills: [
+          {
+            orderId: 'order-1',
+            symbol: 'BTC',
+            side: 'buy',
+            direction: 'Open Long',
+            timestamp,
+            size: '0.5',
+            price: '44000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+        ],
+        isInitialLoading: false,
+      });
+
+      mockGetOrderFills.mockClear();
+
+      // Act
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Assert - REST API should NOT be called since WebSocket has the fill
+      // Wait a tick to ensure no async call is made
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockGetOrderFills).not.toHaveBeenCalled();
+    });
+
+    it('handles REST API error gracefully', async () => {
+      // Arrange
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'ETH',
+          size: '1.0',
+          entryPrice: '3000',
+          positionValue: '3000',
+          unrealizedPnl: '-100',
+          marginUsed: '300',
+          leverage: { type: 'isolated', value: 10 },
+          liquidationPrice: '2700',
+          maxLeverage: 20,
+          returnOnEquity: '-0.33',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+      });
+
+      // WebSocket has no ETH fills
+      mockUsePerpsLiveFillsImpl.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      // REST API throws error
+      mockGetOrderFills.mockRejectedValue(new Error('Network error'));
+
+      // Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Assert - component still renders despite REST error
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeTruthy();
+
+      // Wait for REST fallback attempt
+      await waitFor(() => {
+        expect(mockGetOrderFills).toHaveBeenCalled();
+      });
+
+      // Logger should have logged the error
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'Failed to fetch historical fills for position timestamp',
+        expect.objectContaining({
+          error: expect.any(Error),
+          symbol: 'ETH',
+        }),
+      );
     });
   });
 
