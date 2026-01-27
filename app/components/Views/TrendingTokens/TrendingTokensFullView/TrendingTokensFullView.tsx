@@ -44,6 +44,7 @@ import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingToken
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -64,11 +65,6 @@ const createStyles = (theme: Theme) =>
       borderRadius: 16,
       backgroundColor: theme.colors.background.muted,
       padding: 16,
-    },
-    listContainer: {
-      flex: 1,
-      paddingLeft: 16,
-      paddingRight: 16,
     },
     controlBarWrapper: {
       paddingVertical: 16,
@@ -122,6 +118,72 @@ const createStyles = (theme: Theme) =>
       opacity: 0.5,
     },
   });
+
+export interface TrendingTokensDataProps {
+  isLoading: boolean;
+  refreshing: boolean;
+  trendingTokens: TrendingAsset[];
+  handleRefresh: () => void;
+  selectedTimeOption: TimeOption;
+
+  search: {
+    searchResults: TrendingAsset[];
+    searchQuery: string;
+  };
+}
+
+export const TrendingTokensData = (props: TrendingTokensDataProps) => {
+  const {
+    isLoading,
+    refreshing,
+    trendingTokens,
+    search,
+    handleRefresh,
+    selectedTimeOption,
+  } = props;
+
+  const tw = useTailwind();
+
+  // Loading without previous data - show skeleton
+  if (isLoading && trendingTokens.length === 0) {
+    return (
+      <View style={tw`flex-1 p-4`} testID="trending-tokens-skeleton">
+        {Array.from({ length: 12 }).map((_, index) => (
+          <TrendingTokensSkeleton key={index} />
+        ))}
+      </View>
+    );
+  }
+
+  // Show empty trending search results
+  if (
+    search.searchResults.length === 0 &&
+    search.searchQuery.trim().length > 0
+  ) {
+    return <EmptySearchResultState />;
+  }
+
+  // Show error trending search results
+  if (
+    search.searchResults.length === 0 &&
+    search.searchQuery.trim().length === 0
+  ) {
+    return <EmptyErrorTrendingState onRetry={handleRefresh} />;
+  }
+
+  // Show trending tokens list
+  return (
+    <View style={tw`flex-1 p-4`}>
+      <TrendingTokensList
+        trendingTokens={trendingTokens}
+        selectedTimeOption={selectedTimeOption}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      />
+    </View>
+  );
+};
 
 const TrendingTokensFullView = () => {
   const navigation =
@@ -397,34 +459,15 @@ const TrendingTokensFullView = () => {
         </ScrollView>
       ) : null}
 
-      {isLoading ? (
-        <View style={styles.listContainer}>
-          {Array.from({ length: 12 }).map((_, index) => (
-            <TrendingTokensSkeleton key={index} />
-          ))}
-        </View>
-      ) : (searchResults as TrendingAsset[]).length === 0 ? (
-        searchQuery.trim().length > 0 ? (
-          <EmptySearchResultState />
-        ) : (
-          <EmptyErrorTrendingState onRetry={handleRefresh} />
-        )
-      ) : (
-        <View style={styles.listContainer}>
-          <TrendingTokensList
-            trendingTokens={trendingTokens}
-            selectedTimeOption={selectedTimeOption}
-            refreshControl={
-              <RefreshControl
-                colors={[theme.colors.primary.default]}
-                tintColor={theme.colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          />
-        </View>
-      )}
+      <TrendingTokensData
+        isLoading={isLoading}
+        refreshing={refreshing}
+        trendingTokens={trendingTokens}
+        search={{ searchResults, searchQuery }}
+        handleRefresh={handleRefresh}
+        selectedTimeOption={selectedTimeOption}
+      />
+
       <TrendingTokenTimeBottomSheet
         isVisible={showTimeBottomSheet}
         onClose={() => setShowTimeBottomSheet(false)}

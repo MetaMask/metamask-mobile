@@ -153,6 +153,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={handleSheetClose}
+      testID="trending-token-time-bottom-sheet"
     >
       <BottomSheetHeader
         onClose={handleClose}
@@ -168,6 +169,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.TwentyFourHours)}
+          testID="time-select-24h"
         >
           <Text variant={TextVariant.BodyMD}>
             {strings('trending.24_hours')}
@@ -183,6 +185,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.SixHours)}
+          testID="time-select-6h"
         >
           <Text variant={TextVariant.BodyMD}>
             {strings('trending.6_hours')}
@@ -198,6 +201,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.OneHour)}
+          testID="time-select-1h"
         >
           <Text variant={TextVariant.BodyMD}>{strings('trending.1_hour')}</Text>
           {selectedTime === TimeOption.OneHour && (
@@ -211,6 +215,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.FiveMinutes)}
+          testID="time-select-5m"
         >
           <Text variant={TextVariant.BodyMD}>
             {strings('trending.5_minutes')}

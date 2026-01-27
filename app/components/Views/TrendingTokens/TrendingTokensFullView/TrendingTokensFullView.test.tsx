@@ -1,14 +1,37 @@
 import React from 'react';
-import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import { render, userEvent } from '@testing-library/react-native';
+import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import TrendingTokensFullView from './TrendingTokensFullView';
+import TrendingTokensFullView, {
+  TrendingTokensData,
+  TrendingTokensDataProps,
+} from './TrendingTokensFullView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
+
+import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
+import type TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList';
+import mockState from '../../../../util/test/initial-root-state';
+
+const TEST_IDS = {
+  skeleton: 'trending-tokens-skeleton',
+  emptySearchResult: 'empty-search-result-state',
+  emptyErrorState: 'empty-error-trending-state',
+  tokensList: 'trending-tokens-list',
+  retryButton: 'empty-error-trending-state--retry-button',
+} as const;
+
+const initialMetrics: Metrics = {
+  frame: { x: 0, y: 0, width: 320, height: 640 },
+  insets: { top: 0, left: 0, right: 0, bottom: 0 },
+};
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
+  __esModule: true,
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
@@ -16,52 +39,20 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
-const mockFetchTrendingTokens = jest.fn();
-const mockUseTrendingRequest = jest.fn().mockReturnValue({
-  results: [],
-  isLoading: false,
-  error: null,
-  fetch: mockFetchTrendingTokens,
-});
-jest.mock(
-  '../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest',
-  () => ({
-    useTrendingRequest: (options: unknown) => mockUseTrendingRequest(options),
-  }),
-);
+jest.mock('../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest');
+const mockUseTrendingRequest = jest.mocked(useTrendingRequest);
 
 jest.mock('../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch');
 const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
 
-// Mock sections.config to avoid complex Perps dependencies
-jest.mock('../../TrendingView/sections.config', () => ({
-  SECTIONS_CONFIG: {
-    tokens: {
-      getSearchableText: (item: { name?: string; symbol?: string }) =>
-        `${item.name || ''} ${item.symbol || ''}`.toLowerCase(),
-    },
-  },
-}));
-
 jest.mock(
   '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList',
-  () => {
+  (): typeof TrendingTokensList => {
     const { View, Text } = jest.requireActual('react-native');
-    return ({
-      trendingTokens,
-      onTokenPress,
-      ...rest
-    }: {
-      trendingTokens: TrendingAsset[];
-      onTokenPress: (token: TrendingAsset) => void;
-    }) => (
-      <View testID="trending-tokens-list" {...rest}>
+    return ({ trendingTokens }) => (
+      <View testID="trending-tokens-list">
         {trendingTokens.map((token, index) => (
-          <View
-            key={token.assetId || index}
-            testID={`token-${index}`}
-            onTouchEnd={() => onTokenPress(token)}
-          >
+          <View key={token.assetId || index} testID={`token-${index}`}>
             <Text>{token.name}</Text>
           </View>
         ))}
@@ -69,139 +60,6 @@ jest.mock(
     );
   },
 );
-
-jest.mock(
-  '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return ({ count }: { count: number }) => (
-      <View testID="trending-tokens-skeleton" data-count={count} />
-    );
-  },
-);
-
-jest.mock('../../../../util/navigation/navUtils', () => ({
-  createNavigationDetails: jest.fn(
-    (stackId, screenName) => (params?: unknown) => [
-      stackId,
-      { screen: screenName, params },
-    ],
-  ),
-}));
-
-jest.mock(
-  '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState',
-  () => {
-    const { View, Text } = jest.requireActual('react-native');
-    return jest.fn(({ onRetry }: { onRetry?: () => void }) => (
-      <View testID="empty-error-trending-state">
-        <Text>Trending tokens is not available</Text>
-        {onRetry && <View testID="retry-button" onTouchEnd={onRetry} />}
-      </View>
-    ));
-  },
-);
-
-jest.mock(
-  '../../TrendingView/components/EmptyErrorState/EmptySearchResultState',
-  () => {
-    const { View, Text } = jest.requireActual('react-native');
-    return jest.fn(() => (
-      <View testID="empty-search-result-state">
-        <Text>No tokens found</Text>
-      </View>
-    ));
-  },
-);
-
-jest.mock('../../../UI/Trending/components/TrendingTokensBottomSheet', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    TrendingTokenTimeBottomSheet: ({
-      isVisible,
-      onClose,
-      onTimeSelect,
-    }: {
-      isVisible: boolean;
-      onClose: () => void;
-      onTimeSelect?: (sortBy: string, timeOption: string) => void;
-    }) => {
-      if (!isVisible) return null;
-      return (
-        <View testID="trending-token-time-bottom-sheet">
-          <View
-            testID="time-select-24h"
-            onTouchEnd={() => onTimeSelect?.('h24_trending', '24h')}
-          />
-          <View
-            testID="time-select-6h"
-            onTouchEnd={() => onTimeSelect?.('h6_trending', '6h')}
-          />
-          <View testID="time-close" onTouchEnd={onClose} />
-        </View>
-      );
-    },
-    TrendingTokenNetworkBottomSheet: ({
-      isVisible,
-      onClose,
-      onNetworkSelect,
-    }: {
-      isVisible: boolean;
-      onClose: () => void;
-      onNetworkSelect?: (chainIds: string[] | null) => void;
-    }) => {
-      if (!isVisible) return null;
-      return (
-        <View testID="trending-token-network-bottom-sheet">
-          <View
-            testID="network-select-all"
-            onTouchEnd={() => onNetworkSelect?.(null)}
-          />
-          <View
-            testID="network-select-eip155:1"
-            onTouchEnd={() => onNetworkSelect?.(['eip155:1'])}
-          />
-          <View testID="network-close" onTouchEnd={onClose} />
-        </View>
-      );
-    },
-    TrendingTokenPriceChangeBottomSheet: ({
-      isVisible,
-      onClose,
-      onPriceChangeSelect,
-    }: {
-      isVisible: boolean;
-      onClose: () => void;
-      onPriceChangeSelect?: (option: string, sortDirection: string) => void;
-    }) => {
-      if (!isVisible) return null;
-      return (
-        <View testID="trending-token-price-change-bottom-sheet">
-          <View
-            testID="price-change-select-volume"
-            onTouchEnd={() => onPriceChangeSelect?.('volume', 'ascending')}
-          />
-          <View testID="price-change-close" onTouchEnd={onClose} />
-        </View>
-      );
-    },
-    TimeOption: {
-      TwentyFourHours: '24h',
-      SixHours: '6h',
-      OneHour: '1h',
-      FiveMinutes: '5m',
-    },
-    PriceChangeOption: {
-      PriceChange: 'price_change',
-      Volume: 'volume',
-      MarketCap: 'market_cap',
-    },
-    SortDirection: {
-      Ascending: 'ascending',
-      Descending: 'descending',
-    },
-  };
-});
 
 const createMockToken = (
   overrides: Partial<TrendingAsset> = {},
@@ -219,173 +77,207 @@ const createMockToken = (
   ...overrides,
 });
 
-describe('TrendingTokensFullView', () => {
-  const mockState = {
-    engine: {
-      backgroundState: {
-        NetworkController: {
-          networkConfigurations: {},
-          networkConfigurationsByChainId: {},
-        },
-        MultichainNetworkController: {
-          selectedMultichainNetworkChainId: undefined,
-          multichainNetworkConfigurationsByChainId: {},
-        },
-      },
-    },
+const arrangeMocks = () => {
+  const mockRefetch = jest.fn();
+
+  const setTrendingSearchMock = (options: {
+    data?: TrendingAsset[];
+    isLoading?: boolean;
+  }) => {
+    mockUseTrendingSearch.mockReturnValue({
+      data: options.data ?? [],
+      isLoading: options.isLoading ?? false,
+      refetch: mockRefetch,
+    });
   };
+
+  const setTrendingRequestMock = (options: {
+    results?: TrendingAsset[];
+    isLoading?: boolean;
+    error?: Error | null;
+  }) => {
+    mockUseTrendingRequest.mockReturnValue({
+      results: options.results ?? [],
+      isLoading: options.isLoading ?? false,
+      error: options.error ?? null,
+      fetch: jest.fn(),
+    });
+  };
+
+  return {
+    mockRefetch,
+    mockGoBack,
+    mockNavigate,
+    setTrendingSearchMock,
+    setTrendingRequestMock,
+  };
+};
+
+describe('TrendingTokensData', () => {
+  const mockTokens = [
+    createMockToken({ name: 'Token 1', assetId: 'eip155:1/erc20:0x123' }),
+    createMockToken({ name: 'Token 2', assetId: 'eip155:1/erc20:0x456' }),
+  ];
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTrendingRequest.mockReturnValue({
-      results: [],
-      isLoading: false,
-      error: null,
-      fetch: jest.fn(),
-    });
-    mockUseTrendingSearch.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
+  });
+
+  // Test table for different states
+  const stateTests: {
+    testName: string;
+    overrideProps?: Partial<TrendingTokensDataProps>;
+    elemsRendered: string[];
+    actAssert?: (
+      testUtils: ReturnType<typeof render>,
+      props: TrendingTokensDataProps,
+    ) => Promise<void>;
+  }[] = [
+    {
+      testName: 'loading skeleton when there is no data',
+      overrideProps: {
+        isLoading: true,
+        trendingTokens: [],
+      },
+      elemsRendered: [TEST_IDS.skeleton],
+    },
+    {
+      testName:
+        'no loading skeleton when there is data (e.g. loading/refetching)',
+      overrideProps: {
+        isLoading: true,
+        trendingTokens: mockTokens,
+      },
+      elemsRendered: [TEST_IDS.tokensList],
+    },
+    {
+      testName:
+        'empty search results when typing a search query that returns no results',
+      overrideProps: {
+        search: { searchResults: [], searchQuery: 'nonexistent' },
+      },
+      elemsRendered: [TEST_IDS.emptySearchResult],
+    },
+    {
+      testName: 'empty error state when there is an error on main token view',
+      overrideProps: {
+        trendingTokens: [],
+        search: { searchResults: [], searchQuery: '' },
+      },
+      elemsRendered: [TEST_IDS.emptyErrorState],
+      actAssert: async (testUtils, props) => {
+        const { getByTestId } = testUtils;
+        const retryButton = getByTestId(TEST_IDS.retryButton);
+        await userEvent.press(retryButton);
+
+        expect(props.handleRefresh).toHaveBeenCalledTimes(1);
+      },
+    },
+    {
+      testName: 'tokens list when there are tokens',
+      elemsRendered: [TEST_IDS.tokensList],
+      actAssert: async (testUtils) => {
+        const { getByText } = testUtils;
+        expect(getByText('Token 1')).toBeOnTheScreen();
+        expect(getByText('Token 2')).toBeOnTheScreen();
+      },
+    },
+  ];
+
+  it.each(stateTests)(
+    'renders correct state - $testName',
+    async ({ overrideProps, elemsRendered, actAssert }) => {
+      const baseProps: TrendingTokensDataProps = {
+        isLoading: false,
+        refreshing: false,
+        trendingTokens: mockTokens,
+        handleRefresh: jest.fn(),
+        selectedTimeOption: TimeOption.TwentyFourHours,
+        search: {
+          searchResults: mockTokens,
+          searchQuery: '',
+        },
+      };
+
+      const props: TrendingTokensDataProps = { ...baseProps, ...overrideProps };
+
+      const testUtils = render(<TrendingTokensData {...props} />);
+
+      elemsRendered.forEach((id) => {
+        expect(testUtils.getByTestId(id)).toBeOnTheScreen();
+      });
+
+      await actAssert?.(testUtils, props);
+    },
+  );
+});
+
+describe('TrendingTokensFullView', () => {
+  const renderTrendingFullView = () =>
+    renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <TrendingTokensFullView />
+      </SafeAreaProvider>,
+      { state: mockState },
+      false,
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    const mocks = arrangeMocks();
+    mocks.setTrendingRequestMock({ results: [] });
+    mocks.setTrendingSearchMock({ data: [] });
   });
 
   it('renders header with title and buttons', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false, // Exclude NavigationContainer since we're mocking navigation
-    );
+    const { getByText, getByTestId } = renderTrendingFullView();
 
     expect(getByText('Trending tokens')).toBeOnTheScreen();
     expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
   });
 
-  it('renders control buttons', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
-
-    expect(getByTestId('price-change-button')).toBeOnTheScreen();
-    expect(getByTestId('all-networks-button')).toBeOnTheScreen();
-    expect(getByTestId('24h-button')).toBeOnTheScreen();
-    expect(getByText('Price change')).toBeOnTheScreen();
-    expect(getByText('All networks')).toBeOnTheScreen();
-    expect(getByText('24h')).toBeOnTheScreen();
-  });
-
-  it('navigates back when back button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
+  it('navigates back when back button is pressed', async () => {
+    const mocks = arrangeMocks();
+    const { getByTestId } = renderTrendingFullView();
 
     const backButton = getByTestId('trending-tokens-header-back-button');
-    fireEvent.press(backButton);
+    await userEvent.press(backButton);
 
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('opens time bottom sheet when 24h button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
-
-    const button24h = getByTestId('24h-button');
-    fireEvent.press(button24h);
-
-    expect(getByTestId('trending-token-time-bottom-sheet')).toBeOnTheScreen();
-  });
-
-  it('opens network bottom sheet when all networks button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
-
-    const allNetworksButton = getByTestId('all-networks-button');
-    fireEvent.press(allNetworksButton);
-
-    expect(
-      getByTestId('trending-token-network-bottom-sheet'),
-    ).toBeOnTheScreen();
-  });
-
-  it('opens price change bottom sheet when price change button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
-
-    const priceChangeButton = getByTestId('price-change-button');
-    fireEvent.press(priceChangeButton);
-
-    expect(
-      getByTestId('trending-token-price-change-bottom-sheet'),
-    ).toBeTruthy();
+    expect(mocks.mockGoBack).toHaveBeenCalled();
   });
 
   it('displays skeleton loader when loading', () => {
-    mockUseTrendingSearch.mockReturnValue({
-      data: [],
-      isLoading: true,
-      refetch: jest.fn(),
-    });
+    const mocks = arrangeMocks();
+    mocks.setTrendingSearchMock({ data: [], isLoading: true });
 
-    const { queryAllByTestId } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
+    const { queryByTestId } = renderTrendingFullView();
 
-    const skeletons = queryAllByTestId('trending-tokens-skeleton');
-    expect(skeletons.length).toBeGreaterThan(0);
-    expect(skeletons[0]).toBeOnTheScreen();
+    const skeletonsContainer = queryByTestId(TEST_IDS.skeleton);
+    expect(skeletonsContainer).toBeOnTheScreen();
   });
 
   it('displays empty error state when results are empty without search query', () => {
-    mockUseTrendingSearch.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
+    const mocks = arrangeMocks();
+    mocks.setTrendingSearchMock({ data: [] });
 
-    const { getByText } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
+    const { getByText } = renderTrendingFullView();
 
     expect(getByText('Trending tokens is not available')).toBeOnTheScreen();
   });
 
-  it('displays empty search result state when search returns no results', () => {
-    mockUseTrendingSearch.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
+  it('displays empty search result state when search returns no results', async () => {
+    const mocks = arrangeMocks();
+    mocks.setTrendingSearchMock({ data: [] });
 
-    const { getByText, getByTestId } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
+    const { getByText, getByTestId } = renderTrendingFullView();
 
     // Open search
     const searchToggle = getByTestId('trending-tokens-header-search-toggle');
-    fireEvent.press(searchToggle);
+    await userEvent.press(searchToggle);
 
     // Type search query
     const searchInput = getByTestId('trending-tokens-header-search-bar');
-    fireEvent.changeText(searchInput, 'nonexistenttoken');
+    await userEvent.type(searchInput, 'nonexistenttoken');
 
     expect(getByTestId('empty-search-result-state')).toBeOnTheScreen();
     expect(getByText('No tokens found')).toBeOnTheScreen();
@@ -397,24 +289,11 @@ describe('TrendingTokensFullView', () => {
       createMockToken({ name: 'Token 2', assetId: 'eip155:1/erc20:0x456' }),
     ];
 
-    mockUseTrendingRequest.mockReturnValue({
-      results: mockTokens,
-      isLoading: false,
-      error: null,
-      fetch: jest.fn(),
-    });
+    const mocks = arrangeMocks();
+    mocks.setTrendingRequestMock({ results: mockTokens });
+    mocks.setTrendingSearchMock({ data: mockTokens });
 
-    mockUseTrendingSearch.mockReturnValue({
-      data: mockTokens,
-      isLoading: false,
-      refetch: jest.fn(),
-    });
-
-    const { getByTestId, getByText } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
+    const { getByTestId, getByText } = renderTrendingFullView();
 
     expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
     expect(getByText('Token 1')).toBeOnTheScreen();
@@ -422,7 +301,7 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('calls useTrendingSearch with correct initial parameters', () => {
-    renderWithProvider(<TrendingTokensFullView />, { state: mockState }, false);
+    renderTrendingFullView();
 
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       sortBy: undefined,
@@ -431,130 +310,71 @@ describe('TrendingTokensFullView', () => {
     });
   });
 
-  it('updates sortBy when time option is selected', async () => {
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
+  const bottomSheetTests = [
+    {
+      testName: 'time',
+      sheetButtonTestId: '24h-button',
+      sheetTestId: 'trending-token-time-bottom-sheet',
+      actAssertSelectOption: async (
+        testUtils: ReturnType<typeof renderTrendingFullView>,
+      ) => {
+        const { getByTestId } = testUtils;
+        const timeSelect6h = getByTestId('time-select-6h');
+        await userEvent.press(timeSelect6h);
 
-    const button24h = getByTestId('24h-button');
-    fireEvent.press(button24h);
+        expect(mockUseTrendingSearch).toHaveBeenLastCalledWith({
+          sortBy: 'h6_trending',
+          chainIds: null,
+          searchQuery: undefined,
+        });
+      },
+    },
+    {
+      testName: 'network',
+      sheetButtonTestId: 'all-networks-button',
+      sheetTestId: 'trending-token-network-bottom-sheet',
+      actAssertSelectOption: async (
+        testUtils: ReturnType<typeof renderTrendingFullView>,
+      ) => {
+        const { getByTestId } = testUtils;
+        const networkSelect = getByTestId('network-select-eip155:1');
+        await userEvent.press(networkSelect);
 
-    const timeSelect6h = getByTestId('time-select-6h');
-    await act(async () => {
-      fireEvent(timeSelect6h, 'touchEnd');
-    });
+        expect(mockUseTrendingSearch).toHaveBeenLastCalledWith({
+          sortBy: undefined,
+          chainIds: ['eip155:1'],
+          searchQuery: undefined,
+        });
+      },
+    },
+    {
+      testName: 'price change',
+      sheetButtonTestId: 'price-change-button',
+      sheetTestId: 'trending-token-price-change-bottom-sheet',
+      actAssertSelectOption: async (
+        testUtils: ReturnType<typeof renderTrendingFullView>,
+      ) => {
+        const { getByTestId, getByText } = testUtils;
+        const priceChangeSelect = getByTestId('price-change-select-volume');
+        await userEvent.press(priceChangeSelect);
 
-    await waitFor(() => {
-      expect(mockUseTrendingSearch).toHaveBeenLastCalledWith({
-        sortBy: 'h6_trending',
-        chainIds: null,
-        searchQuery: undefined,
-      });
-    });
-  });
+        // Price change button label should update to "Volume"
+        expect(getByText('Volume')).toBeOnTheScreen();
+      },
+    },
+  ] as const;
 
-  it('updates chainIds when network is selected', async () => {
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
+  it.each(bottomSheetTests)(
+    'opens $testName bottom sheet when button is pressed',
+    async ({ sheetButtonTestId, sheetTestId, actAssertSelectOption }) => {
+      const testUtils = renderTrendingFullView();
 
-    const allNetworksButton = getByTestId('all-networks-button');
-    fireEvent.press(allNetworksButton);
+      const triggerButton = testUtils.getByTestId(sheetButtonTestId);
+      await userEvent.press(triggerButton);
 
-    const networkSelect = getByTestId('network-select-eip155:1');
-    await act(async () => {
-      fireEvent(networkSelect, 'touchEnd');
-    });
+      expect(testUtils.getByTestId(sheetTestId)).toBeOnTheScreen();
 
-    await waitFor(() => {
-      expect(mockUseTrendingSearch).toHaveBeenLastCalledWith({
-        sortBy: undefined,
-        chainIds: ['eip155:1'],
-        searchQuery: undefined,
-      });
-    });
-  });
-
-  it('updates price change filter when option is selected', async () => {
-    const mockTokens = [
-      createMockToken({ name: 'Token 1', assetId: 'eip155:1/erc20:0x123' }),
-      createMockToken({ name: 'Token 2', assetId: 'eip155:1/erc20:0x456' }),
-    ];
-
-    mockUseTrendingRequest.mockReturnValue({
-      results: mockTokens,
-      isLoading: false,
-      error: null,
-      fetch: jest.fn(),
-    });
-
-    mockUseTrendingSearch.mockReturnValue({
-      data: mockTokens,
-      isLoading: false,
-      refetch: jest.fn(),
-    });
-
-    const { getByTestId, getByText } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
-
-    // Open price change bottom sheet
-    const priceChangeButton = getByTestId('price-change-button');
-    fireEvent.press(priceChangeButton);
-
-    // Select Volume option (which maps to PriceChangeOption.Volume and ascending sort)
-    const volumeOption = getByTestId('price-change-select-volume');
-    await act(async () => {
-      fireEvent(volumeOption, 'touchEnd');
-    });
-
-    // Price change button label should update to "Volume"
-    expect(getByText('Volume')).toBeOnTheScreen();
-  });
-
-  it('triggers section refetch on pull-to-refresh', async () => {
-    const mockTokens = [
-      createMockToken({
-        assetId: 'eip155:1/erc20:0xabc',
-        name: 'Token 1',
-        symbol: 'TKN1',
-      }),
-    ];
-
-    mockUseTrendingRequest.mockReturnValue({
-      results: mockTokens,
-      isLoading: false,
-      error: null,
-      fetch: mockFetchTrendingTokens,
-    });
-
-    mockUseTrendingSearch.mockReturnValue({
-      data: mockTokens,
-      isLoading: false,
-      refetch: mockFetchTrendingTokens,
-    });
-
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokensFullView />,
-      { state: mockState },
-      false,
-    );
-
-    const list = getByTestId('trending-tokens-list');
-
-    // Simulate pull-to-refresh via RefreshControl's onRefresh
-    const refreshControl = list.props.refreshControl;
-
-    await act(async () => {
-      await refreshControl.props.onRefresh();
-    });
-
-    expect(mockFetchTrendingTokens).toHaveBeenCalledTimes(1);
-  });
+      await actAssertSelectOption(testUtils);
+    },
+  );
 });
