@@ -252,21 +252,18 @@ jest.mock('../../hooks/usePerpsOpenOrders', () => ({
   usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
 }));
 
-const mockUsePerpsOrderFillsImpl = jest.fn<
+const mockUsePerpsLiveFillsImpl = jest.fn<
   ReturnType<
-    typeof import('../../hooks/usePerpsOrderFills').usePerpsOrderFills
+    typeof import('../../hooks/stream/usePerpsLiveFills').usePerpsLiveFills
   >,
   []
 >(() => ({
-  orderFills: [],
-  isLoading: false,
-  error: null,
-  refresh: jest.fn(),
-  isRefreshing: false,
+  fills: [],
+  isInitialLoading: false,
 }));
 
-jest.mock('../../hooks/usePerpsOrderFills', () => ({
-  usePerpsOrderFills: () => mockUsePerpsOrderFillsImpl(),
+jest.mock('../../hooks/stream/usePerpsLiveFills', () => ({
+  usePerpsLiveFills: () => mockUsePerpsLiveFillsImpl(),
 }));
 
 // Mock for usePerpsMarkets that can be modified per test
@@ -600,12 +597,9 @@ describe('PerpsMarketDetailsView', () => {
     };
 
     // Reset order fills mock to default
-    mockUsePerpsOrderFillsImpl.mockReturnValue({
-      orderFills: [],
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
+    mockUsePerpsLiveFillsImpl.mockReturnValue({
+      fills: [],
+      isInitialLoading: false,
     });
   });
 
@@ -1720,8 +1714,8 @@ describe('PerpsMarketDetailsView', () => {
         refreshPosition: jest.fn(),
       });
 
-      mockUsePerpsOrderFillsImpl.mockReturnValue({
-        orderFills: [
+      mockUsePerpsLiveFillsImpl.mockReturnValue({
+        fills: [
           {
             orderId: 'order-1',
             symbol: 'BTC',
@@ -1759,10 +1753,7 @@ describe('PerpsMarketDetailsView', () => {
             feeToken: 'USDC',
           },
         ],
-        isLoading: false,
-        error: null,
-        refresh: jest.fn(),
-        isRefreshing: false,
+        isInitialLoading: false,
       });
 
       // Act
@@ -1779,7 +1770,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
       ).toBeTruthy();
-      expect(mockUsePerpsOrderFillsImpl).toHaveBeenCalled();
+      expect(mockUsePerpsLiveFillsImpl).toHaveBeenCalled();
     });
   });
 
