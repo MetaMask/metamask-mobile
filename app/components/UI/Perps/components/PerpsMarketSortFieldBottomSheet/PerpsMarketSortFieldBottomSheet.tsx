@@ -102,7 +102,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
    * Handle apply button - applies selection and closes sheet
    */
   const handleApply = useCallback(() => {
-    const option = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
+    const option = MARKET_SORTING_CONFIG.SortOptions.find(
       (opt) => opt.id === selectedOption,
     );
     if (option) {
@@ -130,7 +130,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
       </BottomSheetHeader>
       <View style={styles.optionsList}>
         {/* Render sort options */}
-        {MARKET_SORTING_CONFIG.SORT_OPTIONS.map((option) => {
+        {MARKET_SORTING_CONFIG.SortOptions.map((option) => {
           const isSelected = selectedOption === option.id;
           return (
             <TouchableOpacity
