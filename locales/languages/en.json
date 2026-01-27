@@ -4742,6 +4742,14 @@
         "subtitle_5": "and see how much gas costs.",
         "cta": "Continue to purchase {{ticker}}"
       }
+    },
+    "build_quote_settings_modal": {
+      "title": "Settings",
+      "view_order_history": "View order history",
+      "contact_support": "Contact support",
+      "log_out": "Log out of {{provider}}",
+      "logged_out_success": "Successfully logged out",
+      "logged_out_error": "Error logging out"
     }
   },
   "fiat_on_ramp_aggregator": {
@@ -5764,7 +5772,8 @@
       },
       "education": {
         "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus. Terms apply.",
+        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus.",
+        "terms_apply": "Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now"
       },
@@ -7392,8 +7401,10 @@
     "still_connecting_network": "Still connecting to {{networkName}}...",
     "unable_to_connect_network": "Unable to connect to {{networkName}}.",
     "update_rpc": "Update RPC",
+    "switch_to_metamask_default_rpc": "Switch to MetaMask default RPC",
     "check_network_connectivity": "Check your network connectivity.",
-    "check_network_connectivity_or": "Check your network connectivity or"
+    "check_network_connectivity_or": "Check your network connectivity or",
+    "updated_to_metamask_default": "Updated to MetaMask default"
   },
   "trending": {
     "title": "Explore",
