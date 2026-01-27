@@ -37,7 +37,7 @@ import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 const FRAME_SIZE = 250;
-const OVERLAY_COLOR = 'rgba(0, 0, 0, 0.6)';
+const OVERLAY_COLOR = 'rgba(0, 0, 0, 0.4)';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
