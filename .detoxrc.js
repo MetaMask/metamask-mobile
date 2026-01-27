@@ -82,7 +82,7 @@ module.exports = {
     'ios.simulator': {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 16e',
+        type: 'iPhone 15 Pro',
       },
     },
     'android.emulator': {

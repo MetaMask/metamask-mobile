@@ -1,14 +1,3 @@
-// Polyfill File for undici (used by cheerio/enzyme-to-json)
-if (typeof File === 'undefined') {
-  global.File = class File extends Blob {
-    constructor(chunks, name, options = {}) {
-      super(chunks, options);
-      this.name = name;
-      this.lastModified = options.lastModified || Date.now();
-    }
-  };
-}
-
 process.env.TZ = 'America/Toronto';
 
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
