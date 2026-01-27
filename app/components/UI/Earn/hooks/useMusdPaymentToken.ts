@@ -9,10 +9,11 @@ export const useMusdPaymentToken = () => {
   const { setPayToken } = useTransactionPayToken();
 
   const onPaymentTokenChange = (token: AssetType) => {
-    const selectedTokenChainId = token.chainId as Hex;
+    const selectedTokenChainId = token?.chainId;
     const transactionChainId = transactionMeta?.chainId;
 
     const isChainMismatch =
+      selectedTokenChainId &&
       transactionChainId &&
       selectedTokenChainId.toLowerCase() !== transactionChainId.toLowerCase();
 
@@ -25,7 +26,7 @@ export const useMusdPaymentToken = () => {
     if (isChainMismatch && transactionMeta) {
       replaceMusdConversionTransactionForPayToken(transactionMeta, {
         address: token.address as Hex,
-        chainId: selectedTokenChainId,
+        chainId: selectedTokenChainId as Hex,
       }).catch((error) => {
         console.error(
           '[mUSD Conversion] Failed to replace transaction from PayWithModal',
