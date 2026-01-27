@@ -33,7 +33,7 @@ The PR includes these files:
 
 **`android/app/src/debug/AndroidManifest.xml`** - adds `networkSecurityConfig` attribute.
 
-Rebuild after changes: `cd android && ./gradlew clean && cd .. && yarn android`
+Rebuild after changes: `cd android && ./gradlew clean && cd .. && yarn start:android`
 
 ## 3. Start Proxy
 
