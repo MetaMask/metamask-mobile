@@ -65,6 +65,7 @@ const createTestEvent = (overrides = {}) => ({
 - **NO** use of `any` type - use proper TypeScript types
 - **Mock all external dependencies** including APIs, services, hooks
 - **Use realistic mock data** that reflects real usage
+- **Avoid excessive mocking** - prefer testing UI elements directly with `toBeOnTheScreen()` instead of mocking component internals
 
 ```ts
 // ✅ CORRECT
@@ -81,6 +82,81 @@ interface MockEvent {
 // ❌ WRONG
 const mockApi = require('../services/api'); // ❌ no require
 const mockApi: any = jest.fn();             // ❌ no any type
+```
+
+## Element Selection and Assertions - MANDATORY
+
+### Prefer Data Test IDs
+
+- **ALWAYS prefer `testID` (data-testid) for element selection** - provides stable, semantic selectors
+- **Use descriptive test IDs** that reflect the element's purpose, not implementation details
+- **Avoid selecting by text content** when possible - text can change, test IDs are stable
+
+```ts
+// ✅ CORRECT - Using testID
+it('displays loading indicator during fetch', () => {
+  render(<MyComponent />);
+  
+  expect(screen.getByTestId('loading-indicator')).toBeOnTheScreen();
+});
+
+// ❌ WRONG - Selecting by text (brittle)
+it('displays loading indicator during fetch', () => {
+  render(<MyComponent />);
+  
+  expect(screen.getByText('Loading...')).toBeOnTheScreen(); // ❌ text can change
+});
+```
+
+### Prefer `toBeOnTheScreen()` Over Weak Matchers
+
+- **ALWAYS use `toBeOnTheScreen()`** to verify elements are rendered and visible
+- **NEVER use `toBeTruthy()`, `toBeDefined()`, or `toBeNull()`** for element presence assertions
+- **Use `toBeOnTheScreen()`** instead of excessive mocking to verify UI state
+
+```ts
+// ✅ CORRECT - Direct UI verification
+it('displays error message when API fails', async () => {
+  mockApi.failOnce();
+  render(<MyComponent />);
+
+  expect(await screen.findByTestId('error-message')).toBeOnTheScreen();
+});
+
+// ❌ WRONG - Weak matcher
+it('displays error message when API fails', async () => {
+  mockApi.failOnce();
+  const { queryByTestId } = render(<MyComponent />);
+
+  expect(queryByTestId('error-message')).toBeTruthy(); // ❌ weak assertion
+});
+
+// ❌ WRONG - Excessive mocking instead of UI verification
+it('displays error message when API fails', async () => {
+  const mockSetError = jest.fn();
+  jest.spyOn(MyComponent, 'setError').mockImplementation(mockSetError);
+  mockApi.failOnce();
+  render(<MyComponent />);
+
+  expect(mockSetError).toHaveBeenCalled(); // ❌ testing implementation, not UI
+});
+```
+
+### When to Use Different Query Methods
+
+- **`getByTestId`** - Element must exist (throws if not found)
+- **`queryByTestId`** - Element may not exist (returns null if not found)
+- **`findByTestId`** - Element appears asynchronously (returns promise)
+
+```ts
+// Element must be present
+expect(screen.getByTestId('submit-button')).toBeOnTheScreen();
+
+// Element may not be present
+expect(screen.queryByTestId('error-message')).toBeNull();
+
+// Element appears asynchronously
+expect(await screen.findByTestId('success-message')).toBeOnTheScreen();
 ```
 
 ## Test Isolation and Focus - MANDATORY
@@ -278,7 +354,9 @@ With `act()`:
 // Break the SuT and make sure this test fails
 expect(result).toBe(false);
 ```
-- Ensure tests use proper matchers (`toBeOnTheScreen` vs `toBeDefined`).
+- **Ensure tests use proper matchers** - Always `toBeOnTheScreen()` for element presence, never `toBeTruthy()` or `toBeDefined()`.
+- **Verify data test IDs are used** - Prefer `getByTestId()` over `getByText()` for element selection.
+- **Check for excessive mocking** - Prefer direct UI verification with `toBeOnTheScreen()` over mocking component internals.
 - Do not approve PRs without reviewing snapshot diffs, it can reveal errors.
 - Reject tests with complex names combining multiple logical conditions (AND/OR).
 
@@ -298,7 +376,9 @@ Before submitting any test file, verify:
 - [ ] **Edge cases are covered**
 - [ ] **Test data is realistic**
 - [ ] **Tests are independent**
-- [ ] **Assertions are specific**
+- [ ] **Assertions are specific** - Use `toBeOnTheScreen()` for element presence, never `toBeTruthy()` or `toBeDefined()`
+- [ ] **Data test IDs are used** - Prefer `getByTestId()` over `getByText()` for element selection
+- [ ] **No excessive mocking** - Prefer direct UI verification with `toBeOnTheScreen()` over mocking internals
 - [ ] **Test names are descriptive**
 - [ ] **No test duplication**
 - [ ] **Async operations wrapped in act()** when they trigger state updates
@@ -312,14 +392,20 @@ Before submitting any test file, verify:
 - ❌ **Using unrealistic test data** - Use data that reflects real usage
 - ❌ **Not following AAA pattern** - Always Arrange, Act, Assert
 - ❌ **Not testing edge cases** - Test null, undefined, empty values
-- ❌ **Using weak matchers** - Use specific assertions like `toBe()`, `toEqual()`
+- ❌ **Using weak matchers** - Use specific assertions like `toBe()`, `toEqual()`, `toBeOnTheScreen()`
+- ❌ **Using `toBeTruthy()` or `toBeDefined()` for element presence** - Always use `toBeOnTheScreen()`
+- ❌ **Selecting elements by text instead of testID** - Prefer `getByTestId()` over `getByText()`
+- ❌ **Excessive mocking instead of UI verification** - Test what users see with `toBeOnTheScreen()`
 - ❌ **Not wrapping async state updates in act()** - Causes flaky "terminated" errors
 
 # Anti-patterns to Avoid
 
 - ❌ Do not consider snapshot coverage as functional coverage.
 - ❌ Do not rely on code coverage percentage without real assertions.
-- ❌ Do not use weak matchers like `toBeDefined` or `toBeTruthy` to assert element presence. Use `toBeOnTheScreen()`.
+- ❌ **NEVER use weak matchers** like `toBeDefined()`, `toBeTruthy()`, or `toBeNull()` to assert element presence. **ALWAYS use `toBeOnTheScreen()`**.
+- ❌ **NEVER select elements by text content** when a stable `testID` is available - prefer `getByTestId()` over `getByText()`.
+- ❌ **NEVER mock component internals** to verify UI state - prefer direct UI verification with `toBeOnTheScreen()`.
+- ❌ **NEVER use excessive mocking** when you can verify UI elements directly - test what users see, not implementation details.
 
 # Unit tests developement workflow
 
@@ -379,20 +465,28 @@ it('renders the button', () => {
 ```ts
 it('displays error message when API fails', async () => {
   mockApi.failOnce();
-  const { findByText } = render(<MyComponent />);
+  render(<MyComponent />);
 
-  expect(await findByText('Something went wrong')).toBeOnTheScreen();
+  expect(await screen.findByTestId('error-message')).toBeOnTheScreen();
 });
 ```
 
 **Test the Test**:
 ```ts
 it('hides selector when disabled', () => {
-  const { queryByTestId } = render(<Selector enabled={false} />);
+  render(<Selector enabled={false} />);
 
-  expect(queryByTestId('IPFS_GATEWAY_SELECTED')).toBeNull();
+  expect(screen.queryByTestId('IPFS_GATEWAY_SELECTED')).toBeNull();
   
   // Break test: change enabled={false} to enabled={true} and verify test fails
+});
+
+it('displays selector when enabled', () => {
+  render(<Selector enabled={true} />);
+
+  expect(screen.getByTestId('IPFS_GATEWAY_SELECTED')).toBeOnTheScreen();
+  
+  // Break test: change enabled={true} to enabled={false} and verify test fails
 });
 ```
 
