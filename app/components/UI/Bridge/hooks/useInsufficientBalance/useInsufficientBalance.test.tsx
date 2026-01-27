@@ -20,10 +20,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBridgeQuotes: jest.fn(() => mockQuotes),
 }));
 
-// Mock selectMinSolBalance
-jest.mock('../../../../../selectors/bridgeController', () => ({
-  selectMinSolBalance: jest.fn(() => '0.001'),
-}));
 
 // Helper to create a mock store with proper state structure
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -372,7 +368,7 @@ describe('useIsInsufficientBalance', () => {
       chainId: SolScope.Mainnet,
     };
 
-    it('returns false when user has sufficient SOL above rent exemption', () => {
+    it('returns false when user has sufficient SOL', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -387,7 +383,6 @@ describe('useIsInsufficientBalance', () => {
             amount: '1', // 1 SOL
             token: solToken,
             latestAtomicBalance: BigNumber.from('3000000000'), // 3 SOL (9 decimals)
-            // Remaining: 3 - 1 = 2 SOL > 0.001 SOL rent exemption ✓
           }),
         { wrapper: wrapper(store) },
       );
@@ -395,7 +390,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('returns true when SOL balance would drop below rent exemption', () => {
+    it('returns true when user has insufficient SOL', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -407,10 +402,9 @@ describe('useIsInsufficientBalance', () => {
       const { result } = renderHook(
         () =>
           useIsInsufficientBalance({
-            amount: '1.9999', // 1.9999 SOL
+            amount: '3', // 3 SOL
             token: solToken,
             latestAtomicBalance: BigNumber.from('2000000000'), // 2 SOL
-            // Remaining: 2 - 1.9999 = 0.0001 SOL < 0.001 SOL rent exemption ✗
           }),
         { wrapper: wrapper(store) },
       );

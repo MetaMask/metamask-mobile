@@ -1,9 +1,6 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../reducers';
-import {
-  BridgeControllerState,
-  selectMinimumBalanceForRentExemptionInSOL,
-} from '@metamask/bridge-controller';
+import { BridgeControllerState } from '@metamask/bridge-controller';
 import { selectRemoteFeatureFlags } from '../featureFlagController';
 import { selectGasFeeControllerEstimates } from '../gasFeeController';
 import { MetaMetrics } from '../../core/Analytics';
@@ -31,8 +28,3 @@ export const selectBridgeAppState = (state: RootState) => ({
   },
 });
 
-// Use the official bridge controller selector
-export const selectMinSolBalance = createSelector(
-  selectBridgeAppState,
-  (bridgeAppState) => selectMinimumBalanceForRentExemptionInSOL(bridgeAppState),
-);

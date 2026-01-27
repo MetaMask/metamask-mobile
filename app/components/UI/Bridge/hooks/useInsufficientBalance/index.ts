@@ -1,8 +1,7 @@
 import { useSelector } from 'react-redux';
-import { selectMinSolBalance } from '../../../../../selectors/bridgeController';
 import { parseUnits } from 'ethers/lib/utils';
 import { BridgeToken } from '../../types';
-import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
+import { isNativeAddress } from '@metamask/bridge-controller';
 import { selectBridgeQuotes } from '../../../../../core/redux/slices/bridge';
 import { BigNumber } from 'ethers';
 import { BigNumber as BigNumberJS } from 'bignumber.js';
@@ -54,7 +53,6 @@ const useIsInsufficientBalance = ({
   latestAtomicBalance,
 }: UseIsInsufficientBalanceParams): boolean => {
   const quotes = useSelector(selectBridgeQuotes);
-  const minSolBalance = useSelector(selectMinSolBalance);
 
   const bestQuote = quotes?.recommendedQuote;
   const { gasIncluded, gasIncluded7702, gasSponsored } = bestQuote?.quote ?? {};
@@ -93,7 +91,6 @@ const useIsInsufficientBalance = ({
   );
 
   const isNativeToken = token.chainId && isNativeAddress(token.address);
-  const isSOL = isNativeToken && isSolanaChainId(token.chainId);
 
   // Calculate gas fees if needed for native token source
   // For ERC-20 tokens (USDC, DAI, etc.), gas is checked separately in useHasSufficientGas
@@ -117,13 +114,7 @@ const useIsInsufficientBalance = ({
 
   let isInsufficientBalance = false;
 
-  if (isSOL) {
-    // SOL: check if balance - inputAmount >= minSolBalance (rent exemption)
-    const minSolBalanceLamports = parseUnits(minSolBalance, token.decimals);
-    const remainingBalance = latestAtomicBalance.sub(inputAmount);
-    isInsufficientBalance =
-      isInsufficientBalance || remainingBalance.lt(minSolBalanceLamports);
-  } else if (isNativeToken && !isGasless && atomicGasFee.gt(0)) {
+  if (isNativeToken && !isGasless && atomicGasFee.gt(0)) {
     // Native tokens (ETH, MATIC, etc.): check balance >= sourceAmount + gasAmount
     // Example: User has 1 ETH, wants to send 1 ETH, needs 0.01 ETH gas = insufficient
     const totalRequired = inputAmount.add(atomicGasFee);

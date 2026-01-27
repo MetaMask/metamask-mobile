@@ -70,8 +70,7 @@ describe('useNeedsGasFaucet', () => {
       if (selector.toString().includes('AccountFormattedAddress')) {
         return '0xUserAddress123';
       }
-      // selectMinSolBalance
-      return '0.00089'; // Default minimum SOL balance for rent exemption
+      return undefined;
     });
 
     mockUseAccountNativeBalance.mockReturnValue({
@@ -339,13 +338,13 @@ describe('useNeedsGasFaucet', () => {
         expect(result.current.needsFaucet).toBe(false);
       });
 
-      it('returns needsFaucet false with just enough balance for fees and rent', async () => {
+      it('returns needsFaucet false with just enough balance for fees', async () => {
         const mockToken = createMockToken({ caipChainId: SOLANA_CHAIN_ID });
 
-        // User has exactly enough: 5000 lamports (tx fee) + 890000 lamports (rent) = 895000 lamports
+        // User has exactly enough: 5000 lamports (tx fee)
         mockUseLatestBalance.mockReturnValue({
-          displayBalance: '0.000895',
-          atomicBalance: BigNumber.from('895000'),
+          displayBalance: '0.000005',
+          atomicBalance: BigNumber.from('5000'),
         });
 
         const { result } = renderHook(() => useNeedsGasFaucet(mockToken));
@@ -376,10 +375,10 @@ describe('useNeedsGasFaucet', () => {
         expect(result.current.needsFaucet).toBe(true);
       });
 
-      it('returns needsFaucet true when balance is less than rent exemption', async () => {
+      it('returns needsFaucet true when balance is less than tx fee', async () => {
         const mockToken = createMockToken({ caipChainId: SOLANA_CHAIN_ID });
 
-        // User has only 1000 lamports (less than rent exemption)
+        // User has only 1000 lamports (less than 5000 lamports tx fee)
         mockUseLatestBalance.mockReturnValue({
           displayBalance: '0.000001',
           atomicBalance: BigNumber.from('1000'),
@@ -410,33 +409,6 @@ describe('useNeedsGasFaucet', () => {
       });
     });
 
-    describe('rent exemption handling', () => {
-      it('uses minSolBalance selector for rent exemption calculation', async () => {
-        const mockToken = createMockToken({ caipChainId: SOLANA_CHAIN_ID });
-
-        // Set higher rent exemption
-        mockUseSelector.mockImplementation((selector) => {
-          if (selector.toString().includes('AccountFormattedAddress')) {
-            return '0xUserAddress123';
-          }
-          return '0.002'; // Higher rent exemption
-        });
-
-        // User has enough for tx fee but not for higher rent
-        mockUseLatestBalance.mockReturnValue({
-          displayBalance: '0.001',
-          atomicBalance: BigNumber.from('1000000'), // 0.001 SOL
-        });
-
-        const { result } = renderHook(() => useNeedsGasFaucet(mockToken));
-
-        await waitFor(() => {
-          expect(result.current.isLoading).toBe(false);
-        });
-
-        expect(result.current.needsFaucet).toBe(true);
-      });
-    });
   });
 
   describe('refetch functionality', () => {
