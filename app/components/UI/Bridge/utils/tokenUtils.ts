@@ -73,11 +73,10 @@ export const tokenToIncludeAsset = (
   if (!assetId) return null;
 
   return {
+    ...token,
     assetId: isNonEvmChainId(token.chainId)
       ? assetId
       : (assetId.toLowerCase() as CaipAssetType),
     name: token.name ?? '',
-    symbol: token.symbol,
-    decimals: token.decimals,
   };
 };
