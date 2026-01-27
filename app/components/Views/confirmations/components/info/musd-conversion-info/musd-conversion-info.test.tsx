@@ -8,11 +8,14 @@ import { CustomAmountInfo } from '../custom-amount-info';
 import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../hooks/earn/useCustomAmount');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../../../UI/Earn/hooks/useMusdConversionNavbar');
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../../util/trace', () => ({
   endTrace: jest.fn(),
   TraceName: {
@@ -54,10 +57,16 @@ describe('MusdConversionInfo', () => {
     useTransactionPayAvailableTokens,
   );
   const mockUseMusdConversionNavbar = jest.mocked(useMusdConversionNavbar);
+  const mockUseTransactionMetadataRequest = jest.mocked(
+    useTransactionMetadataRequest,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMusdConversionNavbar.mockReturnValue(undefined);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      chainId: '0x1',
+    } as unknown as TransactionMeta);
     mockUseCustomAmount.mockReturnValue({
       shouldShowOutputAmountTag: false,
       outputAmount: null,
@@ -190,6 +199,9 @@ describe('MusdConversionInfo', () => {
   describe('useMusdConversionNavbar', () => {
     it('calls useMusdConversionNavbar', () => {
       mockUseRoute.mockReturnValue(mockRoute);
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        chainId: '0xe708',
+      } as unknown as TransactionMeta);
 
       renderWithProvider(<MusdConversionInfo />, {
         state: {},
