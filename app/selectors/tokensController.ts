@@ -13,9 +13,27 @@ import {
 import { PopularList } from '../util/networks/customNetworks';
 import { ChainId } from '@metamask/controller-utils';
 
+// TODO Unified Assets Controller State Access (1)
+// TokensController: allTokens, allIgnoredTokens, allDetectedTokens
+// References
+// app/selectors/tokensController.ts (8)
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
 
+// TODO Unified Assets Controller State Access (1)
+// TokensController: allTokens
+// References
+// app/selectors/tokensController.ts (2)
+// app/reducers/swaps/index.js (2)
+// app/components/Views/confirmations/legacy/SendFlow/Amount/index.js (1)
+// app/components/Views/Asset/index.js (1)
+// app/components/Nav/Main/RootRPCMethodsUI.js (1)
+// app/components/Views/confirmations/legacy/components/TransactionReview/index.js (1)
+// app/components/Views/UnifiedTransactionsView/UnifiedTransactionsView.tsx (1)
+// app/components/Views/TransactionsView/index.js (1)
+// app/components/UI/PaymentRequest/index.js (1)
+// app/components/Views/confirmations/legacy/components/ApproveTransactionReview/VerifyContractDetails/VerifyContractDetails.tsx (1)
+// app/components/Views/confirmations/legacy/Send/index.js (1)
 export const selectTokens = createDeepEqualSelector(
   selectTokensControllerState,
   selectEvmChainId,
@@ -28,6 +46,14 @@ export const selectTokens = createDeepEqualSelector(
     tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex] || [],
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokensController: allTokens
+// References
+// app/components/UI/SearchTokenAutocomplete/index.tsx (1)
+// app/components/UI/TransactionElement/index.js (1)
+// app/components/Views/confirmations/hooks/useTokenAmount.ts (1)
+// app/components/UI/TransactionElement/TransactionDetails/index.js (1)
+// app/components/Views/confirmations/hooks/tokens/useAddToken.ts (1)
 export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
   selectTokensControllerState,
   selectSelectedInternalAccountAddress,
@@ -46,6 +72,10 @@ export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
     ) ?? {},
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokens
+// References
+// app/components/UI/Notification/TransactionNotification/index.js (1)
 export const selectTokensByAddress = createSelector(
   selectTokens,
   (tokens: Token[]) =>
@@ -55,11 +85,22 @@ export const selectTokensByAddress = createSelector(
     }, {}),
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokens
+// References
+// app/components/Views/confirmations/legacy/components/ApproveTransactionReview/index.js (1)
+// app/components/Views/confirmations/legacy/ApproveView/Approve/index.js (1)
+// app/components/Views/confirmations/legacy/Approve/index.js (1)
+// app/components/UI/AccountApproval/index.js (1)
 export const selectTokensLength = createSelector(
   selectTokens,
   (tokens: Token[]) => tokens.length,
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokensController: allIgnoredTokens
+// References
+// None found
 export const selectIgnoreTokens = createSelector(
   selectTokensControllerState,
   selectEvmChainId,
@@ -74,6 +115,11 @@ export const selectIgnoreTokens = createSelector(
     ],
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokensController: allDetectedTokens
+// References
+// app/components/Views/Wallet/index.tsx (1)
+// app/components/Views/DetectedTokens/index.tsx (1)
 export const selectDetectedTokens = createSelector(
   selectTokensControllerState,
   selectEvmChainId,
@@ -88,6 +134,16 @@ export const selectDetectedTokens = createSelector(
     ],
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokensController: allTokens
+// References
+// app/selectors/tokensController.ts (3)
+// app/selectors/multichain/evm.ts (1)
+// app/selectors/assets/balances.ts (1)
+// app/reducers/swaps/index.js (2)
+// app/components/Views/AssetDetails/index.tsx (1)
+// app/components/Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal.tsx (1)
+// app/components/hooks/useGetFormattedTokensPerChain.tsx (1)
 export const selectAllTokens = createDeepEqualSelector(
   selectTokensControllerState,
   (tokensControllerState: TokensControllerState) =>
@@ -111,6 +167,10 @@ export const getChainIdsToPoll = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllTokens
+// References
+// app/util/sentry/tags/index.ts (1)
 export const selectAllTokensFlat = createSelector(
   selectAllTokens,
   (tokensByAccountByChain: {
@@ -128,6 +188,10 @@ export const selectAllTokensFlat = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokensController: allDetectedTokens
+// References
+// app/selectors/tokensController.ts (1)
 export const selectAllDetectedTokensForSelectedAddress = createSelector(
   selectTokensControllerState,
   selectSelectedInternalAccountAddress,
@@ -154,6 +218,11 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllDetectedTokensForSelectedAddress
+// References
+// app/components/Views/Wallet/index.tsx (1)
+// app/components/Views/DetectedTokens/index.tsx (1)
 export const selectAllDetectedTokensFlat = createSelector(
   selectAllDetectedTokensForSelectedAddress,
   (detectedTokensByChain: { [chainId: string]: Token[] }) => {
@@ -178,6 +247,10 @@ export const selectAllDetectedTokensFlat = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllTokens
+// References
+// None found
 // Full selector implementation with selected address filtering
 export const selectTransformedTokens = createSelector(
   selectAllTokens,
@@ -214,6 +287,12 @@ export const selectTransformedTokens = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllTokens
+// References
+// app/core/Engine/controllers/transaction-controller/event_properties/metamask-pay.ts (1)
+// app/components/Views/confirmations/hooks/transactions/useUpdateTokenAmount.ts (1)
+// app/components/Views/confirmations/hooks/tokens/useTokenWithBalance.ts (1)
 export const selectSingleTokenByAddressAndChainId = createSelector(
   selectAllTokens,
   (_state: RootState, tokenAddress: Hex) => tokenAddress,

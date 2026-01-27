@@ -18,6 +18,12 @@ export const selectQuoteRequest = createSelector(
     bridgeControllerState.quoteRequest,
 );
 
+// TODO Unified Assets Controller State Access (1)
+// MultichainAssetsRatesController: conversionRates, historicalPrices
+// TokenRatesController: marketData
+// CurrencyRateController: currencyRates, currentCurrency
+// References
+// app/selectors/bridgeController/index.ts (1)
 // Create the BridgeAppState selector following the same pattern as in bridge slice
 export const selectBridgeAppState = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,

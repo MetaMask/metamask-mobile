@@ -28,6 +28,17 @@ import {
 } from '../../core/Multichain/constants';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 
+// TODO Unified Assets Controller State Access (1)
+// TokensController: allTokens, allIgnoredTokens, allDetectedTokens
+// TokenBalancesController: tokenBalances
+// TokenRatesController: marketData
+// CurrencyRateController: currencyRates, currentCurrency
+// AccountTrackerController: accountsByChainId
+// MultichainAssetsController: accountsAssets, assetsMetadata, allIgnoredAssets
+// MultichainBalancesController: balances
+// MultichainAssetsRatesController: conversionRates
+// References
+// app/selectors/assets/assets-list.ts (2)
 const getStateForAssetSelector = (state: RootState) => {
   const {
     AccountTreeController,
@@ -253,6 +264,10 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokenListController: tokensChainsCache
+// References
+// None found
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const selectAsset = createSelector(
   [

@@ -83,6 +83,10 @@ export const selectMultichainIsMainnet = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (1)
+// MultichainBalancesController: balances
+// References
+// app/selectors/multichain/multichain.ts (1)
 /**
  *
  * @param state - Root redux state
@@ -91,6 +95,15 @@ export const selectMultichainIsMainnet = createDeepEqualSelector(
 const selectMultichainBalancesControllerState = (state: RootState) =>
   state.engine.backgroundState.MultichainBalancesController;
 
+// TODO Unified Assets Controller State Access (1)
+// MultichainBalancesController: balances
+// References
+// app/selectors/multichain/multichain.ts (5)
+// app/selectors/assets/balances.ts (1)
+// app/components/UI/Ramp/Aggregator/hooks/useBalance.ts (1)
+// app/components/hooks/useMultichainBalances/useSelectedAccountMultichainBalances.ts (1)
+// app/component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage.tsx (1)
+// app/components/UI/Ramp/Deposit/hooks/useChainIdsWithBalance.ts (1)
 export const selectMultichainBalances = createDeepEqualSelector(
   selectMultichainBalancesControllerState,
   (multichainBalancesControllerState) =>
@@ -124,6 +137,11 @@ const getNonEvmCachedBalance = (
   return balanceOfAsset?.amount ?? undefined;
 };
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances
+// References
+// app/selectors/multichain/multichain.ts (1)
+// Note: selectNonEvmCachedBalance is used internally in this file
 export const selectNonEvmCachedBalance = createDeepEqualSelector(
   selectSelectedInternalAccount,
   selectMultichainBalances,
@@ -165,43 +183,91 @@ export const selectMultichainTransactions = createDeepEqualSelector(
     multichainTransactionsControllerState.nonEvmTransactions,
 );
 
+// TODO Unified Assets Controller State Access (1)
+// MultichainAssetsController: accountsAssets, assetsMetadata, allIgnoredAssets
+// References
+// app/selectors/multichain/multichain.ts (3)
 const selectMultichainAssetsControllerState = (state: RootState) =>
   state.engine.backgroundState.MultichainAssetsController;
 
+// TODO Unified Assets Controller State Access (1)
+// MultichainAssetsController: accountsAssets
+// References
+// app/selectors/multichain/multichain.ts (4)
+// app/selectors/assets/balances.ts (1)
+// app/components/UI/SearchTokenAutocomplete/index.tsx (1)
+// app/components/hooks/useMultichainBalances/useSelectedAccountMultichainBalances.ts (1)
+// app/component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage.tsx (1)
 export const selectMultichainAssets = createDeepEqualSelector(
   selectMultichainAssetsControllerState,
   (multichainAssetsControllerState) =>
     multichainAssetsControllerState.accountsAssets,
 );
 
+// TODO Unified Assets Controller State Access (1)
+// MultichainAssetsController: assetsMetadata
+// References
+// app/selectors/multichain/multichain.ts (2)
+// app/selectors/assets/balances.ts (1)
 export const selectMultichainAssetsMetadata = createDeepEqualSelector(
   selectMultichainAssetsControllerState,
   (multichainAssetsControllerState) =>
     multichainAssetsControllerState.assetsMetadata,
 );
 
+// TODO Unified Assets Controller State Access (1)
+// MultichainAssetsController: allIgnoredAssets
+// References
+// app/selectors/assets/balances.ts (1)
 export const selectMultichainAssetsAllIgnoredAssets = createDeepEqualSelector(
   selectMultichainAssetsControllerState,
   (multichainAssetsControllerState) =>
     multichainAssetsControllerState.allIgnoredAssets ?? {},
 );
 
+// TODO Unified Assets Controller State Access (1)
+// MultichainAssetsRatesController: conversionRates
+// References
+// app/selectors/multichain/multichain.ts (1)
 function selectMultichainAssetsRatesState(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
     .conversionRates;
 }
 
+// TODO Unified Assets Controller State Access (1)
+// MultichainAssetsRatesController: conversionRates
+// References
+// app/selectors/multichain/multichain.ts (4)
+// app/selectors/assets/balances.ts (1)
+// app/components/UI/Tokens/hooks/useTokenPricePercentageChange.ts (1)
+// app/components/UI/Bridge/utils/exchange-rates.ts (1)
+// app/components/UI/Bridge/hooks/useUnifiedSwapBridgeContext/index.ts (1)
+// app/components/UI/AssetOverview/AssetOverview.tsx (1)
+// app/components/UI/Earn/hooks/useMultichainInputHandlers.ts (1)
+// app/components/hooks/useMultichainBalances/useSelectedAccountMultichainBalances.ts (1)
+// app/components/UI/Bridge/components/TokenInputArea/index.tsx (1)
+// app/components/UI/AssetOverview/TokenDetails/TokenDetails.tsx (1)
+// app/components/UI/AssetOverview/Balance/Balance.tsx (1)
+// app/component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage.tsx (1)
 export const selectMultichainAssetsRates = createDeepEqualSelector(
   selectMultichainAssetsRatesState,
   (conversionRates) => conversionRates,
   { devModeChecks: { identityFunctionCheck: 'never' } },
 );
 
+// TODO Unified Assets Controller State Access (1)
+// MultichainAssetsRatesController: historicalPrices
+// References
+// app/components/hooks/useTokenHistoricalPrices.ts (1)
 export function selectMultichainHistoricalPrices(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
     .historicalPrices;
 }
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances, selectMultichainAssets, selectMultichainAssetsMetadata, selectMultichainAssetsRates
+// References
+// app/components/Snaps/SnapUIAssetSelector/useSnapAssetDisplay.tsx (1)
 export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   selectMultichainBalances,
   selectMultichainAssets,
@@ -274,6 +340,11 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances, selectMultichainAssets, selectMultichainAssetsMetadata, selectMultichainAssetsRates
+// References
+// app/selectors/multichain/multichain.ts (1)
+// app/components/UI/Bridge/hooks/useNonEvmTokensWithBalance/useNonEvmTokensWithBalance.ts (1)
 export const selectMultichainTokenListForAccountsAnyChain =
   createDeepEqualSelector(
     selectMultichainBalances,
@@ -481,6 +552,10 @@ export const getMultichainNetworkAggregatedBalance = (
   };
 };
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances, selectMultichainAssets, selectMultichainAssetsRates
+// References
+// None found
 export const selectSelectedAccountMultichainNetworkAggregatedBalance =
   createDeepEqualSelector(
     selectSelectedInternalAccount,
@@ -514,6 +589,10 @@ interface MultichainNetworkAggregatedBalanceForAllAccounts {
   [accountId: InternalAccount['id']]: MultichainNetworkAggregatedBalance;
 }
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances, selectMultichainAssets, selectMultichainAssetsRates
+// References
+// None found
 export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
   createDeepEqualSelector(
     selectInternalAccounts,
@@ -660,6 +739,10 @@ export const selectNonEvmTransactionsForSelectedAccountGroup =
     },
   );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances, selectMultichainAssetsMetadata, selectMultichainAssetsRates
+// References
+// None found
 export const makeSelectNonEvmAssetById = () =>
   createSelector(
     [
@@ -729,6 +812,10 @@ export const makeSelectNonEvmAssetById = () =>
     },
   );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances
+// References
+// app/core/DeeplinkManager/handlers/legacy/handleCreateAccountUrl.ts (1)
 export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
   selectInternalAccounts,
   selectMultichainBalances,

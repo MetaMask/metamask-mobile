@@ -84,24 +84,40 @@ const selectAccountsStateForBalances = createSelector(
     }) as AccountsControllerState,
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllTokenBalances
+// References
+// app/selectors/assets/balances.ts (6)
 const selectTokenBalancesStateForBalances = createSelector(
   [selectAllTokenBalances],
   (tokenBalances): TokenBalancesControllerState =>
     ({ tokenBalances }) as TokenBalancesControllerState,
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokenMarketData
+// References
+// app/selectors/assets/balances.ts (6)
 const selectTokenRatesStateForBalances = createSelector(
   [selectTokenMarketData],
   (marketData): TokenRatesControllerState =>
     ({ marketData }) as TokenRatesControllerState,
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances
+// References
+// app/selectors/assets/balances.ts (6)
 const selectMultichainBalancesStateForBalances = createSelector(
   [selectMultichainBalances],
   (balances): MultichainBalancesControllerState =>
     ({ balances }) as MultichainBalancesControllerState,
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainAssets, selectMultichainAssetsMetadata, selectMultichainAssetsAllIgnoredAssets
+// References
+// app/selectors/assets/balances.ts (6)
 const selectMultichainAssetsControllerStateForBalances = createSelector(
   [
     selectMultichainAssets,
@@ -119,12 +135,20 @@ const selectMultichainAssetsControllerStateForBalances = createSelector(
   }),
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainAssetsRates
+// References
+// app/selectors/assets/balances.ts (6)
 const selectMultichainAssetsRatesStateForBalances = createSelector(
   [selectMultichainAssetsRates],
   (conversionRates): MultichainAssetsRatesControllerState =>
     ({ conversionRates }) as MultichainAssetsRatesControllerState,
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllTokens
+// References
+// app/selectors/assets/balances.ts (6)
 const selectTokensStateForBalances = createSelector(
   [selectAllTokens],
   (allTokens): TokensControllerState =>
@@ -135,6 +159,10 @@ const selectTokensStateForBalances = createSelector(
     }) as TokensControllerState,
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectCurrentCurrency, selectCurrencyRates
+// References
+// app/selectors/assets/balances.ts (6)
 const selectCurrencyRateStateForBalances = createSelector(
   [selectCurrentCurrency, selectCurrencyRates],
   (currentCurrency, currencyRates): CurrencyRateState =>
@@ -144,6 +172,10 @@ const selectCurrencyRateStateForBalances = createSelector(
     }) as CurrencyRateState,
 );
 
+// TODO Unified Assets Controller State Access (3)
+// Uses: selectTokenBalancesStateForBalances, selectTokenRatesStateForBalances, selectMultichainAssetsRatesStateForBalances, selectMultichainBalancesStateForBalances, selectMultichainAssetsControllerStateForBalances, selectTokensStateForBalances, selectCurrencyRateStateForBalances
+// References
+// app/selectors/assets/balances.ts (2)
 export const selectBalanceForAllWallets = createSelector(
   [
     selectAccountTreeStateForBalances,
@@ -220,6 +252,10 @@ export const selectBalanceForAllWalletsAndChains = createSelector(
     ),
 );
 
+// TODO Unified Assets Controller State Access (4)
+// Uses: selectBalanceForAllWalletsAndChains
+// References
+// app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.tsx (1)
 export const selectBalanceByAccountGroup = (groupId: string) =>
   createSelector([selectBalanceForAllWalletsAndChains], (allBalances) => {
     const walletId = groupId.split('/')[0];
@@ -236,6 +272,10 @@ export const selectBalanceByAccountGroup = (groupId: string) =>
     return wallet.groups[groupId];
   });
 
+// TODO Unified Assets Controller State Access (4)
+// Uses: selectBalanceForAllWallets
+// References
+// app/components/Views/MultichainAccounts/WalletDetails/hooks/useWalletBalances.ts (1)
 export const selectBalanceByWallet = (walletId: string) =>
   createSelector([selectBalanceForAllWallets], (allBalances) => {
     const wallet = allBalances.wallets[walletId] ?? null;
@@ -258,6 +298,10 @@ export const selectBalanceByWallet = (walletId: string) =>
     };
   });
 
+// TODO Unified Assets Controller State Access (4)
+// Uses: selectBalanceForAllWallets
+// References
+// app/components/UI/Assets/components/Balance/AccountGroupBalance.tsx (1)
 export const selectBalanceBySelectedAccountGroup = createSelector(
   [selectSelectedAccountGroupId, selectBalanceForAllWallets],
   (selectedGroupId, allBalances) => {

@@ -11,9 +11,17 @@ const NO_DATA: NonNullable<
   DeFiPositionsControllerState['allDeFiPositions'][string]
 > = {};
 
+// TODO Unified Assets Controller State Access (1)
+// DeFiPositionsController: allDeFiPositions
+// References
+// app/selectors/defiPositionsController.ts (2)
 const selectDeFiPositionsControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.DeFiPositionsController;
 
+// TODO Unified Assets Controller State Access (1)
+// DeFiPositionsController: allDeFiPositions
+// References
+// app/components/UI/DeFiPositions/DeFiPositionsList.tsx (1)
 /**
  * @deprecated This selector is deprecated and will be removed in a future release.
  * Use selectDefiPositionsByEnabledNetworks instead.
@@ -39,6 +47,10 @@ export const selectDeFiPositionsByAddress = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (1)
+// DeFiPositionsController: allDeFiPositions
+// References
+// app/components/UI/DeFiPositions/DeFiPositionsList.tsx (1)
 export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
   selectDeFiPositionsControllerState,
   selectSelectedInternalAccountByScope,
