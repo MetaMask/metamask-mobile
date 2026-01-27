@@ -296,52 +296,72 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
           const CONFIRMATION_TIMEOUT_MS = 10000; // 10 second timeout
           let isResolved = false;
 
-          const timeout = setTimeout(() => {
-            if (!isResolved) {
-              isResolved = true;
-              reject(new Error('Solana transaction confirmation timeout'));
-            }
-          }, CONFIRMATION_TIMEOUT_MS);
+          // Use ref object to avoid 'used before defined' lint error
+          const refs: { timeoutId?: ReturnType<typeof setTimeout> } = {};
 
-          Engine.controllerMessenger.subscribe(
-            'MultichainTransactionsController:stateChange',
-            (controllerState) => {
-              if (isResolved) return;
+          // Define handler function first to avoid hoisting issues
+          function handleStateChange(controllerState: {
+            nonEvmTransactions: Record<
+              string,
+              Record<string, { transactions?: Transaction[] }>
+            >;
+          }) {
+            if (isResolved) return;
 
-              // Look for the transaction in all accounts and chains
-              for (const accountTransactions of Object.values(
-                controllerState.nonEvmTransactions,
-              )) {
-                for (const chainEntry of Object.values(accountTransactions)) {
-                  const transaction = chainEntry.transactions?.find(
-                    (tx: Transaction) => tx.id === txHash,
-                  );
-                  if (transaction) {
-                    if (
-                      transaction.status === KeyringTransactionStatus.Confirmed
-                    ) {
-                      if (!isResolved) {
-                        isResolved = true;
-                        clearTimeout(timeout);
-                        resolve();
-                      }
-                      return;
-                    } else if (
-                      transaction.status === KeyringTransactionStatus.Failed
-                    ) {
-                      if (!isResolved) {
-                        Logger.log('Solana transaction failed', transaction);
-                        isResolved = true;
-                        clearTimeout(timeout);
-                        reject(new Error('Solana transaction failed on-chain'));
-                      }
-                      return;
+            // Look for the transaction in all accounts and chains
+            for (const accountTransactions of Object.values(
+              controllerState.nonEvmTransactions,
+            )) {
+              for (const chainEntry of Object.values(accountTransactions)) {
+                const transaction = chainEntry.transactions?.find(
+                  (tx: Transaction) => tx.id === txHash,
+                );
+                if (transaction) {
+                  if (
+                    transaction.status === KeyringTransactionStatus.Confirmed
+                  ) {
+                    if (!isResolved) {
+                      isResolved = true;
+                      cleanup();
+                      resolve();
                     }
+                    return;
+                  } else if (
+                    transaction.status === KeyringTransactionStatus.Failed
+                  ) {
+                    if (!isResolved) {
+                      Logger.log('Solana transaction failed', transaction);
+                      isResolved = true;
+                      cleanup();
+                      reject(new Error('Solana transaction failed on-chain'));
+                    }
+                    return;
                   }
                 }
               }
-            },
+            }
+          }
+
+          function cleanup() {
+            clearTimeout(refs.timeoutId);
+            Engine.controllerMessenger.unsubscribe(
+              'MultichainTransactionsController:stateChange',
+              handleStateChange,
+            );
+          }
+
+          Engine.controllerMessenger.subscribe(
+            'MultichainTransactionsController:stateChange',
+            handleStateChange,
           );
+
+          refs.timeoutId = setTimeout(() => {
+            if (!isResolved) {
+              isResolved = true;
+              cleanup();
+              reject(new Error('Solana transaction confirmation timeout'));
+            }
+          }, CONFIRMATION_TIMEOUT_MS);
         });
 
         // Complete the delegation with the backend API after confirmation
