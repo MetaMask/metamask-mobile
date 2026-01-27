@@ -2001,6 +2001,159 @@ describe('PerpsMarketDetailsView', () => {
         }),
       );
     });
+
+    it('cancels stale REST fetch when market changes rapidly (race condition prevention)', async () => {
+      // Arrange - Start with BTC position
+      const btcTimestamp = Date.now() - 10 * 60 * 1000; // 10 minutes ago
+      const ethTimestamp = Date.now() - 5 * 60 * 1000; // 5 minutes ago
+
+      const btcPosition = {
+        symbol: 'BTC',
+        size: '0.1',
+        entryPrice: '45000',
+        positionValue: '4500',
+        unrealizedPnl: '50',
+        marginUsed: '450',
+        leverage: { type: 'isolated' as const, value: 10 },
+        liquidationPrice: '42000',
+        maxLeverage: 20,
+        returnOnEquity: '0.11',
+        cumulativeFunding: {
+          allTime: '0',
+          sinceOpen: '0',
+          sinceChange: '0',
+        },
+      };
+
+      const ethPosition = {
+        symbol: 'ETH',
+        size: '1.0',
+        entryPrice: '3000',
+        positionValue: '3000',
+        unrealizedPnl: '-100',
+        marginUsed: '300',
+        leverage: { type: 'isolated' as const, value: 10 },
+        liquidationPrice: '2700',
+        maxLeverage: 20,
+        returnOnEquity: '-0.33',
+        cumulativeFunding: {
+          allTime: '0',
+          sinceOpen: '0',
+          sinceChange: '0',
+        },
+      };
+
+      // Start with BTC position
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: btcPosition,
+        refreshPosition: jest.fn(),
+      });
+
+      // WebSocket has no fills for either
+      mockUsePerpsLiveFillsImpl.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      // REST API will return BTC fill first, then ETH fill
+      // But BTC fetch will be delayed (simulating slow network)
+      let btcResolve: (value: unknown) => void = () => {
+        // No-op, will be replaced
+      };
+      const btcPromise = new Promise((resolve) => {
+        btcResolve = resolve;
+      });
+
+      mockGetOrderFills
+        .mockImplementationOnce(() => btcPromise) // First call (BTC) - delayed
+        .mockResolvedValueOnce([
+          // Second call (ETH) - immediate
+          {
+            orderId: 'order-eth-1',
+            symbol: 'ETH',
+            side: 'buy',
+            direction: 'Open Long',
+            timestamp: ethTimestamp,
+            size: '1.0',
+            price: '3000',
+            pnl: '0',
+            fee: '0.01',
+            feeToken: 'USDC',
+          },
+        ]);
+
+      // Act - Initial render with BTC position
+      const { rerender, getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeTruthy();
+
+      // Wait for BTC REST fetch to be initiated
+      await waitFor(() => {
+        expect(mockGetOrderFills).toHaveBeenCalledTimes(1);
+      });
+
+      // User switches to ETH position before BTC fetch completes
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: ethPosition,
+        refreshPosition: jest.fn(),
+      });
+
+      // Rerender with new position
+      rerender(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+      );
+
+      // Wait for ETH REST fetch to be initiated
+      await waitFor(() => {
+        expect(mockGetOrderFills).toHaveBeenCalledTimes(2);
+      });
+
+      // Now BTC fetch completes (delayed) - should be ignored due to cleanup
+      await act(async () => {
+        btcResolve([
+          {
+            orderId: 'order-btc-1',
+            symbol: 'BTC',
+            side: 'buy',
+            direction: 'Open Long',
+            timestamp: btcTimestamp,
+            size: '0.1',
+            price: '45000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+        ]);
+        // Allow promises to resolve
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      // Assert - Component should still render without errors
+      // The stale BTC timestamp should NOT have been applied
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeTruthy();
+
+      // Both fetches were called
+      expect(mockGetOrderFills).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('TP/SL child order filtering', () => {

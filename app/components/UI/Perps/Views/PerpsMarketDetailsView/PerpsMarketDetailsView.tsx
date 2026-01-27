@@ -443,7 +443,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Mark that we're fetching for this symbol to prevent duplicate calls
     restFetchedForSymbolRef.current = existingPosition.symbol;
 
+    // Track if this effect is still current to prevent stale updates
+    // This prevents race conditions when users rapidly switch markets
+    let isCurrent = true;
+
     const fetchHistoricalFills = async () => {
+      // Capture symbol at fetch start for validation and logging
+      const symbolAtFetchStart = existingPosition.symbol;
+
       try {
         // Fetch fills from the last 90 days to find position-opening fill
         const startTime = Date.now() - 90 * 24 * 60 * 60 * 1000;
@@ -457,25 +464,35 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         // Find the most recent "Open" fill for this position's symbol
         const openFill = fills
           .filter((fill) => {
-            const isMatchingAsset = fill.symbol === existingPosition.symbol;
+            // Use captured symbol to ensure consistency
+            const isMatchingAsset = fill.symbol === symbolAtFetchStart;
             const isOpenDirection = fill.direction?.startsWith('Open');
             return isMatchingAsset && isOpenDirection;
           })
           .sort((a, b) => b.timestamp - a.timestamp)[0];
 
-        if (openFill?.timestamp) {
+        // Only set state if this effect is still current (not cleaned up due to market switch)
+        if (openFill?.timestamp && isCurrent) {
           setRestPositionTimestamp(openFill.timestamp);
         }
       } catch (error) {
+        // Don't log for cancelled operations
+        if (!isCurrent) return;
+
         // Non-critical error - fall back to debounce timer if REST fails
         Logger.log('Failed to fetch historical fills for position timestamp', {
           error,
-          symbol: existingPosition.symbol,
+          symbol: symbolAtFetchStart,
         });
       }
     };
 
     fetchHistoricalFills();
+
+    // Cleanup: mark this effect as no longer current when market changes
+    return () => {
+      isCurrent = false;
+    };
   }, [existingPosition, wsPositionOpenedTimestamp]);
 
   // Reset REST state when position changes to a different symbol
