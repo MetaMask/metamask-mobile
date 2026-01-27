@@ -1,13 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View, Image } from 'react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PredictMarketRowItem.styles';
 import { PredictMarket as PredictMarketType } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -31,8 +28,7 @@ const PredictMarketRowItem = ({
   entryPoint = PredictEventValues.ENTRY_POINT.TRENDING_SEARCH,
 }: PredictMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const tw = useTailwind();
 
   // Get the highest probability open outcome

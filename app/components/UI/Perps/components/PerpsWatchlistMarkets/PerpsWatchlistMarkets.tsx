@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { FlatList, View, TouchableOpacity } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -12,12 +12,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import type {
-  PerpsMarketData,
-  PerpsNavigationParamList,
-  Position,
-  Order,
-} from '../../controllers/types';
+import type { PerpsMarketData, Position, Order } from '../../controllers/types';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
@@ -39,7 +34,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   orders = [],
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {

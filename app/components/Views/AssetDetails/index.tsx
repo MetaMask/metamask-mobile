@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ButtonIcon,
@@ -69,7 +69,6 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarketForAsset } from '../../UI/Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../../UI/Perps/components/PerpsDiscoveryBanner';
 import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
-import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 
 // Inline header styles
 const inlineHeaderStyles = StyleSheet.create({
@@ -163,7 +162,7 @@ const AssetDetails = (props: InnerProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const providerConfig = useSelector(selectProviderConfig);
   const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);

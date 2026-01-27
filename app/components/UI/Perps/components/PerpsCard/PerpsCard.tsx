@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
@@ -8,7 +8,6 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   formatPerpsFiat,
   formatPnl,
@@ -43,7 +42,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
 }) => {
   const { styles } = useStyles(styleSheet, { iconSize });
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
 
   // Determine which type of data we have

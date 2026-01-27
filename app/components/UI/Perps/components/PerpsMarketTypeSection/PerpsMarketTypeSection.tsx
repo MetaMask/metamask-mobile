@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -11,10 +11,7 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import type {
-  PerpsMarketData,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
+import type { PerpsMarketData } from '../../controllers/types';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { SortField } from '../../utils/sortMarkets';
 import PerpsMarketList from '../PerpsMarketList';
@@ -74,7 +71,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   const handleViewAll = useCallback(() => {
     // Navigate to the specific market type tab when "See all" is pressed
