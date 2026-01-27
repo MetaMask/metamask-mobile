@@ -8,6 +8,7 @@ import React, {
 import { View, Alert, BackHandler, ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
+import { useSharedValue } from 'react-native-reanimated';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import { connect, useSelector } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
@@ -27,6 +28,7 @@ import {
 import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
+  SCROLL_TRACKER_SCRIPT,
 } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import { strings } from '../../../../locales/i18n';
@@ -67,6 +69,7 @@ import {
   NOTIFICATION_NAMES,
   MM_MIXPANEL_TOKEN,
 } from './constants';
+import GestureWebViewWrapper from './GestureWebViewWrapper';
 import { regex } from '../../../../app/util/regex';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from './BrowserView.testIds';
@@ -170,6 +173,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     >({});
     // Track if webview is loaded for the first time
     const isWebViewReadyToLoad = useRef(false);
+
+    /**
+     * GESTURE NAVIGATION
+     *
+     * Gesture handling is abstracted into GestureWebViewWrapper component.
+     * These shared values are passed to the wrapper for scroll position tracking.
+     */
+    const scrollY = useSharedValue(0); // Current scroll position from WebView
+    const isRefreshing = useSharedValue(false); // Pull-to-refresh in progress
     const urlBarRef = useRef<BrowserUrlBarRef>(null);
     const autocompleteRef = useRef<UrlAutocompleteRef>(null);
     const onSubmitEditingRef = useRef<(text: string) => Promise<void>>(
@@ -293,12 +305,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     /**
      * Go forward to the next website in history
      */
-    const goForward = async () => {
+    const goForward = useCallback(async () => {
       if (!forwardEnabled) return;
 
       const { current } = webviewRef;
       current?.goForward?.();
-    };
+    }, [forwardEnabled]);
 
     /**
      * Check if an origin is allowed
@@ -511,7 +523,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
       const getEntryScriptWeb3 = async () => {
         const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
-        setEntryScriptWeb3(entryScriptWeb3Fetched + SPA_urlChangeListener);
+        setEntryScriptWeb3(
+          entryScriptWeb3Fetched +
+            SPA_urlChangeListener +
+            SCROLL_TRACKER_SCRIPT,
+        );
       };
 
       getEntryScriptWeb3();
@@ -817,6 +833,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       }) => {
         if ('code' in nativeEvent) {
           // Handle error - code is a property of WebViewErrorEvent
+          // Reset pull-to-refresh state even on error to prevent it being stuck
+          isRefreshing.value = false;
           return handleError(nativeEvent);
         }
 
@@ -843,8 +861,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             canGoForward,
           });
         }
+
+        // Reset pull-to-refresh state when page finishes loading
+        isRefreshing.value = false;
       },
-      [handleError, handleSuccessfulPageResolution, favicon],
+      [handleError, handleSuccessfulPageResolution, favicon, isRefreshing],
     );
 
     /**
@@ -881,6 +902,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
         const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
         if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
+          return;
+        }
+        if (dataParsed.type === 'SCROLL_POSITION') {
+          // Update scroll position - gesture wrapper derives "at top" directly from this value
+          scrollY.value = dataParsed.payload?.scrollY || 0;
           return;
         }
         if (
@@ -1417,49 +1443,64 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               {renderProgressBar()}
               <View style={styles.webview}>
                 {!!entryScriptWeb3 && firstUrlLoaded && (
-                  <>
-                    <WebView
-                      originWhitelist={webViewOriginWhitelist}
-                      decelerationRate={0.998}
-                      ref={webviewRef}
-                      renderError={() => (
-                        <WebviewErrorComponent
-                          error={error}
-                          returnHome={returnHome}
+                  <GestureWebViewWrapper
+                    isTabActive={isTabActive}
+                    isUrlBarFocused={isUrlBarFocused}
+                    firstUrlLoaded={firstUrlLoaded}
+                    backEnabled={backEnabled}
+                    forwardEnabled={forwardEnabled}
+                    onGoBack={goBack}
+                    onGoForward={goForward}
+                    onReload={() => webviewRef.current?.reload?.()}
+                    scrollY={scrollY}
+                    isRefreshing={isRefreshing}
+                  >
+                    <View style={styles.webview}>
+                      <WebView
+                        originWhitelist={webViewOriginWhitelist}
+                        decelerationRate={0.998}
+                        ref={webviewRef}
+                        renderError={() => (
+                          <WebviewErrorComponent
+                            error={error}
+                            returnHome={returnHome}
+                          />
+                        )}
+                        source={{
+                          uri: prefixUrlWithProtocol(initialUrl),
+                          ...(isExternalLink
+                            ? { headers: { Cookie: '' } }
+                            : null),
+                        }}
+                        injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                        style={styles.webview}
+                        onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
+                        onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
+                        onLoadProgress={handleWebviewNavigationChange(
+                          OnLoadProgress,
+                        )}
+                        onNavigationStateChange={handleOnNavigationStateChange}
+                        onMessage={onMessage}
+                        onShouldStartLoadWithRequest={
+                          onShouldStartLoadWithRequest
+                        }
+                        allowsInlineMediaPlayback
+                        {...(process.env.IS_TEST === 'true'
+                          ? { javaScriptEnabled: true }
+                          : {})}
+                        testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
+                        applicationNameForUserAgent={'WebView MetaMaskMobile'}
+                        onFileDownload={handleOnFileDownload}
+                        webviewDebuggingEnabled={isTest}
+                        paymentRequestEnabled
+                      />
+                      {ipfsBannerVisible && (
+                        <IpfsBanner
+                          setIpfsBannerVisible={setIpfsBannerVisible}
                         />
                       )}
-                      source={{
-                        uri: prefixUrlWithProtocol(initialUrl),
-                        ...(isExternalLink
-                          ? { headers: { Cookie: '' } }
-                          : null),
-                      }}
-                      injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-                      style={styles.webview}
-                      onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
-                      onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
-                      onLoadProgress={handleWebviewNavigationChange(
-                        OnLoadProgress,
-                      )}
-                      onNavigationStateChange={handleOnNavigationStateChange}
-                      onMessage={onMessage}
-                      onShouldStartLoadWithRequest={
-                        onShouldStartLoadWithRequest
-                      }
-                      allowsInlineMediaPlayback
-                      {...(process.env.IS_TEST === 'true'
-                        ? { javaScriptEnabled: true }
-                        : {})}
-                      testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
-                      applicationNameForUserAgent={'WebView MetaMaskMobile'}
-                      onFileDownload={handleOnFileDownload}
-                      webviewDebuggingEnabled={isTest}
-                      paymentRequestEnabled
-                    />
-                    {ipfsBannerVisible && (
-                      <IpfsBanner setIpfsBannerVisible={setIpfsBannerVisible} />
-                    )}
-                  </>
+                    </View>
+                  </GestureWebViewWrapper>
                 )}
               </View>
               <UrlAutocomplete

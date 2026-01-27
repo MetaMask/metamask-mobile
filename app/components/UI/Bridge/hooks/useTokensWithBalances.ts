@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { parseCaipAssetType } from '@metamask/utils';
+import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { constants } from 'ethers';
 import {
   isNonEvmChainId,
@@ -15,7 +15,7 @@ import { BalancesByAssetId } from './useBalancesByAssetId';
  */
 const convertAPITokensToBridgeTokens = (
   apiTokens: PopularToken[],
-): (BridgeToken & { assetId?: string })[] =>
+): (BridgeToken & { assetId: CaipAssetType })[] =>
   apiTokens.map((token) => {
     const { assetReference, chainId, assetNamespace } = parseCaipAssetType(
       token.assetId,
@@ -64,8 +64,8 @@ export const useTokensWithBalances = (
       // Normalize assetId because API returns assetId in lowercase for EVM chains
       const normalizedAssetId = isNonEvmChainId(token.chainId)
         ? token.assetId
-        : token.assetId?.toLowerCase();
-      const balanceData = balancesByAssetId[normalizedAssetId ?? ''];
+        : (token.assetId?.toLowerCase() as CaipAssetType);
+      const balanceData = balancesByAssetId[normalizedAssetId];
       if (balanceData) {
         return {
           ...token,
