@@ -1014,7 +1014,7 @@ export class HyperLiquidClientService {
         ) {
           this.handleConnectionDrop();
         }
-      }, PERPS_CONSTANTS.RECONNECTION_RETRY_DELAY_MS);
+      }, PERPS_CONSTANTS.ReconnectionRetryDelayMs);
     }
   }
 }
