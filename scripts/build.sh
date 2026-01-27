@@ -711,8 +711,27 @@ generateAndroidBinary() {
 buildExpoUpdate() {
 		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
 
-		# Create .env file from environment variables
+		# Create .env file from environment variables because Expo updates pulls env variables from .env 
+		# see https://docs.expo.dev/eas/environment-variables/usage/#using-environment-variables-with-eas-update 
 		createEnvFile
+
+		# Verify .env file was created and source it
+		if [ -f ".env" ]; then
+			echo "✅ .env file exists at $(pwd)/.env"
+			echo "📊 .env file contains $(wc -l < .env | tr -d ' ') lines"
+			# Show first few variables (without values for security)
+			echo "📝 Sample variables in .env:"
+			head -n 5 .env | cut -d= -f1 | sed 's/^/  - /'
+			
+			# Source the .env file to ensure variables are loaded
+			echo "🔄 Sourcing .env file to load variables..."
+			set -a  # automatically export all variables
+			source .env
+			set +a  # turn off automatic export
+			echo "✅ .env file sourced successfully"
+		else
+			echo "⚠️ WARNING: .env file was not created!"
+		fi
 
 		if [ -z "${EXPO_TOKEN}" ]; then
 			echo "EXPO_TOKEN is NOT set in build.sh env"
