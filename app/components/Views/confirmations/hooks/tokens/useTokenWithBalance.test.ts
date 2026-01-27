@@ -30,13 +30,6 @@ describe('useTokenWithBalance', () => {
       decimals: 4,
       symbol: 'T1',
       tokenFiatAmount: 100,
-      aggregators: [],
-      rwaData: {
-        address: tokenAddress1Mock,
-        chainId: '0x1',
-        decimals: 4,
-        symbol: 'T1',
-      },
     });
   });
 
@@ -52,8 +45,6 @@ describe('useTokenWithBalance', () => {
       decimals: 18,
       symbol: 'ETH',
       tokenFiatAmount: 20000,
-      aggregators: [],
-      rwaData: undefined,
     });
   });
 
