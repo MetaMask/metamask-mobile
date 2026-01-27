@@ -436,7 +436,7 @@
     "react-native-inappbrowser-reborn": "^3.7.0",
     "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
-    "react-native-keyboard-controller": "^1.19.6",
+    "react-native-keyboard-controller": "^1.20.3",
     "react-native-keychain": "^9.0.0",
     "react-native-level-fs": "3.0.1",
     "react-native-linear-gradient": "^2.8.3",
