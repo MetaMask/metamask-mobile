@@ -161,6 +161,14 @@ export function listAvailableSkills(): string[] {
       .map((f) => f.replace('.md', ''))
       .sort();
   } catch (error) {
+    if (error instanceof Error && 'code' in error) {
+      if (error.code === 'ENOENT') {
+        console.warn(`Skills directory not found: ${skillsDir}`);
+        console.warn(`Skills will not be available for loading`);
+      } else {
+        console.warn(`Failed to read skills directory: ${error.message}`);
+      }
+    }
     return [];
   }
 }
