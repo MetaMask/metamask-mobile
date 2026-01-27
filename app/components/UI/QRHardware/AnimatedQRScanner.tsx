@@ -3,13 +3,7 @@
 
 'use strict';
 import React, { useCallback, useState, useEffect } from 'react';
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from 'react-native';
+import { Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import {
   Camera,
   useCameraDevice,
@@ -170,7 +164,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     setProgress(0);
   }, []);
 
-
   const onError = useCallback(
     async (error: Error) => {
       if (onScanError && error) {
@@ -322,6 +315,8 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     <Modal
       isVisible={visible}
       style={styles.modal}
+      coverScreen
+      statusBarTranslucent
       onModalHide={() => {
         reset();
         pauseQRCode?.(false);
