@@ -58,10 +58,7 @@ export function useHasExistingPosition(
     [positions, asset],
   );
 
-  const hasPosition = useMemo(
-    () => existingPosition !== null,
-    [existingPosition],
-  );
+  const hasPosition = existingPosition !== null;
 
   // Get position opened timestamp from WebSocket fills data
   // This is used by useStopLossPrompt to bypass client-side debounce timers
