@@ -1,8 +1,6 @@
 import NavigationService from './NavigationService';
 import Logger from '../../util/Logger';
-import type {
-  NavigationContainerRef,
-} from '@react-navigation/native';
+import type { NavigationContainerRef } from '@react-navigation/native';
 
 describe('NavigationService', () => {
   let mockNavigation: NavigationContainerRef;
