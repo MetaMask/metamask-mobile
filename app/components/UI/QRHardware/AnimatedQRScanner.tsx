@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
 import {
   Camera,
@@ -18,7 +19,7 @@ import {
   useCodeScanner,
   Code,
 } from 'react-native-vision-camera';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
@@ -35,9 +36,17 @@ import Icon, {
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import LinearGradient from 'react-native-linear-gradient';
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+const FRAME_SIZE = 250;
+
+const createStyles = (theme: Theme) => {
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  // Calculate the vertical offset to center the frame
+  const topOverlayHeight = (screenHeight - FRAME_SIZE) / 2;
+  const sideOverlayWidth = (screenWidth - FRAME_SIZE) / 2;
+
+  return StyleSheet.create({
     modal: {
       margin: 0,
     },
@@ -57,38 +66,74 @@ const createStyles = (theme: Theme) =>
       bottom: 0,
     },
     closeIcon: {
-      marginTop: 20,
-      marginRight: 20,
-      width: 40,
-      alignSelf: 'flex-end',
+      position: 'absolute',
+      top: 50,
+      right: 20,
+      zIndex: 10,
+    },
+    overlayContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+    // Top overlay with gradient blur effect
+    topOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: topOverlayHeight,
+    },
+    // Bottom overlay with gradient blur effect
+    bottomOverlay: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: topOverlayHeight,
+    },
+    // Left overlay
+    leftOverlay: {
+      position: 'absolute',
+      top: topOverlayHeight,
+      left: 0,
+      width: sideOverlayWidth,
+      height: FRAME_SIZE,
+    },
+    // Right overlay
+    rightOverlay: {
+      position: 'absolute',
+      top: topOverlayHeight,
+      right: 0,
+      width: sideOverlayWidth,
+      height: FRAME_SIZE,
+    },
+    frameContainer: {
+      position: 'absolute',
+      top: topOverlayHeight,
+      left: sideOverlayWidth,
+      width: FRAME_SIZE,
+      height: FRAME_SIZE,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     frame: {
-      width: 250,
-      height: 250,
-      alignSelf: 'center',
-      justifyContent: 'center',
-      marginTop: 100,
-      opacity: 0.5,
+      width: FRAME_SIZE,
+      height: FRAME_SIZE,
     },
-    text: {
-      flex: 1,
-      fontSize: 17,
-      color: theme.brandColors.white,
-      textAlign: 'center',
-      justifyContent: 'center',
-      marginTop: 100,
-    },
-    hint: {
-      backgroundColor: colors.whiteTransparent,
-      width: '100%',
-      height: 120,
+    hintTextContainer: {
+      position: 'absolute',
+      top: topOverlayHeight - 60,
+      left: 0,
+      right: 0,
       alignItems: 'center',
       justifyContent: 'center',
     },
     hintText: {
-      width: 240,
       maxWidth: '80%',
-      color: theme.brandColors.black,
+      color: theme.brandColors.white,
       textAlign: 'center',
       fontSize: 16,
       ...fontStyles.normal,
@@ -96,7 +141,20 @@ const createStyles = (theme: Theme) =>
     bold: {
       ...fontStyles.bold,
     },
+    scanningTextContainer: {
+      position: 'absolute',
+      top: topOverlayHeight + FRAME_SIZE + 20,
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+    },
+    scanningText: {
+      fontSize: 17,
+      color: theme.brandColors.white,
+      textAlign: 'center',
+    },
   });
+};
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -153,16 +211,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     () => (
       <Text style={styles.hintText}>
         {strings('connect_qr_hardware.hint_text')}
-        <Text style={styles.bold}>
-          {strings(
-            purpose === QrScanRequestType.PAIR
-              ? 'connect_qr_hardware.purpose_connect'
-              : 'connect_qr_hardware.purpose_sign',
-          )}
-        </Text>
       </Text>
     ),
-    [purpose, styles],
+    [styles],
   );
 
   const onError = useCallback(
@@ -312,6 +363,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     }
   }, [visible, hasPermission, onScanError]);
 
+  // Semi-transparent overlay color
+  const overlayColor = 'rgba(0, 0, 0, 0.6)';
+
   return (
     <Modal
       isVisible={visible}
@@ -334,26 +388,76 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               onError={onError}
             />
             <SafeAreaView style={styles.innerView}>
+              {/* Close button */}
               <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-                {<Icon name={IconName.Close} size={IconSize.Xl} />}
+                <Icon name={IconName.Close} size={IconSize.Xl} />
               </TouchableOpacity>
-              <Image source={frameImage} style={styles.frame} />
-              <Text style={styles.text}>{`${strings('qr_scanner.scanning')} ${
-                progress ? `${progress.toString()}%` : ''
-              }`}</Text>
+
+              {/* Overlay container with blur edges */}
+              <View style={styles.overlayContainer}>
+                {/* Top overlay with gradient blur */}
+                <LinearGradient
+                  colors={[overlayColor, overlayColor, 'rgba(0, 0, 0, 0.3)']}
+                  locations={[0, 0.7, 1]}
+                  style={styles.topOverlay}
+                />
+
+                {/* Left overlay with gradient blur */}
+                <LinearGradient
+                  colors={[overlayColor, 'rgba(0, 0, 0, 0.3)']}
+                  locations={[0, 1]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.leftOverlay}
+                />
+
+                {/* Right overlay with gradient blur */}
+                <LinearGradient
+                  colors={['rgba(0, 0, 0, 0.3)', overlayColor]}
+                  locations={[0, 1]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.rightOverlay}
+                />
+
+                {/* Bottom overlay with gradient blur */}
+                <LinearGradient
+                  colors={['rgba(0, 0, 0, 0.3)', overlayColor, overlayColor]}
+                  locations={[0, 0.3, 1]}
+                  style={styles.bottomOverlay}
+                />
+
+                {/* Frame */}
+                <View style={styles.frameContainer}>
+                  <Image source={frameImage} style={styles.frame} />
+                </View>
+
+                {/* Hint text above the frame */}
+                <View style={styles.hintTextContainer}>{hintText}</View>
+
+                {/* Scanning text below the frame */}
+                <View style={styles.scanningTextContainer}>
+                  <Text style={styles.scanningText}>{`${strings(
+                    'qr_scanner.scanning',
+                  )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                </View>
+              </View>
             </SafeAreaView>
           </>
         ) : (
           <SafeAreaView style={styles.innerView}>
             <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-              {<Icon name={IconName.Close} size={IconSize.Xl} />}
+              <Icon name={IconName.Close} size={IconSize.Xl} />
             </TouchableOpacity>
-            <Text style={styles.text}>
-              {strings('transaction.no_camera_permission')}
-            </Text>
+            <View style={styles.overlayContainer}>
+              <View style={styles.scanningTextContainer}>
+                <Text style={styles.scanningText}>
+                  {strings('transaction.no_camera_permission')}
+                </Text>
+              </View>
+            </View>
           </SafeAreaView>
         )}
-        <View style={styles.hint}>{hintText}</View>
       </View>
     </Modal>
   );
