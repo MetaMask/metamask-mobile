@@ -41,9 +41,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@anthropic-ai/sdk@npm:^0.71.0":
-  version: 0.71.0
-  resolution: "@anthropic-ai/sdk@npm:0.71.0"
+"@anthropic-ai/sdk@npm:^0.71.2":
+  version: 0.71.2
+  resolution: "@anthropic-ai/sdk@npm:0.71.2"
   dependencies:
     json-schema-to-ts: "npm:^3.1.1"
   peerDependencies:
@@ -53,7 +53,7 @@ __metadata:
       optional: true
   bin:
     anthropic-ai-sdk: bin/cli
-  checksum: 10/2c4da293d11e0284fe16f909fb59cbaaabe62014cf5f058e225697e4c0bdc029c05171a7a9d9449cb5535abb4d31d653ab96e0edd2443172fa1b272cfd8afa04
+  checksum: 10/a8190f9e860079dd97a544a95f36bd4b0b3a9a941610d7e067c431dc47febe03e3e761fc371166b261af9629d832533eeb3d8e72298e9f73dd52994a61881a2c
   languageName: node
   linkType: hard
 
@@ -34660,7 +34660,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "metamask@workspace:."
   dependencies:
-    "@anthropic-ai/sdk": "npm:^0.71.0"
+    "@anthropic-ai/sdk": "npm:^0.71.2"
     "@babel/core": "npm:^7.25.2"
     "@babel/eslint-parser": "npm:^7.25.1"
     "@babel/preset-env": "npm:^7.25.3"
