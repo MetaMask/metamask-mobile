@@ -1953,7 +1953,7 @@ export class PredictController extends BaseController<
         throw new Error('Deposit preparation returned undefined');
       }
 
-      const { transactions, chainId, gasFeeToken } = depositPreparation;
+      const { transactions, chainId } = depositPreparation;
 
       if (!transactions || transactions.length === 0) {
         throw new Error('No transactions returned from deposit preparation');
@@ -2000,7 +2000,6 @@ export class PredictController extends BaseController<
         disableUpgrade: true,
         skipInitialGasEstimate: true,
         transactions,
-        gasFeeToken,
       });
 
       if (!batchResult?.batchId) {

@@ -373,7 +373,7 @@ export function formatHyperLiquidPrice(params: {
 
   // Calculate max decimal places allowed
   const maxDecimalPlaces =
-    DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS - szDecimals;
+    DECIMAL_PRECISION_CONFIG.MaxPriceDecimals - szDecimals;
 
   // Format with proper decimal places
   let formattedPrice = priceNum.toFixed(maxDecimalPlaces);
@@ -384,7 +384,7 @@ export function formatHyperLiquidPrice(params: {
   // Check and enforce max significant figures using shared utility
   const significantDigits = countSignificantFigures(formattedPrice);
 
-  if (significantDigits > DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES) {
+  if (significantDigits > DECIMAL_PRECISION_CONFIG.MaxSignificantFigures) {
     // Use shared utility to round to max significant figures
     formattedPrice = roundToSignificantFigures(formattedPrice);
   }
@@ -455,8 +455,8 @@ export function calculateHip3AssetId(
     return indexInMeta;
   }
   return (
-    HIP3_ASSET_ID_CONFIG.BASE_ASSET_ID +
-    perpDexIndex * HIP3_ASSET_ID_CONFIG.DEX_MULTIPLIER +
+    HIP3_ASSET_ID_CONFIG.BaseAssetId +
+    perpDexIndex * HIP3_ASSET_ID_CONFIG.DexMultiplier +
     indexInMeta
   );
 }

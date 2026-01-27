@@ -11,13 +11,30 @@ import {
   buildRiskAssessmentSection,
 } from '../shared/base-system-prompt';
 import { LLM_CONFIG } from '../../config';
+import { SkillMetadata } from '../../types';
 
 /**
  * Builds the system prompt, i.e. the initial system message
+ *
+ * @param availableSkills - Metadata for available skills (loaded on-demand)
  */
-export function buildSystemPrompt(): string {
+export function buildSystemPrompt(availableSkills: SkillMetadata[]): string {
   const role = `You are an expert in E2E testing for MetaMask Mobile, responsible for analyzing code changes in pull requests to determine which tests are necessary for adequate validation.`;
   const goal = `GOAL: Implement a risk-based testing strategy by identifying and running only the tests relevant to the specific changes introduced in the PR, while safely skipping unrelated tests. Additionally, determine if performance tests should run based on changes that could impact app performance.`;
+
+  // Build available skills section
+  const skillsSection =
+    availableSkills.length > 0
+      ? `AVAILABLE SKILLS:
+
+${availableSkills
+  .map(
+    (skill) =>
+      `- ${skill.name}: ${skill.description}${skill.tools ? `\n  Tools: ${skill.tools}` : ''}`,
+  )
+  .join('\n')}`
+      : '';
+
   const guidanceSection = `GUIDANCE:
 Use your judgment - selecting all tags is acceptable (recommended as conservative approach for risky changes), as well as selecting none of them if the changes are unrisky.
 Changes to wdio/ or appwright/ directories (separate test frameworks) do not require Detox tags - select none unless app code is also changed.
@@ -54,6 +71,7 @@ WHEN TO SKIP PERFORMANCE TESTS:
   const prompt = [
     role,
     goal,
+    skillsSection,
     buildReasoningSection(),
     buildToolsSection(),
     buildConfidenceGuidanceSection(),
@@ -61,7 +79,9 @@ WHEN TO SKIP PERFORMANCE TESTS:
     buildRiskAssessmentSection(),
     guidanceSection,
     performanceGuidanceSection,
-  ].join('\n\n');
+  ]
+    .filter((section) => section) // Remove empty sections
+    .join('\n\n');
 
   return prompt;
 }

@@ -44,7 +44,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   // Note: marketFills is already filtered by symbol and sorted by the hook
   const trades = useMemo(() => {
     const transactions = transformFillsToTransactions(marketFills);
-    return transactions.slice(0, PERPS_CONSTANTS.RECENT_ACTIVITY_LIMIT);
+    return transactions.slice(0, PERPS_CONSTANTS.RecentActivityLimit);
   }, [marketFills]);
 
   const handleSeeAll = useCallback(() => {

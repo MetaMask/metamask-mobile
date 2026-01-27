@@ -62,7 +62,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
     // Get fees from route constraints or use defaults
     const networkFee =
       withdrawalRoute?.constraints?.fees?.fixed ??
-      WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT;
+      WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
     const metamaskFee = METAMASK_WITHDRAWAL_FEE; // $0 currently
     const totalFees = networkFee + metamaskFee;
 
@@ -110,7 +110,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
 
     const minAmount = Number.parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
-        WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+        WITHDRAWAL_CONSTANTS.DefaultMinAmount,
     );
     return parsedAmount >= minAmount;
   }, [parsedAmount, isValid, withdrawalRoute]);
@@ -123,7 +123,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
 
     const minAmount = Number.parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
-        WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+        WITHDRAWAL_CONSTANTS.DefaultMinAmount,
     );
     if (parsedAmount > 0 && parsedAmount < minAmount) {
       return strings('perps.withdrawal.amount_too_low', {

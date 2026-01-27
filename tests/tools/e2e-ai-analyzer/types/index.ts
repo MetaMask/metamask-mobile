@@ -7,6 +7,18 @@ export interface PerformanceTestSelection {
   reasoning: string;
 }
 
+export interface SkillMetadata {
+  name: string;
+  description: string;
+  tools?: string;
+}
+
+export interface Skill {
+  name: string;
+  metadata: SkillMetadata;
+  content: string;
+}
+
 export interface SelectTagsAnalysis {
   selectedTags: string[];
   confidence: number;
@@ -25,6 +37,7 @@ export interface ParsedArgs {
   prNumber?: number;
   mode?: string;
   provider?: string;
+  listSkills?: boolean;
 }
 
 export interface ToolInput {
@@ -46,6 +59,9 @@ export interface ToolInput {
   // grep_codebase
   pattern?: string;
   file_pattern?: string;
+
+  // load_skill
+  skill_name?: string;
 
   // finalize_tag_selection (select-tags mode)
   selected_tags?: string[];
