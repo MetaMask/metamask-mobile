@@ -688,6 +688,9 @@ const PredictFeed: React.FC = () => {
         <HeaderCenter
           title={strings('wallet.predict')}
           onBack={handleBackPress}
+          backButtonProps={{
+            testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+          }}
           endButtonIconProps={[
             {
               iconName: IconName.Search,
@@ -695,7 +698,6 @@ const PredictFeed: React.FC = () => {
               testID: 'predict-search-button',
             },
           ]}
-          testID={PredictMarketListSelectorsIDs.BACK_BUTTON}
         />
       </Box>
 
