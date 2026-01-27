@@ -5787,6 +5787,12 @@
       "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
       "powered_by_relay": "Powered by Relay"
     },
+    "bonus_claim": {
+      "toasts": {
+        "claiming": "Claiming bonus",
+        "failed": "Bonus claim failed"
+      }
+    },
     "rewards": {
       "rewards_tag_label": "Rewards",
       "tooltip_title": "Earn rewards with mUSD",

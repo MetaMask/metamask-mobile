@@ -18,34 +18,24 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
+import NavigationService from '../../../../../core/NavigationService';
+import Routes from '../../../../../constants/navigation/Routes';
 
 interface ClaimMerklRewardsProps {
   asset: TokenI;
-  onClaimSuccess: () => void;
 }
 
 /**
  * Component to display the claim button for Merkl rewards
  */
-const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
-  asset,
-  onClaimSuccess,
-}) => {
+const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
-  const {
-    claimRewards,
-    isClaiming,
-    error: claimError,
-  } = useMerklClaim({
-    asset,
-    // This callback is triggered when the transaction is confirmed on-chain
-    onTransactionConfirmed: onClaimSuccess,
-  });
+  const { claimRewards, isClaiming, error: claimError } = useMerklClaim(asset);
 
   const handleClaim = async () => {
     const buttonText = strings('asset_overview.merkl_rewards.claim');
@@ -64,9 +54,12 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
     );
 
     try {
-      await claimRewards();
-      // Transaction submitted - confirmation listener in useMerklClaim
-      // will call onClaimSuccess when the transaction is confirmed
+      const result = await claimRewards();
+      // Transaction submitted successfully - navigate to home page
+      // Toast notifications and balance refresh are handled globally by useMerklClaimStatus
+      if (result?.txHash) {
+        NavigationService.navigation.navigate(Routes.WALLET.HOME);
+      }
     } catch (error) {
       // Error is handled by useMerklClaim hook and displayed via claimError
     }

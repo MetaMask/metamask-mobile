@@ -8,7 +8,6 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
-const mockOnClaimSuccess = jest.fn();
 
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -37,6 +36,22 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('./hooks/useMerklClaim', () => ({
   useMerklClaim: jest.fn(),
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('../../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      navigate: (route: string) => mockNavigate(route),
+    },
+  },
+}));
+
+jest.mock('../../../../../constants/navigation/Routes', () => ({
+  WALLET: {
+    HOME: 'WalletTabHome',
+  },
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -136,58 +151,22 @@ describe('ClaimMerklRewards', () => {
   });
 
   it('renders claim button', () => {
-    const { getByText } = render(
-      <ClaimMerklRewards
-        asset={mockAsset}
-        onClaimSuccess={mockOnClaimSuccess}
-      />,
-    );
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
 
     expect(getByText('Claim')).toBeTruthy();
   });
 
-  it('calls claimRewards when button is pressed and onClaimSuccess on transaction confirmation', async () => {
-    // Capture the onTransactionConfirmed callback passed to useMerklClaim
-    let capturedOnTransactionConfirmed: (() => void) | undefined;
-    mockUseMerklClaim.mockImplementation(
-      ({
-        onTransactionConfirmed,
-      }: {
-        asset: TokenI;
-        onTransactionConfirmed?: () => void;
-      }) => {
-        capturedOnTransactionConfirmed = onTransactionConfirmed;
-        return {
-          claimRewards: mockClaimRewards,
-          isClaiming: false,
-          error: null,
-        };
-      },
-    );
+  it('calls claimRewards when button is pressed', async () => {
+    mockClaimRewards.mockResolvedValue({ txHash: '0x123abc' });
 
-    mockClaimRewards.mockResolvedValue(undefined);
-
-    const { getByText } = render(
-      <ClaimMerklRewards
-        asset={mockAsset}
-        onClaimSuccess={mockOnClaimSuccess}
-      />,
-    );
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
     const claimButton = getByText('Claim');
 
     fireEvent.press(claimButton);
 
-    // Wait for claimRewards to be called
     await waitFor(() => {
       expect(mockClaimRewards).toHaveBeenCalledTimes(1);
     });
-
-    // Simulate transaction confirmation by calling the captured callback
-    expect(capturedOnTransactionConfirmed).toBeDefined();
-    capturedOnTransactionConfirmed?.();
-
-    // onClaimSuccess should be called when transaction is confirmed
-    expect(mockOnClaimSuccess).toHaveBeenCalledTimes(1);
   });
 
   it('disables button when isClaiming is true', () => {
@@ -197,12 +176,7 @@ describe('ClaimMerklRewards', () => {
       error: null,
     });
 
-    const { getByTestId } = render(
-      <ClaimMerklRewards
-        asset={mockAsset}
-        onClaimSuccess={mockOnClaimSuccess}
-      />,
-    );
+    const { getByTestId } = render(<ClaimMerklRewards asset={mockAsset} />);
     const buttonElement = getByTestId('claim-merkl-rewards-button');
 
     expect(buttonElement.props.disabled).toBe(true);
@@ -216,12 +190,7 @@ describe('ClaimMerklRewards', () => {
       error: errorMessage,
     });
 
-    const { getByText } = render(
-      <ClaimMerklRewards
-        asset={mockAsset}
-        onClaimSuccess={mockOnClaimSuccess}
-      />,
-    );
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
 
     expect(getByText(errorMessage)).toBeTruthy();
   });
@@ -233,45 +202,15 @@ describe('ClaimMerklRewards', () => {
       error: null,
     });
 
-    const { queryByText } = render(
-      <ClaimMerklRewards
-        asset={mockAsset}
-        onClaimSuccess={mockOnClaimSuccess}
-      />,
-    );
+    const { queryByText } = render(<ClaimMerklRewards asset={mockAsset} />);
 
     expect(queryByText('Failed')).toBeNull();
-  });
-
-  it('does not call onClaimSuccess when claim fails', async () => {
-    const error = new Error('Claim failed');
-    mockClaimRewards.mockRejectedValue(error);
-
-    const { getByText } = render(
-      <ClaimMerklRewards
-        asset={mockAsset}
-        onClaimSuccess={mockOnClaimSuccess}
-      />,
-    );
-    const claimButton = getByText('Claim');
-
-    fireEvent.press(claimButton);
-
-    await waitFor(() => {
-      expect(mockClaimRewards).toHaveBeenCalled();
-      expect(mockOnClaimSuccess).not.toHaveBeenCalled();
-    });
   });
 
   it('tracks analytics event when claim button is clicked', async () => {
     mockClaimRewards.mockResolvedValue(undefined);
 
-    const { getByText } = render(
-      <ClaimMerklRewards
-        asset={mockAsset}
-        onClaimSuccess={mockOnClaimSuccess}
-      />,
-    );
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
     const claimButton = getByText('Claim');
 
     fireEvent.press(claimButton);
@@ -290,6 +229,49 @@ describe('ClaimMerklRewards', () => {
       });
       expect(mockEventBuilder.build).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
+    });
+  });
+
+  it('navigates to home page after successful claim submission', async () => {
+    mockClaimRewards.mockResolvedValue({ txHash: '0x123abc' });
+
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
+    const claimButton = getByText('Claim');
+
+    fireEvent.press(claimButton);
+
+    await waitFor(() => {
+      expect(mockClaimRewards).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
+    });
+  });
+
+  it('does not navigate to home page when claim submission fails', async () => {
+    const error = new Error('Claim failed');
+    mockClaimRewards.mockRejectedValue(error);
+
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
+    const claimButton = getByText('Claim');
+
+    fireEvent.press(claimButton);
+
+    await waitFor(() => {
+      expect(mockClaimRewards).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not navigate to home page when claim returns undefined', async () => {
+    mockClaimRewards.mockResolvedValue(undefined);
+
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
+    const claimButton = getByText('Claim');
+
+    fireEvent.press(claimButton);
+
+    await waitFor(() => {
+      expect(mockClaimRewards).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });
