@@ -18,6 +18,7 @@ import {
 } from '../constants/musd';
 import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
 import { toLowerCaseEquals } from '../../../../util/general';
+import { toChecksumAddress } from '../../../../util/address';
 
 export interface MusdConversionFlowData {
   isPopularNetworksFilterActive: boolean;
@@ -161,7 +162,7 @@ export const useMusdConversionFlowData = (): MusdConversionFlowData => {
     }
 
     return {
-      address: toHex(paymentToken.address),
+      address: toChecksumAddress(paymentToken.address),
       chainId: toHex(paymentToken.chainId),
     };
   }, [conversionTokens, selectedChainId]);

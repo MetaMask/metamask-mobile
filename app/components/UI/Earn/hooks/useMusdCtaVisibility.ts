@@ -122,11 +122,7 @@ export const useMusdCtaVisibility = () => {
 
     // If user is geo-blocked, don't show the CTA
     if (!isGeoEligible) {
-      return {
-        shouldShowCta: false,
-        showNetworkIcon: false,
-        selectedChainId: null,
-      };
+      return hiddenResult;
     }
 
     // If all networks are selected

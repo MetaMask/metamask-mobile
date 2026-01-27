@@ -114,7 +114,7 @@ describe('useMusdConversionFlowData', () => {
     mockUseMusdConversionEligibility.mockReturnValue({
       isEligible: true,
       isLoading: false,
-      geolocation: { country: 'US' },
+      geolocation: 'US',
       blockedCountries: ['GB'],
     });
 
@@ -127,8 +127,7 @@ describe('useMusdConversionFlowData', () => {
 
     mockUseNetworksByCustomNamespace.mockReturnValue({
       areAllNetworksSelected: false,
-      filteredNetworks: [],
-    } as ReturnType<typeof useNetworksByCustomNamespace>);
+    } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
   });
 
   afterEach(() => {
@@ -167,8 +166,7 @@ describe('useMusdConversionFlowData', () => {
       } as ReturnType<typeof useCurrentNetworkInfo>);
       mockUseNetworksByCustomNamespace.mockReturnValue({
         areAllNetworksSelected: false,
-        filteredNetworks: [],
-      } as ReturnType<typeof useNetworksByCustomNamespace>);
+      } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
 
@@ -186,8 +184,7 @@ describe('useMusdConversionFlowData', () => {
       } as ReturnType<typeof useCurrentNetworkInfo>);
       mockUseNetworksByCustomNamespace.mockReturnValue({
         areAllNetworksSelected: true,
-        filteredNetworks: [],
-      } as ReturnType<typeof useNetworksByCustomNamespace>);
+      } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
 
@@ -208,8 +205,7 @@ describe('useMusdConversionFlowData', () => {
       } as ReturnType<typeof useCurrentNetworkInfo>);
       mockUseNetworksByCustomNamespace.mockReturnValue({
         areAllNetworksSelected: false,
-        filteredNetworks: [],
-      } as ReturnType<typeof useNetworksByCustomNamespace>);
+      } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
 
@@ -262,7 +258,7 @@ describe('useMusdConversionFlowData', () => {
       mockUseMusdConversionEligibility.mockReturnValue({
         isEligible: true,
         isLoading: false,
-        geolocation: { country: 'US' },
+        geolocation: 'US',
         blockedCountries: [],
       });
 
@@ -275,7 +271,7 @@ describe('useMusdConversionFlowData', () => {
       mockUseMusdConversionEligibility.mockReturnValue({
         isEligible: false,
         isLoading: false,
-        geolocation: { country: 'GB' },
+        geolocation: 'GB',
         blockedCountries: ['GB'],
       });
 
@@ -328,14 +324,13 @@ describe('useMusdConversionFlowData', () => {
       });
       mockUseNetworksByCustomNamespace.mockReturnValue({
         areAllNetworksSelected: true,
-        filteredNetworks: [],
-      } as ReturnType<typeof useNetworksByCustomNamespace>);
+      } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
       const paymentToken = result.current.getPreferredPaymentToken();
 
       expect(paymentToken).toEqual({
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         chainId: '0x1',
       });
     });
@@ -353,14 +348,13 @@ describe('useMusdConversionFlowData', () => {
       } as ReturnType<typeof useCurrentNetworkInfo>);
       mockUseNetworksByCustomNamespace.mockReturnValue({
         areAllNetworksSelected: false,
-        filteredNetworks: [],
-      } as ReturnType<typeof useNetworksByCustomNamespace>);
+      } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
       const paymentToken = result.current.getPreferredPaymentToken();
 
       expect(paymentToken).toEqual({
-        address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+        address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
         chainId: CHAIN_IDS.LINEA_MAINNET,
       });
     });
@@ -378,14 +372,13 @@ describe('useMusdConversionFlowData', () => {
       } as ReturnType<typeof useCurrentNetworkInfo>);
       mockUseNetworksByCustomNamespace.mockReturnValue({
         areAllNetworksSelected: false,
-        filteredNetworks: [],
-      } as ReturnType<typeof useNetworksByCustomNamespace>);
+      } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
       const paymentToken = result.current.getPreferredPaymentToken();
 
       expect(paymentToken).toEqual({
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         chainId: '0x1',
       });
     });
@@ -453,8 +446,7 @@ describe('useMusdConversionFlowData', () => {
       } as ReturnType<typeof useCurrentNetworkInfo>);
       mockUseNetworksByCustomNamespace.mockReturnValue({
         areAllNetworksSelected: false,
-        filteredNetworks: [],
-      } as ReturnType<typeof useNetworksByCustomNamespace>);
+      } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
       const chainId = result.current.getChainIdForBuyFlow();
@@ -465,8 +457,7 @@ describe('useMusdConversionFlowData', () => {
     it('returns default chain ID when all networks selected', () => {
       mockUseNetworksByCustomNamespace.mockReturnValue({
         areAllNetworksSelected: true,
-        filteredNetworks: [],
-      } as ReturnType<typeof useNetworksByCustomNamespace>);
+      } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
       const chainId = result.current.getChainIdForBuyFlow();
@@ -483,8 +474,7 @@ describe('useMusdConversionFlowData', () => {
       } as ReturnType<typeof useCurrentNetworkInfo>);
       mockUseNetworksByCustomNamespace.mockReturnValue({
         areAllNetworksSelected: false,
-        filteredNetworks: [],
-      } as ReturnType<typeof useNetworksByCustomNamespace>);
+      } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
       const chainId = result.current.getChainIdForBuyFlow();
