@@ -445,13 +445,13 @@ const FeatureFlagOverride: React.FC = () => {
   }, [clearAllOverrides]);
 
   return (
-    <>
+    <Box twClassName="flex-1 bg-background-default">
       <HeaderCenter
         title="Feature Flag Override"
         onBack={() => navigation.goBack()}
         includesTopInset
       />
-      <Box twClassName="flex-1 bg-background-default">
+      <Box twClassName="flex-1">
         {/* Header with stats */}
         <Box twClassName="p-4 bg-background-alternative border-b border-border-muted">
           <Box
@@ -577,7 +577,7 @@ const FeatureFlagOverride: React.FC = () => {
           )}
         </ScrollView>
       </Box>
-    </>
+    </Box>
   );
 };
 

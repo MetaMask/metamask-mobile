@@ -213,6 +213,7 @@ const Settings = () => {
       <HeaderCenter
         title={strings('app_settings.title')}
         onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}
         includesTopInset
       />
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>

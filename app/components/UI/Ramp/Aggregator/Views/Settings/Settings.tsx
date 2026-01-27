@@ -51,11 +51,15 @@ function Settings() {
     navigation.navigate(Routes.SETTINGS.REGION_SELECTOR);
   }, [navigation]);
 
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <>
       <HeaderCenter
         title={strings('app_settings.fiat_on_ramp.title')}
-        onBack={() => navigation.goBack()}
+        onBack={handleGoBack}
         includesTopInset
       />
       <KeyboardAvoidingView

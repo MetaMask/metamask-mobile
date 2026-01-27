@@ -15,7 +15,6 @@ import {
   useFeatureFlagOverride,
 } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import {
   FeatureFlagType,
   isMinimumRequiredVersionSupported,
@@ -51,11 +50,6 @@ jest.mock('../../../util/theme', () => ({
     },
     brandColors: { white: '#FFFFFF' },
   })),
-}));
-
-// Mock Navbar
-jest.mock('../../UI/Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({})),
 }));
 
 // Mock Tailwind
@@ -334,14 +328,9 @@ describe('FeatureFlagOverride', () => {
     it('sets navigation options on mount', () => {
       renderWithProviders();
 
-      expect(getNavigationOptionsTitle).toHaveBeenCalledWith(
-        'Feature Flag Override',
-        mockNavigation,
-        false,
-        expect.any(Object),
-        null,
-      );
-      expect(mockNavigation.setOptions).toHaveBeenCalled();
+      expect(mockNavigation.setOptions).toHaveBeenCalledWith({
+        headerShown: false,
+      });
     });
   });
 

@@ -11,6 +11,7 @@ import styleSheet from './BackupAndSyncSettings.styles';
 import BackupAndSyncToggle from '../../../UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import BackupAndSyncFeaturesToggles from '../../../UI/Identity/BackupAndSyncFeaturesToggles/BackupAndSyncFeaturesToggles';
 import { strings } from '../../../../../locales/i18n';
+import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 
 const BackupAndSyncSettings = () => {
   const navigation = useNavigation();
@@ -26,6 +27,7 @@ const BackupAndSyncSettings = () => {
       <HeaderCenter
         title={strings('backupAndSync.title')}
         onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: CommonSelectorsIDs.BACK_ARROW_BUTTON }}
         includesTopInset
       />
       <ScrollView style={styles.wrapper} showsVerticalScrollIndicator={false}>

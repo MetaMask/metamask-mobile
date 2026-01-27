@@ -9,9 +9,7 @@ class ContactsView {
   }
 
   get addButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(ContactsViewSelectorIDs.ADD_BUTTON)
-      : Matchers.getElementByLabel(ContactsViewSelectorIDs.ADD_BUTTON);
+    return Matchers.getElementByID(ContactsViewSelectorIDs.ADD_BUTTON);
   }
 
   async tapOnAlias(alias: string): Promise<void> {

@@ -5,7 +5,6 @@ import {
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
-import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 
 class SettingsView {
   get title(): DetoxElement {
@@ -196,12 +195,12 @@ class SettingsView {
   }
 
   get closeButton(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.BACK_BUTTON);
   }
 
   async tapCloseButton(): Promise<void> {
     await Gestures.tap(this.closeButton, {
-      elemDescription: 'Settings - Close Button',
+      elemDescription: 'Settings - Back Button',
     });
   }
 }

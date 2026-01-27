@@ -8,6 +8,7 @@ export const SettingsViewSelectorsText = {
 
 export const SettingsViewSelectorsIDs = {
   SETTINGS_SCROLL_ID: 'settings-scroll',
+  BACK_BUTTON: 'settings-back-button',
   GENERAL: 'general-settings',
   SECURITY: 'security-settings',
   ADVANCED: 'advanced-settings',
