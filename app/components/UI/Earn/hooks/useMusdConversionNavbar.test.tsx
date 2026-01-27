@@ -34,6 +34,10 @@ describe('useMusdConversionNavbar', () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('calls useNavbar with correct title and addBackButton parameters', () => {
     renderHook(() => useMusdConversionNavbar());
 
