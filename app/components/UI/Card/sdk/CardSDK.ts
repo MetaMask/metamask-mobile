@@ -1360,6 +1360,7 @@ export class CardSDK {
         method: 'PUT',
         body: JSON.stringify(requestBody),
       },
+      authenticated: true,
     });
 
     if (!response.ok) {

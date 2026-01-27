@@ -2093,7 +2093,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['WETH', 'USDC', 'DAI']),
+      );
 
       expect(result).toHaveLength(3);
       expect(result[0].currency).toBe('WETH');

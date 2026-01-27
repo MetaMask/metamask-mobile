@@ -288,7 +288,7 @@
     "@metamask/snaps-rpc-methods": "^14.1.1",
     "@metamask/snaps-sdk": "^10.3.0",
     "@metamask/snaps-utils": "^11.7.0",
-    "@metamask/solana-wallet-snap": "^2.6.2",
+    "@metamask/solana-wallet-snap": "^2.7.1",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",
     "@metamask/storage-service": "^0.0.1",

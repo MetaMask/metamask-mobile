@@ -361,8 +361,12 @@ describe('buildTokenList utilities', () => {
         delegationSettings,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].symbol).toBe('USDC');
+      expect(result).toHaveLength(2);
+      expect(result[0].symbol).toBe('SOL');
+      expect(result[0].caipChainId).toBe(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+      expect(result[1].symbol).toBe('USDC');
     });
   });
 

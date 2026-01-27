@@ -91,7 +91,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       const capitalizedNetwork =
         network.charAt(0).toUpperCase() + network.slice(1);
 
-      return `${domain} wants you to sign in with your ${capitalizedNetwork} account: ${address} Prove address ownership URI: ${uri} Version: 1 Chain ID: ${chainId} Nonce: ${nonce} Issued At: ${now.toISOString()}${network !== 'solana' ? `Expiration Time: ${expirationTime.toISOString()}` : ''}`;
+      return `${domain} wants you to sign in with your ${capitalizedNetwork} account: ${address} Prove address ownership URI: ${uri} Version: 1 Chain ID: ${chainId} Nonce: ${nonce} Issued At: ${now.toISOString()} Expiration Time: ${expirationTime.toISOString()}`;
     },
     [],
   );
@@ -255,14 +255,6 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       }
 
       try {
-        Logger.log('Solana approval params', {
-          accountId,
-          amount: params.amount, // token units (e.g., "100.50" for 100.50 USDC)
-          mint: tokenMintAddress,
-          delegate: token.delegationContract,
-          scope: SolScope.Mainnet,
-        });
-
         const snapResponse = (await handleSnapRequest(
           Engine.controllerMessenger,
           {
@@ -335,13 +327,6 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
 
         const base64Message = Buffer.from(message, 'utf8').toString('base64');
 
-        Logger.log(
-          'Signing Solana message:',
-          accountId,
-          base64Message,
-          message,
-        );
-
         const result = await handleSnapRequest(Engine.controllerMessenger, {
           origin: 'metamask',
           snapId: SOLANA_WALLET_SNAP_ID,
@@ -365,7 +350,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
 
         return signCardMessageResult.signature;
       } catch (error) {
-        Logger.log('Error signing Solana message:', error);
+        Logger.error(error as Error, 'Error signing Solana message');
         throw error;
       }
     },
