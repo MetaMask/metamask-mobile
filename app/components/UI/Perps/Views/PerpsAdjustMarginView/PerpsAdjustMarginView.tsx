@@ -157,7 +157,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   const formatLiquidationDistance = useCallback(
     (distance: number, liquidationPrice: number): string => {
       if (liquidationPrice === 0) {
-        return PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY;
+        return PERPS_CONSTANTS.FallbackDataDisplay;
       }
       return `${distance.toFixed(0)}%`;
     },

@@ -193,11 +193,10 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search by token, site or address",
+    "placeholder": "Search by site or address",
     "recents": "Recents",
     "favorites": "Favorites",
-    "sites": "Sites",
-    "tokens": "Tokens"
+    "sites": "Sites"
   },
   "navigation": {
     "back": "Back",
