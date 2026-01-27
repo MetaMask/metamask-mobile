@@ -277,7 +277,7 @@ class TestablePerpsController extends PerpsController {
   public testMarkInitialized() {
     this.isInitialized = true;
     this.update((state) => {
-      state.initializationState = InitializationState.INITIALIZED;
+      state.initializationState = InitializationState.Initialized;
     });
   }
 
@@ -3314,14 +3314,14 @@ describe('PerpsController', () => {
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       markControllerAsInitialized();
       mockProvider.getWebSocketConnectionState.mockReturnValue(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
       );
 
       // Act
       const result = controller.getWebSocketConnectionState();
 
       // Assert
-      expect(result).toBe(WebSocketConnectionState.CONNECTED);
+      expect(result).toBe(WebSocketConnectionState.Connected);
       expect(mockProvider.getWebSocketConnectionState).toHaveBeenCalled();
     });
 
@@ -3336,7 +3336,7 @@ describe('PerpsController', () => {
       const result = controller.getWebSocketConnectionState();
 
       // Assert
-      expect(result).toBe(WebSocketConnectionState.DISCONNECTED);
+      expect(result).toBe(WebSocketConnectionState.Disconnected);
     });
 
     it('getWebSocketConnectionState returns DISCONNECTED when no provider is active', () => {
@@ -3346,7 +3346,7 @@ describe('PerpsController', () => {
       const result = controller.getWebSocketConnectionState();
 
       // Assert
-      expect(result).toBe(WebSocketConnectionState.DISCONNECTED);
+      expect(result).toBe(WebSocketConnectionState.Disconnected);
     });
 
     it('subscribeToConnectionState delegates to active provider', () => {
@@ -3373,7 +3373,7 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       // Keep getWebSocketConnectionState but remove subscribeToConnectionState
       mockProvider.getWebSocketConnectionState.mockReturnValue(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
       );
       mockProvider.subscribeToConnectionState = undefined as never;
       const listener = jest.fn();
@@ -3383,7 +3383,7 @@ describe('PerpsController', () => {
 
       // Assert - listener is called with result of getWebSocketConnectionState()
       expect(listener).toHaveBeenCalledWith(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
         0,
       );
       expect(typeof unsubscribe).toBe('function');
@@ -3398,7 +3398,7 @@ describe('PerpsController', () => {
 
       // Assert
       expect(listener).toHaveBeenCalledWith(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
         0,
       );
       expect(typeof unsubscribe).toBe('function');

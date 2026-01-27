@@ -445,7 +445,7 @@ export class TradingService {
       const position = positions.find((p) => p.symbol === symbol);
 
       this.deps.tracer.setMeasurement(
-        PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
+        PerpsMeasurementName.PerpsGetPositionsOperation,
         this.deps.performance.now() - positionLoadStart,
         'millisecond',
       );
@@ -741,7 +741,7 @@ export class TradingService {
 
     // Record measurement
     this.deps.tracer.setMeasurement(
-      PerpsMeasurementName.PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL,
+      PerpsMeasurementName.PerpsRewardsOrderExecutionFeeDiscountApiCall,
       orderExecutionFeeDiscountDuration,
       'millisecond',
     );
