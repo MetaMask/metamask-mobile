@@ -18,7 +18,7 @@ import {
   useCodeScanner,
   Code,
 } from 'react-native-vision-camera';
-import { fontStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
@@ -37,7 +37,6 @@ import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 const FRAME_SIZE = 250;
-const OVERLAY_COLOR = 'rgba(0, 0, 0, 0.4)';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -76,7 +75,7 @@ const createStyles = (theme: Theme) =>
     // Top overlay section
     topOverlay: {
       flex: 1,
-      backgroundColor: OVERLAY_COLOR,
+      backgroundColor: colors.overlay,
       justifyContent: 'flex-end',
       alignItems: 'center',
       paddingBottom: 20,
@@ -89,7 +88,7 @@ const createStyles = (theme: Theme) =>
     // Side overlays
     sideOverlay: {
       flex: 1,
-      backgroundColor: OVERLAY_COLOR,
+      backgroundColor: colors.overlay,
     },
     // Frame container (transparent area)
     frameContainer: {
@@ -105,7 +104,7 @@ const createStyles = (theme: Theme) =>
     // Bottom overlay section
     bottomOverlay: {
       flex: 1,
-      backgroundColor: OVERLAY_COLOR,
+      backgroundColor: colors.overlay,
       justifyContent: 'flex-start',
       alignItems: 'center',
       paddingTop: 20,
