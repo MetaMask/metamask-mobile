@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Linking, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import URLParse from 'url-parse';
 import BottomSheet, {
   BottomSheetRef,
@@ -18,7 +18,10 @@ import styleSheet from './WebviewModal.styles';
 import ErrorView from '../../../components/ErrorView';
 import Device from '../../../../../../../util/device';
 import Logger from '../../../../../../../util/Logger';
-import { paymentProtocolList } from '../../../../../../../util/browser';
+import {
+  paymentProtocolList,
+  handlePaymentProtocolUrl,
+} from '../../../../../../../util/browser';
 
 export interface WebviewModalParams {
   sourceUrl: string;
@@ -57,17 +60,7 @@ function WebviewModal() {
       const { protocol } = new URLParse(url);
 
       if (paymentProtocolList.includes(protocol)) {
-        Linking.canOpenURL(url)
-          .then((canOpen) => {
-            if (canOpen) {
-              return Linking.openURL(url);
-            }
-            Logger.log(`Cannot open URL: ${url} - payment app not installed`);
-            return Promise.resolve();
-          })
-          .catch((err: Error) => {
-            Logger.error(err, `Failed to open payment URL: ${url}`);
-          });
+        handlePaymentProtocolUrl(url, Logger);
         return false;
       }
 

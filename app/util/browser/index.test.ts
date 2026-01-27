@@ -1,3 +1,4 @@
+import { Linking } from 'react-native';
 import {
   isTLD,
   getAlertMessage,
@@ -9,8 +10,16 @@ import {
   appendURLParams,
   processUrlForBrowser,
   buildPortfolioUrl,
+  handlePaymentProtocolUrl,
 } from '.';
 import { strings } from '../../../locales/i18n';
+
+jest.mock('react-native', () => ({
+  Linking: {
+    canOpenURL: jest.fn(),
+    openURL: jest.fn(),
+  },
+}));
 
 describe('Browser utils :: prefixUrlWithProtocol', () => {
   it('should prefix url with https: protocol', () => {
@@ -416,5 +425,72 @@ describe('Browser utils :: buildPortfolioUrl', () => {
     const result = buildPortfolioUrl(baseUrl);
 
     expect(result).toBeInstanceOf(URL);
+  });
+});
+
+describe('Browser utils :: handlePaymentProtocolUrl', () => {
+  const mockLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens URL when canOpenURL returns true', async () => {
+    (Linking.canOpenURL as jest.Mock).mockResolvedValueOnce(true);
+    (Linking.openURL as jest.Mock).mockResolvedValueOnce(undefined);
+
+    await handlePaymentProtocolUrl('upi://pay?pa=test@bank', mockLogger);
+
+    expect(Linking.canOpenURL).toHaveBeenCalledWith('upi://pay?pa=test@bank');
+    expect(Linking.openURL).toHaveBeenCalledWith('upi://pay?pa=test@bank');
+    expect(mockLogger.log).not.toHaveBeenCalled();
+    expect(mockLogger.error).not.toHaveBeenCalled();
+  });
+
+  it('logs message when canOpenURL returns false', async () => {
+    (Linking.canOpenURL as jest.Mock).mockResolvedValueOnce(false);
+
+    await handlePaymentProtocolUrl('paytmmp://pay', mockLogger);
+
+    expect(Linking.canOpenURL).toHaveBeenCalledWith('paytmmp://pay');
+    expect(Linking.openURL).not.toHaveBeenCalled();
+    expect(mockLogger.log).toHaveBeenCalledWith(
+      'Cannot open URL: paytmmp://pay - payment app not installed',
+    );
+    expect(mockLogger.error).not.toHaveBeenCalled();
+  });
+
+  it('logs error when canOpenURL rejects', async () => {
+    const error = new Error('canOpenURL failed');
+    (Linking.canOpenURL as jest.Mock).mockRejectedValueOnce(error);
+
+    await handlePaymentProtocolUrl('phonepe://pay', mockLogger);
+
+    expect(Linking.canOpenURL).toHaveBeenCalledWith('phonepe://pay');
+    expect(Linking.openURL).not.toHaveBeenCalled();
+    expect(mockLogger.log).not.toHaveBeenCalled();
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      error,
+      'Failed to open payment URL: phonepe://pay',
+    );
+  });
+
+  it('logs error when openURL rejects', async () => {
+    const error = new Error('openURL failed');
+    (Linking.canOpenURL as jest.Mock).mockResolvedValueOnce(true);
+    (Linking.openURL as jest.Mock).mockRejectedValueOnce(error);
+
+    await handlePaymentProtocolUrl('gpay://pay', mockLogger);
+
+    expect(Linking.canOpenURL).toHaveBeenCalledWith('gpay://pay');
+    expect(Linking.openURL).toHaveBeenCalledWith('gpay://pay');
+    expect(mockLogger.log).not.toHaveBeenCalled();
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      error,
+      'Failed to open payment URL: gpay://pay',
+    );
   });
 });

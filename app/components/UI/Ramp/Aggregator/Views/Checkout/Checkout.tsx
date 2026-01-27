@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
@@ -43,7 +42,10 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../../util/device';
-import { paymentProtocolList } from '../../../../../../util/browser';
+import {
+  paymentProtocolList,
+  handlePaymentProtocolUrl,
+} from '../../../../../../util/browser';
 
 interface CheckoutParams {
   url: string;
@@ -189,17 +191,7 @@ const CheckoutWebView = () => {
       const { protocol } = new URLParse(url);
 
       if (paymentProtocolList.includes(protocol)) {
-        Linking.canOpenURL(url)
-          .then((canOpen) => {
-            if (canOpen) {
-              return Linking.openURL(url);
-            }
-            Logger.log(`Cannot open URL: ${url} - payment app not installed`);
-            return Promise.resolve();
-          })
-          .catch((err: Error) => {
-            Logger.error(err, `Failed to open payment URL: ${url}`);
-          });
+        handlePaymentProtocolUrl(url, Logger);
         return false;
       }
 

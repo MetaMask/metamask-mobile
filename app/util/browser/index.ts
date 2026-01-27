@@ -140,6 +140,33 @@ export const trustedProtocolToDeeplink = [
 export const paymentProtocolList = ['paytmmp:', 'phonepe:', 'gpay:', 'upi:'];
 
 /**
+ * Handles payment protocol URLs by checking if they can be opened and opening them
+ * Logs appropriate messages for success/failure scenarios
+ *
+ * @param url - URL string to handle
+ * @param Logger - Logger instance for logging
+ * @returns Promise that resolves when the operation completes
+ */
+export const handlePaymentProtocolUrl = (
+  url: string,
+  Logger: {
+    log: (message: string) => void;
+    error: (error: Error, message: string) => void;
+  },
+): Promise<void> =>
+  Linking.canOpenURL(url)
+    .then((canOpen) => {
+      if (canOpen) {
+        return Linking.openURL(url);
+      }
+      Logger.log(`Cannot open URL: ${url} - payment app not installed`);
+      return Promise.resolve();
+    })
+    .catch((err: Error) => {
+      Logger.error(err, `Failed to open payment URL: ${url}`);
+    });
+
+/**
  * Returns translated warning message for the
  * warning dialog box the user sees when the to be loaded
  * website tries to automatically start an external
