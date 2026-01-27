@@ -150,6 +150,7 @@ import { PerpsPayRow } from './PerpsPayRow';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -830,7 +831,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       }
 
       if (!activeTransactionMeta) {
-        console.error('No active transaction to confirm');
+        DevLogger.log('No active transaction to confirm');
         return;
       }
 
@@ -1073,7 +1074,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ) {
       // Create transaction with skipNavigation to avoid redirect
       depositWithConfirmation(depositAmount, true).catch((error) => {
-        console.error('Failed to create deposit transaction:', error);
+        DevLogger.log('Failed to create deposit transaction:', error);
       });
     }
   }, [
@@ -1778,8 +1779,7 @@ const PerpsOrderView: React.FC = () => {
       .catch((error) => {
         setIsCreatingTransaction(false);
         setTransactionCreationError(error);
-        // eslint-disable-next-line no-console
-        console.error('Failed to create deposit transaction:', error);
+        DevLogger.log('Failed to create deposit transaction:', error);
       });
   }, [depositWithConfirmation]);
 
@@ -1800,8 +1800,7 @@ const PerpsOrderView: React.FC = () => {
         .catch((error) => {
           setIsCreatingTransaction(false);
           setTransactionCreationError(error);
-          // eslint-disable-next-line no-console
-          console.error('Failed to create deposit transaction:', error);
+          DevLogger.log('Failed to create deposit transaction:', error);
         });
     }
   }, [
