@@ -108,7 +108,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
-import { usePerpsOrderFills } from '../../hooks/usePerpsOrderFills';
+import { usePerpsLiveFills } from '../../hooks/stream/usePerpsLiveFills';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
@@ -400,11 +400,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
 
   // Get order fills to derive position opened timestamp
-  // skipInitialFetch: true - rely on WebSocket fills channel which is pre-warmed and cached
+  // Uses WebSocket fills channel which is pre-warmed and cached via PerpsStreamManager
   // This avoids REST API calls on mount that can deplete rate limits
-  const { orderFills } = usePerpsOrderFills({
-    skipInitialFetch: true,
-  });
+  const { fills: orderFills } = usePerpsLiveFills();
 
   // Get position opened timestamp from fills data
   const positionOpenedTimestamp = useMemo(() => {
