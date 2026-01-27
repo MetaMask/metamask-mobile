@@ -73,3 +73,23 @@ export const selectRewardsMusdDepositEnabledFlag = createSelector(
     );
   },
 );
+
+const DEFAULT_REWARDS_REFERRAL_ENABLED = false;
+export const REWARDS_REFERRAL_FLAG_NAME = 'rewardsReferralEnabled';
+
+export const selectRewardsReferralEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    if (!hasProperty(remoteFeatureFlags, REWARDS_REFERRAL_FLAG_NAME)) {
+      return DEFAULT_REWARDS_REFERRAL_ENABLED;
+    }
+    const flag = remoteFeatureFlags[
+      REWARDS_REFERRAL_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(flag)?.enabled ??
+      DEFAULT_REWARDS_REFERRAL_ENABLED
+    );
+  },
+);

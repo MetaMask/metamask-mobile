@@ -4,6 +4,8 @@ import { act } from '@testing-library/react-hooks';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import PerpsHeroCardView from './PerpsHeroCardView';
+import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
+import { selectRewardsReferralEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import Logger from '../../../../../util/Logger';
@@ -198,7 +200,16 @@ const createMockRouteParams = (overrides = {}) => ({
 describe('PerpsHeroCardView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue('TESTCODE123');
+    // By default, referral flag is disabled (feature gated off)
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectReferralCode) {
+        return 'TESTCODE123';
+      }
+      if (selector === selectRewardsReferralEnabledFlag) {
+        return false;
+      }
+      return undefined;
+    });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
@@ -211,6 +222,19 @@ describe('PerpsHeroCardView', () => {
   });
 
   describe('rendering with referral code', () => {
+    beforeEach(() => {
+      // Enable the referral feature flag for these tests
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectReferralCode) {
+          return 'TESTCODE123';
+        }
+        if (selector === selectRewardsReferralEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+    });
+
     it('displays referral code tag', () => {
       const { getByTestId } = render(<PerpsHeroCardView />);
 
@@ -252,7 +276,15 @@ describe('PerpsHeroCardView', () => {
 
   describe('rendering without referral code', () => {
     beforeEach(() => {
-      mockUseSelector.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectRewardsReferralEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
     });
 
     it('does not render referral code tag', () => {
@@ -266,6 +298,41 @@ describe('PerpsHeroCardView', () => {
     });
 
     it('renders asset symbol', () => {
+      const { getByTestId } = render(<PerpsHeroCardView />);
+
+      const assetSymbol = getByTestId(
+        getPerpsHeroCardViewSelector.assetSymbol(0),
+      );
+
+      expect(assetSymbol).toHaveTextContent('BTC');
+    });
+  });
+
+  describe('rendering with referral flag disabled', () => {
+    beforeEach(() => {
+      // Flag disabled even though code exists
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectReferralCode) {
+          return 'TESTCODE123';
+        }
+        if (selector === selectRewardsReferralEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+    });
+
+    it('does not render referral code tag when flag is disabled', () => {
+      const { queryByTestId } = render(<PerpsHeroCardView />);
+
+      const referralCodeTag = queryByTestId(
+        getPerpsHeroCardViewSelector.referralCodeTag(0),
+      );
+
+      expect(referralCodeTag).toBeNull();
+    });
+
+    it('renders asset symbol when flag is disabled', () => {
       const { getByTestId } = render(<PerpsHeroCardView />);
 
       const assetSymbol = getByTestId(
@@ -300,6 +367,16 @@ describe('PerpsHeroCardView', () => {
     beforeEach(() => {
       mockCaptureRef.mockResolvedValue('file://image.png');
       mockShareOpen.mockResolvedValue({ success: true, message: 'shared' });
+      // Enable referral flag for share tests
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectReferralCode) {
+          return 'TESTCODE123';
+        }
+        if (selector === selectRewardsReferralEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
     });
 
     it('calls captureRef when share pressed', async () => {
