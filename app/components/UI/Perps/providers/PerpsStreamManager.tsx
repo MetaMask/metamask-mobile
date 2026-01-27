@@ -142,6 +142,18 @@ abstract class StreamChannel<T> {
     // Override in subclasses
   }
 
+  /**
+   * Reconnect the channel after WebSocket reconnection
+   * Clears dead subscription and re-establishes if there are active subscribers
+   */
+  public reconnect() {
+    this.disconnect();
+    // Re-establish connection if there are active subscribers
+    if (this.subscribers.size > 0) {
+      this.connect();
+    }
+  }
+
   public disconnect() {
     // This prevents orphaned timers from continuing to run after disconnect
     this.subscribers.forEach((subscriber) => {
@@ -1327,21 +1339,20 @@ export class PerpsStreamManager {
 
   /**
    * Force reconnection of all stream channels after WebSocket reconnection
-   * Disconnects all channels (clearing dead WebSocket subscriptions) so they
-   * will automatically reconnect when subscribers are still active
+   * Disconnects all channels and reconnects those with active subscribers
    */
   public clearAllChannels(): void {
-    // Disconnect all channels to clear dead WebSocket subscriptions
-    // Channels will automatically reconnect when subscribers call connect()
-    this.prices.disconnect();
-    this.orders.disconnect();
-    this.positions.disconnect();
-    this.fills.disconnect();
-    this.account.disconnect();
-    this.marketData.disconnect();
-    this.oiCaps.disconnect();
-    this.topOfBook.disconnect();
-    this.candles.disconnect();
+    // Reconnect all channels - clears dead subscriptions and re-establishes
+    // connections for channels that have active subscribers
+    this.prices.reconnect();
+    this.orders.reconnect();
+    this.positions.reconnect();
+    this.fills.reconnect();
+    this.account.reconnect();
+    this.marketData.reconnect();
+    this.oiCaps.reconnect();
+    this.topOfBook.reconnect();
+    this.candles.reconnect();
   }
 }
 
