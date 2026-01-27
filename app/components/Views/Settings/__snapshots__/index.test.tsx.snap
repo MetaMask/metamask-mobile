@@ -86,7 +86,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 undefined,
               ]
             }
-            testID="button-icon"
+            testID="settings-back-button"
           >
             <SvgMock
               fill="currentColor"
