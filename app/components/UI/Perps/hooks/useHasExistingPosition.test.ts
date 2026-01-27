@@ -426,5 +426,90 @@ describe('useHasExistingPosition', () => {
         expect(result.current.positionOpenedTimestamp).toBe(ethTimestamp);
       });
     });
+
+    it('should fetch fresh timestamp when same symbol position is closed and reopened', async () => {
+      const oldTimestamp = Date.now() - 60 * 60 * 1000; // 1 hour ago (old position)
+      const newTimestamp = Date.now() - 5 * 60 * 1000; // 5 minutes ago (new position)
+
+      // Start with BTC position
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPositions[0]], // BTC
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [], // No WebSocket fills
+        isInitialLoading: false,
+      });
+
+      // First REST fetch returns old timestamp
+      mockGetOrderFills.mockResolvedValueOnce([
+        {
+          orderId: 'order-btc-old',
+          symbol: 'BTC',
+          side: 'buy',
+          direction: 'Open Long',
+          timestamp: oldTimestamp,
+          size: '0.5',
+          price: '45000',
+          pnl: '0',
+          fee: '0.001',
+          feeToken: 'USDC',
+        },
+      ]);
+
+      const { result, rerender } = renderHook(
+        ({ asset }) => useHasExistingPosition({ asset }),
+        { initialProps: { asset: 'BTC' } },
+      );
+
+      // Wait for old timestamp to be set
+      await waitFor(() => {
+        expect(result.current.positionOpenedTimestamp).toBe(oldTimestamp);
+      });
+      expect(mockGetOrderFills).toHaveBeenCalledTimes(1);
+
+      // Close position (set positions to empty)
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+      rerender({ asset: 'BTC' });
+
+      // Timestamp should be cleared
+      expect(result.current.positionOpenedTimestamp).toBeUndefined();
+      expect(result.current.hasPosition).toBe(false);
+
+      // Reopen position with same symbol (BTC)
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPositions[0]], // BTC again
+        isInitialLoading: false,
+      });
+
+      // Second REST fetch returns new timestamp
+      mockGetOrderFills.mockResolvedValueOnce([
+        {
+          orderId: 'order-btc-new',
+          symbol: 'BTC',
+          side: 'buy',
+          direction: 'Open Long',
+          timestamp: newTimestamp,
+          size: '0.3',
+          price: '50000',
+          pnl: '0',
+          fee: '0.001',
+          feeToken: 'USDC',
+        },
+      ]);
+
+      rerender({ asset: 'BTC' });
+
+      // Should fetch fresh timestamp for the reopened position
+      await waitFor(() => {
+        expect(result.current.positionOpenedTimestamp).toBe(newTimestamp);
+      });
+
+      // REST should have been called twice (once for old, once for new position)
+      expect(mockGetOrderFills).toHaveBeenCalledTimes(2);
+    });
   });
 });

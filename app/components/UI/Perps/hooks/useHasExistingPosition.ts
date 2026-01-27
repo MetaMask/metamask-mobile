@@ -77,6 +77,15 @@ export function useHasExistingPosition(
     return openFill?.timestamp;
   }, [existingPosition, orderFills]);
 
+  // Clear cached timestamp data when position is closed
+  // This ensures reopening the same symbol gets a fresh timestamp
+  useEffect(() => {
+    if (!existingPosition) {
+      restFetchedForSymbolRef.current = null;
+      setRestPositionTimestamp(undefined);
+    }
+  }, [existingPosition]);
+
   // Fallback: Fetch historical fills via REST when WebSocket doesn't have the position-opening fill
   // This handles older positions where the "Open" fill is no longer in the WebSocket snapshot
   useEffect(() => {
