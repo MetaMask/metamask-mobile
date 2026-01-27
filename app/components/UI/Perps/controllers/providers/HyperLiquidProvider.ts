@@ -581,11 +581,20 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     if (cachedPrice) {
       const price = parseFloat(cachedPrice);
-      this.deps.debugLogger.log(
-        `Using WebSocket cached price for ${logContext}`,
-        { symbol, price },
-      );
-      return price;
+      // Validate cached price is not zero or invalid
+      if (price === 0 || isNaN(price)) {
+        this.deps.debugLogger.log(
+          `WebSocket cached price invalid for ${logContext}, falling back to REST`,
+          { symbol, cachedPrice, parsedPrice: price },
+        );
+        // Fall through to REST API fallback
+      } else {
+        this.deps.debugLogger.log(
+          `Using WebSocket cached price for ${logContext}`,
+          { symbol, price },
+        );
+        return price;
+      }
     }
 
     // Fallback to REST API if cache miss
