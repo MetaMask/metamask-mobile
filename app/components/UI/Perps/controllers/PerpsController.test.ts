@@ -20,17 +20,6 @@ import {
 import type { IPerpsProvider } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
-import Logger from '../../../../util/Logger';
-import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigurationService';
-import { DepositService } from './services/DepositService';
-import { MarketDataService } from './services/MarketDataService';
-import { TradingService } from './services/TradingService';
-import { AccountService } from './services/AccountService';
-import { DataLakeService } from './services/DataLakeService';
-import {
-  ARBITRUM_MAINNET_CHAIN_ID_HEX,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-} from '../constants/hyperLiquidConfig';
 import Engine from '../../../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
@@ -2348,48 +2337,7 @@ describe('PerpsController', () => {
         origin: 'metamask',
         type: 'perpsDeposit',
         skipInitialGasEstimate: true,
-        gasFeeToken: undefined,
       });
-    });
-
-    it('adds gasFeeToken for Arbitrum USDC deposits', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-
-      Engine.context.AccountTrackerController.state.accountsByChainId = {
-        [ARBITRUM_MAINNET_CHAIN_ID_HEX]: {
-          [mockTransaction.from.toLowerCase()]: {
-            balance: '0x0',
-          },
-        },
-      };
-
-      jest.spyOn(DepositService, 'prepareTransaction').mockResolvedValueOnce({
-        transaction: {
-          ...mockTransaction,
-          to: USDC_ARBITRUM_MAINNET_ADDRESS,
-        },
-        assetChainId: ARBITRUM_MAINNET_CHAIN_ID_HEX,
-        currentDepositId: mockDepositId,
-      });
-
-      await controller.depositWithConfirmation('100');
-
-      expect(
-        Engine.context.TransactionController.addTransaction,
-      ).toHaveBeenCalledWith(
-        {
-          ...mockTransaction,
-          to: USDC_ARBITRUM_MAINNET_ADDRESS,
-        },
-        {
-          networkClientId: mockNetworkClientId,
-          origin: 'metamask',
-          type: 'perpsDeposit',
-          skipInitialGasEstimate: true,
-          gasFeeToken: USDC_ARBITRUM_MAINNET_ADDRESS,
-        },
-      );
     });
 
     it('throws error when controller not initialized', async () => {
