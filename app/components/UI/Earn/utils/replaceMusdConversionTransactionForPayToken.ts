@@ -45,21 +45,19 @@ export async function replaceMusdConversionTransactionForPayToken(
   newPayToken: PayTokenSelection,
 ): Promise<string | undefined> {
   if (!transactionMeta?.id || !transactionMeta?.txParams?.from) {
-    console.error(
+    throw new Error(
       '[mUSD Conversion] Missing transaction metadata for replacement',
-      { transactionMeta },
     );
-    return undefined;
   }
 
   const newChainId = newPayToken.chainId;
 
   const musdTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[newChainId];
+
   if (!musdTokenAddress) {
-    console.error('[mUSD Conversion] mUSD not supported on selected chain', {
-      newChainId,
-    });
-    return undefined;
+    throw new Error(
+      `[mUSD Conversion] mUSD not supported on selected chain: ${newChainId}`,
+    );
   }
 
   const tokenTransferData = getTokenTransferData(transactionMeta);
@@ -107,9 +105,20 @@ export async function replaceMusdConversionTransactionForPayToken(
 
     EngineService.flushState();
 
+    // This is an automatic rejection (not user-initiated)
     ApprovalController.reject(
       transactionMeta.id,
-      providerErrors.userRejectedRequest(),
+      providerErrors.userRejectedRequest({
+        message:
+          'Automatically rejected previous transaction due to same-chain enforcement for mUSD conversions',
+        data: {
+          cause: 'musdConversionSameChainEnforcement',
+          previousTransactionId: transactionMeta.id,
+          previousPayTokenChainId: transactionMeta.txParams.chainId,
+          newTransactionId,
+          newPayTokenChainId: newPayToken.chainId,
+        },
+      }),
     );
 
     return newTransactionId;

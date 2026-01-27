@@ -14,7 +14,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
-import { replaceMusdConversionTransactionForPayToken } from '../../../../../UI/Earn/utils/replaceMusdConversionTransactionForPayToken';
+import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 
 export function PayWithModal() {
   const { payToken, setPayToken } = useTransactionPayToken();
@@ -22,53 +22,31 @@ export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
+  const { onPaymentTokenChange: onMusdPaymentTokenChange } =
+    useMusdPaymentToken();
 
-  const handleClose = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
+  const close = useCallback((onClosed?: () => void) => {
+    // Called after the bottom sheet's closing animation completes.
+    bottomSheetRef.current?.onCloseBottomSheet(onClosed);
   }, []);
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      const isMusdConversion =
-        transactionMeta &&
-        hasTransactionType(transactionMeta, [TransactionType.musdConversion]);
-
-      const selectedTokenChainId = token.chainId as Hex;
-      const transactionChainId = transactionMeta?.chainId;
-
-      const isChainMismatch =
-        transactionChainId &&
-        selectedTokenChainId.toLowerCase() !== transactionChainId.toLowerCase();
-
-      // For mUSD conversions, if user selects a token on a different chain,
-      // we need to recreate the transaction on the new chain instead of
-      // updating the payment token on the old transaction (which would trigger
-      // a cross-chain quote request).
-      if (isMusdConversion && isChainMismatch && transactionMeta) {
-        bottomSheetRef.current?.onCloseBottomSheet(() => {
-          replaceMusdConversionTransactionForPayToken(transactionMeta, {
-            address: token.address as Hex,
-            chainId: selectedTokenChainId,
-          }).catch((error) => {
-            console.error(
-              '[mUSD Conversion] Failed to replace transaction from PayWithModal',
-              error,
-            );
-          });
-        });
+      if (
+        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
+      ) {
+        close(() => onMusdPaymentTokenChange(token));
         return;
       }
 
-      // Default behavior: update payment token on the current transaction.
-      // Call after the bottom sheet's closing animation completes.
-      bottomSheetRef.current?.onCloseBottomSheet(() => {
+      close(() => {
         setPayToken({
           address: token.address as Hex,
           chainId: token.chainId as Hex,
         });
       });
     },
-    [setPayToken, transactionMeta],
+    [close, onMusdPaymentTokenChange, setPayToken, transactionMeta],
   );
 
   const tokenFilter = useCallback(
@@ -96,10 +74,7 @@ export function PayWithModal() {
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
     >
-      <HeaderCenter
-        title={strings('pay_with_modal.title')}
-        onClose={handleClose}
-      />
+      <HeaderCenter title={strings('pay_with_modal.title')} onClose={close} />
       <Asset
         includeNoBalance
         hideNfts
