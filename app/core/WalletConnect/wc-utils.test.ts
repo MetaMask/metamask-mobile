@@ -193,6 +193,19 @@ describe('WalletConnect Utils', () => {
       ).resolves.toBeUndefined();
     });
 
+    it('does not throw timeout when network is onboarded on the last allowed iteration', async () => {
+      networkModalOnboardingConfig.MAX_LOOP_COUNTER = 1;
+      mockStore.getState.mockReturnValue({
+        networkOnboarded: {
+          networkOnboardedState: { '1': true },
+        },
+      });
+
+      await expect(
+        waitForNetworkModalOnboarding({ chainId: '1' }),
+      ).resolves.toBeUndefined();
+    });
+
     it('throws timeout error after max iterations', async () => {
       networkModalOnboardingConfig.MAX_LOOP_COUNTER = 1;
       mockStore.getState.mockReturnValue({
