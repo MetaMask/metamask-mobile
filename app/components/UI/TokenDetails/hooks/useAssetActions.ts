@@ -53,6 +53,7 @@ import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
+import { RootState } from '../../../../reducers';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -125,7 +126,7 @@ export const useAssetActions = ({
 
   const chainId = asset.chainId as Hex;
   const nativeCurrency = useSelector(
-    (state) =>
+    (state: RootState) =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (state as any).engine?.backgroundState?.NetworkController?.providerConfig
         ?.ticker,

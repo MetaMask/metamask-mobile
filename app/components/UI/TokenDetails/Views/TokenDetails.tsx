@@ -2,7 +2,6 @@ import React from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
@@ -292,8 +291,8 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
  * Feature flag wrapper that toggles between new TokenDetails (V2) and legacy Asset view.
  */
 const TokenDetailsFeatureFlagWrapper: React.FC<TokenDetailsProps> = (props) => {
-  // const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
-  const isTokenDetailsV2Enabled = true;
+  const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
+  // const isTokenDetailsV2Enabled = true;
 
   return isTokenDetailsV2Enabled ? (
     <TokenDetails token={props.route.params} />
