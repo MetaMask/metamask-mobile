@@ -25,16 +25,19 @@ const OptionsSheet = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  // Sort options alphabetically by label
-  const sortedOptions = useMemo(
-    () =>
-      [...params.options].sort((a, b) => {
+  // Sort options alphabetically by label, keeping 'all' at the top
+  const sortedOptions = useMemo(() => {
+    const allOption = params.options.find((opt) => opt.key === 'all');
+    const otherOptions = params.options
+      .filter((opt) => opt.key !== 'all')
+      .sort((a, b) => {
         const labelA = a.label || '';
         const labelB = b.label || '';
         return labelA.localeCompare(labelB);
-      }),
-    [params.options],
-  );
+      });
+
+    return allOption ? [allOption, ...otherOptions] : otherOptions;
+  }, [params.options]);
 
   const onSelectedValueChange = (val?: string) => {
     if (!val) {

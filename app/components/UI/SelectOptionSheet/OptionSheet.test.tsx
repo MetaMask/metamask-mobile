@@ -148,6 +148,35 @@ describe('OptionSheet', () => {
     ]);
   });
 
+  it('keeps "all" option at the top while sorting other options alphabetically', () => {
+    // Update mock to include 'all' option mixed with other options
+    mockUseParamsValues.options = [
+      { key: 'key3', value: 'val 3', label: 'Zebra' },
+      { key: 'all', value: 'ALL', label: 'All' },
+      { key: 'key1', value: 'val 1', label: 'Apple' },
+      { key: 'key2', value: 'val 2', label: 'Banana' },
+    ];
+
+    const { getAllByTestId } = render(OptionsSheet);
+
+    // Get all option buttons in the order they appear
+    const optionButtons = getAllByTestId(
+      new RegExp(`^${SELECT_OPTION_PREFIX}`),
+    );
+
+    // Verify we have 4 options
+    expect(optionButtons).toHaveLength(4);
+
+    // Verify 'all' is first, then remaining options are sorted alphabetically
+    const testIds = optionButtons.map((button) => button.props.testID);
+    expect(testIds).toEqual([
+      `${SELECT_OPTION_PREFIX}all`,
+      `${SELECT_OPTION_PREFIX}key1`,
+      `${SELECT_OPTION_PREFIX}key2`,
+      `${SELECT_OPTION_PREFIX}key3`,
+    ]);
+  });
+
   it('renders close button in header', () => {
     const { getByTestId } = render(OptionsSheet);
     const closeButton = getByTestId('close-button');
