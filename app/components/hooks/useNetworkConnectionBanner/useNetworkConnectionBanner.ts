@@ -304,8 +304,8 @@ const useNetworkConnectionBanner = (): {
       return;
     }
 
-    // Re-calculate infuraEndpointIndex from current config to avoid stale index
-    // The stored index may be outdated if endpoints were added/removed/reordered
+    // Get fresh infuraEndpointIndex from current config instead of using the
+    // stored value, which may be outdated if endpoints were added/removed/reordered
     const freshInfuraEndpointIndex =
       networkConfiguration.rpcEndpoints.findIndex((endpoint) =>
         getIsMetaMaskInfuraEndpointUrl(endpoint.url, infuraProjectId),
