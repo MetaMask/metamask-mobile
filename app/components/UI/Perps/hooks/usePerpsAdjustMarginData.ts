@@ -89,7 +89,7 @@ export function usePerpsAdjustMarginData(
   );
   const maxLeverage = marketInfo?.maxLeverage
     ? parseInt(marketInfo.maxLeverage, 10)
-    : MARGIN_ADJUSTMENT_CONFIG.FALLBACK_MAX_LEVERAGE;
+    : MARGIN_ADJUSTMENT_CONFIG.FallbackMaxLeverage;
 
   // Derived values from live position
   const currentMargin = useMemo(

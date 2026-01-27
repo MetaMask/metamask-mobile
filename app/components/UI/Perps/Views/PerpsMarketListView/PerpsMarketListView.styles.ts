@@ -47,6 +47,11 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 4,
       marginRight: 4,
     },
+    headerContainerWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
     listContainer: {
       flex: 1,
     },
