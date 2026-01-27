@@ -17,9 +17,13 @@ import { isMainnetByChainId } from '../../../../util/networks';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { AssetInlineHeader } from '../components/AssetInlineHeader';
 import AssetOverviewContent from '../components/AssetOverviewContent';
-import { useTokenDetailsData } from '../hooks/useTokenDetailsData';
+import { useTokenPrice } from '../hooks/useTokenPrice';
+import { useTokenBalance } from '../hooks/useTokenBalance';
+import { useAssetBuyability } from '../hooks/useAssetBuyability';
 import { useAssetActions } from '../hooks/useAssetActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
+import { selectPerpsEnabledFlag } from '../../Perps';
+import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import {
   isNetworkRampNativeTokenSupported,
   isNetworkRampSupported,
@@ -97,11 +101,14 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     });
   };
 
-  // Use data hook for all token-related data
+  // Feature flags
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isMerklCampaignClaimingEnabled = useSelector(
+    selectMerklCampaignClaimingEnabledFlag,
+  );
+
+  // Price data hook
   const {
-    balance,
-    mainBalance,
-    secondaryBalance,
     currentPrice,
     priceDiff,
     comparePrice,
@@ -110,15 +117,32 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
-    isPerpsEnabled,
-    isMerklCampaignClaimingEnabled,
-    isAssetBuyable,
+    marketDataRate,
+    nativeCurrency,
     currentCurrency,
+    conversionRateByTicker,
+  } = useTokenPrice({ asset: token });
+
+  // Balance data hook
+  const {
+    balance,
+    mainBalance,
+    secondaryBalance,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTronNative,
     stakedTrxAsset,
     ///: END:ONLY_INCLUDE_IF
-  } = useTokenDetailsData(token);
+  } = useTokenBalance({
+    asset: token,
+    currentPrice,
+    currentCurrency,
+    nativeCurrency,
+    marketDataRate,
+    conversionRateByTicker,
+  });
+
+  // Buyability check
+  const { isAssetBuyable } = useAssetBuyability(token);
 
   // Use actions hook for all action handlers
   const { onBuy, onSend, onReceive, goToSwaps, networkModal } = useAssetActions(
@@ -138,7 +162,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     selectedAddress,
     conversionRate,
     currentCurrency: txCurrentCurrency,
-    isNonEvmAsset,
+    isNonEvmAsset: txIsNonEvmAsset,
   } = useTokenTransactions(token);
 
   // Display flags for buttons
@@ -241,7 +265,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
       />
       {txLoading ? (
         renderLoader()
-      ) : isNonEvmAsset ? (
+      ) : txIsNonEvmAsset ? (
         <MultichainTransactionsView
           header={renderHeader()}
           transactions={transactions}
@@ -278,7 +302,8 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
  * Feature flag wrapper that toggles between new TokenDetails (V2) and legacy Asset view.
  */
 const TokenDetailsFeatureFlagWrapper: React.FC<TokenDetailsProps> = (props) => {
-  const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
+  // const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
+  const isTokenDetailsV2Enabled = true;
 
   return isTokenDetailsV2Enabled ? (
     <TokenDetails token={props.route.params} />
