@@ -1,79 +1,53 @@
 import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from './rewards-api-url';
 
-jest.mock('../../../../AppConstants', () => ({
-  REWARDS_API_URL: {
-    DEV: 'https://api.dev',
-    UAT: 'https://api.uat',
-    PRD: 'https://api.prd',
-  },
-}));
-
 describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
-  it('returns UAT api url for local or dev env', async () => {
-    // Act
-    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev');
+  const originalEnv = process.env;
 
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
-
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('local');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...originalEnv };
   });
 
-  it('returns UAT api url for undefined or unknown env', async () => {
-    // Act
-    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv(undefined);
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
-
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('unknown');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
+  afterAll(() => {
+    process.env = originalEnv;
   });
 
-  it('returns UAT api url for e2e or exp env', async () => {
-    // Act
-    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('e2e');
+  it('returns REWARDS_API_URL from environment when set', () => {
+    process.env.REWARDS_API_URL = 'https://custom.rewards.api';
 
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
-
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('exp');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
+    // Re-import to pick up new env
+    jest.isolateModules(() => {
+      const {
+        getDefaultRewardsApiBaseUrlForMetaMaskEnv: fn,
+      } = require('./rewards-api-url');
+      expect(fn('any-env')).toBe('https://custom.rewards.api');
+    });
   });
 
-  it('returns PRD api url for production, beta, pre-release, or rc env', async () => {
-    // Act
-    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('production');
+  it('returns default UAT URL when REWARDS_API_URL is not set', () => {
+    delete process.env.REWARDS_API_URL;
 
-    // Assert
-    expect(apiUrl).toEqual('https://api.prd');
+    jest.isolateModules(() => {
+      const {
+        getDefaultRewardsApiBaseUrlForMetaMaskEnv: fn,
+      } = require('./rewards-api-url');
+      expect(fn('any-env')).toBe('https://rewards.uat-api.cx.metamask.io');
+    });
+  });
 
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('beta');
+  it('ignores metaMaskEnv parameter (URL is set at build time)', () => {
+    process.env.REWARDS_API_URL = 'https://test.api';
 
-    // Assert
-    expect(apiUrl).toEqual('https://api.prd');
+    jest.isolateModules(() => {
+      const {
+        getDefaultRewardsApiBaseUrlForMetaMaskEnv: fn,
+      } = require('./rewards-api-url');
 
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('pre-release');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.prd');
-
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('rc');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.prd');
+      // All environments return the same URL (set at build time)
+      expect(fn('dev')).toBe('https://test.api');
+      expect(fn('production')).toBe('https://test.api');
+      expect(fn('rc')).toBe('https://test.api');
+      expect(fn(undefined)).toBe('https://test.api');
+    });
   });
 });

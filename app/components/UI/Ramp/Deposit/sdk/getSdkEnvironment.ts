@@ -1,18 +1,9 @@
 import { SdkEnvironment } from '@consensys/native-ramps-sdk';
 
+// Environment is set at build time via builds.yml
 export function getSdkEnvironment() {
-  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-  switch (metamaskEnvironment) {
-    case 'production':
-    case 'beta':
-    case 'rc':
-      return SdkEnvironment.Production;
-
-    case 'dev':
-    case 'exp':
-    case 'test':
-    case 'e2e':
-    default:
-      return SdkEnvironment.Staging;
-  }
+  const rampsEnv = process.env.RAMPS_ENVIRONMENT;
+  return rampsEnv === 'production'
+    ? SdkEnvironment.Production
+    : SdkEnvironment.Staging;
 }

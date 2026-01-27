@@ -1,21 +1,8 @@
-import AppConstants from '../../../../core/AppConstants';
+// URL is set at build time via builds.yml, fallback for local dev
+const DEFAULT_BAANX_API_URL = 'https://dev.api.baanx.com';
 
 export const getDefaultBaanxApiBaseUrlForMetaMaskEnv = (
-  metaMaskEnv: string | undefined,
-) => {
-  switch (metaMaskEnv) {
-    case 'e2e':
-    case 'dev':
-    case 'local':
-      return AppConstants.BAANX_API_URL.DEV;
-    case 'pre-release':
-    case 'exp':
-    case 'beta':
-      return AppConstants.BAANX_API_URL.UAT;
-    case 'production':
-    case 'rc':
-      return AppConstants.BAANX_API_URL.PRD;
-    default:
-      return AppConstants.BAANX_API_URL.PRD;
-  }
-};
+  _metaMaskEnv: string | undefined,
+) =>
+  // Environment-specific URL is now set at build time via builds.yml
+  process.env.BAANX_API_URL || DEFAULT_BAANX_API_URL;

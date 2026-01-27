@@ -20,37 +20,42 @@ const VALID_BUTTON_COLOR_VARIANTS: readonly ButtonColorVariantName[] = [
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingEnabled as unknown as VersionGatedFeatureFlag;
 
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    // Try versioned flag first, fall back to build-time default from builds.yml
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      (remoteFeatureFlags?.perpsPerpTradingEnabled as boolean)
+    );
   },
 );
 
 export const selectPerpsServiceInterruptionBannerEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag =
-      process.env.MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
 
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    // Try versioned flag first, fall back to build-time default from builds.yml
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      (remoteFeatureFlags?.perpsPerpTradingServiceInterruptionBannerEnabled as boolean)
+    );
   },
 );
 
 export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_GTM_MODAL_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as unknown as VersionGatedFeatureFlag;
 
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    // Try versioned flag first, fall back to build-time default from builds.yml
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      (remoteFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as boolean)
+    );
   },
 );
 
@@ -63,12 +68,14 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 export const selectPerpsOrderBookEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    // Default to false if no flag is set (disabled by default)
-    const localFlag = process.env.MM_PERPS_ORDER_BOOK_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsOrderBookEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    // Try versioned flag first, fall back to build-time default from builds.yml
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      (remoteFeatureFlags?.perpsOrderBookEnabled as boolean)
+    );
   },
 );
 
@@ -154,10 +161,13 @@ export const selectHip3ConfigVersion = createSelector(
 export const selectPerpsFeedbackEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_FEEDBACK_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsFeedbackEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    // Try versioned flag first, fall back to build-time default from builds.yml
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      (remoteFeatureFlags?.perpsFeedbackEnabled as boolean)
+    );
   },
 );
