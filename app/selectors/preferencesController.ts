@@ -1,8 +1,6 @@
 import { createSelector } from 'reselect';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { RootState } from '../reducers';
-import { selectEvmChainId } from './networkController';
-import { createDeepEqualSelector } from './util';
 import { Hex } from '@metamask/utils';
 
 const selectPreferencesControllerState = (state: RootState) =>
@@ -49,29 +47,6 @@ export const selectTokenSortConfig = createSelector(
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.tokenSortConfig,
 );
-
-export const selectTokenNetworkFilter = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.tokenNetworkFilter,
-);
-
-export const selectIsTokenNetworkFilterEqualCurrentNetwork =
-  createDeepEqualSelector(
-    selectPreferencesControllerState,
-    (state: RootState) => selectEvmChainId(state),
-    (preferencesControllerState: PreferencesState, chainId: Hex) => {
-      const tokenNetworkFilter =
-        preferencesControllerState.tokenNetworkFilter || {};
-      if (
-        Object.keys(tokenNetworkFilter).length === 1 &&
-        Object.keys(tokenNetworkFilter)[0] === chainId
-      ) {
-        return true;
-      }
-      return false;
-    },
-  );
 
 // isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
 export const selectIsMultiAccountBalancesEnabled = createSelector(

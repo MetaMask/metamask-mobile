@@ -36,9 +36,6 @@ jest.mock('../../../core/Engine', () => ({
     SelectedNetworkController: {
       setNetworkClientIdForDomain: jest.fn(),
     },
-    PreferencesController: {
-      setTokenNetworkFilter: jest.fn(),
-    },
     AccountTrackerController: {
       refresh: jest.fn(),
     },
@@ -138,9 +135,6 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       expect(
         Engine.context.SelectedNetworkController.setNetworkClientIdForDomain,
       ).toBeDefined();
-      expect(
-        Engine.context.PreferencesController.setTokenNetworkFilter,
-      ).toBeDefined();
     };
 
     const verifyHookSetup = () => {
@@ -174,9 +168,6 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       ).toBeDefined();
       expect(
         Engine.context.SelectedNetworkController.setNetworkClientIdForDomain,
-      ).toBeDefined();
-      expect(
-        Engine.context.PreferencesController.setTokenNetworkFilter,
       ).toBeDefined();
       expect(Engine.context.AccountTrackerController.refresh).toBeDefined();
     });

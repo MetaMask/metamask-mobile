@@ -113,7 +113,6 @@ jest.mock('../../../core/Engine', () => ({
     },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
-      setTokenNetworkFilter: jest.fn(),
       tokenNetworkFilter: {
         '0x1': true,
         '0xe708': true,

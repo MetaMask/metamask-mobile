@@ -30,10 +30,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
 } from '../../../selectors/networkController';
-import {
-  selectShowTestNetworks,
-  selectTokenNetworkFilter,
-} from '../../../selectors/preferencesController';
+import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
   getAllNetworks,
   isTestNet,
@@ -147,8 +144,6 @@ const NetworkSelector = () => {
   const styles = createStyles(colors);
   const sheetRef = useRef<ReusableModalRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
-  const isAllNetwork = useSelector(selectIsAllNetworks);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
@@ -887,23 +882,6 @@ const NetworkSelector = () => {
       MetaMetrics.getInstance().addTraitsToUser(
         removeItemFromChainIdList(chainId),
       );
-
-      // set tokenNetworkFilter
-      const { PreferencesController } = Engine.context;
-      if (!isAllNetwork) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      } else {
-        // Remove the chainId from the tokenNetworkFilter
-        const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
-        PreferencesController.setTokenNetworkFilter({
-          // TODO fix type of preferences controller level
-          // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(newTokenNetworkFilter as any),
-        });
-      }
 
       setShowConfirmDeleteModal({
         isVisible: false,

@@ -51,11 +51,7 @@ jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../actions/onboardNetwork');
 
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    PreferencesController: {
-      setTokenNetworkFilter: jest.fn(),
-    },
-  },
+  context: {},
 }));
 
 jest.mock('react-redux', () => ({

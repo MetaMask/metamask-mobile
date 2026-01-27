@@ -23,9 +23,6 @@ jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
 
 jest.mock('../../../core/Engine', () => ({
   context: {
-    PreferencesController: {
-      setTokenNetworkFilter: jest.fn(),
-    },
     NetworkController: {
       updateNetwork: jest.fn(),
       addNetwork: jest.fn(),
@@ -144,7 +141,7 @@ describe('NetworkDetails', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should call setTokenNetworkFilter when switching networks', async () => {
+  it('should dispatch action when switching networks', async () => {
     const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
 
     const approveButton = getByTestId(
