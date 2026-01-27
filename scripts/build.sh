@@ -967,7 +967,6 @@ elif [ "$PLATFORM" == "android" ]; then
 		envFileMissing $ANDROID_ENV_FILE
 	fi
 elif [ "$PLATFORM" == "expo-update" ]; then
-	# we don't care about env file in CI
 	buildExpoUpdate
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
