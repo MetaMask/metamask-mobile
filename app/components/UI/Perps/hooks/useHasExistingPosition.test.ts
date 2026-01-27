@@ -90,7 +90,7 @@ describe('useHasExistingPosition', () => {
     mockGetOrderFills.mockResolvedValue([]);
   });
 
-  it('should return hasPosition as true when position exists for asset', () => {
+  it('returns hasPosition as true when position exists for asset', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
@@ -106,7 +106,7 @@ describe('useHasExistingPosition', () => {
     expect(result.current.error).toBe(null);
   });
 
-  it('should return hasPosition as false when no position exists for asset', () => {
+  it('returns hasPosition as false when no position exists for asset', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
@@ -122,7 +122,7 @@ describe('useHasExistingPosition', () => {
     expect(result.current.error).toBe(null);
   });
 
-  it('should return loading state as false (WebSocket loads from cache)', () => {
+  it('returns loading state as false (WebSocket loads from cache)', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
@@ -138,7 +138,7 @@ describe('useHasExistingPosition', () => {
     expect(result.current.error).toBe(null);
   });
 
-  it('should return error as null (WebSocket handles errors internally)', () => {
+  it('returns error as null (WebSocket handles errors internally)', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
@@ -154,7 +154,7 @@ describe('useHasExistingPosition', () => {
     expect(result.current.error).toBe(null); // Always null with WebSocket
   });
 
-  it('should ignore loadOnMount parameter (WebSocket loads from cache)', () => {
+  it('ignores loadOnMount parameter (WebSocket loads from cache)', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
@@ -168,7 +168,7 @@ describe('useHasExistingPosition', () => {
     expect(result.current.hasPosition).toBe(false);
   });
 
-  it('should handle empty positions array', () => {
+  it('handles empty positions array', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
@@ -182,7 +182,7 @@ describe('useHasExistingPosition', () => {
     expect(result.current.existingPosition).toBe(null);
   });
 
-  it('should update when positions change', () => {
+  it('updates when positions change', () => {
     // Initially no positions
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
@@ -206,7 +206,7 @@ describe('useHasExistingPosition', () => {
     expect(result.current.existingPosition).toEqual(mockPositions[0]);
   });
 
-  it('should return a no-op refreshPosition function', async () => {
+  it('returns a no-op refreshPosition function', async () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
@@ -248,7 +248,7 @@ describe('useHasExistingPosition', () => {
       },
     ];
 
-    it('should return positionOpenedTimestamp from WebSocket fills', () => {
+    it('returns positionOpenedTimestamp from WebSocket fills', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: mockPositions,
         isInitialLoading: false,
@@ -265,7 +265,7 @@ describe('useHasExistingPosition', () => {
       expect(result.current.positionOpenedTimestamp).toBe(1700000000000);
     });
 
-    it('should return undefined when no matching fill exists in WebSocket', () => {
+    it('returns undefined when no matching fill exists in WebSocket', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: mockPositions,
         isInitialLoading: false,
@@ -283,7 +283,7 @@ describe('useHasExistingPosition', () => {
       expect(result.current.positionOpenedTimestamp).toBeUndefined();
     });
 
-    it('should return undefined when no position exists', () => {
+    it('returns undefined when no position exists', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
@@ -300,7 +300,7 @@ describe('useHasExistingPosition', () => {
       expect(result.current.positionOpenedTimestamp).toBeUndefined();
     });
 
-    it('should fall back to REST API when WebSocket has no fill', async () => {
+    it('falls back to REST API when WebSocket has no fill', async () => {
       const restTimestamp = Date.now() - 5 * 60 * 1000;
       mockUsePerpsLivePositions.mockReturnValue({
         positions: mockPositions,
@@ -341,7 +341,7 @@ describe('useHasExistingPosition', () => {
       );
     });
 
-    it('should prefer WebSocket timestamp over REST', () => {
+    it('prefers WebSocket timestamp over REST', () => {
       const wsTimestamp = 1700000000000;
       mockUsePerpsLivePositions.mockReturnValue({
         positions: mockPositions,
@@ -361,7 +361,7 @@ describe('useHasExistingPosition', () => {
       expect(mockGetOrderFills).not.toHaveBeenCalled();
     });
 
-    it('should clear stale timestamp when switching positions', async () => {
+    it('clears stale timestamp when switching positions', async () => {
       const btcTimestamp = Date.now() - 10 * 60 * 1000;
       const ethTimestamp = Date.now() - 5 * 60 * 1000;
 
@@ -427,7 +427,7 @@ describe('useHasExistingPosition', () => {
       });
     });
 
-    it('should fetch fresh timestamp when same symbol position is closed and reopened', async () => {
+    it('fetches fresh timestamp when same symbol position is closed and reopened', async () => {
       const oldTimestamp = Date.now() - 60 * 60 * 1000; // 1 hour ago (old position)
       const newTimestamp = Date.now() - 5 * 60 * 1000; // 5 minutes ago (new position)
 
