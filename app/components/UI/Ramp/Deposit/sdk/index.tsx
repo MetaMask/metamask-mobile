@@ -145,26 +145,11 @@ export const DepositSDKProvider = ({
       dispatch(setFiatOrdersCryptoCurrencyDeposit(cryptoCurrency));
 
       if (isRampsUnifiedV2Enabled) {
-        console.log(
-          '[DepositSDK] V2 enabled - calling RampsController.setSelectedToken',
-        );
-        Engine.context.RampsController.setSelectedToken(
-          cryptoCurrency
-            ? {
-                assetId: cryptoCurrency.assetId,
-                symbol: cryptoCurrency.symbol,
-                name: cryptoCurrency.name,
-                decimals: cryptoCurrency.decimals,
-                chainId: cryptoCurrency.chainId,
-                iconUrl: cryptoCurrency.iconUrl,
-              }
-            : null,
-        ).catch((error: Error) => {
-          console.log(
-            '[DepositSDK] Error calling RampsController.setSelectedToken:',
-            error,
-          );
-        });
+        if(cryptoCurrency?.assetId) {
+          Engine.context.RampsController.setSelectedToken(cryptoCurrency.assetId);
+        } else {
+          throw new Error('Crypto currency asset ID is required');
+        }
       }
     },
     [dispatch, isRampsUnifiedV2Enabled],

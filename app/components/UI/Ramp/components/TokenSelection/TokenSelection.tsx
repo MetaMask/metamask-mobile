@@ -146,26 +146,11 @@ function TokenSelection() {
         });
 
         if (isRampsUnifiedV2Enabled) {
-          console.log(
-            '[TokenSelection] V2 enabled - calling RampsController.setSelectedToken:',
-            {
-              assetId: selectedToken.assetId,
-              symbol: selectedToken.symbol,
-            },
-          );
-          Engine.context.RampsController.setSelectedToken({
-            assetId: selectedToken.assetId,
-            symbol: selectedToken.symbol,
-            name: selectedToken.name,
-            decimals: selectedToken.decimals,
-            chainId: selectedToken.chainId as string,
-            iconUrl: selectedToken.iconUrl,
-          }).catch((error: Error) => {
-            console.log(
-              '[TokenSelection] Error calling RampsController.setSelectedToken:',
-              error,
-            );
-          });
+          if(selectedToken?.assetId) {
+            Engine.context.RampsController.setSelectedToken(selectedToken.assetId);
+          } else {
+            throw new Error('Token asset ID is required');
+          }
         }
       }
       // V1 flow: close the modal before navigating to Deposit/Aggregator

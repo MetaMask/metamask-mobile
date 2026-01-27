@@ -12,39 +12,6 @@ import type {
   RequestSelectorResult,
 } from '@metamask/ramps-controller';
 
-/**
- * Options for fetching payment methods.
- */
-export interface FetchPaymentMethodsOptions {
-  /**
-   * User's region code. If not provided, uses the user's region from controller state.
-   */
-  region?: string;
-  /**
-   * Fiat currency code (e.g., "usd"). If not provided, uses the user's region currency.
-   */
-  fiat?: string;
-  /**
-   * CAIP-19 cryptocurrency identifier (required).
-   */
-  assetId: string;
-  /**
-   * Provider ID path (required).
-   */
-  provider: string;
-  /**
-   * Whether to bypass cache.
-   */
-  forceRefresh?: boolean;
-  /**
-   * Custom TTL for this request.
-   */
-  ttl?: number;
-  /**
-   * If true, does not update controller state with results.
-   */
-  doNotUpdateState?: boolean;
-}
 
 /**
  * Options for the useRampsPaymentMethods hook to track request state.
@@ -89,13 +56,6 @@ export interface UseRampsPaymentMethodsResult {
    * The error message if the request failed, or null.
    */
   error: string | null;
-  /**
-   * Fetch payment methods for a given context.
-   * Requires assetId and provider parameters.
-   */
-  fetchPaymentMethods: (
-    options: FetchPaymentMethodsOptions,
-  ) => Promise<PaymentMethodsResponse>;
   /**
    * Set the selected payment method in the controller state.
    */
@@ -152,9 +112,10 @@ export function useRampsPaymentMethods(
   ) as RequestSelectorResult<PaymentMethodsResponse>;
 
   console.log('[useRampsPaymentMethods] Hook state:', {
+    selectedPaymentMethod,
     paymentMethodsCount: paymentMethods?.length ?? 0,
     paymentMethods: paymentMethods?.map((pm) => ({ id: pm.id, name: pm.name })) ?? [],
-    userRegion: userRegion?.regionCode ?? null,
+    userRegion,
     userRegionCurrency: userRegion?.country?.currency ?? null,
     regionCode,
     fiatCode,
@@ -164,25 +125,13 @@ export function useRampsPaymentMethods(
     error,
   });
 
-  const fetchPaymentMethods = useCallback(
-    async (fetchOptions: FetchPaymentMethodsOptions) => {
-      console.log('[useRampsPaymentMethods] fetchPaymentMethods called with:', fetchOptions);
-      const { region, ...restOptions } = fetchOptions;
-      const result = await Engine.context.RampsController.getPaymentMethods(
-        region,
-        restOptions,
-      );
-      console.log('[useRampsPaymentMethods] fetchPaymentMethods result:', {
-        paymentsCount: result?.payments?.length ?? 0,
-      });
-      return result;
-    },
-    [],
-  );
-
   const setSelectedPaymentMethod = useCallback(
     (paymentMethod: PaymentMethod | null) => {
-      Engine.context.RampsController.setSelectedPaymentMethod(paymentMethod);
+        if(paymentMethod?.id) {
+          Engine.context.RampsController.setSelectedPaymentMethod(paymentMethod.id);
+        } else {
+          throw new Error('Payment method ID is required');
+        }
     },
     [],
   );
@@ -192,7 +141,6 @@ export function useRampsPaymentMethods(
     selectedPaymentMethod,
     isLoading: isFetching,
     error,
-    fetchPaymentMethods,
     setSelectedPaymentMethod,
   };
 }

@@ -1,5 +1,5 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, useWindowDimensions } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
@@ -29,8 +29,6 @@ import PaymentMethodListItem from './PaymentMethodListItem';
 import ProviderSelection from './ProviderSelection';
 import type { PaymentMethod, Provider } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
-import { useRampsPaymentMethods } from '../../hooks/useRampsPaymentMethods';
-import { useTheme } from '../../../../../util/theme';
 
 export const createPaymentSelectionModalNavigationDetails =
   createNavigationDetails(
@@ -46,33 +44,16 @@ function PaymentSelectionModal() {
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
-  const { colors } = useTheme();
 
   const {
-    preferredProvider,
+    selectedProvider,
     providers,
-    paymentMethods: controllerPaymentMethods,
+    paymentMethods,
     setSelectedPaymentMethod,
-    setPreferredProvider,
-    selectedToken,
+    setSelectedProvider,
   } = useRampsController();
 
-  const assetId = selectedToken?.assetId;
-
-  const { fetchPaymentMethods } = useRampsPaymentMethods();
-
-  const [currentPage, setCurrentPage] = useState<'payment' | 'provider'>('payment');
   const translateX = useSharedValue(0);
-
-  const [tmpProvider, setTmpProvider] = useState<Provider | null>(null);
-  const [tmpPaymentMethods, setTmpPaymentMethods] = useState<PaymentMethod[] | null>(null);
-  const [tmpLoading, setTmpLoading] = useState(false);
-  const [tmpError, setTmpError] = useState<string | null>(null);
-
-  const displayProvider = tmpProvider ?? preferredProvider;
-  const displayPaymentMethods = tmpPaymentMethods ?? controllerPaymentMethods;
-  const isLoading = tmpLoading;
-  const error = tmpError;
 
   const paymentPageStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -84,60 +65,26 @@ function PaymentSelectionModal() {
 
   const handleProviderPillPress = useCallback(() => {
     translateX.value = withTiming(-screenWidth, { duration: ANIMATION_DURATION });
-    setCurrentPage('provider');
   }, [screenWidth, translateX]);
 
   const handleProviderBack = useCallback(() => {
-    setTmpProvider(null);
-    setTmpPaymentMethods(null);
-    setTmpError(null);
     translateX.value = withTiming(0, { duration: ANIMATION_DURATION });
-    setCurrentPage('payment');
   }, [translateX]);
 
   const handleProviderSelect = useCallback(
-    async (provider: Provider) => {
-      if (!assetId) {
-        setTmpError('No token selected');
-        return;
-      }
-
-      setTmpProvider(provider);
-      setTmpLoading(true);
-      setTmpError(null);
-
+    (provider: Provider) => {
+      setSelectedProvider(provider);
       translateX.value = withTiming(0, { duration: ANIMATION_DURATION });
-      setCurrentPage('payment');
-
-      try {
-        console.log('[PaymentSelectionModal] handleProviderSelect - fetching payment methods:', {
-          assetId,
-          provider: provider.id,
-        });
-        const response = await fetchPaymentMethods({
-          assetId,
-          provider: provider.id,
-          doNotUpdateState: true,
-        });
-        setTmpPaymentMethods(response.payments);
-      } catch (err) {
-        setTmpError(err instanceof Error ? err.message : 'Failed to fetch payment methods');
-      } finally {
-        setTmpLoading(false);
-      }
     },
-    [fetchPaymentMethods, assetId, translateX],
+    [setSelectedProvider, translateX],
   );
 
   const handlePaymentMethodPress = useCallback(
-    (_paymentMethod: PaymentMethod) => {
-      if (tmpProvider) {
-        setPreferredProvider(tmpProvider);
-      }
-      setSelectedPaymentMethod(_paymentMethod);
+    (paymentMethod: PaymentMethod) => {
+      setSelectedPaymentMethod(paymentMethod);
       sheetRef.current?.onCloseBottomSheet();
     },
-    [tmpProvider, setPreferredProvider, setSelectedPaymentMethod],
+    [setSelectedPaymentMethod],
   );
 
   const renderPaymentMethod = useCallback(
@@ -150,36 +97,16 @@ function PaymentSelectionModal() {
     [handlePaymentMethodPress],
   );
 
-  const renderListContent = () => {
-    if (isLoading) {
-      return (
-        <Box twClassName="flex-1 items-center justify-center py-8">
-          <ActivityIndicator size="large" color={colors.primary.default} />
-        </Box>
-      );
-    }
-
-    if (error) {
-      return (
-        <Box twClassName="flex-1 items-center justify-center py-8 px-4">
-          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
-            {error}
-          </Text>
-        </Box>
-      );
-    }
-
-    return (
-      <FlatList
-        style={styles.list}
-        data={displayPaymentMethods}
-        renderItem={renderPaymentMethod}
-        keyExtractor={(item) => item.id}
-        keyboardDismissMode="none"
-        keyboardShouldPersistTaps="always"
-      />
-    );
-  };
+  const renderListContent = () => (
+    <FlatList
+      style={styles.list}
+      data={paymentMethods}
+      renderItem={renderPaymentMethod}
+      keyExtractor={(item) => item.id}
+      keyboardDismissMode="none"
+      keyboardShouldPersistTaps="always"
+    />
+  );
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
@@ -199,7 +126,7 @@ function PaymentSelectionModal() {
             <Text variant={TextVariant.HeadingMD}>
               {strings('fiat_on_ramp.pay_with')}
             </Text>
-            <ProviderPill provider={displayProvider} onPress={handleProviderPillPress} />
+            <ProviderPill provider={selectedProvider} onPress={handleProviderPillPress} />
           </Box>
           <Box twClassName="px-4 pb-4">
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
@@ -217,7 +144,7 @@ function PaymentSelectionModal() {
         >
           <ProviderSelection
             providers={providers}
-            selectedProvider={displayProvider}
+            selectedProvider={selectedProvider}
             onProviderSelect={handleProviderSelect}
             onBack={handleProviderBack}
           />

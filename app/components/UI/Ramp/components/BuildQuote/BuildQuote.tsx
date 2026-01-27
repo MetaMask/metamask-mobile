@@ -45,8 +45,15 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
-  // Get user region, preferred provider, and tokens from RampsController
-  const { userRegion, preferredProvider, tokens, selectedPaymentMethod } = useRampsController();
+  // Get user region, selected provider, and tokens from RampsController
+  const { userRegion, selectedProvider, tokens, selectedPaymentMethod, paymentMethodsLoading } = useRampsController();
+
+  console.log('[BuildQuote] data:', {
+    userRegion,
+    selectedProvider,
+    tokens,
+    selectedPaymentMethod,
+  });
 
   // Get currency and quick amounts from user's region
   const currency = userRegion?.country?.currency || 'USD';
@@ -120,7 +127,7 @@ function BuildQuote() {
                 })}
               </Text>
               <PaymentMethodPill
-                label={selectedPaymentMethod?.name || strings('fiat_on_ramp.select_payment_method')}
+                label={paymentMethodsLoading ? 'Loading...' : selectedPaymentMethod?.name || strings('fiat_on_ramp.select_payment_method')}
                 onPress={() => {
                   navigation.navigate(
                     ...createPaymentSelectionModalNavigationDetails(),
@@ -131,10 +138,10 @@ function BuildQuote() {
           </View>
 
           <View style={styles.actionSection}>
-            {preferredProvider && (
+            {selectedProvider && (
               <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
                 {strings('fiat_on_ramp.powered_by_provider', {
-                  provider: preferredProvider.name,
+                  provider: selectedProvider.name,
                 })}
               </Text>
             )}

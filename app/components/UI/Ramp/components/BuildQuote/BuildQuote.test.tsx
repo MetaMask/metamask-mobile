@@ -90,7 +90,7 @@ const defaultUserRegion: MockUserRegion = {
 };
 
 let mockUserRegion: MockUserRegion | null = defaultUserRegion;
-let mockPreferredProvider: unknown = null;
+let mockSelectedProvider: unknown = null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
   topTokens: ReturnType<typeof createMockToken>[];
@@ -102,7 +102,7 @@ let mockTokens: {
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     userRegion: mockUserRegion,
-    preferredProvider: mockPreferredProvider,
+    selectedProvider: mockSelectedProvider,
     tokens: mockTokens,
   }),
 }));
@@ -118,7 +118,7 @@ describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUserRegion = defaultUserRegion;
-    mockPreferredProvider = null;
+    mockSelectedProvider = null;
     mockTokens = {
       allTokens: [createMockToken()],
       topTokens: [createMockToken()],
@@ -294,8 +294,8 @@ describe('BuildQuote', () => {
     expect(getByTestId('build-quote-continue-button')).toBeOnTheScreen();
   });
 
-  it('displays powered by provider text when preferred provider is set', () => {
-    mockPreferredProvider = {
+  it('displays powered by provider text when selected provider is set', () => {
+    mockSelectedProvider = {
       id: '/providers/transak',
       name: 'Transak',
       environmentType: 'PRODUCTION',
@@ -310,8 +310,8 @@ describe('BuildQuote', () => {
     expect(getByText('fiat_on_ramp.powered_by_provider')).toBeOnTheScreen();
   });
 
-  it('does not display powered by text when no preferred provider is set', () => {
-    mockPreferredProvider = null;
+  it('does not display powered by text when no selected provider is set', () => {
+    mockSelectedProvider = null;
 
     const { queryByText } = renderWithTheme(<BuildQuote />);
 

@@ -85,7 +85,7 @@ const mockPaymentMethods = [
   },
 ];
 
-const mockPreferredProvider = {
+const mockSelectedProvider = {
   id: '/providers/transak',
   name: 'Transak',
   environmentType: 'PRODUCTION',
@@ -101,7 +101,7 @@ const mockPreferredProvider = {
 };
 
 const mockProviders = [
-  mockPreferredProvider,
+  mockSelectedProvider,
   {
     id: '/providers/moonpay',
     name: 'MoonPay',
@@ -118,50 +118,16 @@ const mockProviders = [
   },
 ];
 
-const mockSetPreferredProvider = jest.fn();
+const mockSetSelectedProvider = jest.fn();
 const mockSetSelectedPaymentMethod = jest.fn();
-
-const mockSelectedToken = {
-  assetId: 'eip155:1/slip44:60',
-  chainId: 'eip155:1',
-  symbol: 'ETH',
-  name: 'Ethereum',
-  decimals: 18,
-  address: null,
-  iconUrl: 'https://example.com/eth.png',
-};
 
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
-    preferredProvider: mockPreferredProvider,
+    selectedProvider: mockSelectedProvider,
     providers: mockProviders,
     paymentMethods: mockPaymentMethods,
-    setPreferredProvider: mockSetPreferredProvider,
+    setSelectedProvider: mockSetSelectedProvider,
     setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
-    selectedToken: mockSelectedToken,
-  }),
-}));
-
-const mockTmpPaymentMethods = [
-  {
-    id: '/payments/bank-transfer',
-    paymentType: 'bank-transfer',
-    name: 'Bank Transfer',
-    score: 85,
-    icon: 'bank',
-    disclaimer: 'Bank transfers may take 1-3 business days.',
-    delay: '1 to 3 days.',
-    pendingOrderDescription: 'Bank transfers are processing.',
-  },
-];
-
-const mockFetchPaymentMethods = jest.fn().mockResolvedValue({
-  payments: mockTmpPaymentMethods,
-});
-
-jest.mock('../../hooks/useRampsPaymentMethods', () => ({
-  useRampsPaymentMethods: () => ({
-    fetchPaymentMethods: mockFetchPaymentMethods,
   }),
 }));
 
@@ -212,7 +178,7 @@ describe('PaymentSelectionModal', () => {
     expect(paymentMethodNames.length).toBeGreaterThan(0);
   });
 
-  it('calls onCloseBottomSheet when payment method is pressed without tmp provider', async () => {
+  it('calls onCloseBottomSheet when payment method is pressed', async () => {
     const { getAllByText } = renderWithProvider(PaymentSelectionModal);
 
     const paymentMethodItems = getAllByText('Debit or Credit');
@@ -220,8 +186,7 @@ describe('PaymentSelectionModal', () => {
 
     await waitFor(() => {
       expect(mockOnCloseBottomSheet).toHaveBeenCalled();
-      expect(mockSetSelectedPaymentMethod).toHaveBeenCalled();
-      expect(mockSetPreferredProvider).not.toHaveBeenCalled();
+      expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(mockPaymentMethods[0]);
     });
   });
 
@@ -248,7 +213,7 @@ describe('PaymentSelectionModal', () => {
     });
   });
 
-  it('fetches tmp payment methods when provider is selected', async () => {
+  it('updates selected provider when provider is selected', async () => {
     const { getByText } = renderWithProvider(PaymentSelectionModal);
 
     const providerPill = getByText('Transak');
@@ -260,50 +225,7 @@ describe('PaymentSelectionModal', () => {
     });
 
     await waitFor(() => {
-      expect(mockFetchPaymentMethods).toHaveBeenCalledWith({
-        assetId: 'eip155:1/slip44:60',
-        provider: '/providers/moonpay',
-        doNotUpdateState: true,
-      });
-    });
-  });
-
-  it('displays tmp payment methods after provider selection', async () => {
-    const { getByText } = renderWithProvider(PaymentSelectionModal);
-
-    const providerPill = getByText('Transak');
-    fireEvent.press(providerPill);
-
-    await waitFor(() => {
-      const moonPayProvider = getByText('MoonPay');
-      fireEvent.press(moonPayProvider);
-    });
-
-    await waitFor(() => {
-      expect(getByText('Bank Transfer')).toBeOnTheScreen();
-    });
-  });
-
-  it('persists provider and payment method when tmp payment method is selected', async () => {
-    const { getByText } = renderWithProvider(PaymentSelectionModal);
-
-    const providerPill = getByText('Transak');
-    fireEvent.press(providerPill);
-
-    await waitFor(() => {
-      const moonPayProvider = getByText('MoonPay');
-      fireEvent.press(moonPayProvider);
-    });
-
-    await waitFor(() => {
-      const bankTransfer = getByText('Bank Transfer');
-      fireEvent.press(bankTransfer);
-    });
-
-    await waitFor(() => {
-      expect(mockSetPreferredProvider).toHaveBeenCalledWith(mockProviders[1]);
-      expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(mockTmpPaymentMethods[0]);
-      expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(mockProviders[1]);
     });
   });
 });

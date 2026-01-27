@@ -25,7 +25,7 @@ export function determinePreferredProvider(
 ): Provider | null {
   console.log('[determinePreferredProvider] determinePreferredProvider:', {
     orders: orders.length,
-    availableProviders: availableProviders.map((provider) => provider.id)
+    availableProviders: availableProviders.map((provider) => provider.id),
   });
   if (availableProviders.length === 0) {
     return null;

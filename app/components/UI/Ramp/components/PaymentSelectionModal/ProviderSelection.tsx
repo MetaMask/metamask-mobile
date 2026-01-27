@@ -1,12 +1,7 @@
 import React, { useCallback } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -50,7 +45,8 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     ({ item: provider }: { item: Provider }) => {
       const isSelected = provider.id === selectedProvider?.id;
       const logoUrl = provider.logos?.[themeAppearance];
-      const hasLogo = logoUrl && provider.logos?.width && provider.logos?.height;
+      const hasLogo =
+        logoUrl && provider.logos?.width && provider.logos?.height;
 
       return (
         <ListItemSelect
@@ -69,17 +65,17 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
                 source={{ uri: logoUrl }}
               />
             ) : (
-              <Box
-                twClassName="w-10 h-10 rounded-full bg-muted items-center justify-center"
-              >
+              <Box twClassName="w-10 h-10 rounded-full bg-muted items-center justify-center">
                 <Text variant={TextVariant.BodyMDMedium}>
-                  {provider.name.charAt(0)}
+                  {provider.name?.charAt(0) ?? '?'}
                 </Text>
               </Box>
             )}
           </ListItemColumn>
           <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLGMedium}>{provider.name}</Text>
+            <Text variant={TextVariant.BodyLGMedium}>
+              {provider.name ?? 'Unknown'}
+            </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               temporary description
             </Text>

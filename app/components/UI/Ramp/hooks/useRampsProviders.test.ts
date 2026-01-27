@@ -62,7 +62,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       getProviders: jest.fn().mockResolvedValue({ providers: mockProviders }),
-      setPreferredProvider: jest.fn(),
+      setSelectedProvider: jest.fn(),
     },
   },
 }));
@@ -75,7 +75,7 @@ const createMockStore = (rampsControllerState = {}, fiatOrdersState = {}) =>
           RampsController: {
             userRegion: null,
             providers: [],
-            preferredProvider: null,
+            selectedProvider: null,
             requests: {},
             ...rampsControllerState,
           },
@@ -102,19 +102,19 @@ describe('useRampsProviders', () => {
   });
 
   describe('return value structure', () => {
-    it('returns providers, preferredProvider, isLoading, error, fetchProviders, and setPreferredProvider', () => {
+    it('returns providers, selectedProvider, isLoading, error, fetchProviders, and setSelectedProvider', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
       expect(result.current).toMatchObject({
         providers: [],
-        preferredProvider: null,
+        selectedProvider: null,
         isLoading: false,
         error: null,
       });
       expect(typeof result.current.fetchProviders).toBe('function');
-      expect(typeof result.current.setPreferredProvider).toBe('function');
+      expect(typeof result.current.setSelectedProvider).toBe('function');
     });
   });
 
@@ -346,44 +346,44 @@ describe('useRampsProviders', () => {
     });
   });
 
-  describe('preferredProvider state', () => {
-    it('returns preferredProvider from state', () => {
-      const store = createMockStore({ preferredProvider: mockProviders[0] });
+  describe('selectedProvider state', () => {
+    it('returns selectedProvider from state', () => {
+      const store = createMockStore({ selectedProvider: mockProviders[0] });
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
-      expect(result.current.preferredProvider).toEqual(mockProviders[0]);
+      expect(result.current.selectedProvider).toEqual(mockProviders[0]);
     });
 
-    it('returns null when preferredProvider is not set', () => {
-      const store = createMockStore({ preferredProvider: null });
+    it('returns null when selectedProvider is not set', () => {
+      const store = createMockStore({ selectedProvider: null });
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
-      expect(result.current.preferredProvider).toBeNull();
+      expect(result.current.selectedProvider).toBeNull();
     });
   });
 
-  describe('setPreferredProvider', () => {
-    it('calls setPreferredProvider on controller with provider', () => {
+  describe('setSelectedProvider', () => {
+    it('calls setSelectedProvider on controller with provider', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
-      result.current.setPreferredProvider(mockProviders[0]);
+      result.current.setSelectedProvider(mockProviders[0]);
       expect(
-        Engine.context.RampsController.setPreferredProvider,
+        Engine.context.RampsController.setSelectedProvider,
       ).toHaveBeenCalledWith(mockProviders[0]);
     });
 
-    it('calls setPreferredProvider on controller with null', () => {
+    it('calls setSelectedProvider on controller with null', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
-      result.current.setPreferredProvider(null);
+      result.current.setSelectedProvider(null);
       expect(
-        Engine.context.RampsController.setPreferredProvider,
+        Engine.context.RampsController.setSelectedProvider,
       ).toHaveBeenCalledWith(null);
     });
   });

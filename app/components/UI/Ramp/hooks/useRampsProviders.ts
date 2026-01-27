@@ -4,7 +4,7 @@ import Engine from '../../../../core/Engine';
 import {
   selectProviders,
   selectProvidersRequest,
-  selectPreferredProvider,
+  selectSelectedProvider,
 } from '../../../../selectors/rampsController';
 import { getOrders } from '../../../../reducers/fiatOrders';
 import { determinePreferredProvider } from '../utils/determinePreferredProvider';
@@ -23,9 +23,9 @@ export interface UseRampsProvidersResult {
    */
   providers: Provider[];
   /**
-   * The user's preferred/selected provider, or null if not set.
+   * The user's selected provider, or null if not set.
    */
-  preferredProvider: Provider | null;
+  selectedProvider: Provider | null;
   /**
    * Whether the providers request is currently loading.
    */
@@ -47,9 +47,9 @@ export interface UseRampsProvidersResult {
     },
   ) => Promise<{ providers: Provider[] }>;
   /**
-   * Set the user's preferred/selected provider.
+   * Set the user's selected provider.
    */
-  setPreferredProvider: (provider: Provider | null) => void;
+  setSelectedProvider: (provider: Provider | null) => void;
 }
 
 /**
@@ -70,7 +70,7 @@ export function useRampsProviders(
   },
 ): UseRampsProvidersResult {
   const providers = useSelector(selectProviders);
-  const preferredProvider = useSelector(selectPreferredProvider);
+  const selectedProvider = useSelector(selectSelectedProvider);
   const orders = useSelector(getOrders);
   const userRegion = useSelector(
     (state: Parameters<typeof selectProviders>[0]) =>
@@ -108,18 +108,22 @@ export function useRampsProviders(
     [regionCode],
   );
 
-  const setPreferredProvider = useCallback((provider: Provider | null) => {
-    Engine.context.RampsController.setPreferredProvider(provider);
+  const setSelectedProvider = useCallback((provider: Provider) => {
+    if(provider?.id) {  
+      Engine.context.RampsController.setSelectedProvider(provider.id);
+    } else {
+      throw new Error('Provider ID is required');
+    }
   }, []);
 
   useEffect(() => {
     console.log('[useRampsProviders] useEffect:', {
       orders: orders.length,
       providers: providers.length,
-      preferredProvider,
+      selectedProvider,
     });
 
-    if (preferredProvider) {
+    if (selectedProvider) {
       console.log('[useRampsProviders] Provider already set, skipping auto-selection');
       return;
     }
@@ -135,17 +139,17 @@ export function useRampsProviders(
     });
 
     if (determinedProvider) {
-      setPreferredProvider(determinedProvider);
+      setSelectedProvider(determinedProvider);
     }
-  }, [orders, providers, setPreferredProvider, preferredProvider]);
+  }, [orders, providers, setSelectedProvider, selectedProvider]);
 
   return {
     providers,
-    preferredProvider,
+    selectedProvider,
     isLoading: isFetching,
     error,
     fetchProviders,
-    setPreferredProvider,
+    setSelectedProvider,
   };
 }
 

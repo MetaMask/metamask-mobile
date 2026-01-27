@@ -48,7 +48,7 @@ const createMockStore = (rampsControllerState = {}) =>
         backgroundState: {
           RampsController: {
             userRegion: null,
-            preferredProvider: null,
+            selectedProvider: null,
             providers: [],
             tokens: null,
             requests: {},

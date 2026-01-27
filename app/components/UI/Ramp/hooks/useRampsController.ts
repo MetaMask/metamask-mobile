@@ -56,9 +56,9 @@ export interface UseRampsControllerResult {
   fetchUserRegion: UseRampsUserRegionResult['fetchUserRegion'];
   setUserRegion: UseRampsUserRegionResult['setUserRegion'];
 
-  // Preferred provider (selected provider)
-  preferredProvider: UseRampsProvidersResult['preferredProvider'];
-  setPreferredProvider: UseRampsProvidersResult['setPreferredProvider'];
+  // Selected provider
+  selectedProvider: UseRampsProvidersResult['selectedProvider'];
+  setSelectedProvider: UseRampsProvidersResult['setSelectedProvider'];
 
   // Providers
   providers: UseRampsProvidersResult['providers'];
@@ -84,7 +84,6 @@ export interface UseRampsControllerResult {
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
   setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
   selectedPaymentMethod: UseRampsPaymentMethodsResult['selectedPaymentMethod'];
-  fetchPaymentMethods: UseRampsPaymentMethodsResult['fetchPaymentMethods'];
 
   // Selected token
   selectedToken: RampsToken | null;
@@ -107,9 +106,9 @@ export interface UseRampsControllerResult {
  *   fetchUserRegion,
  *   setUserRegion,
  *
- *   // Preferred provider
- *   preferredProvider,
- *   setPreferredProvider,
+ *   // Selected provider
+ *   selectedProvider,
+ *   setSelectedProvider,
  *
  *   // Providers
  *   providers,
@@ -153,14 +152,14 @@ export function useRampsController(
 
   const {
     providers,
-    preferredProvider,
+    selectedProvider,
     isLoading: providersLoading,
     error: providersError,
     fetchProviders,
-    setPreferredProvider,
+    setSelectedProvider,
   } = useRampsProviders(options?.region, options?.providerFilters);
 
-  console.log('[useRampsController] preferredProvider:', preferredProvider);
+  console.log('[useRampsController] selectedProvider:', selectedProvider);
 
   const {
     tokens,
@@ -181,7 +180,6 @@ export function useRampsController(
     selectedPaymentMethod,
     isLoading: paymentMethodsLoading,
     error: paymentMethodsError,
-    fetchPaymentMethods,
     setSelectedPaymentMethod,
   } = useRampsPaymentMethods();
 
@@ -195,9 +193,9 @@ export function useRampsController(
     fetchUserRegion,
     setUserRegion,
 
-    // Preferred provider
-    preferredProvider,
-    setPreferredProvider,
+    // Selected provider
+    selectedProvider,
+    setSelectedProvider,
 
     // Providers
     providers,
@@ -222,7 +220,6 @@ export function useRampsController(
     selectedPaymentMethod,
     paymentMethodsLoading,
     paymentMethodsError,
-    fetchPaymentMethods,
     setSelectedPaymentMethod,
 
     // Selected token
