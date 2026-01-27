@@ -35,8 +35,6 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
 
       try {
-        // Direct API call without retry - intentionally removed exponential backoff
-        // to surface 429 errors immediately for WebSocket troubleshooting
         const result = await updatePositionTPSL({
           symbol: position.symbol,
           takeProfitPrice,

@@ -581,8 +581,9 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     if (cachedPrice) {
       const price = parseFloat(cachedPrice);
-      // Validate cached price is not zero or invalid
-      if (price === 0 || isNaN(price)) {
+      // Validate cached price: must be positive and finite
+      // Covers zero, negative, NaN, and Infinity in one check
+      if (price <= 0 || !isFinite(price)) {
         this.deps.debugLogger.log(
           `WebSocket cached price invalid for ${logContext}, falling back to REST`,
           { symbol, cachedPrice, parsedPrice: price },
@@ -608,8 +609,9 @@ export class HyperLiquidProvider implements PerpsProvider {
     );
     const price = parseFloat(mids[symbol] || '0');
 
-    if (price === 0) {
-      throw new Error(`No price available for ${symbol}`);
+    // Validate REST price: must be positive and finite
+    if (price <= 0 || !isFinite(price)) {
+      throw new Error(`Invalid price for ${symbol}: ${price}`);
     }
 
     return price;
@@ -3529,9 +3531,12 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       let cancelRequests: { a: number; o: number }[] = [];
 
-      if (this.subscriptionService.isOrdersCacheInitialized()) {
+      // Use atomic getter to prevent race condition between check and get
+      const cachedOrders =
+        this.subscriptionService.getOrdersCacheIfInitialized();
+
+      if (cachedOrders !== null) {
         // WebSocket cache available - use it (no API call, 0 weight)
-        const cachedOrders = this.subscriptionService.getCachedOrders() || [];
         this.deps.debugLogger.log(
           'Using WebSocket cache for TP/SL orders lookup',
           { cachedOrdersCount: cachedOrders.length },
@@ -4327,15 +4332,16 @@ export class HyperLiquidProvider implements PerpsProvider {
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
       // Try WebSocket cache first (unless explicitly bypassed)
-      if (
-        !params?.skipCache &&
-        this.subscriptionService.isOrdersCacheInitialized()
-      ) {
-        const cachedOrders = this.subscriptionService.getCachedOrders() || [];
-        this.deps.debugLogger.log('Using cached open orders from WebSocket', {
-          count: cachedOrders.length,
-        });
-        return cachedOrders;
+      // Use atomic getter to prevent race condition between check and get
+      if (!params?.skipCache) {
+        const cachedOrders =
+          this.subscriptionService.getOrdersCacheIfInitialized();
+        if (cachedOrders !== null) {
+          this.deps.debugLogger.log('Using cached open orders from WebSocket', {
+            count: cachedOrders.length,
+          });
+          return cachedOrders;
+        }
       }
 
       // Fallback to API call

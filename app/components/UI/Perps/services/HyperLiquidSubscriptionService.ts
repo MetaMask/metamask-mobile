@@ -1887,6 +1887,18 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Atomically get cached orders if initialized
+   * Prevents race condition between checking initialization and getting data
+   * @returns Cached orders array if initialized, null otherwise
+   */
+  public getOrdersCacheIfInitialized(): Order[] | null {
+    if (!this.ordersCacheInitialized) {
+      return null;
+    }
+    return this.cachedOrders ? [...this.cachedOrders] : [];
+  }
+
+  /**
    * Get cached price for a symbol from WebSocket allMids subscription
    * OPTIMIZATION: Use this instead of REST infoClient.allMids() to avoid rate limiting
    * @param symbol - Asset symbol (e.g., 'BTC', 'ETH', 'xyz:TSLA')
