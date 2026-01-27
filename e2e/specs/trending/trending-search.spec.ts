@@ -1,20 +1,23 @@
 import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
-import { Assertions } from '../../framework';
-import TrendingView from '../../pages/Trending/TrendingView';
-import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
-import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
+import { Assertions } from '../../../tests/framework';
+import TrendingView from '../../../tests/page-objects/Trending/TrendingView';
+import { TRENDING_API_MOCKS } from '../../../tests/api-mocking/mock-responses/trending-api-mocks';
+import { setupMockEvents } from '../../../tests/api-mocking/helpers/mockHelpers';
+import { remoteFeatureFlagTrendingTokensEnabled } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
 describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     // Enable the trending feature flag
-    await setupRemoteFeatureFlagsMock(mockServer, {
-      trendingTokens: true,
-    });
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      remoteFeatureFlagTrendingTokensEnabled(),
+    );
 
     // Setup API mocks using centralized definition
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
@@ -31,7 +34,7 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
         await loginToApp();
 
         // 1. Navigate to Trending Tab
-        await TrendingView.tapTrendingTab();
+        await TabBarComponent.tapExploreButton();
 
         // 2. Verify Search Bar Visibility
         await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
@@ -53,6 +56,9 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
 
         // 6. Type a query
         await TrendingView.typeSearchQuery('test');
+
+        // 6.5. Scroll down to ensure Google Search Option is visible
+        await TrendingView.scrollToGoogleSearchOption();
 
         // 7. Verify Google Search Option is visible
         await TrendingView.verifyGoogleSearchOptionVisible();

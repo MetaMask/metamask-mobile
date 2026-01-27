@@ -31,6 +31,15 @@ import * as RemoveEvmTokenModule from './util/removeEvmToken';
 // eslint-disable-next-line import/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
 
+jest.mock('../Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => ({
+    isEligible: true,
+    isLoading: false,
+    geolocation: 'US',
+    blockedCountries: [],
+  }),
+}));
+
 // Mocking versioning for some selectors
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -38,10 +47,10 @@ jest.mock('react-native-device-info', () => ({
 
 // Mock MusdConversionAssetListCta to prevent deep dependency chain issues
 jest.mock('../Earn/components/Musd/MusdConversionAssetListCta', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View: MockView } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="musd-conversion-cta" />,
+    default: () => <MockView testID="musd-conversion-cta" />,
   };
 });
 

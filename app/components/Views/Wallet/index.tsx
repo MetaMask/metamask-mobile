@@ -388,7 +388,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
               initialTab: undefined,
             });
           }
-        }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+        }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
 
         return () => clearTimeout(timer);
       }
@@ -571,7 +571,7 @@ const Wallet = ({
 
   // Setup for AssetDetailsActions
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
+    location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
   });
 

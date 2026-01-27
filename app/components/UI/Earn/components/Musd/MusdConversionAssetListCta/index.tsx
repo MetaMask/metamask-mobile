@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import styleSheet from './MusdConversionAssetListCta.styles';
 import Text, {
@@ -36,6 +36,9 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { getNetworkImageSource } from '../../../../../../util/networks';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
+import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -44,27 +47,56 @@ const MusdConversionAssetListCta = () => {
 
   const { tokens, getMusdOutputChainId } = useMusdConversionTokens();
 
-  const { initiateConversion } = useMusdConversion();
+  const { initiateConversion, hasSeenConversionEducationScreen } =
+    useMusdConversion();
 
-  const { shouldShowCta, showNetworkIcon, selectedChainId } =
-    useMusdCtaVisibility();
+  const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
 
-  const canConvert = useMemo(
-    () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
-    [tokens],
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  const { shouldShowCta, showNetworkIcon, selectedChainId, isEmptyWallet } =
+    shouldShowBuyGetMusdCta();
+
+  const networkName = useNetworkName(
+    selectedChainId ?? MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   );
 
-  const ctaText = useMemo(() => {
-    if (!canConvert) {
-      return strings('earn.musd_conversion.buy_musd');
-    }
+  const ctaText = isEmptyWallet
+    ? strings('earn.musd_conversion.buy_musd')
+    : strings('earn.musd_conversion.get_musd');
 
-    return strings('earn.musd_conversion.get_musd');
-  }, [canConvert]);
+  const submitCtaPressedEvent = () => {
+    const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+
+    const getRedirectLocation = () => {
+      if (isEmptyWallet) {
+        return EVENT_LOCATIONS.BUY_SCREEN;
+      }
+
+      return hasSeenConversionEducationScreen
+        ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+        : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+    };
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
+        .addProperties({
+          location: EVENT_LOCATIONS.HOME_SCREEN,
+          redirects_to: getRedirectLocation(),
+          cta_type: MUSD_CTA_TYPES.PRIMARY,
+          cta_text: ctaText,
+          network_chain_id: selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+          network_name: networkName,
+        })
+        .build(),
+    );
+  };
 
   const handlePress = async () => {
+    // Redirect users to buy flow if they have an empty wallet.
+    submitCtaPressedEvent();
     // Redirect users to deposit flow if they don't have any stablecoins to convert.
-    if (!canConvert) {
+    if (isEmptyWallet) {
       const rampIntent: RampIntent = {
         assetId:
           MUSD_TOKEN_ASSET_ID_BY_CHAIN[
@@ -75,21 +107,24 @@ const MusdConversionAssetListCta = () => {
       return;
     }
 
-    const { address, chainId: paymentTokenChainId } = tokens[0];
+    // Respect network filter if specific chain selected.
+    const preferredTokenOnSelectedChain = selectedChainId
+      ? tokens.find((token) => token.chainId === selectedChainId)
+      : undefined;
 
-    if (!paymentTokenChainId) {
+    const paymentToken = preferredTokenOnSelectedChain ?? tokens[0];
+
+    if (!paymentToken.chainId) {
       throw new Error('[mUSD Conversion] payment token chainID missing');
     }
-
-    const paymentTokenAddress = toChecksumAddress(address);
 
     try {
       await initiateConversion({
         preferredPaymentToken: {
-          address: paymentTokenAddress,
-          chainId: toHex(paymentTokenChainId),
+          address: toChecksumAddress(paymentToken.address),
+          chainId: toHex(paymentToken.chainId),
         },
-        outputChainId: getMusdOutputChainId(paymentTokenChainId),
+        outputChainId: getMusdOutputChainId(paymentToken.chainId),
       });
     } catch (error) {
       Logger.error(

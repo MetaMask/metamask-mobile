@@ -1,14 +1,16 @@
 import { hasProperty } from '@metamask/utils';
-import {
-  type VersionGatedFeatureFlag,
-  validatedVersionGatedFeatureFlag,
-} from '../../../../../util/remoteFeatureFlag';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
-import { parseCommaSeparatedString } from '../../utils/stringParseUtils';
+import { ensureError } from '../../../../../util/errorUtils';
+import {
+  validatedVersionGatedFeatureFlag,
+  isVersionGatedFeatureFlag,
+} from '../../../../../util/remoteFeatureFlag';
+import {
+  parseCommaSeparatedString,
+  stripQuotes,
+} from '../../utils/stringParseUtils';
 import type { ServiceContext } from './ServiceContext';
+import type { PerpsPlatformDependencies } from '../types';
 
 /**
  * FeatureFlagConfigurationService
@@ -23,50 +25,52 @@ import type { ServiceContext } from './ServiceContext';
  * - Geo-blocking configuration from remote flags
  * - Change detection and version management
  * - "Sticky remote" pattern enforcement (never downgrade)
+ *
+ * Instance-based service with constructor injection of platform dependencies.
  */
 export class FeatureFlagConfigurationService {
+  private readonly deps: PerpsPlatformDependencies;
+
   /**
-   * Error context helper for consistent logging
+   * Create a new FeatureFlagConfigurationService instance
+   * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  private static getErrorContext(
-    method: string,
-    additionalContext?: Record<string, unknown>,
-  ): Record<string, unknown> {
-    return {
-      controller: 'FeatureFlagConfigurationService',
-      method,
-      ...additionalContext,
-    };
+  constructor(deps: PerpsPlatformDependencies) {
+    this.deps = deps;
   }
 
   /**
    * Validate and parse market list from remote feature flags
    * Handles both string (comma-separated) and array formats from LaunchDarkly
    */
-  private static validateMarketList(
+  private validateMarketList(
     remoteValue: unknown,
     fieldName: string,
     currentValue: string[],
   ): string[] | undefined {
-    DevLogger.log(`PerpsController: HIP-3 ${fieldName} validation`, {
-      remoteValue,
-      type: typeof remoteValue,
-      isArray: Array.isArray(remoteValue),
-    });
+    this.deps.debugLogger.log(
+      `PerpsController: HIP-3 ${fieldName} validation`,
+      {
+        remoteValue,
+        type: typeof remoteValue,
+        isArray: Array.isArray(remoteValue),
+      },
+    );
 
     // LaunchDarkly returns comma-separated strings for list values
+    // Values may have literal quotes (e.g., '"xyz"') due to JSON encoding quirks
     if (typeof remoteValue === 'string') {
-      const parsed = parseCommaSeparatedString(remoteValue);
+      const parsed = parseCommaSeparatedString(remoteValue).map(stripQuotes);
 
       if (parsed.length > 0) {
-        DevLogger.log(
+        this.deps.debugLogger.log(
           `PerpsController: HIP-3 ${fieldName} validated from string`,
           { validatedMarkets: parsed },
         );
         return parsed;
       }
 
-      DevLogger.log(
+      this.deps.debugLogger.log(
         `PerpsController: HIP-3 ${fieldName} string was empty after parsing`,
         { fallbackValue: currentValue },
       );
@@ -79,17 +83,17 @@ export class FeatureFlagConfigurationService {
       remoteValue.every((item) => typeof item === 'string' && item.length > 0)
     ) {
       const validatedMarkets = (remoteValue as string[])
-        .map((s) => s.trim())
+        .map((s) => stripQuotes(s.trim()))
         .filter((s) => s.length > 0);
 
-      DevLogger.log(
+      this.deps.debugLogger.log(
         `PerpsController: HIP-3 ${fieldName} validated from array`,
         { validatedMarkets },
       );
       return validatedMarkets;
     }
 
-    DevLogger.log(
+    this.deps.debugLogger.log(
       `PerpsController: HIP-3 ${fieldName} validation FAILED - falling back to local config`,
       {
         reason: Array.isArray(remoteValue)
@@ -104,7 +108,7 @@ export class FeatureFlagConfigurationService {
   /**
    * Check if arrays have different values (order-independent comparison)
    */
-  private static arraysHaveDifferentValues(a: string[], b: string[]): boolean {
+  private arraysHaveDifferentValues(a: string[], b: string[]): boolean {
     return (
       JSON.stringify([...a].sort((x, y) => x.localeCompare(y))) !==
       JSON.stringify([...b].sort((x, y) => x.localeCompare(y)))
@@ -123,7 +127,7 @@ export class FeatureFlagConfigurationService {
    * @param options.remoteFeatureFlagControllerState - State from RemoteFeatureFlagController
    * @param options.context - ServiceContext providing state access callbacks
    */
-  static refreshHip3Config(options: {
+  refreshHip3Config(options: {
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState;
     context: ServiceContext;
   }): void {
@@ -143,11 +147,14 @@ export class FeatureFlagConfigurationService {
     const currentConfig = context.getHip3Config();
 
     // Extract and validate remote HIP-3 equity enabled flag
-    const equityFlag =
-      remoteFlags?.perpsHip3Enabled as unknown as VersionGatedFeatureFlag;
-    const validatedEquity = validatedVersionGatedFeatureFlag(equityFlag);
+    const equityFlag = remoteFlags?.perpsHip3Enabled;
+    // Use type guard to validate before calling - validatedVersionGatedFeatureFlag also
+    // handles invalid flags internally, but proper typing requires the guard
+    const validatedEquity = isVersionGatedFeatureFlag(equityFlag)
+      ? validatedVersionGatedFeatureFlag(equityFlag)
+      : undefined;
 
-    DevLogger.log('PerpsController: HIP-3 equity flag validation', {
+    this.deps.debugLogger.log('PerpsController: HIP-3 equity flag validation', {
       equityFlag,
       validatedEquity,
       willUse: validatedEquity !== undefined ? 'remote' : 'fallback',
@@ -194,7 +201,7 @@ export class FeatureFlagConfigurationService {
       );
 
     if (equityChanged || allowlistMarketsChanged || blocklistMarketsChanged) {
-      DevLogger.log(
+      this.deps.debugLogger.log(
         'PerpsController: HIP-3 config changed via remote feature flags',
         {
           equityChanged,
@@ -225,7 +232,7 @@ export class FeatureFlagConfigurationService {
       // Increment version to trigger ConnectionManager reconnection and cache clearing
       const newVersion = context.incrementHip3ConfigVersion();
 
-      DevLogger.log(
+      this.deps.debugLogger.log(
         'PerpsController: Incremented hip3ConfigVersion to trigger reconnection',
         {
           newVersion,
@@ -255,7 +262,7 @@ export class FeatureFlagConfigurationService {
    * @param options.remoteFeatureFlagControllerState - State from RemoteFeatureFlagController
    * @param options.context - ServiceContext providing callbacks
    */
-  static refreshEligibility(options: {
+  refreshEligibility(options: {
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState;
     context: ServiceContext;
   }): void {
@@ -292,7 +299,7 @@ export class FeatureFlagConfigurationService {
    * @param options.source - Source of the list ('remote' or 'fallback')
    * @param options.context - ServiceContext providing callbacks
    */
-  static setBlockedRegions(options: {
+  setBlockedRegions(options: {
     list: string[];
     source: 'remote' | 'fallback';
     context: ServiceContext;
@@ -321,10 +328,12 @@ export class FeatureFlagConfigurationService {
     }
 
     context.refreshEligibility().catch((error) => {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('setBlockedRegions', { source }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'FeatureFlagConfigurationService.setBlockedRegions',
+          data: { source },
+        },
+      });
     });
   }
 }

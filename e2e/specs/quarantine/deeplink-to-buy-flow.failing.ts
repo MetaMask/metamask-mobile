@@ -1,14 +1,14 @@
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { SmokeRamps } from '../../tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
-import Assertions from '../../framework/Assertions';
-import { PopularNetworksList } from '../../resources/networks.e2e';
+import Assertions from '../../../tests/framework/Assertions';
+import { PopularNetworksList } from '../../../tests/resources/networks.e2e';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly

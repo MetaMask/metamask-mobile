@@ -16,12 +16,15 @@ import {
 import Logger from '../../../../util/Logger';
 import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
-import { selectPerpsNetwork } from '../selectors/perpsController';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import { wait } from '../utils/wait';
 
 /**
@@ -44,6 +47,7 @@ class PerpsConnectionManagerClass {
   private unsubscribeFromStore: (() => void) | null = null;
   private previousAddress: string | undefined;
   private previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
+  private previousProvider: string | undefined;
   private previousHip3Version: number = 0;
   private gracePeriodTimer: number | null = null;
   private isInGracePeriod = false;
@@ -70,6 +74,7 @@ class PerpsConnectionManagerClass {
       selectSelectedInternalAccountByScope(state)('eip155:1');
     this.previousAddress = selectedEvmAccount?.address;
     this.previousPerpsNetwork = selectPerpsNetwork(state);
+    this.previousProvider = selectPerpsProvider(state);
     this.previousHip3Version = selectHip3ConfigVersion(state);
 
     // Subscribe to Redux store changes
@@ -79,6 +84,7 @@ class PerpsConnectionManagerClass {
         selectSelectedInternalAccountByScope(currentState)('eip155:1');
       const currentAddress = currentEvmAccount?.address;
       const currentPerpsNetwork = selectPerpsNetwork(currentState);
+      const currentProvider = selectPerpsProvider(currentState);
       const currentHip3Version = selectHip3ConfigVersion(currentState);
 
       const hasAccountChanged =
@@ -87,25 +93,36 @@ class PerpsConnectionManagerClass {
       const hasPerpsNetworkChanged =
         this.previousPerpsNetwork !== undefined &&
         this.previousPerpsNetwork !== currentPerpsNetwork;
+      const hasProviderChanged =
+        this.previousProvider !== undefined &&
+        this.previousProvider !== currentProvider;
       const hasHip3Changed = this.previousHip3Version !== currentHip3Version;
 
-      // If account, network, or HIP-3 config changed and we're connected, trigger reconnection
+      // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection
       if (
-        (hasAccountChanged || hasPerpsNetworkChanged || hasHip3Changed) &&
+        (hasAccountChanged ||
+          hasPerpsNetworkChanged ||
+          hasProviderChanged ||
+          hasHip3Changed) &&
         this.isConnected
       ) {
         DevLogger.log(
           hasHip3Changed
             ? '[DEX:WHITELIST] PerpsConnectionManager: HIP-3 config version CHANGED - triggering reconnection'
-            : 'PerpsConnectionManager: State change detected',
+            : hasProviderChanged
+              ? 'PerpsConnectionManager: Provider CHANGED - triggering reconnection'
+              : 'PerpsConnectionManager: State change detected',
           {
             accountChanged: hasAccountChanged,
             networkChanged: hasPerpsNetworkChanged,
+            providerChanged: hasProviderChanged,
             hip3Changed: hasHip3Changed,
             previousAddress: this.previousAddress,
             currentAddress,
             previousNetwork: this.previousPerpsNetwork,
             currentNetwork: currentPerpsNetwork,
+            previousProvider: this.previousProvider,
+            currentProvider,
             previousHip3Version: this.previousHip3Version,
             currentHip3Version,
           },
@@ -132,7 +149,7 @@ class PerpsConnectionManagerClass {
         // This ensures proper WebSocket reconnection at the controller level
         this.reconnectWithNewContext().catch((error) => {
           Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            feature: PERPS_CONSTANTS.FeatureName,
             message: 'Error reconnecting with new account/network context',
           });
         });
@@ -141,6 +158,7 @@ class PerpsConnectionManagerClass {
       // Update tracked values
       this.previousAddress = currentAddress;
       this.previousPerpsNetwork = currentPerpsNetwork;
+      this.previousProvider = currentProvider;
       this.previousHip3Version = currentHip3Version;
     });
 
@@ -156,6 +174,7 @@ class PerpsConnectionManagerClass {
       this.unsubscribeFromStore = null;
       this.previousAddress = undefined;
       this.previousPerpsNetwork = undefined;
+      this.previousProvider = undefined;
       this.previousHip3Version = 0;
       DevLogger.log('PerpsConnectionManager: State monitoring cleaned up');
     }
@@ -197,7 +216,7 @@ class PerpsConnectionManagerClass {
     // Clear any existing timeout
     this.clearConnectionTimeout();
 
-    const timeoutMs = PERPS_CONSTANTS.CONNECTION_ATTEMPT_TIMEOUT_MS;
+    const timeoutMs = PERPS_CONSTANTS.ConnectionAttemptTimeoutMs;
     DevLogger.log(
       `PerpsConnectionManager: Starting ${timeoutMs}ms connection timeout`,
     );
@@ -222,7 +241,7 @@ class PerpsConnectionManagerClass {
     this.cancelGracePeriod();
 
     DevLogger.log(
-      `PerpsConnectionManager: Starting grace period for ${PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS}ms`,
+      `PerpsConnectionManager: Starting grace period for ${PERPS_CONSTANTS.ConnectionGracePeriodMs}ms`,
     );
     this.isInGracePeriod = true;
 
@@ -232,11 +251,11 @@ class PerpsConnectionManagerClass {
       this.gracePeriodTimer = setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
           Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            feature: PERPS_CONSTANTS.FeatureName,
             message: 'Error performing actual disconnection',
           });
         });
-      }, PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS) as unknown as number;
+      }, PERPS_CONSTANTS.ConnectionGracePeriodMs) as unknown as number;
       // Stop immediately after scheduling (not in the callback)
       BackgroundTimer.stop();
     } else if (Device.isAndroid()) {
@@ -244,11 +263,11 @@ class PerpsConnectionManagerClass {
       this.gracePeriodTimer = BackgroundTimer.setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
           Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            feature: PERPS_CONSTANTS.FeatureName,
             message: 'Error performing actual disconnection',
           });
         });
-      }, PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS);
+      }, PERPS_CONSTANTS.ConnectionGracePeriodMs);
     }
   }
 
@@ -293,7 +312,7 @@ class PerpsConnectionManagerClass {
             );
           } catch (error) {
             Logger.error(ensureError(error), {
-              feature: PERPS_CONSTANTS.FEATURE_NAME,
+              feature: PERPS_CONSTANTS.FeatureName,
             });
           } finally {
             this.isDisconnecting = false;
@@ -368,7 +387,7 @@ class PerpsConnectionManagerClass {
       );
       await this.disconnectPromise;
       // Add small delay to ensure cleanup is complete
-      await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+      await wait(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
     }
 
     // Set up monitoring when first entering Perps (refCount 0 -> 1)
@@ -482,7 +501,7 @@ class PerpsConnectionManagerClass {
 
         // Log connection performance measurement with consistent marker
         DevLogger.log(
-          `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection established`,
+          `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsConn: Connection established`,
           {
             metric:
               PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
@@ -514,7 +533,7 @@ class PerpsConnectionManagerClass {
 
         // Log connection with preload performance measurement
         DevLogger.log(
-          `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection with preload completed`,
+          `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsConn: Connection with preload completed`,
           {
             metric:
               PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
@@ -703,8 +722,8 @@ class PerpsConnectionManagerClass {
 
       // Wait for initialization to complete - platform-specific timing for reliability
       const reconnectionDelay = Device.isAndroid()
-        ? PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS
-        : PERPS_CONSTANTS.RECONNECTION_DELAY_IOS_MS;
+        ? PERPS_CONSTANTS.ReconnectionDelayAndroidMs
+        : PERPS_CONSTANTS.ReconnectionDelayIosMs;
       await wait(reconnectionDelay);
 
       // Validate connection with WebSocket health check ping before marking as connected
@@ -761,7 +780,7 @@ class PerpsConnectionManagerClass {
 
       // Log account switch reconnection performance measurement
       DevLogger.log(
-        `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Account switch reconnection completed`,
+        `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsConn: Account switch reconnection completed`,
         {
           metric:
             PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
@@ -888,14 +907,14 @@ class PerpsConnectionManagerClass {
       );
 
       // Give subscriptions a moment to receive initial data
-      await wait(PERPS_CONSTANTS.INITIAL_DATA_DELAY_MS);
+      await wait(PERPS_CONSTANTS.InitialDataDelayMs);
 
       DevLogger.log(
         'PerpsConnectionManager: Pre-loading complete with persistent subscriptions',
       );
     } catch (error) {
       Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         message: 'Error pre-loading subscriptions',
       });
       // Non-critical error - components will still work with on-demand subscriptions

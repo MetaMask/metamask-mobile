@@ -1,40 +1,40 @@
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { loginToApp } from '../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import Assertions from '../../../framework/Assertions';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import Assertions from '../../../../tests/framework/Assertions';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import {
   AnvilPort,
   buildPermissions,
-} from '../../../framework/fixtures/FixtureUtils';
+} from '../../../../tests/framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
-} from '../../../api-mocking/mock-responses/simulations';
+} from '../../../../tests/api-mocking/mock-responses/simulations';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import { DappVariants } from '../../../framework/Constants';
+import { DappVariants } from '../../../../tests/framework/Constants';
 import { EventPayload, getEventsPayloads } from '../../analytics/helpers';
-import SoftAssert from '../../../framework/SoftAssert';
+import SoftAssert from '../../../../tests/framework/SoftAssert';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/helpers/mockHelpers';
-import Gestures from '../../../framework/Gestures';
+} from '../../../../tests/api-mocking/helpers/mockHelpers';
+import Gestures from '../../../../tests/framework/Gestures';
 import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   SECURITY_ALERTS_REQUEST_BODY,
   securityAlertsUrl,
-} from '../../../api-mocking/mock-responses/security-alerts-mock';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../../framework/types';
-import { AnvilManager } from '../../../seeder/anvil-manager';
+} from '../../../../tests/api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../../tests/framework/types';
+import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',
@@ -145,7 +145,7 @@ describe.skip(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await TestDApp.tapSendEIP1559Button();
 
@@ -173,7 +173,8 @@ describe.skip(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Check activity tab
+        // Close browser to reveal app tab bar, then check activity
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },

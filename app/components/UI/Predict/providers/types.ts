@@ -66,6 +66,13 @@ export interface PlaceOrderParams {
     volume?: number;
     marketType?: string;
     outcome?: string;
+    marketSlug?: string;
+    gameId?: string;
+    gameStartTime?: string;
+    gameLeague?: string;
+    gameStatus?: string;
+    gamePeriod?: string | null;
+    gameClock?: string | null;
   };
 }
 
@@ -231,6 +238,10 @@ export interface PredictProvider {
 
   // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
+  getMarketsByIds?(
+    marketIds: string[],
+    liveSportsLeagues?: string[],
+  ): Promise<PredictMarket[]>;
   getMarketDetails(params: {
     marketId: string;
     liveSportsLeagues?: string[];

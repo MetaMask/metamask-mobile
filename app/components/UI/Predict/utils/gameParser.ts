@@ -11,9 +11,11 @@ import {
 } from '../providers/polymarket/types';
 
 const NFL_SLUG_PATTERN = /^nfl-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/;
+const NBA_SLUG_PATTERN = /^nba-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/;
 
 const LEAGUE_SLUG_PATTERNS: Record<PredictSportsLeague, RegExp> = {
   nfl: NFL_SLUG_PATTERN,
+  nba: NBA_SLUG_PATTERN,
 };
 
 export type TeamLookup = (
@@ -173,9 +175,10 @@ export function buildGameData(
   }
 
   return {
-    id: event.gameId,
+    id: String(event.gameId),
     startTime:
       event.startTime ?? event.endDate ?? `${parsedSlug.dateString}T00:00:00Z`,
+    endTime: event.finishedTimestamp,
     status: getGameStatus(event),
     league,
     elapsed: event.elapsed || null,

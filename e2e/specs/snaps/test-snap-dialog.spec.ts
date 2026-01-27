@@ -1,12 +1,11 @@
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import TestSnaps from '../../pages/Browser/TestSnaps';
-import Assertions from '../../framework/Assertions';
-import Gestures from '../../framework/Gestures';
-import { Matchers } from '../../framework';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import Assertions from '../../../tests/framework/Assertions';
+import Gestures from '../../../tests/framework/Gestures';
+import { Matchers } from '../../../tests/framework';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 
 jest.setTimeout(150_000);
 
@@ -20,7 +19,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectDialogSnapButton');

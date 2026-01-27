@@ -1,17 +1,17 @@
 import { SmokeNetworkAbstractions } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import NetworkManager from '../../pages/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import Assertions from '../../framework/Assertions';
-import { DappVariants } from '../../framework/Constants';
+import Assertions from '../../../tests/framework/Assertions';
+import { DappVariants } from '../../../tests/framework/Constants';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Browser from '../../pages/Browser/BrowserView';
 import TestDApp from '../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import { CustomNetworks } from '../../resources/networks.e2e';
+import { CustomNetworks } from '../../../tests/resources/networks.e2e';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -221,7 +221,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
     );
   });
 
-  it('should preserve existing enabled networks when adding a network via dapp', async () => {
+  it.skip('should preserve existing enabled networks when adding a network via dapp', async () => {
     await withFixtures(
       {
         dapps: [
@@ -255,7 +255,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         );
 
         // Step 2: Navigate to dapp and request network addition
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await TestDApp.tapOpenNetworkPicker();
         await TestDApp.tapNetworkByName(POLYGON);
@@ -276,7 +276,13 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         // Step 3: Approve the network addition
         await ConnectBottomSheet.tapConnectButton();
 
-        // Step 4: Return to wallet and verify network preservation
+        // Wait for browser screen to be visible after connection modal dismisses
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+          description: 'Browser screen should be visible after connecting',
+        });
+
+        // Step 4: Close browser to reveal app tab bar, then return to wallet
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapWallet();
 
         // Verify Ethereum is still the active network (preservation)

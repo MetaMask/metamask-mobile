@@ -83,6 +83,10 @@ export interface UseSpendingLimitReturn {
 
   // Validation
   isValid: boolean;
+
+  // Faucet state
+  needsFaucet: boolean;
+  isFaucetCheckLoading: boolean;
 }
 
 /**
@@ -120,9 +124,13 @@ const useSpendingLimit = ({
 
   const isOnboardingFlow = flow === 'onboarding';
 
-  // Delegation hook
-  const { submitDelegation, isLoading: isDelegationLoading } =
-    useCardDelegation(selectedToken);
+  // Delegation hook (includes faucet check)
+  const {
+    submitDelegation,
+    isLoading: isDelegationLoading,
+    needsFaucet,
+    isFaucetCheckLoading,
+  } = useCardDelegation(selectedToken);
 
   const isLoading = isDelegationLoading || isProcessing;
 
@@ -227,16 +235,28 @@ const useSpendingLimit = ({
         (qt) => qt.symbol.toUpperCase() === symbol.toUpperCase(),
       );
       if (quickSelectToken?.token) {
-        setSelectedToken(quickSelectToken.token);
+        const token = quickSelectToken.token;
+
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({
+              action: CardActions.QUICK_SELECT_TOKEN_BUTTON,
+              token_symbol: token.symbol,
+              chain_id: token.caipChainId,
+            })
+            .build(),
+        );
+
+        setSelectedToken(token);
       }
     },
-    [quickSelectTokens],
+    [quickSelectTokens, trackEvent, createEventBuilder],
   );
 
   const handleOtherSelect = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.CHANGE_ASSET_BUTTON })
+        .addProperties({ action: CardActions.OTHER_TOKEN_BUTTON })
         .build(),
     );
 
@@ -444,6 +464,10 @@ const useSpendingLimit = ({
 
     // Validation
     isValid,
+
+    // Faucet state
+    needsFaucet,
+    isFaucetCheckLoading,
   };
 };
 

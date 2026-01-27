@@ -22,6 +22,7 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';
 import { SOLANA_WALLET_SNAP_ID } from '../../../../core/SnapKeyring/SolanaWalletSnap';
 import { HandlerType } from '@metamask/snaps-utils';
+import { useNeedsGasFaucet } from './useNeedsGasFaucet';
 
 /**
  * Custom error class for user-initiated cancellations
@@ -65,6 +66,15 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
     error: null,
   });
 
+  const {
+    needsFaucet,
+    isLoading: isFaucetCheckLoading,
+    refetch: refetchFaucetCheck,
+  } = useNeedsGasFaucet(token);
+
+  /**
+   * Generate SIWE signature message
+   */
   const generateSignatureMessage = useCallback(
     (
       address: string,
@@ -401,9 +411,13 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
           throw new Error('No account found');
         }
 
-        // Step 1: Generate delegation token
+        // Step 1: Generate delegation token (pass faucet flag if user needs gas)
         const { token: delegationJWTToken, nonce } =
-          await sdk.generateDelegationToken(params.network, address);
+          await sdk.generateDelegationToken(
+            params.network,
+            address,
+            needsFaucet,
+          );
 
         // Step 2: Generate and sign SIWE message
         const signatureMessage = generateSignatureMessage(
@@ -482,11 +496,16 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       token?.caipChainId,
       trackEvent,
       createEventBuilder,
+      needsFaucet,
     ],
   );
 
   return {
     ...state,
     submitDelegation,
+    // Faucet check state
+    needsFaucet,
+    isFaucetCheckLoading,
+    refetchFaucetCheck,
   };
 };

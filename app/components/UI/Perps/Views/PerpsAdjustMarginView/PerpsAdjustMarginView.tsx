@@ -29,7 +29,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
@@ -84,7 +84,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     newLiquidationDistance,
     isAddMode,
   } = usePerpsAdjustMarginData({
-    coin: routePosition?.coin || '',
+    symbol: routePosition?.symbol || '',
     mode: mode || 'add',
     inputAmount: marginAmount,
   });
@@ -157,7 +157,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   const formatLiquidationDistance = useCallback(
     (distance: number, liquidationPrice: number): string => {
       if (liquidationPrice === 0) {
-        return PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY;
+        return PERPS_CONSTANTS.FallbackDataDisplay;
       }
       return `${distance.toFixed(0)}%`;
     },
@@ -175,14 +175,14 @@ const PerpsAdjustMarginView: React.FC = () => {
 
     try {
       if (isAddMode) {
-        await handleAddMargin(position.coin, marginAmount);
+        await handleAddMargin(position.symbol, marginAmount);
       } else {
-        await handleRemoveMargin(position.coin, marginAmount);
+        await handleRemoveMargin(position.symbol, marginAmount);
       }
     } catch (error) {
       Logger.error(
         ensureError(error),
-        `Failed to ${isAddMode ? 'add' : 'remove'} margin for ${position.coin}`,
+        `Failed to ${isAddMode ? 'add' : 'remove'} margin for ${position.symbol}`,
       );
       // Note: Toast notification is handled by usePerpsMarginAdjustment hook
     }

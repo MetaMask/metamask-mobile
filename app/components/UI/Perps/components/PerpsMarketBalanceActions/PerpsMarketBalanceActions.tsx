@@ -190,7 +190,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
-      source: 'homescreen',
+      source: PerpsEventValues.SOURCE.PERPS_HOME,
     });
   }, [navigation]);
 
@@ -290,7 +290,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               isFullWidth
               testID={PerpsMarketBalanceActionsSelectorsIDs.LEARN_MORE_BUTTON}
             >
-              {strings(LEARN_MORE_CONFIG.TITLE_KEY)}
+              {strings(LEARN_MORE_CONFIG.TitleKey)}
             </Button>
           </Box>
         ) : (

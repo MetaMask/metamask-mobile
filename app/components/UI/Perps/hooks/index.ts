@@ -18,6 +18,7 @@ export { usePerpsNavigation } from './usePerpsNavigation';
 // Connection management hooks
 export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 export { usePerpsConnection } from './usePerpsConnection';
+export { useWebSocketHealthToast } from './useWebSocketHealthToast';
 
 // State hooks (Redux selectors)
 // Portfolio balance hook (for wallet integration)
@@ -82,6 +83,7 @@ export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';
+export { usePerpsHomeSectionTracking } from './usePerpsHomeSectionTracking';
 
 // Performance tracking hooks
 // Removed: usePerpsScreenTracking - migrated to usePerpsMeasurement

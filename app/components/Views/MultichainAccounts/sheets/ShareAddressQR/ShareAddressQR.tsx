@@ -81,7 +81,7 @@ export const ShareAddressQR = () => {
         alignItems={BoxAlignItems.Center}
         twClassName="px-4 py-6"
       >
-        <Box twClassName="p-6 border border-muted rounded-2xl">
+        <Box twClassName="p-6 border border-muted rounded-2xl bg-white">
           <QRCode
             value={address}
             size={200}

@@ -65,7 +65,7 @@ export function usePerpsDataMonitor(
     asset,
     monitorOrders = true,
     monitorPositions = true,
-    timeoutMs = PERPS_CONSTANTS.DEFAULT_MONITORING_TIMEOUT_MS,
+    timeoutMs = PERPS_CONSTANTS.DefaultMonitoringTimeoutMs,
     onDataDetected,
     enabled = false,
   } = params;
@@ -121,9 +121,9 @@ export function usePerpsDataMonitor(
       if (!initialPositions || !positions) return false;
 
       const initialPosition = initialPositions.find(
-        (p) => p.coin === targetAsset,
+        (p) => p.symbol === targetAsset,
       );
-      const currentPosition = positions.find((p) => p.coin === targetAsset);
+      const currentPosition = positions.find((p) => p.symbol === targetAsset);
 
       // New position created (no position before, now has position)
       if (!initialPosition && currentPosition) return true;

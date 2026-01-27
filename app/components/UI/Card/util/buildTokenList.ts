@@ -25,7 +25,6 @@ interface SupportedToken {
 
 interface BuildTokenListParams {
   delegationSettings: DelegationSettingsResponse | null;
-  userLocation: 'us' | 'international' | string;
   getSupportedTokensByChainId?: (chainId: CaipChainId) => SupportedToken[];
 }
 
@@ -58,11 +57,9 @@ export function getCaipChainId(
 /**
  * Checks if a network should be processed based on filters
  * @param network - Network configuration from delegation settings
- * @param userLocation - User's location ('us' or 'international')
  */
 export function shouldProcessNetwork(
   network: DelegationSettingsResponse['networks'][0],
-  userLocation: string,
 ): boolean {
   const networkLower = network.network?.toLowerCase();
 
@@ -74,16 +71,6 @@ export function shouldProcessNetwork(
     return false;
   }
 
-  // Filter Linea by location
-  const isLineaNetwork =
-    network.network === 'linea' || network.network === 'linea-us';
-  if (isLineaNetwork) {
-    return (
-      (userLocation === 'us' && network.network === 'linea-us') ||
-      (userLocation !== 'us' && network.network === 'linea')
-    );
-  }
-
   return true;
 }
 
@@ -93,7 +80,6 @@ export function shouldProcessNetwork(
  */
 export function buildTokenListFromSettings({
   delegationSettings,
-  userLocation,
   getSupportedTokensByChainId,
 }: BuildTokenListParams): CardTokenAllowance[] {
   if (!delegationSettings?.networks) {
@@ -103,7 +89,7 @@ export function buildTokenListFromSettings({
   const tokens: CardTokenAllowance[] = [];
 
   for (const network of delegationSettings.networks) {
-    if (!shouldProcessNetwork(network, userLocation)) {
+    if (!shouldProcessNetwork(network)) {
       continue;
     }
 
@@ -171,7 +157,7 @@ export function buildQuickSelectTokens(
 
   if (delegationSettings?.networks) {
     for (const network of delegationSettings.networks) {
-      if (network.network !== 'linea' && network.network !== 'linea-us') {
+      if (network.network !== 'linea') {
         continue;
       }
 
@@ -213,7 +199,6 @@ export function buildQuickSelectTokens(
     }
   }
 
-  // Combine allTokens with delegation settings tokens
   const combinedTokens = [...allTokens, ...lineaTokensFromSettings];
 
   return QUICK_SELECT_TOKENS.map((symbol) => {
@@ -223,35 +208,7 @@ export function buildQuickSelectTokens(
           t.symbol?.toUpperCase() === symbol.toUpperCase() &&
           t.caipChainId === LINEA_CAIP_CHAIN_ID,
       ) ?? null;
-    // Use the display symbol from QUICK_SELECT_TOKENS for consistent casing
+
     return { symbol, token };
   });
-}
-
-/**
- * Gets valid Linea chain IDs based on user location
- */
-export function getValidLineaChainIds(
-  delegationSettings: DelegationSettingsResponse | null,
-  userLocation: string,
-): Set<string> {
-  const validIds = new Set<string>();
-  if (!delegationSettings?.networks) return validIds;
-
-  for (const network of delegationSettings.networks) {
-    const isLineaNetwork =
-      network.network === 'linea' || network.network === 'linea-us';
-    if (!isLineaNetwork) continue;
-
-    const shouldInclude =
-      (userLocation === 'us' && network.network === 'linea-us') ||
-      (userLocation !== 'us' && network.network === 'linea');
-
-    if (shouldInclude) {
-      const caipChainId = getCaipChainId(network);
-      validIds.add(caipChainId);
-    }
-  }
-
-  return validIds;
 }

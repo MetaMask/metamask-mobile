@@ -1,7 +1,7 @@
 import { AccountActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountActions/AccountActionsBottomSheet.testIds';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import Utilities from '../../framework/Utilities';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Utilities from '../../../tests/framework/Utilities';
 import EditAccountNameView from './EditAccountNameView';
 import MultichainAccountDetails from '../MultichainAccounts/AccountDetails';
 import MultichainEditAccountName from '../MultichainAccounts/EditAccountName';

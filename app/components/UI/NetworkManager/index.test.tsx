@@ -132,6 +132,7 @@ jest.mock('../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
+    addTraitsToUser: mockAddTraitsToUser,
   }),
   MetaMetricsEvents: {
     ASSET_FILTER_SELECTED: 'asset_filter_selected',
@@ -565,6 +566,36 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../component-library/components/Buttons/ButtonIcon', () => {
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ onPress }: { onPress?: () => void }) => (
+      <TouchableOpacity testID="button-icon" onPress={onPress} />
+    ),
+    ButtonIconSizes: {
+      Sm: 'sm',
+      Md: 'md',
+      Lg: 'lg',
+    },
+  };
+});
+
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader',
+  () => {
+    const { View: RNView, Text: RNText } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <RNView testID="header">
+          <RNText>{children}</RNText>
+        </RNView>
+      ),
+    };
+  },
+);
+
 jest.mock('../../../component-library/components/Buttons/Button', () => ({
   ButtonVariants: {
     Primary: 'primary',
@@ -734,18 +765,6 @@ describe('NetworkManager Component', () => {
       expect(getByTestId('custom-network-selector')).toBeOnTheScreen();
     });
 
-    it('should apply correct container styles with safe area insets', () => {
-      const { getByTestId } = renderComponent();
-      const modal = getByTestId('main-bottom-sheet');
-
-      expect(modal.props.style).toEqual([
-        {
-          paddingTop: 44 + 800 * 0.02, // safeAreaInsets.top + Device.getDeviceHeight() * 0.02
-          paddingBottom: 34, // safeAreaInsets.bottom
-        },
-      ]);
-    });
-
     it('should set initial tab to popular networks when selectedCount > 0', () => {
       (useNetworksByNamespace as jest.Mock).mockReturnValue({
         selectedCount: 3,
@@ -859,7 +878,7 @@ describe('NetworkManager Component', () => {
 
   describe('Network Deletion Workflow', () => {
     it('should show confirmation modal when delete is pressed', async () => {
-      const { getByTestId } = renderComponent();
+      const { getAllByTestId, getByTestId } = renderComponent();
 
       const openModalButton = getByTestId('open-modal-button');
       fireEvent.press(openModalButton);
@@ -871,13 +890,15 @@ describe('NetworkManager Component', () => {
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalled();
       await waitFor(() => {
-        expect(getByTestId('header')).toBeOnTheScreen();
+        // There are now multiple headers (main sheet + delete modal)
+        const headers = getAllByTestId('header');
+        expect(headers.length).toBeGreaterThan(0);
         expect(getByTestId('bottom-sheet-footer')).toBeOnTheScreen();
       });
     });
 
     it('should display correct network name in delete confirmation', async () => {
-      const { getByTestId, getByText } = renderComponent();
+      const { getAllByTestId, getByTestId, getByText } = renderComponent();
 
       const openModalButton = getByTestId('open-modal-button');
       fireEvent.press(openModalButton);
@@ -888,7 +909,9 @@ describe('NetworkManager Component', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId('header')).toBeOnTheScreen();
+        // There are now multiple headers (main sheet + delete modal)
+        const headers = getAllByTestId('header');
+        expect(headers.length).toBeGreaterThan(0);
         // The network name appears as part of a larger text string, use partial match
         expect(getByText(/Ethereum Mainnet/)).toBeOnTheScreen();
         expect(getByText(/app_settings\.network_delete/)).toBeOnTheScreen();

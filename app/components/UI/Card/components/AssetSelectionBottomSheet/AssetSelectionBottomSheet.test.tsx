@@ -406,60 +406,6 @@ describe('AssetSelectionBottomSheet', () => {
       expect(getByText(/SOL on/)).toBeOnTheScreen();
       expect(getByText(/USDC on/)).toBeOnTheScreen();
     });
-
-    it('filters Linea tokens based on US location', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectUserCardLocation')) {
-          return 'us';
-        }
-        return false;
-      });
-      const token = createMockToken();
-      const delegationSettings: DelegationSettingsResponse = {
-        networks: [
-          {
-            network: 'linea-us',
-            environment: 'production',
-            chainId: '59144',
-            delegationContract: '0xdelegation',
-            tokens: {
-              USDC: {
-                symbol: 'USDC',
-                decimals: 6,
-                address: '0x123',
-              },
-            },
-          },
-        ],
-        count: 1,
-        _links: { self: '/api' },
-      };
-
-      const { getByText } = setupComponent({
-        tokensWithAllowances: [token],
-        delegationSettings,
-      });
-
-      expect(getByText(/USDC on/)).toBeOnTheScreen();
-    });
-
-    it('filters Linea tokens based on international location', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectUserCardLocation')) {
-          return 'international';
-        }
-        return false;
-      });
-      const token = createMockToken();
-      const delegationSettings = createMockDelegationSettings();
-
-      const { getByText } = setupComponent({
-        tokensWithAllowances: [token],
-        delegationSettings,
-      });
-
-      expect(getByText(/USDC on/)).toBeOnTheScreen();
-    });
   });
 
   describe('token sorting', () => {

@@ -18,6 +18,7 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    AMOUNT_INPUT: 'RampAmountInput',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -115,7 +116,7 @@ const Routes = {
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
-    REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET: 'MetalCardClaimBottomSheet',
+    REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -139,6 +140,7 @@ const Routes = {
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
     SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
+    REHYDRATE: 'Rehydrate',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -159,6 +161,7 @@ const Routes = {
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
+    REGION_SELECTOR: 'SettingsRegionSelector',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -239,13 +242,10 @@ const Routes = {
   BRIDGE: {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
+    TOKEN_SELECTOR: 'BridgeTokenSelector',
     MODALS: {
       ROOT: 'BridgeModals',
-      SOURCE_TOKEN_SELECTOR: 'BridgeSourceTokenSelector',
-      SOURCE_NETWORK_SELECTOR: 'BridgeSourceNetworkSelector',
       SLIPPAGE_MODAL: 'SlippageModal',
-      DEST_TOKEN_SELECTOR: 'BridgeDestTokenSelector',
-      DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
@@ -323,6 +323,7 @@ const Routes = {
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
+      TRX_LEARN_MORE: 'TrxLearnMore',
       MAX_INPUT: 'MaxInput',
       GAS_IMPACT: 'GasImpact',
       EARN_TOKEN_LIST: 'EarnTokenList',
@@ -334,6 +335,7 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+      CONVERSION_TRANSACTION_DETAILS: 'MusdConversionTransactionDetails',
     },
     MODALS: {
       ROOT: 'EarnModals',

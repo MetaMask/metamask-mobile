@@ -183,7 +183,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const createMockRouteParams = (overrides = {}) => ({
   params: {
     position: {
-      coin: 'BTC',
+      symbol: 'BTC',
       size: '0.5',
       entryPrice: '50000',
       unrealizedPnl: '5000',
@@ -335,7 +335,7 @@ describe('PerpsHeroCardView', () => {
       });
     });
 
-    it('tracks SHARE_ACTION with INITIATED status', async () => {
+    it('tracks PERPS_UI_INTERACTION with INITIATED status', async () => {
       const { getByTestId } = render(<PerpsHeroCardView />);
 
       await act(async () => {
@@ -346,15 +346,17 @@ describe('PerpsHeroCardView', () => {
 
       await waitFor(() => {
         expect(mockTrack).toHaveBeenCalledWith(
-          MetaMetricsEvents.SHARE_ACTION,
+          MetaMetricsEvents.PERPS_UI_INTERACTION,
           expect.objectContaining({
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
+            [PerpsEventProperties.INTERACTION_TYPE]:
+              PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
           }),
         );
       });
     });
 
-    it('tracks SHARE_ACTION with SUCCESS status', async () => {
+    it('tracks PERPS_UI_INTERACTION with SUCCESS status', async () => {
       const { getByTestId } = render(<PerpsHeroCardView />);
 
       await act(async () => {
@@ -365,9 +367,11 @@ describe('PerpsHeroCardView', () => {
 
       await waitFor(() => {
         expect(mockTrack).toHaveBeenCalledWith(
-          MetaMetricsEvents.SHARE_ACTION,
+          MetaMetricsEvents.PERPS_UI_INTERACTION,
           expect.objectContaining({
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUCCESS,
+            [PerpsEventProperties.INTERACTION_TYPE]:
+              PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
           }),
         );
       });
@@ -429,10 +433,12 @@ describe('PerpsHeroCardView', () => {
 
       await waitFor(() => {
         expect(mockTrack).toHaveBeenCalledWith(
-          MetaMetricsEvents.SHARE_ACTION,
+          MetaMetricsEvents.PERPS_UI_INTERACTION,
           expect.objectContaining({
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
             [PerpsEventProperties.ERROR_MESSAGE]: 'Share failed',
+            [PerpsEventProperties.INTERACTION_TYPE]:
+              PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
           }),
         );
       });

@@ -21,7 +21,7 @@ import { selectSmartTransactionsEnabled } from '../../../../../../../selectors/s
 import { RootState } from '../../../../../../../reducers';
 import { selectSmartTransactionsOptInStatus } from '../../../../../../../selectors/preferencesController';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
-import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonceModal';
+import CustomNonceModal from '../../../../legacy/components/CustomNonceModal';
 import { use7702TransactionType } from '../../../../hooks/7702/use7702TransactionType';
 import Expandable from '../../../UI/expandable';
 import InfoRow from '../../../UI/info-row';

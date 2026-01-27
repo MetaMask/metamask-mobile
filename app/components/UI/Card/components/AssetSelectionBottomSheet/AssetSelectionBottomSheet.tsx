@@ -10,8 +10,6 @@ import {
   CardTokenAllowance,
   DelegationSettingsResponse,
 } from '../../types';
-import { useSelector } from 'react-redux';
-import { selectUserCardLocation } from '../../../../../core/redux/slices/card';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -60,7 +58,6 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import {
   getCaipChainId,
-  getValidLineaChainIds,
   normalizeSymbol,
   shouldProcessNetwork,
 } from '../../util/buildTokenList';
@@ -113,21 +110,10 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const { sdk } = useCardSDK();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const userCardLocation = useSelector(selectUserCardLocation);
-
-  // Helper: Get valid Linea chain IDs based on user location (uses shared utility)
-  const getValidLineaChainIdsForLocation = useCallback(
-    (settings: DelegationSettingsResponse | null): Set<string> =>
-      getValidLineaChainIds(settings, userCardLocation),
-    [userCardLocation],
-  );
 
   // Helper: Check if token should be filtered out
   const shouldFilterOutToken = useCallback(
-    (
-      token: CardTokenAllowance & { chainName: string },
-      validLineaChainIds: Set<string>,
-    ): boolean => {
+    (token: CardTokenAllowance & { chainName: string }): boolean => {
       const networkLower = token.chainName.toLowerCase();
 
       // Allow tokens even if chain is unknown to avoid hiding available assets
@@ -136,12 +122,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
         if (networkLower !== 'unknown') {
           return true;
         }
-      }
-
-      // Filter Linea tokens by location
-      const isLineaToken = networkLower === 'linea';
-      if (isLineaToken && validLineaChainIds.size > 0) {
-        return !validLineaChainIds.has(token.caipChainId);
       }
 
       return false;
@@ -227,8 +207,8 @@ const AssetSelectionBottomSheet: React.FC = () => {
   // Helper: Check if network should be processed (uses shared utility)
   const shouldProcessNetworkForLocation = useCallback(
     (network: DelegationSettingsResponse['networks'][0]): boolean =>
-      shouldProcessNetwork(network, userCardLocation),
-    [userCardLocation],
+      shouldProcessNetwork(network),
+    [],
   );
 
   // Helper: Get token address (handles staging/development environments)
@@ -296,13 +276,10 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const supportedTokens = useMemo<CardTokenAllowance[]>(() => {
     if (!sdk) return [];
 
-    const validLineaChainIds =
-      getValidLineaChainIdsForLocation(delegationSettings);
-
     // Process user tokens
     const userTokens: CardTokenAllowance[] = (tokensWithAllowances || [])
       .map(mapUserToken)
-      .filter((token) => !shouldFilterOutToken(token, validLineaChainIds));
+      .filter((token) => !shouldFilterOutToken(token));
 
     // Add supported tokens from delegation settings that user doesn't have in wallet
     const supportedFromSettings: CardTokenAllowance[] = [];
@@ -384,7 +361,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
     tokensWithAllowances,
     sdk,
     delegationSettings,
-    getValidLineaChainIdsForLocation,
     mapUserToken,
     shouldFilterOutToken,
     shouldProcessNetworkForLocation,

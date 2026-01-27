@@ -186,6 +186,9 @@ describe('useSpendingLimit', () => {
       submitDelegation: mockSubmitDelegation,
       isLoading: false,
       error: null,
+      needsFaucet: false,
+      isFaucetCheckLoading: false,
+      refetchFaucetCheck: jest.fn(),
     });
 
     // Setup SDK mock
@@ -737,6 +740,9 @@ describe('useSpendingLimit', () => {
         submitDelegation: mockSubmitDelegation,
         isLoading: true,
         error: null,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
+        refetchFaucetCheck: jest.fn(),
       });
 
       const { result } = renderHook(() =>
@@ -783,6 +789,9 @@ describe('useSpendingLimit', () => {
         submitDelegation: mockSubmitDelegation,
         isLoading: true,
         error: null,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
+        refetchFaucetCheck: jest.fn(),
       });
 
       const { result } = renderHook(() =>
@@ -888,6 +897,9 @@ describe('useSpendingLimit', () => {
         submitDelegation: mockSubmitDelegation,
         isLoading: true,
         error: null,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
+        refetchFaucetCheck: jest.fn(),
       });
 
       const { result } = renderHook(() =>

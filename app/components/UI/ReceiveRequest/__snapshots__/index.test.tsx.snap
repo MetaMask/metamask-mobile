@@ -360,6 +360,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "borderColor": "#b7bbc866",
                                   "borderRadius": 16,
                                   "borderWidth": 1,
@@ -963,6 +964,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "borderColor": "#b7bbc866",
                                   "borderRadius": 16,
                                   "borderWidth": 1,
@@ -1566,6 +1568,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "borderColor": "#b7bbc866",
                                   "borderRadius": 16,
                                   "borderWidth": 1,
