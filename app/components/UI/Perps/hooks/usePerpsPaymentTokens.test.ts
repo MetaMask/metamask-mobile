@@ -130,14 +130,14 @@ describe('usePerpsPaymentTokens', () => {
   });
 
   describe('Basic functionality', () => {
-    it('should return payment tokens array', () => {
+    it('returns payment tokens array', () => {
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
       expect(Array.isArray(result.current)).toBe(true);
       expect(result.current.length).toBeGreaterThan(0);
     });
 
-    it('should include Hyperliquid USDC as first token', () => {
+    it('includes Hyperliquid USDC as first token', () => {
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
       const firstToken = result.current[0];
@@ -146,7 +146,7 @@ describe('usePerpsPaymentTokens', () => {
       expect(firstToken.chainId).toBe('0x3e7');
     });
 
-    it('should calculate Hyperliquid USDC balance correctly', () => {
+    it('calculates Hyperliquid USDC balance correctly', () => {
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
       const hyperliquidUsdc = result.current[0];
@@ -156,7 +156,7 @@ describe('usePerpsPaymentTokens', () => {
   });
 
   describe('Network handling', () => {
-    it('should use testnet chain ID when on testnet', () => {
+    it('uses testnet chain ID when on testnet', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -165,7 +165,7 @@ describe('usePerpsPaymentTokens', () => {
       expect(hyperliquidUsdc.chainId).toBe('0x1ee7');
     });
 
-    it('should use mainnet chain ID when on mainnet', () => {
+    it('uses mainnet chain ID when on mainnet', () => {
       mockUsePerpsNetwork.mockReturnValue('mainnet');
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -174,7 +174,7 @@ describe('usePerpsPaymentTokens', () => {
       expect(hyperliquidUsdc.chainId).toBe('0x3e7');
     });
 
-    it('should handle missing network configurations', () => {
+    it('handles missing network configurations', () => {
       // Clear previous mock setup and set new values
       mockUseSelector.mockClear();
       mockUseSelector
@@ -189,7 +189,7 @@ describe('usePerpsPaymentTokens', () => {
   });
 
   describe('Token filtering by minimum balance', () => {
-    it('should show all tokens regardless of balance on mainnet', () => {
+    it('shows all tokens regardless of balance on mainnet', () => {
       mockUsePerpsNetwork.mockReturnValue('mainnet');
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -200,7 +200,7 @@ describe('usePerpsPaymentTokens', () => {
       expect(tokenSymbols).toContain('LOW');
     });
 
-    it('should show all tokens regardless of balance on testnet', () => {
+    it('shows all tokens regardless of balance on testnet', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -211,7 +211,7 @@ describe('usePerpsPaymentTokens', () => {
       expect(tokenSymbols).toContain('LOW');
     });
 
-    it('should exclude Hyperliquid chain tokens from other tokens list', () => {
+    it('excludes Hyperliquid chain tokens from other tokens list', () => {
       const tokensWithHyperliquid = [
         ...mockTokensWithBalance,
         {
@@ -239,7 +239,7 @@ describe('usePerpsPaymentTokens', () => {
   });
 
   describe('Token sorting priority', () => {
-    it('should sort USDC tokens before others', () => {
+    it('sorts USDC tokens before others', () => {
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
       const otherTokens = result.current.slice(1);
@@ -251,7 +251,7 @@ describe('usePerpsPaymentTokens', () => {
       expect(usdcIndex).toBeLessThan(ethIndex);
     });
 
-    it('should sort by balance within same token type', () => {
+    it('sorts by balance within same token type', () => {
       const extraTokens = [
         ...mockTokensWithBalance,
         {
@@ -288,7 +288,7 @@ describe('usePerpsPaymentTokens', () => {
   });
 
   describe('Token enhancement', () => {
-    it('should enhance tokens with icons', () => {
+    it('enhances tokens with icons', () => {
       renderHook(() => usePerpsPaymentTokens());
 
       expect(
@@ -305,7 +305,7 @@ describe('usePerpsPaymentTokens', () => {
   });
 
   describe('Edge cases', () => {
-    it('should handle zero Hyperliquid balance', () => {
+    it('handles zero Hyperliquid balance', () => {
       const zeroBalanceAccountState = {
         ...mockAccountState,
         availableBalance: '0',
@@ -323,7 +323,7 @@ describe('usePerpsPaymentTokens', () => {
       expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
     });
 
-    it('should handle null account state', () => {
+    it('handles null account state', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: null,
         isInitialLoading: false,
@@ -336,7 +336,7 @@ describe('usePerpsPaymentTokens', () => {
       expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
     });
 
-    it('should handle empty tokens with balance', () => {
+    it('handles empty tokens with balance', () => {
       mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue([]);
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -345,7 +345,7 @@ describe('usePerpsPaymentTokens', () => {
       expect(result.current[0].symbol).toBe('USDC');
     });
 
-    it('should handle missing token list', () => {
+    it('handles missing token list', () => {
       // Clear previous mock setup and set new values
       mockUseSelector.mockClear();
       mockUseSelector
@@ -358,7 +358,7 @@ describe('usePerpsPaymentTokens', () => {
       expect(result.current.length).toBeGreaterThan(0);
     });
 
-    it('should handle malformed balance fiat values', () => {
+    it('handles malformed balance fiat values', () => {
       const tokensWithMalformedFiat = [
         {
           ...mockTokensWithBalance[0],
@@ -394,7 +394,7 @@ describe('usePerpsPaymentTokens', () => {
   });
 
   describe('Required fields validation', () => {
-    it('should ensure all returned tokens have required fields', () => {
+    it('ensures all returned tokens have required fields', () => {
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
       result.current.forEach((token) => {
@@ -413,7 +413,7 @@ describe('usePerpsPaymentTokens', () => {
       });
     });
 
-    it('should provide fallback values for missing fields', () => {
+    it('provides fallback values for missing fields', () => {
       const tokensWithMissingFields = [
         {
           address: '0xincomplete',
