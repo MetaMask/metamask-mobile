@@ -3598,7 +3598,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           (order) =>
             order.coin === symbol &&
             order.reduceOnly === true &&
-            order.isPositionTpsl === !!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL &&
+            order.isPositionTpsl === !!TP_SL_CONFIG.UsePositionBoundTpsl &&
             order.isTrigger === true &&
             (order.orderType.includes('Take Profit') ||
               order.orderType.includes('Stop')),
