@@ -2,9 +2,8 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
-  SafeAreaView,
   Image,
   Text,
   TouchableOpacity,
@@ -36,19 +35,25 @@ import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
-const FRAME_SIZE = 250;
-
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     modal: {
       margin: 0,
     },
     container: {
-      flex: 1,
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      height: '100%',
+      width: '100%',
       backgroundColor: theme.brandColors.black,
     },
     preview: {
       flex: 1,
+      width: '100%',
+      height: '100%',
+      position: 'absolute',
+      zIndex: 0,
     },
     innerView: {
       position: 'absolute',
@@ -57,72 +62,54 @@ const createStyles = (theme: Theme) =>
       right: 0,
       bottom: 0,
     },
-    closeButtonContainer: {
+    closeIcon: {
       position: 'absolute',
-      top: 0,
-      right: 0,
+      top: 60,
+      right: 20,
       zIndex: 10,
     },
-    closeIcon: {
-      marginTop: 10,
-      marginRight: 20,
-    },
-    // Overlay layout using flexbox to center the frame
-    overlayColumn: {
-      flex: 1,
+    overlayContainerColumn: {
+      display: 'flex',
+      width: '100%',
+      height: '100%',
       flexDirection: 'column',
+      position: 'absolute',
+      zIndex: 1,
     },
-    // Top overlay section
-    topOverlay: {
-      flex: 1,
-      backgroundColor: colors.overlay,
-      justifyContent: 'flex-end',
-      alignItems: 'center',
-      paddingBottom: 20,
-    },
-    // Middle row containing left overlay, frame, right overlay
-    middleRow: {
+    overlayContainerRow: {
+      display: 'flex',
       flexDirection: 'row',
-      height: FRAME_SIZE,
     },
-    // Side overlays
-    sideOverlay: {
+    overlay: {
       flex: 1,
+      flexBasis: 0,
       backgroundColor: colors.overlay,
-    },
-    // Frame container (transparent area)
-    frameContainer: {
-      width: FRAME_SIZE,
-      height: FRAME_SIZE,
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: 'column',
+      display: 'flex',
     },
     frame: {
-      width: FRAME_SIZE,
-      height: FRAME_SIZE,
+      width: 250,
+      height: 250,
+      alignSelf: 'center',
+      justifyContent: 'center',
+      margin: -4,
     },
-    // Bottom overlay section
-    bottomOverlay: {
-      flex: 1,
-      backgroundColor: colors.overlay,
-      justifyContent: 'flex-start',
-      alignItems: 'center',
-      paddingTop: 20,
-    },
-    hintText: {
-      maxWidth: '80%',
+    overlayText: {
       color: theme.brandColors.white,
+      position: 'absolute',
       textAlign: 'center',
+      textAlignVertical: 'bottom',
+      paddingBottom: 28,
+      width: '100%',
+      top: -40,
       fontSize: 16,
       ...fontStyles.normal,
-    },
-    bold: {
-      ...fontStyles.bold,
     },
     scanningText: {
       fontSize: 17,
       color: theme.brandColors.white,
       textAlign: 'center',
+      marginTop: 20,
     },
     // For no camera permission state
     noCameraContainer: {
@@ -183,14 +170,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     setProgress(0);
   }, []);
 
-  const hintText = useMemo(
-    () => (
-      <Text style={styles.hintText}>
-        {strings('connect_qr_hardware.hint_text')}
-      </Text>
-    ),
-    [styles],
-  );
 
   const onError = useCallback(
     async (error: Error) => {
@@ -360,47 +339,35 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               torch="off"
               onError={onError}
             />
-            {/* Overlay layout - outside SafeAreaView to extend to screen edges */}
-            <View style={styles.innerView}>
-              <View style={styles.overlayColumn}>
-                {/* Top overlay with hint text */}
-                <View style={styles.topOverlay}>
-                  <SafeAreaView>{hintText}</SafeAreaView>
-                </View>
+            {/* Overlay layout matching other QR scanner */}
+            <View style={styles.overlayContainerColumn}>
+              <View style={styles.overlay} />
 
-                {/* Middle row: left overlay, frame, right overlay */}
-                <View style={styles.middleRow}>
-                  <View style={styles.sideOverlay} />
-                  <View style={styles.frameContainer}>
-                    <Image source={frameImage} style={styles.frame} />
-                  </View>
-                  <View style={styles.sideOverlay} />
-                </View>
+              <View style={styles.overlayContainerRow}>
+                <Text style={styles.overlayText}>
+                  {strings('connect_qr_hardware.hint_text')}
+                </Text>
+                <View style={styles.overlay} />
+                <Image source={frameImage} style={styles.frame} />
+                <View style={styles.overlay} />
+              </View>
 
-                {/* Bottom overlay with scanning text */}
-                <View style={styles.bottomOverlay}>
-                  <SafeAreaView>
-                    <Text style={styles.scanningText}>{`${strings(
-                      'qr_scanner.scanning',
-                    )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
-                  </SafeAreaView>
-                </View>
+              <View style={styles.overlay}>
+                <Text style={styles.scanningText}>{`${strings(
+                  'qr_scanner.scanning',
+                )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
               </View>
             </View>
-            {/* Close button - inside SafeAreaView for proper positioning */}
-            <SafeAreaView style={styles.closeButtonContainer}>
-              <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-                <Icon name={IconName.Close} size={IconSize.Xl} />
-              </TouchableOpacity>
-            </SafeAreaView>
+            {/* Close button */}
+            <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
+              <Icon name={IconName.Close} size={IconSize.Xl} />
+            </TouchableOpacity>
           </>
         ) : (
           <View style={styles.innerView}>
-            <SafeAreaView style={styles.closeButtonContainer}>
-              <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-                <Icon name={IconName.Close} size={IconSize.Xl} />
-              </TouchableOpacity>
-            </SafeAreaView>
+            <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
+              <Icon name={IconName.Close} size={IconSize.Xl} />
+            </TouchableOpacity>
             <View style={styles.noCameraContainer}>
               <Text style={styles.scanningText}>
                 {strings('transaction.no_camera_permission')}
