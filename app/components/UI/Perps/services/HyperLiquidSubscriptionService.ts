@@ -485,7 +485,7 @@ export class HyperLiquidSubscriptionService {
    * Uses string concatenation of key fields instead of JSON.stringify()
    * Performance: ~100x faster than JSON.stringify() for typical objects
    * Tracks structural changes (coin, size, entryPrice, leverage, TP/SL prices/counts)
-   * and value changes (unrealizedPnl, returnOnEquity) for live P&L updates
+   * and value changes (unrealizedPnl, returnOnEquity, liquidationPrice, marginUsed) for live updates
    */
   private hashPositions(positions: Position[]): string {
     if (!positions || positions.length === 0) return '0';
@@ -496,7 +496,7 @@ export class HyperLiquidSubscriptionService {
             p.takeProfitPrice || ''
           }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}:${
             p.unrealizedPnl
-          }:${p.returnOnEquity}`,
+          }:${p.returnOnEquity}:${p.liquidationPrice || ''}:${p.marginUsed || ''}`,
       )
       .join('|');
   }
