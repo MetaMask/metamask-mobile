@@ -22,6 +22,7 @@ import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { ConfirmRoot } from '../../../components/Views/confirmations/components/confirm';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -100,8 +101,14 @@ const RootRPCMethodsUI = (props) => {
               type: 'signTransaction',
             }),
           );
-        } else {
-          Engine.acceptPendingApproval(transactionMeta.id);
+        } else if (isQRAccount) {
+          props.navigation.navigate(
+            ...createQRSigningTransactionModalNavDetails({
+              transactionId: transactionMeta.id,
+              // eslint-disable-next-line no-empty-function
+              onConfirmationComplete: () => {},
+            }),
+          );
         }
       } catch (error) {
         if (
