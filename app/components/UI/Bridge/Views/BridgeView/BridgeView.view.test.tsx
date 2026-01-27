@@ -14,6 +14,22 @@ import { QuoteViewSelectorIDs } from '../../../../../../e2e/selectors/Bridge/Quo
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 
+// INTENTIONAL ERROR FOR BUGBOT TESTING - Mocking hooks is not allowed in component-view tests
+// This should be detected by Bugbot as it violates Mock Policy MANDATORY rule
+jest.mock('../../hooks/useBridgeQuoteData', () => ({
+  useBridgeQuoteData: jest.fn(() => ({
+    activeQuote: null,
+    isLoading: false,
+    destTokenAmount: '0',
+    quoteFetchError: null,
+    isNoQuotesAvailable: false,
+    isExpired: false,
+    willRefresh: false,
+    blockaidError: null,
+    shouldShowPriceImpactWarning: false,
+  })),
+}));
+
 describeForPlatforms('BridgeView', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {
     const { getByTestId, queryByTestId } = renderBridgeView({
@@ -254,5 +270,13 @@ describeForPlatforms('BridgeView', () => {
     fireEvent.press(await findByText('Swap to'));
     // TokenInputArea navigates to TOKEN_SELECTOR with { type: 'dest' }
     expect(await findByText('dest')).toBeOnTheScreen();
+  });
+
+  // INTENTIONAL ERROR FOR BUGBOT TESTING - This should be detected by Bugbot
+  it('should display error when invalid input is provided', () => {
+    const { getByTestId } = renderBridgeView();
+    expect(
+      getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA),
+    ).toBeOnTheScreen();
   });
 });
