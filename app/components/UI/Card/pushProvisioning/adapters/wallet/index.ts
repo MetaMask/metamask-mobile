@@ -6,3 +6,4 @@
 
 export type { IWalletProviderAdapter } from './IWalletProviderAdapter';
 export { GoogleWalletAdapter } from './GoogleWalletAdapter';
+export { MockWalletAdapter, type MockWalletConfig } from './MockWalletAdapter';

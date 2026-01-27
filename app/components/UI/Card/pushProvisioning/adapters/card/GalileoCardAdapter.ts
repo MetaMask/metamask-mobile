@@ -100,21 +100,21 @@ export class GalileoCardAdapter implements ICardProviderAdapter {
       if (!cardDetails) {
         return {
           eligible: false,
-          reason: 'Card not found',
+          reason: strings('card.push_provisioning.error_card_not_found'),
         };
       }
 
       if (cardDetails.id !== cardId) {
         return {
           eligible: false,
-          reason: 'Card ID mismatch',
+          reason: strings('card.push_provisioning.error_card_id_mismatch'),
         };
       }
 
       if (cardDetails.status !== 'ACTIVE') {
         return {
           eligible: false,
-          reason: `Card is not active (status: ${cardDetails.status})`,
+          reason: strings('card.push_provisioning.error_card_not_active'),
         };
       }
 
@@ -123,7 +123,10 @@ export class GalileoCardAdapter implements ICardProviderAdapter {
       this.logDebug('checkEligibility error', error);
       return {
         eligible: false,
-        reason: error instanceof Error ? error.message : 'Unknown error',
+        reason:
+          error instanceof Error
+            ? error.message
+            : strings('card.push_provisioning.error_unknown'),
       };
     }
   }

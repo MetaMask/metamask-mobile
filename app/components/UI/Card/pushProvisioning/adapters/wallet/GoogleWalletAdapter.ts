@@ -164,19 +164,11 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
    */
   private async initializeWalletModule(): Promise<void> {
     if (Platform.OS !== 'android') {
-      Logger.log(
-        'GoogleWalletAdapter: Skipping initialization - not on Android',
-      );
       return;
     }
 
     try {
-      Logger.log('GoogleWalletAdapter: Loading wallet module...');
       this.walletModule = await import('@expensify/react-native-wallet');
-      Logger.log(
-        'GoogleWalletAdapter: Wallet module loaded successfully',
-        Object.keys(this.walletModule),
-      );
       this.moduleLoadError = null;
     } catch (error) {
       this.moduleLoadError =
@@ -184,7 +176,6 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
       Logger.log(
         'GoogleWalletAdapter: Failed to load wallet module',
         this.moduleLoadError.message,
-        error,
       );
     }
   }
@@ -230,29 +221,25 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
    * Check if Google Wallet is available on this device
    */
   async checkAvailability(): Promise<boolean> {
-    Logger.log('GoogleWalletAdapter.checkAvailability: Starting check', {
-      platform: Platform.OS,
-    });
-
     if (Platform.OS !== 'android') {
       Logger.log(
-        'GoogleWalletAdapter.checkAvailability: Not on Android, returning false',
+        'GoogleWalletAdapter: Not available - platform is not Android',
       );
       return false;
     }
 
     try {
       const wallet = await this.getWalletModule();
-      Logger.log(
-        'GoogleWalletAdapter.checkAvailability: Got wallet module, checking availability...',
-      );
       const isAvailable = await wallet.checkWalletAvailability();
-      Logger.log('GoogleWalletAdapter.checkAvailability: Result', isAvailable);
+
+      if (!isAvailable) {
+        Logger.log('GoogleWalletAdapter: Not available');
+      }
+
       return isAvailable;
     } catch (error) {
-      Logger.log('GoogleWalletAdapter.checkAvailability: Error', {
+      Logger.log('GoogleWalletAdapter: Not available - Error:', {
         message: error instanceof Error ? error.message : String(error),
-        error,
       });
       return false;
     }

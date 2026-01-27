@@ -26,7 +26,34 @@
  * const { initiateProvisioning, isProvisioning } = usePushProvisioning({ cardId: 'card-123' });
  * ```
  *
- * ## Testing with Mock Provider
+ * ## Development Mode - Mock Providers
+ *
+ * In development (`__DEV__`), you can use mock adapters to bypass real SDK dependencies:
+ *
+ * ### Mock Wallet Provider (for Google Wallet)
+ *
+ * When developing without Google's TapAndPay allowlist, enable the mock wallet:
+ *
+ * **Option 1: Environment variable**
+ * ```bash
+ * MOCK_WALLET_PROVIDER=true yarn start:android
+ * ```
+ *
+ * **Option 2: Programmatic toggle**
+ * ```tsx
+ * import { setUseMockWalletProvider } from '@app/components/UI/Card/pushProvisioning';
+ *
+ * // Enable mock wallet provider
+ * setUseMockWalletProvider(true);
+ *
+ * // Disable mock (use real provider)
+ * setUseMockWalletProvider(false);
+ *
+ * // Reset to use environment variable
+ * setUseMockWalletProvider(null);
+ * ```
+ *
+ * ### Mock Card Provider
  *
  * ```tsx
  * import { MockCardAdapter } from '@app/components/UI/Card/pushProvisioning';
@@ -43,7 +70,11 @@ export * from './types';
 export * from './constants';
 
 // Provider factory functions
-export { getCardProvider, getWalletProvider } from './providers';
+export {
+  getCardProvider,
+  getWalletProvider,
+  setUseMockWalletProvider,
+} from './providers';
 
 // Adapters
 export {
@@ -55,6 +86,8 @@ export {
   // Wallet provider adapters
   type IWalletProviderAdapter,
   GoogleWalletAdapter,
+  MockWalletAdapter,
+  type MockWalletConfig,
 } from './adapters';
 
 // Service

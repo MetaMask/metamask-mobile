@@ -86,30 +86,18 @@ export class PushProvisioningService {
    */
   async isAvailable(): Promise<boolean> {
     try {
-      this.logDebug('isAvailable: Checking platform', {
-        platform: Platform.OS,
-      });
-
       if (!this.walletAdapter) {
-        this.logDebug('isAvailable: No wallet adapter available', {
+        this.logDebug('isAvailable: No wallet adapter for platform', {
           platform: Platform.OS,
         });
         return false;
       }
 
-      this.logDebug('isAvailable: Got adapter, checking availability...', {
-        walletType: this.walletAdapter.walletType,
-        platform: this.walletAdapter.platform,
-      });
-
-      const available = await this.walletAdapter.checkAvailability();
-      this.logDebug('isAvailable: Result', { available });
-      return available;
+      return await this.walletAdapter.checkAvailability();
     } catch (error) {
       this.logDebug('isAvailable: Error', {
         message: error instanceof Error ? error.message : String(error),
         code: error instanceof ProvisioningError ? error.code : undefined,
-        stack: error instanceof Error ? error.stack : undefined,
       });
       return false;
     }
@@ -136,7 +124,9 @@ export class PushProvisioningService {
         isAvailable: false,
         canAddCard: false,
         ineligibilityReason:
-          error instanceof Error ? error.message : 'Unknown error',
+          error instanceof Error
+            ? error.message
+            : strings('card.push_provisioning.error_unknown'),
       };
     }
   }
@@ -227,7 +217,9 @@ export class PushProvisioningService {
         status: 'error',
         error: new ProvisioningError(
           ProvisioningErrorCode.UNKNOWN_ERROR,
-          error instanceof Error ? error.message : 'Unknown error occurred',
+          error instanceof Error
+            ? error.message
+            : strings('card.push_provisioning.error_unknown'),
           error instanceof Error ? error : undefined,
         ),
       };

@@ -89,6 +89,7 @@ import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import {
+  setUseMockWalletProvider,
   usePushProvisioning,
   useWalletAvailability,
 } from '../../pushProvisioning';
@@ -180,6 +181,11 @@ const CardHome = () => {
   const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
     useNavigateToCardPage(navigation);
 
+  // Enable mock wallet provider for development testing
+  useEffect(() => {
+    setUseMockWalletProvider(true);
+  }, []);
+
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
@@ -219,6 +225,7 @@ const CardHome = () => {
   const {
     initiateProvisioning: initiatePushProvisioning,
     isProvisioning: isPushProvisioning,
+    isPushProvisioningSupported,
   } = usePushProvisioning({
     cardId: cardDetails?.id ?? '',
     onSuccess: (_result) => {
@@ -998,14 +1005,16 @@ const CardHome = () => {
         )}
       </Box>
 
-      {isWalletAvailable && walletEligibility?.canAddCard && (
-        <AddToWalletButton
-          onPress={isPushProvisioning ? undefined : initiatePushProvisioning}
-          buttonStyle="blackOutline"
-          buttonType="badge"
-          borderRadius={4}
-        />
-      )}
+      {isPushProvisioningSupported &&
+        isWalletAvailable &&
+        walletEligibility?.canAddCard && (
+          <AddToWalletButton
+            onPress={isPushProvisioning ? undefined : initiatePushProvisioning}
+            buttonStyle="blackOutline"
+            buttonType="badge"
+            borderRadius={4}
+          />
+        )}
 
       <Box style={tw.style(cardSetupState.needsSetup && 'hidden')}>
         {isAuthenticated && !isLoading && cardDetails && (

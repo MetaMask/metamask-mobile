@@ -74,12 +74,6 @@ export function useWalletAvailability(
         const available = await service.isAvailable();
         setIsAvailable(available);
 
-        // Log for debugging
-        if (__DEV__) {
-          // eslint-disable-next-line no-console
-          console.log('[useWalletAvailability] isAvailable:', available);
-        }
-
         if (!available) {
           const result: WalletEligibility = {
             isAvailable: false,
@@ -97,22 +91,13 @@ export function useWalletAvailability(
           await service.checkEligibility(lastFourDigits);
         setEligibility(eligibilityResult);
 
-        // Log for debugging
-        if (__DEV__) {
-          // eslint-disable-next-line no-console
-          console.log(
-            '[useWalletAvailability] eligibility:',
-            eligibilityResult,
-          );
-        }
-
         return eligibilityResult;
       } catch (err) {
         const errorInstance =
           err instanceof Error ? err : new Error(String(err));
         setError(errorInstance);
 
-        // Log for debugging
+        // Log errors for debugging
         if (__DEV__) {
           // eslint-disable-next-line no-console
           console.log('[useWalletAvailability] error:', errorInstance.message);

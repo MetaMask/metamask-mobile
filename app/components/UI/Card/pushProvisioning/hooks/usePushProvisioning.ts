@@ -20,6 +20,8 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { useCardSDK } from '../../sdk';
 import { selectUserCardLocation } from '../../../../../core/redux/slices/card';
+import Logger from '../../../../../util/Logger';
+import { strings } from '../../../../../../locales/i18n';
 
 /**
  * Hook for push provisioning cards to mobile wallets
@@ -58,16 +60,41 @@ export function usePushProvisioning(
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Get SDK and user location
-  const { sdk: cardSDK } = useCardSDK();
+  const { sdk: cardSDK, isLoading: isSDKLoading } = useCardSDK();
   const userCardLocation = useSelector(selectUserCardLocation);
 
   // Create the adapters based on user location and platform
   const cardAdapter = useMemo(() => {
-    if (!cardSDK) return null;
-    return getCardProvider(userCardLocation, cardSDK);
-  }, [cardSDK, userCardLocation]);
+    if (isSDKLoading) {
+      if (__DEV__) {
+        Logger.log('[usePushProvisioning] SDK still loading...');
+      }
+      return null;
+    }
+    if (!cardSDK) {
+      if (__DEV__) {
+        Logger.log('[usePushProvisioning] No cardSDK available');
+      }
+      return null;
+    }
+    const adapter = getCardProvider(userCardLocation, cardSDK);
+    if (__DEV__) {
+      Logger.log(
+        `[usePushProvisioning] Card provider: ${adapter ? 'available' : 'not available'} (location: ${userCardLocation})`,
+      );
+    }
+    return adapter;
+  }, [cardSDK, userCardLocation, isSDKLoading]);
 
-  const walletAdapter = useMemo(() => getWalletProvider(), []);
+  const walletAdapter = useMemo(() => {
+    const adapter = getWalletProvider();
+    if (__DEV__) {
+      Logger.log(
+        `[usePushProvisioning] Wallet provider: ${adapter ? adapter.walletType : 'not available'}`,
+      );
+    }
+    return adapter;
+  }, []);
 
   // Create service with adapters
   const service = useMemo(
@@ -187,7 +214,9 @@ export function usePushProvisioning(
             ? err
             : new ProvisioningError(
                 'UNKNOWN_ERROR' as ProvisioningError['code'],
-                err instanceof Error ? err.message : 'Unknown error occurred',
+                err instanceof Error
+                  ? err.message
+                  : strings('card.push_provisioning.error_unknown'),
                 err instanceof Error ? err : undefined,
               );
 
@@ -216,6 +245,9 @@ export function usePushProvisioning(
     setError(null);
   }, []);
 
+  const isCardProviderAvailable = cardAdapter !== null;
+  const isWalletProviderAvailable = walletAdapter !== null;
+
   return {
     status,
     error,
@@ -225,5 +257,11 @@ export function usePushProvisioning(
       status === 'provisioning' || status === 'checking_eligibility',
     isSuccess: status === 'success',
     isError: status === 'error',
+    isSDKLoading,
+    isCardProviderAvailable,
+    isWalletProviderAvailable,
+    // Only report as supported when SDK is ready and both providers available
+    isPushProvisioningSupported:
+      !isSDKLoading && isCardProviderAvailable && isWalletProviderAvailable,
   };
 }

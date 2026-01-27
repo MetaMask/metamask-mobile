@@ -13,4 +13,9 @@ export {
 } from './card';
 
 // Wallet provider adapters
-export { type IWalletProviderAdapter, GoogleWalletAdapter } from './wallet';
+export {
+  type IWalletProviderAdapter,
+  GoogleWalletAdapter,
+  MockWalletAdapter,
+  type MockWalletConfig,
+} from './wallet';

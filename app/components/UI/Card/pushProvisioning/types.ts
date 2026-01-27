@@ -338,6 +338,14 @@ export interface UsePushProvisioningReturn {
   isProvisioning: boolean;
   isSuccess: boolean;
   isError: boolean;
+  /** Whether the SDK is still loading/initializing */
+  isSDKLoading: boolean;
+  /** Whether a card provider is available for the user's region */
+  isCardProviderAvailable: boolean;
+  /** Whether a wallet provider is available for the platform */
+  isWalletProviderAvailable: boolean;
+  /** Whether push provisioning is supported (SDK ready + both providers available) */
+  isPushProvisioningSupported: boolean;
 }
 
 /**

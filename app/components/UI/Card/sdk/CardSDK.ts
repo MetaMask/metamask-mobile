@@ -2143,16 +2143,18 @@ export class CardSDK {
    * Apple Pay or Google Wallet.
    *
    * For Apple Pay (iOS):
+   * - Endpoint: /v1/card/wallet/provision/apple (not yet implemented)
    * - Requires nonce, nonceSignature, and certificates from PassKit SDK
    * - Returns encryptedPassData, activationData, and ephemeralPublicKey
    *
    * For Google Wallet (Android):
-   * - Requires deviceId and walletAccountId from Tap and Pay SDK
-   * - Returns opaquePaymentCard
+   * - Endpoint: /v1/card/wallet/provision/google
+   * - Requires clientDeviceID and clientWalletAccountID from Tap and Pay SDK
+   * - Returns opaquePaymentCard (OPC) for use with TapAndPay SDK pushTokenize()
    *
    * @param params - The provisioning request parameters
    * @returns Promise resolving to the provisioning response with encrypted data
-   * @see https://docs.galileo-ft.com/pro/docs/creating-a-provisioning-request
+   * @see https://dev.api.baanx.com/v1/card/wallet/provision/google
    */
   createProvisioningRequest = async (params: {
     cardId: string;
@@ -2183,34 +2185,39 @@ export class CardSDK {
       );
     }
 
-    const endpoint = '/v1/card/provisioning';
-    let requestBody;
+    let endpoint: string;
+    let requestBody: Record<string, unknown>;
 
     if (params.walletType === 'apple_pay') {
-      // Apple Pay provisioning request
+      // Apple Pay provisioning request (endpoint TBD)
+      endpoint = '/v1/card/wallet/provision/apple';
       requestBody = {
-        walletType: 'APPLE_PAY',
         nonce: params.nonce,
         nonceSignature: params.nonceSignature,
         certificates: params.certificates,
       };
     } else {
       // Google Wallet provisioning request
-      requestBody = {
-        walletType: 'GOOGLE_WALLET',
-        deviceId: params.deviceId,
-        walletAccountId: params.walletAccountId,
-      };
+      // API: POST /v1/card/wallet/provision/google
+      // Body: { clientWalletAccountID, clientDeviceID }
+      endpoint = '/v1/card/wallet/provision/google';
+      requestBody = {};
     }
 
-    const response = await this.makeRequest(
+    this.logDebugInfo('createProvisioningRequest', {
       endpoint,
-      {
+      walletType: params.walletType,
+      deviceId: params.deviceId,
+      walletAccountId: params.walletAccountId,
+    });
+
+    const response = await this.makeRequest(endpoint, {
+      fetchOptions: {
         method: 'POST',
         body: JSON.stringify(requestBody),
       },
-      true, // authenticated
-    );
+      authenticated: true,
+    });
 
     if (!response.ok) {
       let responseBody = null;
@@ -2235,6 +2242,21 @@ export class CardSDK {
         );
       }
 
+      if (response.status === 422) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          responseBody?.message || 'Invalid provisioning request data',
+        );
+      }
+
+      if (response.status === 429) {
+        throw new CardError(
+          CardErrorType.SERVER_ERROR,
+          responseBody?.message ||
+            'Rate limit exceeded. Please try again later.',
+        );
+      }
+
       Logger.log(
         responseBody,
         `CardSDK: Failed to create provisioning request. Status: ${response.status}`,
@@ -2247,20 +2269,39 @@ export class CardSDK {
       );
     }
 
-    const data = await response.json();
-    this.logDebugInfo('createProvisioningRequest', data);
+    const responseData = await response.json();
+    this.logDebugInfo('createProvisioningRequest response', responseData);
 
+    // Handle Google Wallet response format: { success: true, data: { opaquePaymentCard: "..." } }
+    if (params.walletType === 'google_wallet') {
+      if (!responseData.success) {
+        throw new CardError(
+          CardErrorType.SERVER_ERROR,
+          'Provisioning request failed',
+        );
+      }
+
+      const data = responseData.data || {};
+      return {
+        cardNetwork: data.cardNetwork || 'MASTERCARD',
+        lastFourDigits: data.lastFourDigits || data.panLast4 || '',
+        cardholderName: data.cardholderName || data.holderName || '',
+        cardDescription: data.cardDescription,
+        opaquePaymentCard: data.opaquePaymentCard,
+      };
+    }
+
+    // Handle Apple Pay response format (structure TBD)
+    const data = responseData.data || responseData;
     return {
-      cardNetwork: data.cardNetwork || 'VISA',
-      lastFourDigits: data.lastFourDigits || data.panLast4,
-      cardholderName: data.cardholderName || data.holderName,
+      cardNetwork: data.cardNetwork || 'MASTERCARD',
+      lastFourDigits: data.lastFourDigits || data.panLast4 || '',
+      cardholderName: data.cardholderName || data.holderName || '',
       cardDescription: data.cardDescription,
       // Apple Pay fields
       encryptedPassData: data.encryptedPassData,
       activationData: data.activationData,
       ephemeralPublicKey: data.ephemeralPublicKey,
-      // Google Wallet fields
-      opaquePaymentCard: data.opaquePaymentCard,
     };
   };
 }
