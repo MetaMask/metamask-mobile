@@ -80,7 +80,7 @@ export const parseVolume = (volumeStr: string | undefined): number => {
   if (!volumeStr) return -1; // Put undefined at the end
 
   // Handle special cases
-  if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1;
+  if (volumeStr === PERPS_CONSTANTS.FallbackPriceDisplay) return -1;
   // Special case: '$<1' represents volumes less than $1 (e.g., $0.50, $0.75)
   // This is a display format from the provider, not a validation constant
   // We treat it as 0.5 for sorting purposes (small but not zero)
@@ -129,16 +129,16 @@ export const usePerpsMarkets = (
         ? marketData.filter((market) => {
             // Filter out fallback/error values
             if (
-              market.volume === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY ||
-              market.volume === PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+              market.volume === PERPS_CONSTANTS.FallbackPriceDisplay ||
+              market.volume === PERPS_CONSTANTS.FallbackDataDisplay
             ) {
               return false;
             }
             // Filter out zero and missing values
             if (
               !market.volume ||
-              market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY ||
-              market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
+              market.volume === PERPS_CONSTANTS.ZeroAmountDisplay ||
+              market.volume === PERPS_CONSTANTS.ZeroAmountDetailedDisplay
             ) {
               return false;
             }

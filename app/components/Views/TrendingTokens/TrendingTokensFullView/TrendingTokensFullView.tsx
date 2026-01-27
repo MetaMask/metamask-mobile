@@ -6,6 +6,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import {
+  Platform,
   StyleSheet,
   View,
   TouchableOpacity,
@@ -54,7 +55,6 @@ const createStyles = (theme: Theme) =>
     safeArea: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
-      paddingBottom: 16,
     },
     headerContainer: {
       backgroundColor: theme.colors.background.default,
@@ -305,7 +305,12 @@ const TrendingTokensFullView = () => {
   }, [selectedPriceChangeOption]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={
+        Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']
+      }
+    >
       <View
         style={[
           styles.headerContainer,
