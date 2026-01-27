@@ -1,12 +1,12 @@
 import { RegressionWalletUX } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import { loginToApp } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { Assertions } from '../../framework';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
 import { Mockttp } from 'mockttp';
-import { setupContentfulPromotionalBannersMock } from '../../api-mocking/helpers/contentfulHelper.ts';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
+import { setupContentfulPromotionalBannersMock } from '../../api-mocking/helpers/contentfulHelper';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(RegressionWalletUX('Carousel Tests'), () => {
   beforeAll(async () => {

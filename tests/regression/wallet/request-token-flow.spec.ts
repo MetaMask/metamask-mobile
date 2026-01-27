@@ -1,14 +1,14 @@
 import { RegressionWalletPlatform } from '../../../e2e/tags';
-import RequestPaymentModal from '../../../e2e/pages/Receive/RequestPaymentModal.ts';
-import SendLinkView from '../../../e2e/pages/Receive/SendLinkView.ts';
-import PaymentRequestQrBottomSheet from '../../../e2e/pages/Receive/PaymentRequestQrBottomSheet.ts';
-import RequestPaymentView from '../../../e2e/pages/Receive/RequestPaymentView.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import ProtectYourWalletModal from '../../../e2e/pages/Onboarding/ProtectYourWalletModal.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import Assertions from '../../framework/Assertions.ts';
+import RequestPaymentModal from '../../../e2e/pages/Receive/RequestPaymentModal';
+import SendLinkView from '../../../e2e/pages/Receive/SendLinkView';
+import PaymentRequestQrBottomSheet from '../../../e2e/pages/Receive/PaymentRequestQrBottomSheet';
+import RequestPaymentView from '../../../e2e/pages/Receive/RequestPaymentView';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import ProtectYourWalletModal from '../../../e2e/pages/Onboarding/ProtectYourWalletModal';
+import { loginToApp } from '../../../e2e/viewHelper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import Assertions from '../../framework/Assertions';
 
 const SAI_CONTRACT_ADDRESS: string =
   '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';

@@ -1,31 +1,28 @@
 'use strict';
-import Browser from '../../../e2e/pages/Browser/BrowserView.ts';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper.ts';
-import TestDApp from '../../../e2e/pages/Browser/TestDApp.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import {
-  DappVariants,
-  defaultGanacheOptions,
-} from '../../framework/Constants.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import Browser from '../../../e2e/pages/Browser/BrowserView';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import TestDApp from '../../../e2e/pages/Browser/TestDApp';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { DappVariants, defaultGanacheOptions } from '../../framework/Constants';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { RegressionAccounts } from '../../../e2e/tags';
 import TestHelpers from '../../../e2e/helpers';
-import Assertions from '../../framework/Assertions.ts';
-import RevealSecretRecoveryPhrase from '../../../e2e/pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.ts';
-import ErrorBoundaryView from '../../../e2e/pages/ErrorBoundaryView/ErrorBoundaryView.ts';
+import Assertions from '../../framework/Assertions';
+import RevealSecretRecoveryPhrase from '../../../e2e/pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
+import ErrorBoundaryView from '../../../e2e/pages/ErrorBoundaryView/ErrorBoundaryView';
 import {
   AnvilPort,
   buildPermissions,
-} from '../../framework/fixtures/FixtureUtils.ts';
-import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers.ts';
+} from '../../framework/fixtures/FixtureUtils';
+import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   SECURITY_ALERTS_REQUEST_BODY,
   securityAlertsUrl,
-} from '../../api-mocking/mock-responses/security-alerts-mock.ts';
-import { LocalNode } from '../../framework/types.ts';
-import { AnvilManager } from '../../seeder/anvil-manager.ts';
+} from '../../api-mocking/mock-responses/security-alerts-mock';
+import { LocalNode } from '../../framework/types';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const PASSWORD = '123123123';
 

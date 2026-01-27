@@ -1,15 +1,15 @@
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { RegressionAccounts } from '../../../e2e/tags.js';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import EditAccountName from '../../../e2e/pages/MultichainAccounts/EditAccountName.ts';
-import Assertions from '../../framework/Assertions.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import SettingsView from '../../../e2e/pages/Settings/SettingsView.ts';
-import LoginView from '../../../e2e/pages/wallet/LoginView.ts';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet.ts';
-import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import EditAccountName from '../../../e2e/pages/MultichainAccounts/EditAccountName';
+import Assertions from '../../framework/Assertions';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../e2e/pages/Settings/SettingsView';
+import LoginView from '../../../e2e/pages/wallet/LoginView';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
+import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../../e2e/viewHelper';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
 const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';

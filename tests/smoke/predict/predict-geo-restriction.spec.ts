@@ -19,7 +19,7 @@ import {
   POLYMARKET_GEO_BLOCKED_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../page-objects/Predict/PredictAddFunds';
-import { getEventsPayloads } from '../../helpers/analytics/helpers.ts';
+import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
 
 //Enable the Predictions feature flag and force Polymarket geoblock

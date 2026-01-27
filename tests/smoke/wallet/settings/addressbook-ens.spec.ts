@@ -1,26 +1,26 @@
 import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent.ts';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView.ts';
-import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView.ts';
-import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView.ts';
-import { loginToApp } from '../../../../e2e/viewHelper.ts';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import Assertions from '../../../framework/Assertions.ts';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
+import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import Assertions from '../../../framework/Assertions';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/helpers/mockHelpers.ts';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
+} from '../../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   SIMULATION_ENABLED_NETWORKS_MOCK,
   SEND_ETH_SIMULATION_MOCK,
-} from '../../../api-mocking/mock-responses/simulations.ts';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
-import CommonView from '../../../../e2e/pages/CommonView.ts';
+} from '../../../api-mocking/mock-responses/simulations';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import CommonView from '../../../../e2e/pages/CommonView';
 import enContent from '../../../../locales/languages/en.json';
-import WalletView from '../../../../e2e/pages/wallet/WalletView.ts';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
 import { device } from 'detox';
 
 const MEMO = 'Test adding ENS';

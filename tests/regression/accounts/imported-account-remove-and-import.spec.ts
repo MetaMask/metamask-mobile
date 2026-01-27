@@ -1,18 +1,18 @@
 'use strict';
 
 import { RegressionAccounts } from '../../../e2e/tags.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet.ts';
-import ImportAccountView from '../../../e2e/pages/importAccount/ImportAccountView.ts';
-import Assertions from '../../framework/Assertions.ts';
-import AddAccountBottomSheet from '../../../e2e/pages/wallet/AddAccountBottomSheet.ts';
-import SuccessImportAccountView from '../../../e2e/pages/importAccount/SuccessImportAccountView.ts';
-import { AccountListBottomSheetSelectorsText } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds.ts';
-import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails.ts';
-import DeleteAccount from '../../../e2e/pages/MultichainAccounts/DeleteAccount.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../../e2e/viewHelper';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
+import ImportAccountView from '../../../e2e/pages/importAccount/ImportAccountView';
+import Assertions from '../../framework/Assertions';
+import AddAccountBottomSheet from '../../../e2e/pages/wallet/AddAccountBottomSheet';
+import SuccessImportAccountView from '../../../e2e/pages/importAccount/SuccessImportAccountView';
+import { AccountListBottomSheetSelectorsText } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
+import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
+import DeleteAccount from '../../../e2e/pages/MultichainAccounts/DeleteAccount';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token

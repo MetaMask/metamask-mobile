@@ -1,13 +1,13 @@
 import { RegressionAccounts } from '../../../e2e/tags.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import Assertions from '../../framework/Assertions.ts';
-import PrivateKeysList from '../../../e2e/pages/MultichainAccounts/PrivateKeyList.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet.ts';
-import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import Assertions from '../../framework/Assertions';
+import PrivateKeysList from '../../../e2e/pages/MultichainAccounts/PrivateKeyList';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
+import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
 
 describe(RegressionAccounts('Account details private key'), () => {
   const PASSWORD = '123123123';

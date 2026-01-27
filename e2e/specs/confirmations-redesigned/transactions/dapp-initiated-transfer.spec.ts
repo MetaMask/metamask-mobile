@@ -21,7 +21,7 @@ import { DappVariants } from '../../../../tests/framework/Constants';
 import {
   EventPayload,
   getEventsPayloads,
-} from '../../../../tests/helpers/analytics/helpers.ts';
+} from '../../../../tests/helpers/analytics/helpers';
 import SoftAssert from '../../../../tests/framework/SoftAssert';
 import { Mockttp } from 'mockttp';
 import {

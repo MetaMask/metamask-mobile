@@ -1,24 +1,24 @@
 'use strict';
 import { SmokeWalletPlatform } from '../../../../e2e/tags';
-import { importWalletWithRecoveryPhrase } from '../../../../e2e/viewHelper.ts';
+import { importWalletWithRecoveryPhrase } from '../../../../e2e/viewHelper';
 import TestHelpers from '../../../../e2e/helpers';
-import Assertions from '../../../framework/Assertions.ts';
+import Assertions from '../../../framework/Assertions';
 import {
   EventPayload,
   findEvent,
   getEventsPayloads,
   onboardingEvents,
-} from '../../../helpers/analytics/helpers.ts';
+} from '../../../helpers/analytics/helpers';
 import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
-} from '../../../../e2e/specs/identity/utils/constants.ts';
-import SoftAssert from '../../../framework/SoftAssert.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
+} from '../../../../e2e/specs/identity/utils/constants';
+import SoftAssert from '../../../framework/SoftAssert';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
-import { remoteFeatureMultichainAccountsAccountDetails } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
   beforeAll(async () => {

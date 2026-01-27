@@ -1,6 +1,6 @@
 import { MockedEndpoint, Mockttp, MockttpServer } from 'mockttp';
 import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
-import { createLogger } from '../../framework/logger.ts';
+import { createLogger } from '../../framework/logger';
 
 const logger = createLogger({
   name: 'AnalyticsHelpers',

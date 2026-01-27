@@ -10,7 +10,7 @@ import { ActivitiesViewSelectorsText } from '../../../app/components/Views/Activ
 import {
   EventPayload,
   getEventsPayloads,
-} from '../../../tests/helpers/analytics/helpers.ts';
+} from '../../../tests/helpers/analytics/helpers';
 import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
 import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';

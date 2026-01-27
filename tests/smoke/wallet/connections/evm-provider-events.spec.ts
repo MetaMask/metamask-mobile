@@ -1,27 +1,24 @@
 import { SmokeWalletPlatform } from '../../../../e2e/tags';
-import Assertions from '../../../framework/Assertions.ts';
+import Assertions from '../../../framework/Assertions';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_2,
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
-} from '../../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import TestDApp from '../../../../e2e/pages/Browser/TestDApp.ts';
-import Browser from '../../../../e2e/pages/Browser/BrowserView.ts';
-import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal.ts';
-import {
-  loginToApp,
-  navigateToBrowserView,
-} from '../../../../e2e/viewHelper.ts';
+} from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import { DappVariants } from '../../../framework/Constants.ts';
-import ToastModal from '../../../../e2e/pages/wallet/ToastModal.ts';
-import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet.ts';
-import NetworkListModal from '../../../../e2e/pages/Network/NetworkListModal.ts';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
+import { DappVariants } from '../../../framework/Constants';
+import ToastModal from '../../../../e2e/pages/wallet/ToastModal';
+import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
+import NetworkListModal from '../../../../e2e/pages/Network/NetworkListModal';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeWalletPlatform('EVM Provider Events'), () => {
   beforeAll(async () => {

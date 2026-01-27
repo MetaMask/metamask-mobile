@@ -1,13 +1,13 @@
 import { RegressionWalletPlatform } from '../../../e2e/tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import Assertions from '../../framework/Assertions.ts';
-import { LocalNode } from '../../framework/types.ts';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils.ts';
-import { AnvilManager } from '../../seeder/anvil-manager.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../../e2e/viewHelper';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import Assertions from '../../framework/Assertions';
+import { LocalNode } from '../../framework/types';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const EXPECTED_HIDDEN_BALANCE: string = '••••••••••••';
 

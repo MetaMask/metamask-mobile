@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
-import Assertions from '../../../framework/Assertions.ts';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import Assertions from '../../../framework/Assertions';
 import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView.ts';
-import SecurityAndPrivacy from '../../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.ts';
-import { loginToApp } from '../../../../e2e/viewHelper.ts';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent.ts';
-import CommonView from '../../../../e2e/pages/CommonView.ts';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import SecurityAndPrivacy from '../../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import CommonView from '../../../../e2e/pages/CommonView';
 import {
   EventPayload,
   filterEvents,
   getEventsPayloads,
   onboardingEvents,
-} from '../../../helpers/analytics/helpers.ts';
-import SoftAssert from '../../../framework/SoftAssert.ts';
+} from '../../../helpers/analytics/helpers';
+import SoftAssert from '../../../framework/SoftAssert';
 
 describe(
   RegressionWalletPlatform(

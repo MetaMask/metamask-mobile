@@ -1,17 +1,17 @@
 import { Mockttp } from 'mockttp';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
 import { SmokeRewards } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import RewardsClaimBonus from '../../../e2e/pages/Rewards/RewardsOnboarding.ts';
-import Assertions from '../../framework/Assertions.ts';
-import RewardsView from '../../../e2e/pages/Rewards/RewardsView.ts';
-import RewardsActivityTabView from '../../../e2e/pages/Rewards/RewardsActivityTabView.ts';
+import { loginToApp } from '../../../e2e/viewHelper';
+import RewardsClaimBonus from '../../../e2e/pages/Rewards/RewardsOnboarding';
+import Assertions from '../../framework/Assertions';
+import RewardsView from '../../../e2e/pages/Rewards/RewardsView';
+import RewardsActivityTabView from '../../../e2e/pages/Rewards/RewardsActivityTabView';
 import {
   setUpActivityMocks,
   setUpRewardsOnboardingMocks,
-} from './rewards.mocks.ts';
+} from './rewards.mocks';
 
 describe.skip(SmokeRewards('Rewards Feature Test'), () => {
   it('should opt-in to rewards successfully', async () => {

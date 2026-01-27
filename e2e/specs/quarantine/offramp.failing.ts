@@ -13,7 +13,7 @@ import QuotesView from '../../pages/Ramps/QuotesView';
 import {
   EventPayload,
   getEventsPayloads,
-} from '../../../tests/helpers/analytics/helpers.ts';
+} from '../../../tests/helpers/analytics/helpers';
 import SoftAssert from '../../../tests/framework/SoftAssert';
 import {
   RampsRegions,

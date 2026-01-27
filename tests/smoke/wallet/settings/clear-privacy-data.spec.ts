@@ -1,18 +1,15 @@
 import { RegressionWalletUX } from '../../../../e2e/tags';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView.ts';
-import SecurityAndPrivacyView from '../../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.ts';
-import {
-  loginToApp,
-  navigateToBrowserView,
-} from '../../../../e2e/viewHelper.ts';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent.ts';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import Assertions from '../../../framework/Assertions.ts';
-import ClearPrivacyModal from '../../../../e2e/pages/Settings/SecurityAndPrivacy/ClearPrivacyModal.ts';
-import BrowserView from '../../../../e2e/pages/Browser/BrowserView.ts';
-import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal.ts';
-import { DappVariants } from '../../../framework/Constants.ts';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import SecurityAndPrivacyView from '../../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import Assertions from '../../../framework/Assertions';
+import ClearPrivacyModal from '../../../../e2e/pages/Settings/SecurityAndPrivacy/ClearPrivacyModal';
+import BrowserView from '../../../../e2e/pages/Browser/BrowserView';
+import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import { DappVariants } from '../../../framework/Constants';
 
 describe(RegressionWalletUX('Clear Privacy data'), () => {
   beforeAll(async () => {

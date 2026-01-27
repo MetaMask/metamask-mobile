@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 'use strict';
 import { SmokeWalletPlatform } from '../../../../e2e/tags';
-import { CreateNewWallet } from '../../../../e2e/viewHelper.ts';
+import { CreateNewWallet } from '../../../../e2e/viewHelper';
 import TestHelpers from '../../../../e2e/helpers';
-import Assertions from '../../../framework/Assertions.ts';
+import Assertions from '../../../framework/Assertions';
 import {
   getEventsPayloads,
   onboardingEvents,
-} from '../../../helpers/analytics/helpers.ts';
-import SoftAssert from '../../../framework/SoftAssert.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
+} from '../../../helpers/analytics/helpers';
+import SoftAssert from '../../../framework/SoftAssert';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 
 const eventNames = [
   onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,

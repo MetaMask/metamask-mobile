@@ -15,7 +15,7 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import {
   EventPayload,
   getEventsPayloads,
-} from '../../../tests/helpers/analytics/helpers.ts';
+} from '../../../tests/helpers/analytics/helpers';
 import SoftAssert from '../../../tests/framework/SoftAssert';
 import {
   RampsRegions,

@@ -1,10 +1,10 @@
 import { RegressionNetworkAbstractions } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import BrowserView from '../../../e2e/pages/Browser/BrowserView.ts';
-import Assertions from '../../framework/Assertions.ts';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import BrowserView from '../../../e2e/pages/Browser/BrowserView';
+import Assertions from '../../framework/Assertions';
 
 describe(
   RegressionNetworkAbstractions('Connect account to Portfolio'),

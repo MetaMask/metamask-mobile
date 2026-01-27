@@ -1,14 +1,14 @@
 import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView.ts';
-import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView.ts';
-import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView.ts';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent.ts';
-import { loginToApp } from '../../../../e2e/viewHelper.ts';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
+import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TestHelpers from '../../../../e2e/helpers';
-import { getFixturesServerPort } from '../../../framework/fixtures/FixtureUtils.ts';
-import Assertions from '../../../framework/Assertions.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
+import { getFixturesServerPort } from '../../../framework/fixtures/FixtureUtils';
+import Assertions from '../../../framework/Assertions';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
 const MEMO = 'Address for testing 123123123';
 

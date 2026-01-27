@@ -1,13 +1,13 @@
 import { RegressionAccounts } from '../../../../e2e/tags';
 import TestHelpers from '../../../../e2e/helpers';
-import Assertions from '../../../framework/Assertions.ts';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent.ts';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView.ts';
-import { loginToApp } from '../../../../e2e/viewHelper.ts';
-import AesCryptoTestForm from '../../../../e2e/pages/Settings/AesCryptoTestForm.ts';
+import Assertions from '../../../framework/Assertions';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import AesCryptoTestForm from '../../../../e2e/pages/Settings/AesCryptoTestForm';
 
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
 describe(RegressionAccounts('AES Crypto - Salt generation'), () => {
   const SALT_BYTES_COUNT = 32;

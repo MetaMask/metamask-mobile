@@ -1,29 +1,29 @@
 import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import WalletView from '../../../../e2e/pages/wallet/WalletView.ts';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent.ts';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView.ts';
-import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView.ts';
-import { loginToApp } from '../../../../e2e/viewHelper.ts';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import Assertions from '../../../framework/Assertions.ts';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import Assertions from '../../../framework/Assertions';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/helpers/mockHelpers.ts';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
+} from '../../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   SIMULATION_ENABLED_NETWORKS_MOCK,
   SEND_ETH_SIMULATION_MOCK,
-} from '../../../api-mocking/mock-responses/simulations.ts';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
-import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView.ts';
-import DeleteContactBottomSheet from '../../../../e2e/pages/Settings/Contacts/DeleteContactBottomSheet.ts';
-import { LocalNode } from '../../../framework/types.ts';
-import { AnvilPort } from '../../../framework/fixtures/FixtureUtils.ts';
-import { AnvilManager } from '../../../seeder/anvil-manager.ts';
-import RedesignedSendView from '../../../../e2e/pages/Send/RedesignedSendView.ts';
+} from '../../../api-mocking/mock-responses/simulations';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
+import DeleteContactBottomSheet from '../../../../e2e/pages/Settings/Contacts/DeleteContactBottomSheet';
+import { LocalNode } from '../../../framework/types';
+import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../../seeder/anvil-manager';
+import RedesignedSendView from '../../../../e2e/pages/Send/RedesignedSendView';
 
 const TEST_CONTACT = {
   address: '0x90aF68e1ec406e77C2EA0E4e6EAc9475062d6456',

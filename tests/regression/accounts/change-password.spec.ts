@@ -1,17 +1,17 @@
 import { RegressionAccounts } from '../../../e2e/tags.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Assertions from '../../framework/Assertions.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import SettingsView from '../../../e2e/pages/Settings/SettingsView.ts';
-import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import ChangePasswordView from '../../../e2e/pages/Settings/SecurityAndPrivacy/ChangePasswordView.ts';
-import LoginView from '../../../e2e/pages/wallet/LoginView.ts';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet.ts';
-import ToastModal from '../../../e2e/pages/wallet/ToastModal.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import Matchers from '../../framework/Matchers';
+import Assertions from '../../framework/Assertions';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../e2e/pages/Settings/SettingsView';
+import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import ChangePasswordView from '../../../e2e/pages/Settings/SecurityAndPrivacy/ChangePasswordView';
+import LoginView from '../../../e2e/pages/wallet/LoginView';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
+import ToastModal from '../../../e2e/pages/wallet/ToastModal';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 describe(RegressionAccounts('change password'), () => {
   const PASSWORD = '123123123';

@@ -13,7 +13,7 @@ import SoftAssert from '../../../tests/framework/SoftAssert';
 import {
   EventPayload,
   getEventsPayloads,
-} from '../../../tests/helpers/analytics/helpers.ts';
+} from '../../../tests/helpers/analytics/helpers';
 import {
   RampsRegions,
   RampsRegionsEnum,

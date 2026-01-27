@@ -2,19 +2,19 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { Mockttp } from 'mockttp';
 
 import { SmokeWalletPlatform } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import Assertions from '../../framework/Assertions.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import { loginToApp } from '../../../e2e/viewHelper';
+import Assertions from '../../framework/Assertions';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../framework/fixtures/FixtureBuilder.ts';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import ToastModal from '../../../e2e/pages/wallet/ToastModal.ts';
-import { MockApiEndpoint, TestSpecificMock } from '../../framework/types.ts';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.ts';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks.ts';
+} from '../../framework/fixtures/FixtureBuilder';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import ToastModal from '../../../e2e/pages/wallet/ToastModal';
+import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';

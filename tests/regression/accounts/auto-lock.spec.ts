@@ -1,16 +1,16 @@
 import { RegressionAccounts } from '../../../e2e/tags.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import SettingsView from '../../../e2e/pages/Settings/SettingsView.ts';
-import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.ts';
-import AutoLockModal from '../../../e2e/pages/Settings/SecurityAndPrivacy/AutoLockModal.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import LoginView from '../../../e2e/pages/wallet/LoginView.ts';
-import Assertions from '../../framework/Assertions.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../e2e/pages/Settings/SettingsView';
+import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import AutoLockModal from '../../../e2e/pages/Settings/SecurityAndPrivacy/AutoLockModal';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import LoginView from '../../../e2e/pages/wallet/LoginView';
+import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../../e2e/helpers.js';
-import { logger } from '../../framework/logger.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
+import { logger } from '../../framework/logger';
+import { loginToApp } from '../../../e2e/viewHelper';
 
 const isIOS = device.getPlatform() === 'ios';
 (isIOS ? describe : describe.skip)(RegressionAccounts('Auto-Lock'), () => {

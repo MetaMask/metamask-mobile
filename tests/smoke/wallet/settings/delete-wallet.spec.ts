@@ -1,17 +1,17 @@
 import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import OnboardingView from '../../../../e2e/pages/Onboarding/OnboardingView.ts';
-import LoginView from '../../../../e2e/pages/wallet/LoginView.ts';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView.ts';
-import SecurityAndPrivacyView from '../../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.ts';
-import ChangePasswordView from '../../../../e2e/pages/Settings/SecurityAndPrivacy/ChangePasswordView.ts';
-import ForgotPasswordModal from '../../../../e2e/pages/Common/ForgotPasswordModalView.ts';
-import { loginToApp } from '../../../../e2e/viewHelper.ts';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent.ts';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import CommonView from '../../../../e2e/pages/CommonView.ts';
-import Assertions from '../../../framework/Assertions.ts';
-import ToastModal from '../../../../e2e/pages/wallet/ToastModal.ts';
+import OnboardingView from '../../../../e2e/pages/Onboarding/OnboardingView';
+import LoginView from '../../../../e2e/pages/wallet/LoginView';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import SecurityAndPrivacyView from '../../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import ChangePasswordView from '../../../../e2e/pages/Settings/SecurityAndPrivacy/ChangePasswordView';
+import ForgotPasswordModal from '../../../../e2e/pages/Common/ForgotPasswordModalView';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import CommonView from '../../../../e2e/pages/CommonView';
+import Assertions from '../../../framework/Assertions';
+import ToastModal from '../../../../e2e/pages/wallet/ToastModal';
 
 describe(
   RegressionWalletPlatform(
