@@ -1,9 +1,9 @@
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import {
   createNavigationDetails,
   useParams,
@@ -25,7 +25,12 @@ const OptionsSheet = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const options = params.options;
+  // Sort options alphabetically by label
+  const sortedOptions = useMemo(() => [...params.options].sort((a, b) => {
+      const labelA = a.label || '';
+      const labelB = b.label || '';
+      return labelA.localeCompare(labelB);
+    }), [params.options]);
 
   const onSelectedValueChange = (val?: string) => {
     if (!val) {
@@ -35,12 +40,18 @@ const OptionsSheet = () => {
     bottomSheetRef.current?.onCloseBottomSheet();
   };
 
+  const handleClose = () => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  };
+
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <SheetHeader title={params.label} />
+      <BottomSheetHeader onClose={handleClose}>
+        {params.label}
+      </BottomSheetHeader>
       <ScrollView style={styles.list}>
         <View style={styles.listWrapper}>
-          {options.map((option) => {
+          {sortedOptions.map((option) => {
             const isSelected = option.value === params.selectedValue;
             return (
               <TouchableOpacity
