@@ -529,9 +529,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Preserve banner variant when we have a valid one (for use during success fade-out)
   // The hook's variant becomes null after SL is set, but we need to keep rendering
-  if (bannerVariantFromHook && !isStopLossSuccess) {
-    preservedBannerVariantRef.current = bannerVariantFromHook;
-  }
+  // Use useEffect to avoid ref mutation during render (React best practice)
+  useEffect(() => {
+    if (bannerVariantFromHook && !isStopLossSuccess) {
+      preservedBannerVariantRef.current = bannerVariantFromHook;
+    }
+  }, [bannerVariantFromHook, isStopLossSuccess]);
 
   // Use preserved variant during success fade-out, otherwise use hook's variant
   const bannerVariant = isStopLossSuccess

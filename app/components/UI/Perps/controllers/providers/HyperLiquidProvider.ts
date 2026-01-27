@@ -3511,7 +3511,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // See ensureReady() - builder fee and referral are session-cached
 
-      // Get current price for the asset
+      // Get clients for API calls
       const infoClient = this.clientService.getInfoClient();
       const exchangeClient = this.clientService.getExchangeClient();
       const userAddress = await this.walletService.getUserAddressWithDefault();
