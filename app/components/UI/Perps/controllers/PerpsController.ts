@@ -19,6 +19,7 @@ import {
   TransactionStatus,
 } from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Engine from '../../../../core/Engine';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
@@ -1382,7 +1383,7 @@ export class PerpsController extends BaseController<
       });
 
       const networkClientId =
-        NetworkController.findNetworkClientIdForChain(assetChainId);
+        NetworkController.findNetworkClientIdByChainId(assetChainId);
 
       if (!networkClientId) {
         throw new Error(

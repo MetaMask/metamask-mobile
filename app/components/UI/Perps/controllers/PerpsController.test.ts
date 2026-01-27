@@ -91,6 +91,7 @@ jest.mock('../../../../core/Engine', () => {
     getNetworkClientById: jest.fn().mockReturnValue({
       configuration: { chainId: '0x1' },
     }),
+    findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
   };
 
   const mockAccountTreeController = {
@@ -105,6 +106,10 @@ jest.mock('../../../../core/Engine', () => {
   const mockTransactionController = {
     estimateGasFee: jest.fn(),
     estimateGas: jest.fn(),
+    addTransaction: jest.fn().mockResolvedValue({
+      result: Promise.resolve('0xmocktxhash'),
+      transactionMeta: { id: 'mock-tx-id', hash: '0xmocktxhash' },
+    }),
   };
 
   const mockAccountTrackerController = {
@@ -274,6 +279,15 @@ jest.mock('./services/FeatureFlagConfigurationService', () => ({
     }),
   },
 }));
+
+// Import mocked modules - these imports get the mocked versions
+import Logger from '../../../../util/Logger';
+import { DepositService } from './services/DepositService';
+import { MarketDataService } from './services/MarketDataService';
+import { TradingService } from './services/TradingService';
+import { AccountService } from './services/AccountService';
+import { DataLakeService } from './services/DataLakeService';
+import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigurationService';
 
 /**
  * Testable version of PerpsController that exposes protected methods for testing.
