@@ -149,6 +149,7 @@ export const usePerpsHomeActions = (
   ]);
 
   const handleWithdraw = useCallback(async () => {
+    // Track withdrawal button click with geo-block status for monitoring (TAT-2337)
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PerpsEventProperties.INTERACTION_TYPE]:
         PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
@@ -156,24 +157,19 @@ export const usePerpsHomeActions = (
         PerpsEventValues.BUTTON_CLICKED.WITHDRAW,
       [PerpsEventProperties.BUTTON_LOCATION]:
         buttonLocation || PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+      [PerpsEventProperties.IS_GEO_BLOCKED]: !isEligible,
     });
 
-    if (!isEligible) {
-      DevLogger.log('[usePerpsHomeActions] User not eligible for withdraw');
-      // Track geo-block screen viewed
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.WITHDRAW_BUTTON,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
+    // Note: Withdrawals are intentionally NOT geo-blocked (TAT-2337)
+    // Users in restricted regions can withdraw their funds but cannot deposit or trade
+    // We track IS_GEO_BLOCKED property above to monitor geo-blocked withdrawals
 
     setIsProcessing(true);
     setError(null);
 
-    DevLogger.log('[usePerpsHomeActions] Starting withdraw flow');
+    DevLogger.log('[usePerpsHomeActions] Starting withdraw flow', {
+      isGeoBlocked: !isEligible,
+    });
 
     try {
       await ensureArbitrumNetworkExists();

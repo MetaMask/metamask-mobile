@@ -9,28 +9,17 @@ import { defaultGanacheOptions } from '../../../tests/framework/Constants';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
-import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeAccounts('Wallet details'), () => {
   const FIRST = 0;
 
   it('goes to the wallet details, creates an account and exports srp', async () => {
-    const testSpecificMock = async (mockServer: Mockttp) => {
-      await setupRemoteFeatureFlagsMock(
-        mockServer,
-        remoteFeatureMultichainAccountsAccountDetailsV2(), // TODO: remove it after account details v2 will be enabled by default
-      );
-    };
-
     await withFixtures(
       {
         fixture: new FixtureBuilder()
           .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
           .build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await device.disableSynchronization();

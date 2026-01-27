@@ -824,17 +824,13 @@ const usePerpsToasts = (): {
               strings('perps.position.tpsl.update_success'),
             ),
           },
-          updateTPSLError: (error?: string) => {
-            const errorMessage = error || strings('perps.errors.unknown');
-
-            return {
-              ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.position.tpsl.update_failed'),
-                errorMessage,
-              ),
-            };
-          },
+          updateTPSLError: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.tpsl.update_failed'),
+              error || strings('perps.errors.tpslUpdateFailed'),
+            ),
+          }),
         },
         margin: {
           addSuccess: (assetSymbol: string, amount: string) => ({
@@ -855,17 +851,13 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          adjustmentFailed: (error?: string) => {
-            const errorMessage = error || strings('perps.errors.unknown');
-
-            return {
-              ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.position.margin.adjustment_failed'),
-                errorMessage,
-              ),
-            };
-          },
+          adjustmentFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.margin.adjustment_failed'),
+              error || strings('perps.errors.marginAdjustmentFailed'),
+            ),
+          }),
         },
       },
       formValidation: {
@@ -874,7 +866,7 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.validation.failed'),
-              error,
+              error, // Pass through directly - validation errors are already localized
             ),
           }),
           limitPriceRequired: {
