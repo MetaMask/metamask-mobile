@@ -4,7 +4,7 @@ buildscript {
 
 	ext {
 		buildToolsVersion = "35.0.0"
-		minSdkVersion = project.hasProperty('minSdkVersion') ? project.getProperty('minSdkVersion') : 24
+		minSdkVersion = project.hasProperty('minSdkVersion') ? project.getProperty('minSdkVersion') : 26
 		compileSdkVersion = 35
 		targetSdkVersion = 35
 		ndkVersion = "26.1.10909125"
@@ -35,6 +35,15 @@ buildscript {
             url(new File(['node', '--print', "require.resolve('@notifee/react-native/package.json')"].execute(null, rootDir).text.trim(), '../android/libs'))
         }
         maven { url "https://jitpack.io" }
+				maven { url "https://cdn.veriff.me/android/" }
+    }
+    // Resolve BouncyCastle duplicate class conflicts by substituting the older variant
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            // Replace jdk15to18 variants with jdk18on variants to avoid duplicate classes
+            substitute module('org.bouncycastle:bcprov-jdk15to18') using module('org.bouncycastle:bcprov-jdk18on:1.78.1')
+            substitute module('org.bouncycastle:bcutil-jdk15to18') using module('org.bouncycastle:bcutil-jdk18on:1.78.1')
+        }
     }
 	}
 }
