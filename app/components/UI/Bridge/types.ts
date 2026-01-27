@@ -22,6 +22,10 @@ export interface BridgeToken {
   tokenFiatAmount?: number; // A sortable fiat value in the user's currency, e.g. 100.12345
   currencyExchangeRate?: number; // A rate of the token in the user's currency, e.g. 100.12345
   accountType?: Asset['accountType'];
+  noFee?: {
+    isSource: boolean;
+    isDestination: boolean;
+  };
 }
 
 export type BridgeQuoteResponse = QuoteResponse &
@@ -35,4 +39,9 @@ export enum BridgeViewMode {
   Swap = 'Swap',
   Bridge = 'Bridge',
   Unified = 'Unified',
+}
+
+export enum TokenSelectorType {
+  Source = 'source',
+  Dest = 'dest',
 }

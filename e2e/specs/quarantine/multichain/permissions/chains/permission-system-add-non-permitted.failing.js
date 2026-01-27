@@ -3,17 +3,17 @@ import {
   SmokeNetworkExpansion,
 } from '../../../../../tags';
 import { loginToApp, navigateToBrowserView } from '../../../../../viewHelper';
-import Assertions from '../../../../../framework/Assertions';
+import Assertions from '../../../../../../tests/framework/Assertions';
 import TestHelpers from '../../../../../helpers';
-import FixtureBuilder from '../../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../../framework/fixtures/FixtureHelper';
-import { CustomNetworks } from '../../../../../resources/networks.e2e';
+import FixtureBuilder from '../../../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../../../tests/framework/fixtures/FixtureHelper';
+import { CustomNetworks } from '../../../../../../tests/resources/networks.e2e';
 import Browser from '../../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../../pages/wallet/TabBarComponent';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import ConnectedAccountsModal from '../../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../../pages/Browser/NetworkConnectMultiSelector';
-import { DappVariants } from '../../../../../framework/Constants';
+import { DappVariants } from '../../../../../../tests/framework/Constants';
 import WalletView from '../../../../../pages/wallet/WalletView';
 import NetworkListModal from '../../../../../pages/Network/NetworkListModal';
 import TestDApp from '../../../../../pages/Browser/TestDApp';
