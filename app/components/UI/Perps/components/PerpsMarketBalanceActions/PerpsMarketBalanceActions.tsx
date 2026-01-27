@@ -22,7 +22,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { LEARN_MORE_CONFIG } from '../../constants/perpsConfig';
+import { LEARN_MORE_CONFIG, VALIDATION_THRESHOLDS } from '../../constants/perpsConfig';
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -91,11 +91,15 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   });
 
   const totalBalance = perpsAccount?.totalBalance || '0';
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  // Check if balance is below the minimum threshold for trading
+  // This allows users to add funds when their balance is too low,
+  // rather than hitting a dead-end error when trying to place an order
+  const isBalanceLow =
+    BigNumber(totalBalance).isLessThan(VALIDATION_THRESHOLDS.LOW_BALANCE_THRESHOLD);
 
   // Use hook for eligibility checks and action handlers
-  // Determine button location based on whether balance is empty (empty state) or not (home)
-  const buttonLocation = isBalanceEmpty
+  // Determine button location based on whether balance is low (empty state) or not (home)
+  const buttonLocation = isBalanceLow
     ? PerpsEventValues.BUTTON_LOCATION.PERPS_HOME_EMPTY_STATE
     : PerpsEventValues.BUTTON_LOCATION.PERPS_HOME;
 
@@ -208,8 +212,8 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mx-4 mt-4 mb-4 rounded-xl' : 'mb-4'}
-        style={isBalanceEmpty ? tw.style('bg-background-section') : undefined}
+        twClassName={isBalanceLow ? 'mx-4 mt-4 mb-4 rounded-xl' : 'mb-4'}
+        style={isBalanceLow ? tw.style('bg-background-section') : undefined}
       >
         <PerpsProgressBar
           progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
@@ -246,7 +250,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           <Box twClassName="w-full border-b border-muted"></Box>
         )}
         {/* Balance Section */}
-        {isBalanceEmpty ? (
+        {isBalanceLow ? (
           <Box twClassName="p-6">
             <Box twClassName="items-center mb-6">
               <Image

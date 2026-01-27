@@ -266,11 +266,12 @@ describe('PerpsTabControlBar', () => {
       expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
-    it('hides balance pill when balance is zero and no positions/orders', async () => {
+    it('hides balance pill when balance is below threshold and no positions/orders', async () => {
+      // Balance below $10 threshold
       jest
         .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
         .mockReturnValue({
-          account: { ...defaultAccountState, totalBalance: '0.00' },
+          account: { ...defaultAccountState, totalBalance: '5.00' },
           isInitialLoading: false,
         });
 
@@ -280,11 +281,12 @@ describe('PerpsTabControlBar', () => {
       expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
-    it('shows balance pill when balance is zero but has positions', async () => {
+    it('shows balance pill when balance is below threshold but has positions', async () => {
+      // Balance below $10 threshold, but user has positions
       jest
         .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
         .mockReturnValue({
-          account: { ...defaultAccountState, totalBalance: '0.00' },
+          account: { ...defaultAccountState, totalBalance: '5.00' },
           isInitialLoading: false,
         });
 
@@ -292,7 +294,7 @@ describe('PerpsTabControlBar', () => {
 
       expect(screen.getByText('Total Balance')).toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      expect(screen.getByText('$5.00')).toBeOnTheScreen();
     });
 
     it('displays formatted balance when data is loaded', async () => {

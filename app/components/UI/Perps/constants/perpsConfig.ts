@@ -103,6 +103,13 @@ export const VALIDATION_THRESHOLDS = {
 
   // Price deviation threshold (as decimal, 0.1 = 10%)
   PRICE_DEVIATION: 0.1, // Warn if perps price deviates by >10% from spot price
+
+  // Low balance threshold (USD)
+  // Balances below this value are treated as insufficient for trading
+  // and will show the "Add Funds" CTA instead of trade buttons
+  // This allows users to add funds when their balance is too low to trade,
+  // rather than hitting a dead-end error when trying to place an order
+  LOW_BALANCE_THRESHOLD: 10, // $10 - matches the minimum order size
 } as const;
 
 /**

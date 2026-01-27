@@ -70,6 +70,7 @@ import {
   DECIMAL_PRECISION_CONFIG,
   ORDER_SLIPPAGE_CONFIG,
   PERPS_CONSTANTS,
+  VALIDATION_THRESHOLDS,
 } from '../../constants/perpsConfig';
 import {
   PerpsOrderProvider,
@@ -980,12 +981,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={orderForm.amount}
-          showWarning={!isLoadingAccount && availableBalance === 0}
+          showWarning={!isLoadingAccount && availableBalance < VALIDATION_THRESHOLDS.LOW_BALANCE_THRESHOLD}
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={positionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
-          hasError={availableBalance > 0 && !!filteredErrors.length}
+          hasError={availableBalance >= VALIDATION_THRESHOLDS.LOW_BALANCE_THRESHOLD && !!filteredErrors.length}
           isLoading={isLoadingAccount}
         />
 

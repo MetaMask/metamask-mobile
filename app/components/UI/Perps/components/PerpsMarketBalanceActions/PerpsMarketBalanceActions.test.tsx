@@ -593,13 +593,13 @@ describe('PerpsMarketBalanceActions', () => {
   });
 
   describe('Edge Cases', () => {
-    it('shows empty state when balance is zero', () => {
-      // Arrange
+    it('shows empty state when balance is below threshold (low balance)', () => {
+      // Arrange - balance below $10 threshold
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           ...defaultPerpsAccount,
-          totalBalance: '0.00',
-          availableBalance: '0.00',
+          totalBalance: '5.00',
+          availableBalance: '5.00',
         },
         isInitialLoading: false,
         isLoading: false,
@@ -613,7 +613,7 @@ describe('PerpsMarketBalanceActions', () => {
         false, // Disable NavigationContainer
       );
 
-      // Assert - Should show empty state UI instead of balance display
+      // Assert - Should show empty state UI instead of balance display when balance is below threshold
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_TITLE),
       ).toBeOnTheScreen();

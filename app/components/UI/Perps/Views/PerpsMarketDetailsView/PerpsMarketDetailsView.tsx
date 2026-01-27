@@ -78,7 +78,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS, VALIDATION_THRESHOLDS } from '../../constants/perpsConfig';
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
@@ -339,8 +339,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     enabled: !!(monitoringIntent && market && monitoringIntent.asset),
   });
 
-  const hasZeroBalance = useMemo(
-    () => parseFloat(account?.availableBalance || '0') === 0,
+  // Check if balance is below the minimum threshold for trading
+  // This allows users to add funds when their balance is too low,
+  // rather than hitting a dead-end error when trying to place an order
+  const hasLowBalance = useMemo(
+    () =>
+      parseFloat(account?.availableBalance || '0') <
+      VALIDATION_THRESHOLDS.LOW_BALANCE_THRESHOLD,
     [account?.availableBalance],
   );
 
@@ -913,13 +918,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
-    () => !isLoadingPosition && !hasZeroBalance,
-    [isLoadingPosition, hasZeroBalance],
+    () => !isLoadingPosition && !hasLowBalance,
+    [isLoadingPosition, hasLowBalance],
   );
 
   const hasAddFundsButton = useMemo(
-    () => hasZeroBalance && !isLoadingPosition,
-    [hasZeroBalance, isLoadingPosition],
+    () => hasLowBalance && !isLoadingPosition,
+    [hasLowBalance, isLoadingPosition],
   );
 
   // Define navigation items for the card

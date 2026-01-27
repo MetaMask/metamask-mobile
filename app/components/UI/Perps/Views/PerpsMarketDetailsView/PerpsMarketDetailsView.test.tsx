@@ -749,26 +749,26 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Button rendering scenarios', () => {
-    it('renders add funds button when user balance is zero', () => {
-      // Override with zero balance
+    it('renders add funds button when user balance is below threshold (e.g., $5)', () => {
+      // Override with low balance (below $10 threshold)
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          availableBalance: '5.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalBalance: '0.00',
+          totalBalance: '5.00',
         },
         isInitialLoading: false,
       });
 
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          availableBalance: '5',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalBalance: '0',
+          totalBalance: '5',
         },
         isInitialLoading: false,
       });
@@ -786,7 +786,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(getByText('Add funds to start trading perps')).toBeTruthy();
       expect(getByText('Add funds')).toBeTruthy();
 
-      // When balance is zero, the Add Funds button should be present
+      // When balance is below threshold, the Add Funds button should be present
       // and the long/short buttons should not be present
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
@@ -1175,25 +1175,25 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('navigates to deposit screen when add funds button is pressed', async () => {
-      // Set zero balance to show add funds button
+      // Set low balance (below $10 threshold) to show add funds button
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          availableBalance: '5.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalBalance: '0.00',
+          totalBalance: '5.00',
         },
         isInitialLoading: false,
       });
 
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          availableBalance: '5',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalBalance: '0',
+          totalBalance: '5',
         },
         isInitialLoading: false,
       });
@@ -1296,25 +1296,25 @@ describe('PerpsMarketDetailsView', () => {
         return undefined;
       });
 
-      // Set zero balance to show add funds button
+      // Set low balance (below $10 threshold) to show add funds button
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          availableBalance: '5.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalBalance: '0.00',
+          totalBalance: '5.00',
         },
         isInitialLoading: false,
       });
 
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          availableBalance: '5',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalBalance: '0',
+          totalBalance: '5',
         },
         isInitialLoading: false,
       });
