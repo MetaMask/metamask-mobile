@@ -537,7 +537,7 @@ describe('PerpsTransactionItem', () => {
       fireEvent.press(adlTag);
 
       expect(Linking.openURL).toHaveBeenCalledWith(
-        PERPS_SUPPORT_ARTICLES_URLS.ADL_URL,
+        PERPS_SUPPORT_ARTICLES_URLS.AdlUrl,
       );
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,

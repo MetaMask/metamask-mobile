@@ -10,7 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../util/test/platform';
-import { QuoteViewSelectorIDs } from '../../../Swaps/QuoteView.testIds';
+import { QuoteViewSelectorIDs } from '../../../../../../e2e/selectors/Bridge/QuoteView.selectors';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 
