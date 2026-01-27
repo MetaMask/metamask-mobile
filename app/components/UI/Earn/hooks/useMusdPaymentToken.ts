@@ -16,10 +16,12 @@ export const useMusdPaymentToken = () => {
       transactionChainId &&
       selectedTokenChainId.toLowerCase() !== transactionChainId.toLowerCase();
 
-    // For mUSD conversions, if user selects a token on a different chain,
-    // we need to recreate the transaction on the new chain instead of
-    // updating the payment token on the old transaction (which would trigger
-    // a cross-chain quote request).
+    /*
+     * For mUSD conversions, if user selects a token on a different chain, we
+     * need to recreate the transaction on the new chain instead of updating
+     * the payment token on the old transaction (which would trigger a
+     * cross-chain quote request).
+     */
     if (isChainMismatch && transactionMeta) {
       replaceMusdConversionTransactionForPayToken(transactionMeta, {
         address: token.address as Hex,
