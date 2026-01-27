@@ -72,7 +72,9 @@ describe('MarketClosedBottomSheet', () => {
     const learnMoreLink = getByText(/learn_more/);
     fireEvent.press(learnMoreLink);
 
-    expect(Linking.openURL).toHaveBeenCalledWith('https://support.metamask.io');
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://status.ondo.finance/market',
+    );
   });
 
   it('renders title in header', () => {

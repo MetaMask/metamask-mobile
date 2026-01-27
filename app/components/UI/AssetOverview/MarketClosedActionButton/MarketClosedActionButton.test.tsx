@@ -9,8 +9,8 @@ import MarketClosedActionButton from './MarketClosedActionButton';
 import { MARKETCLOSED_ACTIONBUTTON_TEST_ID } from './MarketClosedActionButton.constants';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 
-describe('MainActionButton', () => {
-  it('should render correctly', () => {
+describe('MarketClosedActionButton', () => {
+  it('renders correctly', () => {
     const { toJSON } = render(
       <MarketClosedActionButton
         iconName={IconName.Add}
@@ -22,7 +22,7 @@ describe('MainActionButton', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render with custom label', () => {
+  it('renders with custom label', () => {
     const customLabel = 'Custom Label';
     const { getByText } = render(
       <MarketClosedActionButton
@@ -34,7 +34,7 @@ describe('MainActionButton', () => {
     expect(getByText(customLabel)).toBeTruthy();
   });
 
-  it('should call onPress when pressed', () => {
+  it('calls onPress when pressed', () => {
     const mockOnPress = jest.fn();
     const { getByTestId } = render(
       <MarketClosedActionButton
@@ -49,7 +49,7 @@ describe('MainActionButton', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('should call onPressIn and onPressOut when provided', () => {
+  it('calls onPressIn and onPressOut when provided', () => {
     const mockOnPressIn = jest.fn();
     const mockOnPressOut = jest.fn();
     const { getByTestId } = render(
@@ -71,7 +71,7 @@ describe('MainActionButton', () => {
     expect(mockOnPressOut).toHaveBeenCalledTimes(1);
   });
 
-  it('should render with default props when not provided', () => {
+  it('renders with default props when not provided', () => {
     const { getByText } = render(
       <MarketClosedActionButton
         iconName={IconName.Add}
@@ -83,7 +83,7 @@ describe('MainActionButton', () => {
     expect(getByText('Default Button')).toBeTruthy();
   });
 
-  it('should render with correct icon and text', () => {
+  it('renders with correct icon and text', () => {
     const { getByText } = render(
       <MarketClosedActionButton
         iconName={IconName.BuySell}
@@ -96,7 +96,7 @@ describe('MainActionButton', () => {
     expect(getByText('Buy/Sell')).toBeTruthy();
   });
 
-  it('should apply custom style when provided', () => {
+  it('applies custom style when provided', () => {
     const customStyle = { backgroundColor: 'red' };
     const { getByTestId } = render(
       <MarketClosedActionButton

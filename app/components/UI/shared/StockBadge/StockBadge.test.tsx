@@ -90,7 +90,9 @@ describe('StockBadge', () => {
       );
 
       await waitFor(() => {
-        const clockIcon = UNSAFE_queryByProps({ name: IconName.Clock });
+        const clockIcon = UNSAFE_queryByProps({
+          name: IconName.ClockHalfDotted,
+        });
         expect(clockIcon).toBeTruthy();
       });
     });
@@ -103,7 +105,9 @@ describe('StockBadge', () => {
       );
 
       await waitFor(() => {
-        const clockIcon = UNSAFE_queryByProps({ name: IconName.Clock });
+        const clockIcon = UNSAFE_queryByProps({
+          name: IconName.ClockHalfDotted,
+        });
         expect(clockIcon).toBeNull();
       });
     });
@@ -112,7 +116,9 @@ describe('StockBadge', () => {
       const { UNSAFE_queryByProps } = render(<StockBadge />);
 
       await waitFor(() => {
-        const clockIcon = UNSAFE_queryByProps({ name: IconName.Clock });
+        const clockIcon = UNSAFE_queryByProps({
+          name: IconName.ClockHalfDotted,
+        });
         expect(clockIcon).toBeNull();
       });
     });
@@ -186,7 +192,9 @@ describe('StockBadge', () => {
       );
 
       await waitFor(() => {
-        const clockIcon = UNSAFE_queryByProps({ name: IconName.Clock });
+        const clockIcon = UNSAFE_queryByProps({
+          name: IconName.ClockHalfDotted,
+        });
         expect(clockIcon).toBeTruthy();
       });
     });
@@ -200,7 +208,9 @@ describe('StockBadge', () => {
 
       await waitFor(() => {
         expect(getByText('Stock')).toBeOnTheScreen();
-        const clockIcon = UNSAFE_queryByProps({ name: IconName.Clock });
+        const clockIcon = UNSAFE_queryByProps({
+          name: IconName.ClockHalfDotted,
+        });
         expect(clockIcon).toBeNull();
       });
     });
@@ -214,7 +224,9 @@ describe('StockBadge', () => {
 
       await waitFor(() => {
         expect(getByText('Stock')).toBeOnTheScreen();
-        const clockIcon = UNSAFE_queryByProps({ name: IconName.Clock });
+        const clockIcon = UNSAFE_queryByProps({
+          name: IconName.ClockHalfDotted,
+        });
         expect(clockIcon).toBeNull();
       });
       expect(mockIsTokenTradingOpen).not.toHaveBeenCalled();
@@ -227,7 +239,9 @@ describe('StockBadge', () => {
 
       await waitFor(() => {
         expect(getByText('Stock')).toBeOnTheScreen();
-        const clockIcon = UNSAFE_queryByProps({ name: IconName.Clock });
+        const clockIcon = UNSAFE_queryByProps({
+          name: IconName.ClockHalfDotted,
+        });
         expect(clockIcon).toBeNull();
       });
       expect(mockIsTokenTradingOpen).not.toHaveBeenCalled();
