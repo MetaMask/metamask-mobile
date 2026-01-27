@@ -102,7 +102,18 @@ function shouldUseMockWalletProvider(): boolean {
  */
 export function getWalletProvider(): IWalletProviderAdapter | null {
   // Check if mock should be used (dev mode only)
-  if (shouldUseMockWalletProvider()) {
+  const useMock = shouldUseMockWalletProvider();
+
+  if (__DEV__) {
+    Logger.log(
+      `[getWalletProvider] useMock=${useMock}, override=${useMockWalletProviderOverride}, env=${process.env.MOCK_WALLET_PROVIDER}`,
+    );
+  }
+
+  if (useMock) {
+    if (__DEV__) {
+      Logger.log('[getWalletProvider] Using MockWalletAdapter');
+    }
     return new MockWalletAdapter({
       isAvailable: true,
       canAddCard: true,
@@ -111,6 +122,9 @@ export function getWalletProvider(): IWalletProviderAdapter | null {
 
   switch (Platform.OS) {
     case 'android':
+      if (__DEV__) {
+        Logger.log('[getWalletProvider] Using GoogleWalletAdapter');
+      }
       return new GoogleWalletAdapter();
     case 'ios':
     default:

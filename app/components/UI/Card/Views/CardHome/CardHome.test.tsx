@@ -37,6 +37,26 @@ jest.mock('../../hooks/isBaanxLoginEnabled', () => ({
   default: jest.fn(() => true),
 }));
 
+// Mock push provisioning hook
+jest.mock('../../pushProvisioning', () => ({
+  usePushProvisioning: jest.fn(() => ({
+    initiateProvisioning: jest.fn(),
+    resetStatus: jest.fn(),
+    status: 'idle',
+    error: null,
+    isProvisioning: false,
+    isSuccess: false,
+    isError: false,
+    isLoading: false,
+    canAddToWallet: false,
+  })),
+}));
+
+// Mock @expensify/react-native-wallet
+jest.mock('@expensify/react-native-wallet', () => ({
+  AddToWalletButton: () => null,
+}));
+
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';

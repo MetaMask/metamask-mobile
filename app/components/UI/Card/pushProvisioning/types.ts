@@ -322,6 +322,8 @@ export interface CreateProvisioningResponse {
  */
 export interface UsePushProvisioningOptions {
   cardId: string;
+  /** Last 4 digits of the card PAN, used to check if card is already in wallet */
+  lastFourDigits?: string;
   onSuccess?: (result: ProvisioningResult) => void;
   onError?: (error: ProvisioningError) => void;
   onCancel?: () => void;
@@ -331,21 +333,20 @@ export interface UsePushProvisioningOptions {
  * Return type for usePushProvisioning hook
  */
 export interface UsePushProvisioningReturn {
+  // Status
   status: ProvisioningStatus;
   error: ProvisioningError | null;
+
+  // Actions
   initiateProvisioning: () => Promise<ProvisioningResult>;
   resetStatus: () => void;
+
   isProvisioning: boolean;
   isSuccess: boolean;
   isError: boolean;
-  /** Whether the SDK is still loading/initializing */
-  isSDKLoading: boolean;
-  /** Whether a card provider is available for the user's region */
-  isCardProviderAvailable: boolean;
-  /** Whether a wallet provider is available for the platform */
-  isWalletProviderAvailable: boolean;
-  /** Whether push provisioning is supported (SDK ready + both providers available) */
-  isPushProvisioningSupported: boolean;
+
+  isLoading: boolean;
+  canAddToWallet: boolean;
 }
 
 /**

@@ -88,11 +88,7 @@ import {
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
-import {
-  setUseMockWalletProvider,
-  usePushProvisioning,
-  useWalletAvailability,
-} from '../../pushProvisioning';
+import { usePushProvisioning } from '../../pushProvisioning';
 import { AddToWalletButton } from '@expensify/react-native-wallet';
 
 /**
@@ -181,11 +177,6 @@ const CardHome = () => {
   const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
     useNavigateToCardPage(navigation);
 
-  // Enable mock wallet provider for development testing
-  useEffect(() => {
-    setUseMockWalletProvider(true);
-  }, []);
-
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
@@ -215,19 +206,13 @@ const CardHome = () => {
     return balanceFiat;
   }, [balanceFiat, balanceFormatted]);
 
-  // Push provisioning hooks for adding card to Google Wallet
-  const { isAvailable: isWalletAvailable, eligibility: walletEligibility } =
-    useWalletAvailability({
-      lastFourDigits: cardDetails?.panLast4,
-      checkOnMount: true,
-    });
-
   const {
     initiateProvisioning: initiatePushProvisioning,
     isProvisioning: isPushProvisioning,
-    isPushProvisioningSupported,
+    canAddToWallet,
   } = usePushProvisioning({
     cardId: cardDetails?.id ?? '',
+    lastFourDigits: cardDetails?.panLast4,
     onSuccess: (_result) => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -1005,16 +990,16 @@ const CardHome = () => {
         )}
       </Box>
 
-      {isPushProvisioningSupported &&
-        isWalletAvailable &&
-        walletEligibility?.canAddCard && (
+      {canAddToWallet && (
+        <Box twClassName="w-full px-4 pt-4  items-center justify-center">
           <AddToWalletButton
             onPress={isPushProvisioning ? undefined : initiatePushProvisioning}
             buttonStyle="blackOutline"
-            buttonType="badge"
+            buttonType="basic"
             borderRadius={4}
           />
-        )}
+        </Box>
+      )}
 
       <Box style={tw.style(cardSetupState.needsSetup && 'hidden')}>
         {isAuthenticated && !isLoading && cardDetails && (

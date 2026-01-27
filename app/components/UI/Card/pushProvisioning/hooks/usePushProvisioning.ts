@@ -13,6 +13,7 @@ import {
   UsePushProvisioningOptions,
   UsePushProvisioningReturn,
   CardActivationEvent,
+  WalletEligibility,
 } from '../types';
 import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
@@ -20,7 +21,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { useCardSDK } from '../../sdk';
 import { selectUserCardLocation } from '../../../../../core/redux/slices/card';
-import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 
 /**
@@ -53,7 +53,7 @@ import { strings } from '../../../../../../locales/i18n';
 export function usePushProvisioning(
   options: UsePushProvisioningOptions,
 ): UsePushProvisioningReturn {
-  const { cardId, onSuccess, onError, onCancel } = options;
+  const { cardId, lastFourDigits, onSuccess, onError, onCancel } = options;
 
   const [status, setStatus] = useState<ProvisioningStatus>('idle');
   const [error, setError] = useState<ProvisioningError | null>(null);
@@ -66,35 +66,70 @@ export function usePushProvisioning(
   // Create the adapters based on user location and platform
   const cardAdapter = useMemo(() => {
     if (isSDKLoading) {
-      if (__DEV__) {
-        Logger.log('[usePushProvisioning] SDK still loading...');
-      }
       return null;
     }
     if (!cardSDK) {
-      if (__DEV__) {
-        Logger.log('[usePushProvisioning] No cardSDK available');
-      }
       return null;
     }
+
     const adapter = getCardProvider(userCardLocation, cardSDK);
-    if (__DEV__) {
-      Logger.log(
-        `[usePushProvisioning] Card provider: ${adapter ? 'available' : 'not available'} (location: ${userCardLocation})`,
-      );
-    }
     return adapter;
   }, [cardSDK, userCardLocation, isSDKLoading]);
 
   const walletAdapter = useMemo(() => {
     const adapter = getWalletProvider();
-    if (__DEV__) {
-      Logger.log(
-        `[usePushProvisioning] Wallet provider: ${adapter ? adapter.walletType : 'not available'}`,
-      );
-    }
     return adapter;
   }, []);
+
+  // Check wallet eligibility (async) - includes availability and canAddCard checks
+  const [eligibility, setEligibility] = useState<WalletEligibility | null>(
+    null,
+  );
+  const [isEligibilityCheckLoading, setIsEligibilityCheckLoading] =
+    useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkEligibility = async () => {
+      setIsEligibilityCheckLoading(true);
+
+      if (!walletAdapter) {
+        if (isMounted) {
+          setEligibility({
+            isAvailable: false,
+            canAddCard: false,
+            ineligibilityReason: 'Wallet provider not available',
+          });
+          setIsEligibilityCheckLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const result = await walletAdapter.getEligibility(lastFourDigits);
+        if (isMounted) {
+          setEligibility(result);
+          setIsEligibilityCheckLoading(false);
+        }
+      } catch {
+        if (isMounted) {
+          setEligibility({
+            isAvailable: false,
+            canAddCard: false,
+            ineligibilityReason: 'Failed to check eligibility',
+          });
+          setIsEligibilityCheckLoading(false);
+        }
+      }
+    };
+
+    checkEligibility();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [walletAdapter, lastFourDigits]);
 
   // Create service with adapters
   const service = useMemo(
@@ -148,7 +183,6 @@ export function usePushProvisioning(
         trackEvent(
           createEventBuilder(event)
             .addProperties({
-              card_id: cardId,
               card_provider_id: cardAdapter?.providerId,
               ...properties,
             })
@@ -158,7 +192,7 @@ export function usePushProvisioning(
         // Silently ignore analytics errors
       }
     },
-    [cardId, cardAdapter?.providerId, trackEvent, createEventBuilder],
+    [cardAdapter?.providerId, trackEvent, createEventBuilder],
   );
 
   /**
@@ -245,8 +279,18 @@ export function usePushProvisioning(
     setError(null);
   }, []);
 
+  // Simplified availability checks
   const isCardProviderAvailable = cardAdapter !== null;
   const isWalletProviderAvailable = walletAdapter !== null;
+
+  const isLoading = isSDKLoading || isEligibilityCheckLoading;
+
+  const canAddToWallet =
+    !isLoading &&
+    isCardProviderAvailable &&
+    isWalletProviderAvailable &&
+    eligibility?.isAvailable === true &&
+    eligibility?.canAddCard === true;
 
   return {
     status,
@@ -257,11 +301,7 @@ export function usePushProvisioning(
       status === 'provisioning' || status === 'checking_eligibility',
     isSuccess: status === 'success',
     isError: status === 'error',
-    isSDKLoading,
-    isCardProviderAvailable,
-    isWalletProviderAvailable,
-    // Only report as supported when SDK is ready and both providers available
-    isPushProvisioningSupported:
-      !isSDKLoading && isCardProviderAvailable && isWalletProviderAvailable,
+    isLoading,
+    canAddToWallet,
   };
 }
