@@ -8,7 +8,7 @@ import { testSpecificMock } from '../../../tests/api-mocking/mock-responses/card
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import CardHomeView from '../../pages/Card/CardHomeView';
 import SoftAssert from '../../../tests/framework/SoftAssert';
-import { CustomNetworks } from '../../resources/networks.e2e';
+import { CustomNetworks } from '../../../tests/resources/networks.e2e';
 
 describe(SmokeCard('CardHome - Add Funds'), () => {
   const eventsToCheck: EventPayload[] = [];
