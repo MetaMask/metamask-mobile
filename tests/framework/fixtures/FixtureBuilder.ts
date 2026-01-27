@@ -1857,29 +1857,6 @@ class FixtureBuilder {
   }
 
   /**
-   * Sets up a minimal Solana fixture with mainnet configuration
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
-   */
-  withSolanaFixture() {
-    const SOLANA_TOKEN = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-
-    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
-      selectedMultichainNetworkChainId: SolScope.Mainnet,
-      multichainNetworkConfigurationsByChainId: {
-        [SolScope.Mainnet]: {
-          chainId: SolScope.Mainnet,
-          name: 'Solana Mainnet',
-          nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
-          isEvm: false,
-        },
-      },
-      isEvmSelected: false,
-    };
-
-    return this;
-  }
-
-  /**
    * Adds multiple test dapp tabs to the browser state.
    * This is intended to be used for testing multiple dapps concurrently.
    * The dapps are opened in the order they are added.

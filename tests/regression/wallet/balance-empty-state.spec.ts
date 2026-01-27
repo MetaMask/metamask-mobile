@@ -55,8 +55,6 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
       {
         fixture: new FixtureBuilder()
           .withDefaultFixture() // Zero balance - should show empty state on mainnet, $0.00 on testnets
-          .withSolanaFixture() // Add Solana support
-          .ensureSolanaModalSuppressed() // Suppress Solana intro modal
           .build(),
         restartDevice: true,
       },
