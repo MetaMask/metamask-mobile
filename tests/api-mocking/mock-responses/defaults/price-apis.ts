@@ -11,44 +11,6 @@ export const PRICE_API_MOCKS: MockEventsObject = {
       urlEndpoint:
         /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/supportedVsCurrencies$/,
       responseCode: 200,
-      response: ['btc', 'eth', 'ltc', 'usd', 'eur', 'gbp'],
-    },
-    {
-      urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v2\/supportedNetworks$/,
-      responseCode: 200,
-      response: {
-        fullSupport: [
-          'eip155:1',
-          'eip155:10',
-          'eip155:56',
-          'eip155:100',
-          'eip155:137',
-          'eip155:250',
-          'eip155:324',
-          'eip155:8453',
-          'eip155:42161',
-          'eip155:43114',
-          'eip155:59144',
-        ],
-        partialSupport: {
-          spotPricesV2: ['eip155:25', 'eip155:30', 'eip155:42', 'eip155:50'],
-          spotPricesV3: [
-            'eip155:25',
-            'eip155:30',
-            'eip155:42',
-            'eip155:50',
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            'bip122:000000000019d6689c085ae165831e93',
-            'tron:728126428',
-          ],
-        },
-      },
-    },
-    {
-      urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/supportedVsCurrencies$/,
-      responseCode: 200,
       response: [
         'usd',
         'eur',
