@@ -8,12 +8,12 @@ import type {
   PerpsControllerState,
   InitializationState,
 } from '../controllers/PerpsController';
-import type { IPerpsPlatformDependencies } from '../controllers/types';
+import type { PerpsPlatformDependencies } from '../controllers/types';
 
 /**
- * Create a mock IPerpsPlatformDependencies instance.
+ * Create a mock PerpsPlatformDependencies instance.
  * Returns a type-safe mock with jest.Mock functions for all methods.
- * Uses `as unknown as jest.Mocked<IPerpsPlatformDependencies>` pattern
+ * Uses `as unknown as jest.Mocked<PerpsPlatformDependencies>` pattern
  * to ensure compatibility with both the interface contract and Jest mock APIs.
  *
  * Architecture:
@@ -22,7 +22,7 @@ import type { IPerpsPlatformDependencies } from '../controllers/types';
  * - Controllers: consolidated access to all external controllers
  */
 export const createMockInfrastructure =
-  (): jest.Mocked<IPerpsPlatformDependencies> =>
+  (): jest.Mocked<PerpsPlatformDependencies> =>
     ({
       // === Observability (stateless utilities) ===
       logger: {
@@ -83,8 +83,12 @@ export const createMockInfrastructure =
         rewards: {
           getFeeDiscount: jest.fn().mockResolvedValue(0),
         },
+        // Authentication operations (wraps AuthenticationController)
+        authentication: {
+          getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+        },
       },
-    }) as unknown as jest.Mocked<IPerpsPlatformDependencies>;
+    }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
 /**
  * Create a mock PerpsControllerState
