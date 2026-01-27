@@ -18,7 +18,10 @@ import {
 } from '../../../../tests/api-mocking/mock-responses/simulations';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../tests/framework/Constants';
-import { EventPayload, getEventsPayloads } from '../../analytics/helpers';
+import {
+  EventPayload,
+  getEventsPayloads,
+} from '../../../../tests/helpers/analytics/helpers';
 import SoftAssert from '../../../../tests/framework/SoftAssert';
 import { Mockttp } from 'mockttp';
 import {
@@ -34,7 +37,7 @@ import {
 import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../../tests/framework/types';
-import { AnvilManager } from '../../../seeder/anvil-manager';
+import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',

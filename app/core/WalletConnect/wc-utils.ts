@@ -241,6 +241,11 @@ export const getApprovedSessionMethods = (): string[] => {
     'wallet_requestPermissions',
     'wallet_watchAsset',
     'wallet_scanQRCode',
+
+    // EIP-5792 methods
+    'wallet_sendCalls',
+    'wallet_getCallsStatus',
+    'wallet_getCapabilities',
   ];
 
   // TODO: extract from the permissions controller when implemented

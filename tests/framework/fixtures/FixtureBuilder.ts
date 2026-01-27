@@ -8,7 +8,7 @@ import {
 import { merge } from 'lodash';
 import { encryptVault } from './helpers.ts';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -25,9 +25,12 @@ import {
 import {
   CustomNetworks,
   PopularNetworksList,
-} from '../../../e2e/resources/networks.e2e';
+} from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types.ts';
-import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants.ts';
+import {
+  MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
+  TEST_ANALYTICS_ID,
+} from './constants.ts';
 import {
   MOCK_ENTROPY_SOURCE,
   MOCK_ENTROPY_SOURCE_2,
@@ -542,10 +545,22 @@ class FixtureBuilder {
             MultichainNetworkController: {
               selectedMultichainNetworkChainId: SolScope.Mainnet,
               multichainNetworkConfigurationsByChainId: {
+                [BtcScope.Mainnet]: {
+                  chainId: BtcScope.Mainnet,
+                  name: 'Bitcoin',
+                  nativeCurrency: `${BtcScope.Mainnet}/slip44:0`,
+                  isEvm: false,
+                },
                 [SolScope.Mainnet]: {
                   chainId: SolScope.Mainnet,
                   name: 'Solana Mainnet',
                   nativeCurrency: `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+                  isEvm: false,
+                },
+                [TrxScope.Mainnet]: {
+                  chainId: TrxScope.Mainnet,
+                  name: 'Tron',
+                  nativeCurrency: `${TrxScope.Mainnet}/slip44:195`,
                   isEvm: false,
                 },
               },
@@ -579,7 +594,17 @@ class FixtureBuilder {
                   minimumVersion: null,
                 },
                 enableMultichainAccountsState2: {
-                  enabled: false,
+                  enabled: true,
+                  featureVersion: '2',
+                  minimumVersion: '7.46.0',
+                },
+                bitcoinAccounts: {
+                  enabled: true,
+                  featureVersion: null,
+                  minimumVersion: '0.0.0',
+                },
+                tronAccounts: {
+                  enabled: true,
                   featureVersion: null,
                   minimumVersion: null,
                 },
@@ -1829,31 +1854,8 @@ class FixtureBuilder {
     // Also set up AnalyticsController state so analytics.isEnabled() returns true
     this.fixture.state.engine.backgroundState.AnalyticsController = {
       optedIn: true,
-      analyticsId: 'a5f3c2e1-7b4d-4e9a-8c6f-1d2e3f4a5b6c',
+      analyticsId: TEST_ANALYTICS_ID,
     };
-    return this;
-  }
-
-  /**
-   * Sets up a minimal Solana fixture with mainnet configuration
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
-   */
-  withSolanaFixture() {
-    const SOLANA_TOKEN = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-
-    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
-      selectedMultichainNetworkChainId: SolScope.Mainnet,
-      multichainNetworkConfigurationsByChainId: {
-        [SolScope.Mainnet]: {
-          chainId: SolScope.Mainnet,
-          name: 'Solana Mainnet',
-          nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
-          isEvm: false,
-        },
-      },
-      isEvmSelected: false,
-    };
-
     return this;
   }
 

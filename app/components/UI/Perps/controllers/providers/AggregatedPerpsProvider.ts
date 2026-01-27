@@ -1,7 +1,7 @@
 /**
  * AggregatedPerpsProvider - Multi-provider aggregation wrapper
  *
- * Implements IPerpsProvider interface to enable seamless multi-provider support.
+ * Implements PerpsProvider interface to enable seamless multi-provider support.
  * Aggregates read operations from all providers, routes write operations to specific
  * providers based on params.providerId or default provider.
  *
@@ -44,8 +44,8 @@ import type {
   GetSupportedPathsParams,
   HistoricalPortfolioResult,
   InitializeResult,
-  IPerpsPlatformDependencies,
-  IPerpsProvider,
+  PerpsPlatformDependencies,
+  PerpsProvider,
   LiquidationPriceParams,
   LiveDataConfig,
   MaintenanceMarginParams,
@@ -79,7 +79,7 @@ import { ProviderRouter } from '../routing/ProviderRouter';
 import { SubscriptionMultiplexer } from '../aggregation/SubscriptionMultiplexer';
 
 /**
- * AggregatedPerpsProvider implements IPerpsProvider by coordinating
+ * AggregatedPerpsProvider implements PerpsProvider by coordinating
  * multiple backend providers.
  *
  * Design principles:
@@ -106,13 +106,13 @@ import { SubscriptionMultiplexer } from '../aggregation/SubscriptionMultiplexer'
  * await aggregated.placeOrder({ symbol: 'BTC', providerId: 'myx', ... });
  * ```
  */
-export class AggregatedPerpsProvider implements IPerpsProvider {
+export class AggregatedPerpsProvider implements PerpsProvider {
   readonly protocolId = 'aggregated';
 
-  private readonly providers: Map<PerpsProviderType, IPerpsProvider>;
+  private readonly providers: Map<PerpsProviderType, PerpsProvider>;
   private readonly defaultProvider: PerpsProviderType;
   private readonly aggregationMode: AggregationMode;
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
   private readonly router: ProviderRouter;
   private readonly subscriptionMux: SubscriptionMultiplexer;
 
@@ -147,7 +147,7 @@ export class AggregatedPerpsProvider implements IPerpsProvider {
    * Get list of active providers as tuples for iteration.
    * Returns array of [providerId, provider] pairs.
    */
-  private getActiveProviders(): [PerpsProviderType, IPerpsProvider][] {
+  private getActiveProviders(): [PerpsProviderType, PerpsProvider][] {
     return Array.from(this.providers.entries());
   }
 
@@ -155,7 +155,7 @@ export class AggregatedPerpsProvider implements IPerpsProvider {
    * Get the default provider instance.
    * Throws if default provider is not available.
    */
-  private getDefaultProvider(): IPerpsProvider {
+  private getDefaultProvider(): PerpsProvider {
     const provider = this.providers.get(this.defaultProvider);
     if (!provider) {
       throw new Error(
@@ -170,7 +170,7 @@ export class AggregatedPerpsProvider implements IPerpsProvider {
    */
   private getProviderOrDefault(
     providerId?: PerpsProviderType,
-  ): [PerpsProviderType, IPerpsProvider] {
+  ): [PerpsProviderType, PerpsProvider] {
     const id = providerId ?? this.defaultProvider;
     const provider = this.providers.get(id);
     if (!provider) {
@@ -653,7 +653,7 @@ export class AggregatedPerpsProvider implements IPerpsProvider {
    * @param providerId - Unique identifier for the provider
    * @param provider - Provider instance
    */
-  addProvider(providerId: PerpsProviderType, provider: IPerpsProvider): void {
+  addProvider(providerId: PerpsProviderType, provider: PerpsProvider): void {
     this.providers.set(providerId, provider);
     this.deps.debugLogger.log('[AggregatedPerpsProvider] Provider added', {
       providerId,
