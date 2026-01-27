@@ -5,7 +5,11 @@ import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { SolScope } from '@metamask/keyring-api';
+import {
+  SolScope,
+  TransactionStatus as KeyringTransactionStatus,
+  type Transaction,
+} from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Logger from '../../../../util/Logger';
@@ -281,7 +285,62 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         }
         const txHash = snapResponse.signature;
 
-        // Complete the delegation with the backend API
+        // Wait for transaction confirmation via MultichainTransactionsController:stateChange
+        // We use stateChange instead of transactionConfirmed because transactionConfirmed
+        // only fires for confirmed transactions, not for failed ones
+        await new Promise<void>((resolve, reject) => {
+          const CONFIRMATION_TIMEOUT_MS = 10000; // 10 second timeout
+          let isResolved = false;
+
+          const timeout = setTimeout(() => {
+            if (!isResolved) {
+              isResolved = true;
+              reject(new Error('Solana transaction confirmation timeout'));
+            }
+          }, CONFIRMATION_TIMEOUT_MS);
+
+          Engine.controllerMessenger.subscribe(
+            'MultichainTransactionsController:stateChange',
+            (controllerState) => {
+              if (isResolved) return;
+
+              // Look for the transaction in all accounts and chains
+              for (const accountTransactions of Object.values(
+                controllerState.nonEvmTransactions,
+              )) {
+                for (const chainEntry of Object.values(accountTransactions)) {
+                  const transaction = chainEntry.transactions?.find(
+                    (tx: Transaction) => tx.id === txHash,
+                  );
+                  if (transaction) {
+                    if (
+                      transaction.status === KeyringTransactionStatus.Confirmed
+                    ) {
+                      if (!isResolved) {
+                        isResolved = true;
+                        clearTimeout(timeout);
+                        resolve();
+                      }
+                      return;
+                    } else if (
+                      transaction.status === KeyringTransactionStatus.Failed
+                    ) {
+                      if (!isResolved) {
+                        Logger.log('Solana transaction failed', transaction);
+                        isResolved = true;
+                        clearTimeout(timeout);
+                        reject(new Error('Solana transaction failed on-chain'));
+                      }
+                      return;
+                    }
+                  }
+                }
+              }
+            },
+          );
+        });
+
+        // Complete the delegation with the backend API after confirmation
         await sdk.completeSolanaDelegation({
           address,
           network: params.network,
