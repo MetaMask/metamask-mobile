@@ -78,6 +78,9 @@ const PerpsAdjustMarginView: React.FC = () => {
   const { handleAddMargin, handleRemoveMargin, isAdjusting } =
     usePerpsMarginAdjustment({
       onSuccess: () => navigation.goBack(),
+      onError: () => {
+        submittedEstimateRef.current = null;
+      },
     });
 
   // Get all margin data from dedicated hook (uses live subscriptions)
