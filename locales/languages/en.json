@@ -7440,5 +7440,52 @@
     "description_android": "A new version of the app is available. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Reload",
     "primary_action_acknowledge": "Got it"
+  },
+  "hardware_wallet": {
+    "device_names": {
+      "ledger": "Ledger",
+      "qr": "QR Hardware Wallet",
+      "hardware_wallet": "Hardware Wallet"
+    },
+    "errors": {
+      "device_locked": "Unlock it and try again to continue",
+      "app_not_open": "Please open the Ethereum app on your device",
+      "device_disconnected": "Your {{device}} was disconnected. Please reconnect and try again",
+      "device_not_found": "Could not find your {{device}}. Please make sure it's connected",
+      "device_not_ready": "Your device is not ready. Please check it and try again",
+      "blind_signing": "Blind signing is disabled. Please enable it in your device settings",
+      "connection_closed": "The connection was lost. Please try again",
+      "connection_timeout": "Connection timed out. Please try again",
+      "user_cancelled": "The action was cancelled on your device",
+      "pending_confirmation": "There's a pending action on your device. Please complete or cancel it",
+      "bluetooth_permission_denied": "Bluetooth permission is required to connect to your device",
+      "location_permission_denied": "Location permission is required to scan for devices",
+      "nearby_permission_denied": "Nearby devices permission is required",
+      "bluetooth_off": "Please turn on Bluetooth to connect to your device",
+      "bluetooth_scan_failed": "Failed to scan for devices. Please try again",
+      "bluetooth_connection_failed": "Enable Bluetooth on your device to continue",
+      "not_supported": "This operation is not supported",
+      "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
+    },
+    "error": {
+      "default_title": "An error occurred",
+      "continue": "Continue",
+      "view_settings": "View Settings",
+      "device_locked_title": "{{device}} locked",
+      "device_disconnected_title": "{{device}} disconnected",
+      "device_not_found_title": "{{device}} not found",
+      "app_not_open": "Ethereum App Not Open",
+      "blind_signing_disabled": "Blind Signing Disabled",
+      "connection_timeout": "Device Unresponsive",
+      "connection_closed": "Connection Lost",
+      "user_cancelled": "Action Cancelled",
+      "pending_confirmation": "Pending Confirmation",
+      "bluetooth_required": "Bluetooth required",
+      "bluetooth_permission_denied": "Bluetooth Permission Required",
+      "location_permission_denied": "Location Permission Required",
+      "nearby_devices_permission_denied": "Nearby Devices Permission Required",
+      "scan_failed": "Scan Failed",
+      "something_went_wrong": "Something went wrong"
+    }
   }
 }

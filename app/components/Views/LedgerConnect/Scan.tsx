@@ -1,13 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, Platform, Linking } from 'react-native';
-import { openSettings } from 'react-native-permissions';
+import { View, StyleSheet } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 import Device from '../../../util/device';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import useBluetoothPermissions from '../../hooks/useBluetoothPermissions';
-import { LedgerConnectionErrorProps } from './LedgerConnectionError';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from '../../hooks/Ledger/useBluetoothDevices';
@@ -19,6 +17,10 @@ import SelectOptionSheet, { ISelectOption } from '../../UI/SelectOptionSheet';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { ledgerDeviceUUIDToModelName } from '../../../util/hardwareWallet/deviceNameUtils';
+import {
+  useHardwareWalletError,
+  HardwareWalletType,
+} from '../../../core/HardwareWallet';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -40,17 +42,10 @@ const createStyles = (colors: Colors) =>
 
 interface ScanProps {
   onDeviceSelected: (device: BluetoothDevice | undefined) => void;
-  onScanningErrorStateChanged: (
-    error: LedgerConnectionErrorProps | undefined,
-  ) => void;
   ledgerError: LedgerCommunicationErrors | undefined;
 }
 
-const Scan = ({
-  onDeviceSelected,
-  onScanningErrorStateChanged,
-  ledgerError,
-}: ScanProps) => {
+const Scan = ({ onDeviceSelected, ledgerError }: ScanProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -71,6 +66,9 @@ const Scan = ({
   );
   const [permissionErrorShown, setPermissionErrorShown] = useState(false);
 
+  // Use centralized error handling with bottom sheet
+  const { parseAndShowError } = useHardwareWalletError();
+
   const ledgerModelName = useMemo(() => {
     if (selectedDevice) {
       const [bluetoothServiceId] = selectedDevice.serviceUUIDs;
@@ -78,24 +76,6 @@ const Scan = ({
     }
     return undefined;
   }, [selectedDevice]);
-
-  useEffect(() => {
-    if (
-      !bluetoothPermissionError &&
-      !bluetoothConnectionError &&
-      !deviceScanError &&
-      !permissionErrorShown &&
-      !ledgerError
-    ) {
-      onScanningErrorStateChanged(undefined);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    bluetoothPermissionError,
-    bluetoothConnectionError,
-    deviceScanError,
-    ledgerError,
-  ]);
 
   useEffect(() => {
     // first device is selected by default if not selectedDevice is set
@@ -106,87 +86,59 @@ const Scan = ({
   }, [devices, onDeviceSelected, selectedDevice]);
 
   useEffect(() => {
-    if (bluetoothPermissionError && !permissionErrorShown) {
-      switch (bluetoothPermissionError) {
-        case BluetoothPermissionErrors.LocationAccessBlocked:
-          onScanningErrorStateChanged({
-            errorTitle: strings('ledger.location_access_blocked'),
-            errorSubtitle: strings('ledger.location_access_blocked_message'),
+    console.log('[DEBUG Scan] useEffect triggered:', {
+      bluetoothPermissionError,
+      bluetoothConnectionError,
+      deviceScanError,
+      hasBluetoothPermissions,
+      bluetoothOn,
+      permissionErrorShown,
+    });
 
-            primaryButtonConfig: {
-              title: strings('ledger.view_settings'),
-              onPress: async () => {
-                await openSettings();
-              },
-            },
-          });
-          break;
-        case BluetoothPermissionErrors.BluetoothAccessBlocked: {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-              .addProperties({
-                device_type: HardwareDeviceTypes.LEDGER,
-                device_model: ledgerModelName,
-                error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
-              })
-              .build(),
-          );
-          onScanningErrorStateChanged({
-            errorTitle: strings('ledger.bluetooth_access_blocked'),
-            errorSubtitle: strings('ledger.bluetooth_access_blocked_message'),
-            primaryButtonConfig: {
-              title: strings('ledger.view_settings'),
-              onPress: async () => {
-                await openSettings();
-              },
-            },
-          });
-          break;
-        }
-        case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
-          onScanningErrorStateChanged({
-            errorTitle: strings('ledger.nearbyDevices_access_blocked'),
-            errorSubtitle: strings(
-              'ledger.nearbyDevices_access_blocked_message',
-            ),
-            primaryButtonConfig: {
-              title: strings('ledger.view_settings'),
-              onPress: () => {
-                openSettings();
-              },
-            },
-          });
-          break;
+    if (bluetoothPermissionError && !permissionErrorShown) {
+      console.log(
+        '[DEBUG Scan] Calling parseAndShowError for bluetoothPermissionError:',
+        bluetoothPermissionError,
+      );
+      // Show centralized error bottom sheet
+      parseAndShowError(bluetoothPermissionError, HardwareWalletType.Ledger);
+
+      // Track analytics for Bluetooth permission errors
+      if (
+        bluetoothPermissionError ===
+        BluetoothPermissionErrors.BluetoothAccessBlocked
+      ) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+            .addProperties({
+              device_type: HardwareDeviceTypes.LEDGER,
+              device_model: ledgerModelName,
+              error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
+            })
+            .build(),
+        );
       }
       setPermissionErrorShown(true);
     }
 
     if (bluetoothConnectionError) {
-      onScanningErrorStateChanged({
-        errorTitle: strings('ledger.bluetooth_off'),
-        errorSubtitle: strings('ledger.bluetooth_off_message'),
-        primaryButtonConfig: {
-          title: strings('ledger.view_settings'),
-          onPress: () => {
-            Platform.OS === 'ios'
-              ? Linking.openURL('App-Prefs:Bluetooth')
-              : Linking.openSettings();
-          },
-        },
-      });
+      console.log(
+        '[DEBUG Scan] Calling parseAndShowError for bluetoothConnectionError',
+      );
+      // Show centralized error bottom sheet for Bluetooth off
+      parseAndShowError(
+        new Error('BluetoothDisabled'),
+        HardwareWalletType.Ledger,
+      );
     }
 
     if (deviceScanError) {
-      onScanningErrorStateChanged({
-        errorTitle: strings('ledger.bluetooth_scanning_error'),
-        errorSubtitle: strings('ledger.bluetooth_scanning_error_message'),
-        primaryButtonConfig: {
-          title: strings('ledger.retry'),
-          onPress: () => {
-            checkPermissions();
-          },
-        },
-      });
+      console.log('[DEBUG Scan] Calling parseAndShowError for deviceScanError');
+      // deviceScanError is a boolean, create a proper error for display
+      parseAndShowError(
+        new Error('BluetoothScanFailed'),
+        HardwareWalletType.Ledger,
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -196,6 +148,7 @@ const Scan = ({
     permissionErrorShown,
     selectedDevice,
     ledgerModelName,
+    parseAndShowError,
   ]);
 
   useEffect(() => {

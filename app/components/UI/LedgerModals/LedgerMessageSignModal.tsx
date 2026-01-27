@@ -15,6 +15,10 @@ import { RootState } from '../../../reducers';
 
 import { RPCStageTypes, iEventGroup } from '../../../reducers/rpcEvents';
 import { resetEventStage } from '../../../actions/rpcEvents';
+import {
+  useHardwareWalletError,
+  HardwareWalletType,
+} from '../../../core/HardwareWallet';
 
 export interface LedgerMessageSignModalParams {
   // TODO: Replace "any" with type
@@ -50,6 +54,7 @@ const LedgerMessageSignModal = () => {
   const { signingEvent }: iEventGroup = useSelector(
     (state: RootState) => state.rpcEvents,
   );
+  const { parseAndShowError } = useHardwareWalletError();
 
   const { onConfirmationComplete, deviceId } =
     useParams<LedgerMessageSignModalParams>();
@@ -67,18 +72,32 @@ const LedgerMessageSignModal = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    //Close the modal when the signMessageStage is complete or error, error will return the error message to the user
-    if (
-      signingEvent.eventStage === RPCStageTypes.COMPLETE ||
-      signingEvent.eventStage === RPCStageTypes.ERROR
-    ) {
+    // Close the modal when the signMessageStage is complete
+    if (signingEvent.eventStage === RPCStageTypes.COMPLETE) {
       dismissModal();
     }
-  }, [signingEvent.eventStage, dismissModal]);
+    // On error, show the error in the bottom sheet before closing
+    if (signingEvent.eventStage === RPCStageTypes.ERROR) {
+      if (signingEvent.error) {
+        parseAndShowError(signingEvent.error, HardwareWalletType.Ledger);
+      }
+      dismissModal();
+    }
+  }, [
+    signingEvent.eventStage,
+    signingEvent.error,
+    dismissModal,
+    parseAndShowError,
+  ]);
 
   const executeOnLedger = useCallback(async () => {
-    onConfirmationComplete(true);
-  }, [onConfirmationComplete]);
+    try {
+      await onConfirmationComplete(true);
+    } catch (err) {
+      // Show error in centralized bottom sheet
+      parseAndShowError(err, HardwareWalletType.Ledger);
+    }
+  }, [onConfirmationComplete, parseAndShowError]);
 
   const onRejection = useCallback(() => {
     onConfirmationComplete(false);

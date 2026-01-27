@@ -21,9 +21,6 @@ import {
 import Device from '../../../util/device';
 import Scan from './Scan';
 import { showSimpleNotification } from '../../../actions/notification';
-import LedgerConnectionError, {
-  LedgerConnectionErrorProps,
-} from './LedgerConnectionError';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
 
@@ -44,6 +41,10 @@ import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { HARDWARE_WALLET_BUTTON_TYPE } from '../../../core/Analytics/MetaMetrics.events';
 import { ledgerDeviceUUIDToModelName } from '../../../util/hardwareWallet/deviceNameUtils';
+import {
+  useHardwareWalletError,
+  HardwareWalletType,
+} from '../../../core/HardwareWallet';
 
 interface LedgerConnectProps {
   onConnectLedger: () => void;
@@ -73,13 +74,15 @@ const LedgerConnect = ({
     () => createStyles(theme.colors, insets),
     [theme, insets],
   );
-  const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
   const [hasMatchingDeviceId, setHasMatchingDeviceId] = useState(true);
   const [retryTimes, setRetryTimes] = useState(0);
   const dispatch = useDispatch();
   const deviceOSVersion = Number(getSystemVersion()) || 0;
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  // Use centralized error handling with bottom sheet
+  const { parseAndShowError } = useHardwareWalletError();
 
   const ledgerModelName = useMemo(() => {
     if (selectedDevice) {
@@ -147,33 +150,6 @@ const LedgerConnect = ({
     getStoredDeviceId();
   };
 
-  const handleErrorWithRetry = (errorTitle: string, errorSubtitle: string) => {
-    setErrorDetails({
-      errorTitle,
-      errorSubtitle,
-      primaryButtonConfig: {
-        title: strings('ledger.retry'),
-        onPress: () => {
-          const retryCount = retryTimes + 1;
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.HARDWARE_WALLET_CONNECTION_RETRY,
-            )
-              .addProperties({
-                device_type: HardwareDeviceTypes.LEDGER,
-                device_model: ledgerModelName,
-                retry_count: retryCount,
-              })
-              .build(),
-          );
-          setErrorDetails(undefined);
-          setRetryTimes(retryCount);
-          connectLedger();
-        },
-      },
-    });
-  };
-
   const permissionText = useMemo(() => {
     if (deviceOSVersion >= 12) {
       return strings('ledger.ledger_reminder_message_step_four_Androidv12plus');
@@ -205,47 +181,36 @@ const LedgerConnect = ({
       : styles.bodyContainerWhithErrorMessage;
 
   useEffect(() => {
+    console.log('[DEBUG LedgerConnect] ledgerError changed:', ledgerError);
     if (ledgerError) {
       setLoading(false);
+
+      // Show error in centralized bottom sheet (except for user cancellation)
+      if (ledgerError !== LedgerCommunicationErrors.UserRefusedConfirmation) {
+        console.log(
+          '[DEBUG LedgerConnect] Calling parseAndShowError with:',
+          ledgerError,
+        );
+        parseAndShowError(ledgerError, HardwareWalletType.Ledger);
+      }
+
       switch (ledgerError) {
         case LedgerCommunicationErrors.FailedToOpenApp:
-          handleErrorWithRetry(
-            strings('ledger.failed_to_open_eth_app'),
-            strings('ledger.ethereum_app_open_error'),
-          );
-          break;
         case LedgerCommunicationErrors.FailedToCloseApp:
-          handleErrorWithRetry(
-            strings('ledger.running_app_close'),
-            strings('ledger.running_app_close_error'),
-          );
-          break;
         case LedgerCommunicationErrors.AppIsNotInstalled:
-          handleErrorWithRetry(
-            strings('ledger.ethereum_app_not_installed'),
-            strings('ledger.ethereum_app_not_installed_error'),
-          );
-
+        case LedgerCommunicationErrors.LedgerIsLocked:
+        case LedgerCommunicationErrors.DeviceUnresponsive:
+          // Errors shown via centralized bottom sheet
           break;
         case LedgerCommunicationErrors.UserRefusedConfirmation:
           navigation.navigate('SelectHardwareWallet');
-          break;
-        case LedgerCommunicationErrors.LedgerIsLocked:
-          handleErrorWithRetry(
-            strings('ledger.ledger_is_locked'),
-            strings('ledger.unlock_ledger_message'),
-          );
           break;
         case LedgerCommunicationErrors.UnknownError:
         case LedgerCommunicationErrors.LedgerDisconnected:
           if (retryTimes < 3) {
             setRetryTimes(retryTimes + 1);
-          } else {
-            handleErrorWithRetry(
-              strings('ledger.error_during_connection'),
-              strings('ledger.error_during_connection_message'),
-            );
           }
+          // Error shown via centralized bottom sheet
           break;
         default: {
           dispatch(
@@ -305,7 +270,7 @@ const LedgerConnect = ({
                 ? strings('ledger.looking_for_device')
                 : strings('ledger.open_eth_app')}
             </Text>
-            {!selectedDevice && (
+            {!selectedDevice && !ledgerError && (
               <ActivityIndicator style={styles.activityIndicatorStyle} />
             )}
           </View>
@@ -357,7 +322,6 @@ const LedgerConnect = ({
           {!isAppLaunchConfirmationNeeded ? (
             <Scan
               onDeviceSelected={onDeviceSelected}
-              onScanningErrorStateChanged={(error) => setErrorDetails(error)}
               ledgerError={ledgerError}
             />
           ) : null}
@@ -383,7 +347,6 @@ const LedgerConnect = ({
           ) : null}
         </View>
       </View>
-      {errorDetail && <LedgerConnectionError {...errorDetail} />}
     </SafeAreaView>
   );
 };
