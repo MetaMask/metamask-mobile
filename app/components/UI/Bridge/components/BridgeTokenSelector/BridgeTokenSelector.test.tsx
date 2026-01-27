@@ -9,6 +9,7 @@ import {
   MOCK_CHAIN_IDS,
 } from '../../testUtils/fixtures';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
+import { tokenToIncludeAsset } from '../../utils/tokenUtils';
 
 let mockBridgeFeatureFlags = {
   chainRanking: [
@@ -189,18 +190,24 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+const mockFormatAddressToAssetId = jest.fn<string | null, [string, string]>(
+  () => 'eip155:1/erc20:0x1234',
+);
+const mockIsNonEvmChainId = jest.fn<boolean, [string]>(() => false);
 jest.mock('@metamask/bridge-controller', () => ({
-  formatAddressToAssetId: jest.fn(() => 'eip155:1/erc20:0x1234'),
+  formatAddressToAssetId: (address: string, chainId: string) =>
+    mockFormatAddressToAssetId(address, chainId),
   formatChainIdToCaip: jest.fn(
     (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
   ),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
   UnifiedSwapBridgeEventName: {
     AssetDetailTooltipClicked: 'AssetDetailTooltipClicked',
   },
 }));
 
 jest.mock('../../../../../core/Multichain/utils', () => ({
-  isNonEvmChainId: jest.fn(() => false),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -353,7 +360,76 @@ const resetMocks = () => {
   };
   mockBalancesByAssetIdState = { tokensWithBalance: [], balancesByAssetId: {} };
   mockSelectedToken = null;
+  mockFormatAddressToAssetId.mockReturnValue('eip155:1/erc20:0x1234');
+  mockIsNonEvmChainId.mockReturnValue(false);
 };
+
+describe('tokenToIncludeAsset', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFormatAddressToAssetId.mockReturnValue('eip155:1/erc20:0x1234');
+    mockIsNonEvmChainId.mockReturnValue(false);
+  });
+
+  it('returns null when formatAddressToAssetId returns null', () => {
+    mockFormatAddressToAssetId.mockReturnValue(null);
+    const token = createMockToken();
+
+    const result = tokenToIncludeAsset(token);
+
+    expect(result).toBeNull();
+  });
+
+  it('returns IncludeAsset with lowercase assetId for EVM token', () => {
+    mockFormatAddressToAssetId.mockReturnValue('EIP155:1/ERC20:0xABCD');
+    mockIsNonEvmChainId.mockReturnValue(false);
+    const token = createMockToken({
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+    });
+
+    const result = tokenToIncludeAsset(token);
+
+    expect(result).toEqual({
+      assetId: 'eip155:1/erc20:0xabcd',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      decimals: 6,
+    });
+  });
+
+  it('returns IncludeAsset with preserved assetId case for non-EVM token', () => {
+    mockFormatAddressToAssetId.mockReturnValue(
+      'bip122:000000000019d6689c085ae165831e93/slip44:0',
+    );
+    mockIsNonEvmChainId.mockReturnValue(true);
+    const token = createMockToken({
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      decimals: 8,
+      chainId: 'bip122:000000000019d6689c085ae165831e93',
+    });
+
+    const result = tokenToIncludeAsset(token);
+
+    expect(result).toEqual({
+      assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      decimals: 8,
+    });
+  });
+
+  it('uses empty string for undefined token name', () => {
+    const token = createMockToken({ name: undefined });
+
+    const result = tokenToIncludeAsset(token);
+
+    expect(result).not.toBeNull();
+    expect(result?.name).toBe('');
+  });
+});
 
 const createSearchToken = (symbol: string) =>
   createMockPopularToken({
