@@ -127,7 +127,7 @@ export const usePerpsHomeActions = (
 
       Logger.error(errorObj, {
         tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
         },
       });
 
@@ -192,7 +192,7 @@ export const usePerpsHomeActions = (
 
       Logger.error(errorObj, {
         tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
         },
       });
 

@@ -18,8 +18,8 @@ import {
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
 import type {
-  IPerpsProvider,
-  IPerpsPlatformDependencies,
+  PerpsProvider,
+  PerpsPlatformDependencies,
   PerpsProviderType,
 } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
@@ -286,7 +286,7 @@ class TestablePerpsController extends PerpsController {
    * Used in most tests to inject mock providers.
    * Also sets activeProviderInstance to the first provider (default provider).
    */
-  public testSetProviders(providers: Map<PerpsProviderType, IPerpsProvider>) {
+  public testSetProviders(providers: Map<PerpsProviderType, PerpsProvider>) {
     this.providers = providers;
     // Set activeProviderInstance to the first provider (typically 'hyperliquid')
     const firstProvider = providers.values().next().value;
@@ -301,16 +301,16 @@ class TestablePerpsController extends PerpsController {
    * Type cast is intentional and necessary for testing graceful degradation.
    */
   public testSetPartialProviders(
-    providers: Map<PerpsProviderType, Partial<IPerpsProvider>>,
+    providers: Map<PerpsProviderType, Partial<PerpsProvider>>,
   ) {
-    this.providers = providers as Map<PerpsProviderType, IPerpsProvider>;
+    this.providers = providers as Map<PerpsProviderType, PerpsProvider>;
   }
 
   /**
    * Test-only method to get the providers map.
    * Used to verify provider state in tests.
    */
-  public testGetProviders(): Map<PerpsProviderType, IPerpsProvider> {
+  public testGetProviders(): Map<PerpsProviderType, PerpsProvider> {
     return this.providers;
   }
 
@@ -391,7 +391,7 @@ function createMockMessenger(
 describe('PerpsController', () => {
   let controller: TestablePerpsController;
   let mockProvider: jest.Mocked<HyperLiquidProvider>;
-  let mockInfrastructure: jest.Mocked<IPerpsPlatformDependencies>;
+  let mockInfrastructure: jest.Mocked<PerpsPlatformDependencies>;
 
   // Helper to mark controller as initialized for tests
   const markControllerAsInitialized = () => {

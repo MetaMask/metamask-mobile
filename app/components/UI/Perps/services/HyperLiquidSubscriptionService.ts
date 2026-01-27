@@ -27,7 +27,7 @@ import type {
   SubscribeOrderBookParams,
   OrderBookData,
   OrderBookLevel,
-  IPerpsPlatformDependencies,
+  PerpsPlatformDependencies,
 } from '../controllers/types';
 import {
   adaptPositionFromSDK,
@@ -191,12 +191,12 @@ export class HyperLiquidSubscriptionService {
   >();
 
   // Platform dependencies for logging
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   constructor(
     clientService: HyperLiquidClientService,
     walletService: HyperLiquidWalletService,
-    platformDependencies: IPerpsPlatformDependencies,
+    platformDependencies: PerpsPlatformDependencies,
     hip3Enabled?: boolean,
     enabledDexs?: string[],
     allowlistMarkets?: string[],
@@ -231,7 +231,7 @@ export class HyperLiquidSubscriptionService {
   } {
     return {
       tags: {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         provider: 'hyperliquid',
         network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
       },
@@ -623,7 +623,7 @@ export class HyperLiquidSubscriptionService {
       let positionForCoin: Position | undefined;
 
       const matchPositionToTpsl = (p: Position) => {
-        if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
+        if (TP_SL_CONFIG.UsePositionBoundTpsl) {
           return (
             p.symbol === order.coin && order.reduceOnly && order.isPositionTpsl
           );

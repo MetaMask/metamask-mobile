@@ -6,7 +6,7 @@ import type { ServiceContext } from './ServiceContext';
 import {
   PerpsTraceNames,
   PerpsTraceOperations,
-  type IPerpsPlatformDependencies,
+  type PerpsPlatformDependencies,
 } from '../types';
 
 /**
@@ -19,13 +19,13 @@ import {
  * Instance-based service with constructor injection of platform dependencies.
  */
 export class DataLakeService {
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   /**
    * Create a new DataLakeService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  constructor(deps: IPerpsPlatformDependencies) {
+  constructor(deps: PerpsPlatformDependencies) {
     this.deps = deps;
   }
 
@@ -98,8 +98,8 @@ export class DataLakeService {
     // Start trace only on first attempt
     if (retryCount === 0) {
       this.deps.tracer.trace({
-        name: PerpsTraceNames.DATA_LAKE_REPORT,
-        op: PerpsTraceOperations.OPERATION,
+        name: PerpsTraceNames.DataLakeReport,
+        op: PerpsTraceOperations.Operation,
         id: traceId,
         tags: {
           action,
@@ -144,7 +144,7 @@ export class DataLakeService {
         return { success: false, error: 'No account or token available' };
       }
 
-      const response = await fetch(DATA_LAKE_API_CONFIG.ORDERS_ENDPOINT, {
+      const response = await fetch(DATA_LAKE_API_CONFIG.OrdersEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -186,7 +186,7 @@ export class DataLakeService {
 
       // End trace on success
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.DATA_LAKE_REPORT,
+        name: PerpsTraceNames.DataLakeReport,
         id: traceId,
         data: {
           success: true,
@@ -250,7 +250,7 @@ export class DataLakeService {
       }
 
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.DATA_LAKE_REPORT,
+        name: PerpsTraceNames.DataLakeReport,
         id: traceId,
         data: {
           success: false,

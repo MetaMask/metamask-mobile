@@ -432,7 +432,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       setTimeout(
         () => this.connect(),
-        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
       );
       return;
     }
@@ -469,7 +469,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
 
           // Log WebSocket performance measurement
           DevLogger.log(
-            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First order data received`,
+            `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First order data received`,
             {
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
@@ -567,7 +567,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       setTimeout(
         () => this.connect(),
-        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
       );
       return;
     }
@@ -607,7 +607,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
           // Log WebSocket performance measurement
           DevLogger.log(
-            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First position data received`,
+            `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First position data received`,
             {
               metric: PerpsMeasurementName.PERPS_WEBSOCKET_FIRST_POSITION_DATA,
               duration: `${firstDataDuration.toFixed(0)}ms`,
@@ -833,7 +833,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       setTimeout(
         () => this.connect(),
-        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
       );
       return;
     }
@@ -873,7 +873,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
 
           // Log WebSocket performance measurement
           DevLogger.log(
-            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First account data received`,
+            `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First account data received`,
             {
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
@@ -970,7 +970,7 @@ class OICapStreamChannel extends StreamChannel<string[]> {
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       setTimeout(
         () => this.connect(),
-        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
       );
       return;
     }
@@ -1146,7 +1146,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private lastFetchTime = 0;
   private fetchPromise: Promise<void> | null = null;
   private readonly CACHE_DURATION =
-    PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
+    PERFORMANCE_CONFIG.MarketDataCacheDurationMs;
 
   protected connect() {
     // Check if connection manager is still connecting - retry later if so

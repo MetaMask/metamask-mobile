@@ -15,7 +15,7 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../../../../util/errorUtils';
 import type {
   SubscribeCandlesParams,
-  IPerpsPlatformDependencies,
+  PerpsPlatformDependencies,
 } from '../controllers/types';
 import { Hex } from '@metamask/utils';
 
@@ -59,10 +59,10 @@ export class HyperLiquidClientService {
   private onReconnectCallback?: () => Promise<void>;
 
   // Platform dependencies for logging
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   constructor(
-    deps: IPerpsPlatformDependencies,
+    deps: PerpsPlatformDependencies,
     options: { isTestnet?: boolean } = {},
   ) {
     this.deps = deps;
@@ -161,7 +161,7 @@ export class HyperLiquidClientService {
       // Log to Sentry: initialization failure blocks all Perps functionality
       this.deps.logger.error(errorInstance, {
         tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
           service: 'HyperLiquidClientService',
           network: this.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -445,7 +445,7 @@ export class HyperLiquidClientService {
       // Log to Sentry: prevents initial chart data load
       this.deps.logger.error(errorInstance, {
         tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
           service: 'HyperLiquidClientService',
           network: this.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -579,7 +579,7 @@ export class HyperLiquidClientService {
             // Log to Sentry: WebSocket subscription failure prevents live updates
             this.deps.logger.error(errorInstance, {
               tags: {
-                feature: PERPS_CONSTANTS.FEATURE_NAME,
+                feature: PERPS_CONSTANTS.FeatureName,
                 service: 'HyperLiquidClientService',
                 network: this.isTestnet ? 'testnet' : 'mainnet',
               },
@@ -604,7 +604,7 @@ export class HyperLiquidClientService {
         // Log to Sentry: initial fetch failure blocks chart completely
         this.deps.logger.error(errorInstance, {
           tags: {
-            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            feature: PERPS_CONSTANTS.FeatureName,
             service: 'HyperLiquidClientService',
             network: this.isTestnet ? 'testnet' : 'mainnet',
           },

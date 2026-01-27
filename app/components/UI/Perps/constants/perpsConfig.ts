@@ -2,38 +2,38 @@
  * Perps feature constants
  */
 export const PERPS_CONSTANTS = {
-  FEATURE_FLAG_KEY: 'perpsEnabled',
-  FEATURE_NAME: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries
-  WEBSOCKET_TIMEOUT: 5000, // 5 seconds
-  WEBSOCKET_CLEANUP_DELAY: 1000, // 1 second
-  BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
-  CONNECTION_TIMEOUT_MS: 10_000, // 10 seconds timeout for connection and position loading states
-  DEFAULT_MONITORING_TIMEOUT_MS: 10_000, // 10 seconds default timeout for data monitoring operations
+  FeatureFlagKey: 'perpsEnabled',
+  FeatureName: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries
+  WebsocketTimeout: 5000, // 5 seconds
+  WebsocketCleanupDelay: 1000, // 1 second
+  BackgroundDisconnectDelay: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
+  ConnectionTimeoutMs: 10_000, // 10 seconds timeout for connection and position loading states
+  DefaultMonitoringTimeoutMs: 10_000, // 10 seconds default timeout for data monitoring operations
 
   // Connection timing constants
-  CONNECTION_GRACE_PERIOD_MS: 20_000, // 20 seconds grace period before actual disconnection (same as BACKGROUND_DISCONNECT_DELAY for semantic clarity)
-  CONNECTION_ATTEMPT_TIMEOUT_MS: 30_000, // 30 seconds timeout for connection attempts to prevent indefinite hanging
-  WEBSOCKET_PING_TIMEOUT_MS: 5_000, // 5 seconds timeout for WebSocket health check ping
-  RECONNECTION_CLEANUP_DELAY_MS: 500, // Platform-agnostic delay to ensure WebSocket is ready
-  RECONNECTION_DELAY_ANDROID_MS: 300, // Android-specific reconnection delay for better reliability on slower devices
-  RECONNECTION_DELAY_IOS_MS: 100, // iOS-specific reconnection delay for optimal performance
+  ConnectionGracePeriodMs: 20_000, // 20 seconds grace period before actual disconnection (same as BackgroundDisconnectDelay for semantic clarity)
+  ConnectionAttemptTimeoutMs: 30_000, // 30 seconds timeout for connection attempts to prevent indefinite hanging
+  WebsocketPingTimeoutMs: 5_000, // 5 seconds timeout for WebSocket health check ping
+  ReconnectionCleanupDelayMs: 500, // Platform-agnostic delay to ensure WebSocket is ready
+  ReconnectionDelayAndroidMs: 300, // Android-specific reconnection delay for better reliability on slower devices
+  ReconnectionDelayIosMs: 100, // iOS-specific reconnection delay for optimal performance
 
   // Connection manager timing constants
-  BALANCE_UPDATE_THROTTLE_MS: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
-  INITIAL_DATA_DELAY_MS: 100, // Delay to allow initial data to load after connection establishment
+  BalanceUpdateThrottleMs: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
+  InitialDataDelayMs: 100, // Delay to allow initial data to load after connection establishment
 
-  DEFAULT_ASSET_PREVIEW_LIMIT: 5,
-  DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
-  FALLBACK_PRICE_DISPLAY: '$---', // Display when price data is unavailable
-  FALLBACK_PERCENTAGE_DISPLAY: '--%', // Display when change data is unavailable
-  FALLBACK_DATA_DISPLAY: '--', // Display when non-price data is unavailable
-  ZERO_AMOUNT_DISPLAY: '$0', // Display for zero dollar amounts (e.g., no volume)
-  ZERO_AMOUNT_DETAILED_DISPLAY: '$0.00', // Display for zero dollar amounts with decimals
+  DefaultAssetPreviewLimit: 5,
+  DefaultMaxLeverage: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
+  FallbackPriceDisplay: '$---', // Display when price data is unavailable
+  FallbackPercentageDisplay: '--%', // Display when change data is unavailable
+  FallbackDataDisplay: '--', // Display when non-price data is unavailable
+  ZeroAmountDisplay: '$0', // Display for zero dollar amounts (e.g., no volume)
+  ZeroAmountDetailedDisplay: '$0.00', // Display for zero dollar amounts with decimals
 
-  RECENT_ACTIVITY_LIMIT: 3,
+  RecentActivityLimit: 3,
 
   // Historical data fetching constants
-  FILLS_LOOKBACK_MS: 90 * 24 * 60 * 60 * 1000, // 3 months in milliseconds - limits REST API fills fetch
+  FillsLookbackMs: 90 * 24 * 60 * 60 * 1000, // 3 months in milliseconds - limits REST API fills fetch
 } as const;
 
 /**
@@ -41,9 +41,9 @@ export const PERPS_CONSTANTS = {
  * Note: Protocol-specific values like estimated time should be defined in each protocol's config
  */
 export const WITHDRAWAL_CONSTANTS = {
-  DEFAULT_MIN_AMOUNT: '1.01', // Default minimum withdrawal amount in USDC
-  DEFAULT_FEE_AMOUNT: 1, // Default withdrawal fee in USDC
-  DEFAULT_FEE_TOKEN: 'USDC', // Default fee token
+  DefaultMinAmount: '1.01', // Default minimum withdrawal amount in USDC
+  DefaultFeeAmount: 1, // Default withdrawal fee in USDC
+  DefaultFeeToken: 'USDC', // Default fee token
 } as const;
 
 /**
@@ -52,8 +52,8 @@ export const WITHDRAWAL_CONSTANTS = {
  */
 export const METAMASK_FEE_CONFIG = {
   // Deposit/withdrawal fees
-  DEPOSIT_FEE: 0, // $0 currently
-  WITHDRAWAL_FEE: 0, // $0 currently
+  DepositFee: 0, // $0 currently
+  WithdrawalFee: 0, // $0 currently
 
   // Future: Fee configuration will be fetched from API based on:
   // - User tier/volume (for MetaMask fee discounts)
@@ -70,13 +70,13 @@ export const METAMASK_FEE_CONFIG = {
  */
 export const VALIDATION_THRESHOLDS = {
   // Leverage threshold for warning users about high leverage
-  HIGH_LEVERAGE_WARNING: 20, // Show warning when leverage > 20x
+  HighLeverageWarning: 20, // Show warning when leverage > 20x
 
   // Limit price difference threshold (as decimal, 0.1 = 10%)
-  LIMIT_PRICE_DIFFERENCE_WARNING: 0.1, // Warn if limit price differs by >10% from current price
+  LimitPriceDifferenceWarning: 0.1, // Warn if limit price differs by >10% from current price
 
   // Price deviation threshold (as decimal, 0.1 = 10%)
-  PRICE_DEVIATION: 0.1, // Warn if perps price deviates by >10% from spot price
+  PriceDeviation: 0.1, // Warn if perps price deviates by >10% from spot price
 } as const;
 
 /**
@@ -89,17 +89,17 @@ export const ORDER_SLIPPAGE_CONFIG = {
   // Market order slippage (basis points)
   // 300 basis points = 3% = 0.03 decimal
   // Conservative default for measured rollout, prevents most IOC failures
-  DEFAULT_MARKET_SLIPPAGE_BPS: 300,
+  DefaultMarketSlippageBps: 300,
 
   // TP/SL order slippage (basis points)
   // 1000 basis points = 10% = 0.10 decimal
   // Aligns with HyperLiquid platform default for triggered orders
-  DEFAULT_TPSL_SLIPPAGE_BPS: 1000,
+  DefaultTpslSlippageBps: 1000,
 
   // Limit order slippage (basis points)
   // 100 basis points = 1% = 0.01 decimal
   // Kept conservative as limit orders rest on book (not IOC/immediate execution)
-  DEFAULT_LIMIT_SLIPPAGE_BPS: 100,
+  DefaultLimitSlippageBps: 100,
 } as const;
 
 /**
@@ -109,42 +109,42 @@ export const ORDER_SLIPPAGE_CONFIG = {
 export const PERFORMANCE_CONFIG = {
   // Price updates debounce delay (milliseconds)
   // Batches rapid WebSocket price updates to reduce re-renders
-  PRICE_UPDATE_DEBOUNCE_MS: 1000,
+  PriceUpdateDebounceMs: 1000,
 
   // Order validation debounce delay (milliseconds)
   // Prevents excessive validation calls during rapid form input changes
-  VALIDATION_DEBOUNCE_MS: 300,
+  ValidationDebounceMs: 300,
 
   // Liquidation price debounce delay (milliseconds)
   // Prevents excessive liquidation price calls during rapid form input changes
-  LIQUIDATION_PRICE_DEBOUNCE_MS: 500,
+  LiquidationPriceDebounceMs: 500,
 
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs
-  NAVIGATION_PARAMS_DELAY_MS: 200,
+  NavigationParamsDelayMs: 200,
 
   // Tab control reset delay (milliseconds)
   // Delay to reset programmatic tab control after tab switching to prevent render loops
-  TAB_CONTROL_RESET_DELAY_MS: 500,
+  TabControlResetDelayMs: 500,
 
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data
-  MARKET_DATA_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+  MarketDataCacheDurationMs: 5 * 60 * 1000, // 5 minutes
 
   // Asset metadata cache duration (milliseconds)
   // How long to cache asset icon validation results
-  ASSET_METADATA_CACHE_DURATION_MS: 60 * 60 * 1000, // 1 hour
+  AssetMetadataCacheDurationMs: 60 * 60 * 1000, // 1 hour
 
   // Max leverage cache duration (milliseconds)
   // How long to cache max leverage values per asset (leverage rarely changes)
-  MAX_LEVERAGE_CACHE_DURATION_MS: 60 * 60 * 1000, // 1 hour
+  MaxLeverageCacheDurationMs: 60 * 60 * 1000, // 1 hour
 
   // Rewards cache durations (milliseconds)
   // How long to cache fee discount data from rewards API
-  FEE_DISCOUNT_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+  FeeDiscountCacheDurationMs: 5 * 60 * 1000, // 5 minutes
   // How long to cache points calculation parameters from rewards API
-  POINTS_CALCULATION_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+  PointsCalculationCacheDurationMs: 5 * 60 * 1000, // 5 minutes
 
   /**
    * Performance logging markers for filtering logs during development and debugging
@@ -158,15 +158,15 @@ export const PERFORMANCE_CONFIG = {
    * - Filter WebSocket performance: `adb logcat | grep PERPSMARK_WS`
    * - Filter all Perps performance: `adb logcat | grep PERPSMARK_`
    */
-  LOGGING_MARKERS: {
+  LoggingMarkers: {
     // Sentry performance measurement logs (screen loads, bottom sheets, API timing)
-    SENTRY_PERFORMANCE: 'PERPSMARK_SENTRY',
+    SentryPerformance: 'PERPSMARK_SENTRY',
 
     // MetaMetrics event tracking logs (user interactions, business analytics)
-    METAMETRICS_EVENTS: 'PERPSMARK_METRICS',
+    MetametricsEvents: 'PERPSMARK_METRICS',
 
     // WebSocket performance logs (connection timing, data flow, reconnections)
-    WEBSOCKET_PERFORMANCE: 'PERPSMARK_SENTRY_WS',
+    WebsocketPerformance: 'PERPSMARK_SENTRY_WS',
   } as const,
 } as const;
 
@@ -176,17 +176,17 @@ export const PERFORMANCE_CONFIG = {
  */
 export const LEVERAGE_SLIDER_CONFIG = {
   // Step sizes for tick marks based on max leverage
-  TICK_STEP_LOW: 5, // Step size when max leverage <= 20
-  TICK_STEP_MEDIUM: 10, // Step size when max leverage <= 50
-  TICK_STEP_HIGH: 20, // Step size when max leverage > 50
+  TickStepLow: 5, // Step size when max leverage <= 20
+  TickStepMedium: 10, // Step size when max leverage <= 50
+  TickStepHigh: 20, // Step size when max leverage > 50
 
   // Thresholds for determining tick step size
-  MAX_LEVERAGE_LOW_THRESHOLD: 20,
-  MAX_LEVERAGE_MEDIUM_THRESHOLD: 50,
+  MaxLeverageLowThreshold: 20,
+  MaxLeverageMediumThreshold: 50,
 } as const;
 
 export const TP_SL_CONFIG = {
-  USE_POSITION_BOUND_TPSL: true,
+  UsePositionBoundTpsl: true,
 } as const;
 
 /**
@@ -195,25 +195,25 @@ export const TP_SL_CONFIG = {
  */
 export const TP_SL_VIEW_CONFIG = {
   // Quick percentage button presets for Take Profit (positive RoE percentages)
-  TAKE_PROFIT_ROE_PRESETS: [10, 25, 50, 100], // +10%, +25%, +50%, +100% RoE
+  TakeProfitRoePresets: [10, 25, 50, 100], // +10%, +25%, +50%, +100% RoE
 
   // Quick percentage button presets for Stop Loss (negative RoE percentages)
-  STOP_LOSS_ROE_PRESETS: [-5, -10, -25, -50], // -5%, -10%, -25%, -50% RoE
+  StopLossRoePresets: [-5, -10, -25, -50], // -5%, -10%, -25%, -50% RoE
 
   // WebSocket price update throttle delay (milliseconds)
   // Reduces re-renders by batching price updates in the TP/SL screen
-  PRICE_THROTTLE_MS: 1000,
+  PriceThrottleMs: 1000,
 
   // Maximum number of digits allowed in price/percentage input fields
   // Prevents overflow and maintains reasonable input constraints
-  MAX_INPUT_DIGITS: 9,
+  MaxInputDigits: 9,
 
   // Keypad configuration for price inputs
   // USD_PERPS is not a real currency - it's a custom configuration
   // that allows 5 decimal places for crypto prices, overriding the
   // default USD configuration which only allows 2 decimal places
-  KEYPAD_CURRENCY_CODE: 'USD_PERPS' as const,
-  KEYPAD_DECIMALS: 5,
+  KeypadCurrencyCode: 'USD_PERPS' as const,
+  KeypadDecimals: 5,
 } as const;
 
 /**
@@ -222,15 +222,15 @@ export const TP_SL_VIEW_CONFIG = {
  */
 export const LIMIT_PRICE_CONFIG = {
   // Preset percentage options for quick selection
-  PRESET_PERCENTAGES: [1, 2], // Available as both positive and negative
+  PresetPercentages: [1, 2], // Available as both positive and negative
 
   // Modal opening delay when switching to limit order (milliseconds)
   // Allows order type modal to close smoothly before opening limit price modal
-  MODAL_OPEN_DELAY: 300,
+  ModalOpenDelay: 300,
 
   // Direction-specific preset configurations (Mid/Bid/Ask buttons handled separately)
-  LONG_PRESETS: [-1, -2], // Buy below market for long orders
-  SHORT_PRESETS: [1, 2], // Sell above market for short orders
+  LongPresets: [-1, -2], // Buy below market for long orders
+  ShortPresets: [1, 2], // Sell above market for short orders
 } as const;
 
 /**
@@ -239,18 +239,18 @@ export const LIMIT_PRICE_CONFIG = {
  */
 export const HYPERLIQUID_ORDER_LIMITS = {
   // Market orders
-  MARKET_ORDER_LIMITS: {
+  MarketOrderLimits: {
     // $15,000,000 for max leverage >= 25
-    HIGH_LEVERAGE: 15_000_000,
+    HighLeverage: 15_000_000,
     // $5,000,000 for max leverage in [20, 25)
-    MEDIUM_HIGH_LEVERAGE: 5_000_000,
+    MediumHighLeverage: 5_000_000,
     // $2,000,000 for max leverage in [10, 20)
-    MEDIUM_LEVERAGE: 2_000_000,
+    MediumLeverage: 2_000_000,
     // $500,000 for max leverage < 10
-    LOW_LEVERAGE: 500_000,
+    LowLeverage: 500_000,
   },
   // Limit orders are 10x market order limits
-  LIMIT_ORDER_MULTIPLIER: 10,
+  LimitOrderMultiplier: 10,
 } as const;
 
 /**
@@ -259,19 +259,19 @@ export const HYPERLIQUID_ORDER_LIMITS = {
  */
 export const CLOSE_POSITION_CONFIG = {
   // Decimal places for USD amount input display
-  USD_DECIMAL_PLACES: 2,
+  UsdDecimalPlaces: 2,
 
   // Default close percentage when opening the close position view
-  DEFAULT_CLOSE_PERCENTAGE: 100,
+  DefaultClosePercentage: 100,
 
   // Precision for position size calculations to prevent rounding errors
-  AMOUNT_CALCULATION_PRECISION: 6,
+  AmountCalculationPrecision: 6,
 
   // Throttle delay for real-time price updates during position closing
-  PRICE_THROTTLE_MS: 3000,
+  PriceThrottleMs: 3000,
 
   // Fallback decimal places for tokens without metadata
-  FALLBACK_TOKEN_DECIMALS: 18,
+  FallbackTokenDecimals: 18,
 } as const;
 
 /**
@@ -282,26 +282,26 @@ export const MARGIN_ADJUSTMENT_CONFIG = {
   // Risk thresholds for margin removal warnings
   // Threshold values represent ratio of (price distance to liquidation) / (liquidation price)
   // Values < 1.0 mean price is dangerously close to liquidation
-  LIQUIDATION_RISK_THRESHOLD: 1.2, // 20% buffer before liquidation - triggers danger state
-  LIQUIDATION_WARNING_THRESHOLD: 1.5, // 50% buffer before liquidation - triggers warning state
+  LiquidationRiskThreshold: 1.2, // 20% buffer before liquidation - triggers danger state
+  LiquidationWarningThreshold: 1.5, // 50% buffer before liquidation - triggers warning state
 
   // Minimum margin adjustment amount (USD)
   // Prevents dust adjustments and ensures meaningful position changes
-  MIN_ADJUSTMENT_AMOUNT: 1,
+  MinAdjustmentAmount: 1,
 
   // Precision for margin calculations
   // Ensures accurate decimal handling in margin/leverage calculations
-  CALCULATION_PRECISION: 6,
+  CalculationPrecision: 6,
 
   // Safety buffer for margin removal to account for HyperLiquid's transfer margin requirement
   // HyperLiquid enforces: transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
   // See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
-  MARGIN_REMOVAL_SAFETY_BUFFER: 0.1,
+  MarginRemovalSafetyBuffer: 0.1,
 
   // Fallback max leverage when market data is unavailable
   // Conservative value to prevent over-removal of margin
   // Most HyperLiquid assets support at least 50x leverage
-  FALLBACK_MAX_LEVERAGE: 50,
+  FallbackMaxLeverage: 50,
 } as const;
 
 /**
@@ -310,7 +310,7 @@ export const MARGIN_ADJUSTMENT_CONFIG = {
  */
 export const DATA_LAKE_API_CONFIG = {
   // Order reporting endpoint - only used for mainnet perps trading
-  ORDERS_ENDPOINT: 'https://perps.api.cx.metamask.io/api/v1/orders',
+  OrdersEndpoint: 'https://perps.api.cx.metamask.io/api/v1/orders',
 } as const;
 
 /**
@@ -319,11 +319,11 @@ export const DATA_LAKE_API_CONFIG = {
  */
 export const FUNDING_RATE_CONFIG = {
   // Number of decimal places to display for funding rates
-  DECIMALS: 4,
+  Decimals: 4,
   // Default display value when funding rate is zero or unavailable
-  ZERO_DISPLAY: '0.0000%',
+  ZeroDisplay: '0.0000%',
   // Multiplier to convert decimal funding rate to percentage
-  PERCENTAGE_MULTIPLIER: 100,
+  PercentageMultiplier: 100,
 } as const;
 
 /**
@@ -333,15 +333,15 @@ export const FUNDING_RATE_CONFIG = {
 export const DECIMAL_PRECISION_CONFIG = {
   // Maximum decimal places for price input (matches Hyperliquid limit)
   // Used in TP/SL forms, limit price inputs, and price validation
-  MAX_PRICE_DECIMALS: 6,
+  MaxPriceDecimals: 6,
   // Maximum significant figures allowed by HyperLiquid API
   // Orders with more than 5 significant figures will be rejected
-  MAX_SIGNIFICANT_FIGURES: 5,
+  MaxSignificantFigures: 5,
   // Defensive fallback for size decimals when market data fails to load
   // Real szDecimals should always come from market data API (varies by asset)
   // Using 6 as safe maximum to prevent crashes (covers most assets)
   // NOTE: This is NOT semantically correct - just a defensive measure
-  FALLBACK_SIZE_DECIMALS: 6,
+  FallbackSizeDecimals: 6,
 } as const;
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
@@ -354,13 +354,13 @@ export const PERPS_GTM_MODAL_DECLINE = 'decline';
  */
 export const DEVELOPMENT_CONFIG = {
   // Magic number to simulate fee discount state (20% discount)
-  SIMULATE_FEE_DISCOUNT_AMOUNT: 41,
+  SimulateFeeDiscountAmount: 41,
 
   // Magic number to simulate rewards error state (set order amount to this value)
-  SIMULATE_REWARDS_ERROR_AMOUNT: 42,
+  SimulateRewardsErrorAmount: 42,
 
   // Magic number to simulate rewards loading state
-  SIMULATE_REWARDS_LOADING_AMOUNT: 43,
+  SimulateRewardsLoadingAmount: 43,
 
   // Future: Add other development helpers as needed
 } as const;
@@ -372,20 +372,20 @@ export const DEVELOPMENT_CONFIG = {
 export const HOME_SCREEN_CONFIG = {
   // Show action buttons (Add Funds / Withdraw) in header instead of fixed footer
   // Can be controlled via feature flag in the future
-  SHOW_HEADER_ACTION_BUTTONS: true,
+  ShowHeaderActionButtons: true,
 
   // Maximum number of items to show in each carousel
-  POSITIONS_CAROUSEL_LIMIT: 10,
-  ORDERS_CAROUSEL_LIMIT: 10,
-  TRENDING_MARKETS_LIMIT: 5,
-  RECENT_ACTIVITY_LIMIT: 3,
+  PositionsCarouselLimit: 10,
+  OrdersCarouselLimit: 10,
+  TrendingMarketsLimit: 5,
+  RecentActivityLimit: 3,
 
   // Carousel display behavior
-  CAROUSEL_SNAP_ALIGNMENT: 'start' as const,
-  CAROUSEL_VISIBLE_ITEMS: 1.2, // Show 1 full item + 20% of next
+  CarouselSnapAlignment: 'start' as const,
+  CarouselVisibleItems: 1.2, // Show 1 full item + 20% of next
 
   // Icon sizes for consistent display across sections
-  DEFAULT_ICON_SIZE: 40, // Default token icon size for cards and rows
+  DefaultIconSize: 40, // Default token icon size for cards and rows
 } as const;
 
 /**
@@ -394,19 +394,19 @@ export const HOME_SCREEN_CONFIG = {
  */
 export const MARKET_SORTING_CONFIG = {
   // Default sort settings
-  DEFAULT_SORT_OPTION_ID: 'volume' as const,
-  DEFAULT_DIRECTION: 'desc' as const,
+  DefaultSortOptionId: 'volume' as const,
+  DefaultDirection: 'desc' as const,
 
   // Available sort fields (only includes fields supported by PerpsMarketData)
-  SORT_FIELDS: {
-    VOLUME: 'volume',
-    PRICE_CHANGE: 'priceChange',
-    OPEN_INTEREST: 'openInterest',
-    FUNDING_RATE: 'fundingRate',
+  SortFields: {
+    Volume: 'volume',
+    PriceChange: 'priceChange',
+    OpenInterest: 'openInterest',
+    FundingRate: 'fundingRate',
   } as const,
 
   // Sort button presets for filter chips (simplified buttons without direction)
-  SORT_BUTTON_PRESETS: [
+  SortButtonPresets: [
     { field: 'volume', labelKey: 'perps.sort.volume' },
     { field: 'priceChange', labelKey: 'perps.sort.price_change' },
     { field: 'fundingRate', labelKey: 'perps.sort.funding_rate' },
@@ -415,7 +415,7 @@ export const MARKET_SORTING_CONFIG = {
   // Sort options for the bottom sheet
   // Only Price Change can be toggled for direction (similar to trending tokens pattern)
   // Other options (volume, open interest, funding rate) use descending sort only
-  SORT_OPTIONS: [
+  SortOptions: [
     {
       id: 'volume',
       labelKey: 'perps.sort.volume',
@@ -449,24 +449,24 @@ export const MARKET_SORTING_CONFIG = {
  * Valid values: 'volume' | 'priceChange' | 'openInterest' | 'fundingRate'
  */
 export type SortOptionId =
-  (typeof MARKET_SORTING_CONFIG.SORT_OPTIONS)[number]['id'];
+  (typeof MARKET_SORTING_CONFIG.SortOptions)[number]['id'];
 
 /**
  * Type for sort button presets (filter chips)
  * Derived from SORT_BUTTON_PRESETS to ensure type safety
  */
 export type SortButtonPreset =
-  (typeof MARKET_SORTING_CONFIG.SORT_BUTTON_PRESETS)[number];
+  (typeof MARKET_SORTING_CONFIG.SortButtonPresets)[number];
 
 /**
  * Learn more card configuration
  * External resources and content for Perps education
  */
 export const LEARN_MORE_CONFIG = {
-  EXTERNAL_URL: 'https://metamask.io/perps',
-  TITLE_KEY: 'perps.tutorial.card.title',
-  DESCRIPTION_KEY: 'perps.learn_more.description',
-  CTA_KEY: 'perps.learn_more.cta',
+  ExternalUrl: 'https://metamask.io/perps',
+  TitleKey: 'perps.tutorial.card.title',
+  DescriptionKey: 'perps.learn_more.description',
+  CtaKey: 'perps.learn_more.cta',
 } as const;
 
 /**
@@ -474,9 +474,9 @@ export const LEARN_MORE_CONFIG = {
  * Contact support button configuration (matches Settings behavior)
  */
 export const SUPPORT_CONFIG = {
-  URL: 'https://support.metamask.io',
-  TITLE_KEY: 'perps.support.title',
-  DESCRIPTION_KEY: 'perps.support.description',
+  Url: 'https://support.metamask.io',
+  TitleKey: 'perps.support.title',
+  DescriptionKey: 'perps.support.description',
 } as const;
 
 /**
@@ -484,8 +484,8 @@ export const SUPPORT_CONFIG = {
  * External survey for collecting user feedback on Perps trading experience
  */
 export const FEEDBACK_CONFIG = {
-  URL: 'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
-  TITLE_KEY: 'perps.feedback.title',
+  Url: 'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
+  TitleKey: 'perps.feedback.title',
 } as const;
 
 /**
@@ -493,7 +493,7 @@ export const FEEDBACK_CONFIG = {
  * Links to specific MetaMask support articles for Perps features
  */
 export const PERPS_SUPPORT_ARTICLES_URLS = {
-  ADL_URL:
+  AdlUrl:
     'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
 } as const;
 
@@ -505,26 +505,26 @@ export const PERPS_SUPPORT_ARTICLES_URLS = {
 export const STOP_LOSS_PROMPT_CONFIG = {
   // Distance to liquidation threshold (percentage)
   // Shows "Add margin" banner when position is within this % of liquidation
-  LIQUIDATION_DISTANCE_THRESHOLD: 3,
+  LiquidationDistanceThreshold: 3,
 
   // ROE (Return on Equity) threshold (percentage)
   // Shows "Set stop loss" banner when ROE drops below this value
-  ROE_THRESHOLD: -10,
+  RoeThreshold: -10,
 
   // Minimum loss threshold to show ANY banner (percentage)
   // No banner shown until ROE drops below this value
-  MIN_LOSS_THRESHOLD: -10,
+  MinLossThreshold: -10,
 
   // Debounce duration for ROE threshold (milliseconds)
   // User must have ROE below threshold for this duration before showing banner
   // Prevents banner from appearing during temporary price fluctuations
-  ROE_DEBOUNCE_MS: 60_000, // 60 seconds
+  RoeDebounceMs: 60_000, // 60 seconds
 
   // Minimum position age before showing any banner (milliseconds)
   // Prevents banner from appearing immediately after opening a position
-  POSITION_MIN_AGE_MS: 60_000, // 60 seconds
+  PositionMinAgeMs: 60_000, // 60 seconds
 
   // Suggested stop loss ROE percentage
   // When suggesting a stop loss, calculate price at this ROE from entry
-  SUGGESTED_STOP_LOSS_ROE: -50,
+  SuggestedStopLossRoe: -50,
 } as const;

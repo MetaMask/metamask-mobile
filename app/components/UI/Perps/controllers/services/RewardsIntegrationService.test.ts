@@ -5,12 +5,12 @@ import {
 } from '../../__mocks__/serviceMocks';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type {
-  IPerpsPlatformDependencies,
-  IPerpsControllerAccess,
+  PerpsPlatformDependencies,
+  PerpsControllerAccess,
 } from '../types';
 
 // Helper to get rewards mock with type safety
-const getRewardsMock = (controllers: jest.Mocked<IPerpsControllerAccess>) => {
+const getRewardsMock = (controllers: jest.Mocked<PerpsControllerAccess>) => {
   if (!controllers.rewards) {
     throw new Error('rewards mock not set up');
   }
@@ -18,9 +18,9 @@ const getRewardsMock = (controllers: jest.Mocked<IPerpsControllerAccess>) => {
 };
 
 describe('RewardsIntegrationService', () => {
-  let mockControllers: jest.Mocked<IPerpsControllerAccess>;
+  let mockControllers: jest.Mocked<PerpsControllerAccess>;
   let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
-  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
   let service: RewardsIntegrationService;
   const mockEvmAccount = createMockEvmAccount();
 
@@ -43,7 +43,7 @@ describe('RewardsIntegrationService', () => {
       rewards: {
         getFeeDiscount: jest.fn(),
       },
-    } as unknown as jest.Mocked<IPerpsControllerAccess>;
+    } as unknown as jest.Mocked<PerpsControllerAccess>;
 
     mockMessenger = {
       call: jest.fn(),
@@ -132,7 +132,7 @@ describe('RewardsIntegrationService', () => {
 
     it('returns undefined when getFeeDiscount is not available', async () => {
       // Create controllers without rewards (getFeeDiscount not available)
-      const controllersWithoutRewards: IPerpsControllerAccess = {
+      const controllersWithoutRewards: PerpsControllerAccess = {
         accounts: mockControllers.accounts,
         keyring: mockControllers.keyring,
         network: mockControllers.network,

@@ -5,7 +5,7 @@ import {
   createMockInfrastructure,
 } from '../../__mocks__/serviceMocks';
 import type { ServiceContext } from './ServiceContext';
-import type { IPerpsPlatformDependencies } from '../types';
+import type { PerpsPlatformDependencies } from '../types';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 
@@ -17,7 +17,7 @@ global.setTimeout = jest.fn((fn: () => void) => {
 
 describe('DataLakeService', () => {
   let mockContext: ServiceContext;
-  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
   let dataLakeService: DataLakeService;
   const mockEvmAccount = createMockEvmAccount();
   const mockToken = 'mock-bearer-token';

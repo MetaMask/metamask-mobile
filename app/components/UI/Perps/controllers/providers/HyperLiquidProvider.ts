@@ -96,8 +96,8 @@ import type {
   GetSupportedPathsParams,
   HistoricalPortfolioResult,
   InitializeResult,
-  IPerpsPlatformDependencies,
-  IPerpsProvider,
+  PerpsPlatformDependencies,
+  PerpsProvider,
   LiquidationPriceParams,
   LiveDataConfig,
   MaintenanceMarginParams,
@@ -196,7 +196,7 @@ interface HandleOrderErrorParams {
 /**
  * HyperLiquid provider implementation
  *
- * Implements the IPerpsProvider interface for HyperLiquid protocol.
+ * Implements the PerpsProvider interface for HyperLiquid protocol.
  * Uses the @nktkas/hyperliquid SDK for all operations.
  * Delegates to service classes for client management, wallet integration, and subscriptions.
  *
@@ -204,11 +204,11 @@ interface HandleOrderErrorParams {
  * Attempts to use HyperLiquid's native DEX abstraction for automatic collateral transfers.
  * If not supported, falls back to programmatic balance management using SDK's sendAsset.
  */
-export class HyperLiquidProvider implements IPerpsProvider {
+export class HyperLiquidProvider implements PerpsProvider {
   readonly protocolId = 'hyperliquid';
 
   // Platform dependencies for logging and debugging
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   // Service instances
   private clientService: HyperLiquidClientService;
@@ -304,7 +304,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     allowlistMarkets?: string[];
     blocklistMarkets?: string[];
     useDexAbstraction?: boolean;
-    platformDependencies: IPerpsPlatformDependencies;
+    platformDependencies: PerpsPlatformDependencies;
   }) {
     this.deps = options.platformDependencies;
     const isTestnet = options.isTestnet || false;
@@ -692,16 +692,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Testnet-specific filtering: Limit DEXs to avoid subscription overload
     // On testnet, there are many HIP-3 DEXs (test deployments) that cause instability
     if (this.clientService.isTestnetMode()) {
-      const { ENABLED_DEXS, AUTO_DISCOVER_ALL } = TESTNET_HIP3_CONFIG;
+      const { EnabledDexs, AutoDiscoverAll } = TESTNET_HIP3_CONFIG;
 
-      if (!AUTO_DISCOVER_ALL) {
-        if (ENABLED_DEXS.length === 0) {
+      if (!AutoDiscoverAll) {
+        if (EnabledDexs.length === 0) {
           // Main DEX only - no HIP-3 DEXs on testnet
           this.deps.debugLogger.log(
             'HyperLiquidProvider: Testnet - using main DEX only (HIP-3 DEXs filtered)',
             {
               availableHip3Dexs: availableHip3Dexs.length,
-              reason: 'TESTNET_HIP3_CONFIG.ENABLED_DEXS is empty',
+              reason: 'TESTNET_HIP3_CONFIG.EnabledDexs is empty',
             },
           );
           this.cachedValidatedDexs = [null];
@@ -710,12 +710,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         // Filter to specific allowed DEXs on testnet
         const filteredDexs = availableHip3Dexs.filter((dex) =>
-          ENABLED_DEXS.includes(dex),
+          EnabledDexs.includes(dex),
         );
         this.deps.debugLogger.log(
           'HyperLiquidProvider: Testnet - filtered to allowed DEXs',
           {
-            allowedDexs: ENABLED_DEXS,
+            allowedDexs: EnabledDexs,
             filteredDexs,
             availableHip3Dexs: availableHip3Dexs.length,
           },
@@ -814,8 +814,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Return cached data if still valid
     if (
       this.perpDexsCache.data &&
-      now - this.perpDexsCache.timestamp <
-        HIP3_FEE_CONFIG.PERP_DEXS_CACHE_TTL_MS
+      now - this.perpDexsCache.timestamp < HIP3_FEE_CONFIG.PerpDexsCacheTtlMs
     ) {
       this.deps.debugLogger.log(
         '[getCachedPerpDexs] Using cached perpDexs data',
@@ -876,7 +875,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const dexInfo = perpDexs.find((d) => d?.name === dexName);
       const parsedScale = parseFloat(dexInfo?.deployerFeeScale ?? '');
       const deployerFeeScale = Number.isNaN(parsedScale)
-        ? HIP3_FEE_CONFIG.DEFAULT_DEPLOYER_FEE_SCALE
+        ? HIP3_FEE_CONFIG.DefaultDeployerFeeScale
         : parsedScale;
 
       // Get growthMode from meta for this specific asset
@@ -891,7 +890,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const scaleIfHip3 =
         deployerFeeScale < 1 ? deployerFeeScale + 1 : deployerFeeScale * 2;
       const growthModeScale = isGrowthMode
-        ? HIP3_FEE_CONFIG.GROWTH_MODE_SCALE
+        ? HIP3_FEE_CONFIG.GrowthModeScale
         : 1;
 
       const finalMultiplier = scaleIfHip3 * growthModeScale;
@@ -918,7 +917,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         },
       );
       // Safe fallback: standard HIP-3 2x multiplier (no Growth Mode discount)
-      return HIP3_FEE_CONFIG.DEFAULT_DEPLOYER_FEE_SCALE * 2;
+      return HIP3_FEE_CONFIG.DefaultDeployerFeeScale * 2;
     }
   }
 
@@ -1025,7 +1024,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       (t: { index: number }) => t.index === meta.collateralToken,
     );
 
-    const isUsdh = collateralToken?.name === USDH_CONFIG.TOKEN_NAME;
+    const isUsdh = collateralToken?.name === USDH_CONFIG.TokenName;
 
     this.deps.debugLogger.log(
       'HyperLiquidProvider: Checked DEX collateral type',
@@ -1052,7 +1051,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     });
 
     const usdhBalance = spotState.balances.find(
-      (b: { coin: string }) => b.coin === USDH_CONFIG.TOKEN_NAME,
+      (b: { coin: string }) => b.coin === USDH_CONFIG.TokenName,
     );
 
     const balance = usdhBalance ? parseFloat(usdhBalance.total) : 0;
@@ -1153,7 +1152,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Find USDH and USDC tokens by name
     const usdhToken = spotMeta.tokens.find(
-      (t: { name: string }) => t.name === USDH_CONFIG.TOKEN_NAME,
+      (t: { name: string }) => t.name === USDH_CONFIG.TokenName,
     );
     const usdcToken = spotMeta.tokens.find(
       (t: { name: string }) => t.name === 'USDC',
@@ -1205,7 +1204,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Calculate order parameters
     // USDH is pegged 1:1 to USDC, add small slippage buffer
     const slippageMultiplier =
-      1 + USDH_CONFIG.SWAP_SLIPPAGE_BPS / BASIS_POINTS_DIVISOR;
+      1 + USDH_CONFIG.SwapSlippageBps / BASIS_POINTS_DIVISOR;
     const maxPrice = usdhPrice * slippageMultiplier;
 
     // Size in USDH = amount / price (since we're buying USDH with USDC)
@@ -1649,7 +1648,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   } {
     return {
       tags: {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         provider: this.protocolId,
         network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
       },
@@ -1676,11 +1675,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
       chainId: bridgeInfo.chainId,
       contractAddress: bridgeInfo.contractAddress,
       constraints: {
-        minAmount: WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+        minAmount: WITHDRAWAL_CONSTANTS.DefaultMinAmount,
         estimatedMinutes: HYPERLIQUID_WITHDRAWAL_MINUTES,
         fees: {
-          fixed: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT,
-          token: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_TOKEN,
+          fixed: WITHDRAWAL_CONSTANTS.DefaultFeeAmount,
+          token: WITHDRAWAL_CONSTANTS.DefaultFeeToken,
         },
       },
     }));
@@ -1770,7 +1769,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
 
         const exchangeClient = this.clientService.getExchangeClient();
-        const maxFeeRate = BUILDER_FEE_CONFIG.maxFeeRate;
+        const maxFeeRate = BUILDER_FEE_CONFIG.MaxFeeRate;
 
         await exchangeClient.approveBuilderFee({
           builder: builderAddress,
@@ -1835,7 +1834,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     requiredDecimal: number;
   }> {
     const currentApproval = await this.checkBuilderFeeApproval();
-    const requiredDecimal = BUILDER_FEE_CONFIG.maxFeeDecimal;
+    const requiredDecimal = BUILDER_FEE_CONFIG.MaxFeeDecimal;
 
     return {
       isApproved:
@@ -2154,7 +2153,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         // Accept temporary over-funding - excess will be reclaimed after order succeeds
         requiredMarginWithBuffer =
-          totalRequiredMargin * HIP3_MARGIN_CONFIG.BUFFER_MULTIPLIER;
+          totalRequiredMargin * HIP3_MARGIN_CONFIG.BufferMultiplier;
 
         this.deps.debugLogger.log(
           'HyperLiquidProvider: HIP-3 margin calculation (TOTAL margin - temporary over-funding)',
@@ -2177,7 +2176,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const notionalValue = positionSize * orderPrice;
         const requiredMargin = notionalValue / leverage;
         requiredMarginWithBuffer =
-          requiredMargin * HIP3_MARGIN_CONFIG.BUFFER_MULTIPLIER;
+          requiredMargin * HIP3_MARGIN_CONFIG.BufferMultiplier;
 
         this.deps.debugLogger.log(
           'HyperLiquidProvider: HIP-3 margin calculation (reducing position)',
@@ -2196,7 +2195,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const notionalValue = positionSize * orderPrice;
       const requiredMargin = notionalValue / leverage;
       requiredMarginWithBuffer =
-        requiredMargin * HIP3_MARGIN_CONFIG.BUFFER_MULTIPLIER;
+        requiredMargin * HIP3_MARGIN_CONFIG.BufferMultiplier;
 
       this.deps.debugLogger.log(
         'HyperLiquidProvider: HIP-3 margin calculation (new position)',
@@ -2245,10 +2244,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Auto-rebalance: Reclaim excess funds back to main DEX
-      const desiredBuffer = HIP3_MARGIN_CONFIG.REBALANCE_DESIRED_BUFFER;
+      const desiredBuffer = HIP3_MARGIN_CONFIG.RebalanceDesiredBuffer;
       const excessAmount = postOrderBalance - desiredBuffer;
-      const minimumTransferThreshold =
-        HIP3_MARGIN_CONFIG.REBALANCE_MIN_THRESHOLD;
+      const minimumTransferThreshold = HIP3_MARGIN_CONFIG.RebalanceMinThreshold;
 
       if (excessAmount > minimumTransferThreshold) {
         try {
@@ -2552,13 +2550,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const exchangeClient = this.clientService.getExchangeClient();
 
     // Calculate discounted builder fee
-    let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
+    let builderFee = BUILDER_FEE_CONFIG.MaxFeeTenthsBps;
     if (this.userFeeDiscountBips !== undefined) {
       builderFee = Math.floor(
         builderFee * (1 - this.userFeeDiscountBips / BASIS_POINTS_DIVISOR),
       );
       this.deps.debugLogger.log('Applying builder fee discount', {
-        originalFee: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+        originalFee: BUILDER_FEE_CONFIG.MaxFeeTenthsBps,
         discountBips: this.userFeeDiscountBips,
         discountedFee: builderFee,
       });
@@ -2926,7 +2924,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const positionSize = parseFloat(params.newOrder.size);
         const slippage =
           params.newOrder.slippage ??
-          ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000;
+          ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000;
         orderPrice = params.newOrder.isBuy
           ? currentPrice * (1 + slippage)
           : currentPrice * (1 - slippage);
@@ -3252,8 +3250,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
 
         // Calculate order price with slippage
-        const slippage =
-          ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000;
+        const slippage = ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000;
         const orderPrice = isBuy
           ? currentPrice * (1 + slippage)
           : currentPrice * (1 - slippage);
@@ -3281,7 +3278,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       // Calculate discounted builder fee if reward discount is active
-      let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
+      let builderFee = BUILDER_FEE_CONFIG.MaxFeeTenthsBps;
       if (this.userFeeDiscountBips !== undefined) {
         builderFee = Math.floor(
           builderFee * (1 - this.userFeeDiscountBips / BASIS_POINTS_DIVISOR),
@@ -3457,7 +3454,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         (order) =>
           order.coin === symbol &&
           order.reduceOnly === true &&
-          order.isPositionTpsl === !!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL &&
+          order.isPositionTpsl === !!TP_SL_CONFIG.UsePositionBoundTpsl &&
           order.isTrigger === true &&
           (order.orderType.includes('Take Profit') ||
             order.orderType.includes('Stop')),
@@ -3520,7 +3517,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Build orders array for TP/SL
       const orders: SDKOrderParams[] = [];
 
-      const size = TP_SL_CONFIG.USE_POSITION_BOUND_TPSL
+      const size = TP_SL_CONFIG.UsePositionBoundTpsl
         ? '0'
         : formatHyperLiquidSize({
             size: positionSize,
@@ -3588,7 +3585,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       // Calculate discounted builder fee if reward discount is active
-      let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
+      let builderFee = BUILDER_FEE_CONFIG.MaxFeeTenthsBps;
       if (this.userFeeDiscountBips !== undefined) {
         builderFee = Math.floor(
           builderFee * (1 - this.userFeeDiscountBips / BASIS_POINTS_DIVISOR),
@@ -3596,7 +3593,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         this.deps.debugLogger.log(
           'HyperLiquid: Applying builder fee discount to TP/SL',
           {
-            originalFee: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+            originalFee: BUILDER_FEE_CONFIG.MaxFeeTenthsBps,
             discountBips: this.userFeeDiscountBips,
             discountedFee: builderFee,
           },
@@ -5163,7 +5160,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             error,
           );
           // If we can't get max leverage, use the default as fallback
-          const defaultMaxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+          const defaultMaxLeverage = PERPS_CONSTANTS.DefaultMaxLeverage;
           if (params.leverage < 1 || params.leverage > defaultMaxLeverage) {
             return {
               isValid: false,
@@ -5847,7 +5844,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Get asset's max leverage to calculate maintenance margin
-    let maxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE; // Default fallback
+    let maxLeverage = PERPS_CONSTANTS.DefaultMaxLeverage; // Default fallback
     if (asset) {
       try {
         maxLeverage = await this.getMaxLeverage(asset);
@@ -5941,8 +5938,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       if (
         cached &&
-        now - cached.timestamp <
-          PERFORMANCE_CONFIG.MAX_LEVERAGE_CACHE_DURATION_MS
+        now - cached.timestamp < PERFORMANCE_CONFIG.MaxLeverageCacheDurationMs
       ) {
         return cached.value;
       }
@@ -5971,7 +5967,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             note: 'Meta or universe not available, using default max leverage',
           }),
         );
-        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+        return PERPS_CONSTANTS.DefaultMaxLeverage;
       }
 
       // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
@@ -5980,7 +5976,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         this.deps.debugLogger.log(
           `Asset ${asset} not found in universe, using default max leverage`,
         );
-        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+        return PERPS_CONSTANTS.DefaultMaxLeverage;
       }
 
       // Cache the result
@@ -5997,7 +5993,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           asset,
         }),
       );
-      return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+      return PERPS_CONSTANTS.DefaultMaxLeverage;
     }
   }
 
@@ -6245,19 +6241,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
         : undefined;
 
     // MetaMask builder fee (0.1% = 0.001) with optional reward discount
-    let metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal;
+    let metamaskFeeRate = BUILDER_FEE_CONFIG.MaxFeeDecimal;
 
     // Apply MetaMask reward discount if active
     if (this.userFeeDiscountBips !== undefined) {
       const discount = this.userFeeDiscountBips / BASIS_POINTS_DIVISOR; // Convert basis points to decimal
-      metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal * (1 - discount);
+      metamaskFeeRate = BUILDER_FEE_CONFIG.MaxFeeDecimal * (1 - discount);
 
       this.deps.debugLogger.log('HyperLiquid: Applied MetaMask fee discount', {
-        originalRate: BUILDER_FEE_CONFIG.maxFeeDecimal,
+        originalRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
         discountBips: this.userFeeDiscountBips,
         discountPercentage: this.userFeeDiscountBips / 100,
         adjustedRate: metamaskFeeRate,
-        discountAmount: BUILDER_FEE_CONFIG.maxFeeDecimal * discount,
+        discountAmount: BUILDER_FEE_CONFIG.MaxFeeDecimal * discount,
       });
     }
 
@@ -6412,7 +6408,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       throw new Error('Subscription client not initialized');
     }
 
-    const timeout = timeoutMs ?? PERPS_CONSTANTS.WEBSOCKET_PING_TIMEOUT_MS;
+    const timeout = timeoutMs ?? PERPS_CONSTANTS.WebsocketPingTimeoutMs;
 
     this.deps.debugLogger.log(
       `HyperLiquid: WebSocket health check ping starting (timeout: ${timeout}ms)`,
@@ -6502,14 +6498,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   private getBuilderAddress(isTestnet: boolean) {
     return isTestnet
-      ? BUILDER_FEE_CONFIG.testnetBuilder
-      : BUILDER_FEE_CONFIG.mainnetBuilder;
+      ? BUILDER_FEE_CONFIG.TestnetBuilder
+      : BUILDER_FEE_CONFIG.MainnetBuilder;
   }
 
   private getReferralCode(isTestnet: boolean): string {
     return isTestnet
-      ? REFERRAL_CONFIG.testnetCode
-      : REFERRAL_CONFIG.mainnetCode;
+      ? REFERRAL_CONFIG.TestnetCode
+      : REFERRAL_CONFIG.MainnetCode;
   }
 
   /**
