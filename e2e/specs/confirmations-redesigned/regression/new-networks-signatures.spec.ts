@@ -1,17 +1,17 @@
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import Browser from '../../../pages/Browser/BrowserView';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import { RegressionConfirmations } from '../../../tags';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import { buildPermissions } from '../../../../tests/framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { DappVariants } from '../../../framework/Constants';
+import { DappVariants } from '../../../../tests/framework/Constants';
 
-import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
+import { NETWORK_TEST_CONFIGS } from '../../../../tests/resources/mock-configs';
 
 const SIGNATURE_LIST = [
   {

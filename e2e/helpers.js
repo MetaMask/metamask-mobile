@@ -1,8 +1,8 @@
 import { waitFor, web } from 'detox';
-import { getFixturesServerPort } from './framework/fixtures/FixtureUtils';
-import Utilities from './framework/Utilities';
+import { getFixturesServerPort } from '../tests/framework/fixtures/FixtureUtils';
+import Utilities from '../tests/framework/Utilities';
 import { resolveConfig } from 'detox/internals';
-import { createLogger } from './framework/logger';
+import { createLogger } from '../tests/framework/logger';
 
 const logger = createLogger({
   name: 'TestHelpers',

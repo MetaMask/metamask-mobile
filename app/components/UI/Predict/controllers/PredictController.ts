@@ -38,9 +38,11 @@ import {
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import {
   PredictEventProperties,
+  PredictShareStatusValue,
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
+import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
@@ -1119,20 +1121,39 @@ export class PredictController extends BaseController<
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
       [PredictEventProperties.VOLUME]: analyticsProperties.volume,
       [PredictEventProperties.SHARE_PRICE]: sharePrice,
-      // Add market type and outcome
       ...(analyticsProperties.marketType && {
         [PredictEventProperties.MARKET_TYPE]: analyticsProperties.marketType,
       }),
       ...(analyticsProperties.outcome && {
         [PredictEventProperties.OUTCOME]: analyticsProperties.outcome,
       }),
-      // Add completion duration for succeeded and failed status
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
       }),
-      // Add failure reason for failed status
       ...(failureReason && {
         [PredictEventProperties.FAILURE_REASON]: failureReason,
+      }),
+      ...(analyticsProperties.marketSlug && {
+        [PredictEventProperties.MARKET_SLUG]: analyticsProperties.marketSlug,
+      }),
+      ...(analyticsProperties.gameId && {
+        [PredictEventProperties.GAME_ID]: analyticsProperties.gameId,
+      }),
+      ...(analyticsProperties.gameStartTime && {
+        [PredictEventProperties.GAME_START_TIME]:
+          analyticsProperties.gameStartTime,
+      }),
+      ...(analyticsProperties.gameLeague && {
+        [PredictEventProperties.GAME_LEAGUE]: analyticsProperties.gameLeague,
+      }),
+      ...(analyticsProperties.gameStatus && {
+        [PredictEventProperties.GAME_STATUS]: analyticsProperties.gameStatus,
+      }),
+      ...(analyticsProperties.gamePeriod && {
+        [PredictEventProperties.GAME_PERIOD]: analyticsProperties.gamePeriod,
+      }),
+      ...(analyticsProperties.gameClock && {
+        [PredictEventProperties.GAME_CLOCK]: analyticsProperties.gameClock,
       }),
     };
 
@@ -1174,6 +1195,13 @@ export class PredictController extends BaseController<
     marketTags,
     entryPoint,
     marketDetailsViewed,
+    marketSlug,
+    gameId,
+    gameStartTime,
+    gameLeague,
+    gameStatus,
+    gamePeriod,
+    gameClock,
   }: {
     marketId: string;
     marketTitle: string;
@@ -1181,6 +1209,13 @@ export class PredictController extends BaseController<
     marketTags?: string[];
     entryPoint: string;
     marketDetailsViewed: string;
+    marketSlug?: string;
+    gameId?: string;
+    gameStartTime?: string;
+    gameLeague?: string;
+    gameStatus?: string;
+    gamePeriod?: string | null;
+    gameClock?: string | null;
   }): void {
     const analyticsProperties = {
       [PredictEventProperties.MARKET_ID]: marketId,
@@ -1189,6 +1224,27 @@ export class PredictController extends BaseController<
       [PredictEventProperties.MARKET_TAGS]: marketTags,
       [PredictEventProperties.ENTRY_POINT]: entryPoint,
       [PredictEventProperties.MARKET_DETAILS_VIEWED]: marketDetailsViewed,
+      ...(marketSlug && {
+        [PredictEventProperties.MARKET_SLUG]: marketSlug,
+      }),
+      ...(gameId && {
+        [PredictEventProperties.GAME_ID]: gameId,
+      }),
+      ...(gameStartTime && {
+        [PredictEventProperties.GAME_START_TIME]: gameStartTime,
+      }),
+      ...(gameLeague && {
+        [PredictEventProperties.GAME_LEAGUE]: gameLeague,
+      }),
+      ...(gameStatus && {
+        [PredictEventProperties.GAME_STATUS]: gameStatus,
+      }),
+      ...(gamePeriod && {
+        [PredictEventProperties.GAME_PERIOD]: gamePeriod,
+      }),
+      ...(gameClock && {
+        [PredictEventProperties.GAME_CLOCK]: gameClock,
+      }),
     };
 
     DevLogger.log('📊 [Analytics] PREDICT_MARKET_DETAILS_OPENED', {
@@ -1325,6 +1381,40 @@ export class PredictController extends BaseController<
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_FEED_VIEWED,
       )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
+  /**
+   * Track Share Action analytics event for Predict markets
+   * @public
+   */
+  public trackShareAction({
+    status,
+    marketId,
+    marketSlug,
+  }: {
+    status: PredictShareStatusValue;
+    marketId?: string;
+    marketSlug?: string;
+  }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.STATUS]: status,
+      ...(marketId && {
+        [PredictEventProperties.MARKET_ID]: marketId,
+      }),
+      ...(marketSlug && {
+        [PredictEventProperties.MARKET_SLUG]: marketSlug,
+      }),
+    };
+
+    DevLogger.log('📊 [Analytics] SHARE_ACTION', {
+      analyticsProperties,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SHARE_ACTION)
         .addProperties(analyticsProperties)
         .build(),
     );
@@ -1863,7 +1953,7 @@ export class PredictController extends BaseController<
         throw new Error('Deposit preparation returned undefined');
       }
 
-      const { transactions, chainId, gasFeeToken } = depositPreparation;
+      const { transactions, chainId } = depositPreparation;
 
       if (!transactions || transactions.length === 0) {
         throw new Error('No transactions returned from deposit preparation');
@@ -1872,6 +1962,20 @@ export class PredictController extends BaseController<
       if (!chainId) {
         throw new Error('Chain ID not provided by deposit preparation');
       }
+
+      DevLogger.log('PredictController: depositWithConfirmation transactions', {
+        count: transactions.length,
+        transactions: transactions.map((tx, index) => ({
+          index,
+          type: tx?.type,
+          to: tx?.params?.to,
+          dataLength: tx?.params?.data?.length ?? 0,
+        })),
+      });
+
+      validateDepositTransactions(transactions, {
+        providerId: params.providerId,
+      });
 
       const { NetworkController } = Engine.context;
       const networkClientId =
@@ -1896,7 +2000,6 @@ export class PredictController extends BaseController<
         disableUpgrade: true,
         skipInitialGasEstimate: true,
         transactions,
-        gasFeeToken,
       });
 
       if (!batchResult?.batchId) {

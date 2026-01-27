@@ -10,9 +10,9 @@ import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBo
 import {
   getTestDappLocalUrl,
   getDappUrl,
-} from '../../framework/fixtures/FixtureUtils';
-import { DEFAULT_TAB_ID } from '../../framework/Constants';
-import { Gestures, Matchers } from '../../framework';
+} from '../../../tests/framework/fixtures/FixtureUtils';
+import { DEFAULT_TAB_ID } from '../../../tests/framework/Constants';
+import { Gestures, Matchers } from '../../../tests/framework';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;

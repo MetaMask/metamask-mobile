@@ -47,7 +47,7 @@ export { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 // All type definitions
 export type {
   // Core interfaces
-  IPerpsProvider,
+  PerpsProvider,
 
   // Order and trading types
   OrderParams,

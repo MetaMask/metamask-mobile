@@ -306,6 +306,13 @@ class TransactionElement extends PureComponent {
         bridgeTxHistoryItem:
           this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
       });
+    } else if (tx.type === TransactionType.musdConversion) {
+      this.props.navigation.navigate(
+        Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS,
+        {
+          transactionMeta: tx,
+        },
+      );
     } else if (hasTransactionType(tx, NEW_TRANSACTION_DETAILS_TYPES)) {
       this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
         transactionId: tx.id,
