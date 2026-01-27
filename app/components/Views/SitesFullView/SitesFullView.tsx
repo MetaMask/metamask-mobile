@@ -91,7 +91,9 @@ const SitesFullView: React.FC = () => {
   return (
     <SafeAreaView
       style={styles.safeArea}
-      edges={Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']}
+      edges={
+        Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']
+      }
     >
       <View
         style={[
