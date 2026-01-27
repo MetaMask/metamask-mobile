@@ -65,12 +65,17 @@ import {
 } from '../../hooks';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { usePerpsLiveOrderBook } from '../../hooks/stream/usePerpsLiveOrderBook';
+import { usePerpsTopOfBook } from '../../hooks/stream/usePerpsTopOfBook';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
 import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import {
   calculateAggregationParams,
@@ -187,6 +192,37 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return null;
   }, [selectedGrouping, groupingOptions]);
 
+  // Subscribe to top-of-book (best bid/ask) for spread display.
+  // This is intentionally independent from order book aggregation/grouping.
+  const topOfBook = usePerpsTopOfBook({ symbol: symbol || '' });
+
+  const spreadMetrics = useMemo(() => {
+    const bidStr = topOfBook?.bestBid;
+    const askStr = topOfBook?.bestAsk;
+    if (!bidStr || !askStr) return null;
+
+    const bid = parseFloat(bidStr);
+    const ask = parseFloat(askStr);
+    if (
+      !Number.isFinite(bid) ||
+      !Number.isFinite(ask) ||
+      bid <= 0 ||
+      ask <= 0
+    ) {
+      return null;
+    }
+
+    // Round to eliminate floating point artifacts (e.g., 0.09999999999990905 → 0.1)
+    const spread = Number((ask - bid).toPrecision(10));
+    const mid = (ask + bid) / 2;
+    const spreadPercentage = mid > 0 ? ((spread / mid) * 100).toFixed(3) : '0';
+
+    return {
+      spread,
+      spreadPercentage,
+    };
+  }, [topOfBook]);
+
   // Calculate aggregation params (nSigFigs + mantissa) based on grouping
   const aggregationParams = useMemo(() => {
     if (!marketPrice || !currentGrouping) return { nSigFigs: 5 as const };
@@ -215,8 +251,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       return rawOrderBook;
     }
 
-    // No client-side aggregation needed - API handles it via nSigFigs
-    // Just return the raw order book data directly
     return rawOrderBook;
   }, [rawOrderBook]);
 
@@ -506,16 +540,18 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       {/* Footer with Spread and Actions */}
       <View style={footerStyle}>
         {/* Spread Row */}
-        {orderBook && (
+        {spreadMetrics && (
           <View style={styles.spreadContainer}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {strings('perps.order_book.spread')}:
             </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-              ${parseFloat(orderBook.spread).toLocaleString()}
+              {formatPerpsFiat(spreadMetrics.spread, {
+                ranges: PRICE_RANGES_UNIVERSAL,
+              })}
             </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              ({orderBook.spreadPercentage}%)
+              ({spreadMetrics.spreadPercentage}%)
             </Text>
             <TouchableOpacity
               onPress={() => handleTooltipPress('spread')}

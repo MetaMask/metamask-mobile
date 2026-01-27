@@ -459,4 +459,36 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     });
     this.wsSubscriptions.clear();
   }
+
+  /**
+   * Reconnect all active subscriptions after WebSocket reconnection
+   * Clears dead subscriptions and re-establishes connections for active subscribers
+   */
+  public reconnect(): void {
+    // Get unique cache keys from subscribers before disconnecting
+    const activeCacheKeys = new Set(
+      Array.from(this.subscribers.values()).map((sub) => sub.cacheKey),
+    );
+
+    // Disconnect all WebSocket subscriptions (they're dead after reconnection)
+    // Using disconnect() without args to call disconnectAll() internally
+    this.disconnect();
+
+    // Re-establish connections for each active cache key
+    activeCacheKeys.forEach((cacheKey) => {
+      // Parse coin and interval from cacheKey (format: "coin-interval")
+      // Since coin symbols can contain hyphens (e.g., "ETH-USD"), we need to
+      // split from the right. The interval is always the last segment after the final hyphen.
+      const lastHyphenIndex = cacheKey.lastIndexOf('-');
+      if (lastHyphenIndex === -1 || lastHyphenIndex === 0) {
+        // Invalid cache key format - skip
+        return;
+      }
+      const coin = cacheKey.substring(0, lastHyphenIndex);
+      const interval = cacheKey.substring(lastHyphenIndex + 1);
+      if (coin && interval) {
+        this.connect(coin, interval as CandlePeriod, cacheKey);
+      }
+    });
+  }
 }
