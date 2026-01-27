@@ -58,7 +58,7 @@ const StockBadge: React.FC<StockBadgeProps> = ({ token, style }) => {
       <View style={styles.stockBadge}>
         {showClockIcon && (
           <Icon
-            name={IconName.Clock}
+            name={IconName.ClockHalfDotted}
             size={IconSize.Xs}
             color={IconColor.Alternative}
           />
