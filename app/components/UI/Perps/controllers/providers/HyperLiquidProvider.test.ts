@@ -357,6 +357,14 @@ describe('HyperLiquidProvider', () => {
       setDexMetaCache: jest.fn(),
       setDexAssetCtxsCache: jest.fn(),
       getDexAssetCtxsCache: jest.fn().mockReturnValue(undefined),
+      // Price cache used by placeOrder, editOrder, closePosition optimizations
+      getCachedPrice: jest.fn().mockImplementation((symbol: string) => {
+        const prices: Record<string, string> = { BTC: '50000', ETH: '3000' };
+        return prices[symbol];
+      }),
+      // Orders cache used by updatePositionTPSL and getOpenOrders
+      isOrdersCacheInitialized: jest.fn().mockReturnValue(false),
+      getCachedOrders: jest.fn().mockReturnValue([]),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 
     // Mock constructors
@@ -697,7 +705,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.editOrder(editParams);
 
       expect(result.success).toBe(true);
-      expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+      // Price is fetched from WebSocket cache (getCachedPrice) or REST API (allMids) as fallback
 
       // Verify market orders use FrontendMarket TIF in edit operations
       expect(mockClientService.getExchangeClient().modify).toHaveBeenCalledWith(
@@ -734,6 +742,8 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('handles editOrder when no price is available', async () => {
+      // Mock both WebSocket cache and REST API to return no price
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce(undefined);
       (
         mockClientService.getInfoClient().allMids as jest.Mock
       ).mockResolvedValueOnce({}); // Empty price data
@@ -758,7 +768,7 @@ describe('HyperLiquidProvider', () => {
       // Create a spy on the symbolToAssetId.get method to return undefined for BTC
       // eslint-disable-next-line dot-notation
       const originalGet = provider['symbolToAssetId'].get;
-      jest
+      const getSpy = jest
         // eslint-disable-next-line dot-notation
         .spyOn(provider['symbolToAssetId'], 'get')
         .mockImplementation((symbol: string) => {
@@ -785,8 +795,8 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('Asset ID not found for BTC');
 
-      // Restore the original method
-      jest.restoreAllMocks();
+      // Restore only this specific spy (not all mocks)
+      getSpy.mockRestore();
     });
 
     it('cancels an order successfully', async () => {
