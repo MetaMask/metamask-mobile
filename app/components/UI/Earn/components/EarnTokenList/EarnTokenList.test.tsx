@@ -835,10 +835,14 @@ describe('EarnTokenList', () => {
 
     expect(closeButton).toBeDefined();
 
-    // Press the close button - this should trigger the handleClose callback
+    // Press the close button - this triggers:
+    // 1. handleClose callback
+    // 2. bottomSheetRef.current?.onCloseBottomSheet()
+    // 3. BottomSheet animates closed and calls onCloseCB
+    // 4. onCloseCB calls navigation.goBack() (when shouldNavigateBack is true)
     fireEvent.press(closeButton);
 
-    // Verify that navigation.goBack() was called to close the bottom sheet
+    // Verify that navigation.goBack() was called, confirming the bottom sheet close flow executed
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 

@@ -22,7 +22,8 @@ import { FlatList } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
@@ -102,7 +103,7 @@ const EarnTokenList = () => {
 
   // Temp: Used as workaround for BadgeNetwork not properly anchoring to its parent BadgeWrapper.
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
-  const { createEventBuilder, trackEvent } = useMetrics();
+  const { createEventBuilder, trackEvent } = useAnalytics();
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { params } = useRoute<EarnTokenListProps['route']>();
