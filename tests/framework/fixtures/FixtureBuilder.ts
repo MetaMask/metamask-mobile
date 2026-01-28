@@ -257,7 +257,6 @@ class FixtureBuilder {
                   ],
                 },
               },
-              preventPollingOnNetworkRestart: false,
             },
             CurrencyRateController: {
               currentCurrency: 'usd',

@@ -50,7 +50,6 @@
   },
   "TokenListController": {
     "tokensChainsCache": {},
-    "preventPollingOnNetworkRestart": false
   },
   "CurrencyRateController": {
     "currentCurrency": "usd",
