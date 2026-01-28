@@ -528,6 +528,75 @@ describe('ChoosePassword', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows error state only after password field loses focus with invalid password', async () => {
+    const component = renderWithProviders(<ChoosePassword />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    // Enter a short password
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'short');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Helper text should NOT be in error state yet (field not blurred)
+    const helperText = component.getByText(
+      strings('choose_password.must_be_at_least', { number: 8 }),
+    );
+    expect(helperText).toBeOnTheScreen();
+
+    // Blur the password field
+    await act(async () => {
+      fireEvent(passwordInput, 'blur');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Helper text should still be visible after blur
+    expect(
+      component.getByText(
+        strings('choose_password.must_be_at_least', { number: 8 }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides error state when user focuses back on password field', async () => {
+    const component = renderWithProviders(<ChoosePassword />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    // Enter a short password and blur to trigger error state
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'short');
+      fireEvent(passwordInput, 'blur');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Focus back on the password field
+    await act(async () => {
+      fireEvent(passwordInput, 'focus');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Helper text should still be visible but error state should be reset
+    expect(
+      component.getByText(
+        strings('choose_password.must_be_at_least', { number: 8 }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('render header left button on press, navigates to previous screen', async () => {
     renderWithProviders(<ChoosePassword />);
 

@@ -1425,6 +1425,76 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
+    it('shows error state only after password field loses focus with invalid password', async () => {
+      const { getByText, getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      // Enter a short password
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'short');
+      });
+
+      // Helper text should still be visible
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('choose_password.must_be_at_least', {
+              number: MIN_PASSWORD_LENGTH,
+            }),
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      // Blur the password field
+      await act(async () => {
+        fireEvent(passwordInput, 'blur');
+      });
+
+      // Helper text should still be visible after blur
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('choose_password.must_be_at_least', {
+              number: MIN_PASSWORD_LENGTH,
+            }),
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('hides error state when user focuses back on password field', async () => {
+      const { getByText, getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      // Enter a short password and blur to trigger error state
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'short');
+        fireEvent(passwordInput, 'blur');
+      });
+
+      // Focus back on the password field
+      await act(async () => {
+        fireEvent(passwordInput, 'focus');
+      });
+
+      // Helper text should still be visible but error state should be reset
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('choose_password.must_be_at_least', {
+              number: MIN_PASSWORD_LENGTH,
+            }),
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
     it('confirm password field is focused when new password field is entered', async () => {
       const { getByTestId } = await renderCreatePasswordUI();
 
