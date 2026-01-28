@@ -456,7 +456,7 @@ class PerpsConnectionManagerClass {
         await Engine.context.PerpsController.init();
         this.isInitialized = true;
         setMeasurement(
-          PerpsMeasurementName.PERPS_PROVIDER_INIT,
+          PerpsMeasurementName.PerpsProviderInit,
           performance.now() - initStart,
           'millisecond',
           traceSpan,
@@ -471,7 +471,7 @@ class PerpsConnectionManagerClass {
         const provider = Engine.context.PerpsController.getActiveProvider();
         await provider.ping();
         setMeasurement(
-          PerpsMeasurementName.PERPS_CONNECTION_HEALTH_CHECK,
+          PerpsMeasurementName.PerpsConnectionHealthCheck,
           performance.now() - healthCheckStart,
           'millisecond',
           traceSpan,
@@ -503,14 +503,13 @@ class PerpsConnectionManagerClass {
         DevLogger.log(
           `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsConn: Connection established`,
           {
-            metric:
-              PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
+            metric: PerpsMeasurementName.PerpsWebsocketConnectionEstablishment,
             duration: `${connectionDuration.toFixed(0)}ms`,
           },
         );
 
         setMeasurement(
-          PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
+          PerpsMeasurementName.PerpsWebsocketConnectionEstablishment,
           connectionDuration,
           'millisecond',
           traceSpan,
@@ -522,7 +521,7 @@ class PerpsConnectionManagerClass {
         const preloadStart = performance.now();
         await this.preloadSubscriptions();
         setMeasurement(
-          PerpsMeasurementName.PERPS_SUBSCRIPTIONS_PRELOAD,
+          PerpsMeasurementName.PerpsSubscriptionsPreload,
           performance.now() - preloadStart,
           'millisecond',
           traceSpan,
@@ -535,14 +534,13 @@ class PerpsConnectionManagerClass {
         DevLogger.log(
           `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsConn: Connection with preload completed`,
           {
-            metric:
-              PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
+            metric: PerpsMeasurementName.PerpsWebsocketConnectionWithPreload,
             duration: `${totalConnectionDuration.toFixed(0)}ms`,
           },
         );
 
         setMeasurement(
-          PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
+          PerpsMeasurementName.PerpsWebsocketConnectionWithPreload,
           totalConnectionDuration,
           'millisecond',
           traceSpan,
@@ -697,7 +695,7 @@ class PerpsConnectionManagerClass {
       streamManager.marketData.clearCache();
       streamManager.oiCaps.clearCache();
       setMeasurement(
-        PerpsMeasurementName.PERPS_RECONNECTION_CLEANUP,
+        PerpsMeasurementName.PerpsReconnectionCleanup,
         performance.now() - cleanupStart,
         'millisecond',
         traceSpan,
@@ -714,7 +712,7 @@ class PerpsConnectionManagerClass {
       const reinitStart = performance.now();
       await Engine.context.PerpsController.init();
       setMeasurement(
-        PerpsMeasurementName.PERPS_CONTROLLER_REINIT,
+        PerpsMeasurementName.PerpsControllerReinit,
         performance.now() - reinitStart,
         'millisecond',
         traceSpan,
@@ -735,7 +733,7 @@ class PerpsConnectionManagerClass {
       const provider = Engine.context.PerpsController.getActiveProvider();
       await provider.ping();
       setMeasurement(
-        PerpsMeasurementName.PERPS_RECONNECTION_HEALTH_CHECK,
+        PerpsMeasurementName.PerpsReconnectionHealthCheck,
         performance.now() - healthCheckStart,
         'millisecond',
         traceSpan,
@@ -769,7 +767,7 @@ class PerpsConnectionManagerClass {
       const preloadStart = performance.now();
       await this.preloadSubscriptions();
       setMeasurement(
-        PerpsMeasurementName.PERPS_RECONNECTION_PRELOAD,
+        PerpsMeasurementName.PerpsReconnectionPreload,
         performance.now() - preloadStart,
         'millisecond',
         traceSpan,
@@ -782,14 +780,13 @@ class PerpsConnectionManagerClass {
       DevLogger.log(
         `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsConn: Account switch reconnection completed`,
         {
-          metric:
-            PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+          metric: PerpsMeasurementName.PerpsWebsocketAccountSwitchReconnection,
           duration: `${reconnectionDuration.toFixed(0)}ms`,
         },
       );
 
       setMeasurement(
-        PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+        PerpsMeasurementName.PerpsWebsocketAccountSwitchReconnection,
         reconnectionDuration,
         'millisecond',
         traceSpan,

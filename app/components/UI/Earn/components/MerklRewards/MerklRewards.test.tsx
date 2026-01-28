@@ -55,17 +55,14 @@ jest.mock('./PendingMerklRewards', () => {
   return {
     __esModule: true,
     default: ({
-      asset,
       claimableReward,
       isProcessingClaim,
     }: {
-      asset: TokenI;
       claimableReward: string | null;
       isProcessingClaim: boolean;
     }) =>
       ReactActual.createElement(View, {
         testID: 'pending-merkl-rewards',
-        'data-asset': asset.symbol,
         'data-claimable': claimableReward,
         'data-processing': isProcessingClaim,
       }),

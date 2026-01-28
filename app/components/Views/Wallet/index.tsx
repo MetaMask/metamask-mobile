@@ -176,7 +176,6 @@ import { selectSelectedInternalAccountByScope } from '../../../selectors/multich
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
-import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
@@ -967,11 +966,6 @@ const Wallet = ({
    * Show multichain accounts intro modal if state 2 is enabled and never showed before
    */
   useMultichainAccountsIntroModal();
-
-  /**
-   * Show rewards intro modal if ff is enabled and never showed before
-   */
-  useRewardsIntroModal();
 
   /**
    * Show PNA25 bottom sheet if remote feature flag is enabled and never showed before

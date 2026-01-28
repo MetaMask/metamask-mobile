@@ -355,7 +355,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   } = usePerpsLiveCandles({
     symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
-    duration: TimeDuration.YEAR_TO_DATE,
+    duration: TimeDuration.YearToDate,
     throttleMs: 1000,
   });
 
@@ -1260,7 +1260,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         isVisible={isMoreCandlePeriodsVisible}
         onClose={handleMoreCandlePeriodsClose}
         selectedPeriod={selectedCandlePeriod}
-        selectedDuration={TimeDuration.YEAR_TO_DATE} // Not used when showAllPeriods is true
+        selectedDuration={TimeDuration.YearToDate} // Not used when showAllPeriods is true
         onPeriodChange={handleCandlePeriodChange}
         showAllPeriods
         asset={market?.symbol}
