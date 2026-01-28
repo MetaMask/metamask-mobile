@@ -243,7 +243,7 @@ describe('AssetOverviewContent', () => {
       expect(queryByTestId('swap-button')).toBeNull();
     });
 
-    it('hides buy button when isAssetBuyable is false', () => {
+    it('hides buy button when isTokenBuyable is false', () => {
       const { queryByTestId } = renderComponent({ isTokenBuyable: false });
 
       expect(queryByTestId('buy-button')).toBeNull();

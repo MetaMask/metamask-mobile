@@ -64,9 +64,7 @@ jest.mock('../hooks/useTokenBalance', () => ({
 }));
 
 jest.mock('../hooks/useTokenBuyability', () => ({
-  useTokenBuyability: () => ({
-    isAssetBuyable: true,
-  }),
+  useTokenBuyability: () => true,
 }));
 
 jest.mock('../hooks/useTokenActions', () => ({
