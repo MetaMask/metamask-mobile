@@ -3,6 +3,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import type { PerpsMarketData, Position, Order } from '../controllers/types';
+import { usePerpsTrading } from './usePerpsTrading';
 
 /**
  * Navigation handler result interface
@@ -124,11 +125,18 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const { depositWithOrder } = usePerpsTrading();
+
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
-      navigation.navigate(Routes.PERPS.ORDER, params);
+      depositWithOrder().then(() => {
+        navigation.navigate(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params,
+        );
+      });
     },
-    [navigation],
+    [navigation, depositWithOrder],
   );
 
   const navigateToTutorial = useCallback(

@@ -76,7 +76,8 @@ export const usePerpsDepositStatus = () => {
         metamaskPay?.tokenAddress === USDC_ARBITRUM_MAINNET_ADDRESS;
 
       if (
-        transactionMeta.type === TransactionType.perpsDeposit &&
+        (transactionMeta.type === TransactionType.perpsDeposit ||
+          transactionMeta.type === TransactionType.perpsDepositAndOrder) &&
         transactionMeta.status === TransactionStatus.approved
       ) {
         // Skip showing toast if a component is actively handling deposit toasts

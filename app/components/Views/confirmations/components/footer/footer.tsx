@@ -42,6 +42,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
   TransactionType.musdConversion,

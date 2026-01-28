@@ -131,9 +131,6 @@ export function useTransactionConfirm(options?: { skipNavigation?: boolean }) {
 
     // Skip navigation if skipNavigation option is provided
     if (skipNavigation) {
-      // Replace/remove this once we have redesigned send flow
-      dispatch(resetTransaction());
-      tryEnableEvmNetwork(chainId);
       return;
     }
 

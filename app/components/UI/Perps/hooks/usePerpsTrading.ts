@@ -109,12 +109,23 @@ export function usePerpsTrading() {
   const depositWithConfirmation = useCallback(
     async (
       amount?: string,
-      skipNavigation?: boolean,
     ): Promise<{
       result: Promise<string>;
     }> => {
       const controller = Engine.context.PerpsController;
-      return controller.depositWithConfirmation(amount, skipNavigation);
+      return controller.depositWithConfirmation(amount, false);
+    },
+    [],
+  );
+
+  const depositWithOrder = useCallback(
+    async (
+      amount?: string,
+    ): Promise<{
+      result: Promise<string>;
+    }> => {
+      const controller = Engine.context.PerpsController;
+      return controller.depositWithOrder(amount);
     },
     [],
   );
@@ -250,6 +261,7 @@ export function usePerpsTrading() {
     subscribeToPositions,
     subscribeToOrderFills,
     depositWithConfirmation,
+    depositWithOrder,
     clearDepositResult,
     withdraw,
     calculateLiquidationPrice,

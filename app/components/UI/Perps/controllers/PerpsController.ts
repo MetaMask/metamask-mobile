@@ -1484,9 +1484,12 @@ export class PerpsController extends BaseController<
    * Simplified deposit method that prepares transaction for confirmation screen
    * No complex state tracking - just sets a loading flag
    * @param amount - Optional deposit amount
-   * @param skipNavigation - If true, uses addTransaction instead of submit to avoid navigation
+   * @param depositAndPlaceOrder - If true, uses addTransaction instead of submit to avoid navigation
    */
-  async depositWithConfirmation(amount?: string, skipNavigation?: boolean) {
+  async depositWithConfirmation(
+    amount?: string,
+    depositAndPlaceOrder?: boolean,
+  ) {
     const { controllers } = this.options.infrastructure;
 
     try {
@@ -1535,14 +1538,14 @@ export class PerpsController extends BaseController<
       let result: Promise<string>;
       let transactionMeta: { id: string };
 
-      if (skipNavigation) {
+      if (depositAndPlaceOrder) {
         // Use addTransaction to create transaction without navigating to confirmation screen
         const { transactionMeta: addedTransactionMeta } = await addTransaction(
           transaction,
           {
             networkClientId,
             origin: 'metamask',
-            type: TransactionType.perpsDeposit,
+            type: TransactionType.perpsDepositAndOrder,
             skipInitialGasEstimate: true,
           },
         );
@@ -1571,7 +1574,7 @@ export class PerpsController extends BaseController<
       });
 
       // Track the transaction lifecycle only if using submit (not skipNavigation)
-      if (!skipNavigation) {
+      if (!depositAndPlaceOrder) {
         // At this point, the confirmation modal is shown to the user
         // The result promise will resolve/reject based on user action and transaction outcome
 
@@ -1688,6 +1691,14 @@ export class PerpsController extends BaseController<
       }
       throw error;
     }
+  }
+
+  /**
+   * Same as depositWithConfirmation - prepares transaction for confirmation screen.
+   * @param amount - Optional deposit amount
+   */
+  async depositWithOrder(amount?: string) {
+    return this.depositWithConfirmation(amount, true);
   }
 
   /**

@@ -61,6 +61,10 @@ function isRedesignedTransaction({
   }
 
   if (REDESIGNED_CONTRACT_INTERACTION_TYPES.includes(transactionType)) {
+    // perpsDepositAndOrder (one-click trade) always uses redesigned full-screen flow
+    if (transactionType === TransactionType.perpsDepositAndOrder) {
+      return true;
+    }
     return confirmationRedesignFlags?.contract_interaction;
   }
 
