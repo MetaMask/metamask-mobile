@@ -162,12 +162,18 @@ function processTestReport(testReport) {
     team: testReport.team || null,
     // Include profiling data if available
     profilingData: testReport.profilingData || null,
-    profilingSummary: testReport.profilingSummary || null
+    profilingSummary: testReport.profilingSummary || null,
+    // Include quality gates if available
+    qualityGates: testReport.qualityGates || null,
   };
   
   if (testReport.testFailed) {
     cleanedReport.testFailed = true;
     cleanedReport.failureReason = testReport.failureReason;
+    // Include quality gates violations for failed tests
+    if (testReport.qualityGates && !testReport.qualityGates.passed) {
+      cleanedReport.qualityGatesViolations = testReport.qualityGates.violations || null;
+    }
   }
   
   return cleanedReport;
@@ -331,7 +337,9 @@ function createSummary(groupedResults) {
               platform,
               device,
               team: test.team,
-              failureReason: test.failureReason
+              failureReason: test.failureReason,
+              qualityGates: test.qualityGates || null,
+              qualityGatesViolations: test.qualityGatesViolations || null,
             }
           };
         }
@@ -341,6 +349,11 @@ function createSummary(groupedResults) {
           testExecutions[uniqueKey].hasFailed = true;
           // Update failure reason with the latest one
           testExecutions[uniqueKey].testInfo.failureReason = test.failureReason;
+          // Update quality gates info if available
+          if (test.qualityGates) {
+            testExecutions[uniqueKey].testInfo.qualityGates = test.qualityGates;
+            testExecutions[uniqueKey].testInfo.qualityGatesViolations = test.qualityGatesViolations;
+          }
         } else {
           testExecutions[uniqueKey].hasPassed = true;
         }
@@ -388,7 +401,9 @@ function createSummary(groupedResults) {
           tags: testInfo.tags,
           platform: testInfo.platform,
           device: testInfo.device,
-          failureReason: testInfo.failureReason
+          failureReason: testInfo.failureReason,
+          qualityGates: testInfo.qualityGates,
+          qualityGatesViolations: testInfo.qualityGatesViolations,
         });
       }
     }

@@ -126,13 +126,61 @@ if [ -f "$SUMMARY_FILE" ]; then
             # Add team header with proper Slack mention (<!subteam^ID|name> format)
             SUMMARY+="• *${teamName}* ${slackMention} - ${failedCount} failed test(s):\n"
             
-            # List each failed test for this team
-            failedTests=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[] | \"  → \(.testName) [\(.platform)/\(.device)]\"" "$SUMMARY_FILE" 2>/dev/null)
-            while IFS= read -r testLine; do
-                if [ -n "$testLine" ]; then
-                    SUMMARY+="${testLine}\n"
+            # List each failed test for this team with failure reason
+            testCount=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests | length" "$SUMMARY_FILE")
+            
+            for ((i=0; i<testCount; i++)); do
+                testName=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].testName" "$SUMMARY_FILE")
+                platform=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].platform" "$SUMMARY_FILE")
+                device=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].device" "$SUMMARY_FILE")
+                failureReason=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].failureReason // \"unknown\"" "$SUMMARY_FILE")
+                
+                # Format the failure reason for display
+                case "$failureReason" in
+                    "quality_gates_exceeded")
+                        reasonDisplay=":stopwatch: Quality Gates Exceeded"
+                        ;;
+                    "timedOut")
+                        reasonDisplay=":hourglass: Test Timed Out"
+                        ;;
+                    "test_error"|"failed")
+                        reasonDisplay=":x: Test Error"
+                        ;;
+                    *)
+                        reasonDisplay=":question: $failureReason"
+                        ;;
+                esac
+                
+                SUMMARY+="  → *${testName}* [\`${platform}/${device}\`]\n"
+                SUMMARY+="    _Reason:_ ${reasonDisplay}\n"
+                
+                # Check if this test has quality gates violations
+                hasViolations=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations | length // 0" "$SUMMARY_FILE" 2>/dev/null)
+                
+                if [ "$hasViolations" != "null" ] && [ "$hasViolations" -gt 0 ]; then
+                    SUMMARY+="    \`\`\`\n"
+                    SUMMARY+="    Step                    | Actual   | Threshold | Exceeded\n"
+                    SUMMARY+="    ------------------------|----------|-----------|----------\n"
+                    
+                    # Get each violation
+                    violationsCount=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations | length" "$SUMMARY_FILE")
+                    for ((v=0; v<violationsCount; v++)); do
+                        vType=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].type" "$SUMMARY_FILE")
+                        vActual=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].actual" "$SUMMARY_FILE")
+                        vThreshold=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].threshold" "$SUMMARY_FILE")
+                        vExceeded=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].exceeded" "$SUMMARY_FILE")
+                        vPercentOver=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].percentOver" "$SUMMARY_FILE")
+                        
+                        if [ "$vType" = "step" ]; then
+                            vStepName=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].stepName" "$SUMMARY_FILE" | cut -c1-20)
+                            SUMMARY+="    ${vStepName}... | ${vActual}ms | ${vThreshold}ms | +${vExceeded}ms (+${vPercentOver}%)\n"
+                        else
+                            SUMMARY+="    TOTAL               | ${vActual}ms | ${vThreshold}ms | +${vExceeded}ms (+${vPercentOver}%)\n"
+                        fi
+                    done
+                    SUMMARY+="    \`\`\`\n"
                 fi
-            done <<< "$failedTests"
+            done
             SUMMARY+="\n"
         done
         

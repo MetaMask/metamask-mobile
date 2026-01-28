@@ -15,14 +15,6 @@ export class PerformanceTracker {
     this.teamInfo = teamInfo;
   }
 
-  /**
-   * Get the team information for this test
-   * @returns {Object|null} Team info object or null if not set
-   */
-  getTeamInfo() {
-    return this.teamInfo;
-  }
-
   addTimers(...timers) {
     timers.forEach((timer) => {
       this.addTimer(timer);

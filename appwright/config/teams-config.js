@@ -52,7 +52,7 @@ export const DEFAULT_TEAM_TAG = '@performance-team';
  * @param {string} teamTag - The team tag (e.g., '@swap-bridge-dev-team')
  * @returns {Object|null} Team configuration or null if not found
  */
-export function getTeamConfig(teamTag) {
+function getTeamConfig(teamTag) {
   return TEAMS[teamTag] || null;
 }
 
@@ -61,7 +61,7 @@ export function getTeamConfig(teamTag) {
  * @param {Array} tags - Array of test tags
  * @returns {string} Team tag or default team tag
  */
-export function extractTeamTag(tags) {
+function extractTeamTag(tags) {
   if (!tags || !Array.isArray(tags)) {
     return DEFAULT_TEAM_TAG;
   }
@@ -107,41 +107,3 @@ export function getTeamInfoFromTags(tags) {
     slackMention: generateSlackMention(teamConfig, teamTag),
   };
 }
-
-/**
- * Group failed tests by team
- * @param {Array} failedTests - Array of failed test objects with tags
- * @returns {Object} Object with team tags as keys and arrays of failed tests as values
- */
-export function groupFailedTestsByTeam(failedTests) {
-  const grouped = {};
-
-  for (const test of failedTests) {
-    const teamTag = extractTeamTag(test.tags);
-    const teamConfig = getTeamConfig(teamTag);
-
-    if (!grouped[teamTag]) {
-      grouped[teamTag] = {
-        team: {
-          teamId: teamTag,
-          teamName: teamConfig?.name || teamTag,
-          slackMention: generateSlackMention(teamConfig, teamTag),
-        },
-        tests: [],
-      };
-    }
-
-    grouped[teamTag].tests.push(test);
-  }
-
-  return grouped;
-}
-
-export default {
-  TEAMS,
-  DEFAULT_TEAM_TAG,
-  getTeamConfig,
-  extractTeamTag,
-  getTeamInfoFromTags,
-  groupFailedTestsByTeam,
-};

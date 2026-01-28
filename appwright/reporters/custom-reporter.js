@@ -109,6 +109,9 @@ class CustomReporter {
         status: result.status,
         duration: result.duration,
         projectName,
+        // Will be populated later with quality gates info if available
+        qualityGates: null,
+        failureReason: null,
       });
     }
 
@@ -187,6 +190,32 @@ class CustomReporter {
               ),
             );
           }
+
+          // Update failed test entry with quality gates info if this test failed
+          if (metricsEntry.testFailed) {
+            const teamId = teamInfo.teamId;
+            if (this.failedTestsByTeam[teamId]) {
+              const failedTest = this.failedTestsByTeam[teamId].tests.find(
+                (t) =>
+                  t.testName === test.title && t.projectName === projectName,
+              );
+              if (failedTest) {
+                failedTest.qualityGates = qualityGatesResult;
+                // Determine failure reason
+                if (
+                  qualityGatesResult.hasThresholds &&
+                  !qualityGatesResult.passed
+                ) {
+                  failedTest.failureReason = 'quality_gates_exceeded';
+                  failedTest.qualityGatesViolations =
+                    qualityGatesResult.violations;
+                } else {
+                  failedTest.failureReason =
+                    metricsEntry.failureReason || 'test_error';
+                }
+              }
+            }
+          }
         }
 
         this.metrics.push(metricsEntry);
@@ -214,6 +243,17 @@ class CustomReporter {
       };
 
       this.metrics.push(basicEntry);
+
+      // Update failed test entry with failure reason (no quality gates since no metrics)
+      const teamId = teamInfo.teamId;
+      if (this.failedTestsByTeam[teamId]) {
+        const failedTest = this.failedTestsByTeam[teamId].tests.find(
+          (t) => t.testName === test.title && t.projectName === projectName,
+        );
+        if (failedTest) {
+          failedTest.failureReason = result.status;
+        }
+      }
     }
   }
 
