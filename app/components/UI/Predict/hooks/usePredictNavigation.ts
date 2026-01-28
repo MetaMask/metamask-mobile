@@ -5,7 +5,7 @@ import {
   PredictNavigationParamList,
   PredictEntryPoint,
 } from '../types/navigation';
-import { PredictEventValues } from '../constants/eventNames';
+import { useIsInPredictNavigator } from './useIsInPredictNavigator';
 
 export interface UsePredictNavigationOptions {
   navigation: NavigationProp<PredictNavigationParamList>;
@@ -46,8 +46,8 @@ export const usePredictNavigation = ({
   navigation,
   entryPoint,
 }: UsePredictNavigationOptions): UsePredictNavigationResult => {
-  const isOutsidePredictNavigator =
-    entryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL;
+  const isInPredictNavigator = useIsInPredictNavigator();
+  const isOutsidePredictNavigator = !isInPredictNavigator;
 
   const navigate = useCallback(
     (screen: string, params?: Record<string, unknown>) => {

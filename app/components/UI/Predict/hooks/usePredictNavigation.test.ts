@@ -2,12 +2,20 @@ import { renderHook } from '@testing-library/react-hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { usePredictNavigation } from './usePredictNavigation';
 import { PredictEventValues } from '../constants/eventNames';
+import { useIsInPredictNavigator } from './useIsInPredictNavigator';
+
+jest.mock('./useIsInPredictNavigator');
 
 const mockNavigate = jest.fn();
 const mockNavigation = {
   navigate: mockNavigate,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
+
+const mockUseIsInPredictNavigator =
+  useIsInPredictNavigator as jest.MockedFunction<
+    typeof useIsInPredictNavigator
+  >;
 
 describe('usePredictNavigation', () => {
   beforeEach(() => {
@@ -20,6 +28,10 @@ describe('usePredictNavigation', () => {
 
   describe('when outside predict navigator', () => {
     const entryPoint = PredictEventValues.ENTRY_POINT.CAROUSEL;
+
+    beforeEach(() => {
+      mockUseIsInPredictNavigator.mockReturnValue(false);
+    });
 
     it('indicates user is outside predict navigator', () => {
       const { result } = renderHook(() =>
@@ -82,6 +94,10 @@ describe('usePredictNavigation', () => {
   describe('when inside predict navigator', () => {
     const entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED;
 
+    beforeEach(() => {
+      mockUseIsInPredictNavigator.mockReturnValue(true);
+    });
+
     it('indicates user is inside predict navigator', () => {
       const { result } = renderHook(() =>
         usePredictNavigation({
@@ -138,6 +154,10 @@ describe('usePredictNavigation', () => {
   });
 
   describe('when entry point is undefined', () => {
+    beforeEach(() => {
+      mockUseIsInPredictNavigator.mockReturnValue(true);
+    });
+
     it('treats undefined as inside predict navigator', () => {
       const { result } = renderHook(() =>
         usePredictNavigation({

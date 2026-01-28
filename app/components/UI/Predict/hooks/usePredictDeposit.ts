@@ -1,8 +1,4 @@
-import {
-  NavigationProp,
-  useNavigation,
-  useNavigationState,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -20,6 +16,7 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import Routes from '../../../../constants/navigation/Routes';
+import { useIsInPredictNavigator } from './useIsInPredictNavigator';
 
 interface UsePredictDepositParams {
   providerId?: string;
@@ -34,12 +31,8 @@ export const usePredictDeposit = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const routeName = useNavigationState((state) => {
-    const currentRoute = state?.routes[state.index];
-    return currentRoute?.name;
-  });
-
-  const isOutsidePredictNavigator = routeName !== Routes.PREDICT.ROOT;
+  const isInPredictNavigator = useIsInPredictNavigator();
+  const isOutsidePredictNavigator = !isInPredictNavigator;
   const stack = isOutsidePredictNavigator ? Routes.PREDICT.ROOT : undefined;
 
   const evmAccount = getEvmAccountFromSelectedAccountGroup();

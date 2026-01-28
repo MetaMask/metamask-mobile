@@ -407,7 +407,7 @@ describe('usePredictActionGuard', () => {
       });
     });
 
-    describe('usePredictDeposit is called with correct providerId', () => {
+    describe('usePredictDeposit is called with correct parameters', () => {
       it('passes providerId to usePredictDeposit', () => {
         renderHook(() =>
           usePredictActionGuard({

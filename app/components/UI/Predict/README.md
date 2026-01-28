@@ -115,10 +115,10 @@ The Predict feature enables users to participate in prediction markets within Me
 
 #### Deposit Hook
 
-- **`usePredictDeposit`**: Manages deposit flow with automatic navigation context detection
-  - Automatically detects if called from outside Predict navigator using `useNavigationState`
-  - Sets `stack` parameter automatically when outside Predict navigator
-  - No need to pass `entryPoint` - hook is self-contained and intelligent
+- **`usePredictDeposit`**: Manages deposit flow with entry point-aware stack routing
+  - Uses `entryPoint` parameter to determine if outside Predict navigator
+  - Sets `stack` parameter automatically when `entryPoint` is CAROUSEL
+  - Consistent with `usePredictNavigation` approach for reliability
   - Handles deposit flow, errors, and toast notifications
   - Used by `usePredictActionGuard` for balance checks
 

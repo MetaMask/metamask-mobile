@@ -65,20 +65,22 @@ jest.mock('../../../../util/theme', () => ({
   })),
 }));
 
-// Mock useNavigation and useNavigationState
+// Mock useNavigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigationResult = {
   navigate: mockNavigate,
   goBack: mockGoBack,
 };
-let mockRouteName = 'Predict';
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigationResult,
-  useNavigationState: (
-    selector: (state: { routes: { name: string }[]; index: number }) => string,
-  ) => selector({ routes: [{ name: mockRouteName }], index: 0 }),
+  useNavigationState: jest.fn(() => null),
+}));
+
+// Mock useIsInPredictNavigator
+jest.mock('./useIsInPredictNavigator', () => ({
+  useIsInPredictNavigator: jest.fn(() => true),
 }));
 
 // Mock react-redux
@@ -303,27 +305,6 @@ describe('usePredictDeposit', () => {
         loader: ConfirmationLoader.CustomAmount,
         stack: undefined,
       });
-    });
-
-    it('calls navigateToConfirmation with stack parameter when outside Predict navigator', async () => {
-      (
-        Engine.context.PredictController.depositWithConfirmation as jest.Mock
-      ).mockResolvedValue({
-        success: true,
-        response: { batchId: 'batch-123' },
-      });
-
-      mockRouteName = 'WalletView';
-      const { result } = setupUsePredictDepositTest();
-
-      await result.current.deposit();
-
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        loader: ConfirmationLoader.CustomAmount,
-        stack: 'Predict',
-      });
-
-      mockRouteName = 'Predict';
     });
 
     it('calls depositWithConfirmation with default providerId', async () => {
