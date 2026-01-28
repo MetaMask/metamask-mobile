@@ -756,11 +756,13 @@
     "accountMeta": {}
   },
   "RampsController": {
+    "countries": [],
     "paymentMethods": [],
     "userRegion": null,
     "selectedProvider": null,
     "providers": [],
     "selectedPaymentMethod": null,
+    "selectedToken": null,
     "tokens": null,
     "requests": {}
   }
