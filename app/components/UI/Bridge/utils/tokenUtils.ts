@@ -1,11 +1,13 @@
-import { CaipChainId, Hex } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import {
+  formatAddressToAssetId,
   formatChainIdToHex,
   getNativeAssetForChainId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../types';
 import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
+import { IncludeAsset } from '../hooks/usePopularTokens';
 
 /**
  * Creates a formatted native token object for the given chain ID
@@ -58,4 +60,23 @@ export const getDefaultDestToken = (
   }
 
   return undefined;
+};
+
+/**
+ * Converts a BridgeToken to IncludeAsset format for the API.
+ * Returns null if the token cannot be converted (invalid assetId).
+ */
+export const tokenToIncludeAsset = (
+  token: BridgeToken,
+): IncludeAsset | null => {
+  const assetId = formatAddressToAssetId(token.address, token.chainId);
+  if (!assetId) return null;
+
+  return {
+    ...token,
+    assetId: isNonEvmChainId(token.chainId)
+      ? assetId
+      : (assetId.toLowerCase() as CaipAssetType),
+    name: token.name ?? '',
+  };
 };

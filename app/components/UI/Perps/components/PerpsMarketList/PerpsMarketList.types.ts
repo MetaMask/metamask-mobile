@@ -29,7 +29,7 @@ export interface PerpsMarketListProps {
     | null;
   /**
    * Optional icon size for market row items
-   * @default HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE
+   * @default HOME_SCREEN_CONFIG.DefaultIconSize
    */
   iconSize?: number;
   /**

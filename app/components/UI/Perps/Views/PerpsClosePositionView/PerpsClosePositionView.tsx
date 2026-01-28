@@ -175,7 +175,7 @@ const PerpsClosePositionView: React.FC = () => {
     // Defensive fallback if market data fails to load - prevents crashes
     // Real szDecimals should come from market data (varies by asset)
     const szDecimals =
-      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FALLBACK_SIZE_DECIMALS;
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
 
     const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
       percentage: closePercentage,
@@ -402,8 +402,8 @@ const PerpsClosePositionView: React.FC = () => {
         priceAtCalculation: effectivePrice,
         maxSlippageBps:
           orderType === 'limit'
-            ? ORDER_SLIPPAGE_CONFIG.DEFAULT_LIMIT_SLIPPAGE_BPS // 1% for limit orders
-            : ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // 3% for market orders
+            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders
+            : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps, // 3% for market orders
       },
     });
   };
