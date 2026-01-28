@@ -64,9 +64,6 @@ export function useTransactionPayToken(): {
       const isPredictDepositTransaction = hasTransactionType(transactionMeta, [
         TransactionType.predictDeposit,
       ]);
-      const isPerpsDepositTransaction = hasTransactionType(transactionMeta, [
-        TransactionType.perpsDeposit,
-      ]);
 
       if (isPredictDepositTransaction && transactionMeta) {
         const isNewPayTokenRequiredToken =
@@ -85,8 +82,6 @@ export function useTransactionPayToken(): {
         };
 
         updateTransaction(updatedTx, transactionMeta.id);
-      } else if (isPerpsDepositTransaction) {
-        // No selectedGasFeeToken update for perps deposits.
       }
 
       EngineService.flushState();
