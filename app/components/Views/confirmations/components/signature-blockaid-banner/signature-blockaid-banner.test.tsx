@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   securityAlertResponse,
   typedSignV1ConfirmationState,
+  typedSignV1SignatureRequest,
 } from '../../../../../util/test/confirm-data-helpers';
 import SignatureBlockaidBanner from './signature-blockaid-banner';
 
@@ -30,9 +31,18 @@ jest.mock('../../../../../util/confirmation/signatureUtils', () => ({
   getAnalyticsParams: () => ({}),
 }));
 
+// The key must match messageParams.requestId since useSecurityAlertResponse
+// looks up by requestId first (this matches how ppom-util stores alerts)
+const SECURITY_ALERT_KEY =
+  typedSignV1SignatureRequest.messageParams.requestId?.toString() as string;
+
 const typedSignV1ConfirmationStateWithBlockaidResponse = {
   ...typedSignV1ConfirmationState,
-  signatureRequest: { securityAlertResponse },
+  securityAlerts: {
+    alerts: {
+      [SECURITY_ALERT_KEY]: securityAlertResponse,
+    },
+  },
 };
 
 describe('Confirm', () => {

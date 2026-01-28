@@ -11,7 +11,6 @@ import AssetActionButton from '../AssetOverview/AssetActionButton';
 import Device from '../../../util/device';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import { newAssetTransaction } from '../../../actions/transaction';
 import { areAddressesEqual } from '../../../util/address';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -81,10 +80,6 @@ class CollectibleContractOverview extends PureComponent {
      * Action that sets a collectible contract type transaction
      */
     toggleCollectibleContractModal: PropTypes.func.isRequired,
-    /**
-     * Start transaction with asset
-     */
-    newAssetTransaction: PropTypes.func,
   };
 
   onAdd = () => {
@@ -100,7 +95,6 @@ class CollectibleContractOverview extends PureComponent {
     const collectible = collectibles.find((collectible) =>
       areAddressesEqual(collectible.address, collectibleContract.address),
     );
-    this.props.newAssetTransaction(collectible);
     handleSendPageNavigation(this.props.navigation.navigate, {
       location: InitSendLocation.CollectibleContractOverview,
       asset: collectible,
@@ -173,8 +167,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   toggleCollectibleContractModal: () =>
     dispatch(toggleCollectibleContractModal()),
-  newAssetTransaction: (selectedAsset) =>
-    dispatch(newAssetTransaction(selectedAsset)),
 });
 
 CollectibleContractOverview.contextType = ThemeContext;

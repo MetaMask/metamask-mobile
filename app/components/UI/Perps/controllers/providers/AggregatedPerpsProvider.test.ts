@@ -728,7 +728,7 @@ describe('AggregatedPerpsProvider', () => {
 
       aggregatedProvider.subscribeToCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        interval: CandlePeriod.OneHour,
         callback,
       });
 
