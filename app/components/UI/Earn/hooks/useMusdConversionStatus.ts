@@ -105,30 +105,44 @@ export const useMusdConversionStatus = () => {
       };
     };
 
-    const handleTransactionStatusUpdated = ({
-      transactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => {
+    // Shared helper to validate and extract common data for mUSD conversion handlers
+    const getConversionData = (
+      transactionMeta: TransactionMeta,
+      status: TransactionStatus,
+    ) => {
       if (transactionMeta.type !== TransactionType.musdConversion) {
-        return;
+        return null;
       }
 
-      const { id: transactionId, status, metamaskPay } = transactionMeta;
+      const { id: transactionId, metamaskPay } = transactionMeta;
       const { chainId: payChainId, tokenAddress: payTokenAddress } =
         metamaskPay || {};
 
       const toastKey = `${transactionId}-${status}`;
 
       if (shownToastsRef.current.has(toastKey)) {
-        return;
+        return null;
       }
 
       const tokenData = payTokenAddress
         ? getTokenData(payChainId as Hex, payTokenAddress)
         : { symbol: '', name: '' };
 
-      switch (status) {
+      return { transactionId, tokenData, toastKey };
+    };
+
+    // Handle approved and failed statuses via transactionStatusUpdated
+    const handleTransactionStatusUpdated = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => {
+      const data = getConversionData(transactionMeta, transactionMeta.status);
+      if (!data) return;
+
+      const { transactionId, tokenData, toastKey } = data;
+
+      switch (transactionMeta.status) {
         case TransactionStatus.approved: {
           submitConversionEvent(transactionMeta, tokenData);
           // Get token info for the in-progress toast
@@ -141,20 +155,6 @@ export const useMusdConversionStatus = () => {
           shownToastsRef.current.add(toastKey);
           break;
         }
-        case TransactionStatus.confirmed:
-          submitConversionEvent(transactionMeta, tokenData);
-          showToast(EarnToastOptions.mUsdConversion.success);
-          shownToastsRef.current.add(toastKey);
-          // Clean up entries for this transaction after final status
-          setTimeout(() => {
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.approved}`,
-            );
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.confirmed}`,
-            );
-          }, 5000);
-          break;
         case TransactionStatus.failed:
           submitConversionEvent(transactionMeta, tokenData);
           showToast(EarnToastOptions.mUsdConversion.failed);
@@ -174,15 +174,50 @@ export const useMusdConversionStatus = () => {
       }
     };
 
+    // Handle confirmed status via transactionConfirmed event
+    // This event fires at the same time as TokenBalancesController updates balances,
+    // ensuring the success toast appears in sync with the balance change in the UI
+    const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
+      const data = getConversionData(
+        transactionMeta,
+        TransactionStatus.confirmed,
+      );
+      if (!data) return;
+
+      const { transactionId, tokenData, toastKey } = data;
+
+      submitConversionEvent(transactionMeta, tokenData);
+      showToast(EarnToastOptions.mUsdConversion.success);
+      shownToastsRef.current.add(toastKey);
+      // Clean up entries for this transaction after final status
+      setTimeout(() => {
+        shownToastsRef.current.delete(
+          `${transactionId}-${TransactionStatus.approved}`,
+        );
+        shownToastsRef.current.delete(
+          `${transactionId}-${TransactionStatus.confirmed}`,
+        );
+      }, 5000);
+    };
+
     Engine.controllerMessenger.subscribe(
       'TransactionController:transactionStatusUpdated',
       handleTransactionStatusUpdated,
+    );
+
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionConfirmed',
+      handleTransactionConfirmed,
     );
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionStatusUpdated',
         handleTransactionStatusUpdated,
+      );
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionConfirmed',
+        handleTransactionConfirmed,
       );
     };
   }, [showToast, EarnToastOptions.mUsdConversion, submitConversionEvent]);
