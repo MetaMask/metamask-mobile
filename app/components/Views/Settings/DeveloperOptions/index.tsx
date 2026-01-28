@@ -18,6 +18,7 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { ConfirmationsDeveloperOptions } from '../../confirmations/components/developer/confirmations-developer-options';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
 import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDeveloperOptionsSection';
+import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -58,6 +59,7 @@ const DeveloperOptions = () => {
       {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
       <ConfirmationsDeveloperOptions />
       {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
+      <CardDeveloperOptionsSection />
     </ScrollView>
   );
 };

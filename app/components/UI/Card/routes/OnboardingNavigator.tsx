@@ -133,9 +133,26 @@ const OnboardingNavigator: React.FC = () => {
         return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
       }
       if (cardUserPhase === 'PERSONAL_INFORMATION') {
-        return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        if (user?.verificationState === 'VERIFIED') {
+          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        }
+
+        if (user?.verificationState === 'REJECTED') {
+          return Routes.CARD.ONBOARDING.KYC_FAILED;
+        }
+
+        return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
       }
       if (cardUserPhase === 'PHYSICAL_ADDRESS') {
+        if (user?.verificationState !== 'VERIFIED') {
+          if (user?.verificationState === 'REJECTED') {
+            return Routes.CARD.ONBOARDING.KYC_FAILED;
+          }
+          return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+        }
+        if (!user?.countryOfNationality) {
+          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        }
         return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
       }
     }
@@ -186,6 +203,7 @@ const OnboardingNavigator: React.FC = () => {
     if (
       isReturningSession &&
       initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
+      initialRouteName !== Routes.CARD.ONBOARDING.COMPLETE &&
       !hasShownKeepGoingModal.current &&
       user?.verificationState !== 'REJECTED'
     ) {
