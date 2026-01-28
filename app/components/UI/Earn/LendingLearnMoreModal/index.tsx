@@ -334,8 +334,8 @@ export const LendingLearnMoreModal = () => {
                   value: 90,
                 },
               ],
+              color: colors.success.default,
             }}
-            color={colors.success.default}
             isLoading={isLoadingMarketApys}
           />
         )}

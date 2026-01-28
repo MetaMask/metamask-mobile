@@ -155,8 +155,8 @@ const PoolStakingLearnMoreModal = () => {
               ...getGraphInsetsByDataPointLength(
                 activeTimespanApyAverage.numDays,
               ),
+              color: colors.success.default,
             }}
-            color={colors.success.default}
             isLoading={isLoadingVaultApyAverages || isLoadingVaultApys}
           />
         )}

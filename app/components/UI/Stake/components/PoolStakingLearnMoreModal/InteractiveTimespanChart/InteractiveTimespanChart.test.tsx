@@ -168,8 +168,10 @@ describe('InteractiveTimespanChart', () => {
     const customColor = 'red';
 
     const { findByText, getByTestId } = renderGraph('object', {
-      color: customColor,
-      graphOptions: DEFAULT_GRAPH_OPTIONS,
+      graphOptions: {
+        ...DEFAULT_GRAPH_OPTIONS,
+        color: customColor,
+      },
     });
 
     const titleText = await findByText(DEFAULT_PROPS.OBJECT_ARRAY.title);

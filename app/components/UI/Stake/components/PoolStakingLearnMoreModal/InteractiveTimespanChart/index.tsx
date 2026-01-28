@@ -11,6 +11,7 @@ import DataGradient from './DataGradient';
 import PlotLine from './PlotLine';
 import styleSheet from './InteractiveTimespanChart.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { useTheme } from '../../../../../../util/theme';
 import {
   calculateSegmentCenters,
   calculateSnapThreshold,
@@ -47,11 +48,7 @@ export interface InteractiveTimespanChartProps<T extends DataPoint> {
   subtitleAccessor?: Accessor<T, string>;
   defaultSubtitle?: string;
   onTimespanPressed?: (numDataPointsToDisplay: number) => void;
-  graphOptions?: Partial<Omit<GraphOptions, 'color'>>;
-  /**
-   * The color used for the chart line, gradient, cursor, and tooltip title.
-   */
-  color: string;
+  graphOptions?: Partial<GraphOptions>;
   testID?: string;
   isLoading?: boolean;
 }
@@ -93,16 +90,18 @@ const InteractiveTimespanChart = <T extends DataPoint>({
   titleAccessor,
   subtitleAccessor,
   onTimespanPressed,
-  color,
   testID = INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
   isLoading = false,
 }: InteractiveTimespanChartProps<T>) => {
   const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
 
   const { insetTop, insetRight, insetBottom, insetLeft, timespanButtons } = {
     ...DEFAULT_GRAPH_OPTIONS,
     ...graphOptions,
   };
+
+  const chartColor = graphOptions?.color ?? colors.icon.default;
 
   const [dataPointsToShow, setDataPointsToShow] = useState(
     dataPoints.slice(-timespanButtons[0].value),
@@ -242,14 +241,17 @@ const InteractiveTimespanChart = <T extends DataPoint>({
           svg={doesChartHaveData ? { fill: `url(#dataGradient)` } : undefined}
           yMin={0}
         >
-          <PlotLine doesChartHaveData color={color} />
+          <PlotLine doesChartHaveData color={chartColor} />
           {doesChartHaveData && (
-            <DataGradient dataPoints={parsedDataPointValues} color={color} />
+            <DataGradient
+              dataPoints={parsedDataPointValues}
+              color={chartColor}
+            />
           )}
           <GraphCursor
             currentX={selectedPointIndex}
             data={parsedDataPointValues}
-            color={color}
+            color={chartColor}
           />
         </AreaChart>
       </View>
@@ -269,7 +271,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
           subtitle={
             parsedSubtitleValues[selectedPointIndex] ?? defaultSubtitle ?? ''
           }
-          color={color}
+          color={chartColor}
           isLoading={isLoading}
         />
       )}
