@@ -71,7 +71,7 @@ describe('handlePerpsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
 
       // Fast-forward timer to trigger setParams
-      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
 
       expect(mockSetParams).toHaveBeenCalledWith({
         initialTab: 'perps',

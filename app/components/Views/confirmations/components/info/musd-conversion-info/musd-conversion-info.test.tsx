@@ -14,6 +14,16 @@ jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../hooks/earn/useCustomAmount');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../../../UI/Earn/hooks/useMusdConversionNavbar');
+jest.mock('../../../../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  TraceName: {
+    MusdConversionNavigation: 'mUSD Conversion Navigation',
+  },
+}));
+const mockStartQuoteTrace = jest.fn();
+jest.mock('../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace', () => ({
+  useMusdConversionQuoteTrace: () => ({ startQuoteTrace: mockStartQuoteTrace }),
+}));
 
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
@@ -200,18 +210,14 @@ describe('MusdConversionInfo', () => {
   });
 
   describe('useMusdConversionNavbar', () => {
-    it('calls useMusdConversionNavbar with outputChainId', () => {
-      mockRoute.params = {
-        outputChainId: '0xe708' as Hex,
-      };
-
+    it('calls useMusdConversionNavbar', () => {
       mockUseRoute.mockReturnValue(mockRoute);
 
       renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
-      expect(mockUseMusdConversionNavbar).toHaveBeenCalledWith('0xe708');
+      expect(mockUseMusdConversionNavbar).toHaveBeenCalledWith();
     });
   });
 });

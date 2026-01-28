@@ -342,6 +342,7 @@ export const TokenInputArea = forwardRef<
                     ? navigateToSourceTokenSelector
                     : navigateToDestTokenSelector
                 }
+                testID={testID}
               />
             )}
           </Box>
