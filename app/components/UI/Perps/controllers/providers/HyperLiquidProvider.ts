@@ -289,7 +289,7 @@ export class HyperLiquidProvider implements PerpsProvider {
   private cachedUsdcTokenId?: string;
 
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
-  private readonly ERROR_MAPPINGS = {
+  private readonly errorMappings = {
     'isolated position does not have sufficient margin available to decrease leverage':
       PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
     'could not immediately match': PERPS_ERROR_CODES.IOC_CANCEL,
@@ -310,7 +310,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     platformDependencies: PerpsPlatformDependencies;
   }) {
     this.deps = options.platformDependencies;
-    const isTestnet = options.isTestnet || false;
+    const isTestnet = options.isTestnet ?? false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
     this.hip3Enabled = options.hip3Enabled ?? __DEV__;
@@ -376,7 +376,8 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Reuse existing initialization promise if one is in progress
     // This prevents race conditions when multiple methods call concurrently
     if (this.initializationPromise) {
-      return this.initializationPromise;
+      await this.initializationPromise;
+      return;
     }
 
     // Create and cache the initialization promise
@@ -507,7 +508,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.deps.debugLogger.log(
         '[ensureReady] Reusing existing initialization promise',
       );
-      return this.ensureReadyPromise;
+      await this.ensureReadyPromise;
+      return;
     }
 
     this.deps.debugLogger.log('[ensureReady] Starting new initialization');
@@ -1040,7 +1042,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     const spotMeta = await infoClient.spotMeta();
 
     const collateralToken = spotMeta.tokens.find(
-      (t: { index: number }) => t.index === meta.collateralToken,
+      (tok: { index: number }) => tok.index === meta.collateralToken,
     );
 
     const isUsdh = collateralToken?.name === USDH_CONFIG.TokenName;
@@ -1171,10 +1173,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Find USDH and USDC tokens by name
     const usdhToken = spotMeta.tokens.find(
-      (t: { name: string }) => t.name === USDH_CONFIG.TokenName,
+      (tok: { name: string }) => tok.name === USDH_CONFIG.TokenName,
     );
     const usdcToken = spotMeta.tokens.find(
-      (t: { name: string }) => t.name === 'USDC',
+      (tok: { name: string }) => tok.name === 'USDC',
     );
 
     if (!usdhToken || !usdcToken) {
@@ -1186,9 +1188,9 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Find USDH/USDC pair by token indices (NOT by name - name is @230)
     const usdhUsdcPair = spotMeta.universe.find(
-      (u: { tokens: number[] }) =>
-        u.tokens.includes(usdhToken.index) &&
-        u.tokens.includes(usdcToken.index),
+      (univ: { tokens: number[] }) =>
+        univ.tokens.includes(usdhToken.index) &&
+        univ.tokens.includes(usdcToken.index),
     );
 
     if (!usdhUsdcPair) {
@@ -1519,7 +1521,7 @@ export class HyperLiquidProvider implements PerpsProvider {
               dex || 'main'
             } - invalid or missing universe data`,
             {
-              hasUniverse: !!meta.universe,
+              hasUniverse: Boolean(meta.universe),
               isArray: Array.isArray(meta.universe),
             },
           );
@@ -1633,7 +1635,7 @@ export class HyperLiquidProvider implements PerpsProvider {
   private mapError(error: unknown): Error {
     const message = error instanceof Error ? error.message : String(error);
 
-    for (const [pattern, code] of Object.entries(this.ERROR_MAPPINGS)) {
+    for (const [pattern, code] of Object.entries(this.errorMappings)) {
       if (message.toLowerCase().includes(pattern.toLowerCase())) {
         return new Error(code);
       }
@@ -1914,7 +1916,8 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Try other HIP-3 DEXs
     // Get all available DEXs from cache (includes all HIP-3 DEXs since we no longer filter)
     const availableDexs =
-      this.cachedValidatedDexs?.filter((d): d is string => d !== null) ?? [];
+      this.cachedValidatedDexs?.filter((dex): dex is string => dex !== null) ??
+      [];
     for (const dex of availableDexs) {
       if (dex === targetDex) continue;
 
@@ -2258,7 +2261,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           dex: dexName,
           transferredAmount: transferredAmount.toFixed(2),
           availableAfterOrder: leftoverAmount.toFixed(2),
-          leftoverPercentage: leftoverPercentage.toFixed(2) + '%',
+          leftoverPercentage: `${leftoverPercentage.toFixed(2)}%`,
         },
       );
 
@@ -2587,7 +2590,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       orderCount: orders.length,
       mainOrder: orders[0],
       dexName: dexName || 'main',
-      isHip3: !!dexName,
+      isHip3: Boolean(dexName),
     });
 
     try {
@@ -3120,7 +3123,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       });
 
       // Parse response statuses (one per order)
-      const statuses = result.response.data.statuses;
+      const { statuses } = result.response.data;
       const successCount = statuses.filter(
         (status) => status === 'success',
       ).length;
@@ -3322,7 +3325,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       });
 
       // Parse response statuses (one per order)
-      const statuses = result.response.data.statuses;
+      const { statuses } = result.response.data;
       const successCount = statuses.filter(
         (stat) =>
           isStatusObject(stat) && ('filled' in stat || 'resting' in stat),
@@ -3483,9 +3486,9 @@ export class HyperLiquidProvider implements PerpsProvider {
       const tpslOrdersToCancel = allOrders.filter(
         (order) =>
           order.coin === symbol &&
-          order.reduceOnly === true &&
-          order.isPositionTpsl === !!TP_SL_CONFIG.UsePositionBoundTpsl &&
-          order.isTrigger === true &&
+          order.reduceOnly &&
+          order.isPositionTpsl === Boolean(TP_SL_CONFIG.UsePositionBoundTpsl) &&
+          order.isTrigger &&
           (order.orderType.includes('Take Profit') ||
             order.orderType.includes('Stop')),
       );
@@ -3700,7 +3703,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Get current price for validation if not provided (and not a full close)
       // Full closes don't need price for validation
-      let currentPrice = params.currentPrice;
+      let { currentPrice } = params;
       if (!currentPrice && params.size && !params.usdAmount) {
         // Partial close without USD or price: use limit price as fallback for validation
         // For limit orders, the limit price is a reasonable proxy for validation purposes
@@ -4536,7 +4539,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Aggregate account states from all DEXs
       // Each DEX has independent positions and margin, we sum them
-      const aggregatedAccountState = perpsStateResults.reduce(
+      const aggregatedAccountState = perpsStateResults.reduce<AccountState>(
         (acc, result, index) => {
           const { dex, data: perpsState } = result;
 
@@ -4586,7 +4589,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-        } as AccountState,
+        },
       );
 
       // Recalculate return on equity across all DEXs
@@ -5535,7 +5538,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         };
       }
 
-      const errorMessage = `Withdrawal failed: ${result.status}`;
+      const errorMessage = `Withdrawal failed: ${String(result.status)}`;
       this.deps.debugLogger.log('HyperLiquidProvider: WITHDRAWAL FAILED', {
         error: errorMessage,
         status: result.status,
@@ -5692,6 +5695,7 @@ export class HyperLiquidProvider implements PerpsProvider {
             symbols: params.symbols,
           }),
         );
+        return undefined;
       });
 
     return () => {
@@ -5822,7 +5826,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     try {
       const exchangeClient = this.clientService.getExchangeClient();
       const infoClient = this.clientService.getInfoClient();
-      const walletConnected = !!exchangeClient && !!infoClient;
+      const walletConnected = Boolean(exchangeClient) && Boolean(infoClient);
 
       let accountConnected = false;
       try {
@@ -5855,8 +5859,8 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   /**
    * Calculate liquidation price using HyperLiquid's formula
-   * Formula: liq_price = price - side * margin_available / position_size / (1 - l * side)
-   * where l = 1 / MAINTENANCE_LEVERAGE = 1 / (2 * max_leverage)
+   * Formula: liq_price = price - side * margin_available / position_size / (1 - maintenanceMarginRatio * side)
+   * where maintenanceMarginRatio = 1 / MAINTENANCE_LEVERAGE = 1 / (2 * max_leverage)
    */
   async calculateLiquidationPrice(
     params: LiquidationPriceParams,
@@ -5892,7 +5896,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Calculate maintenance leverage and margin according to HyperLiquid docs
     const maintenanceLeverage = 2 * maxLeverage;
-    const l = 1 / maintenanceLeverage;
+    const maintenanceMarginRatio = 1 / maintenanceLeverage;
     const side = direction === 'long' ? 1 : -1;
 
     // For isolated margin, we use the standard formula
@@ -5914,8 +5918,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       const marginAvailable = initialMargin - maintenanceMargin;
 
       // Simplified calculation when position size is 1 unit
-      // liq_price = price - side * margin_available * price / (1 - l * side)
-      const denominator = 1 - l * side;
+      // liq_price = price - side * margin_available * price / (1 - maintenanceMarginRatio * side)
+      const denominator = 1 - maintenanceMarginRatio * side;
       if (Math.abs(denominator) < 0.0001) {
         // Avoid division by very small numbers
         return String(entryPrice);
@@ -6635,7 +6639,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           },
         );
         const result = await this.setReferralCode();
-        if (result === true) {
+        if (result) {
           this.deps.debugLogger.log(
             '[ensureReferralSet] Referral code set successfully',
             {
@@ -6743,7 +6747,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         referralData,
       });
 
-      return !!referralData?.referredBy?.code;
+      return Boolean(referralData?.referredBy?.code);
     } catch (error) {
       this.deps.logger.error(
         ensureError(error),
