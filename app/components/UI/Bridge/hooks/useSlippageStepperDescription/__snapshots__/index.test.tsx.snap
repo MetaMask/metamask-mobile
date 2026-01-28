@@ -9,7 +9,6 @@ exports[`useSlippageStepperDescription complete snapshots for all states snapsho
     "size": "24",
   },
   "message": "bridge.lower_allowed_error [0.1]",
-  "type": "error",
 }
 `;
 
@@ -22,7 +21,6 @@ exports[`useSlippageStepperDescription complete snapshots for all states snapsho
     "size": "24",
   },
   "message": "bridge.lower_suggested_warning [0.5]",
-  "type": "warning",
 }
 `;
 
@@ -37,7 +35,6 @@ exports[`useSlippageStepperDescription complete snapshots for all states snapsho
     "size": "24",
   },
   "message": "bridge.upper_allowed_error [50]",
-  "type": "error",
 }
 `;
 
@@ -50,7 +47,6 @@ exports[`useSlippageStepperDescription complete snapshots for all states snapsho
     "size": "24",
   },
   "message": "bridge.upper_suggested_warning [5]",
-  "type": "warning",
 }
 `;
 
@@ -63,7 +59,6 @@ exports[`useSlippageStepperDescription complete snapshots for all states snapsho
     "size": "24",
   },
   "message": "bridge.upper_allowed_error [50]",
-  "type": "error",
 }
 `;
 
@@ -76,7 +71,6 @@ exports[`useSlippageStepperDescription lower_allowed_slippage_threshold (ERROR) 
     "size": "24",
   },
   "message": "bridge.lower_allowed_error [0.1]",
-  "type": "error",
 }
 `;
 
@@ -89,7 +83,6 @@ exports[`useSlippageStepperDescription lower_allowed_slippage_threshold (ERROR) 
     "size": "24",
   },
   "message": "bridge.lower_allowed_error [0.1]",
-  "type": "error",
 }
 `;
 
@@ -102,7 +95,6 @@ exports[`useSlippageStepperDescription lower_suggested_slippage_threshold (WARNI
     "size": "24",
   },
   "message": "bridge.lower_suggested_warning [0.5]",
-  "type": "warning",
 }
 `;
 
@@ -115,7 +107,6 @@ exports[`useSlippageStepperDescription upper_allowed_slippage_threshold (ERROR) 
     "size": "24",
   },
   "message": "bridge.upper_allowed_error [50]",
-  "type": "error",
 }
 `;
 
@@ -128,7 +119,6 @@ exports[`useSlippageStepperDescription upper_allowed_slippage_threshold (ERROR) 
     "size": "24",
   },
   "message": "bridge.upper_allowed_error [50]",
-  "type": "error",
 }
 `;
 
@@ -141,7 +131,6 @@ exports[`useSlippageStepperDescription upper_allowed_slippage_threshold (ERROR) 
     "size": "24",
   },
   "message": "bridge.upper_allowed_error [50]",
-  "type": "error",
 }
 `;
 
@@ -154,6 +143,5 @@ exports[`useSlippageStepperDescription upper_suggested_slippage_threshold (WARNI
     "size": "24",
   },
   "message": "bridge.upper_suggested_warning [5]",
-  "type": "warning",
 }
 `;

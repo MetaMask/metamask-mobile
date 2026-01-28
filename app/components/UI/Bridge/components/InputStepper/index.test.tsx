@@ -314,7 +314,6 @@ describe('InputStepper', () => {
           {...defaultProps}
           value="42.5"
           description={{
-            type: InputStepperDescriptionType.ERROR,
             message: 'Error message',
             color: TextColor.TextDefault,
           }}

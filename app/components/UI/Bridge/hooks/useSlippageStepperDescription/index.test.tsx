@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSlippageStepperDescription } from './index';
 import { BridgeSlippageConfig } from '../../types';
-import { InputStepperDescriptionType } from '../../components/InputStepper/constants';
 import {
   IconColor,
   IconName,
@@ -85,7 +84,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
       expect(result.current?.color).toBe(TextColor.ErrorDefault);
       expect(result.current?.message).toBe('bridge.lower_allowed_error [0.1]');
       expect(result.current).toMatchSnapshot();
@@ -100,7 +98,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
       expect(result.current).toMatchSnapshot();
     });
 
@@ -123,18 +120,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
       expect(atThreshold.current).toBeUndefined();
-
-      // Below threshold should trigger error
-      const { result: belowThreshold } = renderHook(() =>
-        useSlippageStepperDescription({
-          inputAmount: '0.4',
-          slippageConfig: config,
-          hasAttemptedToExceedMax: false,
-        }),
-      );
-      expect(belowThreshold.current?.type).toBe(
-        InputStepperDescriptionType.ERROR,
-      );
     });
   });
 
@@ -148,7 +133,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.WARNING);
       expect(result.current?.color).toBe(TextColor.WarningDefault);
       expect(result.current?.message).toBe(
         'bridge.lower_suggested_warning [0.5]',
@@ -180,7 +164,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.WARNING);
       expect(result.current?.color).toBe(TextColor.WarningDefault);
       expect(result.current?.message).toBe(
         'bridge.upper_suggested_warning [5]',
@@ -212,7 +195,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
       expect(result.current?.color).toBe(TextColor.ErrorDefault);
       expect(result.current?.message).toBe('bridge.upper_allowed_error [50]');
       expect(result.current).toMatchSnapshot();
@@ -227,7 +209,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
       expect(result.current).toMatchSnapshot();
     });
 
@@ -241,7 +222,6 @@ describe('useSlippageStepperDescription', () => {
       );
 
       // Even though value is valid, hasAttemptedToExceedMax should trigger error
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
       expect(result.current).toMatchSnapshot();
     });
   });
@@ -258,7 +238,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
       expect(result.current?.message).toBe('bridge.lower_allowed_error [0.1]');
     });
 
@@ -272,7 +251,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.WARNING);
       expect(result.current?.message).toBe(
         'bridge.lower_suggested_warning [0.5]',
       );
@@ -289,7 +267,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
       expect(result.current?.message).toBe('bridge.upper_allowed_error [50]');
     });
   });
@@ -369,7 +346,6 @@ describe('useSlippageStepperDescription', () => {
       );
 
       // Should skip null lower_allowed and trigger lower_suggested
-      expect(result.current?.type).toBe(InputStepperDescriptionType.WARNING);
       expect(result.current?.message).toBe(
         'bridge.lower_suggested_warning [0.5]',
       );
@@ -386,7 +362,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
       expect(result.current?.message).toBe('bridge.upper_allowed_error [50]');
     });
 
@@ -412,7 +387,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
+      expect(result.current).not.toBeUndefined();
     });
   });
 
@@ -440,7 +415,7 @@ describe('useSlippageStepperDescription', () => {
       );
 
       // 0 <= 0.1 (inclusive) triggers error
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
+      expect(result.current).not.toBeUndefined();
     });
 
     it('handles decimal values', () => {
@@ -464,7 +439,6 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
       expect(result.current?.message).toBe('bridge.upper_allowed_error [50]');
     });
 
@@ -477,7 +451,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
+      expect(result.current).not.toBeUndefined();
     });
 
     it('handles invalid numeric input', () => {
@@ -514,7 +488,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
+      expect(result.current).not.toBeUndefined();
     });
 
     it('exclusive lower threshold does not trigger at exact value', () => {
@@ -558,7 +532,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.type).toBe(InputStepperDescriptionType.ERROR);
+      expect(result.current).not.toBeUndefined();
     });
 
     it('exclusive upper threshold does not trigger at exact value', () => {

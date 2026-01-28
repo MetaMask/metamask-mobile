@@ -55,7 +55,6 @@ export const useSlippageStepperDescription = ({
     for (const { threshold, type, compare } of thresholds) {
       if (threshold && compare(value, threshold.value, threshold.inclusive)) {
         return {
-          type,
           color:
             type === InputStepperDescriptionType.WARNING
               ? TextColor.WarningDefault
