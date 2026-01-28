@@ -1,6 +1,9 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePerpsTabExploreData } from './usePerpsTabExploreData';
-import { usePerpsMarkets } from './usePerpsMarkets';
+import {
+  usePerpsMarkets,
+  type PerpsMarketDataWithVolumeNumber,
+} from './usePerpsMarkets';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
@@ -30,7 +33,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 describe('usePerpsTabExploreData', () => {
   const mockNavigate = jest.fn();
 
-  const mockMarkets: PerpsMarketData[] = [
+  const mockMarkets: PerpsMarketDataWithVolumeNumber[] = [
     {
       symbol: 'BTC',
       name: 'Bitcoin',
@@ -69,14 +72,15 @@ describe('usePerpsTabExploreData', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseNavigation.mockReturnValue({ navigate: mockNavigate } as ReturnType<
-      typeof useNavigation
-    >);
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+    } as unknown as ReturnType<typeof useNavigation>);
     mockUsePerpsMarkets.mockReturnValue({
       markets: mockMarkets,
       isLoading: false,
       error: null,
       refresh: jest.fn(),
+      isRefreshing: false,
     });
     mockUseSelector.mockReturnValue(['BTC']); // watchlist contains BTC
   });
@@ -186,6 +190,7 @@ describe('usePerpsTabExploreData', () => {
         isLoading: true,
         error: null,
         refresh: jest.fn(),
+        isRefreshing: false,
       });
 
       // Act
@@ -202,7 +207,7 @@ describe('usePerpsTabExploreData', () => {
   describe('market filtering', () => {
     it('limits explore markets to 8', () => {
       // Arrange - Create 10 markets
-      const manyMarkets: PerpsMarketData[] = Array.from(
+      const manyMarkets: PerpsMarketDataWithVolumeNumber[] = Array.from(
         { length: 10 },
         (_, i) => ({
           symbol: `TOKEN${i}`,
@@ -221,6 +226,7 @@ describe('usePerpsTabExploreData', () => {
         isLoading: false,
         error: null,
         refresh: jest.fn(),
+        isRefreshing: false,
       });
 
       // Act
@@ -236,7 +242,7 @@ describe('usePerpsTabExploreData', () => {
 
     it('filters out non-crypto/equity market types', () => {
       // Arrange
-      const mixedMarkets: PerpsMarketData[] = [
+      const mixedMarkets: PerpsMarketDataWithVolumeNumber[] = [
         { ...mockMarkets[0], marketType: undefined }, // crypto (no type)
         { ...mockMarkets[1], marketType: 'equity' }, // equity
         {
@@ -249,6 +255,7 @@ describe('usePerpsTabExploreData', () => {
         isLoading: false,
         error: null,
         refresh: jest.fn(),
+        isRefreshing: false,
       });
 
       // Act
