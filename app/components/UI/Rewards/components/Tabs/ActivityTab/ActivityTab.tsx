@@ -55,7 +55,7 @@ const ActivityFilter: React.FC<ActivityFilterProps> = ({
       label: strings('rewards.filter_all'),
     };
 
-    const activityOptions: ISelectOption[] = seasonActivityTypes.map(
+    const activityOptions: ISelectOption[] = (seasonActivityTypes ?? []).map(
       (activityType) => ({
         key: activityType.type.toLowerCase(),
         value: activityType.type,

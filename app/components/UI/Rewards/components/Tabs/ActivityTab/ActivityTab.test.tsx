@@ -1008,5 +1008,19 @@ describe('ActivityTab', () => {
         'SWAP',
       );
     });
+
+    it('handles undefined seasonActivityTypes gracefully (upgrade scenario)', () => {
+      // Simulate upgrade scenario where seasonActivityTypes is undefined from persisted state
+      mockSelectSeasonActivityTypes.mockReturnValueOnce(
+        undefined as unknown as typeof mockSeasonActivityTypes,
+      );
+
+      const { getByTestId, getByText } = render(<ActivityTab />);
+
+      // Should render without crashing and show only the "All" option
+      expect(getByTestId('select-option-sheet')).toBeOnTheScreen();
+      expect(getByText('All')).toBeOnTheScreen();
+      expect(getByTestId('activity-filter-ALL')).toBeOnTheScreen();
+    });
   });
 });
