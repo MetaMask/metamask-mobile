@@ -271,6 +271,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 isLoading={isExploreLoading}
                 positions={[]}
                 orders={[]}
+                sectionStyle={styles.watchlistSectionStyle}
                 headerStyle={styles.exploreHeaderStyle}
                 contentContainerStyle={styles.exploreContentContainerStyle}
               />

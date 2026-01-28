@@ -94,6 +94,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     // Section style overrides for PerpsTabView - consistent spacing
+    watchlistSectionStyle: {
+      marginTop: 8, // Space between balance card and watchlist section
+    },
     exploreSectionStyle: {
       marginTop: 8,
       marginBottom: 16,
