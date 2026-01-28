@@ -269,8 +269,8 @@ export class SubscriptionMultiplexer {
         const subscribeParams: SubscribePositionsParams = {
           callback: (positions) => {
             // Tag positions with providerId and cache
-            const taggedPositions = positions.map((p) => ({
-              ...p,
+            const taggedPositions = positions.map((pos) => ({
+              ...pos,
               providerId,
             }));
             this.positionCache.set(providerId, taggedPositions);
@@ -324,8 +324,8 @@ export class SubscriptionMultiplexer {
         const subscribeParams: SubscribeOrderFillsParams = {
           callback: (fills, isSnapshot) => {
             // Tag fills with providerId
-            const taggedFills = fills.map((f) => ({
-              ...f,
+            const taggedFills = fills.map((fill) => ({
+              ...fill,
               providerId,
             }));
 
@@ -373,8 +373,8 @@ export class SubscriptionMultiplexer {
         const subscribeParams: SubscribeOrdersParams = {
           callback: (orders) => {
             // Tag orders with providerId and cache
-            const taggedOrders = orders.map((o) => ({
-              ...o,
+            const taggedOrders = orders.map((order) => ({
+              ...order,
               providerId,
             }));
             this.orderCache.set(providerId, taggedOrders);

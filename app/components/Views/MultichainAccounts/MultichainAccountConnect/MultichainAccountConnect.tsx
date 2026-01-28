@@ -103,6 +103,7 @@ import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMult
 import { Box } from '@metamask/design-system-react-native';
 import { TESTNET_CAIP_IDS } from '../../../../constants/network.js';
 import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope.ts';
+import { isSnapId } from '@metamask/snaps-utils';
 
 interface ScreenContainerProps {
   isVisible: boolean;
@@ -522,7 +523,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     let url = dappUrl || channelIdOrHostname || '';
 
     const checkOrigin = async () => {
-      if (isProductSafetyDappScanningEnabled()) {
+      if (isProductSafetyDappScanningEnabled() && !isSnapId(url)) {
         url = prefixUrlWithProtocol(url);
       }
       const scanResult = await getPhishingTestResultAsync(url);
