@@ -6914,4 +6914,179 @@ describe('HyperLiquidProvider', () => {
       expect(mockClientService.reconnect).toHaveBeenCalled();
     });
   });
+
+  describe('getOrFetchFills - Cache-First Pattern', () => {
+    const mockFills = [
+      {
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'buy' as const,
+        size: '0.1',
+        price: '50000',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        pnl: '100',
+        direction: 'Open Long',
+        success: true,
+      },
+      {
+        orderId: '124',
+        symbol: 'ETH',
+        side: 'sell' as const,
+        size: '1.0',
+        price: '3000',
+        fee: '3',
+        feeToken: 'USDC',
+        timestamp: Date.now() - 1000,
+        pnl: '-50',
+        direction: 'Close Short',
+        success: true,
+      },
+    ];
+
+    it('uses cached fills when cache is initialized', async () => {
+      // Arrange
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(mockFills);
+
+      // Act
+      const result = await provider.getOrFetchFills({}, 'test-context');
+
+      // Assert
+      expect(result).toEqual(mockFills);
+      expect(
+        mockSubscriptionService.getFillsCacheIfInitialized,
+      ).toHaveBeenCalled();
+      // Should NOT call REST API
+      expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+    });
+
+    it('falls back to REST API when cache returns null', async () => {
+      // Arrange - cache not initialized
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(null);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFills: jest.fn().mockResolvedValue([
+          {
+            oid: 125,
+            coin: 'BTC',
+            side: 'B',
+            sz: '0.5',
+            px: '49000',
+            fee: '2',
+            feeToken: 'USDC',
+            time: Date.now(),
+            closedPnl: '50',
+            dir: 'Open Long',
+          },
+        ]),
+      });
+
+      // Act
+      const result = await provider.getOrFetchFills({}, 'test-context');
+
+      // Assert
+      expect(
+        mockSubscriptionService.getFillsCacheIfInitialized,
+      ).toHaveBeenCalled();
+      expect(mockClientService.getInfoClient).toHaveBeenCalled();
+      expect(result.length).toBe(1);
+      expect(result[0].symbol).toBe('BTC');
+    });
+
+    it('filters cached fills by startTime', async () => {
+      // Arrange
+      const now = Date.now();
+      const fillsWithDifferentTimes = [
+        { ...mockFills[0], timestamp: now },
+        { ...mockFills[1], timestamp: now - 100000 }, // Older fill
+      ];
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(fillsWithDifferentTimes);
+
+      // Act - filter to only include recent fills
+      const result = await provider.getOrFetchFills(
+        { startTime: now - 50000 },
+        'test-context',
+      );
+
+      // Assert - should only include the more recent fill
+      expect(result.length).toBe(1);
+      expect(result[0].timestamp).toBe(now);
+    });
+
+    it('filters cached fills by symbol', async () => {
+      // Arrange
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(mockFills);
+
+      // Act - filter to only BTC fills
+      const result = await provider.getOrFetchFills(
+        { symbol: 'BTC' },
+        'test-context',
+      );
+
+      // Assert - should only include BTC fill
+      expect(result.length).toBe(1);
+      expect(result[0].symbol).toBe('BTC');
+    });
+
+    it('filters cached fills by both startTime and symbol', async () => {
+      // Arrange
+      const now = Date.now();
+      const fillsWithDifferentTimesAndSymbols = [
+        { ...mockFills[0], symbol: 'BTC', timestamp: now },
+        { ...mockFills[0], symbol: 'BTC', timestamp: now - 100000 },
+        { ...mockFills[0], symbol: 'ETH', timestamp: now },
+      ];
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(fillsWithDifferentTimesAndSymbols);
+
+      // Act - filter to recent BTC fills only
+      const result = await provider.getOrFetchFills(
+        { startTime: now - 50000, symbol: 'BTC' },
+        'test-context',
+      );
+
+      // Assert - should only include recent BTC fill
+      expect(result.length).toBe(1);
+      expect(result[0].symbol).toBe('BTC');
+      expect(result[0].timestamp).toBe(now);
+    });
+
+    it('returns all fills when no filter params provided', async () => {
+      // Arrange
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(mockFills);
+
+      // Act - no filter params
+      const result = await provider.getOrFetchFills();
+
+      // Assert - should return all fills
+      expect(result).toEqual(mockFills);
+    });
+
+    it('returns empty array when cache is initialized but empty', async () => {
+      // Arrange - cache initialized but no fills
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue([]);
+
+      // Act
+      const result = await provider.getOrFetchFills({}, 'test-context');
+
+      // Assert
+      expect(result).toEqual([]);
+      // Should NOT call REST API since cache is initialized
+      expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+    });
+  });
 });

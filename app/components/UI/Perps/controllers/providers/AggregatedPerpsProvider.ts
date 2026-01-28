@@ -289,6 +289,20 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     return this.extractSuccessfulResults(results, 'getOrderFills').flat();
   }
 
+  async getOrFetchFills(
+    params?: { startTime?: number; symbol?: string },
+    logContext?: string,
+  ): Promise<OrderFill[]> {
+    const results = await Promise.allSettled(
+      this.getActiveProviders().map(async ([id, provider]) => {
+        const fills = await provider.getOrFetchFills(params, logContext);
+        return fills.map((f) => ({ ...f, providerId: id }));
+      }),
+    );
+
+    return this.extractSuccessfulResults(results, 'getOrFetchFills').flat();
+  }
+
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {

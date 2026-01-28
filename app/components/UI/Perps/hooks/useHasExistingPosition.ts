@@ -121,9 +121,14 @@ export function useHasExistingPosition(
 
       try {
         // Fetch fills from the last 90 days to find position-opening fill
+        // Use cache-first pattern to avoid 429 errors during rapid market switching
         const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
         const controller = Engine.context.PerpsController;
-        const fills = await controller.getOrderFills({ startTime });
+        const provider = controller.getActiveProvider();
+        const fills = await provider.getOrFetchFills(
+          { startTime },
+          'useHasExistingPosition',
+        );
 
         if (!fills || fills.length === 0) {
           return;

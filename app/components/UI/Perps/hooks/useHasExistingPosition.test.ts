@@ -10,12 +10,14 @@ jest.mock('./stream', () => ({
   usePerpsLiveFills: jest.fn(),
 }));
 
-// Mock Engine for REST fallback
-const mockGetOrderFills = jest.fn();
+// Mock Engine for REST fallback - uses getOrFetchFills for cache-first pattern
+const mockGetOrFetchFills = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
-      getOrderFills: (...args: unknown[]) => mockGetOrderFills(...args),
+      getActiveProvider: () => ({
+        getOrFetchFills: (...args: unknown[]) => mockGetOrFetchFills(...args),
+      }),
     },
   },
 }));
@@ -86,8 +88,8 @@ describe('useHasExistingPosition', () => {
       fills: [],
       isInitialLoading: false,
     });
-    // Default: REST returns empty
-    mockGetOrderFills.mockResolvedValue([]);
+    // Default: REST returns empty (via getOrFetchFills cache-first pattern)
+    mockGetOrFetchFills.mockResolvedValue([]);
   });
 
   it('returns hasPosition as true when position exists for asset', () => {
@@ -310,7 +312,7 @@ describe('useHasExistingPosition', () => {
         fills: [], // No WebSocket fills
         isInitialLoading: false,
       });
-      mockGetOrderFills.mockResolvedValue([
+      mockGetOrFetchFills.mockResolvedValue([
         {
           orderId: 'order-rest-1',
           symbol: 'BTC',
@@ -334,10 +336,11 @@ describe('useHasExistingPosition', () => {
         expect(result.current.positionOpenedTimestamp).toBe(restTimestamp);
       });
 
-      expect(mockGetOrderFills).toHaveBeenCalledWith(
+      expect(mockGetOrFetchFills).toHaveBeenCalledWith(
         expect.objectContaining({
           startTime: expect.any(Number),
         }),
+        'useHasExistingPosition',
       );
     });
 
@@ -358,7 +361,7 @@ describe('useHasExistingPosition', () => {
 
       // Should use WebSocket timestamp, not trigger REST fallback
       expect(result.current.positionOpenedTimestamp).toBe(wsTimestamp);
-      expect(mockGetOrderFills).not.toHaveBeenCalled();
+      expect(mockGetOrFetchFills).not.toHaveBeenCalled();
     });
 
     it('clears stale timestamp when switching positions', async () => {
@@ -374,7 +377,7 @@ describe('useHasExistingPosition', () => {
         fills: [],
         isInitialLoading: false,
       });
-      mockGetOrderFills.mockResolvedValueOnce([
+      mockGetOrFetchFills.mockResolvedValueOnce([
         {
           orderId: 'order-btc-1',
           symbol: 'BTC',
@@ -404,7 +407,7 @@ describe('useHasExistingPosition', () => {
         positions: [mockPositions[1]], // ETH only
         isInitialLoading: false,
       });
-      mockGetOrderFills.mockResolvedValueOnce([
+      mockGetOrFetchFills.mockResolvedValueOnce([
         {
           orderId: 'order-eth-1',
           symbol: 'ETH',
@@ -442,7 +445,7 @@ describe('useHasExistingPosition', () => {
       });
 
       // First REST fetch returns old timestamp
-      mockGetOrderFills.mockResolvedValueOnce([
+      mockGetOrFetchFills.mockResolvedValueOnce([
         {
           orderId: 'order-btc-old',
           symbol: 'BTC',
@@ -466,7 +469,7 @@ describe('useHasExistingPosition', () => {
       await waitFor(() => {
         expect(result.current.positionOpenedTimestamp).toBe(oldTimestamp);
       });
-      expect(mockGetOrderFills).toHaveBeenCalledTimes(1);
+      expect(mockGetOrFetchFills).toHaveBeenCalledTimes(1);
 
       // Close position (set positions to empty)
       mockUsePerpsLivePositions.mockReturnValue({
@@ -486,7 +489,7 @@ describe('useHasExistingPosition', () => {
       });
 
       // Second REST fetch returns new timestamp
-      mockGetOrderFills.mockResolvedValueOnce([
+      mockGetOrFetchFills.mockResolvedValueOnce([
         {
           orderId: 'order-btc-new',
           symbol: 'BTC',
@@ -509,7 +512,7 @@ describe('useHasExistingPosition', () => {
       });
 
       // REST should have been called twice (once for old, once for new position)
-      expect(mockGetOrderFills).toHaveBeenCalledTimes(2);
+      expect(mockGetOrFetchFills).toHaveBeenCalledTimes(2);
     });
   });
 });

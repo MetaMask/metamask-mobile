@@ -618,6 +618,55 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Get fills using WebSocket cache first, falling back to REST API
+   * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss
+   * @param params - Optional filter parameters (startTime, symbol)
+   * @param logContext - Context string for debug logging
+   * @returns Array of order fills
+   */
+  public async getOrFetchFills(
+    params?: { startTime?: number; symbol?: string },
+    logContext: string = 'getOrFetchFills',
+  ): Promise<OrderFill[]> {
+    // Check WebSocket cache first (0 API weight)
+    const cachedFills = this.subscriptionService.getFillsCacheIfInitialized();
+
+    if (cachedFills !== null) {
+      this.deps.debugLogger.log(
+        `Using WebSocket cached fills for ${logContext}`,
+        { count: cachedFills.length, params },
+      );
+      return this.filterFills(cachedFills, params);
+    }
+
+    // Fallback to REST API
+    this.deps.debugLogger.log(
+      `Fills cache miss for ${logContext}, falling back to REST`,
+      { params },
+    );
+    return this.getOrderFills(params);
+  }
+
+  /**
+   * Filter fills array by optional startTime and symbol parameters
+   * @param fills - Array of fills to filter
+   * @param params - Optional filter parameters
+   * @returns Filtered fills array
+   */
+  private filterFills(
+    fills: OrderFill[],
+    params?: { startTime?: number; symbol?: string },
+  ): OrderFill[] {
+    if (!params) return fills;
+
+    return fills.filter((fill) => {
+      if (params.startTime && fill.timestamp < params.startTime) return false;
+      if (params.symbol && fill.symbol !== params.symbol) return false;
+      return true;
+    });
+  }
+
+  /**
    * Get all available DEXs without allowlist filtering
    * Used when skipFilters=true in getMarkets()
    * @returns Array of all DEX names (null for main DEX, strings for HIP-3 DEXs)

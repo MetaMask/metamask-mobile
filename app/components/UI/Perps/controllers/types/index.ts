@@ -870,6 +870,18 @@ export interface PerpsProvider {
   getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
 
   /**
+   * Get fills using WebSocket cache first, falling back to REST API.
+   * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss.
+   * Purpose: Prevent 429 errors during rapid market switching by reusing cached fills.
+   * @param params - Optional filter parameters (startTime, symbol)
+   * @param logContext - Context string for debug logging
+   */
+  getOrFetchFills(
+    params?: { startTime?: number; symbol?: string },
+    logContext?: string,
+  ): Promise<OrderFill[]>;
+
+  /**
    * Get historical portfolio data
    * Purpose: Retrieve account value from previous periods for PnL tracking
    * Example: Get account value from yesterday to calculate 24h percentage change
