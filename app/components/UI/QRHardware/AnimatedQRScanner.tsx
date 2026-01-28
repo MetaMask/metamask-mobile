@@ -340,7 +340,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
               <View style={styles.overlayContainerRow}>
                 <Text style={styles.overlayText}>
-                  {strings('connect_qr_hardware.hint_text')}
+                  {purpose === QrScanRequestType.PAIR
+                    ? strings('connect_qr_hardware.hint_text')
+                    : `${strings('connect_qr_hardware.hint_text')} to ${strings('connect_qr_hardware.purpose_sign')}`}
                 </Text>
                 <View style={styles.overlay} />
                 <Image source={frameImage} style={styles.frame} />
