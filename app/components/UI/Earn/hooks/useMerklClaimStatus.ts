@@ -25,6 +25,9 @@ import Logger from '../../../../util/Logger';
 export const useMerklClaimStatus = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
   const shownToastsRef = useRef<Set<string>>(new Set());
+  const pendingTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(
+    new Set(),
+  );
 
   // Refresh token balances for the given chainId
   const refreshTokenBalances = useCallback(async (chainId: Hex) => {
@@ -64,6 +67,9 @@ export const useMerklClaimStatus = () => {
   }, []);
 
   useEffect(() => {
+    // Capture ref for cleanup to satisfy eslint react-hooks/exhaustive-deps
+    const pendingTimeouts = pendingTimeoutsRef.current;
+
     const handleTransactionStatusUpdated = ({
       transactionMeta,
     }: {
@@ -98,14 +104,18 @@ export const useMerklClaimStatus = () => {
             refreshTokenBalances(chainId);
           }
           // Clean up entries for this transaction after final status
-          setTimeout(() => {
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.approved}`,
-            );
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.confirmed}`,
-            );
-          }, 5000);
+          {
+            const timeoutId = setTimeout(() => {
+              shownToastsRef.current.delete(
+                `${transactionId}-${TransactionStatus.approved}`,
+              );
+              shownToastsRef.current.delete(
+                `${transactionId}-${TransactionStatus.confirmed}`,
+              );
+              pendingTimeouts.delete(timeoutId);
+            }, 5000);
+            pendingTimeouts.add(timeoutId);
+          }
           break;
 
         case TransactionStatus.failed:
@@ -114,17 +124,21 @@ export const useMerklClaimStatus = () => {
           showToast(EarnToastOptions.bonusClaim.failed);
           shownToastsRef.current.add(toastKey);
           // Clean up entries for this transaction after final status
-          setTimeout(() => {
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.approved}`,
-            );
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.failed}`,
-            );
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.dropped}`,
-            );
-          }, 5000);
+          {
+            const timeoutId = setTimeout(() => {
+              shownToastsRef.current.delete(
+                `${transactionId}-${TransactionStatus.approved}`,
+              );
+              shownToastsRef.current.delete(
+                `${transactionId}-${TransactionStatus.failed}`,
+              );
+              shownToastsRef.current.delete(
+                `${transactionId}-${TransactionStatus.dropped}`,
+              );
+              pendingTimeouts.delete(timeoutId);
+            }, 5000);
+            pendingTimeouts.add(timeoutId);
+          }
           break;
 
         default:
@@ -142,6 +156,9 @@ export const useMerklClaimStatus = () => {
         'TransactionController:transactionStatusUpdated',
         handleTransactionStatusUpdated,
       );
+      // Clear all pending timeouts to prevent memory leaks
+      pendingTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+      pendingTimeouts.clear();
     };
   }, [showToast, EarnToastOptions.bonusClaim, refreshTokenBalances]);
 };

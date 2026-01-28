@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { Linking } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -15,14 +16,11 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
 import useTooltipModal from '../../../../hooks/useTooltipModal';
 import AppConstants from '../../../../../core/AppConstants';
-import { ActivityIndicator, Linking } from 'react-native';
 
 interface PendingMerklRewardsProps {
   claimableReward: string | null;
-  isProcessingClaim?: boolean;
 }
 
 /**
@@ -30,9 +28,7 @@ interface PendingMerklRewardsProps {
  */
 const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
   claimableReward,
-  isProcessingClaim = false,
 }) => {
-  const { colors } = useTheme();
   const { openTooltipModal } = useTooltipModal();
 
   const handleTermsPress = useCallback(() => {
@@ -58,26 +54,6 @@ const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
       strings('asset_overview.merkl_rewards.ok'),
     );
   }, [openTooltipModal, handleTermsPress]);
-
-  // Show loading state while processing claim
-  if (isProcessingClaim) {
-    return (
-      <Box twClassName="px-4">
-        <Box twClassName="h-px bg-border-muted my-4 mt-6" />
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="py-4"
-        >
-          <ActivityIndicator size="small" color={colors.primary.default} />
-          <Text variant={TextVariant.BodyMd} twClassName="text-text-muted ml-2">
-            {strings('asset_overview.merkl_rewards.processing_claim')}
-          </Text>
-        </Box>
-      </Box>
-    );
-  }
 
   // Don't render anything if there's no claimable reward
   if (!claimableReward) {
