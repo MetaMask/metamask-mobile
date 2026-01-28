@@ -77,7 +77,6 @@ export const useMusdConversion = () => {
         name: TraceName.MusdConversionNavigation,
         op: TraceOperation.MusdConversionOperation,
         tags: {
-          outputChainId: preferredPaymentToken.chainId,
           paymentTokenChainId: preferredPaymentToken.chainId,
         },
       });
@@ -87,7 +86,6 @@ export const useMusdConversion = () => {
         params: {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken,
-          outputChainId: preferredPaymentToken.chainId,
         },
       });
     },

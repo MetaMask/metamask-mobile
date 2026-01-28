@@ -46,9 +46,11 @@ interface EarnMusdConversionEducationViewRouteParams {
   isDeeplink?: boolean;
   /**
    * The payment token to preselect in the confirmation screen
-   * Optional - when not provided, determines automatically
+   * Optional - when not provided, determined based on network filter and token balance.
+   * If specific network selected, will use the higher balance token for that network.
+   * If "Popular networks" filter is active, will use the highest balance token across all networks.
    */
-  preferredPaymentToken: {
+  preferredPaymentToken?: {
     address: Hex;
     chainId: Hex;
   };
@@ -73,7 +75,6 @@ const EarnMusdConversionEducationView = () => {
     hasConvertibleTokens,
     getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
-    getMusdOutputChainId,
     isMusdBuyable,
   } = useMusdConversionFlowData();
 
@@ -105,7 +106,6 @@ const EarnMusdConversionEducationView = () => {
         return {
           action: 'convert' as const,
           paymentToken,
-          outputChainId: getMusdOutputChainId(paymentToken.chainId),
         };
       }
     }
@@ -125,7 +125,6 @@ const EarnMusdConversionEducationView = () => {
     hasConvertibleTokens,
     getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
-    getMusdOutputChainId,
     isMusdBuyable,
   ]);
 
