@@ -2638,9 +2638,8 @@ describe('PerpsController', () => {
       expect(mockAddTransaction).toHaveBeenCalledWith(mockTransaction, {
         networkClientId: mockNetworkClientId,
         origin: 'metamask',
-        type: 'perpsDeposit',
+        type: 'perpsDepositAndOrder',
         skipInitialGasEstimate: true,
-        gasFeeToken: undefined,
       });
       expect(
         mockInfrastructure.controllers.transaction.submit,
