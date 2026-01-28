@@ -5,6 +5,8 @@ import {
 } from '@metamask/bridge-controller';
 import { Asset } from '@metamask/assets-controllers';
 import { Hex, CaipChainId } from '@metamask/utils';
+import type { TransactionMeta } from '@metamask/transaction-controller';
+import type { Transaction } from '@metamask/keyring-api';
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
 export interface BridgeToken {
@@ -63,7 +65,10 @@ export interface BridgeModalParamList {
   BridgeSourceNetworkSelector: undefined;
   BridgeDestNetworkSelector: undefined;
   SlippageModal: undefined;
-  TransactionDetailsBlockExplorer: undefined;
+  TransactionDetailsBlockExplorer: {
+    evmTxMeta?: TransactionMeta;
+    multiChainTx?: Transaction;
+  };
   QuoteExpiredModal: undefined;
   BlockaidModal: undefined;
   RecipientSelectorModal: undefined;

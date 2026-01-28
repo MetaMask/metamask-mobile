@@ -9,6 +9,13 @@ import { BridgeState } from '../../../../../core/redux/slices/bridge';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
 import BlockExplorersModal from './BlockExplorersModal';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { BridgeModalParamList } from '../../types';
+
+type Props = StackScreenProps<
+  BridgeModalParamList,
+  'TransactionDetailsBlockExplorer'
+>;
 
 describe('BlockExplorersModal', () => {
   const mockTx = {
@@ -26,12 +33,35 @@ describe('BlockExplorersModal', () => {
     status: TransactionStatus.submitted,
   } as TransactionMeta;
 
+  const mockNavigation = {
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    setOptions: jest.fn(),
+    dispatch: jest.fn(),
+    reset: jest.fn(),
+    isFocused: jest.fn(),
+    canGoBack: jest.fn(),
+    getParent: jest.fn(),
+    getState: jest.fn(),
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    setParams: jest.fn(),
+    getId: jest.fn(),
+    pop: jest.fn(),
+    popToTop: jest.fn(),
+    push: jest.fn(),
+    replace: jest.fn(),
+  } as unknown as Props['navigation'];
+
   const mockProps = {
     route: {
       params: {
         evmTxMeta: mockTx,
       },
+      key: 'test-route-key',
+      name: 'TransactionDetailsBlockExplorer' as const,
     },
+    navigation: mockNavigation,
   };
 
   const mockState = {
