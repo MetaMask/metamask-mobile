@@ -23,10 +23,9 @@ import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
-import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
-  selectStablecoinLendingEnabledFlag,
   selectMerklCampaignClaimingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
@@ -58,6 +57,11 @@ import {
   useMerklRewards,
   isEligibleForMerklRewards,
 } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
+import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import Engine from '../../../../../core/Engine';
+import { EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -128,14 +132,19 @@ export const TokenListItem = React.memo(
 
     const chainId = asset?.chainId as Hex;
 
+    const networkConfig = useSelector((state: RootState) =>
+      selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
+    );
+
     const networkName = useNetworkName(chainId);
 
-    const { getEarnToken } = useEarnTokens();
-
-    // Earn feature flags
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
     );
+
+    const { getEarnToken } = useEarnTokens();
+
+    const earnToken = getEarnToken(asset as TokenI);
 
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const { getMusdOutputChainId } = useMusdConversionTokens();
@@ -268,6 +277,51 @@ export const TokenListItem = React.memo(
       [isFullView, trackEvent, createEventBuilder, navigation],
     );
 
+    const handleLendingRedirect = useCallback(async () => {
+      if (!asset?.chainId) return;
+
+      const networkClientId =
+        Engine.context.NetworkController.findNetworkClientIdByChainId(
+          toHex(asset.chainId),
+        );
+
+      if (!networkClientId) {
+        console.error(
+          `TokenListItem redirect failed: could not retrieve networkClientId for chainId: ${asset.chainId}`,
+        );
+        return;
+      }
+
+      trace({ name: TraceName.EarnDepositScreen });
+      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
+          .addProperties({
+            action_type: 'deposit',
+            location: EVENT_LOCATIONS.HOME_SCREEN,
+            network: networkConfig?.name,
+            text: `${strings('stake.earn')}`,
+            token: asset.symbol,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          })
+          .build(),
+      );
+
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token: asset,
+        },
+      });
+    }, [
+      asset,
+      trackEvent,
+      createEventBuilder,
+      networkConfig?.name,
+      navigation,
+    ]);
+
     const secondaryBalanceDisplay = useMemo(() => {
       if (hasClaimableBonus) {
         return {
@@ -284,6 +338,17 @@ export const TokenListItem = React.memo(
           }),
           color: TextColor.Primary,
           onPress: handleConvertToMUSD,
+        };
+      }
+
+      if (
+        isStablecoinLendingEnabled &&
+        earnToken?.experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+      ) {
+        return {
+          text: `${strings('stake.earn')}`,
+          color: TextColor.Primary,
+          onPress: handleLendingRedirect,
         };
       }
 
@@ -309,15 +374,16 @@ export const TokenListItem = React.memo(
       return { text, color, onPress: undefined };
     }, [
       hasClaimableBonus,
+      shouldShowConvertToMusdCta,
+      isStablecoinLendingEnabled,
+      earnToken?.experience.type,
+      hasPercentageChange,
+      pricePercentChange1d,
       asset,
       onItemPress,
       handleConvertToMUSD,
-      hasPercentageChange,
-      pricePercentChange1d,
-      shouldShowConvertToMusdCta,
+      handleLendingRedirect,
     ]);
-
-    const earnToken = getEarnToken(asset as TokenI);
 
     const networkBadgeSource = useMemo(
       () => (chainId ? NetworkBadgeSource(chainId) : null),
@@ -336,20 +402,11 @@ export const TokenListItem = React.memo(
 
       const shouldShowStakeCta = isStakeable && !asset?.isStaked;
 
-      const shouldShowStablecoinLendingCta =
-        earnToken && isStablecoinLendingEnabled;
-
-      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
+      if (shouldShowStakeCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [
-      asset,
-      earnToken,
-      isStablecoinLendingEnabled,
-      isStakeable,
-      shouldShowConvertToMusdCta,
-    ]);
+    }, [asset, isStakeable, shouldShowConvertToMusdCta]);
 
     if (!asset || !chainId) {
       return null;
