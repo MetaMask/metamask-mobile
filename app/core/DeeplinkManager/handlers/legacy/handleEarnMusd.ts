@@ -19,7 +19,7 @@ export const handleEarnMusd = () => {
   DevLogger.log('[handleEarnMusd] Starting deeplink handling');
 
   try {
-    NavigationService.navigation?.navigate(Routes.EARN.ROOT, {
+    NavigationService.navigation.navigate(Routes.EARN.ROOT, {
       screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
       params: { isDeeplink: true },
     });
@@ -31,7 +31,7 @@ export const handleEarnMusd = () => {
     );
 
     try {
-      NavigationService.navigation?.navigate(Routes.WALLET.HOME);
+      NavigationService.navigation.navigate(Routes.WALLET.HOME);
     } catch (navError) {
       Logger.error(
         navError as Error,
