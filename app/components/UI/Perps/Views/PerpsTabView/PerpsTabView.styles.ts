@@ -93,6 +93,13 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 12,
       flex: 1,
     },
+    // Explore markets section overrides - no horizontal padding to align with control bar
+    exploreHeaderStyle: {
+      paddingHorizontal: 0,
+    },
+    exploreContentContainerStyle: {
+      marginHorizontal: 0,
+    },
   });
 };
 

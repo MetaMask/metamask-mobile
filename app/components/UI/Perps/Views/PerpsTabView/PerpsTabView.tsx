@@ -34,14 +34,16 @@ import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
+  usePerpsTabExploreData,
 } from '../../hooks';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
+import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
+import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { PerpsEmptyState } from '../PerpsEmptyState';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 
 interface PerpsTabViewProps {}
@@ -81,6 +83,13 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
+
+  // Business hook for explore data when no positions/orders
+  const {
+    exploreMarkets,
+    watchlistMarkets,
+    isLoading: isExploreLoading,
+  } = usePerpsTabExploreData({ enabled: hasNoPositionsOrOrders });
 
   // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
@@ -256,10 +265,23 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         >
           {!isInitialLoading && hasNoPositionsOrOrders ? (
             <View style={styles.emptyStateContainer}>
-              <PerpsEmptyState
-                onAction={handleNewTrade}
-                testID="perps-empty-state"
-                twClassName="mx-auto"
+              {/* Watchlist section - reused, hides when empty */}
+              <PerpsWatchlistMarkets
+                markets={watchlistMarkets}
+                isLoading={isExploreLoading}
+                positions={[]}
+                orders={[]}
+              />
+
+              {/* Explore markets section - top 8 by volume */}
+              <PerpsMarketTypeSection
+                title={strings('perps.home.explore_markets')}
+                markets={exploreMarkets}
+                marketType="all"
+                sortBy="volume"
+                isLoading={isExploreLoading}
+                headerStyle={styles.exploreHeaderStyle}
+                contentContainerStyle={styles.exploreContentContainerStyle}
               />
             </View>
           ) : (
