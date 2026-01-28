@@ -758,142 +758,140 @@ describe('AccountConnect', () => {
   });
 
   describe('Phishing detection', () => {
-    describe('dapp scanning is enabled', () => {
-      beforeEach(() => {
-        mockIsSnapId.mockReset();
-        mockIsSnapId.mockReturnValue(false);
-      });
+    beforeEach(() => {
+      mockIsSnapId.mockReset();
+      mockIsSnapId.mockReturnValue(false);
+    });
 
-      it('displays phishing modal when origin is flagged as phishing', async () => {
-        const { findByText } = renderWithProvider(
-          <AccountConnect
-            route={{
-              params: {
-                hostInfo: {
-                  metadata: {
-                    id: 'mockId',
-                    origin: 'phishing.com',
-                  },
-                  permissions: {
-                    eth_accounts: {
-                      parentCapability: 'eth_accounts',
-                    },
+    it('displays phishing modal when origin is flagged as phishing', async () => {
+      const { findByText } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'phishing.com',
+                },
+                permissions: {
+                  eth_accounts: {
+                    parentCapability: 'eth_accounts',
                   },
                 },
-                permissionRequestId: 'test',
               },
-            }}
-          />,
-          { state: mockInitialState },
-        );
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
 
-        const warningText = await findByText(
-          `MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.`,
-        );
-        expect(warningText).toBeTruthy();
+      const warningText = await findByText(
+        `MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.`,
+      );
+      expect(warningText).toBeTruthy();
+      expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+        'https://phishing.com',
+      );
+    });
+
+    it('should not show phishing modal for safe URLs', async () => {
+      const { queryByText } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'safe-site.com',
+                },
+                permissions: {
+                  eth_accounts: {
+                    parentCapability: 'eth_accounts',
+                  },
+                },
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      const warningText = queryByText(
+        `MetaMask flagged the site you're trying to visit as potentially deceptive.`,
+      );
+      expect(warningText).toBeNull();
+      expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+        'https://safe-site.com',
+      );
+    });
+
+    it('prefix URL with protocol when origin is not a snap ID', async () => {
+      mockIsSnapId.mockReturnValue(false);
+
+      renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'regular-dapp.com',
+                },
+                permissions: {
+                  eth_accounts: {
+                    parentCapability: 'eth_accounts',
+                  },
+                },
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      await waitFor(() => {
+        expect(mockIsSnapId).toHaveBeenCalledWith('regular-dapp.com');
         expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
-          'https://phishing.com',
+          'https://regular-dapp.com',
         );
       });
+    });
 
-      it('should not show phishing modal for safe URLs', async () => {
-        const { queryByText } = renderWithProvider(
-          <AccountConnect
-            route={{
-              params: {
-                hostInfo: {
-                  metadata: {
-                    id: 'mockId',
-                    origin: 'safe-site.com',
-                  },
-                  permissions: {
-                    eth_accounts: {
-                      parentCapability: 'eth_accounts',
-                    },
+    it('should not prefix URL with protocol when origin is a snap ID', async () => {
+      const snapId = 'npm:@metamask/example-snap';
+      mockIsSnapId.mockReturnValue(true);
+
+      renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: snapId,
+                },
+                permissions: {
+                  eth_accounts: {
+                    parentCapability: 'eth_accounts',
                   },
                 },
-                permissionRequestId: 'test',
               },
-            }}
-          />,
-          { state: mockInitialState },
-        );
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
 
-        const warningText = queryByText(
-          `MetaMask flagged the site you're trying to visit as potentially deceptive.`,
-        );
-        expect(warningText).toBeNull();
+      await waitFor(() => {
+        expect(mockIsSnapId).toHaveBeenCalledWith(snapId);
+        // When origin is a snap ID, the URL should NOT be prefixed with protocol
         expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
-          'https://safe-site.com',
+          snapId,
         );
-      });
-
-      it('prefix URL with protocol when origin is not a snap ID', async () => {
-        mockIsSnapId.mockReturnValue(false);
-
-        renderWithProvider(
-          <AccountConnect
-            route={{
-              params: {
-                hostInfo: {
-                  metadata: {
-                    id: 'mockId',
-                    origin: 'regular-dapp.com',
-                  },
-                  permissions: {
-                    eth_accounts: {
-                      parentCapability: 'eth_accounts',
-                    },
-                  },
-                },
-                permissionRequestId: 'test',
-              },
-            }}
-          />,
-          { state: mockInitialState },
-        );
-
-        await waitFor(() => {
-          expect(mockIsSnapId).toHaveBeenCalledWith('regular-dapp.com');
-          expect(
-            Engine.context.PhishingController.scanUrl,
-          ).toHaveBeenCalledWith('https://regular-dapp.com');
-        });
-      });
-
-      it('should not prefix URL with protocol when origin is a snap ID', async () => {
-        const snapId = 'npm:@metamask/example-snap';
-        mockIsSnapId.mockReturnValue(true);
-
-        renderWithProvider(
-          <AccountConnect
-            route={{
-              params: {
-                hostInfo: {
-                  metadata: {
-                    id: 'mockId',
-                    origin: snapId,
-                  },
-                  permissions: {
-                    eth_accounts: {
-                      parentCapability: 'eth_accounts',
-                    },
-                  },
-                },
-                permissionRequestId: 'test',
-              },
-            }}
-          />,
-          { state: mockInitialState },
-        );
-
-        await waitFor(() => {
-          expect(mockIsSnapId).toHaveBeenCalledWith(snapId);
-          // When origin is a snap ID, the URL should NOT be prefixed with protocol
-          expect(
-            Engine.context.PhishingController.scanUrl,
-          ).toHaveBeenCalledWith(snapId);
-        });
       });
     });
   });
