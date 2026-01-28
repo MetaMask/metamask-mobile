@@ -247,9 +247,6 @@ jest.mock('../../hooks', () => ({
   usePerpsOrderDepositTracking: jest.fn(() => ({
     handleDepositConfirm: jest.fn(),
   })),
-  usePerpsOrderWithdrawTracking: jest.fn(() => ({
-    handleWithdrawConfirm: jest.fn(),
-  })),
   useHasExistingPosition: jest.fn(() => ({
     hasPosition: false,
     isLoading: false,

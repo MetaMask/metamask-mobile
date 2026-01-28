@@ -55,20 +55,10 @@ const createStyles = (colors: Colors) =>
       borderBottomLeftRadius: 12,
       borderBottomRightRadius: 12,
     },
-    detailItemMiddle: {
-      // No special styling for middle items
-    },
     detailLeft: {
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
-    },
-    tokenSelectorContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    tokenSelectorLogo: {
-      marginRight: 8,
     },
     infoIcon: {
       marginLeft: 0,
@@ -114,35 +104,6 @@ const createStyles = (colors: Colors) =>
     },
     pointsRightContainer: {
       alignItems: 'flex-end',
-    },
-    amountInputContainer: {
-      padding: 16,
-    },
-    balanceRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    inputWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.background.default,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-    },
-    amountInput: {
-      flex: 1,
-      color: colors.text.default,
-      fontSize: 16,
-      padding: 0,
-      marginRight: 8,
-    },
-    tokenSymbolLabel: {
-      marginLeft: 8,
     },
   });
 export default createStyles;

@@ -193,6 +193,22 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('does not navigate when depositWithOrder rejects (e.g. user cancellation)', async () => {
+      const rejectionError = new Error('User denied');
+      mockDepositWithOrder.mockRejectedValue(rejectionError);
+
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { direction: 'short' as const, asset: 'ETH' };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockDepositWithOrder).toHaveBeenCalled();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('navigates to tutorial without params', () => {
       const { result } = renderHook(() => usePerpsNavigation());
 

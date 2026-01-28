@@ -235,7 +235,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     useState<PerpsTooltipContentKey | null>(null);
 
   // Track if user selected a custom token (not Perps balance)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hasCustomTokenSelected, setHasCustomTokenSelected] = useState(false);
 
   const handleCustomTokenSelected = useCallback(() => {

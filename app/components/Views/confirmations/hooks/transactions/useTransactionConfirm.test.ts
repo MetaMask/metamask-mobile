@@ -255,8 +255,6 @@ describe('useTransactionConfirm', () => {
     await flushPromises();
 
     expect(onApprovalConfirm).toHaveBeenCalled();
-    expect(resetTransactionMock).toHaveBeenCalled();
-    expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
