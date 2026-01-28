@@ -73,12 +73,7 @@ export interface RampSDK {
   setRampType: (rampType: RampType) => void;
 
   intent: RampIntent | undefined;
-  setIntent: (
-    intentOrSetter:
-      | RampIntent
-      | ((previousIntent: RampIntent | undefined) => void)
-      | undefined,
-  ) => void;
+  setIntent: React.Dispatch<React.SetStateAction<RampIntent | undefined>>;
 
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;

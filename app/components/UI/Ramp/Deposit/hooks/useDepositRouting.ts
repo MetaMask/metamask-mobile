@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { RootParamList } from '../../../../../util/navigation/types';
 import { BuyQuote, OrderIdTransformer } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
@@ -242,7 +243,7 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
       });
       navigation.reset({
         index: 0,
-        routes: [{ name, params }],
+        routes: [{ name: name as keyof RootParamList, params }],
       });
     },
     [navigation],

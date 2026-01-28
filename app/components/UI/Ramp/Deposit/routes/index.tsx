@@ -70,7 +70,7 @@ const getAnimationOptions = ({
 };
 
 interface MainRoutesProps {
-  route: RouteProp<{ params: DepositNavigationParams }, 'params'>;
+  route: RouteProp<{ DepositRoot: DepositNavigationParams }, 'DepositRoot'>;
 }
 
 const MainRoutes = ({ route }: MainRoutesProps) => {

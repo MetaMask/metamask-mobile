@@ -34,7 +34,7 @@ interface TestDescriptors {
 jest.mock('../../../../selectors/featureFlagController/assetsTrendingTokens');
 
 // Mock the navigation object with proper typing
-const navigation: NavigationHelpers<ParamListBase> = {
+const navigation = {
   navigate: jest.fn(),
   goBack: jest.fn(),
   reset: jest.fn(),
@@ -45,7 +45,8 @@ const navigation: NavigationHelpers<ParamListBase> = {
   getParent: jest.fn(),
   getState: jest.fn(),
   emit: jest.fn(),
-};
+  getId: jest.fn(),
+} as unknown as NavigationHelpers<ParamListBase>;
 
 // Mock insets for BottomTabBarProps (required in React Navigation v6)
 const insets = { top: 0, bottom: 0, left: 0, right: 0 };

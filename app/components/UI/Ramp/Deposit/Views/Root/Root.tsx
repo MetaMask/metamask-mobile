@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { RootParamList } from '../../../../../../util/navigation/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
 import { useSelector } from 'react-redux';
@@ -44,7 +45,7 @@ const Root = () => {
             index: 0,
             routes: [
               {
-                name: routeName,
+                name: routeName as keyof RootParamList,
                 params: { ...params, animationEnabled: false },
               },
             ],
@@ -58,13 +59,21 @@ const Root = () => {
         navigation.reset({
           index: 0,
           routes: [
-            { name: routeName, params: { ...params, animationEnabled: false } },
+            {
+              name: routeName as keyof RootParamList,
+              params: { ...params, animationEnabled: false },
+            },
           ],
         });
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: initialRoute, params: { animationEnabled: false } }],
+          routes: [
+            {
+              name: initialRoute as keyof RootParamList,
+              params: { animationEnabled: false },
+            },
+          ],
         });
       }
     };

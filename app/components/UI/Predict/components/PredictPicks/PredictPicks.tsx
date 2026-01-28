@@ -42,6 +42,9 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
         const _outcome = market?.outcomes.find(
           (o) => o.id === position.outcomeId,
         );
+        if (!_outcome) {
+          return;
+        }
         navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
           market,
           position,
