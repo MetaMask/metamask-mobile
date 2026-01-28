@@ -73,31 +73,3 @@ export const selectRewardsMusdDepositEnabledFlag = createSelector(
     );
   },
 );
-
-const DEFAULT_REWARDS_REFERRAL_ENABLED = false;
-export const REWARDS_REFERRAL_FLAG_NAME = 'rewardsReferralCodeEnabled';
-
-/**
- * Selector for the rewards referral enabled flag.
- * Supports both simple boolean flags and version-gated JSON flags.
- */
-export const selectRewardsReferralEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => {
-    if (!hasProperty(remoteFeatureFlags, REWARDS_REFERRAL_FLAG_NAME)) {
-      return DEFAULT_REWARDS_REFERRAL_ENABLED;
-    }
-
-    const flag = remoteFeatureFlags[REWARDS_REFERRAL_FLAG_NAME];
-
-    if (typeof flag === 'boolean') {
-      return flag;
-    }
-
-    const versionGatedFlag = flag as unknown as VersionGatedFeatureFlag;
-    return (
-      validatedVersionGatedFeatureFlag(versionGatedFlag) ??
-      DEFAULT_REWARDS_REFERRAL_ENABLED
-    );
-  },
-);

@@ -5,7 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import PerpsHeroCardView from './PerpsHeroCardView';
 import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
-import { selectRewardsReferralEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
+import { selectPerpsRewardsReferralCodeEnabledFlag } from '../../selectors/featureFlags';
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import Logger from '../../../../../util/Logger';
@@ -205,7 +205,7 @@ describe('PerpsHeroCardView', () => {
       if (selector === selectReferralCode) {
         return 'TESTCODE123';
       }
-      if (selector === selectRewardsReferralEnabledFlag) {
+      if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
         return false;
       }
       return undefined;
@@ -228,7 +228,7 @@ describe('PerpsHeroCardView', () => {
         if (selector === selectReferralCode) {
           return 'TESTCODE123';
         }
-        if (selector === selectRewardsReferralEnabledFlag) {
+        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
           return true;
         }
         return undefined;
@@ -280,7 +280,7 @@ describe('PerpsHeroCardView', () => {
         if (selector === selectReferralCode) {
           return null;
         }
-        if (selector === selectRewardsReferralEnabledFlag) {
+        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
           return true;
         }
         return undefined;
@@ -315,7 +315,7 @@ describe('PerpsHeroCardView', () => {
         if (selector === selectReferralCode) {
           return 'TESTCODE123';
         }
-        if (selector === selectRewardsReferralEnabledFlag) {
+        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
           return false;
         }
         return undefined;
@@ -372,7 +372,7 @@ describe('PerpsHeroCardView', () => {
         if (selector === selectReferralCode) {
           return 'TESTCODE123';
         }
-        if (selector === selectRewardsReferralEnabledFlag) {
+        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
           return true;
         }
         return undefined;

@@ -30,7 +30,7 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
-import { selectRewardsReferralEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
+import { selectPerpsRewardsReferralCodeEnabledFlag } from '../../selectors/featureFlags';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import RewardsReferralCodeTag from '../../../Rewards/components/RewardsReferralCodeTag';
 import {
@@ -90,7 +90,9 @@ const PerpsHeroCardView: React.FC = () => {
   const { position, marketPrice, source } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
-  const isReferralEnabled = useSelector(selectRewardsReferralEnabledFlag);
+  const isReferralEnabled = useSelector(
+    selectPerpsRewardsReferralCodeEnabledFlag,
+  );
 
   // Fetch season status to populate seasonId (required by useReferralDetails)
   useSeasonStatus({ onlyForExplicitFetch: false });
