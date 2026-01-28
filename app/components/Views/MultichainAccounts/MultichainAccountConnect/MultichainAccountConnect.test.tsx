@@ -166,7 +166,6 @@ const { isUUID: mockIsUUID } = jest.requireMock(
 
 jest.mock('../../../../util/phishingDetection', () => ({
   getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: false }),
-  prepareUrlForPhishingCheck: jest.fn((url: string) => url),
 }));
 
 jest.mock('../../../../util/metrics', () => ({
