@@ -17,6 +17,7 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { NavigationProviderProps } from './types';
+import type { RootParamList } from '../../../util/navigation/types';
 
 const Stack = createStackNavigator();
 
@@ -53,7 +54,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   /**
    * Sets the navigation ref on the NavigationService
    */
-  const setNavigationRef = (ref: NavigationContainerRef) => {
+  const setNavigationRef = (ref: NavigationContainerRef<RootParamList>) => {
     // This condition only happens on unmount. But that should never happen since this is meant to always be mounted.
     if (!ref) {
       return;
