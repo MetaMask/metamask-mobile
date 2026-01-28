@@ -162,7 +162,7 @@ export class DataLakeService {
 
       // Record measurement
       this.deps.tracer.setMeasurement(
-        PerpsMeasurementName.PERPS_DATA_LAKE_API_CALL,
+        PerpsMeasurementName.PerpsDataLakeApiCall,
         apiCallDuration,
         'millisecond',
       );

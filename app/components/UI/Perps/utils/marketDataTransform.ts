@@ -102,12 +102,14 @@ interface ExtractFundingDataParams {
 }
 
 /**
- * Extract funding data for a symbol from predicted fundings
- * Looks for specified exchange first, falls back to first available
+ * Extract funding data for a symbol from predicted fundings.
+ * Looks for specified exchange first, falls back to first available.
  *
+ * @param params - Parameters for extracting funding data
  * @param params.predictedFundings - Array of predicted funding data
  * @param params.symbol - Asset symbol to extract funding for
  * @param params.exchangeName - Exchange to prioritize (defaults to HyperLiquid's 'HlPerp')
+ * @returns Funding data including next funding time, interval, and predicted rate
  */
 function extractFundingData(params: ExtractFundingDataParams): FundingData {
   const {
@@ -265,8 +267,11 @@ export function transformMarketData(
 }
 
 /**
- * Format 24h change with sign
- * Uses more decimal places for smaller amounts to show meaningful precision
+ * Format 24h change with sign.
+ * Uses more decimal places for smaller amounts to show meaningful precision.
+ *
+ * @param change - The price change value to format
+ * @returns Formatted change string with sign and dollar symbol
  */
 export function formatChange(change: number): string {
   if (isNaN(change) || !isFinite(change)) return '$0.00';
@@ -282,7 +287,10 @@ export function formatChange(change: number): string {
 }
 
 /**
- * Format percentage change with sign
+ * Format percentage change with sign.
+ *
+ * @param percent - The percentage value to format
+ * @returns Formatted percentage string with sign
  */
 export function formatPercentage(percent: number): string {
   if (isNaN(percent) || !isFinite(percent)) return '0.00%';
