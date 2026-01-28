@@ -5,7 +5,6 @@ import { TokenRwaData } from '@metamask/assets-controllers';
 
 export interface PopularToken {
   assetId: CaipAssetType;
-  chainId: CaipChainId;
   decimals: number;
   image: string;
   name: string;

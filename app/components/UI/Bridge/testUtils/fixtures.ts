@@ -30,7 +30,6 @@ export const createMockPopularToken = (
 ): PopularToken => ({
   assetId:
     'eip155:1/erc20:0x1234567890123456789012345678901234567890' as CaipAssetType,
-  chainId: 'eip155:1' as CaipChainId,
   decimals: 18,
   image: 'https://example.com/token.png',
   name: 'Test Token',
