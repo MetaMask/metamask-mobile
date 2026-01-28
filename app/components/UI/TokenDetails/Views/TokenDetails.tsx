@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
 import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
@@ -35,7 +34,6 @@ import {
 import { getVersion } from 'react-native-device-info';
 import compareVersions from 'compare-versions';
 import AppConstants from '../../../../core/AppConstants';
-import { selectSupportedSwapTokenAddressesForChainId } from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
@@ -155,20 +153,13 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   } = useTokenTransactions(token);
 
   // Display flags for buttons
-  const searchDiscoverySwapsTokens = useSelector((state: RootState) =>
-    selectSupportedSwapTokenAddressesForChainId(state, token.chainId as Hex),
-  );
-
-  // Ensure asset has required properties for swap check
-  const assetForSwapCheck = {
-    isETH: token.isETH ?? false,
-    isNative: token.isNative ?? false,
-    address: token.address ?? '',
-    chainId: token.chainId ?? '',
-  };
   const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
-    asset: assetForSwapCheck,
-    searchDiscoverySwapsTokens,
+    asset: {
+      isETH: token.isETH ?? false,
+      isNative: token.isNative ?? false,
+      address: token.address ?? '',
+      chainId: token.chainId ?? '',
+    },
   });
   const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 

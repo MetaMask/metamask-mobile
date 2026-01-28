@@ -121,10 +121,6 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '2.0.0'),
 }));
 
-jest.mock('../../../../selectors/tokenSearchDiscoveryDataController', () => ({
-  selectSupportedSwapTokenAddressesForChainId: jest.fn(() => []),
-}));
-
 jest.mock('../../../Views/Asset/utils', () => ({
   getIsSwapsAssetAllowed: jest.fn(() => true),
 }));
@@ -134,8 +130,8 @@ jest.mock('../../../../core/AppConstants', () => ({
 }));
 
 // Mock components
-jest.mock('../components/AssetInlineHeader', () => ({
-  AssetInlineHeader: ({
+jest.mock('../components/TokenDetailsInlineHeader', () => ({
+  TokenDetailsInlineHeader: ({
     title,
     networkName,
     onBackPress,
@@ -148,7 +144,7 @@ jest.mock('../components/AssetInlineHeader', () => ({
   }) => {
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return (
-      <View testID="asset-inline-header">
+      <View testID="token-details-inline-header">
         <Text>{title}</Text>
         <Text>{networkName}</Text>
         <TouchableOpacity onPress={onBackPress} testID="back-button">
@@ -367,7 +363,7 @@ describe('TokenDetails', () => {
 
       // Note: This test verifies the loading state renders without errors
       const { getByTestId } = renderComponent();
-      expect(getByTestId('asset-inline-header')).toBeOnTheScreen();
+      expect(getByTestId('token-details-inline-header')).toBeOnTheScreen();
     });
   });
 
