@@ -78,7 +78,7 @@ describe('useWebSocketHealthToast', () => {
 
       // Simulate initial callback with CONNECTED state
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
       // Should not show toast for initial CONNECTED state
@@ -90,11 +90,11 @@ describe('useWebSocketHealthToast', () => {
 
       // Simulate initial callback with DISCONNECTED state
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
         1,
       );
     });
@@ -104,11 +104,11 @@ describe('useWebSocketHealthToast', () => {
 
       // Simulate initial callback with CONNECTING state
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTING, 2);
+        connectionStateCallback(WebSocketConnectionState.Connecting, 2);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
-        WebSocketConnectionState.CONNECTING,
+        WebSocketConnectionState.Connecting,
         2,
       );
     });
@@ -120,17 +120,17 @@ describe('useWebSocketHealthToast', () => {
 
       // First callback: CONNECTED (initial state)
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
       mockShow.mockClear();
 
       // Second callback: DISCONNECTED (transition)
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
         1,
       );
     });
@@ -140,17 +140,17 @@ describe('useWebSocketHealthToast', () => {
 
       // First callback: DISCONNECTED (initial - marks as experienced disconnection)
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
       mockShow.mockClear();
 
       // Second callback: CONNECTING (transition)
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTING, 2);
+        connectionStateCallback(WebSocketConnectionState.Connecting, 2);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
-        WebSocketConnectionState.CONNECTING,
+        WebSocketConnectionState.Connecting,
         2,
       );
     });
@@ -160,28 +160,28 @@ describe('useWebSocketHealthToast', () => {
 
       // Initial: CONNECTED
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
       // Disconnected
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
       mockShow.mockClear();
 
       // Reconnecting
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTING, 2);
+        connectionStateCallback(WebSocketConnectionState.Connecting, 2);
       });
       mockShow.mockClear();
 
       // Reconnected successfully
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
         0,
       );
     });
@@ -191,7 +191,7 @@ describe('useWebSocketHealthToast', () => {
 
       // Initial: CONNECTED - should NOT show toast
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
       expect(mockShow).not.toHaveBeenCalled();
@@ -237,22 +237,22 @@ describe('useWebSocketHealthToast', () => {
 
       // Initial: CONNECTED
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
       // Disconnected
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
       mockShow.mockClear();
 
       // Reconnecting with attempt 3
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTING, 3);
+        connectionStateCallback(WebSocketConnectionState.Connecting, 3);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
-        WebSocketConnectionState.CONNECTING,
+        WebSocketConnectionState.Connecting,
         3,
       );
     });
@@ -305,13 +305,13 @@ describe('useWebSocketHealthToast', () => {
 
       // Initial: CONNECTED
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
       mockShow.mockClear();
 
       // DISCONNECTING - no toast
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTING, 0);
+        connectionStateCallback(WebSocketConnectionState.Disconnecting, 0);
       });
 
       expect(mockShow).not.toHaveBeenCalled();
@@ -324,12 +324,12 @@ describe('useWebSocketHealthToast', () => {
 
       // Initial: CONNECTED
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
       // Transition to DISCONNECTED
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
       // reconnect should not be called yet
@@ -349,7 +349,7 @@ describe('useWebSocketHealthToast', () => {
 
       // Initial callback with DISCONNECTED state
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
       expect(mockReconnect).not.toHaveBeenCalled();
@@ -367,17 +367,17 @@ describe('useWebSocketHealthToast', () => {
 
       // Initial: CONNECTED
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
       // Transition to DISCONNECTED (schedules auto-retry)
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
       // Transition to CONNECTING (should cancel auto-retry)
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTING, 2);
+        connectionStateCallback(WebSocketConnectionState.Connecting, 2);
       });
 
       // Advance timers past auto-retry delay
@@ -394,12 +394,12 @@ describe('useWebSocketHealthToast', () => {
 
       // Initial: DISCONNECTED (schedules auto-retry)
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
       // Transition to CONNECTED (should cancel auto-retry)
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
       // Advance timers past auto-retry delay
@@ -416,7 +416,7 @@ describe('useWebSocketHealthToast', () => {
 
       // Initial: DISCONNECTED (schedules auto-retry)
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
       // Get the retry callback and invoke it (manual retry)
@@ -443,7 +443,7 @@ describe('useWebSocketHealthToast', () => {
 
       // Initial: DISCONNECTED (schedules auto-retry)
       act(() => {
-        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
       // Unmount
