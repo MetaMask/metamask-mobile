@@ -59,9 +59,8 @@ import {
 } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import Engine from '../../../../../core/Engine';
-import { EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
-import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
+import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -131,10 +130,6 @@ export const TokenListItem = React.memo(
     const { isStockToken } = useRWAToken();
 
     const chainId = asset?.chainId as Hex;
-
-    const networkConfig = useSelector((state: RootState) =>
-      selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
-    );
 
     const networkName = useNetworkName(chainId);
 
@@ -277,50 +272,10 @@ export const TokenListItem = React.memo(
       [isFullView, trackEvent, createEventBuilder, navigation],
     );
 
-    const handleLendingRedirect = useCallback(async () => {
-      if (!asset?.chainId) return;
-
-      const networkClientId =
-        Engine.context.NetworkController.findNetworkClientIdByChainId(
-          toHex(asset.chainId),
-        );
-
-      if (!networkClientId) {
-        console.error(
-          `TokenListItem redirect failed: could not retrieve networkClientId for chainId: ${asset.chainId}`,
-        );
-        return;
-      }
-
-      trace({ name: TraceName.EarnDepositScreen });
-      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
-
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
-          .addProperties({
-            action_type: 'deposit',
-            location: EVENT_LOCATIONS.HOME_SCREEN,
-            network: networkConfig?.name,
-            text: `${strings('stake.earn')}`,
-            token: asset.symbol,
-            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-          })
-          .build(),
-      );
-
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: asset,
-        },
-      });
-    }, [
-      asset,
-      trackEvent,
-      createEventBuilder,
-      networkConfig?.name,
-      navigation,
-    ]);
+    const handleLendingRedirect = useStablecoinLendingRedirect({
+      asset: asset as TokenI,
+      location: EARN_EVENT_LOCATIONS.HOME_SCREEN,
+    });
 
     const secondaryBalanceDisplay = useMemo(() => {
       if (hasClaimableBonus) {
