@@ -7184,12 +7184,12 @@
     "dashboard_modal_info": {
       "active_account": {
         "title": "Don't miss out",
-        "description": "Add your account to start earning points from your activity.",
+        "description": "Add your account to Rewards.",
         "confirm": "Add account"
       },
       "multiple_unlinked_accounts": {
-        "title": "Start earning points",
-        "description": "Add your accounts so you can track your rewards at a glance.",
+        "title": "Don't miss out",
+        "description": "Add your accounts to Rewards.",
         "confirm": "Add accounts"
       },
       "account_not_supported": {
