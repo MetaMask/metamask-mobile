@@ -153,7 +153,6 @@ describe('EarnMusdConversionEducationView', () => {
       address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' as Hex,
       chainId: '0x1' as Hex,
     },
-    outputChainId: '0x1' as Hex,
     isDeeplink: false,
   };
 
@@ -624,7 +623,7 @@ describe('EarnMusdConversionEducationView', () => {
   });
 
   describe('conversion initiation', () => {
-    it('calls initiateConversion with correct params when outputChainId and preferredPaymentToken provided', async () => {
+    it('calls initiateConversion with correct params when preferredPaymentToken provided', async () => {
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -641,20 +640,14 @@ describe('EarnMusdConversionEducationView', () => {
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledTimes(1);
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: mockRouteParams.outputChainId,
           preferredPaymentToken: mockRouteParams.preferredPaymentToken,
           skipEducationCheck: true,
         });
       });
     });
 
-    it('logs error when outputChainId missing but still marks education as seen', async () => {
-      const paramsWithoutOutputChainId = {
-        preferredPaymentToken: mockRouteParams.preferredPaymentToken,
-        isDeeplink: false,
-      };
-
-      mockUseParams.mockReturnValue(paramsWithoutOutputChainId);
+    it('logs error when preferredPaymentToken missing but still marks education as seen', async () => {
+      mockUseParams.mockReturnValue({});
 
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
@@ -674,7 +667,7 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockLogger.error).toHaveBeenCalledTimes(1);
         expect(mockLogger.error).toHaveBeenCalledWith(
           new Error('Missing required parameters'),
-          '[mUSD Conversion Education] Cannot proceed without outputChainId and preferredPaymentToken',
+          '[mUSD Conversion Education] Cannot proceed without preferredPaymentToken',
         );
         expect(mockInitiateConversion).not.toHaveBeenCalled();
       });

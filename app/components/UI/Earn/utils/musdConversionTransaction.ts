@@ -19,7 +19,13 @@ interface PayTokenSelection {
 }
 
 interface CreateMusdConversionTransactionParams {
-  outputChainId: Hex;
+  /**
+   * Chain ID of the selected payment token.
+   *
+   * For mUSD conversions we MUST keep swaps same-chain (no bridging), so this
+   * chain is also used as the mUSD output chain.
+   */
+  chainId: Hex;
   fromAddress: Hex;
   recipientAddress: Hex;
   /**
@@ -35,6 +41,10 @@ interface CreateMusdConversionTransactionParams {
   networkClientId?: string;
 }
 
+/**
+ * Returns the mUSD token address for a given chain ID.
+ * Throws if mUSD is not deployed on this chain.
+ */
 function getMusdTokenAddress(chainId: Hex): Hex {
   const musdTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
   if (!musdTokenAddress) {
@@ -90,7 +100,7 @@ function extractMusdConversionTransferDetails(
 }
 
 function buildMusdConversionTx(params: {
-  outputChainId: Hex;
+  chainId: Hex;
   fromAddress: Hex;
   recipientAddress: Hex;
   amountHex: string;
@@ -107,15 +117,11 @@ function buildMusdConversionTx(params: {
     type: TransactionType.musdConversion;
   };
 } {
-  const {
-    outputChainId,
-    fromAddress,
-    recipientAddress,
-    amountHex,
-    networkClientId,
-  } = params;
+  const { chainId, fromAddress, recipientAddress, amountHex, networkClientId } =
+    params;
 
-  const musdTokenAddress = getMusdTokenAddress(outputChainId);
+  // Throws if mUSD is not deployed on this chain.
+  const musdTokenAddress = getMusdTokenAddress(chainId);
 
   const transferData = generateTransferData('transfer', {
     toAddress: recipientAddress,
@@ -144,7 +150,7 @@ function buildMusdConversionTx(params: {
  */
 
 export async function createMusdConversionTransaction({
-  outputChainId,
+  chainId,
   fromAddress,
   recipientAddress,
   amountHex,
@@ -156,15 +162,14 @@ export async function createMusdConversionTransaction({
   const { NetworkController, TransactionController } = Engine.context;
 
   const resolvedNetworkClientId =
-    networkClientId ??
-    NetworkController.findNetworkClientIdByChainId(outputChainId);
+    networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
 
   if (!resolvedNetworkClientId) {
-    throw new Error(`Network client not found for chain ID: ${outputChainId}`);
+    throw new Error(`Network client not found for chain ID: ${chainId}`);
   }
 
   const { txParams, addTxOptions } = buildMusdConversionTx({
-    outputChainId,
+    chainId,
     fromAddress,
     recipientAddress,
     amountHex,
@@ -187,15 +192,6 @@ export async function createMusdConversionTransaction({
  * ============================================================
  */
 
-function assertMusdSupportedOnChainForReplacement(chainId: Hex): void {
-  const musdTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
-  if (!musdTokenAddress) {
-    throw new Error(
-      `[mUSD Conversion] mUSD not supported on selected chain: ${chainId}`,
-    );
-  }
-}
-
 /**
  * Replaces an mUSD conversion transaction when the user selects a payment token
  * on a different chain. This ensures same-chain conversions (no bridging).
@@ -214,17 +210,13 @@ export async function replaceMusdConversionTransactionForPayToken(
     );
   }
 
-  const newChainId = newPayToken.chainId;
-
-  assertMusdSupportedOnChainForReplacement(newChainId);
-
   const { recipientAddress, amountHex } =
     extractMusdConversionTransferDetails(transactionMeta);
 
   try {
     const { transactionId: newTransactionId, networkClientId } =
       await createMusdConversionTransaction({
-        outputChainId: newChainId,
+        chainId: newPayToken.chainId,
         fromAddress: transactionMeta.txParams.from as Hex,
         recipientAddress,
         amountHex,

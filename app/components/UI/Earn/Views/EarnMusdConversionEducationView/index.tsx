@@ -48,15 +48,10 @@ interface EarnMusdConversionEducationViewRouteParams {
    * The payment token to preselect in the confirmation screen
    * Optional - when not provided, determines automatically
    */
-  preferredPaymentToken?: {
+  preferredPaymentToken: {
     address: Hex;
     chainId: Hex;
   };
-  /**
-   * The output token's chainId
-   * Optional - when not provided, determines automatically
-   */
-  outputChainId?: Hex;
 }
 
 /**
@@ -69,7 +64,7 @@ const EarnMusdConversionEducationView = () => {
   const { initiateConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
 
-  const { preferredPaymentToken, outputChainId, isDeeplink } =
+  const { preferredPaymentToken, isDeeplink } =
     useParams<EarnMusdConversionEducationViewRouteParams>();
 
   // Hooks for deeplink case (when no params provided)
@@ -250,7 +245,6 @@ const EarnMusdConversionEducationView = () => {
 
         if (deeplinkState.action === 'convert') {
           await initiateConversion({
-            outputChainId: deeplinkState.outputChainId,
             preferredPaymentToken: deeplinkState.paymentToken,
             skipEducationCheck: true,
           });
@@ -259,23 +253,18 @@ const EarnMusdConversionEducationView = () => {
       }
 
       // Proceed to conversion flow if we have the required params (normal flow)
-      if (!isDeeplink && outputChainId && preferredPaymentToken) {
+      if (!isDeeplink && preferredPaymentToken) {
         await initiateConversion({
-          outputChainId,
           preferredPaymentToken,
           skipEducationCheck: true,
         });
         return;
       }
 
-      // If we reach here without being a deeplink, params are missing
-      if (!isDeeplink) {
-        Logger.error(
-          new Error('Missing required parameters'),
-          '[mUSD Conversion Education] Cannot proceed without outputChainId and preferredPaymentToken',
-        );
-        return;
-      }
+      Logger.error(
+        new Error('Missing required parameters'),
+        '[mUSD Conversion Education] Cannot proceed without preferredPaymentToken',
+      );
     } catch (error) {
       Logger.error(
         error as Error,
@@ -285,7 +274,6 @@ const EarnMusdConversionEducationView = () => {
   }, [
     dispatch,
     initiateConversion,
-    outputChainId,
     preferredPaymentToken,
     submitContinuePressedEvent,
     deeplinkState,
