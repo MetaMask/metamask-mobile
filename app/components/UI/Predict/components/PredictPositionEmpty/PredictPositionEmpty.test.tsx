@@ -2,7 +2,8 @@ import React from 'react';
 import { screen, fireEvent, render } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import PredictPositionEmpty from './PredictPositionEmpty';
-import { SECTIONS_CONFIG } from '../../../../Views/TrendingView/sections.config';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -88,7 +89,6 @@ jest.mock('../../../../Views/TrendingView/sections.config', () => ({
   SECTIONS_CONFIG: {
     predictions: {
       id: 'predictions',
-      viewAllAction: jest.fn(),
     },
   },
 }));
@@ -166,18 +166,22 @@ describe('PredictPositionEmpty', () => {
   });
 
   describe('navigation', () => {
-    it('calls viewAllAction when header is pressed', () => {
+    it('navigates to market list with homepage_featured entryPoint when header is pressed', () => {
       render(<PredictPositionEmpty />);
 
       fireEvent.press(
         screen.getByTestId('predict-position-empty-section-header'),
       );
 
-      expect(SECTIONS_CONFIG.predictions.viewAllAction).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(SECTIONS_CONFIG.predictions.viewAllAction).toHaveBeenCalledWith(
-        mockNavigation,
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PREDICT.ROOT,
+        {
+          screen: Routes.PREDICT.MARKET_LIST,
+          params: {
+            entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED,
+          },
+        },
       );
     });
   });

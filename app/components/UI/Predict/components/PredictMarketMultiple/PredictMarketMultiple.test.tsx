@@ -48,6 +48,10 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
+jest.mock('../../contexts', () => ({
+  usePredictEntryPoint: () => undefined,
+}));
+
 const mockMarket: PredictMarket = {
   id: 'test-market-1',
   providerId: 'test-provider',

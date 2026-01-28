@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -17,12 +17,17 @@ import {
 import Section from '../../../../Views/TrendingView/components/Sections/Section';
 import { SECTIONS_CONFIG } from '../../../../Views/TrendingView/sections.config';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
+import { PredictEntryPointProvider } from '../../contexts';
+import { PredictNavigationParamList } from '../../types/navigation';
 
 interface PredictPositionEmptyProps {}
 
 const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const section = SECTIONS_CONFIG.predictions;
 
   const handleToggleEmptyState = useCallback((_isEmpty: boolean) => {
@@ -33,12 +38,21 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
     // TODO: Toggle loading state
   }, []);
 
+  const handleHeaderPress = useCallback(() => {
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED,
+      },
+    });
+  }, [navigation]);
+
   return (
     <Box testID="predict-position-empty">
       <TouchableOpacity
         testID="predict-position-empty-section-header"
         style={tw.style('flex-row items-center mb-2')}
-        onPress={() => section.viewAllAction(navigation)}
+        onPress={handleHeaderPress}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -55,12 +69,16 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
           />
         </Box>
       </TouchableOpacity>
-      <Section
-        sectionId={section.id}
-        refreshConfig={{ trigger: 0, silentRefresh: true }}
-        toggleSectionEmptyState={handleToggleEmptyState}
-        toggleSectionLoadingState={handleToggleLoadingState}
-      />
+      <PredictEntryPointProvider
+        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED}
+      >
+        <Section
+          sectionId={section.id}
+          refreshConfig={{ trigger: 0, silentRefresh: true }}
+          toggleSectionEmptyState={handleToggleEmptyState}
+          toggleSectionLoadingState={handleToggleLoadingState}
+        />
+      </PredictEntryPointProvider>
     </Box>
   );
 };

@@ -43,6 +43,7 @@ import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictEntryPoint } from '../../contexts';
 
 interface PredictMarketMultipleProps {
   market: PredictMarket;
@@ -54,14 +55,19 @@ interface PredictMarketMultipleProps {
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
   testID,
-  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  entryPoint: propEntryPoint,
   isCarousel = false,
 }) => {
-  // Auto-detect entry point based on trending session state
+  const contextEntryPoint = usePredictEntryPoint();
+  const baseEntryPoint =
+    contextEntryPoint ??
+    propEntryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
     .isFromTrending
     ? PredictEventValues.ENTRY_POINT.TRENDING
-    : entryPoint;
+    : baseEntryPoint;
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
