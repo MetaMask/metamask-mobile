@@ -66,7 +66,7 @@ describe(`Migration ${migrationVersion}`, () => {
     expect(result).toStrictEqual(invalidState);
   });
 
-  it('returns state unchanged if TokenListController is missing', async () => {
+  it('returns state unchanged and captures exception if TokenListController is missing', async () => {
     const state = {
       engine: {
         backgroundState: {},
@@ -74,6 +74,30 @@ describe(`Migration ${migrationVersion}`, () => {
     };
     const result = await migrate(state);
     expect(result).toStrictEqual(state);
+    expect(mockCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('missing TokenListController'),
+      }),
+    );
+  });
+
+  it('returns state unchanged and captures exception if TokenListController is not an object', async () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          TokenListController: 'invalid-string',
+        },
+      },
+    };
+    const result = await migrate(state);
+    expect(result).toStrictEqual(state);
+    expect(mockCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          "Invalid TokenListController state: 'string'",
+        ),
+      }),
+    );
   });
 
   it('returns state unchanged if tokensChainsCache is missing', async () => {

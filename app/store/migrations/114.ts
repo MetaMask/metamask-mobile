@@ -65,7 +65,11 @@ export default async function migrate(stateAsync: unknown): Promise<unknown> {
 
   try {
     if (!hasProperty(state.engine.backgroundState, 'TokenListController')) {
-      // TokenListController not present, nothing to migrate
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid TokenListController state: missing TokenListController`,
+        ),
+      );
       return state;
     }
 
@@ -73,6 +77,11 @@ export default async function migrate(stateAsync: unknown): Promise<unknown> {
       .TokenListController as TokenListControllerState | undefined;
 
     if (!isObject(tokenListControllerState)) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid TokenListController state: '${typeof tokenListControllerState}'`,
+        ),
+      );
       return state;
     }
 
