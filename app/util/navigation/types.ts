@@ -454,7 +454,7 @@ export type RootParamList = {
   CardConfirmModal: undefined;
 
   // Perps Flow
-  Perps: NavigatorScreenParams<PerpsNavigationParamList>;
+  Perps: NavigatorScreenParams<PerpsNavigationParamList> | undefined;
   PerpsRoot: undefined;
   PerpsTradingView: undefined;
   PerpsTutorial:
