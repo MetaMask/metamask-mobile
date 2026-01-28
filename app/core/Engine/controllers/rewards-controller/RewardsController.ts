@@ -259,6 +259,8 @@ export class RewardsController extends BaseController<
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
   #isDisabled: () => boolean;
+  #isBitcoinOptinEnabled: () => boolean;
+  #isTronOptinEnabled: () => boolean;
 
   /**
    * Calculate tier status and next tier information
@@ -401,10 +403,14 @@ export class RewardsController extends BaseController<
     messenger,
     state,
     isDisabled,
+    isBitcoinOptinEnabled,
+    isTronOptinEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
+    isBitcoinOptinEnabled?: () => boolean;
+    isTronOptinEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -417,6 +423,8 @@ export class RewardsController extends BaseController<
     });
 
     this.#isDisabled = isDisabled ?? (() => false);
+    this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
+    this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -822,14 +830,14 @@ export class RewardsController extends BaseController<
         return true;
       }
 
-      // Check if it's a Bitcoin account
+      // Check if it's a Bitcoin account (gated by feature flag)
       if (isBtcAccount(account)) {
-        return true;
+        return this.#isBitcoinOptinEnabled();
       }
 
-      // Check if it's a Tron account
+      // Check if it's a Tron account (gated by feature flag)
       if (isTronAccount(account)) {
-        return true;
+        return this.#isTronOptinEnabled();
       }
 
       // If it's neither Solana, Bitcoin, Tron, nor EVM, opt-in is not supported

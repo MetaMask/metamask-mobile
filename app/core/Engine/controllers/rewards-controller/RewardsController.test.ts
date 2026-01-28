@@ -14880,11 +14880,16 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns true for Bitcoin accounts that are not hardware', () => {
+    it('returns true for Bitcoin accounts when feature flag is enabled', () => {
       // Arrange
       // Note: Hardware wallets are not supported for Bitcoin (or any non-EVM chains).
-      // Only non-hardware Bitcoin accounts can opt-in to rewards.
-      // Bitcoin is always enabled, so no enabled/disabled check is needed.
+      // Only non-hardware Bitcoin accounts can opt-in to rewards when the feature flag is enabled.
+      const bitcoinController = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        isBitcoinOptinEnabled: () => true,
+      });
+
       const bitcoinAccount = {
         address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
         type: 'bip122:p2wpkh' as const,
@@ -14905,7 +14910,7 @@ describe('RewardsController', () => {
       mockIsBtcAccount.mockReturnValue(true); // Is Bitcoin
 
       // Act
-      const result = controller.isOptInSupported(bitcoinAccount);
+      const result = bitcoinController.isOptInSupported(bitcoinAccount);
 
       // Assert
       expect(result).toBe(true);
@@ -14918,6 +14923,42 @@ describe('RewardsController', () => {
       expect(mockIsSolanaAddress).toHaveBeenCalledWith(
         'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
       );
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
+    });
+
+    it('returns false for Bitcoin accounts when feature flag is disabled', () => {
+      // Arrange
+      // Bitcoin opt-in is gated behind a feature flag - when disabled, opt-in is not supported.
+      const bitcoinController = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        isBitcoinOptinEnabled: () => false,
+      });
+
+      const bitcoinAccount = {
+        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+        type: 'bip122:p2wpkh' as const,
+        id: 'bitcoin-account',
+        options: {},
+        metadata: {
+          name: 'Bitcoin Account',
+          importTime: Date.now(),
+          keyring: { type: 'Bitcoin Snap Keyring' },
+        },
+        scopes: ['bip122:000000000019d6689c085ae165831e93' as const],
+        methods: [],
+      };
+
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
+      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
+      mockIsBtcAccount.mockReturnValue(true); // Is Bitcoin
+
+      // Act
+      const result = bitcoinController.isOptInSupported(bitcoinAccount);
+
+      // Assert
+      expect(result).toBe(false);
       expect(mockIsBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
     });
 
@@ -14959,11 +15000,16 @@ describe('RewardsController', () => {
       expect(mockIsBtcAccount).toHaveBeenCalledWith(nonBitcoinAccount);
     });
 
-    it('returns true for Tron accounts that are not hardware', () => {
+    it('returns true for Tron accounts when feature flag is enabled', () => {
       // Arrange
       // Note: Hardware wallets are not supported for Tron (or any non-EVM chains).
-      // Only non-hardware Tron accounts can opt-in to rewards.
-      // Tron is always enabled, so no enabled/disabled check is needed.
+      // Only non-hardware Tron accounts can opt-in to rewards when the feature flag is enabled.
+      const tronController = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        isTronOptinEnabled: () => true,
+      });
+
       const tronAccount = {
         address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
         type: 'tron:eoa' as const,
@@ -14985,7 +15031,7 @@ describe('RewardsController', () => {
       mockIsTronAccount.mockReturnValue(true); // Is Tron
 
       // Act
-      const result = controller.isOptInSupported(tronAccount);
+      const result = tronController.isOptInSupported(tronAccount);
 
       // Assert
       expect(result).toBe(true);
@@ -14999,6 +15045,43 @@ describe('RewardsController', () => {
         'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
       );
       expect(mockIsBtcAccount).toHaveBeenCalledWith(tronAccount);
+      expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
+    });
+
+    it('returns false for Tron accounts when feature flag is disabled', () => {
+      // Arrange
+      // Tron opt-in is gated behind a feature flag - when disabled, opt-in is not supported.
+      const tronController = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        isTronOptinEnabled: () => false,
+      });
+
+      const tronAccount = {
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        type: 'tron:eoa' as const,
+        id: 'tron-account',
+        options: {},
+        metadata: {
+          name: 'Tron Account',
+          importTime: Date.now(),
+          keyring: { type: 'Tron Snap Keyring' },
+        },
+        scopes: ['tron:728126428' as const],
+        methods: [],
+      };
+
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
+      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
+      mockIsBtcAccount.mockReturnValue(false); // Not Bitcoin
+      mockIsTronAccount.mockReturnValue(true); // Is Tron
+
+      // Act
+      const result = tronController.isOptInSupported(tronAccount);
+
+      // Assert
+      expect(result).toBe(false);
       expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
     });
 
