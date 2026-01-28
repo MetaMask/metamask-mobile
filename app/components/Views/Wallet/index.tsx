@@ -177,6 +177,7 @@ import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
+import { useHydrateRampsController } from '../../UI/Ramp/hooks/useHydrateRampsController';
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
@@ -517,6 +518,7 @@ const Wallet = ({
 
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  useHydrateRampsController();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
