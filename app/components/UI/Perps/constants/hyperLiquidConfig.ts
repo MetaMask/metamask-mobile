@@ -344,6 +344,9 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
   'xyz:LLY': 'equity',
   'xyz:TSM': 'equity',
   'xyz:SKHX': 'equity',
+  'xyz:MSTR': 'equity',
+  'xyz:CRWV': 'equity',
+  'xyz:SMSN': 'equity',
 
   // xyz DEX - Commodities
   'xyz:GOLD': 'commodity',
