@@ -66,6 +66,7 @@ jest.mock('./useRampsPaymentMethods', () => ({
   })),
 }));
 
+
 const createMockStore = () =>
   configureStore({
     reducer: {

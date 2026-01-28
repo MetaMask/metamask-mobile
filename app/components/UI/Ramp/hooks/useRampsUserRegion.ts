@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
@@ -63,12 +63,6 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
       Engine.context.RampsController.setUserRegion(region, options),
     [],
   );
-
-  useEffect(() => {
-    fetchUserRegion().catch(() => {
-      // Error is stored in state
-    });
-  }, [fetchUserRegion]);
 
   return {
     userRegion,

@@ -147,6 +147,11 @@ jest.mock('../Engine', () => ({
       init: jest.fn().mockResolvedValue(undefined),
       resyncAccounts: jest.fn().mockImplementation(() => mockResyncAccounts()),
     },
+
+    RampsController: {
+      state: { userRegion: null },
+      hydrateState: jest.fn(),
+    },
   },
 }));
 

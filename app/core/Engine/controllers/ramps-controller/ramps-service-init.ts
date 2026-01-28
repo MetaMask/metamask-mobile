@@ -33,6 +33,20 @@ export function getRampsContext(): string {
 }
 
 /**
+ * Gets the base URL override for local development.
+ * When RAMPS_LOCAL_API_URL is set in .js.env, it overrides the default API URLs.
+ *
+ * @returns The base URL override, or undefined if not configured.
+ */
+export function getRampsBaseUrlOverride(): string | undefined {
+  const localApiUrl = process.env.RAMPS_LOCAL_API_URL;
+  if (localApiUrl && localApiUrl.trim().length > 0) {
+    return localApiUrl.trim();
+  }
+  return undefined;
+}
+
+/**
  * Initialize the on-ramp service.
  *
  * @param request - The request object.
@@ -43,11 +57,18 @@ export const rampsServiceInit: ControllerInitFunction<
   RampsService,
   RampsServiceMessenger
 > = ({ controllerMessenger }) => {
+  const baseUrlOverride = getRampsBaseUrlOverride();
+
+  if (baseUrlOverride) {
+    console.log(`[RampsService] Using local API URL: ${baseUrlOverride}`);
+  }
+
   const service = new RampsService({
     messenger: controllerMessenger,
     environment: getRampsEnvironment(),
     context: getRampsContext(),
     fetch,
+    baseUrlOverride,
   });
 
   return {

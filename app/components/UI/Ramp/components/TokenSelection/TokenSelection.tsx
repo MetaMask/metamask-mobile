@@ -28,6 +28,7 @@ import { useRampTokens, RampsToken } from '../../hooks/useRampTokens';
 import { useDepositCryptoCurrencyNetworkName } from '../../Deposit/hooks/useDepositCryptoCurrencyNetworkName';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { useRampsController } from '../../hooks/useRampsController';
+import Engine from '../../../../../core/Engine';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../Navbar';
@@ -143,6 +144,14 @@ function TokenSelection() {
           token_symbol: selectedToken.symbol,
           ramp_routing: rampRoutingDecision ?? undefined,
         });
+
+        if (isRampsUnifiedV2Enabled) {
+          if(selectedToken?.assetId) {
+            Engine.context.RampsController.setSelectedToken(selectedToken.assetId);
+          } else {
+            throw new Error('Token asset ID is required');
+          }
+        }
       }
       // V1 flow: close the modal before navigating to Deposit/Aggregator
       // V2 flow: navigate within the same stack, no need to close modal

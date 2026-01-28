@@ -28,6 +28,7 @@ import styleSheet from './BuildQuote.styles';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
+import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 
 interface BuildQuoteParams {
@@ -45,29 +46,30 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
-  // Get user region, selected provider, and tokens from RampsController
-  const { userRegion, selectedProvider, tokens } = useRampsController();
+  const { userRegion, selectedProvider, tokens, selectedPaymentMethod, paymentMethodsLoading } = useRampsController();
 
-  // Get currency and quick amounts from user's region
+  console.log('[BuildQuote] data:', {
+    userRegion,
+    selectedProvider,
+    tokens,
+    selectedPaymentMethod,
+  });
+
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
-  // Get network info helper
   const getTokenNetworkInfo = useTokenNetworkInfo();
 
-  // Find the selected token from assetId param
   const selectedToken = useMemo(() => {
     if (!assetId || !tokens?.allTokens) return null;
     return tokens.allTokens.find((token) => token.assetId === assetId) ?? null;
   }, [assetId, tokens?.allTokens]);
 
-  // Get network info for the selected token
   const networkInfo = useMemo(() => {
     if (!selectedToken) return null;
     return getTokenNetworkInfo(selectedToken.chainId as CaipChainId);
   }, [selectedToken, getTokenNetworkInfo]);
 
-  // Update navigation options - shows skeleton when data is loading
   useEffect(() => {
     navigation.setOptions(
       getRampsBuildQuoteNavbarOptions(navigation, {
@@ -119,9 +121,11 @@ function BuildQuote() {
                 })}
               </Text>
               <PaymentMethodPill
-                label={strings('fiat_on_ramp.debit_card')}
+                label={paymentMethodsLoading ? 'Loading...' : selectedPaymentMethod?.name || strings('fiat_on_ramp.select_payment_method')}
                 onPress={() => {
-                  // TODO: Open payment method selector
+                  navigation.navigate(
+                    ...createPaymentSelectionModalNavigationDetails(),
+                  );
                 }}
               />
             </View>

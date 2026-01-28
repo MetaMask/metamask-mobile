@@ -1,10 +1,12 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectProviders,
   selectProvidersRequest,
   selectSelectedProvider,
 } from '../../../../selectors/rampsController';
+import { getOrders } from '../../../../reducers/fiatOrders';
+import { determinePreferredProvider } from '../utils/determinePreferredProvider';
 import {
   RequestSelectorResult,
   type Provider,
@@ -57,6 +59,7 @@ export function useRampsProviders(
 ): UseRampsProvidersResult {
   const providers = useSelector(selectProviders);
   const selectedProvider = useSelector(selectSelectedProvider);
+  const orders = useSelector(getOrders);
   const userRegion = useSelector(
     (state: Parameters<typeof selectProviders>[0]) =>
       state.engine.backgroundState.RampsController?.userRegion,
@@ -83,6 +86,22 @@ export function useRampsProviders(
       ) => void
     )(provider?.id ?? null);
   }, []);
+
+  useEffect(() => {
+    if (selectedProvider) {
+      return;
+    }
+
+    if (providers.length === 0) {
+      return;
+    }
+
+    const determinedProvider = determinePreferredProvider(orders, providers);
+
+    if (determinedProvider) {
+      setSelectedProvider(determinedProvider);
+    }
+  }, [orders, providers, setSelectedProvider, selectedProvider]);
 
   return {
     providers,

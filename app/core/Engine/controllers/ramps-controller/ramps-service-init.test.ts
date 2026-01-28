@@ -11,6 +11,7 @@ import {
   rampsServiceInit,
   getRampsEnvironment,
   getRampsContext,
+  getRampsBaseUrlOverride,
 } from './ramps-service-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -102,6 +103,43 @@ describe('getRampsContext', () => {
   });
 });
 
+describe('getRampsBaseUrlOverride', () => {
+  const originalLocalApiUrl = process.env.RAMPS_LOCAL_API_URL;
+
+  afterEach(() => {
+    if (originalLocalApiUrl === undefined) {
+      delete process.env.RAMPS_LOCAL_API_URL;
+    } else {
+      process.env.RAMPS_LOCAL_API_URL = originalLocalApiUrl;
+    }
+  });
+
+  it('returns undefined when RAMPS_LOCAL_API_URL is not set', () => {
+    delete process.env.RAMPS_LOCAL_API_URL;
+    expect(getRampsBaseUrlOverride()).toBeUndefined();
+  });
+
+  it('returns undefined when RAMPS_LOCAL_API_URL is empty string', () => {
+    process.env.RAMPS_LOCAL_API_URL = '';
+    expect(getRampsBaseUrlOverride()).toBeUndefined();
+  });
+
+  it('returns undefined when RAMPS_LOCAL_API_URL is only whitespace', () => {
+    process.env.RAMPS_LOCAL_API_URL = '   ';
+    expect(getRampsBaseUrlOverride()).toBeUndefined();
+  });
+
+  it('returns the URL when RAMPS_LOCAL_API_URL is set', () => {
+    process.env.RAMPS_LOCAL_API_URL = 'http://localhost:3000';
+    expect(getRampsBaseUrlOverride()).toBe('http://localhost:3000');
+  });
+
+  it('trims whitespace from the URL', () => {
+    process.env.RAMPS_LOCAL_API_URL = '  http://localhost:3000  ';
+    expect(getRampsBaseUrlOverride()).toBe('http://localhost:3000');
+  });
+});
+
 describe('rampsServiceInit', () => {
   const rampsServiceClassMock = jest.mocked(RampsService);
   let initRequestMock: jest.Mocked<
@@ -137,6 +175,7 @@ describe('rampsServiceInit', () => {
       environment: expect.any(String),
       context: expect.any(String),
       fetch,
+      baseUrlOverride: undefined,
     });
   });
 
@@ -281,6 +320,7 @@ describe('rampsServiceInit', () => {
         environment: RampsEnvironment.Production,
         context: 'mobile-ios',
         fetch,
+        baseUrlOverride: undefined,
       });
     });
 
@@ -294,7 +334,42 @@ describe('rampsServiceInit', () => {
         environment: RampsEnvironment.Staging,
         context: 'mobile-android',
         fetch,
+        baseUrlOverride: undefined,
       });
+    });
+  });
+
+  describe('baseUrlOverride configuration', () => {
+    const originalLocalApiUrl = process.env.RAMPS_LOCAL_API_URL;
+
+    afterEach(() => {
+      if (originalLocalApiUrl === undefined) {
+        delete process.env.RAMPS_LOCAL_API_URL;
+      } else {
+        process.env.RAMPS_LOCAL_API_URL = originalLocalApiUrl;
+      }
+    });
+
+    it('passes undefined baseUrlOverride when RAMPS_LOCAL_API_URL is not set', () => {
+      delete process.env.RAMPS_LOCAL_API_URL;
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          baseUrlOverride: undefined,
+        }),
+      );
+    });
+
+    it('passes baseUrlOverride when RAMPS_LOCAL_API_URL is set', () => {
+      process.env.RAMPS_LOCAL_API_URL = 'http://localhost:3000';
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          baseUrlOverride: 'http://localhost:3000',
+        }),
+      );
     });
   });
 });
