@@ -113,6 +113,8 @@ class LeaderboardService {
       sections: section,
     });
 
+    console.log('response', JSON.stringify(response.sections, null, 2));
+
     // Return traders from the first section (overall leaderboard)
     if (response.sections.length > 0) {
       // Combine commenters and others, prioritizing commenters

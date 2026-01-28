@@ -14,6 +14,7 @@ import LeaderboardHeader from '../../components/LeaderboardHeader';
 import LeaderboardRow from '../../components/LeaderboardRow';
 import LeaderboardEmpty from '../../components/LeaderboardEmpty';
 import LeaderboardError from '../../components/LeaderboardError';
+import LeaderboardPodium from '../../components/LeaderboardPodium';
 import TraderDetailSheet from '../../components/TraderDetailSheet';
 import ChainFilter from '../../components/ChainFilter';
 import { LeaderboardTestIds } from '../../Leaderboard.testIds';
@@ -113,19 +114,35 @@ const LeaderboardTabView: React.FC<LeaderboardTabViewProps> = ({
       return <LeaderboardEmpty />;
     }
 
-    // Normal content - table
+    // Split traders: top 3 for podium, rest for table
+    const podiumTraders = traders.slice(0, 3);
+    const tableTraders = traders.slice(3);
+
+    // Normal content - podium + table
     return (
-      <Box twClassName="px-1">
-        <LeaderboardHeader />
-        {traders.map((trader, index) => (
-          <LeaderboardRow
-            key={trader.id}
-            trader={trader}
-            rank={index + 1}
-            onPress={handleTraderPress}
+      <>
+        {/* Top 3 Podium */}
+        {podiumTraders.length >= 3 && (
+          <LeaderboardPodium
+            traders={podiumTraders}
+            onTraderPress={handleTraderPress}
+            testID={LeaderboardTestIds.PODIUM}
           />
-        ))}
-      </Box>
+        )}
+
+        {/* Remaining traders table */}
+        <Box twClassName="px-1">
+          {tableTraders.length > 0 && <LeaderboardHeader />}
+          {tableTraders.map((trader, index) => (
+            <LeaderboardRow
+              key={trader.id}
+              trader={trader}
+              rank={index + 4}
+              onPress={handleTraderPress}
+            />
+          ))}
+        </Box>
+      </>
     );
   };
 

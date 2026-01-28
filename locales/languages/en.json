@@ -1995,7 +1995,8 @@
     "menu_title": "Follow Trade",
     "menu_description": "Copy top traders automatically",
     "recent_trades": "Recent Trades",
-    "no_recent_trades": "No recent trades found"
+    "no_recent_trades": "No recent trades found",
+    "copy_trade": "Copy trade"
   },
   "predict": {
     "title": "MetaMask Predictions",

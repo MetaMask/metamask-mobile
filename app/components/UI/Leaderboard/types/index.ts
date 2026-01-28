@@ -242,6 +242,14 @@ export interface FeedMetrics {
 }
 
 /**
+ * Call to action for a feed item (e.g., swap link)
+ */
+export interface FeedCallToAction {
+  text: string;
+  url: string;
+}
+
+/**
  * A trade/transaction item from the Feed API
  * @see https://docs.clicker.xyz/api-reference/feed
  */
@@ -262,6 +270,7 @@ export interface FeedItem {
   metrics?: FeedMetrics;
   insights?: Array<{ text: string }>;
   imageUrl?: string;
+  callToActions?: FeedCallToAction[];
 }
 
 /**

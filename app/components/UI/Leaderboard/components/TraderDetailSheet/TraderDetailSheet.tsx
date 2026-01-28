@@ -6,6 +6,7 @@ import {
   Modal,
   ActivityIndicator,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
@@ -41,6 +42,84 @@ import {
 import { LeaderboardTestIds } from '../../Leaderboard.testIds';
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import LeaderboardService from '../../services/LeaderboardService';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../../Bridge/hooks/useSwapBridgeNavigation';
+import { BridgeToken } from '../../../Bridge/types';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { SolScope } from '@metamask/keyring-api';
+import { Hex, CaipChainId } from '@metamask/utils';
+import { getNativeSourceToken } from '../../../Bridge/utils/tokenUtils';
+
+/**
+ * Maps chain names from Clicker API to MetaMask chain IDs
+ */
+const CHAIN_NAME_TO_ID: Record<string, Hex | CaipChainId> = {
+  base: CHAIN_IDS.BASE,
+  ethereum: CHAIN_IDS.MAINNET,
+  solana: SolScope.Mainnet,
+  polygon: CHAIN_IDS.POLYGON,
+  arbitrum: CHAIN_IDS.ARBITRUM,
+  optimism: CHAIN_IDS.OPTIMISM,
+  avalanche: CHAIN_IDS.AVALANCHE,
+  bsc: CHAIN_IDS.BSC,
+};
+
+/**
+ * Parses the swap URL from callToActions to extract the input currency
+ */
+const parseInputCurrencyFromUrl = (url: string): string | null => {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.searchParams.get('inputCurrency');
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Builds token objects for swap navigation from a trade item
+ */
+const buildSwapTokens = (
+  trade: FeedItem,
+): { sourceToken: BridgeToken | undefined; destToken: BridgeToken | undefined } => {
+  const chainName = trade.metadata?.tokenChain?.toLowerCase();
+  const chainId = chainName ? CHAIN_NAME_TO_ID[chainName] : undefined;
+
+  if (!chainId) {
+    return { sourceToken: undefined, destToken: undefined };
+  }
+
+  // Get the input currency from the swap URL (typically ETH or native token)
+  const swapUrl = trade.callToActions?.[0]?.url;
+  const inputCurrency = swapUrl ? parseInputCurrencyFromUrl(swapUrl) : null;
+
+  // Source token: Use native token for the chain (e.g., ETH on Base)
+  // If inputCurrency is "ETH" or similar native symbol, use getNativeSourceToken
+  let sourceToken: BridgeToken | undefined;
+  if (inputCurrency === 'ETH' || !inputCurrency) {
+    sourceToken = getNativeSourceToken(chainId);
+  } else {
+    // For non-native input currencies, we'd need more info
+    // For now, default to native token
+    sourceToken = getNativeSourceToken(chainId);
+  }
+
+  // Destination token: The token being bought
+  const destToken: BridgeToken | undefined = trade.metadata?.tokenAddress
+    ? {
+        address: trade.metadata.tokenAddress,
+        symbol: trade.metadata.tokenSymbol || 'TOKEN',
+        name: trade.metadata.tokenName || trade.metadata.tokenSymbol || 'Token',
+        decimals: 18, // Default to 18, most common for ERC-20
+        chainId,
+        image: trade.imageUrl,
+      }
+    : undefined;
+
+  return { sourceToken, destToken };
+};
 
 interface TraderDetailSheetProps {
   /** The trader to display details for */
@@ -68,6 +147,32 @@ const TraderDetailSheet: React.FC<TraderDetailSheetProps> = ({
 
   const userAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
+  );
+
+  // Setup swap navigation for copy trade functionality
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenView,
+    sourcePage: 'TraderDetailSheet',
+  });
+
+  /**
+   * Handles the "Copy Trade" button press
+   * Navigates to the swap page with pre-filled tokens
+   */
+  const handleCopyTrade = useCallback(
+    (trade: FeedItem) => {
+      const { sourceToken, destToken } = buildSwapTokens(trade);
+
+      if (sourceToken && destToken) {
+        // Close the sheet first, then navigate
+        onClose();
+        // Small delay to allow sheet to close before navigation
+        setTimeout(() => {
+          goToSwaps(sourceToken, destToken);
+        }, 300);
+      }
+    },
+    [goToSwaps, onClose],
   );
 
   // Fetch follow status when trader changes or sheet becomes visible
@@ -497,22 +602,45 @@ const TraderDetailSheet: React.FC<TraderDetailSheetProps> = ({
                             </Box>
                           </Box>
 
-                          {/* Trade value */}
-                          {usdValue !== undefined && (
-                            <Text
-                              variant={TextVariant.BodySm}
-                              twClassName={
-                                isBuy
-                                  ? 'text-success-default'
-                                  : isSell
-                                    ? 'text-error-default'
-                                    : ''
-                              }
+                          {/* Copy Trade button - only show for buys */}
+                          {isBuy && trade.metadata?.tokenAddress && (
+                            <TouchableOpacity
+                              onPress={() => handleCopyTrade(trade)}
+                              style={tw.style(
+                                'bg-success-default rounded-lg px-2 py-0.5 mr-3',
+                              )}
                             >
-                              {isBuy ? '+' : isSell ? '-' : ''}
-                              {formatUsdValue(usdValue)}
-                            </Text>
+                              <Text
+                                variant={TextVariant.BodyXs}
+                                twClassName="text-primary-inverse font-medium"
+                              >
+                                {strings('leaderboard.copy_trade')}
+                              </Text>
+                            </TouchableOpacity>
                           )}
+
+                          {/* Trade value and copy button */}
+                          <Box
+                            flexDirection={BoxFlexDirection.Row}
+                            alignItems={BoxAlignItems.Center}
+                            gap={2}
+                          >
+                            {usdValue !== undefined && (
+                              <Text
+                                variant={TextVariant.BodySm}
+                                twClassName={
+                                  isBuy
+                                    ? 'text-success-default'
+                                    : isSell
+                                      ? 'text-error-default'
+                                      : ''
+                                }
+                              >
+                                {isBuy ? '+' : isSell ? '-' : ''}
+                                {formatUsdValue(usdValue)}
+                              </Text>
+                            )}
+                          </Box>
                         </Box>
                       );
                     })}

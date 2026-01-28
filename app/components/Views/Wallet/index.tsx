@@ -182,6 +182,7 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
+import LeaderboardCTA from '../../UI/Leaderboard/components/LeaderboardCTA';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -702,6 +703,13 @@ const Wallet = ({
     sendNonEvmAsset,
     ///: END:ONLY_INCLUDE_IF
   ]);
+
+  /**
+   * Navigate to Leaderboard when CTA is pressed
+   */
+  const handleLeaderboardCTAPress = useCallback(() => {
+    navigate(Routes.LEADERBOARD.ROOT);
+  }, [navigate]);
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -1294,6 +1302,13 @@ const Wallet = ({
           swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
           sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
           receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+        />
+
+        {/* Leaderboard CTA Banner */}
+        <LeaderboardCTA
+          onPress={handleLeaderboardCTAPress}
+          maxTraders={3}
+          testID={WalletViewSelectorsIDs.LEADERBOARD_CTA}
         />
 
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}

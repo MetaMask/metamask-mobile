@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Image, TouchableOpacity } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import LinearGradient from 'react-native-linear-gradient';
 import {
   Box,
   Text,
@@ -18,6 +19,21 @@ import { strings } from '../../../../../../locales/i18n';
 import { LeaderboardTrader } from '../../types';
 import LeaderboardService from '../../services/LeaderboardService';
 import { formatPnL } from '../../utils/formatters';
+
+const styles = StyleSheet.create({
+  gradient: {
+    marginHorizontal: 16,
+    marginVertical: 12,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  contentContainer: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+});
 
 interface LeaderboardCTAProps {
   /** Callback when the CTA is pressed */
@@ -69,71 +85,75 @@ const LeaderboardCTA: React.FC<LeaderboardCTAProps> = ({
   const topTraderPnL = topTraders[0]?.metadata.pnl30d ?? 0;
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.7} testID={testID}>
-      <Box
-        twClassName="mx-4 my-3 p-4 bg-muted rounded-xl"
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.8} testID={testID}>
+      <LinearGradient
+        colors={['#6366F1', '#8B5CF6', '#A855F7']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.gradient}
       >
-        {/* Left side - Avatars and text */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1"
-        >
-          {/* Overlapping avatars */}
-          <View style={tw.style('flex-row mr-3')}>
-            {topTraders.map((trader, index) => (
-              <View
-                key={trader.id}
-                style={tw.style(
-                  'w-8 h-8 rounded-full overflow-hidden border-2 border-default',
-                  index > 0 && '-ml-2',
-                )}
-              >
-                {trader.images.xs || trader.images.sm ? (
-                  <Image
-                    source={{ uri: trader.images.xs || trader.images.sm || '' }}
-                    style={tw.style('w-full h-full')}
-                  />
-                ) : (
-                  <View
-                    style={tw.style(
-                      'w-full h-full bg-alternative items-center justify-center',
-                    )}
-                  >
-                    <Icon
-                      name={IconName.User}
-                      size={IconSize.Sm}
-                      color={IconColor.Muted}
+        <View style={styles.contentContainer}>
+          {/* Left side - Avatars and text */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="flex-1"
+          >
+            {/* Overlapping avatars */}
+            <View style={tw.style('flex-row mr-3')}>
+              {topTraders.map((trader, index) => (
+                <View
+                  key={trader.id}
+                  style={tw.style(
+                    'w-8 h-8 rounded-full overflow-hidden border-2 border-white',
+                    index > 0 && '-ml-2',
+                  )}
+                >
+                  {trader.images.xs || trader.images.sm ? (
+                    <Image
+                      source={{ uri: trader.images.xs || trader.images.sm || '' }}
+                      style={tw.style('w-full h-full')}
                     />
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
+                  ) : (
+                    <View
+                      style={tw.style(
+                        'w-full h-full bg-white/20 items-center justify-center',
+                      )}
+                    >
+                      <Icon
+                        name={IconName.User}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                      />
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
 
-          {/* Text content */}
-          <Box twClassName="flex-1">
-            <Text variant={TextVariant.BodyMd}>
-              {strings('leaderboard.cta_title')}
-            </Text>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {strings('leaderboard.cta_subtitle', {
-                pnl: formatPnL(topTraderPnL),
-              })}
-            </Text>
+            {/* Text content */}
+            <Box twClassName="flex-1">
+              <Text variant={TextVariant.BodyMd} twClassName="text-white font-semibold">
+                {strings('leaderboard.cta_title')}
+              </Text>
+              <Text variant={TextVariant.BodySm} twClassName="text-white/80">
+                {strings('leaderboard.cta_subtitle', {
+                  pnl: formatPnL(topTraderPnL),
+                })}
+              </Text>
+            </Box>
           </Box>
-        </Box>
 
-        {/* Right side - Arrow icon */}
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Md}
-          color={IconColor.Muted}
-        />
-      </Box>
+          {/* Right side - Arrow icon */}
+          <View style={tw.style('bg-white/20 rounded-full p-2')}>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.Inverse}
+            />
+          </View>
+        </View>
+      </LinearGradient>
     </TouchableOpacity>
   );
 };

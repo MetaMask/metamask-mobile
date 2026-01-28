@@ -23,6 +23,7 @@ import LeaderboardHeader from '../../components/LeaderboardHeader';
 import LeaderboardRow from '../../components/LeaderboardRow';
 import LeaderboardEmpty from '../../components/LeaderboardEmpty';
 import LeaderboardError from '../../components/LeaderboardError';
+import LeaderboardPodium from '../../components/LeaderboardPodium';
 import TraderDetailSheet from '../../components/TraderDetailSheet';
 import ChainFilter from '../../components/ChainFilter';
 import { LeaderboardTestIds } from '../../Leaderboard.testIds';
@@ -103,6 +104,10 @@ const LeaderboardScreen: React.FC = () => {
       return <LeaderboardEmpty />;
     }
 
+    // Split traders: top 3 for podium, rest for table
+    const podiumTraders = traders.slice(0, 3);
+    const tableTraders = traders.slice(3);
+
     // Normal content
     return (
       <ConditionalScrollView
@@ -118,13 +123,23 @@ const LeaderboardScreen: React.FC = () => {
           ),
         }}
       >
+        {/* Top 3 Podium */}
+        {podiumTraders.length >= 3 && (
+          <LeaderboardPodium
+            traders={podiumTraders}
+            onTraderPress={handleTraderPress}
+            testID={LeaderboardTestIds.PODIUM}
+          />
+        )}
+
+        {/* Remaining traders table */}
         <Box twClassName="px-4" testID={LeaderboardTestIds.CONTAINER}>
-          <LeaderboardHeader />
-          {traders.map((trader, index) => (
+          {tableTraders.length > 0 && <LeaderboardHeader />}
+          {tableTraders.map((trader, index) => (
             <LeaderboardRow
               key={trader.id}
               trader={trader}
-              rank={index + 1}
+              rank={index + 4}
               onPress={handleTraderPress}
             />
           ))}
