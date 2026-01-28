@@ -7,7 +7,6 @@ import { BigNumber } from 'bignumber.js';
 import BN from 'bnjs4';
 import Engine from '../../../../core/Engine';
 import { useAccountNativeBalance } from '../../../Views/confirmations/hooks/useAccountNativeBalance';
-import { selectMinSolBalance } from '../../../../selectors/bridgeController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import { hexToBN } from '../../../../util/number';
@@ -50,7 +49,6 @@ export const useNeedsGasFaucet = (
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const minSolBalance = useSelector(selectMinSolBalance);
 
   // Determine chain type
   const chainInfo = useMemo(() => {
@@ -167,25 +165,16 @@ export const useNeedsGasFaucet = (
     try {
       const balance = new BigNumber(solanaBalance.atomicBalance.toString());
 
-      // Calculate minimum required: transaction fee + rent exemption
+      // Calculate minimum required: transaction fee
       const txFee = new BigNumber(SOLANA_TX_FEE_LAMPORTS);
 
-      // Convert minSolBalance from SOL to lamports
-      const minSolInLamports = minSolBalance
-        ? new BigNumber(minSolBalance).times(
-            new BigNumber(10).pow(SOL_DECIMALS),
-          )
-        : new BigNumber(0);
-
-      const totalRequired = txFee.plus(minSolInLamports);
-
-      // User needs faucet if balance is less than total required
-      return balance.lt(totalRequired);
+      // User needs faucet if balance is less than transaction fee
+      return balance.lt(txFee);
     } catch (err) {
       console.error('Error checking Solana faucet need:', err);
       return true; // Assume needs faucet on error
     }
-  }, [solanaBalance?.atomicBalance, minSolBalance]);
+  }, [solanaBalance?.atomicBalance]);
 
   /**
    * Main function to check if faucet is needed
