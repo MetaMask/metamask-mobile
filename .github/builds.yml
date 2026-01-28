@@ -230,7 +230,7 @@ builds:
       earnMusdConversionRewardsUiEnabled: true
       earnMerklCampaignClaiming: true
 
-  # Local development (primarily for .js.env reference)
+  # Local development / Expo development build (Runway .app for simulator)
   main-dev:
     github_environment: build-dev
     env:
@@ -245,6 +245,8 @@ builds:
       RAMP_INTERNAL_BUILD: "true"
       IS_TEST: "false"
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
+      # iOS: build for simulator (Expo dev build; no signing required)
+      IS_SIM_BUILD: "true"
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags:
@@ -319,7 +321,7 @@ builds:
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
 
-  # Flask local development (primarily for .js.env reference)
+  # Flask local development / Expo development build (Runway .app for simulator)
   flask-dev:
     github_environment: build-dev
     env:
@@ -334,6 +336,8 @@ builds:
       RAMP_INTERNAL_BUILD: "true"
       IS_TEST: "false"
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
+      # iOS: build for simulator (Expo dev build; no signing required)
+      IS_SIM_BUILD: "true"
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags:
@@ -381,7 +385,7 @@ builds:
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
 
-  # QA dev build
+  # QA dev build / Expo development build (Runway .app for simulator)
   qa-dev:
     github_environment: build-qa
     env:
@@ -396,6 +400,8 @@ builds:
       RAMP_INTERNAL_BUILD: "true"
       IS_TEST: "false"
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
+      # iOS: build for simulator (Expo dev build; no signing required)
+      IS_SIM_BUILD: "true"
     secrets:
       <<: *secrets
       # QA uses QA Segment project
