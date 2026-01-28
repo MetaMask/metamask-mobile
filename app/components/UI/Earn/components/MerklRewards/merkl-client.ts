@@ -60,7 +60,9 @@ const buildRewardsUrl = (
 ): string => {
   // Support multiple chain IDs (comma-separated)
   const chainIdParam = Array.isArray(chainIds)
-    ? chainIds.map((id) => Number(id)).join(',')
+    ? chainIds
+        .map((id) => Number(id === '0xe709' ? CHAIN_IDS.LINEA_MAINNET : id))
+        .join(',')
     : Number(chainIds);
 
   let url = `${MERKL_API_BASE_URL}/users/${userAddress}/rewards?chainId=${chainIdParam}`;

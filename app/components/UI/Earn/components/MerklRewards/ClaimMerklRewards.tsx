@@ -11,6 +11,7 @@ import {
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useMerklClaim } from './hooks/useMerklClaim';
+import { usePendingMerklClaim } from './hooks/usePendingMerklClaim';
 import { TokenI } from '../../../Tokens/types';
 import styleSheet from './MerklRewards.styles';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -36,6 +37,11 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
   );
 
   const { claimRewards, isClaiming, error: claimError } = useMerklClaim(asset);
+  const { hasPendingClaim } = usePendingMerklClaim();
+
+  // Show loading if currently claiming OR if there's an in-flight claim transaction
+  // (e.g., user navigated away and came back while tx is still processing)
+  const isLoading = isClaiming || hasPendingClaim;
 
   const handleClaim = async () => {
     const buttonText = strings('asset_overview.merkl_rewards.claim');
@@ -73,8 +79,8 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
         size={ButtonSize.Lg}
         twClassName="w-full"
         onPress={handleClaim}
-        isDisabled={isClaiming}
-        isLoading={isClaiming}
+        isDisabled={isLoading}
+        isLoading={isLoading}
       >
         {strings('asset_overview.merkl_rewards.claim')}
       </Button>
