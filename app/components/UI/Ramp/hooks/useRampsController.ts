@@ -1,8 +1,3 @@
-import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
-import { selectSelectedProvider } from '../../../../selectors/rampsController';
-import type { Provider } from '@metamask/ramps-controller';
 import {
   useRampsUserRegion,
   type UseRampsUserRegionResult,
@@ -16,6 +11,10 @@ import {
   useRampsCountries,
   type UseRampsCountriesResult,
 } from './useRampsCountries';
+import {
+  useRampsPaymentMethods,
+  type UseRampsPaymentMethodsResult,
+} from './useRampsPaymentMethods';
 
 /**
  * Options for the useRampsController hook.
@@ -55,8 +54,8 @@ export interface UseRampsControllerResult {
   setUserRegion: UseRampsUserRegionResult['setUserRegion'];
 
   // Selected provider
-  selectedProvider: Provider | null;
-  setSelectedProvider: (provider: Provider | null) => void;
+  selectedProvider: UseRampsProvidersResult['selectedProvider'];
+  setSelectedProvider: UseRampsProvidersResult['setSelectedProvider'];
 
   // Providers
   providers: UseRampsProvidersResult['providers'];
@@ -65,6 +64,8 @@ export interface UseRampsControllerResult {
 
   // Tokens
   tokens: UseRampsTokensResult['tokens'];
+  selectedToken: UseRampsTokensResult['selectedToken'];
+  setSelectedToken: UseRampsTokensResult['setSelectedToken'];
   tokensLoading: UseRampsTokensResult['isLoading'];
   tokensError: UseRampsTokensResult['error'];
 
@@ -72,6 +73,13 @@ export interface UseRampsControllerResult {
   countries: UseRampsCountriesResult['countries'];
   countriesLoading: UseRampsCountriesResult['isLoading'];
   countriesError: UseRampsCountriesResult['error'];
+
+  // Payment methods
+  paymentMethods: UseRampsPaymentMethodsResult['paymentMethods'];
+  selectedPaymentMethod: UseRampsPaymentMethodsResult['selectedPaymentMethod'];
+  setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
+  paymentMethodsLoading: UseRampsPaymentMethodsResult['isLoading'];
+  paymentMethodsError: UseRampsPaymentMethodsResult['error'];
 }
 
 /**
@@ -91,17 +99,17 @@ export interface UseRampsControllerResult {
  *   fetchUserRegion,
  *   setUserRegion,
  *
- *   // Selected provider
+ *   // Providers
  *   selectedProvider,
  *   setSelectedProvider,
- *
- *   // Providers
  *   providers,
  *   providersLoading,
  *   providersError,
  *
  *   // Tokens
  *   tokens,
+ *   selectedToken,
+ *   setSelectedToken,
  *   tokensLoading,
  *   tokensError,
  *
@@ -109,6 +117,13 @@ export interface UseRampsControllerResult {
  *   countries,
  *   countriesLoading,
  *   countriesError,
+ *
+ *   // Payment methods
+ *   paymentMethods,
+ *   selectedPaymentMethod,
+ *   setSelectedPaymentMethod,
+ *   paymentMethodsLoading,
+ *   paymentMethodsError,
  *
  * } = useRampsController({ action: 'buy' });
  * ```
@@ -124,24 +139,18 @@ export function useRampsController(
     setUserRegion,
   } = useRampsUserRegion();
 
-  const selectedProvider = useSelector(selectSelectedProvider);
-
-  const setSelectedProvider = useCallback((provider: Provider | null) => {
-    (
-      Engine.context.RampsController.setSelectedProvider as (
-        providerId: string | null,
-      ) => void
-    )(provider?.id ?? null);
-  }, []);
-
   const {
     providers,
+    selectedProvider,
+    setSelectedProvider,
     isLoading: providersLoading,
     error: providersError,
   } = useRampsProviders(options?.region, options?.providerFilters);
 
   const {
     tokens,
+    selectedToken,
+    setSelectedToken,
     isLoading: tokensLoading,
     error: tokensError,
   } = useRampsTokens(options?.region, options?.action);
@@ -151,6 +160,14 @@ export function useRampsController(
     isLoading: countriesLoading,
     error: countriesError,
   } = useRampsCountries();
+
+  const {
+    paymentMethods,
+    selectedPaymentMethod,
+    setSelectedPaymentMethod,
+    isLoading: paymentMethodsLoading,
+    error: paymentMethodsError,
+  } = useRampsPaymentMethods();
 
   return {
     // User region
@@ -170,6 +187,8 @@ export function useRampsController(
 
     // Tokens
     tokens,
+    selectedToken,
+    setSelectedToken,
     tokensLoading,
     tokensError,
 
@@ -177,6 +196,13 @@ export function useRampsController(
     countries,
     countriesLoading,
     countriesError,
+
+    // Payment methods
+    paymentMethods,
+    selectedPaymentMethod,
+    setSelectedPaymentMethod,
+    paymentMethodsLoading,
+    paymentMethodsError,
   };
 }
 

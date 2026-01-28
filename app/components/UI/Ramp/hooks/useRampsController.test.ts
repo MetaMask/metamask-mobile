@@ -6,6 +6,7 @@ import { useRampsController } from './useRampsController';
 import { useRampsProviders } from './useRampsProviders';
 import { useRampsTokens } from './useRampsTokens';
 import { useRampsCountries } from './useRampsCountries';
+import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
@@ -27,21 +28,11 @@ jest.mock('./useRampsUserRegion', () => ({
   })),
 }));
 
-jest.mock('../../../../selectors/rampsController', () => ({
-  selectSelectedProvider: jest.fn(() => null),
-}));
-
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      setSelectedProvider: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('./useRampsProviders', () => ({
   useRampsProviders: jest.fn(() => ({
     providers: [],
+    selectedProvider: null,
+    setSelectedProvider: jest.fn(),
     isLoading: false,
     error: null,
   })),
@@ -50,6 +41,8 @@ jest.mock('./useRampsProviders', () => ({
 jest.mock('./useRampsTokens', () => ({
   useRampsTokens: jest.fn(() => ({
     tokens: null,
+    selectedToken: null,
+    setSelectedToken: jest.fn(),
     isLoading: false,
     error: null,
   })),
@@ -58,6 +51,16 @@ jest.mock('./useRampsTokens', () => ({
 jest.mock('./useRampsCountries', () => ({
   useRampsCountries: jest.fn(() => ({
     countries: [],
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock('./useRampsPaymentMethods', () => ({
+  useRampsPaymentMethods: jest.fn(() => ({
+    paymentMethods: [],
+    selectedPaymentMethod: null,
+    setSelectedPaymentMethod: jest.fn(),
     isLoading: false,
     error: null,
   })),
@@ -112,16 +115,23 @@ describe('useRampsController', () => {
       providersLoading: false,
       providersError: null,
       tokens: null,
+      selectedToken: null,
       tokensLoading: false,
       tokensError: null,
       countries: [],
       countriesLoading: false,
       countriesError: null,
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     expect(typeof result.current.fetchUserRegion).toBe('function');
     expect(typeof result.current.setUserRegion).toBe('function');
     expect(typeof result.current.setSelectedProvider).toBe('function');
+    expect(typeof result.current.setSelectedToken).toBe('function');
+    expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
   });
 
   it('passes options to child hooks', () => {
@@ -147,6 +157,7 @@ describe('useRampsController', () => {
     });
     expect(useRampsTokens).toHaveBeenCalledWith('us-ny', 'sell');
     expect(useRampsCountries).toHaveBeenCalled();
+    expect(useRampsPaymentMethods).toHaveBeenCalled();
   });
 
   it('passes undefined options when not provided', () => {
@@ -158,5 +169,6 @@ describe('useRampsController', () => {
     expect(useRampsProviders).toHaveBeenCalledWith(undefined, undefined);
     expect(useRampsTokens).toHaveBeenCalledWith(undefined, undefined);
     expect(useRampsCountries).toHaveBeenCalled();
+    expect(useRampsPaymentMethods).toHaveBeenCalled();
   });
 });

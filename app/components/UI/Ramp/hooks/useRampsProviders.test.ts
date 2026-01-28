@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
@@ -8,6 +8,15 @@ import {
   type UserRegion,
   type Provider as RampProvider,
 } from '@metamask/ramps-controller';
+import Engine from '../../../../core/Engine';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      setSelectedProvider: jest.fn(),
+    },
+  },
+}));
 
 const mockUserRegion: UserRegion = {
   country: {
@@ -65,6 +74,7 @@ const createMockStore = (rampsControllerState = {}) =>
           RampsController: {
             userRegion: null,
             providers: [],
+            selectedProvider: null,
             requests: {},
             ...rampsControllerState,
           },
@@ -84,16 +94,18 @@ describe('useRampsProviders', () => {
   });
 
   describe('return value structure', () => {
-    it('returns providers, isLoading, and error', () => {
+    it('returns providers, selectedProvider, setSelectedProvider, isLoading, and error', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
       expect(result.current).toMatchObject({
         providers: [],
+        selectedProvider: null,
         isLoading: false,
         error: null,
       });
+      expect(typeof result.current.setSelectedProvider).toBe('function');
     });
   });
 
@@ -237,6 +249,56 @@ describe('useRampsProviders', () => {
         wrapper: wrapper(store),
       });
       expect(result.current.error).toBe('Network error');
+    });
+  });
+
+  describe('selectedProvider state', () => {
+    it('returns selectedProvider from state', () => {
+      const store = createMockStore({ selectedProvider: mockProviders[0] });
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+      expect(result.current.selectedProvider).toEqual(mockProviders[0]);
+    });
+
+    it('returns null when selectedProvider is not available', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+      expect(result.current.selectedProvider).toBeNull();
+    });
+  });
+
+  describe('setSelectedProvider', () => {
+    it('calls Engine.context.RampsController.setSelectedProvider with provider id', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      act(() => {
+        result.current.setSelectedProvider(mockProviders[0]);
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenCalledWith(mockProviders[0].id);
+    });
+
+    it('calls Engine.context.RampsController.setSelectedProvider with null when provider is null', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      act(() => {
+        result.current.setSelectedProvider(null);
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenCalledWith(null);
     });
   });
 });

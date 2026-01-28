@@ -1,15 +1,18 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectTokens,
   selectTokensRequest,
+  selectSelectedToken,
 } from '../../../../selectors/rampsController';
 import {
   RequestSelectorResult,
   type RampsControllerState,
 } from '@metamask/ramps-controller';
+import Engine from '../../../../core/Engine';
 
 type TokensResponse = NonNullable<RampsControllerState['tokens']>;
+type SelectedToken = RampsControllerState['selectedToken'];
 
 /**
  * Result returned by the useRampsTokens hook.
@@ -19,6 +22,15 @@ export interface UseRampsTokensResult {
    * The tokens response containing topTokens and allTokens, or null if not loaded.
    */
   tokens: TokensResponse | null;
+  /**
+   * The currently selected token, or null if none selected.
+   */
+  selectedToken: SelectedToken;
+  /**
+   * Sets the selected token by asset ID.
+   * @param assetId - The asset identifier in CAIP-19 format (e.g., "eip155:1/erc20:0x...").
+   */
+  setSelectedToken: (assetId: string) => void;
   /**
    * Whether the tokens request is currently loading.
    */
@@ -42,6 +54,7 @@ export function useRampsTokens(
   action: 'buy' | 'sell' = 'buy',
 ): UseRampsTokensResult {
   const tokens = useSelector(selectTokens);
+  const selectedToken = useSelector(selectSelectedToken);
   const userRegion = useSelector(
     (state: Parameters<typeof selectTokens>[0]) =>
       state.engine.backgroundState.RampsController?.userRegion,
@@ -61,8 +74,18 @@ export function useRampsTokens(
     requestSelector,
   ) as RequestSelectorResult<TokensResponse>;
 
+  const setSelectedToken = useCallback((assetId: string) => {
+    (
+      Engine.context.RampsController.setSelectedToken as (
+        assetId: string,
+      ) => void
+    )(assetId);
+  }, []);
+
   return {
     tokens,
+    selectedToken,
+    setSelectedToken,
     isLoading: isFetching,
     error,
   };

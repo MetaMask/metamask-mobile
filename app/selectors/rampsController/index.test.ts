@@ -5,6 +5,7 @@ import {
   UserRegion,
   type Provider,
   type Country,
+  type PaymentMethod,
 } from '@metamask/ramps-controller';
 import {
   selectUserRegion,
@@ -12,10 +13,14 @@ import {
   selectSelectedProvider,
   selectProviders,
   selectTokens,
+  selectSelectedToken,
   selectCountries,
   selectCountriesRequest,
   selectTokensRequest,
   selectProvidersRequest,
+  selectPaymentMethods,
+  selectSelectedPaymentMethod,
+  selectPaymentMethodsRequest,
   selectRampsControllerState,
 } from './index';
 
@@ -81,30 +86,28 @@ const mockCountries: Country[] = [
   },
 ];
 
-const mockTokens = {
-  topTokens: [
-    {
-      assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-      chainId: 'eip155:1',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      decimals: 18,
-      iconUrl: 'https://example.com/eth-icon.png',
-      tokenSupported: true,
-    },
-  ],
-  allTokens: [
-    {
-      assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-      chainId: 'eip155:1',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      decimals: 18,
-      iconUrl: 'https://example.com/eth-icon.png',
-      tokenSupported: true,
-    },
-  ],
+const mockToken = {
+  assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+  chainId: 'eip155:1',
+  name: 'Ethereum',
+  symbol: 'ETH',
+  decimals: 18,
+  iconUrl: 'https://example.com/eth-icon.png',
+  tokenSupported: true,
 };
+
+const mockTokens = {
+  topTokens: [mockToken],
+  allTokens: [mockToken],
+};
+
+const mockPaymentMethod: PaymentMethod = {
+  id: '/payments/debit-credit-card',
+  name: 'Debit/Credit Card',
+  logo: 'https://example.com/card-logo.png',
+};
+
+const mockPaymentMethods: PaymentMethod[] = [mockPaymentMethod];
 
 describe('RampsController Selectors', () => {
   describe('selectUserRegion', () => {
@@ -256,6 +259,32 @@ describe('RampsController Selectors', () => {
       const state = createMockState();
 
       expect(selectTokens(state)).toBeNull();
+    });
+  });
+
+  describe('selectSelectedToken', () => {
+    it('returns selected token from state', () => {
+      const state = createMockState({ selectedToken: mockToken });
+
+      expect(selectSelectedToken(state)).toEqual(mockToken);
+    });
+
+    it('returns null when selected token is null', () => {
+      const state = createMockState({ selectedToken: null });
+
+      expect(selectSelectedToken(state)).toBeNull();
+    });
+
+    it('returns null when RampsController state is undefined', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RampsController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectSelectedToken(state)).toBeNull();
     });
   });
 
@@ -517,6 +546,119 @@ describe('RampsController Selectors', () => {
       const state = createMockState();
 
       const result = selectProvidersRequest('us-ca')(state);
+
+      expect(result).toEqual({
+        data: null,
+        isFetching: false,
+        error: null,
+      });
+    });
+  });
+
+  describe('selectPaymentMethods', () => {
+    it('returns payment methods from state', () => {
+      const state = createMockState({ paymentMethods: mockPaymentMethods });
+
+      expect(selectPaymentMethods(state)).toEqual(mockPaymentMethods);
+    });
+
+    it('returns empty array when payment methods are not available', () => {
+      const state = createMockState();
+
+      expect(selectPaymentMethods(state)).toEqual([]);
+    });
+  });
+
+  describe('selectSelectedPaymentMethod', () => {
+    it('returns selected payment method from state', () => {
+      const state = createMockState({
+        selectedPaymentMethod: mockPaymentMethod,
+      });
+
+      expect(selectSelectedPaymentMethod(state)).toEqual(mockPaymentMethod);
+    });
+
+    it('returns null when selected payment method is null', () => {
+      const state = createMockState({ selectedPaymentMethod: null });
+
+      expect(selectSelectedPaymentMethod(state)).toBeNull();
+    });
+
+    it('returns null when RampsController state is undefined', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RampsController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectSelectedPaymentMethod(state)).toBeNull();
+    });
+  });
+
+  describe('selectPaymentMethodsRequest', () => {
+    it('returns request state for region, fiat, assetId, and provider', () => {
+      const state = createMockState({
+        requests: {
+          'getPaymentMethods:["us-ca","usd","eip155:1/erc20:0x123","provider-1"]':
+            {
+              status: RequestStatus.SUCCESS,
+              data: { payments: mockPaymentMethods },
+              error: null,
+              timestamp: Date.now(),
+              lastFetchedAt: Date.now(),
+            },
+        },
+      });
+
+      const result = selectPaymentMethodsRequest(
+        'us-ca',
+        'usd',
+        'eip155:1/erc20:0x123',
+        'provider-1',
+      )(state);
+
+      expect(result).toEqual({
+        data: { payments: mockPaymentMethods },
+        isFetching: false,
+        error: null,
+      });
+    });
+
+    it('normalizes region and fiat to lowercase and trims', () => {
+      const state = createMockState({
+        requests: {
+          'getPaymentMethods:["us-ca","usd","eip155:1/erc20:0x123","provider-1"]':
+            {
+              status: RequestStatus.SUCCESS,
+              data: { payments: mockPaymentMethods },
+              error: null,
+              timestamp: Date.now(),
+              lastFetchedAt: Date.now(),
+            },
+        },
+      });
+
+      const result = selectPaymentMethodsRequest(
+        '  US-CA  ',
+        '  USD  ',
+        'eip155:1/erc20:0x123',
+        'provider-1',
+      )(state);
+
+      expect(result.data).toEqual({ payments: mockPaymentMethods });
+    });
+
+    it('returns default state when request does not exist', () => {
+      const state = createMockState();
+
+      const result = selectPaymentMethodsRequest(
+        'us-ca',
+        'usd',
+        'eip155:1/erc20:0x123',
+        'provider-1',
+      )(state);
 
       expect(result).toEqual({
         data: null,

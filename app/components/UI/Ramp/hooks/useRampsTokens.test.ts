@@ -1,9 +1,18 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsTokens } from './useRampsTokens';
 import { RequestStatus, type UserRegion } from '@metamask/ramps-controller';
+import Engine from '../../../../core/Engine';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      setSelectedToken: jest.fn(),
+    },
+  },
+}));
 
 const mockUserRegion: UserRegion = {
   country: {
@@ -20,6 +29,16 @@ const mockUserRegion: UserRegion = {
   },
   state: { stateId: 'CA', name: 'California' },
   regionCode: 'us-ca',
+};
+
+const mockSelectedToken = {
+  assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+  chainId: 'eip155:1',
+  symbol: 'ETH',
+  name: 'Ethereum',
+  decimals: 18,
+  iconUrl: 'https://example.com/eth-icon.png',
+  tokenSupported: true,
 };
 
 const mockTokens = {
@@ -42,6 +61,7 @@ const createMockStore = (rampsControllerState = {}) =>
           RampsController: {
             userRegion: null,
             tokens: null,
+            selectedToken: null,
             requests: {},
             ...rampsControllerState,
           },
@@ -61,16 +81,18 @@ describe('useRampsTokens', () => {
   });
 
   describe('return value structure', () => {
-    it('returns tokens, isLoading, and error', () => {
+    it('returns tokens, selectedToken, setSelectedToken, isLoading, and error', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsTokens(), {
         wrapper: wrapper(store),
       });
       expect(result.current).toMatchObject({
         tokens: null,
+        selectedToken: null,
         isLoading: false,
         error: null,
       });
+      expect(typeof result.current.setSelectedToken).toBe('function');
     });
   });
 
@@ -232,6 +254,41 @@ describe('useRampsTokens', () => {
         wrapper: wrapper(store),
       });
       expect(result.current.error).toBe('Network error');
+    });
+  });
+
+  describe('selectedToken state', () => {
+    it('returns selectedToken from state', () => {
+      const store = createMockStore({ selectedToken: mockSelectedToken });
+      const { result } = renderHook(() => useRampsTokens(), {
+        wrapper: wrapper(store),
+      });
+      expect(result.current.selectedToken).toEqual(mockSelectedToken);
+    });
+
+    it('returns null when selectedToken is not available', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsTokens(), {
+        wrapper: wrapper(store),
+      });
+      expect(result.current.selectedToken).toBeNull();
+    });
+  });
+
+  describe('setSelectedToken', () => {
+    it('calls Engine.context.RampsController.setSelectedToken with assetId', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsTokens(), {
+        wrapper: wrapper(store),
+      });
+
+      act(() => {
+        result.current.setSelectedToken(mockSelectedToken.assetId);
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedToken,
+      ).toHaveBeenCalledWith(mockSelectedToken.assetId);
     });
   });
 });
