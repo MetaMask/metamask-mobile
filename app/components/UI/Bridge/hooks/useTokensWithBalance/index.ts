@@ -22,7 +22,8 @@ import { selectTokenSortConfig } from '../../../../../selectors/preferencesContr
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
-import { renderNumber, addCurrencySymbol } from '../../../../../util/number';
+import { renderNumber } from '../../../../../util/number';
+import { formatCurrency } from '../../utils/currencyUtils';
 import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
@@ -228,14 +229,15 @@ export const useTokensWithBalance: ({
         const nonEvmBalance = renderNumber(token.balance ?? '0');
         const chainId = token.chainId as Hex | CaipChainId;
 
-        const evmBalanceFiat = evmBalances?.[i]?.balanceFiat;
-        const nonEvmBalanceFiat = addCurrencySymbol(
-          Number(token.balanceFiat ?? 0),
-          currentCurrency,
-        );
-
         const evmTokenFiatAmount = evmBalances?.[i]?.tokenFiatAmount;
         const nonEvmTokenFiatAmount = Number(token.balanceFiat);
+        const tokenFiatAmount = evmTokenFiatAmount ?? nonEvmTokenFiatAmount;
+
+        // Use formatCurrency for consistent decimal formatting across all currencies
+        const balanceFiat = formatCurrency(
+          tokenFiatAmount ?? 0,
+          currentCurrency,
+        );
 
         return {
           address: token.address,
@@ -248,9 +250,9 @@ export const useTokensWithBalance: ({
               formatAddressToAssetId(token.address, chainId),
               isNonEvmChainId(chainId),
             ) || token.image,
-          tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
+          tokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
-          balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
+          balanceFiat,
           accountType: token.accountType,
         };
       });
