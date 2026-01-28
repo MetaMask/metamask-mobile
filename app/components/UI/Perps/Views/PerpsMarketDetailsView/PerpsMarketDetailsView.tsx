@@ -819,6 +819,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleSetStopLossFromBanner = useCallback(async () => {
     if (!existingPosition || !suggestedStopLossPrice) return;
 
+    // Capture symbol before async to detect market changes during API call
+    const originalSymbol = existingPosition.symbol;
+
     setIsSettingStopLoss(true);
 
     try {
@@ -843,6 +846,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         return;
       }
 
+      // Staleness check: user may have navigated to a different market during API call
+      if (originalSymbol !== market?.symbol) {
+        return;
+      }
+
       // Trigger success state to start fade-out animation
       setIsStopLossSuccess(true);
 
@@ -863,7 +871,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     } finally {
       setIsSettingStopLoss(false);
     }
-  }, [existingPosition, suggestedStopLossPrice, handleUpdateTPSL, track]);
+  }, [
+    existingPosition,
+    suggestedStopLossPrice,
+    handleUpdateTPSL,
+    track,
+    market?.symbol,
+  ]);
 
   // Handler for when banner fade-out animation completes
   const handleBannerFadeOutComplete = useCallback(() => {
