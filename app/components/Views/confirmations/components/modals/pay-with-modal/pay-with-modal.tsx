@@ -14,6 +14,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
+import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 
 export function PayWithModal() {
   const { payToken, setPayToken } = useTransactionPayToken();
@@ -21,21 +22,31 @@ export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
+  const { onPaymentTokenChange: onMusdPaymentTokenChange } =
+    useMusdPaymentToken();
 
-  const handleClose = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
+  const close = useCallback((onClosed?: () => void) => {
+    // Called after the bottom sheet's closing animation completes.
+    bottomSheetRef.current?.onCloseBottomSheet(onClosed);
   }, []);
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      setPayToken({
-        address: token.address as Hex,
-        chainId: token.chainId as Hex,
-      });
+      if (
+        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
+      ) {
+        close(() => onMusdPaymentTokenChange(token));
+        return;
+      }
 
-      handleClose();
+      close(() => {
+        setPayToken({
+          address: token.address as Hex,
+          chainId: token.chainId as Hex,
+        });
+      });
     },
-    [handleClose, setPayToken],
+    [close, onMusdPaymentTokenChange, setPayToken, transactionMeta],
   );
 
   const tokenFilter = useCallback(
@@ -63,10 +74,7 @@ export function PayWithModal() {
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
     >
-      <HeaderCenter
-        title={strings('pay_with_modal.title')}
-        onClose={handleClose}
-      />
+      <HeaderCenter title={strings('pay_with_modal.title')} onClose={close} />
       <Asset
         includeNoBalance
         hideNfts

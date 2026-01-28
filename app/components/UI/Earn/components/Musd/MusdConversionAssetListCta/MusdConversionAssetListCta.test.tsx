@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import { Hex } from '@metamask/utils';
 
 jest.mock('../../../hooks/useMusdConversionTokens');
 jest.mock('../../../hooks/useMusdConversion');
@@ -124,7 +123,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByTestId } = renderWithProvider(
@@ -149,7 +147,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -169,7 +166,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -210,7 +206,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -243,7 +238,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -276,7 +270,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { queryByTestId } = renderWithProvider(
@@ -317,7 +310,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
     });
 
@@ -355,7 +347,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -368,7 +359,6 @@ describe('MusdConversionAssetListCta', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: '0x1',
           preferredPaymentToken: {
             address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
             chainId: '0x1',
@@ -406,8 +396,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        // Make outputChainId deterministic: mirror payment token chain
-        getMusdOutputChainId: jest.fn((chainId) => chainId as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -420,7 +408,6 @@ describe('MusdConversionAssetListCta', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: lineaToken.chainId,
           preferredPaymentToken: {
             address: toChecksumAddress(lineaToken.address),
             chainId: lineaToken.chainId,
@@ -458,7 +445,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => chainId as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -471,7 +457,6 @@ describe('MusdConversionAssetListCta', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: firstToken.chainId,
           preferredPaymentToken: {
             address: toChecksumAddress(firstToken.address),
             chainId: firstToken.chainId,
@@ -495,7 +480,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -508,7 +492,6 @@ describe('MusdConversionAssetListCta', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: '0x1',
           preferredPaymentToken: {
             address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
             chainId: '0x1',
@@ -527,7 +510,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -555,7 +537,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
     });
 
@@ -611,7 +592,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
     });
 
@@ -675,7 +655,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
     });
 
@@ -805,7 +784,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -855,7 +833,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -906,7 +883,6 @@ describe('MusdConversionAssetListCta', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {

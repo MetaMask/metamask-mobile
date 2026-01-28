@@ -1,3 +1,4 @@
+import { Hex } from '@metamask/utils';
 import React, { useCallback, useEffect } from 'react';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
@@ -12,11 +13,17 @@ import { PayWithRow } from '../../rows/pay-with-row';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useMusdConversionQuoteTrace } from '../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace';
 import { endTrace, TraceName } from '../../../../../../util/trace';
 
 interface MusdOverrideContentProps {
   amountHuman: string;
+}
+
+interface MusdConversionInfoContentProps {
+  outputChainId: Hex;
+  preferredPaymentToken: MusdConversionConfig['preferredPaymentToken'];
 }
 
 const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
@@ -42,10 +49,10 @@ const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
   );
 };
 
-export const MusdConversionInfo = () => {
-  const { outputChainId, preferredPaymentToken } =
-    useParams<MusdConversionConfig>();
-
+const MusdConversionInfoContent = ({
+  outputChainId,
+  preferredPaymentToken,
+}: MusdConversionInfoContentProps) => {
   const { decimals, name, symbol } = MUSD_TOKEN;
 
   const tokenToAddAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN?.[outputChainId];
@@ -89,6 +96,23 @@ export const MusdConversionInfo = () => {
       overrideContent={renderOverrideContent}
       hasMax
       onAmountSubmit={startQuoteTrace}
+    />
+  );
+};
+
+export const MusdConversionInfo = () => {
+  const { preferredPaymentToken } = useParams<MusdConversionConfig>();
+  const transactionMeta = useTransactionMetadataRequest();
+  const outputChainId = transactionMeta?.chainId;
+
+  if (!transactionMeta || !outputChainId) {
+    return null;
+  }
+
+  return (
+    <MusdConversionInfoContent
+      outputChainId={outputChainId}
+      preferredPaymentToken={preferredPaymentToken}
     />
   );
 };

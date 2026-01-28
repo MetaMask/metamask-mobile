@@ -33,14 +33,10 @@ interface EarnMusdConversionEducationViewRouteParams {
   /**
    * The payment token to preselect in the confirmation screen
    */
-  preferredPaymentToken?: {
+  preferredPaymentToken: {
     address: Hex;
     chainId: Hex;
   };
-  /**
-   * The output token's chainId
-   */
-  outputChainId: Hex;
 }
 
 /**
@@ -52,7 +48,7 @@ const EarnMusdConversionEducationView = () => {
 
   const { initiateConversion } = useMusdConversion();
 
-  const { preferredPaymentToken, outputChainId } =
+  const { preferredPaymentToken } =
     useParams<EarnMusdConversionEducationViewRouteParams>();
 
   const { styles } = useStyles(styleSheet, {});
@@ -143,9 +139,8 @@ const EarnMusdConversionEducationView = () => {
       dispatch(setMusdConversionEducationSeen(true));
 
       // Proceed to conversion flow if we have the required params
-      if (outputChainId && preferredPaymentToken) {
+      if (preferredPaymentToken) {
         await initiateConversion({
-          outputChainId,
           preferredPaymentToken,
           skipEducationCheck: true,
         });
@@ -154,7 +149,7 @@ const EarnMusdConversionEducationView = () => {
 
       Logger.error(
         new Error('Missing required parameters'),
-        '[mUSD Conversion Education] Cannot proceed without outputChainId and preferredPaymentToken',
+        '[mUSD Conversion Education] Cannot proceed without preferredPaymentToken',
       );
     } catch (error) {
       Logger.error(
@@ -165,7 +160,6 @@ const EarnMusdConversionEducationView = () => {
   }, [
     dispatch,
     initiateConversion,
-    outputChainId,
     preferredPaymentToken,
     submitContinuePressedEvent,
   ]);

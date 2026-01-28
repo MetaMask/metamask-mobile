@@ -45,7 +45,7 @@ const MusdConversionAssetListCta = () => {
 
   const { goToBuy } = useRampNavigation();
 
-  const { tokens, getMusdOutputChainId } = useMusdConversionTokens();
+  const { tokens } = useMusdConversionTokens();
 
   const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
@@ -124,7 +124,6 @@ const MusdConversionAssetListCta = () => {
           address: toChecksumAddress(paymentToken.address),
           chainId: toHex(paymentToken.chainId),
         },
-        outputChainId: getMusdOutputChainId(paymentToken.chainId),
       });
     } catch (error) {
       Logger.error(

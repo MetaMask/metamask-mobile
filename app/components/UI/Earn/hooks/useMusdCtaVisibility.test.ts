@@ -183,7 +183,6 @@ describe('useMusdCtaVisibility', () => {
       filterAllowedTokens: jest.fn(),
       isConversionToken: jest.fn(),
       isMusdSupportedOnChain: jest.fn(),
-      getMusdOutputChainId: jest.fn(),
     });
     mockUseMusdConversionEligibility.mockReturnValue({
       isEligible: true,
@@ -862,7 +861,6 @@ describe('useMusdCtaVisibility', () => {
           filterAllowedTokens: jest.fn(),
           isConversionToken: jest.fn().mockReturnValue(true),
           isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-          getMusdOutputChainId: jest.fn().mockReturnValue(CHAIN_IDS.MAINNET),
         });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
@@ -963,7 +961,6 @@ describe('useMusdCtaVisibility', () => {
           filterAllowedTokens: jest.fn(),
           isConversionToken: jest.fn(),
           isMusdSupportedOnChain: jest.fn(),
-          getMusdOutputChainId: jest.fn(),
         });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
@@ -986,7 +983,6 @@ describe('useMusdCtaVisibility', () => {
           filterAllowedTokens: jest.fn(),
           isConversionToken: jest.fn(),
           isMusdSupportedOnChain: jest.fn(),
-          getMusdOutputChainId: jest.fn(),
         });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
@@ -1039,7 +1035,6 @@ describe('useMusdCtaVisibility', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn(),
-        getMusdOutputChainId: jest.fn(),
       });
 
       mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['USDC'] };
@@ -1337,7 +1332,6 @@ describe('useMusdCtaVisibility', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn(),
-        getMusdOutputChainId: jest.fn(),
       });
       mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['USDC'] };
     });

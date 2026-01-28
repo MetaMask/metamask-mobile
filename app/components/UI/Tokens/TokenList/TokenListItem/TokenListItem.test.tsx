@@ -318,7 +318,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     );
     mockUseMusdConversionTokens.mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
-      getMusdOutputChainId: jest.fn().mockReturnValue('0xe708'),
       filterAllowedTokens: jest.fn(),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
@@ -671,7 +670,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: '0xe708',
           preferredPaymentToken: {
             address: toHex('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'),
             chainId: toHex('0x1'),
