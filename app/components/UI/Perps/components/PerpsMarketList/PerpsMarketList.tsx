@@ -41,7 +41,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   onMarketPress,
   emptyMessage = strings('perps.home.no_markets'),
   ListHeaderComponent,
-  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   sortBy = 'volume',
   showBadge = true,
   contentContainerStyle,

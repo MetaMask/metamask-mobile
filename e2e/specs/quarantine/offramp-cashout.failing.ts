@@ -12,7 +12,7 @@ import {
   EventPayload,
   findEvent,
   getEventsPayloads,
-} from '../analytics/helpers';
+} from '../../../tests/helpers/analytics/helpers';
 import SoftAssert from '../../../tests/framework/SoftAssert';
 import {
   RampsRegions,

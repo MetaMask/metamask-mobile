@@ -512,6 +512,7 @@ enum EVENT_NAME {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+  NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED = 'Network Connection Banner Switch To MetaMask Default RPC Clicked',
   NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Analytics - Consolidated Event
@@ -1368,6 +1369,9 @@ const events = {
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
   ),
+  NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED: generateOpt(
+    EVENT_NAME.NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED,
+  ),
   NetworkConnectionBannerRpcUpdated: generateOpt(
     EVENT_NAME.NetworkConnectionBannerRpcUpdated,
   ),
@@ -1540,6 +1544,9 @@ enum DESCRIPTION {
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
+  BROWSER_SWIPE_BACK = 'Browser Swipe Back',
+  BROWSER_SWIPE_FORWARD = 'Browser Swipe Forward',
+  BROWSER_PULL_REFRESH = 'Browser Pull Refresh',
   // Wallet
   WALLET_TOKENS = 'Tokens',
   WALLET_COLLECTIBLES = 'Collectibles',
@@ -1676,6 +1683,21 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.DAPP_VIEW,
     ACTIONS.DAPP_VIEW,
     DESCRIPTION.DAPP_OPEN_IN_BROWSER,
+  ),
+  BROWSER_SWIPE_BACK: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_SWIPE_BACK,
+  ),
+  BROWSER_SWIPE_FORWARD: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_SWIPE_FORWARD,
+  ),
+  BROWSER_PULL_REFRESH: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_PULL_REFRESH,
   ),
   // Wallet
   WALLET_TOKENS: generateOpt(
