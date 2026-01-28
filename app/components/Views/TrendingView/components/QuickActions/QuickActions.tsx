@@ -45,7 +45,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
               onPress={() => section.viewAllAction(navigation)}
               testID={`quick-action-${section.id}`}
               style={tw.style(
-                'flex-row items-center justify-center gap-1 rounded-2xl bg-background-section px-3 py-2',
+                'flex-row items-center justify-center gap-1 rounded-xl bg-background-section px-3 py-2',
               )}
             >
               <Icon
