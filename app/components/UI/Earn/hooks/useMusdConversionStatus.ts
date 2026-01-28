@@ -14,6 +14,14 @@ import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { decodeTransferData } from '../../../../util/transactions';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import NetworkList from '../../../../util/networks';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
+import { store } from '../../../../store';
+import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -139,12 +147,40 @@ export const useMusdConversionStatus = () => {
             }),
           );
           shownToastsRef.current.add(toastKey);
+
+          // Get quotes from state to include strategy in trace
+          const state = store.getState();
+          const quotes = selectTransactionPayQuotesByTransactionId(
+            state,
+            transactionId,
+          );
+
+          // Start confirmation trace (approved fires immediately after user confirms)
+          trace({
+            name: TraceName.MusdConversionConfirm,
+            op: TraceOperation.MusdConversionOperation,
+            id: transactionId,
+            tags: {
+              transactionId,
+              chainId: transactionMeta.chainId ?? 'unknown',
+              strategy: quotes?.[0]?.strategy ?? 'unknown',
+            },
+          });
           break;
         }
         case TransactionStatus.confirmed:
           submitConversionEvent(transactionMeta, tokenData);
           showToast(EarnToastOptions.mUsdConversion.success);
           shownToastsRef.current.add(toastKey);
+          // End confirmation trace on success
+          endTrace({
+            name: TraceName.MusdConversionConfirm,
+            id: transactionId,
+            data: {
+              success: true,
+              status: TransactionStatus.confirmed,
+            },
+          });
           // Clean up entries for this transaction after final status
           setTimeout(() => {
             shownToastsRef.current.delete(
@@ -159,6 +195,15 @@ export const useMusdConversionStatus = () => {
           submitConversionEvent(transactionMeta, tokenData);
           showToast(EarnToastOptions.mUsdConversion.failed);
           shownToastsRef.current.add(toastKey);
+          // End confirmation trace on failure
+          endTrace({
+            name: TraceName.MusdConversionConfirm,
+            id: transactionId,
+            data: {
+              success: false,
+              status: TransactionStatus.failed,
+            },
+          });
           // Clean up entries for this transaction after final status
           setTimeout(() => {
             shownToastsRef.current.delete(
@@ -168,6 +213,19 @@ export const useMusdConversionStatus = () => {
               `${transactionId}-${TransactionStatus.failed}`,
             );
           }, 5000);
+          break;
+        case TransactionStatus.rejected:
+        case TransactionStatus.dropped:
+        case TransactionStatus.cancelled:
+          // End confirmation trace for terminal statuses (no toast needed)
+          endTrace({
+            name: TraceName.MusdConversionConfirm,
+            id: transactionId,
+            data: {
+              success: false,
+              status,
+            },
+          });
           break;
         default:
           break;

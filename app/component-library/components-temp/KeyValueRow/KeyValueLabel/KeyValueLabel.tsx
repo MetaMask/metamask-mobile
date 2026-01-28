@@ -34,7 +34,7 @@ const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
 
   const onNavigateToTooltipModal = () => {
     if (!hasTooltip) return;
-    openTooltipModal(tooltip.title, tooltip.content, {
+    openTooltipModal(tooltip.title, tooltip.content, undefined, undefined, {
       bottomPadding: tooltip.bottomPadding,
     });
     tooltip?.onPress?.();

@@ -34,6 +34,7 @@ import {
   AccountsControllerGetSelectedMultichainAccountAction,
   AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import {
   RewardsDataServiceGetOptInStatusAction,
   RewardsDataServiceGetPointsEventsAction,
@@ -55,6 +56,7 @@ type AllowedActions =
   | AccountsControllerListMultichainAccountsAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | KeyringControllerSignPersonalMessageAction
+  | RemoteFeatureFlagControllerGetStateAction
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
@@ -107,6 +109,7 @@ export function getRewardsControllerMessenger(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AccountsController:listMultichainAccounts',
       'KeyringController:signPersonalMessage',
+      'RemoteFeatureFlagController:getState',
       'RewardsDataService:login',
       'RewardsDataService:getPointsEvents',
       'RewardsDataService:getPointsEventsLastUpdated',

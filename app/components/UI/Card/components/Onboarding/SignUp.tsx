@@ -246,7 +246,7 @@ const SignUp = () => {
         <Label>{strings('card.card_onboarding.sign_up.email_label')}</Label>
         <TextField
           autoCapitalize={'none'}
-          autoComplete="email"
+          autoComplete="one-time-code"
           onChangeText={handleEmailChange}
           numberOfLines={1}
           size={TextFieldSize.Lg}
@@ -288,6 +288,7 @@ const SignUp = () => {
           value={password}
           maxLength={255}
           secureTextEntry
+          autoComplete="one-time-code"
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.password_label',
           )}
@@ -333,6 +334,7 @@ const SignUp = () => {
           value={confirmPassword}
           maxLength={255}
           secureTextEntry
+          autoComplete="one-time-code"
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.confirm_password_label',
           )}
