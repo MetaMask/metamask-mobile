@@ -2740,9 +2740,8 @@
     "description5": "1. Unlock your Keystone",
     "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "Continue",
-    "hint_text": "Scan your hardware wallet",
-    "purpose_connect": "connect",
-    "purpose_sign": "confirm the transaction",
+    "hint_text_pair": "Scan your hardware wallet",
+    "hint_text_sign": "Scan your hardware wallet to confirm the transaction",
     "select_accounts": "Select an account"
   },
   "data_collection_modal": {
