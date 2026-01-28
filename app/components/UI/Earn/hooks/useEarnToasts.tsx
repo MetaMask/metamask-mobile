@@ -208,7 +208,7 @@ const useEarnToasts = (): {
         success: {
           ...earnBaseToastOptions.success,
           labelOptions: getEarnToastLabels({
-            primary: strings('earn.musd_conversion.toasts.delivered'),
+            primary: strings('earn.bonus_claim.toasts.delivered'),
           }),
           closeButtonOptions,
         },

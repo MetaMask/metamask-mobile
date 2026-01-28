@@ -5789,7 +5789,8 @@
     },
     "bonus_claim": {
       "toasts": {
-        "claiming": "Claiming bonus",
+        "claiming": "Your mUSD bonus is processing",
+        "delivered": "Your mUSD bonus is here!",
         "failed": "Bonus claim failed"
       }
     },

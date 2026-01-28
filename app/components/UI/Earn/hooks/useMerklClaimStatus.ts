@@ -15,9 +15,9 @@ import Logger from '../../../../util/Logger';
  * This hook:
  * 1. Subscribes to TransactionController:transactionStatusUpdated events
  * 2. Filters for Merkl claim transactions (origin === 'merkl-claim')
- * 3. Shows toasts based on transaction status (approved → in-progress, confirmed → success, failed → failed)
+ * 3. Shows toasts based on transaction status (approved → in-progress, confirmed → success, failed/dropped → failed)
  * 4. Tracks shown toasts to prevent duplicates
- * 5. Refreshes token balances when transaction is confirmed/dropped
+ * 5. Refreshes token balances when transaction is confirmed
  *
  * This hook should be mounted globally via EarnTransactionMonitor to ensure
  * toasts are shown even when navigating away from the asset screen.
@@ -90,7 +90,6 @@ export const useMerklClaimStatus = () => {
           break;
 
         case TransactionStatus.confirmed:
-        case TransactionStatus.dropped:
           // Show success toast (same as mUSD conversion success per AC)
           showToast(EarnToastOptions.bonusClaim.success);
           shownToastsRef.current.add(toastKey);
@@ -106,13 +105,12 @@ export const useMerklClaimStatus = () => {
             shownToastsRef.current.delete(
               `${transactionId}-${TransactionStatus.confirmed}`,
             );
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.dropped}`,
-            );
           }, 5000);
           break;
 
         case TransactionStatus.failed:
+        case TransactionStatus.dropped:
+          // Dropped = transaction replaced, timed out, or removed from mempool (not confirmed)
           showToast(EarnToastOptions.bonusClaim.failed);
           shownToastsRef.current.add(toastKey);
           // Clean up entries for this transaction after final status
@@ -122,6 +120,9 @@ export const useMerklClaimStatus = () => {
             );
             shownToastsRef.current.delete(
               `${transactionId}-${TransactionStatus.failed}`,
+            );
+            shownToastsRef.current.delete(
+              `${transactionId}-${TransactionStatus.dropped}`,
             );
           }, 5000);
           break;

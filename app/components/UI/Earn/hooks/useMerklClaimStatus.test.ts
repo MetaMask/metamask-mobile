@@ -287,7 +287,7 @@ describe('useMerklClaimStatus', () => {
     expect(mockRefresh).toHaveBeenCalledWith(['mainnet']);
   });
 
-  it('refreshes token balances when transaction is dropped', async () => {
+  it('does not refresh token balances when transaction is dropped', async () => {
     renderHook(() => useMerklClaimStatus());
 
     const handler = mockSubscribe.mock.calls[0][1];
@@ -300,8 +300,8 @@ describe('useMerklClaimStatus', () => {
       handler({ transactionMeta });
     });
 
-    expect(mockUpdateBalances).toHaveBeenCalledWith({ chainIds: ['0x1'] });
-    expect(mockDetectTokens).toHaveBeenCalledWith({ chainIds: ['0x1'] });
+    expect(mockUpdateBalances).not.toHaveBeenCalled();
+    expect(mockDetectTokens).not.toHaveBeenCalled();
   });
 
   it('does not refresh token balances when transaction fails', async () => {
@@ -321,7 +321,7 @@ describe('useMerklClaimStatus', () => {
     expect(mockDetectTokens).not.toHaveBeenCalled();
   });
 
-  it('shows success toast when transaction is dropped', () => {
+  it('shows failed toast when transaction is dropped', () => {
     renderHook(() => useMerklClaimStatus());
 
     const handler = mockSubscribe.mock.calls[0][1];
@@ -331,6 +331,6 @@ describe('useMerklClaimStatus', () => {
 
     handler({ transactionMeta });
 
-    expect(mockShowToast).toHaveBeenCalledWith(mockSuccessToast);
+    expect(mockShowToast).toHaveBeenCalledWith(mockFailedToast);
   });
 });

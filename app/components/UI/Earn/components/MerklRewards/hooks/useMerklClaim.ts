@@ -12,7 +12,7 @@ import { selectDefaultEndpointByChainId } from '../../../../../../selectors/netw
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
-import { fetchMerklRewardsForAsset,getClaimChainId } from '../merkl-client';
+import { fetchMerklRewardsForAsset, getClaimChainId } from '../merkl-client';
 import {
   DISTRIBUTOR_CLAIM_ABI,
   MERKL_CLAIM_ORIGIN,
