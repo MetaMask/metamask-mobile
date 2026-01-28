@@ -574,6 +574,8 @@ const Wallet = ({
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
   const walletTokensTabViewRef = useRef<WalletTokensTabViewHandle>(null);
+  const isMountedRef = useRef(true);
+  const refreshInProgressRef = useRef(false);
   const [refreshing, setRefreshing] = useState(false);
   const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
@@ -863,6 +865,14 @@ const Wallet = ({
     networks: allNetworks,
   });
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+
+  // Track component mount state to prevent state updates after unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     // do not prompt for social login flow
@@ -1334,11 +1344,23 @@ const Wallet = ({
   );
 
   const handleRefresh = useCallback(async () => {
+    // Prevent concurrent refreshes
+    if (refreshInProgressRef.current) {
+      return;
+    }
+
+    refreshInProgressRef.current = true;
     setRefreshing(true);
+
     try {
       await walletTokensTabViewRef.current?.refresh(refreshBalance);
     } finally {
-      setRefreshing(false);
+      refreshInProgressRef.current = false;
+
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setRefreshing(false);
+      }
     }
   }, [refreshBalance]);
 

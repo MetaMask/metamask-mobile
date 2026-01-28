@@ -130,15 +130,23 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
 
-      // Use InteractionManager for better performance during refresh
-      InteractionManager.runAfterInteractions(() => {
-        refreshTokens({
+      try {
+        // Wait for interactions to complete first for better performance
+        await new Promise<void>((resolve) => {
+          InteractionManager.runAfterInteractions(() => {
+            resolve();
+          });
+        });
+
+        // Then await the actual refresh
+        await refreshTokens({
           isSolanaSelected,
           evmNetworkConfigurationsByChainId,
           selectedAccountId,
         });
+      } finally {
         setRefreshing(false);
-      });
+      }
     }, [
       isSolanaSelected,
       evmNetworkConfigurationsByChainId,

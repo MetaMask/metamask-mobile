@@ -160,7 +160,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
     useFocusEffect(
       useCallback(() => {
         if (isFullView) {
-          detectNfts();
+          detectNfts(false); // Fetch all pages for full view
         }
       }, [isFullView, detectNfts]),
     );
@@ -210,12 +210,14 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           testID={RefreshTestId}
           decelerationRate="fast"
           refreshControl={
-            <RefreshControl
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
+            !isHomepageRedesignV1Enabled ? (
+              <RefreshControl
+                colors={[colors.primary.default]}
+                tintColor={colors.icon.default}
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+              />
+            ) : undefined
           }
           contentContainerStyle={!isFullView ? undefined : tw`px-4`}
           scrollEnabled={isFullView || !isHomepageRedesignV1Enabled}

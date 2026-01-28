@@ -131,12 +131,12 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
             isScrollEnabled={!isHomepageRedesignV1Enabled}
             scrollViewProps={{
               testID: PredictTabViewSelectorsIDs.SCROLL_VIEW,
-              refreshControl: (
+              refreshControl: !isHomepageRedesignV1Enabled ? (
                 <RefreshControl
                   refreshing={isRefreshing}
                   onRefresh={handleRefresh}
                 />
-              ),
+              ) : undefined,
             }}
           >
             {content}
