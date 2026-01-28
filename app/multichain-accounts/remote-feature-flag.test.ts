@@ -31,12 +31,6 @@ const disabledStateMock = {
   minimumVersion: null,
 };
 
-const state1Mock = {
-  enabled: true,
-  featureVersion: '1',
-  minimumVersion: '13.0.0',
-};
-
 const state2Mock = {
   enabled: true,
   featureVersion: '2',
@@ -109,83 +103,6 @@ describe('Multichain Accounts Feature Flag', () => {
       };
 
       expect(assertMultichainAccountsFeatureFlagType(invalidFlag)).toBe(false);
-    });
-  });
-
-  describe('isMultichainAccountsRemoteFeatureEnabled', () => {
-    it('returns true as default value when flags are empty', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled({}, [
-        {
-          version: '1',
-          featureKey: STATE_1_FLAG,
-        },
-      ]);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns true when the feature flag meets all conditions', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_1_FLAG]: state1Mock,
-        },
-        mockState1FeatureVersionsToCheck,
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when the feature is not enabled', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_1_FLAG]: disabledStateMock,
-        },
-        mockState1FeatureVersionsToCheck,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when the feature version does not match', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_1_FLAG]: {
-            ...state1Mock,
-            featureVersion: '3',
-          },
-        },
-        mockState1FeatureVersionsToCheck,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when minimumVersion is null', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_1_FLAG]: {
-            ...state1Mock,
-            minimumVersion: null,
-          },
-        },
-        mockState1FeatureVersionsToCheck,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when app version is below minimumVersion', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_1_FLAG]: {
-            ...state1Mock,
-            minimumVersion: '16.0.0', // Higher than mocked 15.0.0
-          },
-        },
-        mockState1FeatureVersionsToCheck,
-      );
-
-      expect(result).toBe(false);
     });
   });
 
