@@ -117,7 +117,8 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       multichainCollectiblesByEnabledNetworksSelector,
     );
 
-    const { detectNfts, chainIdsToDetectNftsFor } = useNftDetection();
+    const { detectNfts, abortDetection, chainIdsToDetectNftsFor } =
+      useNftDetection();
 
     const isInitialMount = useRef(true);
 
@@ -162,7 +163,14 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
         if (isFullView) {
           detectNfts(false); // Fetch all pages for full view
         }
-      }, [isFullView, detectNfts]),
+
+        // Cleanup: abort detection when screen loses focus or unmounts
+        return () => {
+          if (isFullView) {
+            abortDetection();
+          }
+        };
+      }, [isFullView, detectNfts, abortDetection]),
     );
 
     useEffect(() => {
