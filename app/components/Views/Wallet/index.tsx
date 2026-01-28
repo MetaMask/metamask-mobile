@@ -76,7 +76,6 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
-  selectNativeCurrencyByChainId,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -134,10 +133,7 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
-
-import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
-import { getEther } from '../../../util/transactions';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -560,10 +556,6 @@ const Wallet = ({
 
   const prevChainId = usePrevious(chainId);
 
-  const nativeCurrency = useSelector((state: RootState) =>
-    selectNativeCurrencyByChainId(state, chainId),
-  );
-
   // Setup for AssetDetailsActions
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
@@ -663,35 +655,15 @@ const Wallet = ({
       }
       ///: END:ONLY_INCLUDE_IF
 
-      // Ensure consistent transaction initialization before navigation
-      if (nativeCurrency) {
-        // Initialize transaction with native currency
-        dispatch(newAssetTransaction(getEther(nativeCurrency)));
-      } else {
-        // Initialize with a default ETH transaction as fallback
-        // This ensures consistent state even when nativeCurrency is not available
-        console.warn(
-          'Native currency not available, using ETH as fallback for transaction initialization',
-        );
-        dispatch(newAssetTransaction(getEther('ETH')));
-      }
-
-      // Navigate to send flow after successful transaction initialization
       navigateToSendPage({ location: InitSendLocation.HomePage });
     } catch (error) {
-      // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
-
-      // Still attempt to navigate to maintain user flow, but without transaction initialization
-      // The SendFlow view should handle the lack of initialized transaction gracefully
       navigateToSendPage({ location: InitSendLocation.HomePage });
     }
   }, [
     trackEvent,
     createEventBuilder,
-    nativeCurrency,
     navigateToSendPage,
-    dispatch,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     sendNonEvmAsset,
     ///: END:ONLY_INCLUDE_IF
