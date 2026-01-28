@@ -1660,7 +1660,7 @@ class AuthenticationService {
     // Password found or provided. Validate and update the auth preference.
     try {
       const passwordToUse = await this.reauthenticate(password);
-      
+
       // storePassword handles all storage flag management internally
       await this.storePassword(passwordToUse.password, authType);
     } catch (e) {
