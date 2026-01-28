@@ -73,14 +73,30 @@ export default async function migrate(stateAsync: unknown): Promise<unknown> {
       .TokenListController as TokenListControllerState | undefined;
 
     // Check if there's data to migrate
-    if (
-      !isObject(tokenListControllerState) ||
-      !tokenListControllerState?.tokensChainsCache
-    ) {
+    if (!isObject(tokenListControllerState)) {
       return state;
     }
 
-    const chainsCache = tokenListControllerState.tokensChainsCache ?? {};
+    // Validate tokensChainsCache is an object (established pattern from migrations 029, 031)
+    if (
+      !hasProperty(tokenListControllerState, 'tokensChainsCache') ||
+      !isObject(tokenListControllerState.tokensChainsCache)
+    ) {
+      // If tokensChainsCache is missing or invalid, report and skip migration
+      // This follows the pattern from migrations 029 and 031
+      if (tokenListControllerState.tokensChainsCache !== undefined) {
+        captureException(
+          new Error(
+            `Migration ${migrationVersion}: Invalid tokensChainsCache: '${JSON.stringify(
+              tokenListControllerState.tokensChainsCache,
+            )}'`,
+          ),
+        );
+      }
+      return state;
+    }
+
+    const chainsCache = tokenListControllerState.tokensChainsCache;
     const chainIds = Object.keys(chainsCache);
 
     if (chainIds.length === 0) {

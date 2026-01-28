@@ -1,5 +1,14 @@
 import migrate, { migrationVersion } from './114';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
+import { captureException } from '@sentry/react-native';
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
+const mockCaptureException = captureException as jest.MockedFunction<
+  typeof captureException
+>;
 
 // Storage key constants matching the migration
 const STORAGE_KEY_PREFIX = 'storageService:';
@@ -42,6 +51,7 @@ describe(`Migration ${migrationVersion}`, () => {
     jest.clearAllMocks();
     mockFilesystemStorage.getItem.mockResolvedValue(undefined);
     mockFilesystemStorage.setItem.mockResolvedValue(undefined);
+    mockCaptureException.mockClear();
   });
 
   it('returns state unchanged if state is invalid', async () => {
@@ -84,6 +94,87 @@ describe(`Migration ${migrationVersion}`, () => {
       (result as typeof state).engine.backgroundState.TokenListController
         .tokensChainsCache,
     ).toStrictEqual({});
+  });
+
+  it('returns state unchanged and captures exception if tokensChainsCache is a string', async () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          TokenListController: {
+            tokensChainsCache: 'invalid-string-value',
+            preventPollingOnNetworkRestart: false,
+          },
+        },
+      },
+    };
+    const result = await migrate(state);
+
+    // Should not write garbage data to storage
+    expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
+
+    // Should capture exception for invalid data
+    expect(mockCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('Invalid tokensChainsCache'),
+      }),
+    );
+
+    // State should be returned unchanged
+    expect(result).toStrictEqual(state);
+  });
+
+  it('returns state unchanged and captures exception if tokensChainsCache is a number', async () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          TokenListController: {
+            tokensChainsCache: 12345,
+            preventPollingOnNetworkRestart: false,
+          },
+        },
+      },
+    };
+    const result = await migrate(state);
+
+    // Should not write garbage data to storage
+    expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
+
+    // Should capture exception for invalid data
+    expect(mockCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('Invalid tokensChainsCache'),
+      }),
+    );
+
+    // State should be returned unchanged
+    expect(result).toStrictEqual(state);
+  });
+
+  it('returns state unchanged and captures exception if tokensChainsCache is an array', async () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          TokenListController: {
+            tokensChainsCache: ['item1', 'item2'],
+            preventPollingOnNetworkRestart: false,
+          },
+        },
+      },
+    };
+    const result = await migrate(state);
+
+    // Should not write garbage data to storage
+    expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
+
+    // Should capture exception for invalid data (arrays are not plain objects)
+    expect(mockCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('Invalid tokensChainsCache'),
+      }),
+    );
+
+    // State should be returned unchanged
+    expect(result).toStrictEqual(state);
   });
 
   it('migrates tokensChainsCache to FilesystemStorage for single chain', async () => {
