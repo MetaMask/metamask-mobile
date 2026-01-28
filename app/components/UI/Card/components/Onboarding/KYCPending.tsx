@@ -50,11 +50,7 @@ const KYCPending = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  const handleBack = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME);
-  }, [navigation]);
-
-  const handleGotIt = useCallback(() => {
+  const navigateToHome = useCallback(() => {
     navigation.navigate(Routes.WALLET.HOME);
   }, [navigation]);
 
@@ -67,7 +63,7 @@ const KYCPending = () => {
             iconName={IconName.ArrowLeft}
             size={ButtonIconSizes.Lg}
             iconColor={importedColors.white}
-            onPress={handleBack}
+            onPress={navigateToHome}
             testID="kyc-pending-back-button"
           />
         </Box>
@@ -116,7 +112,7 @@ const KYCPending = () => {
               variant={ButtonVariants.Primary}
               label={strings('card.card_onboarding.kyc_pending.got_it_button')}
               size={ButtonSize.Lg}
-              onPress={handleGotIt}
+              onPress={navigateToHome}
               width={ButtonWidthTypes.Full}
               testID="kyc-pending-got-it-button"
             />

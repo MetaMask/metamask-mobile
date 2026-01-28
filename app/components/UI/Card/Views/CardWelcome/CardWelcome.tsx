@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
-import { Image, View } from 'react-native';
+import { Image, View, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -29,7 +29,8 @@ const CardWelcome = () => {
   const { goBack, navigate } = useNavigation();
   const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const dimensions = useWindowDimensions();
+  const styles = createStyles(theme, dimensions);
 
   useEffect(() => {
     trackEvent(
