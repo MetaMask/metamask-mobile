@@ -20,8 +20,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingTop: 8,
     paddingBottom: 8,
-    paddingLeft: 8,
-    paddingRight: 16,
+    paddingLeft: 12,
+    paddingRight: 12,
   },
 });
 
