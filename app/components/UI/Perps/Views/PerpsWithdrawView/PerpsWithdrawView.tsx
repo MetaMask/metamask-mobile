@@ -257,8 +257,8 @@ const PerpsWithdrawView: React.FC = () => {
     // Execute withdrawal asynchronously
     // Get the correct assetId for USDC on Arbitrum (declare outside try block for error handling)
     const assetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
 
     try {
       // Execute withdrawal directly using controller
