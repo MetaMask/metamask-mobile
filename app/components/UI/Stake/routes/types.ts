@@ -1,5 +1,5 @@
 import type { Hex } from '@metamask/utils';
-import type { TokenI } from '../../../Tokens/types';
+import type { TokenI } from '../../Tokens/types';
 import type { StakeConfirmationViewRouteParams } from '../Views/StakeConfirmationView/StakeConfirmationView.types';
 import type { UnstakeConfirmationViewRouteParams } from '../Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import type { GasImpactModalRouteParams } from '../components/GasImpactModal/GasImpactModal.types';

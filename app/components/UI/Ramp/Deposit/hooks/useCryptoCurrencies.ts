@@ -12,6 +12,7 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../../../../../util/general';
 import { parseCAIP19AssetId } from '../../Aggregator/utils/parseCaip19AssetId';
+import type { DepositNavigationParams } from '../types';
 
 export interface UseCryptoCurrenciesResult {
   cryptoCurrencies: DepositCryptoCurrency[] | null;
@@ -77,7 +78,7 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
           }
         }
 
-        setIntent((prevIntent) =>
+        setIntent((prevIntent: DepositNavigationParams | undefined) =>
           prevIntent ? { ...prevIntent, assetId: undefined } : undefined,
         );
 

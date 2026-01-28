@@ -15,6 +15,7 @@ import {
   MOCK_CREDIT_DEBIT_CARD,
 } from '../testUtils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import type { DepositNavigationParams } from '../types';
 
 import { NativeRampsSdk, Context } from '@consensys/native-ramps-sdk';
 
@@ -792,7 +793,7 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.intent).toEqual(initialIntent);
 
       act(() => {
-        contextValue?.setIntent((prev) =>
+        contextValue?.setIntent((prev: DepositNavigationParams | undefined) =>
           prev ? { ...prev, amount: '100' } : undefined,
         );
       });
@@ -819,7 +820,7 @@ describe('Deposit SDK Context', () => {
       });
 
       act(() => {
-        contextValue?.setIntent((prev) =>
+        contextValue?.setIntent((prev: DepositNavigationParams | undefined) =>
           prev ? { ...prev, assetId: undefined } : undefined,
         );
       });

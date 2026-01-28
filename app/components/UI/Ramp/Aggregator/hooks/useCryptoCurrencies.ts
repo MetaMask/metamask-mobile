@@ -8,6 +8,7 @@ import { isCaipChainId } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { parseCAIP19AssetId } from '../utils/parseCaip19AssetId';
+import type { RampIntent } from '../../types';
 
 export default function useCryptoCurrencies() {
   const {
@@ -113,7 +114,7 @@ export default function useCryptoCurrencies() {
             return false;
           });
 
-          setIntent((prevIntent) => ({
+          setIntent((prevIntent: RampIntent | undefined) => ({
             ...prevIntent,
             assetId: undefined,
           }));
@@ -123,7 +124,7 @@ export default function useCryptoCurrencies() {
             return;
           }
         }
-        setIntent((prevIntent) => ({
+        setIntent((prevIntent: RampIntent | undefined) => ({
           ...prevIntent,
           assetId: undefined,
         }));

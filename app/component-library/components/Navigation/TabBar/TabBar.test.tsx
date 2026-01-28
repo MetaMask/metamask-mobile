@@ -47,6 +47,9 @@ const navigation: NavigationHelpers<ParamListBase> = {
   emit: jest.fn(),
 };
 
+// Mock insets for BottomTabBarProps (required in React Navigation v6)
+const insets = { top: 0, bottom: 0, left: 0, right: 0 };
+
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -118,6 +121,7 @@ describe('TabBar', () => {
         state={state as TabNavigationState<ParamListBase>}
         descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
         navigation={navigation}
+        insets={insets}
       />,
       { state: mockInitialState },
     );
@@ -130,6 +134,7 @@ describe('TabBar', () => {
         state={state as TabNavigationState<ParamListBase>}
         descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
         navigation={navigation}
+        insets={insets}
       />,
       { state: mockInitialState },
     );
@@ -186,6 +191,7 @@ describe('TabBar', () => {
           rewardsDescriptors as Record<string, ExtendedBottomTabDescriptor>
         }
         navigation={navigation}
+        insets={insets}
       />,
       { state: mockInitialState },
     );
@@ -217,6 +223,7 @@ describe('TabBar', () => {
           trendingDescriptors as Record<string, ExtendedBottomTabDescriptor>
         }
         navigation={navigation}
+        insets={insets}
       />,
       { state: mockInitialState },
     );
@@ -248,6 +255,7 @@ describe('TabBar', () => {
           trendingDescriptors as Record<string, ExtendedBottomTabDescriptor>
         }
         navigation={navigation}
+        insets={insets}
       />,
       { state: mockInitialState },
     );
