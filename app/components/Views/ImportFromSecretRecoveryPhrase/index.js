@@ -128,7 +128,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
-  const [isPasswordFieldTouched, setIsPasswordFieldTouched] = useState(false);
+  const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
   const srpInputGridRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -398,10 +398,10 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const isPasswordTooShort = useMemo(
     () =>
-      isPasswordFieldTouched &&
+      !isPasswordFieldFocused &&
       password !== '' &&
       password.length < MIN_PASSWORD_LENGTH,
-    [isPasswordFieldTouched, password],
+    [isPasswordFieldFocused, password],
   );
 
   const toggleShowPassword = (index) => {
@@ -664,8 +664,8 @@ const ImportFromSecretRecoveryPhrase = ({
                   size={TextFieldSize.Lg}
                   value={password}
                   onChangeText={onPasswordChange}
-                  onFocus={() => setIsPasswordFieldTouched(false)}
-                  onBlur={() => setIsPasswordFieldTouched(true)}
+                  onFocus={() => setIsPasswordFieldFocused(true)}
+                  onBlur={() => setIsPasswordFieldFocused(false)}
                   secureTextEntry={showPasswordIndex.includes(0)}
                   returnKeyType={'next'}
                   autoCapitalize="none"

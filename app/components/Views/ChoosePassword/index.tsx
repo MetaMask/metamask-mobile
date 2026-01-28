@@ -156,7 +156,7 @@ const ChoosePassword = () => {
   const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [biometryType, setBiometryType] = useState<string | null>(null);
-  const [isPasswordFieldTouched, setIsPasswordFieldTouched] = useState(false);
+  const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
   const mounted = useRef(true);
   const passwordSetupAttemptTraceCtx = useRef<TraceContext | null>(null);
@@ -681,7 +681,7 @@ const ChoosePassword = () => {
   const renderContent = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const isPasswordTooShort =
-      isPasswordFieldTouched &&
+      !isPasswordFieldFocused &&
       password !== '' &&
       password.length < MIN_PASSWORD_LENGTH;
     let canSubmit;
@@ -762,8 +762,8 @@ const ChoosePassword = () => {
                     secureTextEntry={showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={onPasswordChange}
-                    onFocus={() => setIsPasswordFieldTouched(false)}
-                    onBlur={() => setIsPasswordFieldTouched(true)}
+                    onFocus={() => setIsPasswordFieldFocused(true)}
+                    onBlur={() => setIsPasswordFieldFocused(false)}
                     placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={jumpToConfirmPassword}
