@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.62.1]
 
+### Fixed
+
+- fix: update selectedGasFeeToken when payment token is selected for gasless flow cp-7.62.1 (#25273)
+
 ## [7.62.0]
 
 ### Added
