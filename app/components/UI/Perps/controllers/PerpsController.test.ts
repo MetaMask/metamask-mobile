@@ -25,10 +25,6 @@ import type {
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
 import { createMockInfrastructure } from '../__mocks__/serviceMocks';
-import {
-  ARBITRUM_MAINNET_CHAIN_ID_HEX,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-} from '../constants/hyperLiquidConfig';
 import Engine from '../../../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
@@ -277,7 +273,7 @@ class TestablePerpsController extends PerpsController {
   public testMarkInitialized() {
     this.isInitialized = true;
     this.update((state) => {
-      state.initializationState = InitializationState.INITIALIZED;
+      state.initializationState = InitializationState.Initialized;
     });
   }
 
@@ -2422,50 +2418,7 @@ describe('PerpsController', () => {
         origin: 'metamask',
         type: 'perpsDeposit',
         skipInitialGasEstimate: true,
-        gasFeeToken: undefined,
       });
-    });
-
-    it('adds gasFeeToken for Arbitrum USDC deposits', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-
-      Engine.context.AccountTrackerController.state.accountsByChainId = {
-        [ARBITRUM_MAINNET_CHAIN_ID_HEX]: {
-          [mockTransaction.from.toLowerCase()]: {
-            balance: '0x0',
-          },
-        },
-      };
-
-      jest
-        .spyOn(mockDepositServiceInstance, 'prepareTransaction')
-        .mockResolvedValueOnce({
-          transaction: {
-            ...mockTransaction,
-            to: USDC_ARBITRUM_MAINNET_ADDRESS,
-          },
-          assetChainId: ARBITRUM_MAINNET_CHAIN_ID_HEX,
-          currentDepositId: mockDepositId,
-        });
-
-      await controller.depositWithConfirmation('100');
-
-      expect(
-        mockInfrastructure.controllers.transaction.submit,
-      ).toHaveBeenCalledWith(
-        {
-          ...mockTransaction,
-          to: USDC_ARBITRUM_MAINNET_ADDRESS,
-        },
-        {
-          networkClientId: mockNetworkClientId,
-          origin: 'metamask',
-          type: 'perpsDeposit',
-          skipInitialGasEstimate: true,
-          gasFeeToken: USDC_ARBITRUM_MAINNET_ADDRESS,
-        },
-      );
     });
 
     it('throws error when controller not initialized', async () => {
@@ -3314,14 +3267,14 @@ describe('PerpsController', () => {
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       markControllerAsInitialized();
       mockProvider.getWebSocketConnectionState.mockReturnValue(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
       );
 
       // Act
       const result = controller.getWebSocketConnectionState();
 
       // Assert
-      expect(result).toBe(WebSocketConnectionState.CONNECTED);
+      expect(result).toBe(WebSocketConnectionState.Connected);
       expect(mockProvider.getWebSocketConnectionState).toHaveBeenCalled();
     });
 
@@ -3336,7 +3289,7 @@ describe('PerpsController', () => {
       const result = controller.getWebSocketConnectionState();
 
       // Assert
-      expect(result).toBe(WebSocketConnectionState.DISCONNECTED);
+      expect(result).toBe(WebSocketConnectionState.Disconnected);
     });
 
     it('getWebSocketConnectionState returns DISCONNECTED when no provider is active', () => {
@@ -3346,7 +3299,7 @@ describe('PerpsController', () => {
       const result = controller.getWebSocketConnectionState();
 
       // Assert
-      expect(result).toBe(WebSocketConnectionState.DISCONNECTED);
+      expect(result).toBe(WebSocketConnectionState.Disconnected);
     });
 
     it('subscribeToConnectionState delegates to active provider', () => {
@@ -3373,7 +3326,7 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       // Keep getWebSocketConnectionState but remove subscribeToConnectionState
       mockProvider.getWebSocketConnectionState.mockReturnValue(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
       );
       mockProvider.subscribeToConnectionState = undefined as never;
       const listener = jest.fn();
@@ -3383,7 +3336,7 @@ describe('PerpsController', () => {
 
       // Assert - listener is called with result of getWebSocketConnectionState()
       expect(listener).toHaveBeenCalledWith(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
         0,
       );
       expect(typeof unsubscribe).toBe('function');
@@ -3398,7 +3351,7 @@ describe('PerpsController', () => {
 
       // Assert
       expect(listener).toHaveBeenCalledWith(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
         0,
       );
       expect(typeof unsubscribe).toBe('function');
