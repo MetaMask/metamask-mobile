@@ -90,7 +90,7 @@ export const selectSelectedPaymentMethod = createSelector(
 export const selectUserRegionRequest = createRequestSelector<
   RootState,
   UserRegion | null
->(selectRampsControllerState, 'updateUserRegion', []);
+>(selectRampsControllerState, 'init', []);
 
 /**
  * Selects the countries request state.

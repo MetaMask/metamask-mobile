@@ -29,7 +29,7 @@ const mockUserRegion: UserRegion = {
       template: 'XXX-XXX-XXXX',
     },
     currency: 'USD',
-    supported: true,
+    supported: { buy: true, sell: true },
   },
   state: { stateId: 'CA', name: 'California' },
   regionCode: 'us-ca',
@@ -63,13 +63,17 @@ const mockSelectedProvider = {
 const mockPaymentMethods: PaymentMethod[] = [
   {
     id: '/payments/debit-credit-card',
+    paymentType: 'debit-credit-card',
     name: 'Debit/Credit Card',
-    logo: 'https://example.com/card-logo.png',
+    score: 100,
+    icon: 'card',
   },
   {
     id: '/payments/bank-transfer',
+    paymentType: 'bank-transfer',
     name: 'Bank Transfer',
-    logo: 'https://example.com/bank-logo.png',
+    score: 90,
+    icon: 'bank',
   },
 ];
 

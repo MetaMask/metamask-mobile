@@ -16,7 +16,7 @@ const mockCountries: Country[] = [
       template: 'XXX-XXX-XXXX',
     },
     currency: 'USD',
-    supported: true,
+    supported: { buy: true, sell: true },
   },
   {
     isoCode: 'CA',
@@ -28,7 +28,7 @@ const mockCountries: Country[] = [
       template: 'XXX-XXX-XXXX',
     },
     currency: 'CAD',
-    supported: true,
+    supported: { buy: true, sell: true },
   },
 ];
 

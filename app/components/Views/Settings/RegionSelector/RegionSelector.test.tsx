@@ -39,7 +39,7 @@ const createMockCountry = (
   name,
   flag,
   states,
-  supported,
+  supported: { buy: supported, sell: supported },
   recommended,
   phone: { prefix: '', placeholder: '', template: '' },
   currency: '',
@@ -52,7 +52,7 @@ const createMockState = (
 ): State => ({
   stateId,
   name,
-  supported,
+  supported: { buy: supported, sell: supported },
 });
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
@@ -67,13 +67,13 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
       name: countryCode,
       phone: { prefix: '', placeholder: '', template: '' },
       currency: '',
-      supported: true,
+      supported: { buy: true, sell: true },
     },
     state: stateCode
       ? {
           stateId: stateCode,
           name: stateCode,
-          supported: true,
+          supported: { buy: true, sell: true },
         }
       : null,
     regionCode: regionCode.toLowerCase(),
@@ -104,11 +104,18 @@ const mockUseRampsControllerInitialValues: ReturnType<
   providersLoading: false,
   providersError: null,
   tokens: null,
+  selectedToken: null,
+  setSelectedToken: jest.fn(),
   tokensLoading: false,
   tokensError: null,
   countries: mockRegions,
   countriesLoading: false,
   countriesError: null,
+  paymentMethods: [],
+  selectedPaymentMethod: null,
+  setSelectedPaymentMethod: jest.fn(),
+  paymentMethodsLoading: false,
+  paymentMethodsError: null,
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
@@ -345,7 +352,7 @@ describe('RegionSelector', () => {
   it('renders state without stateId', () => {
     const stateWithoutId: State = {
       name: 'State Without ID',
-      supported: true,
+      supported: { buy: true, sell: true },
     };
     const regionsWithStateWithoutId = [
       createMockCountry('US', 'United States', '🇺🇸', [stateWithoutId]),
@@ -429,13 +436,13 @@ describe('RegionSelector', () => {
         name: 'United States',
         phone: { prefix: '', placeholder: '', template: '' },
         currency: '',
-        supported: true,
+        supported: { buy: true, sell: true },
         states: [createMockState('CA', 'California')],
       },
       state: {
         stateId: 'CA',
         name: 'California',
-        supported: true,
+        supported: { buy: true, sell: true },
       },
       regionCode: 'us-ca',
     };
@@ -458,7 +465,7 @@ describe('RegionSelector', () => {
     const standaloneState: State = {
       stateId: 'TX',
       name: 'Texas',
-      supported: true,
+      supported: { buy: true, sell: true },
     };
     const regionsWithStandaloneState = [
       createMockCountry('US', 'United States', '🇺🇸', [
@@ -566,7 +573,7 @@ describe('RegionSelector', () => {
   it('does not call setUserRegion when region selection has empty regionId', async () => {
     const stateWithoutId: State = {
       name: 'State Without ID',
-      supported: true,
+      supported: { buy: true, sell: true },
     };
     const regionsWithStateWithoutId = [
       createMockCountry('US', 'United States', '🇺🇸', [stateWithoutId]),
@@ -698,7 +705,7 @@ describe('RegionSelector', () => {
         name: 'United States',
         phone: { prefix: '', placeholder: '', template: '' },
         currency: '',
-        supported: true,
+        supported: { buy: true, sell: true },
       },
       state: null,
       regionCode: 'us',
@@ -726,7 +733,7 @@ describe('RegionSelector', () => {
     const standaloneState: State = {
       stateId: 'CA',
       name: 'California',
-      supported: true,
+      supported: { buy: true, sell: true },
     };
     const regionsWithStandaloneState = [
       createMockCountry('US', 'United States', '🇺🇸', [standaloneState]),

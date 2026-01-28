@@ -100,13 +100,13 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
       name: 'Europe Union',
       phone: { prefix: '', placeholder: '', template: '' },
       currency: '',
-      supported: true,
+      supported: { buy: true, sell: true },
     },
     state: stateCode
       ? {
           stateId: stateCode,
           name: stateCode,
-          supported: true,
+          supported: { buy: true, sell: true },
         }
       : null,
     regionCode: regionCode.toLowerCase(),
@@ -127,11 +127,18 @@ const mockUseRampsControllerInitialValues: ReturnType<
   providersLoading: false,
   providersError: null,
   tokens: null,
+  selectedToken: null,
+  setSelectedToken: jest.fn(),
   tokensLoading: false,
   tokensError: null,
   countries: [],
   countriesLoading: false,
   countriesError: null,
+  paymentMethods: [],
+  selectedPaymentMethod: null,
+  setSelectedPaymentMethod: jest.fn(),
+  paymentMethodsLoading: false,
+  paymentMethodsError: null,
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;

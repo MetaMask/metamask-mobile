@@ -334,7 +334,8 @@ function RegionSelector() {
     ({ item }: { item: ListItem }) => {
       if (isGroupedResult(item)) {
         const countryIsSelected = isRegionSelected(item.country);
-        const isSupported = item.country.supported !== false;
+        const isSupported =
+          item.country.supported?.buy || item.country.supported?.sell;
         const showStateName =
           userRegion?.state &&
           activeView === RegionViewType.COUNTRY &&
@@ -395,7 +396,8 @@ function RegionSelector() {
             </ListItemSelect>
             {item.matchingStates.map((state) => {
               const stateIsSelected = isRegionSelected(state, item.country);
-              const isStateSupported = state.supported !== false;
+              const isStateSupported =
+                state.supported?.buy || state.supported?.sell;
               return (
                 <ListItemSelect
                   key={state.stateId || state.name}
@@ -438,7 +440,7 @@ function RegionSelector() {
       );
 
       if (isCountry(region)) {
-        const isSupported = region.supported !== false;
+        const isSupported = region.supported?.buy || region.supported?.sell;
         const showStateName =
           userRegion?.state &&
           activeView === RegionViewType.COUNTRY &&
@@ -494,7 +496,7 @@ function RegionSelector() {
         );
       }
 
-      const isStateSupported = region.supported !== false;
+      const isStateSupported = region.supported?.buy || region.supported?.sell;
       return (
         <ListItemSelect
           isSelected={isSelected}

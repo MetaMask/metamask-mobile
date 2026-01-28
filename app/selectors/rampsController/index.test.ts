@@ -50,7 +50,7 @@ const mockUserRegion: UserRegion = {
       template: 'XXX-XXX-XXXX',
     },
     currency: 'USD',
-    supported: true,
+    supported: { buy: true, sell: true },
   },
   state: { stateId: 'CA', name: 'California' },
   regionCode: 'us-ca',
@@ -82,7 +82,7 @@ const mockCountries: Country[] = [
       template: 'XXX-XXX-XXXX',
     },
     currency: 'USD',
-    supported: true,
+    supported: { buy: true, sell: true },
   },
 ];
 
@@ -103,8 +103,10 @@ const mockTokens = {
 
 const mockPaymentMethod: PaymentMethod = {
   id: '/payments/debit-credit-card',
+  paymentType: 'debit-credit-card',
   name: 'Debit/Credit Card',
-  logo: 'https://example.com/card-logo.png',
+  score: 100,
+  icon: 'card',
 };
 
 const mockPaymentMethods: PaymentMethod[] = [mockPaymentMethod];
@@ -128,7 +130,7 @@ describe('RampsController Selectors', () => {
     it('returns request state with data, isFetching, and error', () => {
       const state = createMockState({
         requests: {
-          'updateUserRegion:[]': {
+          'init:[]': {
             status: RequestStatus.SUCCESS,
             data: mockUserRegion,
             error: null,
@@ -150,7 +152,7 @@ describe('RampsController Selectors', () => {
     it('returns isFetching true when request is loading', () => {
       const state = createMockState({
         requests: {
-          'updateUserRegion:[]': {
+          'init:[]': {
             status: RequestStatus.LOADING,
             data: null,
             error: null,
@@ -168,7 +170,7 @@ describe('RampsController Selectors', () => {
     it('returns error when request failed', () => {
       const state = createMockState({
         requests: {
-          'updateUserRegion:[]': {
+          'init:[]': {
             status: RequestStatus.ERROR,
             data: null,
             error: 'Network error',
