@@ -51,14 +51,7 @@ Performance tests measure app responsiveness and render times. Select performanc
 - Account/network list components (AccountSelector, NetworkSelector, related hooks)
 - Critical user flows (login, balance loading, swap flows, send flows)
 - App startup and initialization (Engine, background services, navigation)
-- Changes to the appwright/ directory (performance test infrastructure)
-
-WHEN TO SKIP PERFORMANCE TESTS:
-- Pure documentation or comment changes
-- Test-only changes (non-performance E2E tests)
-- Changes to unrelated features (notifications, analytics tracking code)
-- CI/CD configuration changes (unless affecting performance test runs)
-- Localization/i18n changes`;
+- Changes to the appwright/ directory (performance test infrastructure)`;
 
   const prompt = [
     role,
