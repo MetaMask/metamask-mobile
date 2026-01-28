@@ -121,6 +121,22 @@ export function getToolDefinitions(): LLMTool[] {
       },
     },
     {
+      name: 'load_skill',
+      description:
+        'Load a domain expertise skill to assist with analysis. Use this when you need specialized knowledge for specific areas.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          skill_name: {
+            type: 'string',
+            description:
+              'Name of the skill to load (see AVAILABLE SKILLS in system prompt)',
+          },
+        },
+        required: ['skill_name'],
+      },
+    },
+    {
       name: 'finalize_tag_selection',
       description: 'Submit final tag selection decision',
       input_schema: {
