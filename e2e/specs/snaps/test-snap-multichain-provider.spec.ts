@@ -9,7 +9,7 @@ import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
-  confirmationsRedesignedFeatureFlags,
+  confirmationFeatureFlags,
   remoteFeatureMultichainAccountsAccountDetailsV2,
 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { mockGenesisBlocks } from './mocks';
@@ -28,7 +28,7 @@ describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
             mockServer,
             Object.assign(
               {},
-              ...confirmationsRedesignedFeatureFlags,
+              ...confirmationFeatureFlags,
               remoteFeatureMultichainAccountsAccountDetailsV2(true),
             ),
           );
