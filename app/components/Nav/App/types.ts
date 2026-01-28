@@ -4,12 +4,22 @@ import type { FundActionMenuParams } from '../../../components/UI/FundActionMenu
 import type { OptionsSheetParams } from '../../../components/UI/SelectOptionSheet/types';
 import type { AccountSelectorParams } from '../../../components/Views/AccountSelector/AccountSelector.types';
 import type { AccountConnectParams } from '../../../components/Views/AccountConnect/AccountConnect.types';
+import type { CaipChainId } from '@metamask/utils';
+import type { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import type { BodyWebView } from '../../../component-library/components/Modals/ModalMandatory/ModalMandatory.types';
+import type { SuccessErrorSheetParams } from '../../Views/SuccessErrorSheet/interface';
+
+import type { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
+import type { AddressSelectorParams } from '../../../components/Views/AddressSelector/AddressSelector.types';
 
 /**
  * Param list for the RootModalFlow navigator.
  * This contains all modal screens accessible via navigate('RootModalFlow', { screen, params }).
  */
 export interface RootModalFlowParamList {
+  // Index signature to satisfy ParamListBase constraint
+  [key: string]: object | undefined;
+
   // Wallet Actions
   WalletActions: undefined;
   TradeWalletActions: {
@@ -20,11 +30,43 @@ export interface RootModalFlowParamList {
 
   // Modals
   DeleteWalletModal: { isResetWallet?: boolean } | undefined;
-  ModalConfirmation: object | undefined;
-  ModalMandatory: object | undefined;
+  ModalConfirmation:
+    | {
+        title: string;
+        description: string;
+        onConfirm?: () => void;
+        onCancel?: () => void;
+        cancelLabel?: string;
+        confirmLabel?: string;
+        isDanger?: boolean;
+      }
+    | undefined;
+  ModalMandatory:
+    | {
+        body: BodyWebView | { source: 'Node'; component: () => ReactNode };
+        headerTitle: string;
+        onAccept: () => void;
+        footerHelpText?: string;
+        buttonText: string;
+        checkboxText: string;
+        onRender?: () => void;
+        isScrollToEndNeeded?: boolean;
+        scrollEndBottomMargin?: number;
+        containerTestId?: string;
+        buttonTestId?: string;
+      }
+    | undefined;
 
   // Settings/Options
-  OnboardingSheet: object | undefined;
+  OnboardingSheet:
+    | {
+        onPressCreate?: () => void;
+        onPressImport?: () => void;
+        onPressContinueWithGoogle?: (createWallet: boolean) => void;
+        onPressContinueWithApple?: (createWallet: boolean) => void;
+        createWallet?: boolean;
+      }
+    | undefined;
   AssetOptions: { asset?: object } | undefined;
   NftOptions: { collectible?: object } | undefined;
   OptionsSheet: OptionsSheetParams | undefined;
@@ -46,7 +88,12 @@ export interface RootModalFlowParamList {
   // NFT/Token Detection
   NFTAutoDetectionModal: undefined;
   DetectedTokens: undefined;
-  DetectedTokensConfirmation: object | undefined;
+  DetectedTokensConfirmation:
+    | {
+        isHidingAll?: boolean;
+        onConfirm: () => void;
+      }
+    | undefined;
 
   // Whats New / Updates
   WhatsNewModal: undefined;
@@ -64,8 +111,9 @@ export interface RootModalFlowParamList {
 
   // Account/Connection Sheets
   AccountSelector: AccountSelectorParams | undefined;
+  AddressSelector: AddressSelectorParams | undefined;
   AccountConnect: AccountConnectParams | undefined;
-  AccountPermissions: object | undefined;
+  AccountPermissions: { initialScreen?: AccountPermissionsScreens } | undefined;
   AccountActions: { selectedAccount?: object } | undefined;
   ConnectionDetails: object | undefined;
   RevokeAllAccountPermissions:
@@ -75,15 +123,32 @@ export interface RootModalFlowParamList {
       }
     | undefined;
   PermittedNetworksInfoSheet: undefined;
-  AddAccount: undefined;
+  AddAccount:
+    | {
+        scope?: CaipChainId;
+        clientType?: WalletClientType;
+      }
+    | undefined;
   SelectSRP: undefined;
+  SkipAccountSecurityModal:
+    | {
+        onConfirm?: () => void;
+        onCancel?: () => void;
+      }
+    | undefined;
 
   // Network
   NetworkSelector: object | undefined;
+  NetworkManager: undefined;
   AddNetwork: undefined;
+  TokenSort: undefined;
+  AmbiguousAddress: object | undefined;
+  FiatOnTestnetsFriction: undefined;
+  ShowTokenId: object | undefined;
 
   // SDK
   SDKLoading: undefined;
+  SDKFeedback: undefined;
   SDKManageConnections:
     | {
         channelId?: string;
@@ -116,13 +181,21 @@ export interface RootModalFlowParamList {
   // IPFS / NFT Display
   ShowIpfs: object | undefined;
   ShowNftDisplayMedia: undefined;
-  ShowTokenId: object | undefined;
 
   // Tooltip / Success-Error
   tooltipModal: { title?: string; tooltip?: ReactNode } | undefined;
-  SuccessErrorSheet: object | undefined;
-  ChangeInSimulationModal: object | undefined;
-  OriginSpamModal: object | undefined;
+  SuccessErrorSheet: SuccessErrorSheetParams | undefined;
+  ChangeInSimulationModal:
+    | {
+        onProceed: () => void;
+        onReject: () => void;
+      }
+    | undefined;
+  OriginSpamModal:
+    | {
+        origin: string;
+      }
+    | undefined;
 
   // Seedphrase
   SeedphraseModal: undefined;
