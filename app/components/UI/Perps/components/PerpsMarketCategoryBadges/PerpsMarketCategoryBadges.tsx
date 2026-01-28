@@ -1,5 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsMarketCategoryBadge from '../PerpsMarketCategoryBadge';
@@ -9,6 +14,9 @@ import type {
   CategoryBadgeConfig,
 } from './PerpsMarketCategoryBadges.types';
 import type { MarketTypeFilter } from '../../controllers/types';
+
+// Animation configuration
+const ANIMATION_DURATION = 250;
 
 /**
  * Default category badge configurations
@@ -83,40 +91,52 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   if (selectedConfig) {
     return (
       <View style={styles.container} testID={testID}>
-        <PerpsMarketCategoryBadge
-          category={selectedConfig.category}
-          label={strings(selectedConfig.labelKey)}
-          isSelected
-          showDismiss
-          onPress={() => handleCategoryPress(selectedConfig.category)}
-          onDismiss={handleDismiss}
-          testID={testID ? `${testID}-${selectedConfig.category}` : undefined}
-        />
+        <Animated.View
+          entering={FadeIn.duration(ANIMATION_DURATION)}
+          exiting={FadeOut.duration(ANIMATION_DURATION)}
+          layout={LinearTransition.duration(ANIMATION_DURATION)}
+        >
+          <PerpsMarketCategoryBadge
+            category={selectedConfig.category}
+            label={strings(selectedConfig.labelKey)}
+            isSelected
+            showDismiss
+            onPress={() => handleCategoryPress(selectedConfig.category)}
+            onDismiss={handleDismiss}
+            testID={testID ? `${testID}-${selectedConfig.category}` : undefined}
+          />
+        </Animated.View>
       </View>
     );
   }
 
   // "All" state OR fallback when selected category not found: show all category badges
   return (
-    <ScrollView
+    <Animated.ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
       style={styles.scrollContainer}
       testID={testID}
     >
-      {displayCategories.map((config) => (
-        <PerpsMarketCategoryBadge
+      {displayCategories.map((config, index) => (
+        <Animated.View
           key={config.category}
-          category={config.category}
-          label={strings(config.labelKey)}
-          isSelected={false}
-          showDismiss={false}
-          onPress={() => handleCategoryPress(config.category)}
-          testID={testID ? `${testID}-${config.category}` : undefined}
-        />
+          entering={FadeIn.duration(ANIMATION_DURATION).delay(index * 50)}
+          exiting={FadeOut.duration(ANIMATION_DURATION)}
+          layout={LinearTransition.duration(ANIMATION_DURATION)}
+        >
+          <PerpsMarketCategoryBadge
+            category={config.category}
+            label={strings(config.labelKey)}
+            isSelected={false}
+            showDismiss={false}
+            onPress={() => handleCategoryPress(config.category)}
+            testID={testID ? `${testID}-${config.category}` : undefined}
+          />
+        </Animated.View>
       ))}
-    </ScrollView>
+    </Animated.ScrollView>
   );
 };
 
