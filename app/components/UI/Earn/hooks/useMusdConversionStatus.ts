@@ -14,6 +14,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { decodeTransferData } from '../../../../util/transactions';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import NetworkList from '../../../../util/networks';
+import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../constants/musd';
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -115,7 +116,7 @@ export const useMusdConversionStatus = () => {
           `${transactionId}-${TransactionStatus.approved}`,
         );
         shownToastsRef.current.delete(`${transactionId}-${finalStatus}`);
-      }, 5000);
+      }, TOAST_TRACKING_CLEANUP_DELAY_MS);
     };
 
     // Shared helper to validate and extract common data for mUSD conversion handlers
