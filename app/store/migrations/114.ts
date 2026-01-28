@@ -6,12 +6,12 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { ensureValidState } from './util';
 import Device from '../../util/device';
 import Logger from '../../util/Logger';
+import { STORAGE_KEY_PREFIX } from '@metamask/storage-service';
 
 export const migrationVersion = 114;
 
 // Storage key constants matching TokenListController and StorageService
 // These must match the format used in storage-service-init.ts
-const STORAGE_KEY_PREFIX = 'storageService:';
 const CONTROLLER_NAME = 'TokenListController';
 const CACHE_KEY_PREFIX = 'tokensChainsCache';
 
