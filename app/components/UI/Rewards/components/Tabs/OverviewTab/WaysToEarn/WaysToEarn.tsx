@@ -29,11 +29,6 @@ import { useRampNavigation } from '../../../../../Ramp/hooks/useRampNavigation';
 import { toCaipAssetType } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
-import {
-  selectRewardsCardSpendFeatureFlags,
-  selectRewardsMusdDepositEnabledFlag,
-} from '../../../../../../../selectors/featureFlagController/rewards';
-import { selectMusdHoldingEnabledFlag } from '../../../../../../../selectors/featureFlagController/rewards/rewardsEnabled';
 import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
 import { PredictEventValues } from '../../../../../Predict/constants/eventNames';
 import {
@@ -257,10 +252,7 @@ const getBottomSheetData = (type: WayToEarnType) => {
 export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-  const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const isMusdDepositEnabled = useSelector(selectRewardsMusdDepositEnabledFlag);
-  const isMusdHoldingEnabled = useSelector(selectMusdHoldingEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
@@ -381,19 +373,7 @@ export const WaysToEarn = () => {
         <FlatList
           horizontal={false}
           data={waysToEarn.filter((wte) => {
-            if (wte.type === WayToEarnType.CARD && !isCardSpendEnabled) {
-              return false;
-            }
             if (wte.type === WayToEarnType.PREDICT && !isPredictEnabled) {
-              return false;
-            }
-            if (
-              wte.type === WayToEarnType.DEPOSIT_MUSD &&
-              !isMusdDepositEnabled
-            ) {
-              return false;
-            }
-            if (wte.type === WayToEarnType.HOLD_MUSD && !isMusdHoldingEnabled) {
               return false;
             }
             return true;

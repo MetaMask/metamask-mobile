@@ -3,6 +3,7 @@ import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { Hex } from '@metamask/utils';
+import { Linking } from 'react-native';
 import EarnMusdConversionEducationView from './index';
 import {
   setMusdConversionEducationSeen,
@@ -18,6 +19,7 @@ import { EARN_TEST_IDS } from '../../constants/testIds';
 import { useMusdConversionFlowData } from '../../hooks/useMusdConversionFlowData';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
+import AppConstants from '../../../../../core/AppConstants';
 
 const FIXED_NOW_MS = 1730000000000;
 const mockTrackEvent = jest.fn();
@@ -228,6 +230,13 @@ describe('EarnMusdConversionEducationView', () => {
         { state: {} },
       );
 
+      const descriptionText = strings(
+        'earn.musd_conversion.education.description',
+        {
+          percentage: MUSD_CONVERSION_APY,
+        },
+      );
+
       expect(
         getByText(
           strings('earn.musd_conversion.education.heading', {
@@ -235,12 +244,9 @@ describe('EarnMusdConversionEducationView', () => {
           }),
         ),
       ).toBeOnTheScreen();
+      expect(getByText(descriptionText, { exact: false })).toBeOnTheScreen();
       expect(
-        getByText(
-          strings('earn.musd_conversion.education.description', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
-        ),
+        getByText(strings('earn.musd_conversion.education.terms_apply')),
       ).toBeOnTheScreen();
       expect(
         getByText(strings('earn.musd_conversion.education.primary_button')),
@@ -539,6 +545,28 @@ describe('EarnMusdConversionEducationView', () => {
           redirects_to: 'home',
         });
       });
+    });
+  });
+
+  describe('external links', () => {
+    it('opens bonus terms of use when "Terms apply" is pressed', () => {
+      const openUrlSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValueOnce(undefined);
+
+      const { getByText } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      fireEvent.press(
+        getByText(strings('earn.musd_conversion.education.terms_apply')),
+      );
+
+      expect(openUrlSpy).toHaveBeenCalledTimes(1);
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+      );
     });
   });
 

@@ -10,7 +10,7 @@ import { ensureError } from '../../../../../util/errorUtils';
 // Stable empty candle data reference to prevent re-renders
 const EMPTY_CANDLE_DATA: CandleData = {
   symbol: '',
-  interval: CandlePeriod.ONE_HOUR,
+  interval: CandlePeriod.OneHour,
   candles: [],
 };
 
@@ -53,8 +53,8 @@ export interface UsePerpsLiveCandlesReturn {
  * ```
  * const { candleData, isLoading } = usePerpsLiveCandles({
  *   symbol: 'BTC',
- *   interval: CandlePeriod.ONE_HOUR,
- *   duration: TimeDuration.ONE_DAY,
+ *   interval: CandlePeriod.OneHour,
+ *   duration: TimeDuration.OneDay,
  *   throttleMs: 1000
  * });
  * ```

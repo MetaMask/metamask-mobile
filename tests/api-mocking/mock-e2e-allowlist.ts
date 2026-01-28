@@ -50,6 +50,7 @@ export const ALLOWLISTED_URLS = [
   'https://nft.api.cx.metamask.io/users/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3/tokens?chainIds=1&limit=50&includeTopBid=true&continuation=',
   'https://bridge.dev-api.cx.metamask.io/getTokens?chainId=1',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x1',
+  'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0xaa36a7',
   'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
   'https://api.hyperliquid.xyz/exchange',
   'https://api.hyperliquid.xyz/info',

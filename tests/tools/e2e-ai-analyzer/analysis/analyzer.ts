@@ -6,7 +6,7 @@
  * Provider-agnostic: works with Anthropic, OpenAI, or Google.
  */
 
-import { ToolInput, ModeAnalysisTypes } from '../types';
+import { ToolInput, ModeAnalysisTypes, SkillMetadata } from '../types';
 import { LLM_CONFIG } from '../config';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
 import { executeTool, ToolContext } from '../ai-tools/tool-executor';
@@ -29,13 +29,15 @@ import {
 
 /**
  * Mode Registry
- * Each mode defines its metadata and prompt builders.
+ *
+ * Each mode defines its handlers for processing and output.
+ * systemPromptBuilder now takes availableSkills parameter for on-demand skill loading.
  */
 export const MODES = {
   'select-tags': {
     description: 'Analyze code changes and select E2E test tags to run',
     finalizeToolName: 'finalize_tag_selection',
-    systemPromptBuilder: buildSelectTagsSystemPrompt,
+    systemPromptBuilder: buildSelectTagsSystemPrompt, // Takes SkillMetadata[]
     taskPromptBuilder: buildSelectTagsTaskPrompt,
     processAnalysis: processSelectTagsAnalysis,
     createConservativeResult: createSelectTagsConservativeResult,
@@ -46,10 +48,9 @@ export const MODES = {
   // 'suggest-migration': {
   //   description: 'Identify E2E tests that could be unit/integration tests',
   //   finalizeToolName: 'finalize_migration_suggestions',
-  //   systemPromptBuilder: buildMigrationSystemPrompt,
   //   taskPromptBuilder: buildMigrationTaskPrompt,
   //   processAnalysis: migrationHandlers.processAnalysis,
-  //   createConservativeFallback: migrationHandlers.createConservativeFallback,
+  //   createConservativeResult: migrationHandlers.createConservativeResult,
   //   createEmptyResult: migrationHandlers.createEmptyResult,
   //   outputAnalysis: migrationHandlers.outputAnalysis,
   // },
@@ -91,6 +92,7 @@ export interface AnalysisContext {
  * @param criticalFiles - List of critical files that need special attention
  * @param mode - The analysis mode to use
  * @param context - Analysis context (baseDir, baseBranch, prNumber, githubRepo)
+ * @param availableSkills - Metadata for available skills (loaded on-demand via load_skill tool)
  */
 export async function analyzeWithAgent<M extends ModeKey>(
   provider: ILLMProvider,
@@ -98,10 +100,15 @@ export async function analyzeWithAgent<M extends ModeKey>(
   criticalFiles: string[],
   mode: M,
   context: AnalysisContext,
+  availableSkills: SkillMetadata[],
 ): Promise<ModeAnalysisResult<M>> {
-  // Get mode configuration with prompt builders
+  // Get mode configuration
   const modeConfig = MODES[mode];
-  const systemPrompt = modeConfig.systemPromptBuilder();
+
+  // Build system prompt with available skills metadata
+  const systemPrompt = modeConfig.systemPromptBuilder(availableSkills);
+
+  // Build dynamic task prompt
   const taskPrompt = modeConfig.taskPromptBuilder(
     allChangedFiles,
     criticalFiles,

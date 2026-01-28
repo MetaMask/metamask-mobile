@@ -67,7 +67,7 @@ export const METAMASK_PERPS_ICONS_BASE_URL =
 
 // Asset configurations for multichain abstraction
 export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
-  USDC: {
+  usdc: {
     mainnet: `${ARBITRUM_MAINNET_CAIP_CHAIN_ID}/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default`,
     testnet: `${ARBITRUM_TESTNET_CAIP_CHAIN_ID}/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default`,
   },
@@ -175,7 +175,7 @@ export const BUILDER_FEE_CONFIG = {
   MaxFeeTenthsBps: BUILDER_FEE_MAX_FEE_DECIMAL * 100000,
   MaxFeeRate: `${(BUILDER_FEE_MAX_FEE_DECIMAL * 100)
     .toFixed(4)
-    .replace(/\.?0+$/, '')}%`,
+    .replace(/\.?0+$/u, '')}%`,
 };
 
 // Referral code configuration
