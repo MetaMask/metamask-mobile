@@ -22,7 +22,7 @@ import type { PerpsMarketData } from '../../controllers/types';
  *
  * Features:
  * - FlashList for optimal performance
- * - Consistent configuration (estimatedItemSize, keyboardShouldPersistTaps)
+ * - Consistent configuration (keyboardShouldPersistTaps, drawDistance)
  * - Empty state handling
  * - Auto-updating via WebSocket (no manual refresh needed)
  * - Optional header component
