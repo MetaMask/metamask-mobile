@@ -19,6 +19,7 @@ const DEFAULT_CATEGORIES: CategoryBadgeConfig[] = [
   { category: 'stocks', labelKey: 'perps.home.tabs.stocks' },
   { category: 'commodities', labelKey: 'perps.home.tabs.commodities' },
   { category: 'forex', labelKey: 'perps.home.tabs.forex' },
+  { category: 'new', labelKey: 'perps.home.tabs.new' },
 ];
 
 /**

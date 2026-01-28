@@ -1769,7 +1769,8 @@
         "crypto": "Crypto",
         "stocks": "Stocks",
         "commodities": "Commodities",
-        "forex": "Forex"
+        "forex": "Forex",
+        "new": "New"
       },
       "filter_by": "Filter by",
       "forex": "Forex",

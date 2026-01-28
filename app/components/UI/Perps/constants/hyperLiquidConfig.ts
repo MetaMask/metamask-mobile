@@ -323,14 +323,42 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
   'xyz:TSLA': 'equity',
   'xyz:NVDA': 'equity',
   'xyz:XYZ100': 'equity',
+  'xyz:INTC': 'equity',
+  'xyz:MU': 'equity',
+  'xyz:CRCL': 'equity',
+  'xyz:HOOD': 'equity',
+  'xyz:SNDK': 'equity',
+  'xyz:GOOGL': 'equity',
+  'xyz:COIN': 'equity',
+  'xyz:ORCL': 'equity',
+  'xyz:AMZN': 'equity',
+  'xyz:PLTR': 'equity',
+  'xyz:AAPL': 'equity',
+  'xyz:META': 'equity',
+  'xyz:AMD': 'equity',
+  'xyz:MSFT': 'equity',
+  'xyz:BABA': 'equity',
+  'xyz:RIVN': 'equity',
+  'xyz:NFLX': 'equity',
+  'xyz:COST': 'equity',
+  'xyz:LLY': 'equity',
+  'xyz:TSM': 'equity',
+  'xyz:SKHX': 'equity',
 
   // xyz DEX - Commodities
   'xyz:GOLD': 'commodity',
   'xyz:SILVER': 'commodity',
   'xyz:CL': 'commodity',
   'xyz:COPPER': 'commodity',
+  'xyz:ALUMINIUM': 'commodity',
+  'xyz:URANIUM': 'commodity',
+  'xyz:USAR': 'commodity',
+  'xyz:NATGAS': 'commodity',
+  'xyz:PLATINUM': 'commodity',
 
-  // Future asset mappings as xyz adds more markets
+  // xyz DEX - Forex
+  'xyz:EUR': 'forex',
+  'xyz:JPY': 'forex',
 } as const;
 
 /**

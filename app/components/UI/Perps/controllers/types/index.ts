@@ -74,7 +74,8 @@ export type MarketTypeFilter =
   | 'crypto'
   | 'stocks'
   | 'commodities'
-  | 'forex';
+  | 'forex'
+  | 'new';
 
 // Input method for amount entry tracking
 export type InputMethod =
@@ -364,6 +365,16 @@ export interface PerpsMarketData {
    * - forex: Foreign exchange pairs (HIP-3)
    */
   marketType?: MarketType;
+  /**
+   * Whether this is a HIP-3 market (has DEX prefix like xyz:, flx:)
+   * Used to distinguish between crypto (isHip3=false) and non-crypto markets
+   */
+  isHip3?: boolean;
+  /**
+   * Whether this is a new/uncategorized market (HIP-3 markets not yet in explicit mapping)
+   * Used for the "New" filter tab
+   */
+  isNewMarket?: boolean;
   /**
    * Multi-provider: which provider this market data comes from (injected by aggregator)
    */
