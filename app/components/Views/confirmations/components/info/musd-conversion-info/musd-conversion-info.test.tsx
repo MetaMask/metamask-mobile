@@ -8,7 +8,6 @@ import { CustomAmountInfo } from '../custom-amount-info';
 import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
-import { strings } from '../../../../../../../locales/i18n';
 
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../hooks/earn/useCustomAmount');
@@ -162,7 +161,7 @@ describe('MusdConversionInfo', () => {
   });
 
   describe('footerText', () => {
-    it('passes footerText to CustomAmountInfo', () => {
+    it('does not pass footerText to CustomAmountInfo (Powered by Relay only in navbar tooltip)', () => {
       mockRoute.params = {
         outputChainId: '0x1' as Hex,
       };
@@ -173,12 +172,8 @@ describe('MusdConversionInfo', () => {
         state: {},
       });
 
-      expect(CustomAmountInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          footerText: strings('earn.musd_conversion.powered_by_relay'),
-        }),
-        expect.anything(),
-      );
+      const call = (CustomAmountInfo as jest.Mock).mock.calls[0][0];
+      expect(call.footerText).toBeUndefined();
     });
   });
 
