@@ -23,7 +23,7 @@ export function getTrustSignalIcon(
 ): TrustSignalIcon | null {
   switch (displayState) {
     case TrustSignalDisplayState.Verified:
-      return { name: IconName.Verified, color: IconColor.Success };
+      return { name: IconName.VerifiedFilled, color: IconColor.Info };
     case TrustSignalDisplayState.Malicious:
       return { name: IconName.Danger, color: IconColor.Error };
     case TrustSignalDisplayState.Warning:
