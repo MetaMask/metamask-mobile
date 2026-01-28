@@ -358,7 +358,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   } = usePerpsLiveCandles({
     symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
-    duration: TimeDuration.YEAR_TO_DATE,
+    duration: TimeDuration.YearToDate,
     throttleMs: 1000,
   });
 
@@ -786,14 +786,40 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Close position handler
   const handleClosePosition = useCallback(() => {
     if (!existingPosition) return;
+
+    // Geo-restriction check for close position action
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.CLOSE_POSITION_ACTION,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigateToClosePosition(existingPosition);
-  }, [existingPosition, navigateToClosePosition]);
+  }, [existingPosition, navigateToClosePosition, isEligible, track]);
 
   // Modify position handler - opens the modify action sheet
   const handleModifyPress = useCallback(() => {
     if (!existingPosition) return;
+
+    // Geo-restriction check for modify position action
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.MODIFY_POSITION_ACTION,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     openModifySheet();
-  }, [existingPosition, openModifySheet]);
+  }, [existingPosition, openModifySheet, isEligible, track]);
 
   // Handler for "Add Margin" from stop loss prompt banner
   const handleAddMarginFromBanner = useCallback(() => {
@@ -1282,7 +1308,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         isVisible={isMoreCandlePeriodsVisible}
         onClose={handleMoreCandlePeriodsClose}
         selectedPeriod={selectedCandlePeriod}
-        selectedDuration={TimeDuration.YEAR_TO_DATE} // Not used when showAllPeriods is true
+        selectedDuration={TimeDuration.YearToDate} // Not used when showAllPeriods is true
         onPeriodChange={handleCandlePeriodChange}
         showAllPeriods
         asset={market?.symbol}

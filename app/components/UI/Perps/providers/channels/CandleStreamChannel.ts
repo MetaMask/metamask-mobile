@@ -210,7 +210,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       symbol,
       interval,
-      duration: TimeDuration.YEAR_TO_DATE, // Always fetch max candles
+      duration: TimeDuration.YearToDate, // Always fetch max candles
       callback: (candleData: CandleData) => {
         // Update cache
         this.cache.set(cacheKey, candleData);
@@ -289,7 +289,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   protected getClearedData(): CandleData {
     return {
       symbol: '',
-      interval: CandlePeriod.ONE_HOUR,
+      interval: CandlePeriod.OneHour,
       candles: [],
     };
   }

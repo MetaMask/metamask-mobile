@@ -6864,7 +6864,7 @@ describe('HyperLiquidProvider', () => {
       // Add WebSocket methods to mock client service
       mockClientService.getConnectionState = jest
         .fn()
-        .mockReturnValue(WebSocketConnectionState.CONNECTED);
+        .mockReturnValue(WebSocketConnectionState.Connected);
       mockClientService.subscribeToConnectionState = jest
         .fn()
         .mockReturnValue(jest.fn());
@@ -6874,14 +6874,14 @@ describe('HyperLiquidProvider', () => {
     it('getWebSocketConnectionState delegates to clientService', () => {
       // Arrange
       mockClientService.getConnectionState.mockReturnValue(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
       );
 
       // Act
       const result = provider.getWebSocketConnectionState();
 
       // Assert
-      expect(result).toBe(WebSocketConnectionState.CONNECTED);
+      expect(result).toBe(WebSocketConnectionState.Connected);
       expect(mockClientService.getConnectionState).toHaveBeenCalled();
     });
 
