@@ -100,6 +100,14 @@ class NavigationService {
     this.#assertNavigationExists();
     return this.#navigation;
   }
+
+  /**
+   * Resets the navigation reference. Only for testing purposes.
+   * @internal
+   */
+  static resetForTesting() {
+    this.#navigation = undefined as unknown as NavigationContainerRef;
+  }
 }
 
 export default NavigationService;

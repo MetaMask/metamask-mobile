@@ -5,9 +5,13 @@ import type { NavigationContainerRef } from '@react-navigation/native';
 describe('NavigationService', () => {
   let mockNavigation: NavigationContainerRef;
   let mockRequestAnimationFrame: jest.SpyInstance;
+  let mockLoggerError: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Reset NavigationService state to ensure test isolation
+    NavigationService.resetForTesting();
 
     // Mock requestAnimationFrame - execute callback immediately for testing
     mockRequestAnimationFrame = jest
@@ -24,11 +28,12 @@ describe('NavigationService', () => {
       dispatch: jest.fn(),
     } as unknown as NavigationContainerRef;
 
-    jest.spyOn(Logger, 'error');
+    mockLoggerError = jest.spyOn(Logger, 'error');
   });
 
   afterEach(() => {
     mockRequestAnimationFrame.mockRestore();
+    mockLoggerError.mockRestore();
   });
 
   describe('navigation getter', () => {
