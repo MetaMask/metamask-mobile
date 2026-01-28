@@ -398,7 +398,7 @@ describe('useMusdConversionStatus', () => {
   });
 
   describe('confirmed transaction status', () => {
-    it('shows success toast when transactionConfirmed event fires', () => {
+    it('shows success toast when transactionConfirmed event fires with confirmed status', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getConfirmedHandler();
@@ -413,6 +413,19 @@ describe('useMusdConversionStatus', () => {
       expect(mockShowToast).toHaveBeenCalledWith(
         mockEarnToastOptions.mUsdConversion.success,
       );
+    });
+
+    it('ignores transactionConfirmed event when status is failed', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getConfirmedHandler();
+      // transactionConfirmed can fire with failed status (see useCardDelegation.ts pattern)
+      const transactionMeta = createTransactionMeta(TransactionStatus.failed);
+
+      handler(transactionMeta);
+
+      // Success toast not shown - failed status is handled by transactionStatusUpdated
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
     it('prevents duplicate success toast for same transaction', () => {

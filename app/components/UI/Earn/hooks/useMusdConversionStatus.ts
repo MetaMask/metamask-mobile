@@ -177,7 +177,13 @@ export const useMusdConversionStatus = () => {
     // Handle confirmed status via transactionConfirmed event
     // This event fires at the same time as TokenBalancesController updates balances,
     // ensuring the success toast appears in sync with the balance change in the UI
+    // Note: transactionConfirmed can fire with failed status (see useCardDelegation.ts pattern)
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
+      // Only handle confirmed status - failed status is handled by transactionStatusUpdated
+      if (transactionMeta.status !== TransactionStatus.confirmed) {
+        return;
+      }
+
       const data = getConversionData(
         transactionMeta,
         TransactionStatus.confirmed,
