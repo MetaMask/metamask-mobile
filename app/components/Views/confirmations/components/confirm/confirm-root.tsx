@@ -19,16 +19,14 @@ export const ConfirmRoot = () => {
     }
 
     if (
-      !shouldNavigateConfirmationModal(
+      shouldNavigateConfirmationModal(
         approvalRequest.type,
         transactionMetadata,
         isFullScreenConfirmation,
       )
     ) {
-      return;
+      navigation.navigate(Routes.CONFIRMATION_REQUEST_MODAL);
     }
-
-    navigation.navigate(Routes.CONFIRMATION_REQUEST_MODAL);
   }, [
     approvalRequest,
     isFullScreenConfirmation,
