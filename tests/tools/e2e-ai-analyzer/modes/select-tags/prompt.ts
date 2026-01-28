@@ -51,15 +51,7 @@ Performance tests measure app responsiveness and render times. Select performanc
 - Account/network list components (AccountSelector, NetworkSelector, related hooks)
 - Critical user flows (login, balance loading, swap flows, send flows)
 - App startup and initialization (Engine, background services, navigation)
-
-WHEN TO RUN PERFORMANCE TESTS:
-- Changes to components that render lists (accounts, networks, tokens, transactions)
-- Changes to state management or data fetching logic
-- Changes to core Engine or controller initialization
-- Changes to onboarding or login flows
-- Changes to wallet view or asset display components
 - Changes to the appwright/ directory (performance test infrastructure)
-- Changes to e2e/specs/performance/ directory (Detox performance tests)
 
 WHEN TO SKIP PERFORMANCE TESTS:
 - Pure documentation or comment changes
