@@ -13,7 +13,6 @@ import { CustomAmountInfo } from '../custom-amount-info';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
 import { useMusdConversionQuoteTrace } from '../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace';
-import { strings } from '../../../../../../../locales/i18n';
 import { endTrace, TraceName } from '../../../../../../util/trace';
 
 interface MusdOverrideContentProps {
@@ -88,7 +87,6 @@ export const MusdConversionInfo = () => {
     <CustomAmountInfo
       preferredToken={preferredPaymentToken}
       overrideContent={renderOverrideContent}
-      footerText={strings('earn.musd_conversion.powered_by_relay')}
       hasMax
       onAmountSubmit={startQuoteTrace}
     />
