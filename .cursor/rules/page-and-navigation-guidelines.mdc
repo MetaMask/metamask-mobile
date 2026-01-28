@@ -179,35 +179,81 @@ import BottomSheetFooter from '../../../component-library/components/BottomSheet
 
 ## Navigation Patterns
 
-### Pages vs Bottom Sheets
+### Pages vs Bottom Sheets - Overview
 
-| Use Case | Component | Animation |
-|----------|-----------|-----------|
-| Full screens with potential subflows | Page (Stack.Screen) | Slide from right |
-| Quick, contextual actions without subflows | Bottom Sheet | Slide from bottom |
+| Aspect | Page | Bottom Sheet |
+|--------|------|--------------|
+| **Transition** | Slides from right | Slides from bottom |
+| **Header button** | Back arrow (←) | Close button (×) |
+| **Dismiss gesture** | Swipe right to go back | Swipe down to close |
+| **Use for** | Focused work, subflows, destinations | Quick actions, contextual choices |
 
-**Bottom Sheets should be reserved for**:
-- Quick selections (network picker, token picker)
-- Confirmations that don't lead to other screens
-- Simple actions that complete in one step
-- Contextual information display
+### Decision Tree: Page or Bottom Sheet?
 
-**Use Pages when**:
-- The flow has multiple steps or subflows
-- Users need to navigate deeper into a feature
-- The content requires full-screen attention
-- There are complex forms or inputs
+Use this decision tree to determine the correct navigation pattern:
 
-### Page Transition Animation
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. Does the user need to commit focus or do sustained work?     │
+│    ├─ YES → Use PAGE                                            │
+│    └─ NO (quick/glanceable) → Continue to 2                     │
+├─────────────────────────────────────────────────────────────────┤
+│ 2. Is this action anchored to the current context?              │
+│    ├─ YES → Continue to 3                                       │
+│    └─ NO (it's a destination on its own) → Use PAGE             │
+├─────────────────────────────────────────────────────────────────┤
+│ 3. Is dismissal expected or helpful?                            │
+│    ├─ YES (dismissal is a feature) → Continue to 4              │
+│    └─ NO (dismissal would feel risky/scary) → Use PAGE          │
+│       Note: If losing progress would feel scary → PAGE          │
+├─────────────────────────────────────────────────────────────────┤
+│ 4. Is the task short and low-entropy?                           │
+│    ├─ YES → Use BOTTOM SHEET                                    │
+│    └─ NO (it grows or branches) → Use PAGE                      │
+├─────────────────────────────────────────────────────────────────┤
+│ 5. Does the user need to navigate elsewhere from here?          │
+│    ├─ YES → Use PAGE                                            │
+│    └─ NO → Continue to 6                                        │
+├─────────────────────────────────────────────────────────────────┤
+│ 6. Is this primarily a choice, confirmation, or tweak?          │
+│    ├─ YES → Use BOTTOM SHEET                                    │
+│    └─ NO (exploratory or educational) → Use PAGE                │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-**Pages should ALWAYS animate in from the right.** This is the standard iOS/Android navigation pattern.
+### Quick Reference Examples
+
+**Use Bottom Sheet for:**
+- Network picker / token picker (quick selection)
+- Simple confirmations ("Are you sure?")
+- Settings tweaks (toggle, single choice)
+- Contextual actions (share, copy address)
+- Filter/sort options
+
+**Use Page for:**
+- Multi-step flows (onboarding, send transaction)
+- Forms with multiple inputs
+- Educational content or tutorials
+- Destinations with their own navigation
+- Any flow where losing progress would be frustrating
+
+### Page Requirements
+
+Pages have three key requirements:
+
+1. **Transition from right** - Animate in from the right side
+2. **Back arrow in header** - Use `IconName.ArrowLeft` for the back button
+3. **Gesture swipe back** - User can swipe right to return to previous page
 
 ```tsx
-// Standard slide-from-right animation (default in most cases)
+// Standard page configuration
 <Stack.Screen
   name={Routes.MY_SCREEN}
   component={MyScreen}
-  options={{ animationEnabled: true }}
+  options={{
+    animationEnabled: true,
+    gestureEnabled: true,  // Enable swipe-back gesture
+  }}
 />
 
 // Explicit slide-from-right for custom scenarios
@@ -216,6 +262,7 @@ import BottomSheetFooter from '../../../component-library/components/BottomSheet
   component={MyScreen}
   options={{
     animationEnabled: true,
+    gestureEnabled: true,
     cardStyleInterpolator: ({ current, layouts }) => ({
       cardStyle: {
         transform: [
@@ -230,6 +277,57 @@ import BottomSheetFooter from '../../../component-library/components/BottomSheet
     }),
   }}
 />
+```
+
+**Header with back arrow:**
+```tsx
+// Using navigation options
+navigation.setOptions(
+  getHeaderCenterNavbarOptions({
+    title: 'Screen Title',
+    onBack: () => navigation.goBack(),  // Back arrow automatically added
+  }),
+);
+
+// Using HeaderBase directly
+<HeaderBase
+  startButtonIconProps={{
+    iconName: IconName.ArrowLeft,  // Back arrow
+    onPress: () => navigation.goBack(),
+  }}
+>
+  <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+    Title
+  </Text>
+</HeaderBase>
+```
+
+> **Important**: Many existing pages were built without gesture support. Enabling gestures may require updates to ensure child components don't capture/override the page-level gesture. This should be done carefully per page.
+
+### Bottom Sheet Requirements
+
+Bottom sheets have three key requirements:
+
+1. **Transition from bottom** - Animate up from the bottom of the screen
+2. **Close button in header** - Use `IconName.Close` (×) for the close button
+3. **Gesture swipe down** - User can swipe down to dismiss
+
+```tsx
+// Bottom sheet with proper header
+import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+
+<BottomSheet ref={bottomSheetRef}>
+  <BottomSheetHeader onClose={() => bottomSheetRef.current?.close()}>
+    <Text variant={TextVariant.HeadingMd}>Sheet Title</Text>
+  </BottomSheetHeader>
+  {/* Sheet content */}
+</BottomSheet>
+
+// Or using SheetHeader
+import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+
+<SheetHeader onBack={() => closeSheet()} title="Sheet Title" />
 ```
 
 ### Visual Cue: Caret/Arrow Direction
@@ -286,14 +384,15 @@ import { getHeaderCenterNavbarOptions } from '../../../component-library/compone
 const MyPage = () => {
   const navigation = useNavigation();
 
-  // 1. Configure inline header
+  // 1. Configure inline header with back arrow
   useLayoutEffect(() => {
-    navigation.setOptions(
-      getHeaderCenterNavbarOptions({
+    navigation.setOptions({
+      ...getHeaderCenterNavbarOptions({
         title: 'My Page',
-        onBack: () => navigation.goBack(),
+        onBack: () => navigation.goBack(),  // Adds back arrow automatically
       }),
-    );
+      gestureEnabled: true,  // Enable swipe-back gesture
+    });
   }, [navigation]);
 
   return (
@@ -339,21 +438,97 @@ const MyPage = () => {
 export default MyPage;
 ```
 
+## Complete Bottom Sheet Example
+
+```tsx
+import React, { useRef } from 'react';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariants,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+
+interface NetworkPickerSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (networkId: string) => void;
+}
+
+const NetworkPickerSheet = ({ isOpen, onClose, onSelect }: NetworkPickerSheetProps) => {
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  const handleClose = () => {
+    bottomSheetRef.current?.close();
+    onClose();
+  };
+
+  return (
+    <BottomSheet ref={bottomSheetRef} isOpen={isOpen} onClose={onClose}>
+      {/* Header with close button (×) */}
+      <BottomSheetHeader onClose={handleClose}>
+        <Text variant={TextVariant.HeadingMd}>Select Network</Text>
+      </BottomSheetHeader>
+
+      {/* Quick selection content - no subflows */}
+      <Box twClassName="px-4 pb-4">
+        {networks.map((network) => (
+          <Pressable
+            key={network.id}
+            onPress={() => {
+              onSelect(network.id);
+              handleClose();
+            }}
+          >
+            <Text>{network.name}</Text>
+          </Pressable>
+        ))}
+      </Box>
+    </BottomSheet>
+  );
+};
+
+export default NetworkPickerSheet;
+```
+
 ## Quick Reference
 
 ### Page Structure Checklist
 - [ ] SafeAreaView wraps the page (with appropriate edges)
 - [ ] Header is inline (using navigation options or HeaderBase)
+- [ ] Header has back arrow (`IconName.ArrowLeft`)
 - [ ] Content area uses `flex: 1`
 - [ ] ScrollView added only when content may exceed screen height
 - [ ] Footer CTA has correct margins (bottom: 16 iOS/0 Android, horizontal: 16, top: 24)
+- [ ] Gesture swipe-back is enabled (`gestureEnabled: true`)
+- [ ] Child components don't block swipe gesture
 
-### Navigation Decision Checklist
-- [ ] Does this action have subflows? → Use **Page**
-- [ ] Is this a quick, contextual action? → Use **Bottom Sheet**
-- [ ] Trigger opens a page? → Use **right-pointing caret** (`IconName.ArrowRight`)
-- [ ] Trigger opens a bottom sheet? → Use **down-pointing caret** (`IconName.ArrowDown`)
-- [ ] Page animation? → **Slide from right** (default or explicit)
+### Bottom Sheet Checklist
+- [ ] Header has close button (`IconName.Close`)
+- [ ] Swipe-down gesture dismisses the sheet
+- [ ] No subflows or navigation to other screens
+- [ ] Task is quick and low-entropy
+
+### Navigation Decision Tree (Quick Version)
+1. Sustained work or focus needed? → **Page**
+2. Is it a standalone destination? → **Page**
+3. Would dismissal feel risky? → **Page**
+4. Does it grow or branch? → **Page**
+5. Navigate elsewhere from here? → **Page**
+6. Choice, confirmation, or tweak? → **Bottom Sheet**
+7. Exploratory or educational? → **Page**
+
+### Visual Cue Summary
+| Trigger Opens | Caret Direction | Icon |
+|---------------|-----------------|------|
+| Page | Right → | `IconName.ArrowRight` |
+| Bottom Sheet | Down ↓ | `IconName.ArrowDown` |
 
 ## References
 
