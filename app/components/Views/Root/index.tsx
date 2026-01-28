@@ -20,6 +20,7 @@ import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { PredictProviderGated } from '../../UI/Predict/context';
 
 /**
  * Top level of the component hierarchy
@@ -81,10 +82,12 @@ const Root = ({ foxCode }: RootProps) => {
               <NavigationProvider>
                 <ControllersGate>
                   <ToastContextWrapper>
-                    <ErrorBoundary view="Root">
-                      <ReducedMotionConfig mode={ReduceMotion.Never} />
-                      <App />
-                    </ErrorBoundary>
+                    <PredictProviderGated>
+                      <ErrorBoundary view="Root">
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </ErrorBoundary>
+                    </PredictProviderGated>
                   </ToastContextWrapper>
                 </ControllersGate>
               </NavigationProvider>

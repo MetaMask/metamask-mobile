@@ -17,10 +17,14 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import Engine from '../../../../core/Engine';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import Engine from '../../../../core/Engine';
+import {
+  usePredictContextSafe,
+  PredictTransactionEvent,
+} from '../context/PredictProvider';
 
 const toastStyles = StyleSheet.create({
   spinnerContainer: {
@@ -64,6 +68,23 @@ interface UsePredictToastsParams {
   onConfirmed?: () => void;
 }
 
+const getSubscriptionFunction = (
+  context: ReturnType<typeof usePredictContextSafe>,
+  txType: TransactionType,
+) => {
+  if (!context) return null;
+  switch (txType) {
+    case TransactionType.predictDeposit:
+      return context.subscribeToDepositEvents;
+    case TransactionType.predictClaim:
+      return context.subscribeToClaimEvents;
+    case TransactionType.predictWithdraw:
+      return context.subscribeToWithdrawEvents;
+    default:
+      return null;
+  }
+};
+
 export const usePredictToasts = ({
   transactionType,
   transactionBatchId,
@@ -75,6 +96,7 @@ export const usePredictToasts = ({
 }: UsePredictToastsParams) => {
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
+  const predictContext = usePredictContextSafe();
 
   const showPendingToast = useCallback(
     ({
@@ -200,24 +222,27 @@ export const usePredictToasts = ({
   );
 
   useEffect(() => {
-    const handleTransactionStatusUpdate = ({
-      transactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => {
-      const isTargetTransaction =
-        transactionMeta.batchId === transactionBatchId;
+    const isEventFromContext = (
+      event: PredictTransactionEvent | { transactionMeta: TransactionMeta },
+    ): event is PredictTransactionEvent => 'type' in event;
 
-      const isTargetNestedTransaction =
-        transactionMeta?.nestedTransactions?.some(
-          (tx) => tx.type === transactionType,
-        );
+    const isTargetBatch = (meta: TransactionMeta) =>
+      !transactionBatchId || meta.batchId === transactionBatchId;
 
-      if (transactionBatchId && !isTargetTransaction) {
+    const isTargetTransactionType = (meta: TransactionMeta) =>
+      meta?.nestedTransactions?.some((tx) => tx.type === transactionType);
+
+    const handleTransactionEvent = (
+      event: PredictTransactionEvent | { transactionMeta: TransactionMeta },
+    ) => {
+      const { transactionMeta } = event;
+
+      if (!isTargetBatch(transactionMeta)) return;
+      if (
+        !isEventFromContext(event) &&
+        !isTargetTransactionType(transactionMeta)
+      )
         return;
-      } else if (!isTargetNestedTransaction) {
-        return;
-      }
 
       if (transactionMeta.status === TransactionStatus.rejected) {
         clearTransaction?.();
@@ -242,15 +267,29 @@ export const usePredictToasts = ({
       }
     };
 
+    const contextSubscriptionFn = getSubscriptionFunction(
+      predictContext,
+      transactionType,
+    );
+    if (contextSubscriptionFn) {
+      return contextSubscriptionFn(handleTransactionEvent);
+    }
+
+    const handleDirectSubscription = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => handleTransactionEvent({ transactionMeta });
+
     Engine.controllerMessenger.subscribe(
       'TransactionController:transactionStatusUpdated',
-      handleTransactionStatusUpdate,
+      handleDirectSubscription,
     );
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionStatusUpdated',
-        handleTransactionStatusUpdate,
+        handleDirectSubscription,
       );
     };
   }, [
@@ -258,6 +297,7 @@ export const usePredictToasts = ({
     confirmedToastConfig,
     onConfirmed,
     pendingToastConfig,
+    predictContext,
     showConfirmedToast,
     showErrorToast,
     showPendingToast,
