@@ -72,18 +72,14 @@ export default async function migrate(stateAsync: unknown): Promise<unknown> {
     const tokenListControllerState = state.engine.backgroundState
       .TokenListController as TokenListControllerState | undefined;
 
-    // Check if there's data to migrate
     if (!isObject(tokenListControllerState)) {
       return state;
     }
 
-    // Validate tokensChainsCache is an object (established pattern from migrations 029, 031)
     if (
       !hasProperty(tokenListControllerState, 'tokensChainsCache') ||
       !isObject(tokenListControllerState.tokensChainsCache)
     ) {
-      // If tokensChainsCache is missing or invalid, report and skip migration
-      // This follows the pattern from migrations 029 and 031
       if (tokenListControllerState.tokensChainsCache !== undefined) {
         captureException(
           new Error(

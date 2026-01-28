@@ -35,8 +35,9 @@ export const tokenListControllerInit: ControllerInitFunction<
       ),
   });
 
-  // Initialize the controller to load cached token lists from storage.
-  controller.initialize();
+  controller.initialize().catch(() => {
+    // Initialization failed 
+  });
 
   return {
     controller,
