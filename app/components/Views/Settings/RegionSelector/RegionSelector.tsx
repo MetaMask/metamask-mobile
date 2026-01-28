@@ -334,8 +334,14 @@ function RegionSelector() {
     ({ item }: { item: ListItem }) => {
       if (isGroupedResult(item)) {
         const countryIsSelected = isRegionSelected(item.country);
+        const supportedValue = item.country.supported as unknown;
         const isSupported =
-          item.country.supported?.buy || item.country.supported?.sell;
+          supportedValue == null ||
+          supportedValue === true ||
+          (typeof supportedValue === 'object' &&
+            supportedValue !== null &&
+            ((supportedValue as { buy?: boolean }).buy ||
+              (supportedValue as { sell?: boolean }).sell));
         const showStateName =
           userRegion?.state &&
           activeView === RegionViewType.COUNTRY &&
@@ -350,7 +356,7 @@ function RegionSelector() {
               onPress={() => handleOnRegionPressCallback(item.country)}
               accessibilityRole="button"
               accessible
-              disabled={!isSupported}
+              isDisabled={!isSupported}
             >
               <ListItemColumn widthType={WidthType.Fill}>
                 <View style={styles.region}>
@@ -396,8 +402,14 @@ function RegionSelector() {
             </ListItemSelect>
             {item.matchingStates.map((state) => {
               const stateIsSelected = isRegionSelected(state, item.country);
+              const stateSupportedValue = state.supported as unknown;
               const isStateSupported =
-                state.supported?.buy || state.supported?.sell;
+                stateSupportedValue == null ||
+                stateSupportedValue === true ||
+                (typeof stateSupportedValue === 'object' &&
+                  stateSupportedValue !== null &&
+                  ((stateSupportedValue as { buy?: boolean }).buy ||
+                    (stateSupportedValue as { sell?: boolean }).sell));
               return (
                 <ListItemSelect
                   key={state.stateId || state.name}
@@ -407,7 +419,7 @@ function RegionSelector() {
                   }
                   accessibilityRole="button"
                   accessible
-                  disabled={!isStateSupported}
+                  isDisabled={!isStateSupported}
                   style={styles.nestedStateItem}
                 >
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -440,7 +452,14 @@ function RegionSelector() {
       );
 
       if (isCountry(region)) {
-        const isSupported = region.supported?.buy || region.supported?.sell;
+        const countrySupportedValue = region.supported as unknown;
+        const isSupported =
+          countrySupportedValue == null ||
+          countrySupportedValue === true ||
+          (typeof countrySupportedValue === 'object' &&
+            countrySupportedValue !== null &&
+            ((countrySupportedValue as { buy?: boolean }).buy ||
+              (countrySupportedValue as { sell?: boolean }).sell));
         const showStateName =
           userRegion?.state &&
           activeView === RegionViewType.COUNTRY &&
@@ -454,7 +473,7 @@ function RegionSelector() {
             onPress={() => handleOnRegionPressCallback(region)}
             accessibilityRole="button"
             accessible
-            disabled={!isSupported}
+            isDisabled={!isSupported}
           >
             <ListItemColumn widthType={WidthType.Fill}>
               <View style={styles.region}>
@@ -496,14 +515,21 @@ function RegionSelector() {
         );
       }
 
-      const isStateSupported = region.supported?.buy || region.supported?.sell;
+      const regionSupportedValue = region.supported as unknown;
+      const isStateSupported =
+        regionSupportedValue == null ||
+        regionSupportedValue === true ||
+        (typeof regionSupportedValue === 'object' &&
+          regionSupportedValue !== null &&
+          ((regionSupportedValue as { buy?: boolean }).buy ||
+            (regionSupportedValue as { sell?: boolean }).sell));
       return (
         <ListItemSelect
           isSelected={isSelected}
           onPress={() => handleOnRegionPressCallback(region)}
           accessibilityRole="button"
           accessible
-          disabled={!isStateSupported}
+          isDisabled={!isStateSupported}
         >
           <ListItemColumn widthType={WidthType.Fill}>
             <View style={styles.region}>
