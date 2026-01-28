@@ -167,11 +167,8 @@ export function useHasExistingPosition(
   const positionOpenedTimestamp =
     wsPositionOpenedTimestamp ?? restPositionTimestamp;
 
-  // No-op refresh function for compatibility
-  // Positions update automatically via WebSocket
-  // WebSocket positions update automatically, no manual refresh needed
+  // No-op refresh function for compatibility - positions update automatically via WebSocket
   const refreshPosition = useCallback(async () => undefined, []);
-  // WebSocket positions update automatically, no manual refresh needed
 
   return {
     hasPosition,

@@ -3509,11 +3509,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const positionSize = Math.abs(parseFloat(position.size));
       const isLong = parseFloat(position.size) > 0;
 
-      await this.ensureReady();
-
-      // See ensureReady() - builder fee and referral are session-cached
-
-      // Get clients for API calls
+      // Get clients for API calls (ensureReady already called at method start)
       const infoClient = this.clientService.getInfoClient();
       const exchangeClient = this.clientService.getExchangeClient();
       const userAddress = await this.walletService.getUserAddressWithDefault();
