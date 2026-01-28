@@ -14,11 +14,12 @@ import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { useRewardDashboardModals } from './useRewardDashboardModals';
 import { RewardsMetricsButtons } from '../utils';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import type { RootParamList } from '../../../../util/navigation/types';
 
 interface UseOptoutResult {
   optout: () => Promise<boolean>;
   isLoading: boolean;
-  showOptoutBottomSheet: (dismissRoute?: string) => void;
+  showOptoutBottomSheet: (dismissRoute?: keyof RootParamList) => void;
 }
 
 export const useOptout = (): UseOptoutResult => {
@@ -109,14 +110,15 @@ export const useOptout = (): UseOptoutResult => {
   ]);
 
   const showOptoutBottomSheet = useCallback(
-    (dismissRoute?: string) => {
+    (dismissRoute?: keyof RootParamList) => {
       const handleOptoutSuccess = () => {
         navigation.navigate(Routes.WALLET_VIEW);
       };
 
       const handleOptoutCancel = () => {
         // Navigate to dismissRoute if provided, otherwise default to REWARDS_SETTINGS_VIEW
-        navigation.navigate(dismissRoute || Routes.REWARDS_SETTINGS_VIEW);
+        const route = dismissRoute ?? Routes.REWARDS_SETTINGS_VIEW;
+        (navigation.navigate as (screen: keyof RootParamList) => void)(route);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
             .addProperties({

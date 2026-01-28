@@ -9,7 +9,12 @@ import React, {
 import { Dimensions, Animated, Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { CarouselProps, CarouselSlide, NavigationAction } from './types';
+import {
+  CarouselProps,
+  CarouselSlide,
+  NavigationAction,
+  NavigationRoute,
+} from './types';
 import { dismissBanner } from '../../../reducers/banners';
 import { StackCard } from './StackCard';
 import { StackCardEmpty } from './StackCardEmpty';
@@ -45,6 +50,7 @@ import { subscribeToContentPreviewToken } from '../../../actions/notification/he
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { isInternalDeepLink } from '../../../util/deeplinks';
 import AppConstants from '../../../core/AppConstants';
+import { RootParamList } from '../../../util/navigation/types';
 
 const MAX_CAROUSEL_SLIDES = 8;
 
@@ -420,11 +426,15 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       }
 
       if (navigation.type === 'function') {
-        return navigate(...navigation.navigate());
+        return (navigate as unknown as (...args: NavigationRoute) => void)(
+          ...navigation.navigate(),
+        );
       }
 
       if (navigation.type === 'route') {
-        return navigate(navigation.route);
+        return (navigate as (screen: keyof RootParamList) => void)(
+          navigation.route,
+        );
       }
     },
     [

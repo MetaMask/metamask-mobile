@@ -1,6 +1,7 @@
 import { ViewStyle } from 'react-native';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { CaipChainId } from '@metamask/utils';
+import type { RootParamList } from '../../../util/navigation/types';
 
 interface NavigationParams {
   address?: string;
@@ -32,7 +33,7 @@ export interface FunctionNavigationAction {
 
 export interface RouteNavigationAction {
   type: 'route';
-  route: string;
+  route: keyof RootParamList;
   navigationStack?: string;
 }
 
