@@ -7,10 +7,10 @@ import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
 import type { ServiceContext } from './ServiceContext';
 import {
   PerpsAnalyticsEvent,
-  type IPerpsProvider,
+  type PerpsProvider,
   type WithdrawParams,
   type WithdrawResult,
-  type IPerpsPlatformDependencies,
+  type PerpsPlatformDependencies,
 } from '../types';
 import type { PerpsControllerState } from '../PerpsController';
 
@@ -41,10 +41,10 @@ jest.mock('../perpsErrorCodes', () => ({
 // The mock is set up via createMockInfrastructure() in serviceMocks.ts
 
 describe('AccountService', () => {
-  let mockProvider: jest.Mocked<IPerpsProvider>;
+  let mockProvider: jest.Mocked<PerpsProvider>;
   let mockContext: ServiceContext;
   let mockRefreshAccountState: jest.Mock;
-  let mockDeps: IPerpsPlatformDependencies;
+  let mockDeps: PerpsPlatformDependencies;
   let accountService: AccountService;
 
   const mockWithdrawParams: WithdrawParams = {
@@ -55,7 +55,7 @@ describe('AccountService', () => {
 
   beforeEach(() => {
     mockProvider =
-      createMockHyperLiquidProvider() as unknown as jest.Mocked<IPerpsProvider>;
+      createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
     mockContext = createMockServiceContext({
       errorContext: { controller: 'AccountService', method: 'test' },
     });
