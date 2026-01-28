@@ -183,8 +183,13 @@ export const BridgeTokenSelector: React.FC = () => {
   // Selected token is prepended to pin it to the top of the list
   // Stringified to avoid triggering the useEffect when only balances change
   const includeAssets = useMemo(() => {
+    // Only include selected token if its network matches the current filter
+    const isSelectedTokenOnFilteredNetwork =
+      selectedToken &&
+      chainIdsToFetch.includes(formatChainIdToCaip(selectedToken.chainId));
+
     // Convert selected token first (will be pinned to top of list)
-    const selectedAsset = selectedToken
+    const selectedAsset = isSelectedTokenOnFilteredNetwork
       ? tokenToIncludeAsset(selectedToken)
       : null;
 
@@ -201,7 +206,7 @@ export const BridgeTokenSelector: React.FC = () => {
       : balanceAssets;
 
     return JSON.stringify(assets);
-  }, [filteredTokensWithBalance, selectedToken]);
+  }, [filteredTokensWithBalance, selectedToken, chainIdsToFetch]);
 
   // Fetch popular tokens
   const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(

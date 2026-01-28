@@ -1,6 +1,9 @@
 import { Hex } from '@metamask/utils';
 
 export const MERKL_API_BASE_URL = 'https://api.merkl.xyz/v4';
+
+// Origin identifier for Merkl claim transactions (used for toast monitoring)
+export const MERKL_CLAIM_ORIGIN = 'merkl-claim' as const;
 export const AGLAMERKL_ADDRESS_MAINNET =
   '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898'; // Used for test campaigns
 export const AGLAMERKL_ADDRESS_LINEA =
