@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, userEvent } from '@testing-library/react-native';
+import { render, userEvent, fireEvent } from '@testing-library/react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TrendingTokensFullView, {
@@ -48,15 +48,15 @@ const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
 jest.mock(
   '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList',
   (): typeof TrendingTokensList => {
-    const { View, Text } = jest.requireActual('react-native');
-    return ({ trendingTokens }) => (
-      <View testID="trending-tokens-list">
+    const { View, Text, ScrollView } = jest.requireActual('react-native');
+    return ({ trendingTokens, refreshControl }) => (
+      <ScrollView testID="trending-tokens-list" refreshControl={refreshControl}>
         {trendingTokens.map((token, index) => (
           <View key={token.assetId || index} testID={`token-${index}`}>
             <Text>{token.name}</Text>
           </View>
         ))}
-      </View>
+      </ScrollView>
     );
   },
 );
@@ -308,6 +308,25 @@ describe('TrendingTokensFullView', () => {
       chainIds: null,
       searchQuery: undefined,
     });
+  });
+
+  it('calls refetch when pull-to-refresh is triggered', () => {
+    const mockTokens = [
+      createMockToken({ name: 'Token 1', assetId: 'eip155:1/erc20:0x123' }),
+    ];
+
+    const mocks = arrangeMocks();
+    mocks.setTrendingRequestMock({ results: mockTokens });
+    mocks.setTrendingSearchMock({ data: mockTokens });
+
+    const { getByTestId, UNSAFE_getByType } = renderTrendingFullView();
+
+    expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
+    const { RefreshControl } = jest.requireActual('react-native');
+    const refreshControl = UNSAFE_getByType(RefreshControl);
+    fireEvent(refreshControl, 'refresh');
+
+    expect(mocks.mockRefetch).toHaveBeenCalledTimes(1);
   });
 
   const bottomSheetTests = [
