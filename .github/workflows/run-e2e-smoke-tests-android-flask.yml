@@ -3,6 +3,11 @@ name: Android Flask E2E Smoke Tests
 on:
   workflow_call:
     inputs:
+      selected_tags:
+        description: 'JSON array of selected tags from Smart E2E selection'
+        required: false
+        type: string
+        default: '["ALL"]'
       changed_files:
         description: 'Changed files'
         required: false
@@ -15,6 +20,7 @@ permissions:
 
 jobs:
   repack-android-flask-apps:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'FlaskBuildTests')
     name: 'Repack Android Flask Apps'
     runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     permissions:
@@ -129,6 +135,7 @@ jobs:
           retention-days: 1
 
   flask-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'FlaskBuildTests')
     needs: [repack-android-flask-apps]
     strategy:
       matrix:
@@ -148,7 +155,7 @@ jobs:
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && (contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'FlaskBuildTests')) }}
     needs:
       - flask-android-smoke
     steps:

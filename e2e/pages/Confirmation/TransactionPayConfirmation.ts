@@ -1,9 +1,9 @@
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
-} from '../../selectors/Confirmation/ConfirmationView.selectors';
-import Matchers from '../../framework/Matchers';
-import { Assertions, Gestures } from '../../framework';
+} from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import { Assertions, Gestures } from '../../../tests/framework';
 
 class TransactionPayConfirmation {
   get bridgeTime(): DetoxElement {

@@ -120,7 +120,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   // Compact: fixed height, Display: content-based with no default styles
   const baseStyles = isLeftAligned
     ? 'flex-row items-center gap-4'
-    : 'flex-row items-center gap-4 h-12';
+    : 'flex-row items-center gap-4 h-14';
   const resolvedTwClassName = twClassName
     ? `${baseStyles} ${twClassName}`
     : baseStyles;

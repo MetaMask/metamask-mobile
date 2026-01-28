@@ -16,8 +16,11 @@ import Text, {
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
-import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
+import StockBadge from '../../shared/StockBadge/StockBadge';
+import { BridgeToken } from '../../Bridge/types';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 
 interface PriceProps {
   asset: TokenI;
@@ -41,6 +44,7 @@ const Price = ({
   timePeriod,
 }: PriceProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
+  const { isStockToken } = useRWAToken();
 
   const distributedPriceData = useMemo(() => {
     if (prices.length > 0) {
@@ -84,18 +88,36 @@ const Price = ({
 
   const { styles, theme } = useStyles(styleSheet, { priceDiff: diff });
   const ticker = asset.ticker || asset.symbol;
+
+  const stockTokenBadge = isStockToken(asset as BridgeToken) && (
+    <StockBadge style={styles.stockBadge} token={asset as BridgeToken} />
+  );
   return (
     <>
       <View style={styles.wrapper}>
         {asset.name ? (
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-          >
-            {asset.name} ({ticker})
-          </Text>
+          <View>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {asset.name}
+            </Text>
+            <View style={styles.assetWrapper}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
+              >
+                {ticker}
+              </Text>
+              {stockTokenBadge}
+            </View>
+          </View>
         ) : (
-          <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
+          <View style={styles.assetWrapper}>
+            <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
+            {stockTokenBadge}
+          </View>
         )}
         {!isNaN(price) && (
           <Text

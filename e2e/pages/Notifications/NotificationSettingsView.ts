@@ -1,10 +1,10 @@
 import {
   NotificationSettingsViewSelectorsIDs,
   NotificationSettingsViewSelectorsText,
-} from '../../selectors/Notifications/NotificationSettingsView.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import { Assertions, Utilities } from '../../framework';
+} from '../../../app/components/Views/Settings/NotificationsSettings/NotificationSettingsView.testIds';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import { Assertions, Utilities } from '../../../tests/framework';
 
 type ToggleState = 'on' | 'off';
 

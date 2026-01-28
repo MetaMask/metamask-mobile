@@ -3,6 +3,7 @@ import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { Hex } from '@metamask/utils';
+import { Linking } from 'react-native';
 import EarnMusdConversionEducationView from './index';
 import {
   setMusdConversionEducationSeen,
@@ -13,6 +14,14 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { MUSD_CONVERSION_APY } from '../../constants/musd';
+import AppConstants from '../../../../../core/AppConstants';
+
+const FIXED_NOW_MS = 1730000000000;
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -46,6 +55,17 @@ jest.mock('../../../../../actions/user', () => ({
 jest.mock('../../hooks/useMusdConversion', () => ({
   useMusdConversion: jest.fn(),
 }));
+
+jest.mock('../../../../hooks/useMetrics', () => {
+  const actual = jest.requireActual('../../../../hooks/useMetrics');
+  return {
+    ...actual,
+    useMetrics: () => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    }),
+  };
+});
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -88,6 +108,7 @@ describe('EarnMusdConversionEducationView', () => {
     setOptions: jest.fn(),
     navigate: jest.fn(),
     goBack: jest.fn(),
+    canGoBack: jest.fn(() => true),
   };
 
   const mockRouteParams = {
@@ -100,6 +121,8 @@ describe('EarnMusdConversionEducationView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
 
     mockUseDispatch.mockReturnValue(mockDispatch);
     // @ts-expect-error - partial mock of navigation is sufficient for testing
@@ -119,9 +142,16 @@ describe('EarnMusdConversionEducationView', () => {
         seen,
       },
     }));
+
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
@@ -132,15 +162,52 @@ describe('EarnMusdConversionEducationView', () => {
         { state: {} },
       );
 
+      const descriptionText = strings(
+        'earn.musd_conversion.education.description',
+        {
+          percentage: MUSD_CONVERSION_APY,
+        },
+      );
+
       expect(
-        getByText(strings('earn.musd_conversion.education.heading')),
+        getByText(
+          strings('earn.musd_conversion.education.heading', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+        ),
+      ).toBeOnTheScreen();
+      expect(getByText(descriptionText, { exact: false })).toBeOnTheScreen();
+      expect(
+        getByText(strings('earn.musd_conversion.education.terms_apply')),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('earn.musd_conversion.education.description')),
+        getByText(strings('earn.musd_conversion.education.primary_button')),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('earn.musd_conversion.education.continue_button')),
+        getByText(strings('earn.musd_conversion.education.secondary_button')),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('external links', () => {
+    it('opens bonus terms of use when "Terms apply" is pressed', () => {
+      const openUrlSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValueOnce(undefined);
+
+      const { getByText } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      fireEvent.press(
+        getByText(strings('earn.musd_conversion.education.terms_apply')),
+      );
+
+      expect(openUrlSpy).toHaveBeenCalledTimes(1);
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+      );
     });
   });
 
@@ -153,7 +220,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 
@@ -183,7 +250,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 
@@ -202,7 +269,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 
@@ -230,7 +297,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 
@@ -246,6 +313,131 @@ describe('EarnMusdConversionEducationView', () => {
     });
   });
 
+  describe('MetaMetrics', () => {
+    it('tracks fullscreen announcement displayed event once per visit', () => {
+      const { MetaMetricsEvents } = jest.requireActual(
+        '../../../../hooks/useMetrics',
+      );
+
+      const { unmount } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_DISPLAYED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'conversion_education_screen',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({
+        name: 'mock-built-event',
+      });
+
+      unmount();
+
+      renderWithProvider(<EarnMusdConversionEducationView />, { state: {} });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
+      expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
+        2,
+        MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_DISPLAYED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(2);
+      expect(mockAddProperties).toHaveBeenNthCalledWith(2, {
+        location: 'conversion_education_screen',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      expect(mockTrackEvent).toHaveBeenNthCalledWith(2, {
+        name: 'mock-built-event',
+      });
+    });
+
+    it('tracks fullscreen announcement button clicked event when continue button is pressed', async () => {
+      const { MetaMetricsEvents } = jest.requireActual(
+        '../../../../hooks/useMetrics',
+      );
+
+      const { getByText } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      await act(async () => {
+        fireEvent.press(
+          getByText(strings('earn.musd_conversion.education.primary_button')),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
+        );
+
+        expect(mockAddProperties).toHaveBeenCalledTimes(1);
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          location: 'conversion_education_screen',
+          button_type: 'primary',
+          button_text: strings('earn.musd_conversion.education.primary_button'),
+          redirects_to: 'custom_amount_screen',
+        });
+
+        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        expect(mockTrackEvent).toHaveBeenCalledWith({
+          name: 'mock-built-event',
+        });
+      });
+    });
+
+    it('tracks fullscreen announcement button clicked event when go back button is pressed', () => {
+      const { MetaMetricsEvents } = jest.requireActual(
+        '../../../../hooks/useMetrics',
+      );
+
+      const { getByText } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      fireEvent.press(
+        getByText(strings('earn.musd_conversion.education.secondary_button')),
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'conversion_education_screen',
+        button_type: 'secondary',
+        button_text: strings('earn.musd_conversion.education.secondary_button'),
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+  });
+
   describe('error handling', () => {
     it('logs error when initiateConversion throws error', async () => {
       const testError = new Error('Conversion failed');
@@ -258,7 +450,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 
@@ -282,7 +474,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 

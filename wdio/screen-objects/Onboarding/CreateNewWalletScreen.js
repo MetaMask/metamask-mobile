@@ -9,9 +9,9 @@ import {
 } from "../testIDs/Screens/WalletSetupScreen.testIds";
 import Gestures from "../../helpers/Gestures";
 import Selectors from "../../helpers/Selectors";
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import { expect } from "appwright";
-import { ChoosePasswordSelectorsIDs } from "../../../e2e/selectors/Onboarding/ChoosePassword.selectors";
+import { ChoosePasswordSelectorsIDs } from "../../../app/components/Views/ChoosePassword/ChoosePassword.testIds";
 
 class CreateNewWalletScreen {
   get device() {
@@ -71,7 +71,7 @@ class CreateNewWalletScreen {
           CREATE_PASSWORD_INPUT_FIRST_FIELD,
         );
       } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');            
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');
       }
     }
   }

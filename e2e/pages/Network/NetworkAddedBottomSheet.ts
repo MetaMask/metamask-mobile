@@ -1,9 +1,9 @@
 import {
   NetworkAddedBottomSheetSelectorsIDs,
   NetworkAddedBottomSheetSelectorsText,
-} from '../../selectors/Network/NetworkAddedBottomSheet.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+} from '../../../app/components/UI/NetworkModal/NetworkAddedBottomSheet.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class NetworkAddedBottomSheet {
   get switchNetwork(): DetoxElement {

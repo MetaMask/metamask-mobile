@@ -1,10 +1,10 @@
 import {
   NetworkListModalSelectorsIDs,
   NetworkListModalSelectorsText,
-} from '../../selectors/Network/NetworkListModal.selectors';
-import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+} from '../../../app/components/Views/NetworkSelector/NetworkListModal.testIds';
+import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 
 class NetworkListModal {

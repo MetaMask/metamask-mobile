@@ -31,6 +31,18 @@ export const REWARDS_VIEW_SELECTORS = {
   CLAIM_MODAL: 'rewards-view-claim-modal',
   CLAIM_MODAL_CONFIRM_BUTTON: 'rewards-view-claim-modal-confirm-button',
   CLAIM_MODAL_ERROR_MESSAGE: 'rewards-view-claim-modal-error-message',
+  CLAIM_MODAL_ACCOUNT_SELECTOR: 'rewards-view-claim-modal-account-selector',
+  CLAIM_MODAL_LINEA_TOKENS_LOADING:
+    'rewards-view-claim-modal-linea-tokens-loading',
+  CLAIM_MODAL_LINEA_TOKENS_LOADED:
+    'rewards-view-claim-modal-linea-tokens-loaded',
+  CLAIM_MODAL_LINEA_TOKENS_ERROR: 'rewards-view-claim-modal-linea-tokens-error',
+  CLAIM_MODAL_LINEA_TOKENS_DEFAULT_TITLE:
+    'rewards-view-claim-modal-linea-tokens-default-title',
+  CLAIM_MODAL_TITLE: 'rewards-view-claim-modal-title',
+  CLAIM_MODAL_DESCRIPTION: 'rewards-view-claim-modal-description',
+  CLAIM_MODAL_EMAIL_INPUT: 'rewards-view-claim-modal-email-input',
+  CLAIM_MODAL_TELEGRAM_INPUT: 'rewards-view-claim-modal-telegram-input',
   CLAIM_BUTTON: 'rewards-view-claim-button',
   SKIP_BUTTON: 'rewards-view-skip-button',
   NEXT_BUTTON: 'rewards-view-next-button',

@@ -1,14 +1,14 @@
 import { RegressionConfirmations } from '../../../tags';
-import { loginToApp } from '../../../viewHelper';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import Assertions from '../../../framework/Assertions';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
-import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
-import { DappVariants } from '../../../framework/Constants';
+import Assertions from '../../../../tests/framework/Assertions';
+import { buildPermissions } from '../../../../tests/framework/fixtures/FixtureUtils';
+import { NETWORK_TEST_CONFIGS } from '../../../../tests/resources/mock-configs';
+import { DappVariants } from '../../../../tests/framework/Constants';
 import TestHelpers from '../../../helpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
@@ -42,7 +42,7 @@ describe.skip(RegressionConfirmations('ERC20 tokens'), () => {
           await loginToApp();
 
           // Navigate to the browser screen
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await TestDApp.navigateToTestDappWithContract({
             contractAddress: hstAddress,
           });

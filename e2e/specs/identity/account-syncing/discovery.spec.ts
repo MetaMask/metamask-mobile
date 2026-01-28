@@ -1,7 +1,7 @@
 import { loginToApp } from '../../../viewHelper';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import { SmokeIdentity } from '../../../tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
@@ -12,14 +12,12 @@ import {
 import {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../framework/fixtures/FixtureBuilder';
+} from '../../../../tests/framework/fixtures/FixtureBuilder';
 import { createUserStorageController } from '../utils/mocks';
 import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import TestHelpers from '../../../helpers';
 
 describe(SmokeIdentity('Account syncing - Accounts with activity'), () => {
@@ -43,12 +41,6 @@ describe(SmokeIdentity('Account syncing - Accounts with activity'), () => {
           USER_STORAGE_WALLETS_FEATURE_KEY,
         ],
         sharedUserStorageController,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          );
-        },
       },
       async ({ mockServer: _mockServer, userStorageMockttpController }) => {
         const { prepareEventsEmittedCounter } = arrangeTestUtils(
@@ -84,12 +76,6 @@ describe(SmokeIdentity('Account syncing - Accounts with activity'), () => {
         ],
         sharedUserStorageController,
         mockBalancesAccounts: balancesAccounts,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          );
-        },
       },
       async () => {
         await loginToApp();

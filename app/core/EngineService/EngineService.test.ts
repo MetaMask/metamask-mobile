@@ -13,6 +13,7 @@ import {
 } from '../../store/persistConfig';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import { getPersistentState } from '../../store/getPersistentState/getPersistentState';
+import { setExistingUser } from '../../actions/user';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -28,10 +29,30 @@ jest.mock('../../util/Logger', () => ({
 }));
 
 jest.mock('../BackupVault', () => ({
-  getVaultFromBackup: () => ({ success: true, vault: 'fake_vault' }),
+  getVaultFromBackup: () =>
+    Promise.resolve({ success: true, vault: 'fake_vault' }),
 }));
 
 jest.mock('../../util/test/network-store.js', () => jest.fn());
+
+// Mock whenEngineReady to prevent Engine access after Jest teardown
+jest.mock('../Analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock analytics module
+jest.mock('../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
 
 // Mock Engine constants and Redux
 jest.mock('../Engine/constants', () => ({
@@ -73,7 +94,6 @@ jest.unmock('../Engine');
 
 interface MockControllerMessenger {
   subscribe: jest.MockedFunction<(...args: unknown[]) => void>;
-  subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void>;
 }
 
 interface MockController {
@@ -99,17 +119,20 @@ jest.mock('../Engine', () => {
   let mockInstance: MockEngineInstance | null;
 
   const mockEngine = {
-    init: (_: unknown, keyringState: KeyringControllerState) => {
+    init: (
+      _analyticsId: unknown,
+      _state: unknown,
+      keyringState?: KeyringControllerState | null,
+    ) => {
       mockInstance = {
         controllerMessenger: {
           subscribe: jest.fn(),
-          subscribeOnceIf: jest.fn(),
         },
         context: {
           AddressBookController: { subscribe: jest.fn() },
           KeyringController: {
             subscribe: jest.fn(),
-            state: { ...keyringState },
+            state: keyringState ? { ...keyringState } : {},
           },
           AssetsContractController: { subscribe: jest.fn() },
           NftController: { subscribe: jest.fn() },
@@ -200,8 +223,12 @@ describe('EngineService', () => {
 
   afterEach(() => {
     // Clean up any pending timers to prevent Jest teardown issues
+    // Only run pending timers if fake timers are enabled
     try {
-      jest.runOnlyPendingTimers();
+      const timerCount = jest.getTimerCount();
+      if (timerCount > 0) {
+        jest.runOnlyPendingTimers();
+      }
     } catch {
       // Ignore error if fake timers are not active
     }
@@ -278,6 +305,23 @@ describe('EngineService', () => {
       {
         hasState: false, // Correctly detects no persisted state now that the bug is fixed
       },
+    );
+
+    // Restore fake timers for other tests
+    jest.useFakeTimers();
+  });
+
+  it('sets existingUser flag after successful vault recovery', async () => {
+    // Arrange
+    jest.useRealTimers();
+
+    // Act
+    await engineService.start();
+    await engineService.initializeVaultFromBackup();
+
+    // Assert
+    expect(ReduxService.store.dispatch).toHaveBeenCalledWith(
+      setExistingUser(true),
     );
 
     // Restore fake timers for other tests
@@ -415,21 +459,13 @@ describe('EngineService', () => {
   describe('initializeControllers edge cases', () => {
     // Type for accessing private methods
     interface EngineServiceWithInitializeControllers {
-      initializeControllers: (engine: {
-        context: null;
-        controllerMessenger: {
-          subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void>;
-        };
-      }) => void;
+      initializeControllers: (engine: { context: null }) => void;
     }
 
     it('handles missing engine context without errors', () => {
       // Arrange
       const mockEngine = {
         context: null,
-        controllerMessenger: {
-          subscribeOnceIf: jest.fn(),
-        },
       };
 
       // Act & Assert - should not throw
@@ -445,12 +481,9 @@ describe('EngineService', () => {
       );
     });
 
-    it('handles missing vault metadata in subscribeOnceIf callback without errors', async () => {
+    it('handles missing vault metadata without errors', async () => {
       // Types for Engine mock
       interface MockEngineType {
-        controllerMessenger: {
-          subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void>;
-        };
         context: {
           KeyringController: {
             metadata?: Record<string, unknown>;
@@ -459,11 +492,7 @@ describe('EngineService', () => {
       }
 
       // Arrange
-      await engineService.start();
-
       const mockEngine = Engine as unknown as MockEngineType;
-      const mockSubscribeOnceIf =
-        mockEngine.controllerMessenger.subscribeOnceIf;
 
       // Mock missing vault metadata
       const originalContext = mockEngine.context;
@@ -475,15 +504,8 @@ describe('EngineService', () => {
         },
       };
 
-      // Act - trigger the subscribeOnceIf callback
-      type SubscribeCall = [string, () => void, () => boolean];
-      const subscribeCall = mockSubscribeOnceIf.mock.calls.find(
-        (call: unknown[]) => call[0] === 'ComposableController:stateChange',
-      ) as SubscribeCall;
-      expect(subscribeCall).toBeDefined();
-
-      const callback = subscribeCall[1];
-      callback();
+      // Act
+      await engineService.start();
 
       // Assert
       expect(Logger.log).toHaveBeenCalledWith(

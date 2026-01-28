@@ -15,10 +15,14 @@ import {
   KeyringControllerGetKeyringsByTypeAction,
 } from '@metamask/keyring-controller';
 import { store, runSaga } from '../../../../store';
-import { MetaMetrics } from '../../../Analytics';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { buildAndTrackEvent } from '../../utils/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 
 jest.mock('@metamask/snaps-controllers');
+jest.mock('../../utils/analytics');
+jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
 
 jest.mock('.../../../../store', () => ({
   store: {
@@ -48,6 +52,23 @@ function getInitRequestMock(
 describe('SnapControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock AnalyticsEventBuilder
+    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({
+        name: 'mock-event',
+        properties: {},
+        sensitiveProperties: {},
+        saveDataRecording: false,
+        get isAnonymous(): boolean {
+          return false;
+        },
+        get hasProperties(): boolean {
+          return false;
+        },
+      } as unknown as AnalyticsTrackingEvent),
+    });
   });
 
   it('initializes the controller', () => {
@@ -128,7 +149,7 @@ describe('SnapControllerInit', () => {
   });
 
   describe('getMnemonicSeed', () => {
-    it('returns the mnemonic seed', () => {
+    it('returns the mnemonic seed', async () => {
       const messenger = new ExtendedMessenger<
         MockAnyNamespace,
         KeyringControllerGetKeyringsByTypeAction,
@@ -153,10 +174,10 @@ describe('SnapControllerInit', () => {
         ],
       );
 
-      expect(getMnemonicSeed()).resolves.toBe(seed);
+      await expect(getMnemonicSeed()).resolves.toBe(seed);
     });
 
-    it('throws an error if the keyring is not available', () => {
+    it('throws an error if the keyring is not available', async () => {
       const messenger = new ExtendedMessenger<
         MockAnyNamespace,
         KeyringControllerGetKeyringsByTypeAction,
@@ -175,7 +196,7 @@ describe('SnapControllerInit', () => {
         () => [],
       );
 
-      expect(getMnemonicSeed()).rejects.toThrow(
+      await expect(getMnemonicSeed()).rejects.toThrow(
         'Primary keyring mnemonic unavailable.',
       );
     });
@@ -202,30 +223,78 @@ describe('SnapControllerInit', () => {
   });
 
   describe('trackEvent', () => {
-    it('calls the MetaMetrics `trackEvent` function', () => {
-      snapControllerInit(getInitRequestMock());
+    it('calls buildAndTrackEvent utility with messenger, event, and properties', () => {
+      const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+
+      const mockInitMessenger = {
+        call: jest.fn(),
+        subscribe: jest.fn(),
+      } as unknown as SnapControllerInitMessenger;
+
+      const requestMock = {
+        ...buildControllerInitRequestMock(baseMessenger),
+        controllerMessenger: getSnapControllerMessenger(baseMessenger),
+        initMessenger: mockInitMessenger,
+      };
+
+      snapControllerInit(requestMock);
 
       const controllerMock = jest.mocked(SnapController);
-      const trackEvent = controllerMock.mock.calls[0][0].trackEvent;
+      const trackEventFn = controllerMock.mock.calls[0]?.[0]?.trackEvent;
 
-      const instance = MetaMetrics.getInstance();
-      const spy = jest.spyOn(instance, 'trackEvent');
-
-      trackEvent({
+      expect(trackEventFn).toBeDefined();
+      // @ts-expect-error: Our wrapper function has a different signature than SnapController expects
+      trackEventFn({
         event: 'test-event',
-        category: 'test-category',
         properties: {
           testProperty: 'test-value',
         },
       });
 
-      expect(spy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'test-event',
-          properties: {
-            testProperty: 'test-value',
-          },
-        }),
+      // Verify buildAndTrackEvent was called with correct parameters
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
+        mockInitMessenger,
+        'test-event',
+        {
+          testProperty: 'test-value',
+        },
+      );
+    });
+
+    it('calls buildAndTrackEvent utility with empty properties when properties are not provided', () => {
+      const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+
+      const mockInitMessenger = {
+        call: jest.fn(),
+        subscribe: jest.fn(),
+      } as unknown as SnapControllerInitMessenger;
+
+      const requestMock = {
+        ...buildControllerInitRequestMock(baseMessenger),
+        controllerMessenger: getSnapControllerMessenger(baseMessenger),
+        initMessenger: mockInitMessenger,
+      };
+
+      snapControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(SnapController);
+      const trackEventFn = controllerMock.mock.calls[0]?.[0]?.trackEvent;
+
+      expect(trackEventFn).toBeDefined();
+      // @ts-expect-error: Our wrapper function has a different signature than SnapController expects
+      trackEventFn({
+        event: 'test-event',
+      });
+
+      // Verify buildAndTrackEvent was called with correct parameters
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
+        mockInitMessenger,
+        'test-event',
+        undefined,
       );
     });
   });

@@ -1,10 +1,10 @@
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
   PortfolioPageSelectorsXpath,
   PortfolioPageSelectorsWebID,
 } from '../../selectors/Browser/PortfolioPage.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 
 class PortfolioHomePage {
   get connectWalletButton(): WebElement {

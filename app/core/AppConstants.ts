@@ -80,6 +80,7 @@ export default {
     ORIGIN_QR_CODE: 'qr-code',
     ORIGIN_NOTIFICATION: 'notifications',
     ORIGIN_IN_APP_BROWSER: 'in-app-browser',
+    ORIGIN_PUSH_NOTIFICATION: 'push-notification',
   },
   WALLET_CONNECT: {
     //One day in hours
@@ -163,6 +164,8 @@ export default {
     PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
     MULTICHAIN_ACCOUNTS:
       'https://support.metamask.io/configure/accounts/multichain-accounts/',
+    MUSD_CONVERSION_BONUS_TERMS_OF_USE:
+      'https://metamask.io/musd-bonus-terms-of-use',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||

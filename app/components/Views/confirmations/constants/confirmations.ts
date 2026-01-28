@@ -13,8 +13,6 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,
   TransactionType.deployContract,
-  TransactionType.lendingDeposit,
-  TransactionType.lendingWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.revokeDelegation,
@@ -28,6 +26,8 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
   TransactionType.tokenMethodSafeTransferFrom,
+  TransactionType.lendingDeposit,
+  TransactionType.lendingWithdraw,
 ];
 
 export const REDESIGNED_APPROVE_TYPES = [
@@ -52,7 +52,6 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
-  TransactionType.lendingDeposit,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,

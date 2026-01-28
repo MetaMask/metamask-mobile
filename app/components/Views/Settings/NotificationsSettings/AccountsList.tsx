@@ -5,7 +5,7 @@ import {
   useNotificationAccountListProps,
 } from './AccountsList.hooks';
 import NotificationOptionToggle from './NotificationOptionToggle';
-import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import AccountListHeader from '../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/AccountListHeader';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';

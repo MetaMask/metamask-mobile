@@ -84,6 +84,12 @@ import {
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
 import {
+  ConnectivityController,
+  ConnectivityControllerActions,
+  ConnectivityControllerEvents,
+  ConnectivityControllerState,
+} from '@metamask/connectivity-controller';
+import {
   KeyringController,
   KeyringControllerActions,
   KeyringControllerEvents,
@@ -198,6 +204,12 @@ import {
   LoggingControllerState,
 } from '@metamask/logging-controller';
 import {
+  AnalyticsController,
+  AnalyticsControllerActions,
+  AnalyticsControllerEvents,
+  AnalyticsControllerState,
+} from '@metamask/analytics-controller';
+import {
   SignatureController,
   SignatureControllerActions,
   SignatureControllerEvents,
@@ -243,7 +255,6 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
-import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
@@ -418,14 +429,6 @@ type OptionalControllers = Pick<
   | 'StorageService'
 >;
 
-/**
- * Controllers that are defined with state.
- */
-export type StatefulControllers = Omit<
-  Controllers,
-  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
->;
-
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
@@ -452,6 +455,7 @@ type GlobalActions =
   | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
+  | ConnectivityControllerActions
   | CurrencyRateControllerActions
   | GasFeeControllerActions
   | GatorPermissionsControllerActions
@@ -461,6 +465,7 @@ type GlobalActions =
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
+  | AnalyticsControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
   | SnapInterfaceControllerActions
@@ -522,12 +527,12 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
-  | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
+  | ConnectivityControllerEvents
   | CurrencyRateControllerEvents
   | GasFeeControllerEvents
   | GatorPermissionsControllerEvents
@@ -557,6 +562,7 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
+  | AnalyticsControllerEvents
   | StorageServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
@@ -633,6 +639,7 @@ export type Controllers = {
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
+  ConnectivityController: ConnectivityController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   CurrencyRateController: CurrencyRateController;
@@ -640,6 +647,7 @@ export type Controllers = {
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
   LoggingController: LoggingController;
+  AnalyticsController: AnalyticsController;
   NetworkController: NetworkController;
   NetworkEnablementController: NetworkEnablementController;
   NftController: NftController;
@@ -722,6 +730,7 @@ export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
   AppMetadataController: AppMetadataControllerState;
+  ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -756,6 +765,7 @@ export type EngineState = {
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
+  AnalyticsController: AnalyticsControllerState;
   AccountsController: AccountsControllerState;
   AccountTreeController: AccountTreeControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
@@ -815,6 +825,7 @@ export type ControllersToInitialize =
   | 'AccountTrackerController'
   | 'AddressBookController'
   | 'AssetsContractController'
+  | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'
   | 'CronjobController'
@@ -885,7 +896,8 @@ export type ControllersToInitialize =
   | 'DelegationController'
   | 'SelectedNetworkController'
   | 'ProfileMetricsController'
-  | 'ProfileMetricsService';
+  | 'ProfileMetricsService'
+  | 'AnalyticsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -955,10 +967,10 @@ export type ControllerInitRequest<
   getState: () => RootState;
 
   /**
-   * The MetaMetrics ID to use for tracking.
+   * The analytics ID to use for tracking.
    * This is always provided at runtime and should not be undefined.
    */
-  metaMetricsId: string;
+  analyticsId: string;
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
@@ -1023,7 +1035,7 @@ export interface InitModularizedControllersFunctionRequest {
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
-  metaMetricsId: string;
+  analyticsId: string;
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;

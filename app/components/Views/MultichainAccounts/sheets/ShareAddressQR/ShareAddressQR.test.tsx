@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { TouchableOpacity } from 'react-native';
 import ShareAddressQR from '.';
 import {
   createMockSnapInternalAccount,
@@ -45,11 +44,17 @@ jest.mock('../../../QRAccountDisplay', () => {
         typeof label === 'string' ? label : 'Test Account',
       ),
       typeof description !== 'undefined' &&
-        actualReact.createElement(
-          Text,
-          { testID: 'account-description' },
-          typeof description === 'string' ? description : 'Test Description',
-        ),
+        (typeof description === 'string'
+          ? actualReact.createElement(
+              Text,
+              { testID: 'account-description' },
+              description,
+            )
+          : actualReact.createElement(
+              View,
+              { testID: 'account-description' },
+              description,
+            )),
       actualReact.createElement(
         Text,
         { testID: 'account-address' },
@@ -300,21 +305,40 @@ describe('ShareAddressQR', () => {
     expect(descriptionElement.props.children).toBeTruthy();
   });
 
-  it('navigates back when back button is pressed', () => {
+  it('renders description with correct copy for receiving assets', () => {
     // Arrange
-    const rendered = render();
-    const { root } = rendered;
-    const touchableOpacities = root.findAllByType(TouchableOpacity);
-    const backButton = touchableOpacities.find(
-      (touchable) =>
-        touchable.props.accessible === true && touchable.props.onPress,
-    );
+    const networkName = 'Ethereum Mainnet';
 
     // Act
-    expect(backButton).toBeTruthy();
-    if (backButton) {
-      fireEvent.press(backButton);
-    }
+    const { getByText } = render(internalAccount1, networkName);
+
+    // Assert
+    // Verify the new copy is rendered
+    expect(getByText(/Use this to receive assets on/i)).toBeOnTheScreen();
+
+    // Verify network name is included
+    expect(getByText(networkName)).toBeOnTheScreen();
+  });
+
+  it('renders description with correct copy for different networks', () => {
+    // Arrange - Test with Polygon
+    const polygonNetwork = 'Polygon Mainnet';
+
+    // Act
+    const { getByText } = render(internalAccount1, polygonNetwork);
+
+    // Assert
+    expect(getByText(/Use this to receive assets on/i)).toBeOnTheScreen();
+    expect(getByText(polygonNetwork)).toBeOnTheScreen();
+  });
+
+  it('navigates back when back button is pressed', () => {
+    // Arrange
+    const { getByTestId } = render();
+    const backButton = getByTestId('share-address-qr-go-back');
+
+    // Act
+    fireEvent.press(backButton);
 
     // Assert
     expect(mockGoBack).toHaveBeenCalledTimes(1);

@@ -10,6 +10,7 @@ import {
   OnchainTradeParams,
   PredictMarketStatus,
   PredictPositionStatus,
+  PredictSportsLeague,
   Side,
   type PredictCategory,
   type PredictMarket,
@@ -20,6 +21,12 @@ import {
   PredictOutcomeToken,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
+import {
+  buildGameData,
+  getEventLeague,
+  mapApiTeamToPredictTeam,
+  type TeamLookup,
+} from '../../utils/gameParser';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -51,6 +58,7 @@ import {
   PolymarketApiEvent,
   PolymarketApiActivity,
   PolymarketApiMarket,
+  PolymarketApiTeam,
   PolymarketPosition,
   TickSize,
   OrderBook,
@@ -386,13 +394,15 @@ export const submitClobOrder = async ({
 };
 
 export const isSportEvent = (event: PolymarketApiEvent): boolean =>
-  event.tags.some((tag) => tag.slug === 'sports');
+  (Array.isArray(event.tags) ? event.tags : []).some(
+    (tag) => tag.slug === 'sports',
+  );
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
 export const isMoneylineMarket = (market: PolymarketApiMarket): boolean =>
-  market.sportsMarketType?.toLowerCase().includes('moneyline') ?? false;
+  market.sportsMarketType?.toLowerCase() === 'moneyline';
 /**
  * Sort markets within a sports market type group by liquidity + volume (descending)
  */
@@ -562,7 +572,8 @@ export const sortMarkets = (
   event: PolymarketApiEvent,
   sortBy?: 'price' | 'ascending' | 'descending',
 ): PolymarketApiMarket[] => {
-  const { markets, sortBy: eventSortBy } = event;
+  const markets = Array.isArray(event.markets) ? event.markets : [];
+  const eventSortBy = event.sortBy;
 
   if (sortBy) {
     return sortMarketsByField(markets, sortBy);
@@ -599,34 +610,74 @@ export const parsePolymarketMarket = (
   resolutionStatus: market.umaResolutionStatus,
 });
 
+export type PolymarketTeamLookupFn = (
+  league: PredictSportsLeague,
+  abbreviation: string,
+) => PolymarketApiTeam | undefined;
+
+export interface ParsePolymarketEventsOptions {
+  category: PredictCategory;
+  sortMarketsBy?: 'price' | 'ascending' | 'descending';
+  teamLookup?: PolymarketTeamLookupFn;
+}
+
 export const parsePolymarketEvents = (
   events: PolymarketApiEvent[],
-  category: PredictCategory,
+  categoryOrOptions: PredictCategory | ParsePolymarketEventsOptions,
   sortMarketsBy?: 'price' | 'ascending' | 'descending',
 ): PredictMarket[] => {
+  const options: ParsePolymarketEventsOptions =
+    typeof categoryOrOptions === 'string'
+      ? { category: categoryOrOptions, sortMarketsBy }
+      : categoryOrOptions;
+
+  const { category, teamLookup } = options;
+  const sortBy = options.sortMarketsBy ?? sortMarketsBy;
+
   const parsedMarkets: PredictMarket[] = events.map(
-    (event: PolymarketApiEvent) => ({
-      id: event.id,
-      slug: event.slug,
-      providerId: 'polymarket',
-      title: event.title,
-      description: event.description,
-      image: event.icon,
-      status: event.closed
-        ? PredictMarketStatus.CLOSED
-        : PredictMarketStatus.OPEN,
-      recurrence: getRecurrence(event.series),
-      endDate: event.endDate,
-      category,
-      tags: event.tags.map((t) => t.label),
-      outcomes: sortMarkets(event, sortMarketsBy)
-        .filter((market: PolymarketApiMarket) => market.active !== false)
-        .map((market: PolymarketApiMarket) =>
+    (event: PolymarketApiEvent) => {
+      const tags = Array.isArray(event.tags) ? event.tags : [];
+      const eventLeague = getEventLeague(event);
+
+      const markets = sortMarkets(event, sortBy).filter(
+        (market: PolymarketApiMarket) => market?.active !== false,
+      );
+
+      const predictTeamLookup: TeamLookup | undefined = teamLookup
+        ? (league, abbr) => {
+            const apiTeam = teamLookup(league, abbr);
+            return apiTeam ? mapApiTeamToPredictTeam(apiTeam) : undefined;
+          }
+        : undefined;
+
+      const game =
+        eventLeague && predictTeamLookup
+          ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
+          : undefined;
+
+      return {
+        id: event.id,
+        slug: event.slug,
+        providerId: 'polymarket',
+        // TODO: remove this temporary fix for Super Bowl LX
+        title: event.id === '188978' ? 'Super Bowl LX' : event.title,
+        description: event.description,
+        image: event.icon,
+        status: event.closed
+          ? PredictMarketStatus.CLOSED
+          : PredictMarketStatus.OPEN,
+        recurrence: getRecurrence(event.series),
+        endDate: event.endDate,
+        category,
+        tags: tags.map((t) => t.label),
+        outcomes: markets.map((market: PolymarketApiMarket) =>
           parsePolymarketMarket(market, event),
         ),
-      liquidity: event.liquidity,
-      volume: event.volume,
-    }),
+        liquidity: event.liquidity,
+        volume: event.volume,
+        game,
+      };
+    },
   );
   return parsedMarkets;
 };
@@ -698,12 +749,22 @@ export const parsePolymarketActivity = (
   return parsedActivities;
 };
 
+export interface GetParsedMarketsOptions extends GetMarketsParams {
+  teamLookup?: PolymarketTeamLookupFn;
+}
+
 export const getParsedMarketsFromPolymarketApi = async (
-  params?: GetMarketsParams,
+  params?: GetParsedMarketsOptions,
 ): Promise<PredictMarket[]> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
-  const { category = 'trending', q, limit = 20, offset = 0 } = params || {};
+  const {
+    category = 'trending',
+    q,
+    limit = 20,
+    offset = 0,
+    teamLookup,
+  } = params || {};
   DevLogger.log(
     'Getting markets via Polymarket API for category:',
     category,
@@ -727,9 +788,9 @@ export const getParsedMarketsFromPolymarketApi = async (
   let queryParamsEvents = `${limitParam}&${active}&${archived}&${closed}&${ascending}&${offsetParam}&${liquidity}&${volume}`;
 
   const categoryTagMap: Record<PredictCategory, string> = {
-    trending: '&exclude_tag_id=100639&order=volume24hr',
-    new: '&order=startDate&exclude_tag_id=100639&exclude_tag_id=102169',
-    sports: '&tag_slug=sports&&exclude_tag_id=100639&order=volume24hr',
+    trending: '&order=volume24hr',
+    new: '&order=startDate&exclude_tag_id=102169',
+    sports: '&tag_slug=sports&order=volume24hr',
     crypto: '&tag_slug=crypto&order=volume24hr',
     politics: '&tag_slug=politics&order=volume24hr',
   };
@@ -745,7 +806,6 @@ export const getParsedMarketsFromPolymarketApi = async (
 
   const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${limitPerType}&${page}`;
 
-  // Use search endpoint if q parameter is provided
   const endpoint = q
     ? `${GAMMA_API_ENDPOINT}/public-search?q=${encodeURIComponent(
         q,
@@ -759,20 +819,20 @@ export const getParsedMarketsFromPolymarketApi = async (
   }
   const data = await response.json();
 
-  DevLogger.log('Polymarket response data:', data);
+  const eventsData = q ? data?.events : data?.data;
+  const events: PolymarketApiEvent[] = Array.isArray(eventsData)
+    ? eventsData
+    : [];
 
-  // Handle different response structures
-  const events = q ? data?.events : data?.data;
-
-  if (!events || !Array.isArray(events)) {
-    return [];
-  }
-
-  const parsedMarkets: PredictMarket[] = parsePolymarketEvents(
-    events,
+  const parsedMarkets: PredictMarket[] = parsePolymarketEvents(events, {
     category,
-    'price',
-  );
+    sortMarketsBy: 'price',
+    teamLookup,
+  });
+
+  if (q) {
+    return parsedMarkets.filter((m) => m.outcomes.length > 0);
+  }
 
   return parsedMarkets;
 };

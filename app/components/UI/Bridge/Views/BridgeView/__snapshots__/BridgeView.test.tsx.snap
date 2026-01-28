@@ -819,6 +819,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           "paddingHorizontal": 16,
                                         }
                                       }
+                                      testID="dest-token-area"
                                     >
                                       <Text
                                         accessibilityRole="text"
@@ -1803,7 +1804,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     "backgroundColor": "#ffffff",
                                     "gap": 12,
                                     "justifyContent": "center",
-                                    "paddingBottom": 24,
                                     "paddingHorizontal": 16,
                                     "width": "100%",
                                   },
@@ -2660,6 +2660,7 @@ exports[`BridgeView renders 1`] = `
                                           "paddingHorizontal": 16,
                                         }
                                       }
+                                      testID="dest-token-area"
                                     >
                                       <Text
                                         accessibilityRole="text"
@@ -3644,7 +3645,6 @@ exports[`BridgeView renders 1`] = `
                                     "backgroundColor": "#ffffff",
                                     "gap": 12,
                                     "justifyContent": "center",
-                                    "paddingBottom": 24,
                                     "paddingHorizontal": 16,
                                     "width": "100%",
                                   },

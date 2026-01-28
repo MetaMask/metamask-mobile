@@ -1,12 +1,13 @@
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SnapSettingsView from '../../pages/Settings/SnapSettingsView';
-import { Assertions } from '../../framework';
+import { Assertions } from '../../../tests/framework';
+import BrowserView from '../../pages/Browser/BrowserView';
 
 jest.setTimeout(150_000);
 
@@ -20,7 +21,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectDialogSnapButton');
@@ -35,6 +36,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapSettings();
         await SettingsView.tapSnaps();
 
@@ -45,7 +47,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         await SnapSettingsView.tapBackButton();
         await SettingsView.tapCloseButton();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
 
         await TestSnaps.tapButton('sendAlertButton');
 
@@ -64,6 +66,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapSettings();
         await SettingsView.tapSnaps();
 
@@ -74,7 +77,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         await SnapSettingsView.tapBackButton();
         await SettingsView.tapCloseButton();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
 
         await TestSnaps.tapButton('sendAlertButton');
 
@@ -94,6 +97,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapSettings();
         await SettingsView.tapSnaps();
 

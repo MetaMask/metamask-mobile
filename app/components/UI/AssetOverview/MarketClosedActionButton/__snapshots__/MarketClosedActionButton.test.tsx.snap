@@ -1,0 +1,121 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MainActionButton should render correctly 1`] = `
+<View
+  collapsable={false}
+  style={
+    {
+      "transform": [
+        {
+          "scale": 1,
+        },
+      ],
+    }
+  }
+>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      [
+        {
+          "backgroundColor": "#3c4d9d0f",
+          "borderRadius": 12,
+          "marginHorizontal": 16,
+        },
+        false,
+      ]
+    }
+    testID="market-closed-action-button"
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 60,
+        }
+      }
+    >
+      <SvgMock
+        color="#686e7d"
+        fill="currentColor"
+        height={24}
+        name="Clock"
+        style={
+          {
+            "height": 24,
+            "marginLeft": 16,
+            "width": 24,
+          }
+        }
+        testID="market-closed-action-button-clock-icon"
+        width={24}
+      />
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="tail"
+        numberOfLines={1}
+        style={
+          {
+            "color": "#121314",
+            "flexShrink": 0,
+            "fontFamily": "Geist-Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginLeft": 8,
+            "minWidth": 0,
+          }
+        }
+        testID="market-closed-action-button-label"
+      >
+        Test Button
+      </Text>
+      <SvgMock
+        color="#686e7d"
+        fill="currentColor"
+        height={24}
+        name="Add"
+        style={
+          {
+            "height": 24,
+            "marginLeft": "auto",
+            "marginRight": 16,
+            "width": 24,
+          }
+        }
+        testID="market-closed-action-button-icon"
+        width={24}
+      />
+    </View>
+  </View>
+</View>
+`;

@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
@@ -11,7 +11,7 @@ import Icon, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../../../component-library/components-temp/HeaderCenter';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -91,16 +91,14 @@ function PaymentMethodSelectorModal() {
         accessible
       >
         <ListItemColumn widthType={WidthType.Auto}>
-          <View style={styles.iconContainer}>
-            <Icon
-              name={paymentMethod.icon as IconName}
-              color={
-                typeof paymentMethod.iconColor === 'object'
-                  ? paymentMethod.iconColor[themeAppearance]
-                  : (paymentMethod.iconColor ?? IconColor.Primary)
-              }
-            />
-          </View>
+          <Icon
+            name={paymentMethod.icon as IconName}
+            color={
+              typeof paymentMethod.iconColor === 'object'
+                ? paymentMethod.iconColor[themeAppearance]
+                : (paymentMethod.iconColor ?? IconColor.Default)
+            }
+          />
         </ListItemColumn>
         <ListItemColumn widthType={WidthType.Fill}>
           <Text variant={TextVariant.BodyLGMedium}>{paymentMethod.name}</Text>
@@ -115,16 +113,16 @@ function PaymentMethodSelectorModal() {
     [
       handleSelectPaymentMethodIdCallback,
       selectedPaymentMethod?.id,
-      styles.iconContainer,
       themeAppearance,
     ],
   );
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        {strings('deposit.payment_modal.select_a_payment_method')}
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('deposit.payment_modal.select_a_payment_method')}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
 
       <FlatList
         style={styles.list}

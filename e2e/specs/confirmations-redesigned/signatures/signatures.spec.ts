@@ -1,24 +1,23 @@
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import Browser from '../../../pages/Browser/BrowserView';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import { loginToApp } from '../../../viewHelper';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import {
   buildPermissions,
   AnvilPort,
-} from '../../../framework/fixtures/FixtureUtils';
+} from '../../../../tests/framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { DappVariants } from '../../../framework/Constants';
+import { DappVariants } from '../../../../tests/framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../../framework/types';
-import { AnvilManager } from '../../../seeder/anvil-manager';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../../tests/framework/types';
+import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
 
 const SIGNATURE_LIST = [
   {
@@ -95,7 +94,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
         async () => {
           await loginToApp();
 
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await Browser.navigateToTestDApp();
 
           // cancel request

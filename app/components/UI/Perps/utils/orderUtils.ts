@@ -1,34 +1,40 @@
-import { strings } from '../../../../../locales/i18n';
-import { OrderParams, Order } from '../controllers/types';
-import { Position } from '../hooks';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { capitalize } from 'lodash';
+import type {
+  OrderParams,
+  Order,
+  PerpsDebugLogger,
+} from '../controllers/types';
+import { Position } from '../hooks';
+
+/**
+ * Optional debug logger for order utility functions.
+ * When provided, enables detailed logging for debugging.
+ */
+export type OrderUtilsDebugLogger = PerpsDebugLogger | undefined;
 
 /**
  * Get the order direction based on the side and position size
  * @param side - The side of the order
  * @param positionSize - The size of the position
- * @returns The order direction
+ * @returns The order direction ('long' or 'short') - raw string, translate in UI layer
  */
 export const getOrderDirection = (
   side: 'buy' | 'sell',
   positionSize: string | undefined,
-): string => {
+): 'long' | 'short' => {
   const hasPosition = !!positionSize;
 
   // No existing position → direction depends only on side
   if (!hasPosition) {
-    return side === 'buy'
-      ? strings('perps.market.long')
-      : strings('perps.market.short');
+    return side === 'buy' ? 'long' : 'short';
   }
 
   // Existing position → infer direction based on position size
   if (positionSize && parseFloat(positionSize) > 0) {
-    return strings('perps.market.long');
+    return 'long';
   }
 
-  return strings('perps.market.short');
+  return 'short';
 };
 
 export const willFlipPosition = (
@@ -135,17 +141,21 @@ export const getOrderLabelDirection = (order: Order): string => {
  * 4. Limit orders that go into order book are maker
  *
  * @param params Order parameters
+ * @param debugLogger - Optional debug logger for detailed logging
  * @returns boolean - true if maker, false if taker
  */
-export function determineMakerStatus(params: {
-  orderType: 'market' | 'limit';
-  limitPrice?: string;
-  direction: 'long' | 'short';
-  bestAsk?: number;
-  bestBid?: number;
-  coin?: string;
-}): boolean {
-  const { orderType, limitPrice, direction, bestAsk, bestBid, coin } = params;
+export function determineMakerStatus(
+  params: {
+    orderType: 'market' | 'limit';
+    limitPrice?: string;
+    direction: 'long' | 'short';
+    bestAsk?: number;
+    bestBid?: number;
+    symbol?: string;
+  },
+  debugLogger?: OrderUtilsDebugLogger,
+): boolean {
+  const { orderType, limitPrice, direction, bestAsk, bestBid, symbol } = params;
   // Market orders are always taker
   if (orderType === 'market') {
     return false;
@@ -172,9 +182,9 @@ export function determineMakerStatus(params: {
   }
 
   // Default to taker when no bid/ask data is available
-  DevLogger.log(
+  debugLogger?.log(
     'Fee Calculation: No bid/ask data available, using conservative taker fee',
-    { coin },
+    { symbol },
   );
   return false;
 }

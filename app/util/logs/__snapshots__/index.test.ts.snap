@@ -7,9 +7,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accountsByChainId": {
-          "0x1": {},
-        },
+        "accountsByChainId": {},
       },
       "AccountTreeController": {
         "accountGroupsMetadata": {},
@@ -29,6 +27,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "AddressBookController": {
         "addressBook": {},
+      },
+      "AnalyticsController": {
+        "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
+        "optedIn": false,
       },
       "ApprovalController": {
         "approvalFlows": [],
@@ -53,6 +55,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "BridgeStatusController": {
         "txHistory": {},
+      },
+      "ConnectivityController": {
+        "connectivityStatus": "online",
       },
       "CronjobController": {
         "events": {},
@@ -124,6 +129,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "gasFeeEstimates": {},
         "gasFeeEstimatesByChainId": {},
         "nonRPCGasFeeApisDisabled": false,
+      },
+      "GatorPermissionsController": {
+        "gatorPermissionsMapSerialized": "{"native-token-stream":{},"native-token-periodic":{},"erc20-token-stream":{},"erc20-token-periodic":{},"other":{}}",
+        "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+        "isFetchingGatorPermissions": false,
+        "isGatorPermissionsEnabled": false,
       },
       "KeyringController": {
         "isUnlocked": true,
@@ -259,19 +270,19 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
               },
             ],
           },
-          "0x18c6": {
+          "0x18c7": {
             "blockExplorerUrls": [
-              "https://megaexplorer.xyz",
+              "https://megaeth-testnet-v2.blockscout.com",
             ],
-            "chainId": "0x18c6",
+            "chainId": "0x18c7",
             "defaultBlockExplorerUrlIndex": 0,
             "defaultRpcEndpointIndex": 0,
-            "name": "Mega Testnet",
+            "name": "MegaETH Testnet",
             "nativeCurrency": "MegaETH",
             "rpcEndpoints": [
               {
                 "failoverUrls": [],
-                "networkClientId": "megaeth-testnet",
+                "networkClientId": "megaeth-testnet-v2",
                 "type": "custom",
                 "url": "https://carrot.megaeth.com/rpc",
               },
@@ -429,22 +440,16 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "bip122": {
             "bip122:000000000019d6689c085ae165831e93": true,
             "bip122:000000000933ea01ad0ee984209779ba": false,
-            "bip122:00000000da84f2bafbbc53dee25a72ae": false,
             "bip122:00000008819873e925422c1ff0f99f7c": false,
-            "bip122:regtest": false,
           },
           "eip155": {
             "0x1": true,
-            "0x18c6": false,
             "0x2105": true,
-            "0x279f": false,
             "0x38": true,
             "0x531": true,
             "0x89": true,
             "0xa": true,
             "0xa4b1": true,
-            "0xaa36a7": false,
-            "0xe705": false,
             "0xe708": true,
           },
           "solana": {
@@ -458,6 +463,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             "tron:728126428": true,
           },
         },
+        "nativeAssetIdentifiers": {},
       },
       "NotificationServicesController": {
         "isCheckingAccountsPresence": false,
@@ -482,7 +488,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "connectionStatus": "disconnected",
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -504,11 +509,19 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
-        "marketFilterPreferences": {},
+        "marketFilterPreferences": {
+          "direction": "desc",
+          "optionId": "volume",
+        },
         "perpsBalances": {},
-        "positions": [],
-        "tradeConfigurations": {},
-        "watchlistMarkets": [],
+        "tradeConfigurations": {
+          "mainnet": {},
+          "testnet": {},
+        },
+        "watchlistMarkets": {
+          "mainnet": [],
+          "testnet": [],
+        },
         "withdrawInProgress": false,
         "withdrawalProgress": {
           "activeWithdrawalId": null,
@@ -574,7 +587,13 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "syncQueue": {},
       },
       "RampsController": {
-        "geolocation": null,
+        "paymentMethods": [],
+        "preferredProvider": null,
+        "providers": [],
+        "requests": {},
+        "selectedPaymentMethod": null,
+        "tokens": null,
+        "userRegion": null,
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
@@ -751,7 +770,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "recentSearches": [],
       },
       "TokenSearchDiscoveryDataController": {
-        "swapsTokenAddressesByChainId": {},
         "tokenDisplayData": [],
       },
       "TransactionController": {
@@ -785,9 +803,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accountsByChainId": {
-          "0x1": {},
-        },
+        "accountsByChainId": {},
       },
       "AccountTreeController": {
         "accountGroupsMetadata": {},
@@ -807,6 +823,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "AddressBookController": {
         "addressBook": {},
+      },
+      "AnalyticsController": {
+        "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
+        "optedIn": false,
       },
       "ApprovalController": {
         "approvalFlows": [],
@@ -831,6 +851,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeStatusController": {
         "txHistory": {},
+      },
+      "ConnectivityController": {
+        "connectivityStatus": "online",
       },
       "CronjobController": {
         "events": {},
@@ -902,6 +925,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "gasFeeEstimates": {},
         "gasFeeEstimatesByChainId": {},
         "nonRPCGasFeeApisDisabled": false,
+      },
+      "GatorPermissionsController": {
+        "gatorPermissionsMapSerialized": "{"native-token-stream":{},"native-token-periodic":{},"erc20-token-stream":{},"erc20-token-periodic":{},"other":{}}",
+        "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+        "isFetchingGatorPermissions": false,
+        "isGatorPermissionsEnabled": false,
       },
       "KeyringController": {
         "isUnlocked": true,
@@ -1037,19 +1066,19 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
               },
             ],
           },
-          "0x18c6": {
+          "0x18c7": {
             "blockExplorerUrls": [
-              "https://megaexplorer.xyz",
+              "https://megaeth-testnet-v2.blockscout.com",
             ],
-            "chainId": "0x18c6",
+            "chainId": "0x18c7",
             "defaultBlockExplorerUrlIndex": 0,
             "defaultRpcEndpointIndex": 0,
-            "name": "Mega Testnet",
+            "name": "MegaETH Testnet",
             "nativeCurrency": "MegaETH",
             "rpcEndpoints": [
               {
                 "failoverUrls": [],
-                "networkClientId": "megaeth-testnet",
+                "networkClientId": "megaeth-testnet-v2",
                 "type": "custom",
                 "url": "https://carrot.megaeth.com/rpc",
               },
@@ -1207,22 +1236,16 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "bip122": {
             "bip122:000000000019d6689c085ae165831e93": true,
             "bip122:000000000933ea01ad0ee984209779ba": false,
-            "bip122:00000000da84f2bafbbc53dee25a72ae": false,
             "bip122:00000008819873e925422c1ff0f99f7c": false,
-            "bip122:regtest": false,
           },
           "eip155": {
             "0x1": true,
-            "0x18c6": false,
             "0x2105": true,
-            "0x279f": false,
             "0x38": true,
             "0x531": true,
             "0x89": true,
             "0xa": true,
             "0xa4b1": true,
-            "0xaa36a7": false,
-            "0xe705": false,
             "0xe708": true,
           },
           "solana": {
@@ -1236,6 +1259,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "tron:728126428": true,
           },
         },
+        "nativeAssetIdentifiers": {},
       },
       "NotificationServicesController": {
         "isCheckingAccountsPresence": false,
@@ -1260,7 +1284,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "connectionStatus": "disconnected",
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -1282,11 +1305,19 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
-        "marketFilterPreferences": {},
+        "marketFilterPreferences": {
+          "direction": "desc",
+          "optionId": "volume",
+        },
         "perpsBalances": {},
-        "positions": [],
-        "tradeConfigurations": {},
-        "watchlistMarkets": [],
+        "tradeConfigurations": {
+          "mainnet": {},
+          "testnet": {},
+        },
+        "watchlistMarkets": {
+          "mainnet": [],
+          "testnet": [],
+        },
         "withdrawInProgress": false,
         "withdrawalProgress": {
           "activeWithdrawalId": null,
@@ -1352,7 +1383,13 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "syncQueue": {},
       },
       "RampsController": {
-        "geolocation": null,
+        "paymentMethods": [],
+        "preferredProvider": null,
+        "providers": [],
+        "requests": {},
+        "selectedPaymentMethod": null,
+        "tokens": null,
+        "userRegion": null,
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
@@ -1512,7 +1549,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "recentSearches": [],
       },
       "TokenSearchDiscoveryDataController": {
-        "swapsTokenAddressesByChainId": {},
         "tokenDisplayData": [],
       },
       "TransactionController": {

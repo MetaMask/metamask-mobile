@@ -61,11 +61,19 @@ describe('useGetUserKYCStatus', () => {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+    // Given: fetch on mount is disabled, nothing is fetched automatically
+    expect(mockGetUserDetails).not.toHaveBeenCalled();
+
+    // When: fetching explicitly
+    await act(async () => {
+      await result.current.fetchKYCStatus();
     });
 
-    expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
+    // Then: SDK is called and state is updated from cache
+    await waitFor(() => {
+      expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
+      expect(result.current.isLoading).toBe(false);
+    });
     expect(result.current.kycStatus).toEqual({
       verificationState: 'VERIFIED',
       userId: 'user-123',
@@ -84,6 +92,10 @@ describe('useGetUserKYCStatus', () => {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
+    await act(async () => {
+      await result.current.fetchKYCStatus();
+    });
+
     await waitFor(() => {
       expect(result.current.kycStatus?.verificationState).toBe('PENDING');
     });
@@ -98,6 +110,10 @@ describe('useGetUserKYCStatus', () => {
     const store = createTestStore();
     const { result } = renderHook(() => useGetUserKYCStatus(true), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+    });
+
+    await act(async () => {
+      await result.current.fetchKYCStatus();
     });
 
     await waitFor(() => {
@@ -117,12 +133,16 @@ describe('useGetUserKYCStatus', () => {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+    await act(async () => {
+      await result.current.fetchKYCStatus();
     });
 
-    expect(result.current.error).toBeTruthy();
-    expect(result.current.kycStatus).toBeNull();
+    await waitFor(() => {
+      expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeTruthy();
+      expect(result.current.kycStatus).toBeNull();
+    });
   });
 
   it('refetches KYC status when fetchKYCStatus is called manually', async () => {
@@ -136,17 +156,23 @@ describe('useGetUserKYCStatus', () => {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
+    expect(mockGetUserDetails).not.toHaveBeenCalled();
 
     await act(async () => {
       await result.current.fetchKYCStatus();
     });
 
-    expect(mockGetUserDetails).toHaveBeenCalledTimes(2);
+    await waitFor(() => {
+      expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      await result.current.fetchKYCStatus();
+    });
+
+    await waitFor(() => {
+      expect(mockGetUserDetails).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('returns null status when SDK is not available', () => {
@@ -174,6 +200,10 @@ describe('useGetUserKYCStatus', () => {
     const store = createTestStore();
     const { result } = renderHook(() => useGetUserKYCStatus(true), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+    });
+
+    await act(async () => {
+      await result.current.fetchKYCStatus();
     });
 
     await waitFor(() => {

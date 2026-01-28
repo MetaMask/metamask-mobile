@@ -1,5 +1,4 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SWAPS_TESTNET_CHAIN_ID } from '../../constants/bridge';
 
 /**
  * Messageable modules that are part of the Engine's context, but are not defined with state.
@@ -25,7 +24,9 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AccountTreeController:stateChange',
   'AccountTrackerController:stateChange',
   'AddressBookController:stateChange',
+  'AnalyticsController:stateChange',
   'AppMetadataController:stateChange',
+  'ConnectivityController:stateChange',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
@@ -88,7 +89,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
 export const swapsSupportedChainIds = [
   CHAIN_IDS.MAINNET,
   CHAIN_IDS.BSC,
-  SWAPS_TESTNET_CHAIN_ID,
   CHAIN_IDS.POLYGON,
   CHAIN_IDS.AVALANCHE,
   CHAIN_IDS.ARBITRUM,

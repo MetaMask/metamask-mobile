@@ -1,19 +1,27 @@
 import { FeatureFlagConfigurationService } from './FeatureFlagConfigurationService';
-import { createMockServiceContext } from '../../__mocks__/serviceMocks';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../../util/Logger';
-import { validatedVersionGatedFeatureFlag } from '../../../../../util/remoteFeatureFlag';
-import { parseCommaSeparatedString } from '../../utils/stringParseUtils';
+import {
+  createMockServiceContext,
+  createMockInfrastructure,
+} from '../../__mocks__/serviceMocks';
+import {
+  parseCommaSeparatedString,
+  stripQuotes,
+} from '../../utils/stringParseUtils';
+import {
+  validatedVersionGatedFeatureFlag,
+  isVersionGatedFeatureFlag,
+} from '../../../../../util/remoteFeatureFlag';
 import type { ServiceContext } from './ServiceContext';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
+import type { PerpsPlatformDependencies } from '../types';
 
-jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
-jest.mock('../../../../../util/Logger');
-jest.mock('../../../../../util/remoteFeatureFlag');
 jest.mock('../../utils/stringParseUtils');
+jest.mock('../../../../../util/remoteFeatureFlag');
 
 describe('FeatureFlagConfigurationService', () => {
   let mockContext: ServiceContext;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
+  let featureFlagConfigurationService: FeatureFlagConfigurationService;
   let mockRemoteFeatureFlagState: RemoteFeatureFlagControllerState;
   let mockCurrentHip3Config: {
     enabled: boolean;
@@ -27,6 +35,11 @@ describe('FeatureFlagConfigurationService', () => {
   };
 
   beforeEach(() => {
+    mockDeps = createMockInfrastructure();
+    featureFlagConfigurationService = new FeatureFlagConfigurationService(
+      mockDeps,
+    );
+
     mockCurrentHip3Config = {
       enabled: false,
       allowlistMarkets: [],
@@ -68,6 +81,9 @@ describe('FeatureFlagConfigurationService', () => {
         .filter((s) => s.length > 0),
     );
 
+    // stripQuotes is called after parseCommaSeparatedString - mock it to pass through values
+    (stripQuotes as jest.Mock).mockImplementation((s: string) => s);
+
     jest.clearAllMocks();
   });
 
@@ -82,7 +98,7 @@ describe('FeatureFlagConfigurationService', () => {
       });
 
       expect(() => {
-        FeatureFlagConfigurationService.refreshHip3Config({
+        featureFlagConfigurationService.refreshHip3Config({
           remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
           context: contextWithoutCallbacks,
         });
@@ -90,12 +106,13 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('updates config when equity flag changes', () => {
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
       (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(true);
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3Enabled: { enabled: true },
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -109,12 +126,13 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('increments version when equity flag changes', () => {
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
       (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(true);
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3Enabled: { enabled: true },
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -123,14 +141,14 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('parses allowlist markets from comma-separated string', () => {
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
-        undefined,
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
+        false,
       );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: 'BTC,ETH,SOL',
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -144,14 +162,14 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('parses allowlist markets from array', () => {
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
-        undefined,
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
+        false,
       );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: ['BTC', 'ETH', 'SOL'],
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -164,14 +182,14 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('trims and filters empty allowlist markets from array', () => {
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
-        undefined,
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
+        false,
       );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: ['BTC ', ' ETH', '  ', 'SOL'],
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -183,35 +201,62 @@ describe('FeatureFlagConfigurationService', () => {
       );
     });
 
+    it('strips quotes from array values', () => {
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
+      // Mock stripQuotes to actually strip quotes for this test
+      (stripQuotes as jest.Mock).mockImplementation((s: string) =>
+        s.replace(/^["']|["']$/g, ''),
+      );
+      mockRemoteFeatureFlagState.remoteFeatureFlags = {
+        perpsHip3AllowlistMarkets: ['"BTC"', '"ETH"', "'SOL'"],
+      };
+
+      featureFlagConfigurationService.refreshHip3Config({
+        remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
+        context: mockContext,
+      });
+
+      expect(stripQuotes).toHaveBeenCalledWith('"BTC"');
+      expect(stripQuotes).toHaveBeenCalledWith('"ETH"');
+      expect(stripQuotes).toHaveBeenCalledWith("'SOL'");
+      expect(mockContext.setHip3Config).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowlistMarkets: ['BTC', 'ETH', 'SOL'],
+        }),
+      );
+    });
+
     it('skips invalid allowlist markets format', () => {
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
-        undefined,
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
+        false,
       );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: 123,
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
 
       expect(mockContext.setHip3Config).not.toHaveBeenCalled();
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('validation FAILED'),
         expect.anything(),
       );
     });
 
     it('parses blocklist markets from comma-separated string', () => {
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
-        undefined,
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
+        false,
       );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3BlocklistMarkets: 'MEME,DOGE',
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -225,14 +270,14 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('parses blocklist markets from array', () => {
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
-        undefined,
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
+        false,
       );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3BlocklistMarkets: ['MEME', 'DOGE'],
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -249,6 +294,7 @@ describe('FeatureFlagConfigurationService', () => {
       mockCurrentHip3Config.allowlistMarkets = ['BTC', 'ETH'];
       mockCurrentHip3Config.blocklistMarkets = ['MEME'];
 
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
       (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(true);
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3Enabled: { enabled: true },
@@ -256,7 +302,7 @@ describe('FeatureFlagConfigurationService', () => {
         perpsHip3BlocklistMarkets: ['MEME'],
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -267,14 +313,14 @@ describe('FeatureFlagConfigurationService', () => {
 
     it('detects change even when markets are in different order', () => {
       mockCurrentHip3Config.allowlistMarkets = ['BTC', 'ETH'];
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
-        undefined,
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
+        false,
       );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: ['ETH', 'SOL'],
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -283,17 +329,18 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('logs config change details', () => {
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
       (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(true);
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3Enabled: { enabled: true },
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
 
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('HIP-3 config changed'),
         expect.objectContaining({
           equityChanged: true,
@@ -304,58 +351,59 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('logs version increment', () => {
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
       (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(true);
       (mockContext.incrementHip3ConfigVersion as jest.Mock).mockReturnValue(42);
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3Enabled: { enabled: true },
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
 
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('Incremented hip3ConfigVersion'),
         expect.objectContaining({ newVersion: 42 }),
       );
     });
 
     it('handles empty string for allowlist markets', () => {
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
-        undefined,
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
+        false,
       );
       (parseCommaSeparatedString as jest.Mock).mockReturnValue([]);
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: '',
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
 
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('allowlistMarkets string was empty'),
         expect.anything(),
       );
     });
 
     it('handles empty string for blocklist markets', () => {
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(
-        undefined,
+      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
+        false,
       );
       (parseCommaSeparatedString as jest.Mock).mockReturnValue([]);
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3BlocklistMarkets: '',
       };
 
-      FeatureFlagConfigurationService.refreshHip3Config({
+      featureFlagConfigurationService.refreshHip3Config({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
 
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('blocklistMarkets string was empty'),
         expect.anything(),
       );
@@ -370,7 +418,7 @@ describe('FeatureFlagConfigurationService', () => {
         },
       };
 
-      FeatureFlagConfigurationService.refreshEligibility({
+      featureFlagConfigurationService.refreshEligibility({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -389,11 +437,11 @@ describe('FeatureFlagConfigurationService', () => {
       };
 
       const refreshHip3ConfigSpy = jest.spyOn(
-        FeatureFlagConfigurationService,
+        featureFlagConfigurationService,
         'refreshHip3Config',
       );
 
-      FeatureFlagConfigurationService.refreshEligibility({
+      featureFlagConfigurationService.refreshEligibility({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -413,7 +461,7 @@ describe('FeatureFlagConfigurationService', () => {
         },
       };
 
-      FeatureFlagConfigurationService.refreshEligibility({
+      featureFlagConfigurationService.refreshEligibility({
         remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
         context: mockContext,
       });
@@ -427,7 +475,7 @@ describe('FeatureFlagConfigurationService', () => {
       };
 
       expect(() => {
-        FeatureFlagConfigurationService.refreshEligibility({
+        featureFlagConfigurationService.refreshEligibility({
           remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
           context: mockContext,
         });
@@ -442,7 +490,7 @@ describe('FeatureFlagConfigurationService', () => {
       });
 
       expect(() => {
-        FeatureFlagConfigurationService.setBlockedRegions({
+        featureFlagConfigurationService.setBlockedRegions({
           list: ['US'],
           source: 'remote',
           context: contextWithoutCallbacks,
@@ -453,7 +501,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('sets blocked region list', () => {
-      FeatureFlagConfigurationService.setBlockedRegions({
+      featureFlagConfigurationService.setBlockedRegions({
         list: ['US', 'CA', 'UK'],
         source: 'remote',
         context: mockContext,
@@ -466,7 +514,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('triggers eligibility refresh after setting list', () => {
-      FeatureFlagConfigurationService.setBlockedRegions({
+      featureFlagConfigurationService.setBlockedRegions({
         list: ['US'],
         source: 'remote',
         context: mockContext,
@@ -478,7 +526,7 @@ describe('FeatureFlagConfigurationService', () => {
     it('implements sticky remote pattern - does not downgrade from remote to fallback', () => {
       mockCurrentBlockedRegionList.source = 'remote';
 
-      FeatureFlagConfigurationService.setBlockedRegions({
+      featureFlagConfigurationService.setBlockedRegions({
         list: ['US'],
         source: 'fallback',
         context: mockContext,
@@ -491,7 +539,7 @@ describe('FeatureFlagConfigurationService', () => {
     it('allows upgrade from fallback to remote', () => {
       mockCurrentBlockedRegionList.source = 'fallback';
 
-      FeatureFlagConfigurationService.setBlockedRegions({
+      featureFlagConfigurationService.setBlockedRegions({
         list: ['US', 'CA'],
         source: 'remote',
         context: mockContext,
@@ -509,7 +557,7 @@ describe('FeatureFlagConfigurationService', () => {
       );
 
       expect(() => {
-        FeatureFlagConfigurationService.setBlockedRegions({
+        featureFlagConfigurationService.setBlockedRegions({
           list: ['US'],
           source: 'remote',
           context: mockContext,
@@ -522,7 +570,7 @@ describe('FeatureFlagConfigurationService', () => {
         new Error('Refresh failed'),
       );
 
-      FeatureFlagConfigurationService.setBlockedRegions({
+      featureFlagConfigurationService.setBlockedRegions({
         list: ['US'],
         source: 'remote',
         context: mockContext,
@@ -530,11 +578,11 @@ describe('FeatureFlagConfigurationService', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
 
     it('handles empty blocked region list', () => {
-      FeatureFlagConfigurationService.setBlockedRegions({
+      featureFlagConfigurationService.setBlockedRegions({
         list: [],
         source: 'remote',
         context: mockContext,

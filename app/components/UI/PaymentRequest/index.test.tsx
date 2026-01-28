@@ -13,7 +13,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import Routes from '../../../constants/navigation/Routes';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import ethLogo from '../../../assets/images/eth-logo.png';
 
 jest.mock('react', () => ({

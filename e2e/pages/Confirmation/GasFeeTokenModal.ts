@@ -1,6 +1,6 @@
-import { Assertions, Gestures, Matchers } from '../../framework';
+import { Assertions, Gestures, Matchers } from '../../../tests/framework';
 
-import { GasFeeTokenModalSelectorsText } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import { GasFeeTokenModalSelectorsText } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 
 class GasFeeTokenModal {
   getTokenItem(symbol: string): DetoxElement {
@@ -37,6 +37,11 @@ class GasFeeTokenModal {
     const amountFiatElement = await Matchers.getElementByID(
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_AMOUNT_FIAT}-${symbol}`,
     );
+
+    await Assertions.expectElementToBeVisible(amountFiatElement, {
+      description: `Amount fiat for ${symbol} is visible`,
+    });
+
     const amountFiatElementAttributes = await amountFiatElement.getAttributes();
     const amountFiatElementLabel = this.elementSafe(
       amountFiatElementAttributes,

@@ -13,7 +13,7 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 
 export function TotalRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });

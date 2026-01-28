@@ -209,6 +209,41 @@ jest.mock('../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
+const createMockAnalyticsEventBuilder = () => ({
+  addProperties: jest.fn().mockReturnThis(),
+  addSensitiveProperties: jest.fn().mockReturnThis(),
+  removeProperties: jest.fn().mockReturnThis(),
+  removeSensitiveProperties: jest.fn().mockReturnThis(),
+  setSaveDataRecording: jest.fn().mockReturnThis(),
+  build: jest.fn(() => ({})),
+});
+
+const mockUseAnalytics = {
+  trackEvent: jest.fn(),
+  createEventBuilder: jest.fn(() => createMockAnalyticsEventBuilder()),
+  isEnabled: jest.fn().mockReturnValue(true),
+  enable: jest.fn().mockResolvedValue(undefined),
+  addTraitsToUser: jest.fn().mockResolvedValue(undefined),
+  createDataDeletionTask: jest.fn().mockResolvedValue({ status: 'ok' }),
+  checkDataDeleteStatus: jest.fn().mockResolvedValue({
+    deletionRequestDate: undefined,
+    hasCollectedDataSinceDeletionRequest: false,
+    dataDeletionRequestStatus: 'UNKNOWN',
+  }),
+  getDeleteRegulationCreationDate: jest.fn().mockReturnValue('20/04/2024'),
+  getDeleteRegulationId: jest.fn().mockReturnValue('mock-regulation-id'),
+  isDataRecorded: jest.fn().mockReturnValue(true),
+  getAnalyticsId: jest.fn().mockResolvedValue('mock-analytics-id'),
+};
+
+jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => mockUseAnalytics),
+}));
+
+jest.mock('../../components/hooks/useAnalytics/withAnalyticsAwareness', () => ({
+  withAnalyticsAwareness: jest.fn((Component) => Component),
+}));
+
 let mockState = {};
 
 jest.mock('../../store', () => ({
@@ -586,6 +621,15 @@ jest.mock(
     }),
     useKeyboardHandler: () => {},
     useGenericKeyboardHandler: () => {},
+    useKeyboardState: (selector) => {
+      const defaultState = {
+        isVisible: false,
+        height: 0,
+        duration: 0,
+        timestamp: 0,
+      };
+      return selector ? selector(defaultState) : defaultState;
+    },
     KeyboardEvents: {
       addListener: jest.fn(() => ({ remove: jest.fn() })),
     },

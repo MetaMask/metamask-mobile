@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { ControllerInitFunction } from '../../types';
 import {
   RampsService,
@@ -23,6 +24,15 @@ export function getRampsEnvironment(): RampsEnvironment {
 }
 
 /**
+ * Gets the context for the ramps service based on the platform.
+ *
+ * @returns The context string (e.g., 'mobile-ios', 'mobile-android').
+ */
+export function getRampsContext(): string {
+  return Platform.OS === 'ios' ? 'mobile-ios' : 'mobile-android';
+}
+
+/**
  * Initialize the on-ramp service.
  *
  * @param request - The request object.
@@ -36,6 +46,7 @@ export const rampsServiceInit: ControllerInitFunction<
   const service = new RampsService({
     messenger: controllerMessenger,
     environment: getRampsEnvironment(),
+    context: getRampsContext(),
     fetch,
   });
 

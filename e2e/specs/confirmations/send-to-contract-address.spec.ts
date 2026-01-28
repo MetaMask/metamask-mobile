@@ -1,22 +1,21 @@
 import { RegressionConfirmations } from '../../tags';
-import AmountView from '../../pages/Send/AmountView';
-import SendView from '../../pages/Send/SendView';
+import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import Assertions from '../../framework/Assertions';
-import { DappVariants } from '../../framework/Constants';
+import Assertions from '../../../tests/framework/Assertions';
+import { DappVariants } from '../../../tests/framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../framework/types';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../tests/framework/types';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -68,13 +67,9 @@ describe.skip(RegressionConfirmations('Send to contract address'), () => {
 
         await WalletView.tapWalletSendButton();
 
-        await SendView.inputAddress(hstAddress);
-        await SendView.tapNextButton();
-
-        await Assertions.expectElementToBeVisible(AmountView.title);
-
-        await AmountView.typeInTransactionAmount(AMOUNT);
-        await AmountView.tapNextButton();
+        await RedesignedSendView.inputRecipientAddress(hstAddress);
+        await RedesignedSendView.typeInTransactionAmount(AMOUNT);
+        await RedesignedSendView.pressReviewButton();
 
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();

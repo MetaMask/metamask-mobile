@@ -731,7 +731,7 @@ describe('PhysicalAddress Component', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to VALIDATING_KYC when registration is complete', async () => {
+    it('navigates to VERIFYING_REGISTRATION when registration is complete', async () => {
       const mockGetOnboardingConsentSetByOnboardingId = jest
         .fn()
         .mockResolvedValue(null);
@@ -768,10 +768,17 @@ describe('PhysicalAddress Component', () => {
         reset: jest.fn(),
       });
 
-      // Mock useCardSDK with user data that includes usState
+      // Mock useCardSDK with user data that includes usState and SDK with getUserDetails
+      // The SDK is needed for verification polling after registration
+      const mockSetUser = jest.fn();
       mockUseCardSDK.mockReturnValue({
         isReturningSession: false,
-        sdk: null,
+        sdk: {
+          getUserDetails: jest.fn().mockResolvedValue({
+            verificationState: 'VERIFIED',
+            userId: 'user-id',
+          }),
+        } as any,
         isLoading: false,
         user: {
           id: 'user-id',
@@ -779,7 +786,7 @@ describe('PhysicalAddress Component', () => {
           usState: 'CA',
         },
         fetchUserData: jest.fn(),
-        setUser: jest.fn(),
+        setUser: mockSetUser,
         logoutFromProvider: jest.fn(),
       });
 
@@ -823,10 +830,15 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
+            routes: [
+              {
+                name: Routes.CARD.SPENDING_LIMIT,
+                params: { flow: 'onboarding' },
+              },
+            ],
           });
         },
-        { timeout: 3000 },
+        { timeout: 5000 },
       );
     });
   });
@@ -1052,10 +1064,17 @@ describe('PhysicalAddress Component', () => {
         reset: jest.fn(),
       });
 
-      // Mock useCardSDK with user data that includes usState
+      // Mock useCardSDK with user data that includes usState and SDK with getUserDetails
+      // The SDK is needed for verification polling after registration
+      const mockSetUser = jest.fn();
       mockUseCardSDK.mockReturnValue({
         isReturningSession: false,
-        sdk: null,
+        sdk: {
+          getUserDetails: jest.fn().mockResolvedValue({
+            verificationState: 'VERIFIED',
+            userId: 'user-id',
+          }),
+        } as any,
         isLoading: false,
         user: {
           id: 'user-id',
@@ -1063,7 +1082,7 @@ describe('PhysicalAddress Component', () => {
           usState: 'CA',
         },
         fetchUserData: jest.fn(),
-        setUser: jest.fn(),
+        setUser: mockSetUser,
         logoutFromProvider: jest.fn(),
       });
 
@@ -1104,10 +1123,15 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
+            routes: [
+              {
+                name: Routes.CARD.SPENDING_LIMIT,
+                params: { flow: 'onboarding' },
+              },
+            ],
           });
         },
-        { timeout: 3000 },
+        { timeout: 5000 },
       );
     });
   });

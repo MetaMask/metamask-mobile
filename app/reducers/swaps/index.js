@@ -2,34 +2,23 @@ import { createSelector } from 'reselect';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress, areAddressesEqual } from '../../util/address';
 import { lte } from '../../util/lodash';
-import {
-  selectChainId,
-  selectEvmChainId,
-} from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import {
   selectAllTokens,
   selectTokens,
 } from '../../selectors/tokensController';
 import { selectTokenList } from '../../selectors/tokenListController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
-import { getChainFeatureFlags, getSwapsLiveness } from './utils';
-import { allowedTestnetChainIds } from '../../components/UI/Swaps/utils';
-import { NETWORKS_CHAIN_ID } from '../../constants/network';
+import { getSwapsLiveness } from './utils';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
 import { invert, omit } from 'lodash';
 import { createDeepEqualSelector } from '../../selectors/util';
 import { toHex } from '@metamask/controller-utils';
-import { SolScope } from '@metamask/keyring-api';
 
-// If we are in dev and on a testnet, just use mainnet feature flags,
-// since we don't have feature flags for testnets in the API
-export const getFeatureFlagChainId = (chainId) =>
-  typeof __DEV__ !== 'undefined' &&
-  __DEV__ &&
-  allowedTestnetChainIds.includes(chainId)
-    ? NETWORKS_CHAIN_ID.MAINNET
-    : chainId;
+// Identity function, will be removed when legacy swaps is removed,
+// but keep it for now to keep changes atomic.
+export const getFeatureFlagChainId = (chainId) => chainId;
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -101,34 +90,6 @@ function addMetadata(chainId, tokens, tokenList) {
 // * Selectors
 const chainIdSelector = selectEvmChainId;
 const swapsStateSelector = (state) => state.swaps;
-
-/**
- * Returns if smart transactions are enabled in feature flags
- */
-export const swapsSmartTxFlagEnabled = createSelector(
-  swapsStateSelector,
-  (swapsState) => {
-    const globalFlags = swapsState.featureFlags;
-    const isEnabled = Boolean(globalFlags?.smartTransactions?.mobileActive);
-    return isEnabled;
-  },
-);
-
-/**
- * Returns the swaps feature flags
- */
-export const selectSwapsChainFeatureFlags = createSelector(
-  swapsStateSelector,
-  (_state, transactionChainId) =>
-    transactionChainId || selectEvmChainId(_state),
-  (swapsState, chainId) => ({
-    ...(swapsState[chainId]?.featureFlags || {}),
-    smartTransactions: {
-      ...(swapsState[chainId]?.featureFlags?.smartTransactions || {}),
-      ...(swapsState.featureFlags?.smartTransactions || {}),
-    },
-  }),
-);
 
 /**
  * Returns the swaps onboarded state

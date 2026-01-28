@@ -2,9 +2,15 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import CardAuthentication from './CardAuthentication';
 import Routes from '../../../../../constants/navigation/Routes';
-import { CardAuthenticationSelectors } from '../../../../../../e2e/selectors/Card/CardAuthentication.selectors';
+import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import { CardLocation } from '../../types';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+
+// Mock whenEngineReady to prevent async polling after test teardown
+jest.mock('../../../../../core/Analytics/whenEngineReady', () => ({
+  __esModule: true,
+  default: jest.fn().mockResolvedValue(undefined),
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

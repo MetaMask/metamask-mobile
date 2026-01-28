@@ -1,16 +1,14 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
-import { BridgeDestTokenSelector } from './components/BridgeDestTokenSelector';
-import { BridgeSourceTokenSelector } from './components/BridgeSourceTokenSelector';
+import { BridgeTokenSelector } from './components/BridgeTokenSelector';
 import SlippageModal from './components/SlippageModal';
-import { BridgeSourceNetworkSelector } from './components/BridgeSourceNetworkSelector';
-import { BridgeDestNetworkSelector } from './components/BridgeDestNetworkSelector';
 import BridgeView from './Views/BridgeView';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
+import MarketClosedBottomSheet from './components/MarketClosedBottomSheets/MarketClosedBottomSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -22,10 +20,20 @@ const clearStackNavigatorOptions = {
 
 const Stack = createStackNavigator();
 export const BridgeScreenStack = () => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    headerMode="screen"
+    screenOptions={{
+      headerShown: true,
+    }}
+  >
     <Stack.Screen
       name={Routes.BRIDGE.BRIDGE_VIEW}
       component={BridgeView}
+      options={{ title: '' }}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.TOKEN_SELECTOR}
+      component={BridgeTokenSelector}
       options={{ title: '' }}
     />
   </Stack.Navigator>
@@ -37,22 +45,6 @@ export const BridgeModalStack = () => (
     mode={'modal'}
     screenOptions={clearStackNavigatorOptions}
   >
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR}
-      component={BridgeSourceTokenSelector}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR}
-      component={BridgeDestTokenSelector}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR}
-      component={BridgeSourceNetworkSelector}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR}
-      component={BridgeDestNetworkSelector}
-    />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.SLIPPAGE_MODAL}
       component={SlippageModal}
@@ -72,6 +64,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL}
       component={RecipientSelectorModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL}
+      component={MarketClosedBottomSheet}
     />
   </ModalStack.Navigator>
 );

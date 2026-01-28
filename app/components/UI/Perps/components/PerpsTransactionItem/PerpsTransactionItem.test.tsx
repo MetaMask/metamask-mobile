@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { StyleSheet, Linking } from 'react-native';
 import PerpsTransactionItem, { FillType } from './PerpsTransactionItem';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
@@ -537,7 +537,7 @@ describe('PerpsTransactionItem', () => {
       fireEvent.press(adlTag);
 
       expect(Linking.openURL).toHaveBeenCalledWith(
-        PERPS_SUPPORT_ARTICLES_URLS.ADL_URL,
+        PERPS_SUPPORT_ARTICLES_URLS.AdlUrl,
       );
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,

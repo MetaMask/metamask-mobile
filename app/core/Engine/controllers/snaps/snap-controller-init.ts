@@ -21,8 +21,8 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store, runSaga } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
-import { MetaMetrics } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { buildAndTrackEvent } from '../../utils/analytics';
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { take } from 'redux-saga/effects';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import {
@@ -171,13 +171,13 @@ export const snapControllerInit: ControllerInitFunction<
     trackEvent: (params: {
       event: string;
       properties?: Record<string, unknown>;
-    }) =>
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder({
-          category: params.event,
-          properties: params.properties,
-        }).build(),
-      ),
+    }) => {
+      buildAndTrackEvent(
+        initMessenger,
+        params.event,
+        params.properties as AnalyticsEventProperties | null | undefined,
+      );
+    },
   });
 
   initMessenger.subscribe('KeyringController:lock', () => {

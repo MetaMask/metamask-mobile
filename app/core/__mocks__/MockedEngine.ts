@@ -5,7 +5,7 @@ import Engine from '../../core/Engine';
 import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringControllerTestUtils';
 
 export const mockedEngine = {
-  init: () => Engine.init({}),
+  init: () => Engine.init(''),
   controllerMessenger: {
     subscribeOnceIf: jest.fn(),
     subscribe: jest.fn(),
@@ -23,9 +23,6 @@ export const mockedEngine = {
         };
       }
     }),
-  },
-  datamodel: {
-    state: { PreferencesController: { selectedAddress: '' } },
   },
   context: {
     AccountsController: {

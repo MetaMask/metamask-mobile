@@ -1,11 +1,11 @@
-import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
+import Matchers from '../../../../tests/framework/Matchers';
+import Gestures from '../../../../tests/framework/Gestures';
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
-} from '../../../selectors/wallet/ImportTokenView.selectors';
-import { CellComponentSelectorsIDs } from '../../../selectors/wallet/CellComponent.selectors';
-import { logger } from '../../../framework';
+} from '../../../../app/components/Views/AddAsset/ImportTokenView.testIds';
+import { CellComponentSelectorsIDs } from '../../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
+import { logger } from '../../../../tests/framework';
 
 class ImportTokensView {
   get searchTokenResult(): DetoxElement {

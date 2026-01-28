@@ -13,8 +13,10 @@ import Animated, {
 // External dependencies.
 import {
   Box,
+  BoxAlignItems,
   Text,
   TextVariant,
+  TextColor,
   FontWeight,
   IconName,
   ButtonIconProps,
@@ -28,7 +30,7 @@ import TitleLeft from '../TitleLeft';
 import { HeaderWithTitleLeftScrollableProps } from './HeaderWithTitleLeftScrollable.types';
 
 const DEFAULT_EXPANDED_HEIGHT = 140;
-const DEFAULT_COLLAPSED_HEIGHT = 48;
+const DEFAULT_COLLAPSED_HEIGHT = 56;
 
 /**
  * HeaderWithTitleLeftScrollable is a collapsing header component that transitions
@@ -68,6 +70,10 @@ const HeaderWithTitleLeftScrollable: React.FC<
   HeaderWithTitleLeftScrollableProps
 > = ({
   title,
+  titleProps,
+  subtitle,
+  subtitleProps,
+  children,
   onBack,
   backButtonProps,
   onClose,
@@ -207,6 +213,36 @@ const HeaderWithTitleLeftScrollable: React.FC<
     return <TitleLeft title={title} {...titleLeftProps} />;
   };
 
+  // Render compact title content
+  // If children is provided, use it; otherwise render default title + subtitle
+  const renderCompactContent = () => {
+    if (children) {
+      return children;
+    }
+    return (
+      <Box alignItems={BoxAlignItems.Center}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+          numberOfLines={1}
+          {...titleProps}
+        >
+          {title}
+        </Text>
+        {subtitle && (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            {...subtitleProps}
+            twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
+          >
+            {subtitle}
+          </Text>
+        )}
+      </Box>
+    );
+  };
   const containerStyle = useMemo(
     () => [
       tw.style('absolute left-0 right-0 z-10'),
@@ -231,13 +267,7 @@ const HeaderWithTitleLeftScrollable: React.FC<
         >
           {/* Compact title - fades in when collapsed */}
           <Animated.View style={compactTitleAnimatedStyle}>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              numberOfLines={1}
-            >
-              {title}
-            </Text>
+            {renderCompactContent()}
           </Animated.View>
         </HeaderBase>
 

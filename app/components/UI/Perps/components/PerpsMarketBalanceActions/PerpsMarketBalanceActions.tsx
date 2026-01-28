@@ -32,7 +32,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
 import { INITIAL_AMOUNT_UI_PROGRESS } from '../../constants/hyperLiquidConfig';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
@@ -42,10 +42,8 @@ import PerpsEmptyStateIcon from '../../../../../images/perps-home-empty-state.pn
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
-import { RootState } from '../../../../../reducers';
+import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
 import { PerpsEventValues } from '../../constants/eventNames';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-
 interface PerpsMarketBalanceActionsProps {
   showActionButtons?: boolean;
 }
@@ -77,42 +75,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { isDepositInProgress } = usePerpsDepositProgress();
 
-  // Get current selected account address
-  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
-    'eip155:1',
-  )?.address;
-
-  // Get withdrawal requests from controller state and filter by current account
-  const withdrawalRequests = useSelector((state: RootState) => {
-    const allWithdrawals =
-      state.engine.backgroundState.PerpsController?.withdrawalRequests || [];
-
-    // If no selected address, return empty array (don't show potentially wrong account's data)
-    if (!selectedAddress) {
-      DevLogger.log(
-        'PerpsMarketBalanceActions: No selected address, returning empty array',
-        { totalCount: allWithdrawals.length },
-      );
-      return [];
-    }
-
-    // Filter by current account, normalizing addresses for comparison
-    const filtered = allWithdrawals.filter(
-      (req) =>
-        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
-    );
-
-    DevLogger.log(
-      'PerpsMarketBalanceActions: Filtered withdrawals by account',
-      {
-        selectedAddress,
-        totalCount: allWithdrawals.length,
-        filteredCount: filtered.length,
-      },
-    );
-
-    return filtered;
-  });
+  // Get withdrawal requests filtered by current account using memoized selector
+  const withdrawalRequests = useSelector(
+    selectWithdrawalRequestsBySelectedAccount,
+  );
 
   // State for transaction amount
   const [transactionAmountWei, setTransactionAmountWei] = useState<
@@ -224,7 +190,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
-      source: 'homescreen',
+      source: PerpsEventValues.SOURCE.PERPS_HOME,
     });
   }, [navigation]);
 
@@ -242,7 +208,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mx-4 mt-4 mb-4 rounded-xl' : ''}
+        twClassName={isBalanceEmpty ? 'mx-4 mt-4 mb-4 rounded-xl' : 'mb-4'}
         style={isBalanceEmpty ? tw.style('bg-background-section') : undefined}
       >
         <PerpsProgressBar
@@ -324,7 +290,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               isFullWidth
               testID={PerpsMarketBalanceActionsSelectorsIDs.LEARN_MORE_BUTTON}
             >
-              {strings(LEARN_MORE_CONFIG.TITLE_KEY)}
+              {strings(LEARN_MORE_CONFIG.TitleKey)}
             </Button>
           </Box>
         ) : (

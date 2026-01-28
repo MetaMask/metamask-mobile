@@ -22,13 +22,14 @@ import getUIStartupSpan from '../Performance/UIStartup';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
 import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
+import { getAnalyticsId } from '../../util/analytics/analyticsId';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
+import { setExistingUser } from '../../actions/user';
 
 export class EngineService {
   private engineInitialized = false;
@@ -70,20 +71,16 @@ export class EngineService {
       return;
     }
 
-    engine.controllerMessenger.subscribeOnceIf(
-      'ComposableController:stateChange',
-      () => {
-        if (!engine.context.KeyringController.metadata?.vault) {
-          Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
-        }
-        this.updateBatcher.add(INIT_BG_STATE_KEY);
-        // immediately flush the redux action
-        // so that the initial state is available to the redux store
-        this.updateBatcher.flush();
-        this.engineInitialized = true;
-      },
-      () => !this.engineInitialized,
-    );
+    if (!this.engineInitialized) {
+      if (!engine.context.KeyringController.metadata?.vault) {
+        Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
+      }
+      this.updateBatcher.add(INIT_BG_STATE_KEY);
+      // immediately flush the redux action
+      // so that the initial state is available to the redux store
+      this.updateBatcher.flush();
+      this.engineInitialized = true;
+    }
 
     // Set up immediate Redux updates for all controller state changes
     // This ensures Redux is updated right away when controllers change
@@ -164,8 +161,13 @@ export class EngineService {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
         hasState: Object.keys(state).length > 0,
       });
-      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      Engine.init(state, null, metaMetricsId);
+
+      // Note on why Engine.init() requires analyticsId:
+      // `analyticsId` is not persisted in state to prevent losing it in case of corruption.
+      // It is also used as a random source for other controllers like RemoteFeatureFlagController.
+      // Passing it to engine ensures all controllers are initialized with the same analyticsId.
+      const analyticsId = await getAnalyticsId();
+      Engine.init(analyticsId, state);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       // Pass state to detect controllers that changed during init
       this.initializeControllers(
@@ -362,11 +364,15 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      const instance = Engine.init(state, newKeyringState, metaMetricsId);
+      const analyticsId = await getAnalyticsId();
+      const instance = Engine.init(analyticsId, state, newKeyringState);
       if (instance) {
         // Pass state to detect controllers that changed during init
         this.initializeControllers(instance, state as Record<string, unknown>);
+        // CRITICAL: Set existingUser = true after successful vault unlock from recovery
+        // This prevents the vault recovery screen from appearing again on app restart
+        // Only set after successful unlock to ensure vault is unlocked and credentials are stored
+        ReduxService.store.dispatch(setExistingUser(true));
         // this is a hack to give the engine time to reinitialize
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return {

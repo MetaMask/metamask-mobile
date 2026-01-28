@@ -10,7 +10,7 @@ import {
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenList } from './TokenList/TokenList';
 import { TokenI } from './types';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { strings } from '../../../../locales/i18n';
 import {
   refreshTokens,
@@ -18,7 +18,7 @@ import {
   removeNonEvmToken,
   goToAddEvmToken,
 } from './util';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
@@ -35,6 +35,7 @@ import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
+import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -84,12 +85,24 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
+  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
   // Memoize selector computation for better performance
   const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
+
+  const [, forceUpdate] = useState(0);
+
+  // Force re-render when coming back into focus to ensure the component
+  // picks up any network changes that happened while navigated away
+  // (e.g., when returning from trending flow after network switch)
+  useFocusEffect(
+    useCallback(() => {
+      forceUpdate((n) => n + 1);
+    }, []),
+  );
 
   // Mark as loaded once we have data (even if empty)
   useEffect(() => {
@@ -183,26 +196,20 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     return isHomepageRedesignV1Enabled ? 10 : undefined;
   }, [isFullView, isHomepageRedesignV1Enabled]);
 
-  return (
-    <Box
-      twClassName={
-        isHomepageRedesignV1Enabled && !isFullView
-          ? 'bg-default'
-          : 'flex-1 bg-default'
-      }
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-    >
-      <TokenListControlBar
-        goToAddToken={goToAddToken}
-        style={isFullView ? tw`px-4 pb-4` : undefined}
-      />
-      {!hasInitialLoad ? (
+  // Determine which content to render based on loading and token state
+  const tokenContent = useMemo(() => {
+    if (!hasInitialLoad) {
+      return (
         <Box twClassName={isFullView ? 'px-4' : undefined}>
           <TokenListSkeleton />
         </Box>
-      ) : sortedTokenKeys.length > 0 ? (
+      );
+    }
+
+    if (sortedTokenKeys.length > 0) {
+      return (
         <>
-          {isMusdConversionFlowEnabled && (
+          {isMusdConversionFlowEnabled && isGeoEligible && (
             <View style={isFullView ? tw`px-4` : undefined}>
               <MusdConversionAssetListCta />
             </View>
@@ -217,11 +224,42 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
             isFullView={isFullView}
           />
         </>
-      ) : (
-        <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-          <TokensEmptyState />
-        </Box>
-      )}
+      );
+    }
+
+    return (
+      <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+        <TokensEmptyState />
+      </Box>
+    );
+  }, [
+    hasInitialLoad,
+    isFullView,
+    sortedTokenKeys,
+    isMusdConversionFlowEnabled,
+    tw,
+    refreshing,
+    onRefresh,
+    showRemoveMenu,
+    handleScamWarningModal,
+    maxItems,
+    isGeoEligible,
+  ]);
+
+  return (
+    <Box
+      twClassName={
+        isHomepageRedesignV1Enabled && !isFullView
+          ? 'bg-default'
+          : 'flex-1 bg-default'
+      }
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+    >
+      <TokenListControlBar
+        goToAddToken={goToAddToken}
+        style={isFullView ? tw`px-4 pb-4` : undefined}
+      />
+      {tokenContent}
       <ScamWarningModal
         showScamWarningModal={showScamWarningModal}
         setShowScamWarningModal={setShowScamWarningModal}

@@ -51,13 +51,18 @@ module.exports = function (baseConfig) {
   // if you have 10 cores but only 16GB, only 3 workers would get used.
   // Also forces maxWorkers value to be no less than 2, ensuring
   // worker code runs concurrently and not on the main Metro process
-  const maxWorkers = Math.ceil(
-    Math.max(
-      2,
-      os.availableParallelism() *
-        Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024)),
-    ),
-  );
+  //
+  // CI Override: Set METRO_MAX_WORKERS env var to limit workers on constrained runners
+  // Example: METRO_MAX_WORKERS=4 for 48GB runners to prevent OOM kills
+  const maxWorkers = process.env.METRO_MAX_WORKERS
+    ? Math.max(2, parseInt(process.env.METRO_MAX_WORKERS, 10))
+    : Math.ceil(
+        Math.max(
+          2,
+          os.availableParallelism() *
+            Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024)),
+        ),
+      );
 
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
@@ -95,7 +100,7 @@ module.exports = function (baseConfig) {
                   type: 'sourceFile',
                   filePath: path.resolve(
                     __dirname,
-                    'e2e/module-mocking/sentry/react-native.ts',
+                    'tests/module-mocking/sentry/react-native.ts',
                   ),
                 };
               }
@@ -104,7 +109,7 @@ module.exports = function (baseConfig) {
                   type: 'sourceFile',
                   filePath: path.resolve(
                     __dirname,
-                    'e2e/module-mocking/sentry/core.ts',
+                    'tests/module-mocking/sentry/core.ts',
                   ),
                 };
               }

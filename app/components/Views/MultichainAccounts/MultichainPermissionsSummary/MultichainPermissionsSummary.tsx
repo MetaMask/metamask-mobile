@@ -10,7 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../UI/StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
+import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -40,16 +40,16 @@ import ButtonIcon, {
 import TabBar from '../../../../component-library/components-temp/TabBar';
 import { getNetworkImageSource } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
-import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
+import { SDKSelectorsIDs } from '../../SDK/SDK.testIds';
 import { useSelector } from 'react-redux';
 import {
   selectEvmChainId,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
-import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
+import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {

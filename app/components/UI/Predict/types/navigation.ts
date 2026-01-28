@@ -9,6 +9,7 @@ import {
 import { PredictEventValues } from '../constants/eventNames';
 
 export type PredictEntryPoint =
+  | typeof PredictEventValues.ENTRY_POINT.CAROUSEL
   | typeof PredictEventValues.ENTRY_POINT.PREDICT_FEED
   | typeof PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS
   | typeof PredictEventValues.ENTRY_POINT.SEARCH
@@ -30,6 +31,7 @@ export interface PredictNavigationParamList extends ParamListBase {
     entryPoint?: PredictEntryPoint;
     title?: string;
     image?: string;
+    isGame?: boolean;
   };
   PredictSellPreview: {
     market: PredictMarket;

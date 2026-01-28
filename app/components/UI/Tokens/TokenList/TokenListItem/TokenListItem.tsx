@@ -25,8 +25,8 @@ import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
-  selectIsMusdConversionFlowEnabledFlag,
   selectStablecoinLendingEnabledFlag,
+  selectMerklCampaignClaimingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
@@ -42,6 +42,22 @@ import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
+import { strings } from '../../../../../../locales/i18n';
+import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../../Bridge/types';
+import Routes from '../../../../../constants/navigation/Routes';
+import StockBadge from '../../../shared/StockBadge';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import { toHex } from '@metamask/controller-utils';
+import Logger from '../../../../../util/Logger';
+import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
+import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
+import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import {
+  useMerklRewards,
+  isEligibleForMerklRewards,
+} from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -68,6 +84,12 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       alignContent: 'center',
+    },
+    centered: {
+      textAlign: 'center',
+    },
+    stockBadgeWrapper: {
+      marginLeft: 4,
     },
   });
 
@@ -102,7 +124,11 @@ export const TokenListItem = React.memo(
       }),
     );
 
+    const { isStockToken } = useRWAToken();
+
     const chainId = asset?.chainId as Hex;
+
+    const networkName = useNetworkName(chainId);
 
     const { getEarnToken } = useEarnTokens();
 
@@ -111,16 +137,105 @@ export const TokenListItem = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
+    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+    const { getMusdOutputChainId } = useMusdConversionTokens();
+    const { initiateConversion, hasSeenConversionEducationScreen } =
+      useMusdConversion();
+
+    const shouldShowConvertToMusdCta = useMemo(
+      () => shouldShowTokenListItemCta(asset),
+      [asset, shouldShowTokenListItemCta],
     );
 
-    const { isConversionToken } = useMusdConversionTokens();
+    // Check for claimable Merkl rewards
+    const isMerklCampaignClaimingEnabled = useSelector(
+      selectMerklCampaignClaimingEnabledFlag,
+    );
+    const { claimableReward } = useMerklRewards({
+      asset,
+    });
 
-    const isConvertibleStablecoin =
-      isMusdConversionFlowEnabled && isConversionToken(asset);
+    const isEligibleForMerkl = useMemo(
+      () =>
+        asset?.chainId && asset?.address
+          ? isEligibleForMerklRewards(
+              asset.chainId as Hex,
+              asset.address as Hex | undefined,
+            )
+          : false,
+      [asset?.chainId, asset?.address],
+    );
+
+    const hasClaimableBonus = Boolean(
+      isMerklCampaignClaimingEnabled && claimableReward && isEligibleForMerkl,
+    );
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
+
+    const handleConvertToMUSD = useCallback(async () => {
+      const submitCtaPressedEvent = () => {
+        const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+
+        const getRedirectLocation = () =>
+          hasSeenConversionEducationScreen
+            ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+            : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
+            .addProperties({
+              location: EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+              redirects_to: getRedirectLocation(),
+              cta_type: MUSD_CTA_TYPES.SECONDARY,
+              cta_text: strings(
+                'earn.musd_conversion.get_a_percentage_musd_bonus',
+                {
+                  percentage: MUSD_CONVERSION_APY,
+                },
+              ),
+              network_chain_id: chainId,
+              network_name: networkName,
+              asset_symbol: asset?.symbol,
+            })
+            .build(),
+        );
+      };
+
+      try {
+        submitCtaPressedEvent();
+
+        if (!asset?.address || !asset?.chainId) {
+          throw new Error('Asset address or chain ID is not set');
+        }
+
+        const assetChainId = toHex(asset.chainId);
+
+        await initiateConversion({
+          outputChainId: getMusdOutputChainId(assetChainId),
+          preferredPaymentToken: {
+            address: toHex(asset.address),
+            chainId: assetChainId,
+          },
+          navigationStack: Routes.EARN.ROOT,
+        });
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          '[mUSD Conversion] Failed to initiate conversion',
+        );
+      }
+    }, [
+      asset?.address,
+      asset?.chainId,
+      asset?.symbol,
+      chainId,
+      createEventBuilder,
+      getMusdOutputChainId,
+      hasSeenConversionEducationScreen,
+      initiateConversion,
+      networkName,
+      trackEvent,
+    ]);
 
     // Secondary balance shows percentage change (if available and not on testnet)
     const hasPercentageChange =
@@ -130,23 +245,77 @@ export const TokenListItem = React.memo(
       pricePercentChange1d !== undefined &&
       Number.isFinite(pricePercentChange1d);
 
-    // Determine the color for percentage change
-    let percentageColor = TextColor.Alternative;
-    if (hasPercentageChange) {
-      if (pricePercentChange1d === 0) {
-        percentageColor = TextColor.Alternative;
-      } else if (pricePercentChange1d > 0) {
-        percentageColor = TextColor.Success;
-      } else {
-        percentageColor = TextColor.Error;
-      }
-    }
+    const onItemPress = useCallback(
+      (token: TokenI, scrollToMerklRewards?: boolean) => {
+        trace({ name: TraceName.AssetDetails });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+            .addProperties({
+              source: isFullView
+                ? 'mobile-token-list-page'
+                : 'mobile-token-list',
+              chain_id: token.chainId,
+              token_symbol: token.symbol,
+            })
+            .build(),
+        );
 
-    const percentageText = hasPercentageChange
-      ? `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
-          2,
-        )}%`
-      : undefined;
+        navigation.navigate('Asset', {
+          ...token,
+          scrollToMerklRewards,
+        });
+      },
+      [isFullView, trackEvent, createEventBuilder, navigation],
+    );
+
+    const secondaryBalanceDisplay = useMemo(() => {
+      if (hasClaimableBonus) {
+        return {
+          text: strings('earn.claim_bonus'),
+          color: TextColor.Primary,
+          onPress: asset ? () => onItemPress(asset as TokenI, true) : undefined,
+        };
+      }
+
+      if (shouldShowConvertToMusdCta) {
+        return {
+          text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+          color: TextColor.Primary,
+          onPress: handleConvertToMUSD,
+        };
+      }
+
+      if (!hasPercentageChange) {
+        return {
+          text: undefined,
+          color: TextColor.Alternative,
+          onPress: undefined,
+        };
+      }
+
+      const text = `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
+        2,
+      )}%`;
+
+      let color = TextColor.Alternative;
+      if (pricePercentChange1d > 0) {
+        color = TextColor.Success;
+      } else if (pricePercentChange1d < 0) {
+        color = TextColor.Error;
+      }
+
+      return { text, color, onPress: undefined };
+    }, [
+      hasClaimableBonus,
+      asset,
+      onItemPress,
+      handleConvertToMUSD,
+      hasPercentageChange,
+      pricePercentChange1d,
+      shouldShowConvertToMusdCta,
+    ]);
 
     const earnToken = getEarnToken(asset as TokenI);
 
@@ -155,29 +324,13 @@ export const TokenListItem = React.memo(
       [chainId],
     );
 
-    const onItemPress = (token: TokenI) => {
-      trace({ name: TraceName.AssetDetails });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-          .addProperties({
-            source: isFullView ? 'mobile-token-list-page' : 'mobile-token-list',
-            chain_id: token.chainId,
-            token_symbol: token.symbol,
-          })
-          .build(),
-      );
-
-      navigation.navigate('Asset', {
-        ...token,
-      });
-    };
-
     const isStakeable = useSelector((state: RootState) =>
       selectIsStakeableToken(state, asset as TokenI),
     );
 
     const renderEarnCta = useCallback(() => {
-      if (!asset) {
+      // For convertible stablecoins, we display the CTA in the AssetElement's secondary balance
+      if (!asset || shouldShowConvertToMusdCta) {
         return null;
       }
 
@@ -186,22 +339,16 @@ export const TokenListItem = React.memo(
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      const shouldShowMusdConvertCta = isConvertibleStablecoin;
-
-      if (
-        shouldShowStakeCta ||
-        shouldShowStablecoinLendingCta ||
-        shouldShowMusdConvertCta
-      ) {
+      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
     }, [
       asset,
       earnToken,
-      isConvertibleStablecoin,
       isStablecoinLendingEnabled,
       isStakeable,
+      shouldShowConvertToMusdCta,
     ]);
 
     if (!asset || !chainId) {
@@ -218,10 +365,11 @@ export const TokenListItem = React.memo(
         onLongPress={asset.isNative ? null : showRemoveMenu}
         asset={asset}
         balance={asset.balanceFiat}
-        secondaryBalance={percentageText}
-        secondaryBalanceColor={percentageColor}
+        secondaryBalance={secondaryBalanceDisplay.text}
+        secondaryBalanceColor={secondaryBalanceDisplay.color}
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
+        onSecondaryBalancePress={secondaryBalanceDisplay.onPress}
       >
         <BadgeWrapper
           style={styles.badge}
@@ -260,6 +408,9 @@ export const TokenListItem = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
+            {isStockToken(asset as BridgeToken) && (
+              <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+            )}
             {renderEarnCta()}
           </View>
         </View>

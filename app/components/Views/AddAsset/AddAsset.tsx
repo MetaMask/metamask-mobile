@@ -29,7 +29,7 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './AddAsset.styles';
 import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
-import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
+import { AddAssetViewSelectorsIDs } from './AddAssetView.testIds';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Hex } from '@metamask/utils';
 import NetworkListBottomSheet from './components/NetworkListBottomSheet';
@@ -47,7 +47,7 @@ import {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from './ImportTokenView.testIds';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';

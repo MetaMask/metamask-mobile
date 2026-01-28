@@ -12,7 +12,7 @@ import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
-import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { BuildQuoteSelectors } from './BuildQuote.testIds';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
@@ -101,6 +101,7 @@ jest.mock('@react-navigation/native', () => {
       ),
       goBack: mockGoBack,
       reset: mockReset,
+      pop: mockPop,
       dangerouslyGetParent: () => ({
         pop: mockPop,
       }),
@@ -443,9 +444,9 @@ describe('BuildQuote View', () => {
     });
   });
 
-  it('navigates and tracks event on cancel button press', async () => {
+  it('navigates and tracks event on back button press', async () => {
     render(BuildQuote);
-    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
@@ -459,7 +460,7 @@ describe('BuildQuote View', () => {
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.rampType = RampType.SELL;
     render(BuildQuote);
-    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',

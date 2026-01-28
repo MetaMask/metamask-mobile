@@ -1,20 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { Span } from '@sentry/core';
-import performance from 'react-native-performance';
-import { setMeasurement } from '@sentry/react-native';
-import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
-import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils';
-import {
-  trace,
-  endTrace,
-  TraceName,
-  TraceOperation,
-} from '../../../../../util/trace';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { ensureError } from '../../../../../util/errorUtils';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { DATA_LAKE_API_CONFIG } from '../../constants/perpsConfig';
 import type { ServiceContext } from './ServiceContext';
+import {
+  PerpsTraceNames,
+  PerpsTraceOperations,
+  type PerpsPlatformDependencies,
+} from '../types';
 
 /**
  * DataLakeService
@@ -22,12 +15,24 @@ import type { ServiceContext } from './ServiceContext';
  * Handles reporting order events to external Data Lake API.
  * Implements exponential backoff retry logic and performance tracing.
  * Stateless service that operates purely on external API calls.
+ *
+ * Instance-based service with constructor injection of platform dependencies.
  */
 export class DataLakeService {
+  private readonly deps: PerpsPlatformDependencies;
+
+  /**
+   * Create a new DataLakeService instance
+   * @param deps - Platform dependencies for logging, metrics, etc.
+   */
+  constructor(deps: PerpsPlatformDependencies) {
+    this.deps = deps;
+  }
+
   /**
    * Error context helper for consistent logging
    */
-  private static getErrorContext(
+  private getErrorContext(
     method: string,
     additionalContext?: Record<string, unknown>,
   ): Record<string, unknown> {
@@ -44,7 +49,7 @@ export class DataLakeService {
    *
    * @param options - Configuration object
    * @param options.action - Order action ('open' or 'close')
-   * @param options.coin - Market symbol
+   * @param options.symbol - Market symbol
    * @param options.sl_price - Optional stop loss price
    * @param options.tp_price - Optional take profit price
    * @param options.isTestnet - Whether this is a testnet operation (skips API call)
@@ -53,9 +58,9 @@ export class DataLakeService {
    * @param options._traceId - Internal trace ID (managed by service)
    * @returns Result object with success flag and optional error message
    */
-  static async reportOrder(options: {
+  async reportOrder(options: {
     action: 'open' | 'close';
-    coin: string;
+    symbol: string;
     sl_price?: number;
     tp_price?: number;
     isTestnet: boolean;
@@ -65,7 +70,7 @@ export class DataLakeService {
   }): Promise<{ success: boolean; error?: string }> {
     const {
       action,
-      coin,
+      symbol,
       sl_price,
       tp_price,
       isTestnet,
@@ -76,9 +81,9 @@ export class DataLakeService {
 
     // Skip data lake reporting for testnet as the API doesn't handle testnet data
     if (isTestnet) {
-      DevLogger.log('DataLake API: Skipping for testnet', {
+      this.deps.debugLogger.log('DataLake API: Skipping for testnet', {
         action,
-        coin,
+        symbol,
         network: 'testnet',
       });
       return { success: true, error: 'Skipped for testnet' };
@@ -91,25 +96,24 @@ export class DataLakeService {
     const traceId = _traceId || uuidv4();
 
     // Start trace only on first attempt
-    let traceSpan: Span | undefined;
     if (retryCount === 0) {
-      traceSpan = trace({
-        name: TraceName.PerpsDataLakeReport,
-        op: TraceOperation.PerpsOperation,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.DataLakeReport,
+        op: PerpsTraceOperations.Operation,
         id: traceId,
         tags: {
           action,
-          coin,
+          symbol,
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
+          isTestnet: String(context.tracingContext.isTestnet),
         },
       });
     }
 
     // Log the attempt
-    DevLogger.log('DataLake API: Starting order report', {
+    this.deps.debugLogger.log('DataLake API: Starting order report', {
       action,
-      coin,
+      symbol,
       attempt: retryCount + 1,
       maxAttempts: MAX_RETRIES + 1,
       hasStopLoss: !!sl_price,
@@ -117,30 +121,23 @@ export class DataLakeService {
       timestamp: new Date().toISOString(),
     });
 
-    const apiCallStartTime = performance.now();
+    const apiCallStartTime = this.deps.performance.now();
 
     try {
-      // Ensure messenger is available
-      if (!context.messenger) {
-        throw new Error('Messenger not available in ServiceContext');
-      }
-
-      const token = await context.messenger.call(
-        'AuthenticationController:getBearerToken',
-      );
-      const evmAccount = getEvmAccountFromSelectedAccountGroup();
+      const token = await this.deps.controllers.authentication.getBearerToken();
+      const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
 
       if (!evmAccount || !token) {
-        DevLogger.log('DataLake API: Missing requirements', {
+        this.deps.debugLogger.log('DataLake API: Missing requirements', {
           hasAccount: !!evmAccount,
           hasToken: !!token,
           action,
-          coin,
+          symbol,
         });
         return { success: false, error: 'No account or token available' };
       }
 
-      const response = await fetch(DATA_LAKE_API_CONFIG.ORDERS_ENDPOINT, {
+      const response = await fetch(DATA_LAKE_API_CONFIG.OrdersEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +145,7 @@ export class DataLakeService {
         },
         body: JSON.stringify({
           user_id: evmAccount.address,
-          coin,
+          symbol,
           sl_price,
           tp_price,
         }),
@@ -161,22 +158,19 @@ export class DataLakeService {
       // Consume response body (might be empty for 201, but good to check)
       const responseBody = await response.text();
 
-      const apiCallDuration = performance.now() - apiCallStartTime;
+      const apiCallDuration = this.deps.performance.now() - apiCallStartTime;
 
-      // Add measurement to trace if span exists
-      if (traceSpan) {
-        setMeasurement(
-          PerpsMeasurementName.PERPS_DATA_LAKE_API_CALL,
-          apiCallDuration,
-          'millisecond',
-          traceSpan,
-        );
-      }
+      // Record measurement
+      this.deps.tracer.setMeasurement(
+        PerpsMeasurementName.PERPS_DATA_LAKE_API_CALL,
+        apiCallDuration,
+        'millisecond',
+      );
 
       // Success logging
-      DevLogger.log('DataLake API: Order reported successfully', {
+      this.deps.debugLogger.log('DataLake API: Order reported successfully', {
         action,
-        coin,
+        symbol,
         status: response.status,
         attempt: retryCount + 1,
         responseBody: responseBody || 'empty',
@@ -184,8 +178,8 @@ export class DataLakeService {
       });
 
       // End trace on success
-      endTrace({
-        name: TraceName.PerpsDataLakeReport,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.DataLakeReport,
         id: traceId,
         data: {
           success: true,
@@ -198,30 +192,32 @@ export class DataLakeService {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('reportOrder', {
-          action,
-          coin,
-          retryCount,
-          willRetry: retryCount < MAX_RETRIES,
-        }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'DataLakeService.reportOrder',
+          data: {
+            action,
+            symbol,
+            retryCount,
+            willRetry: retryCount < MAX_RETRIES,
+          },
+        },
+      });
 
       // Retry logic
       if (retryCount < MAX_RETRIES) {
         const retryDelay = RETRY_DELAY_MS * Math.pow(2, retryCount);
-        DevLogger.log('DataLake API: Scheduling retry', {
+        this.deps.debugLogger.log('DataLake API: Scheduling retry', {
           retryIn: `${retryDelay}ms`,
           nextAttempt: retryCount + 2,
           action,
-          coin,
+          symbol,
         });
 
         setTimeout(() => {
           this.reportOrder({
             action,
-            coin,
+            symbol,
             sl_price,
             tp_price,
             isTestnet,
@@ -229,23 +225,25 @@ export class DataLakeService {
             retryCount: retryCount + 1,
             _traceId: traceId,
           }).catch((err) => {
-            Logger.error(
-              ensureError(err),
-              this.getErrorContext('reportOrder', {
-                operation: 'retry',
-                retryCount: retryCount + 1,
-                action,
-                coin,
-              }),
-            );
+            this.deps.logger.error(ensureError(err), {
+              context: {
+                name: 'DataLakeService.reportOrder',
+                data: {
+                  operation: 'retry',
+                  retryCount: retryCount + 1,
+                  action,
+                  symbol,
+                },
+              },
+            });
           });
         }, retryDelay);
 
         return { success: false, error: errorMessage };
       }
 
-      endTrace({
-        name: TraceName.PerpsDataLakeReport,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.DataLakeReport,
         id: traceId,
         data: {
           success: false,
@@ -254,15 +252,12 @@ export class DataLakeService {
         },
       });
 
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('reportOrder', {
-          operation: 'finalFailure',
-          action,
-          coin,
-          retryCount,
-        }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'DataLakeService.reportOrder',
+          data: { operation: 'finalFailure', action, symbol, retryCount },
+        },
+      });
 
       return { success: false, error: errorMessage };
     }
