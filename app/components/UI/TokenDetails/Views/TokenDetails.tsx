@@ -292,7 +292,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
  */
 const TokenDetailsFeatureFlagWrapper: React.FC<TokenDetailsProps> = (props) => {
   const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
-  // const isTokenDetailsV2Enabled = true;
 
   return isTokenDetailsV2Enabled ? (
     <TokenDetails token={props.route.params} />
