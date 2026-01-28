@@ -95,7 +95,9 @@ describe('RemoteImage', () => {
       // Wait for IPFS URL resolution
     });
 
-    expect(wrapper).toMatchSnapshot();
+    await waitFor(() => {
+      expect(wrapper).toMatchSnapshot();
+    });
   });
 
   it('renders with Solana network badge when on Solana network', async () => {
@@ -129,7 +131,9 @@ describe('RemoteImage', () => {
       // Wait for component to render
     });
 
-    expect(wrapper).toMatchSnapshot();
+    await waitFor(() => {
+      expect(wrapper).toMatchSnapshot();
+    });
   });
 
   describe('Error State Reset', () => {
@@ -154,7 +158,9 @@ describe('RemoteImage', () => {
         jest.runAllTimers();
       });
 
-      expect(queryByTestId('remote-image')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(queryByTestId('remote-image')).toBeOnTheScreen();
+      });
 
       await act(async () => {
         rerender(
@@ -166,7 +172,9 @@ describe('RemoteImage', () => {
         jest.runAllTimers();
       });
 
-      expect(queryByTestId('remote-image')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(queryByTestId('remote-image')).toBeOnTheScreen();
+      });
     });
 
     it('renders Identicon when address is provided', async () => {
@@ -182,7 +190,9 @@ describe('RemoteImage', () => {
         jest.runAllTimers();
       });
 
-      expect(queryByTestId('remote-image')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(queryByTestId('remote-image')).toBeOnTheScreen();
+      });
     });
 
     it('renders new image after source changes', async () => {
@@ -197,7 +207,9 @@ describe('RemoteImage', () => {
         jest.runAllTimers();
       });
 
-      expect(queryByTestId('remote-image-1')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(queryByTestId('remote-image-1')).toBeOnTheScreen();
+      });
 
       await act(async () => {
         rerender(
@@ -209,7 +221,9 @@ describe('RemoteImage', () => {
         jest.runAllTimers();
       });
 
-      expect(queryByTestId('remote-image-2')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(queryByTestId('remote-image-2')).toBeOnTheScreen();
+      });
     });
   });
 
@@ -228,8 +242,10 @@ describe('RemoteImage', () => {
         image.props.onError({ error: 'Failed to load image' });
       });
 
-      const identicon = await findByTestId('identicon');
-      expect(identicon).toBeOnTheScreen();
+      await waitFor(async () => {
+        const identicon = await findByTestId('identicon');
+        expect(identicon).toBeOnTheScreen();
+      });
     });
 
     it('calls onError callback when image fails to load', async () => {
@@ -247,7 +263,9 @@ describe('RemoteImage', () => {
         image.props.onError({ error: 'Failed to load image' });
       });
 
-      expect(mockOnError).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockOnError).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('resets error state when source URI changes', async () => {
@@ -265,8 +283,10 @@ describe('RemoteImage', () => {
       });
 
       // After error, Identicon should be rendered
-      const identicon = await findByTestId('identicon');
-      expect(identicon).toBeOnTheScreen();
+      await waitFor(async () => {
+        const identicon = await findByTestId('identicon');
+        expect(identicon).toBeOnTheScreen();
+      });
 
       await act(async () => {
         rerender(
@@ -278,9 +298,11 @@ describe('RemoteImage', () => {
       });
 
       // After source change, error should be reset and Image should render
-      expect(queryByTestId('identicon')).not.toBeOnTheScreen();
-      const image = UNSAFE_getByType(Image);
-      expect(image).toBeDefined();
+      await waitFor(() => {
+        expect(queryByTestId('identicon')).not.toBeOnTheScreen();
+        const image = UNSAFE_getByType(Image);
+        expect(image).toBeDefined();
+      });
     });
   });
 
@@ -296,18 +318,14 @@ describe('RemoteImage', () => {
       );
 
       await waitFor(() => {
-        expect(mockGetFormattedIpfsUrl).toHaveBeenCalled();
+        expect(mockGetFormattedIpfsUrl).toHaveBeenCalledWith(
+          expect.any(String),
+          ipfsUri,
+          false,
+        );
+        const image = UNSAFE_getByType(Image);
+        expect(image.props.source.uri).toBe(resolvedUrl);
       });
-
-      // Verify the function was called with the IPFS URI
-      expect(mockGetFormattedIpfsUrl).toHaveBeenCalledWith(
-        expect.any(String),
-        ipfsUri,
-        false,
-      );
-
-      const image = UNSAFE_getByType(Image);
-      expect(image.props.source.uri).toBe(resolvedUrl);
     });
 
     it('handles IPFS URL resolution failure', async () => {
@@ -330,8 +348,10 @@ describe('RemoteImage', () => {
         // Wait for component to render
       });
 
-      const image = UNSAFE_getByType(Image);
-      expect(image.props.source.uri).toBe('');
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image.props.source.uri).toBe('');
+      });
     });
   });
 
@@ -369,10 +389,8 @@ describe('RemoteImage', () => {
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
         expect(image.props.style.width).toBe(368);
+        expect(image.props.style.height).toBe(184);
       });
-
-      const image = UNSAFE_getByType(Image);
-      expect(image.props.style.height).toBe(184);
     });
 
     it('calculates dimensions for vertical image', async () => {
@@ -395,10 +413,8 @@ describe('RemoteImage', () => {
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
         expect(image.props.style.width).toBe(138);
+        expect(image.props.style.height).toBe(276);
       });
-
-      const image = UNSAFE_getByType(Image);
-      expect(image.props.style.height).toBe(276);
     });
 
     it('calculates dimensions for square image', async () => {
@@ -421,10 +437,8 @@ describe('RemoteImage', () => {
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
         expect(image.props.style.width).toBe(276);
+        expect(image.props.style.height).toBe(276);
       });
-
-      const image = UNSAFE_getByType(Image);
-      expect(image.props.style.height).toBe(276);
     });
 
     it('does not update dimensions when they remain the same', async () => {
@@ -462,13 +476,13 @@ describe('RemoteImage', () => {
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
         expect(image.props.style.width).toBe(276);
+
+        const secondImage = UNSAFE_getByType(Image);
+        const secondStyle = secondImage.props.style;
+
+        expect(firstStyle.width).toBe(secondStyle.width);
+        expect(firstStyle.height).toBe(secondStyle.height);
       });
-
-      const secondImage = UNSAFE_getByType(Image);
-      const secondStyle = secondImage.props.style;
-
-      expect(firstStyle.width).toBe(secondStyle.width);
-      expect(firstStyle.height).toBe(secondStyle.height);
     });
 
     it('handles onLoad without width and height', async () => {
@@ -486,8 +500,10 @@ describe('RemoteImage', () => {
         image.props.onLoad({ source: {} });
       });
 
-      const image = UNSAFE_getByType(Image);
-      expect(image).toBeDefined();
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image).toBeDefined();
+      });
     });
   });
 
@@ -520,9 +536,11 @@ describe('RemoteImage', () => {
         // Wait for component to render
       });
 
-      const image = UNSAFE_getByType(Image);
-      expect(image).toBeDefined();
-      expect(image.props.source.uri).toBe('https://example.com/image.png');
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image).toBeDefined();
+        expect(image.props.source.uri).toBe('https://example.com/image.png');
+      });
     });
 
     it('renders token image without full ratio', async () => {
@@ -540,9 +558,11 @@ describe('RemoteImage', () => {
         // Wait for component to render
       });
 
-      const image = UNSAFE_getByType(Image);
-      expect(image).toBeDefined();
-      expect(image.props.source.uri).toBe('https://example.com/token.png');
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image).toBeDefined();
+        expect(image.props.source.uri).toBe('https://example.com/token.png');
+      });
     });
 
     it('renders token image with full ratio and dimensions', async () => {
@@ -572,10 +592,8 @@ describe('RemoteImage', () => {
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
         expect(image.props.style.width).toBe(368);
+        expect(image.props.style.height).toBeCloseTo(245.33, 1);
       });
-
-      const image = UNSAFE_getByType(Image);
-      expect(image.props.style.height).toBeCloseTo(245.33, 1);
     });
 
     it('renders token image with chainId prop', async () => {
@@ -592,9 +610,11 @@ describe('RemoteImage', () => {
         // Wait for component to render
       });
 
-      const image = UNSAFE_getByType(Image);
-      expect(image).toBeDefined();
-      expect(image.props.source.uri).toBe('https://example.com/token.png');
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image).toBeDefined();
+        expect(image.props.source.uri).toBe('https://example.com/token.png');
+      });
     });
   });
 });
