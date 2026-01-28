@@ -70,11 +70,7 @@ export const usePendingMerklClaim = (
 
     // Check if any previously pending claims are now confirmed
     const confirmedIds = merklClaimTxs
-      .filter(
-        (tx) =>
-          tx.status === TransactionStatus.confirmed ||
-          tx.status === TransactionStatus.dropped,
-      )
+      .filter((tx) => tx.status === TransactionStatus.confirmed)
       .map((tx) => tx.id);
 
     const hadPendingThatConfirmed = confirmedIds.some((id) =>
