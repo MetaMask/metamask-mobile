@@ -209,6 +209,7 @@ const Settings = () => {
       <HeaderCenter
         title={strings('app_settings.title')}
         onBack={handleBack}
+        backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}
         testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
         includesTopInset
       />

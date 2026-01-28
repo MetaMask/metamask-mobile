@@ -124,7 +124,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
           SettingsView.backupAndSyncSectionButton,
         );
         // Close settings drawer (opened from hamburger menu) to return to wallet view
-        await SettingsView.tapCloseButton();
+        await SettingsView.tapBackButton();
         await Assertions.expectElementToBeVisible(WalletView.container);
         // Wait for settings drawer to fully close and tab bar to be visible
         await Assertions.expectElementToBeVisible(
