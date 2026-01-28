@@ -1,7 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { usePredictActionGuard } from './usePredictActionGuard';
-import { PredictEventValues } from '../constants/eventNames';
 
 const mockNavigate = jest.fn();
 const mockNavigation = {
@@ -322,104 +321,17 @@ describe('usePredictActionGuard', () => {
     });
   });
 
-  describe('entryPoint handling for CAROUSEL', () => {
-    describe('when user is not eligible and entryPoint is CAROUSEL', () => {
-      beforeEach(() => {
-        mockUsePredictEligibility.mockReturnValue({
-          isEligible: false,
-          refreshEligibility: jest.fn(),
-        });
-      });
-
-      it('navigates through PREDICT.ROOT to unavailable modal', async () => {
-        const { result } = renderHook(() =>
-          usePredictActionGuard({
-            providerId: 'polymarket',
-            navigation: mockNavigation,
-            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
-          }),
-        );
-
-        const mockAction = jest.fn();
-
-        await act(async () => {
-          await result.current.executeGuardedAction(mockAction);
-        });
-
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.ROOT,
-          params: {
-            screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
-          },
-        });
-        expect(mockAction).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when user has no balance and entryPoint is CAROUSEL', () => {
-      beforeEach(() => {
-        mockUsePredictBalance.mockReturnValue({
-          hasNoBalance: true,
-        });
-      });
-
-      it('calls deposit with stack parameter when entryPoint is CAROUSEL', async () => {
-        const { result } = renderHook(() =>
-          usePredictActionGuard({
-            providerId: 'polymarket',
-            navigation: mockNavigation,
-            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
-          }),
-        );
-
-        const mockAction = jest.fn();
-
-        await act(async () => {
-          await result.current.executeGuardedAction(mockAction, {
-            checkBalance: true,
-          });
-        });
-
-        expect(mockDeposit).toHaveBeenCalledTimes(1);
-        expect(mockAction).not.toHaveBeenCalled();
-      });
-
-      it('calls deposit when entryPoint is not CAROUSEL', async () => {
-        const { result } = renderHook(() =>
-          usePredictActionGuard({
-            providerId: 'polymarket',
-            navigation: mockNavigation,
-            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-          }),
-        );
-
-        const mockAction = jest.fn();
-
-        await act(async () => {
-          await result.current.executeGuardedAction(mockAction, {
-            checkBalance: true,
-          });
-        });
-
-        expect(mockDeposit).toHaveBeenCalledTimes(1);
-        expect(mockAction).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('usePredictDeposit is called with correct parameters', () => {
-      it('passes providerId to usePredictDeposit', () => {
-        renderHook(() =>
-          usePredictActionGuard({
-            providerId: 'polymarket',
-            navigation: mockNavigation,
-            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
-          }),
-        );
-
-        expect(mockUsePredictDeposit).toHaveBeenCalledWith({
+  describe('usePredictDeposit is called with correct parameters', () => {
+    it('passes providerId to usePredictDeposit', () => {
+      renderHook(() =>
+        usePredictActionGuard({
           providerId: 'polymarket',
-        });
+          navigation: mockNavigation,
+        }),
+      );
+
+      expect(mockUsePredictDeposit).toHaveBeenCalledWith({
+        providerId: 'polymarket',
       });
     });
   });

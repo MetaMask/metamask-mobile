@@ -2,19 +2,14 @@ import { useCallback } from 'react';
 import { NavigationProp } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../types/navigation';
+import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictEligibility } from './usePredictEligibility';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
-import { usePredictNavigation } from './usePredictNavigation';
 
 interface UsePredictActionGuardOptions {
   providerId: string;
   navigation: NavigationProp<PredictNavigationParamList>;
-  entryPoint?: PredictEntryPoint;
 }
 
 interface ExecuteGuardedActionOptions {
@@ -34,14 +29,9 @@ interface UsePredictActionGuardResult {
 export const usePredictActionGuard = ({
   providerId,
   navigation,
-  entryPoint,
 }: UsePredictActionGuardOptions): UsePredictActionGuardResult => {
   const { isEligible } = usePredictEligibility({ providerId });
   const { hasNoBalance } = usePredictBalance({ loadOnMount: true });
-  const { navigate: navigatePredict } = usePredictNavigation({
-    navigation,
-    entryPoint,
-  });
   const { deposit, isDepositPending } = usePredictDeposit({
     providerId,
   });
@@ -61,7 +51,7 @@ export const usePredictActionGuard = ({
           });
         }
 
-        navigatePredict(Routes.PREDICT.MODALS.ROOT, {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
           screen: Routes.PREDICT.MODALS.UNAVAILABLE,
         });
         return;
@@ -78,9 +68,9 @@ export const usePredictActionGuard = ({
       isEligible,
       hasNoBalance,
       isDepositPending,
+      navigation,
       providerId,
       deposit,
-      navigatePredict,
     ],
   );
 

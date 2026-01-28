@@ -3,14 +3,22 @@ import Routes from '../../../../constants/navigation/Routes';
 import { usePredictNavigation } from './usePredictNavigation';
 import { PredictEventValues } from '../constants/eventNames';
 import { useIsInPredictNavigator } from './useIsInPredictNavigator';
+import { useNavigation } from '@react-navigation/native';
 
 jest.mock('./useIsInPredictNavigator');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+}));
 
 const mockNavigate = jest.fn();
 const mockNavigation = {
   navigate: mockNavigate,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any;
+};
+
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
 
 const mockUseIsInPredictNavigator =
   useIsInPredictNavigator as jest.MockedFunction<
@@ -20,6 +28,9 @@ const mockUseIsInPredictNavigator =
 describe('usePredictNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseNavigation.mockReturnValue(
+      mockNavigation as unknown as ReturnType<typeof useNavigation>,
+    );
   });
 
   afterEach(() => {
@@ -36,7 +47,6 @@ describe('usePredictNavigation', () => {
     it('navigates to buy preview with predict root as parent', () => {
       const { result } = renderHook(() =>
         usePredictNavigation({
-          navigation: mockNavigation,
           entryPoint,
         }),
       );
@@ -61,7 +71,6 @@ describe('usePredictNavigation', () => {
     it('navigates to unavailable modal with predict root as parent', () => {
       const { result } = renderHook(() =>
         usePredictNavigation({
-          navigation: mockNavigation,
           entryPoint,
         }),
       );
@@ -90,7 +99,6 @@ describe('usePredictNavigation', () => {
     it('navigates directly to buy preview', () => {
       const { result } = renderHook(() =>
         usePredictNavigation({
-          navigation: mockNavigation,
           entryPoint,
         }),
       );
@@ -115,7 +123,6 @@ describe('usePredictNavigation', () => {
     it('navigates directly to unavailable modal', () => {
       const { result } = renderHook(() =>
         usePredictNavigation({
-          navigation: mockNavigation,
           entryPoint,
         }),
       );
@@ -137,11 +144,7 @@ describe('usePredictNavigation', () => {
     });
 
     it('navigates directly when entry point is undefined', () => {
-      const { result } = renderHook(() =>
-        usePredictNavigation({
-          navigation: mockNavigation,
-        }),
-      );
+      const { result } = renderHook(() => usePredictNavigation());
 
       result.current.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
         market: { id: 'market-123' },
@@ -154,6 +157,28 @@ describe('usePredictNavigation', () => {
           entryPoint: undefined,
         },
       );
+    });
+  });
+
+  describe('navigation object', () => {
+    beforeEach(() => {
+      mockUseIsInPredictNavigator.mockReturnValue(true);
+    });
+
+    it('returns navigation object from useNavigation hook', () => {
+      const { result } = renderHook(() => usePredictNavigation());
+
+      expect(result.current.navigation).toBe(mockNavigation);
+    });
+
+    it('returns same navigation object across renders', () => {
+      const { result, rerender } = renderHook(() => usePredictNavigation());
+
+      const firstNavigation = result.current.navigation;
+      rerender();
+      const secondNavigation = result.current.navigation;
+
+      expect(firstNavigation).toBe(secondNavigation);
     });
   });
 });

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { NavigationProp } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   PredictNavigationParamList,
@@ -8,12 +8,12 @@ import {
 import { useIsInPredictNavigator } from './useIsInPredictNavigator';
 
 export interface UsePredictNavigationOptions {
-  navigation: NavigationProp<PredictNavigationParamList>;
   entryPoint?: PredictEntryPoint;
 }
 
 export interface UsePredictNavigationResult {
   navigate: (screen: string, params?: Record<string, unknown>) => void;
+  navigation: NavigationProp<PredictNavigationParamList>;
 }
 
 /**
@@ -23,14 +23,12 @@ export interface UsePredictNavigationResult {
  * PREDICT.ROOT when outside the Predict navigator.
  *
  * @param options - Navigation configuration
- * @param options.navigation - React Navigation navigation object
  * @param options.entryPoint - The entry point from which navigation was triggered
  * @returns Wrapped navigation methods
  *
  * @example
  * ```tsx
  * const { navigate } = usePredictNavigation({
- *   navigation,
  *   entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL
  * });
  *
@@ -42,9 +40,10 @@ export interface UsePredictNavigationResult {
  * ```
  */
 export const usePredictNavigation = ({
-  navigation,
   entryPoint,
-}: UsePredictNavigationOptions): UsePredictNavigationResult => {
+}: UsePredictNavigationOptions = {}): UsePredictNavigationResult => {
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const isInPredictNavigator = useIsInPredictNavigator();
 
   const navigate = useCallback(
@@ -69,5 +68,6 @@ export const usePredictNavigation = ({
 
   return {
     navigate,
+    navigation,
   };
 };

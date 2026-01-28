@@ -1,26 +1,22 @@
-import React, { useCallback } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  PredictMarket as PredictMarketType,
-  PredictMarketStatus,
-  PredictOutcomeToken,
-} from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
+import React, { useCallback } from 'react';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { PredictActionButtons } from '../PredictActionButtons';
-import { PredictPicksForCard } from '../PredictPicks';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
+import {
+  PredictMarketStatus,
+  PredictMarket as PredictMarketType,
+  PredictOutcomeToken,
+} from '../../types';
+import { PredictEntryPoint } from '../../types/navigation';
+import { PredictActionButtons } from '../PredictActionButtons';
+import { PredictPicksForCard } from '../PredictPicks';
 
 interface PredictSportCardFooterProps {
   market: PredictMarketType;
@@ -36,13 +32,15 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   isCarousel,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
     .isFromTrending
     ? PredictEventValues.ENTRY_POINT.TRENDING
     : entryPoint;
+
+  const { navigate: navigatePredict, navigation } = usePredictNavigation({
+    entryPoint: resolvedEntryPoint,
+  });
 
   const { positions, isLoading } = usePredictPositions({
     marketId: market.id,
@@ -57,16 +55,10 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: market.providerId,
     navigation,
-    entryPoint: resolvedEntryPoint,
   });
 
   const { claim } = usePredictClaim({
     providerId: market.providerId,
-  });
-
-  const { navigate: navigatePredict } = usePredictNavigation({
-    navigation,
-    entryPoint: resolvedEntryPoint,
   });
 
   const outcome = market.outcomes?.[0];
