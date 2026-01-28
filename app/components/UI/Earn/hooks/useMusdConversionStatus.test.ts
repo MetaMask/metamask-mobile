@@ -142,6 +142,35 @@ describe('useMusdConversionStatus', () => {
         labelOptions: [{ label: 'Failed', isBold: true }],
       },
     },
+    bonusClaim: {
+      inProgress: {
+        variant: ToastVariants.Icon as const,
+        iconName: IconName.Loading,
+        hasNoTimeout: true,
+        iconColor: '#000000',
+        backgroundColor: '#FFFFFF',
+        hapticsType: NotificationFeedbackType.Warning,
+        labelOptions: [{ label: 'Claiming bonus', isBold: true }],
+      },
+      success: {
+        variant: ToastVariants.Icon as const,
+        iconName: IconName.CheckBold,
+        hasNoTimeout: false,
+        iconColor: '#000000',
+        backgroundColor: '#FFFFFF',
+        hapticsType: NotificationFeedbackType.Success,
+        labelOptions: [{ label: 'Success', isBold: true }],
+      },
+      failed: {
+        variant: ToastVariants.Icon as const,
+        iconName: IconName.Danger,
+        hasNoTimeout: false,
+        iconColor: '#000000',
+        backgroundColor: '#FFFFFF',
+        hapticsType: NotificationFeedbackType.Error,
+        labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
+      },
+    },
   };
 
   // Default mock data
