@@ -102,11 +102,10 @@ export const useMusdConversionFlowData = (): MusdConversionFlowData => {
   const getPaymentTokenForSelectedNetwork = useCallback(() => {
     if (conversionTokens.length === 0) return null;
 
-    const preferredTokenOnSelectedChain = selectedChainId
+    // If specific chain selected, find token on that chain; otherwise use first token
+    const paymentToken = selectedChainId
       ? conversionTokens.find((token) => token.chainId === selectedChainId)
-      : undefined;
-
-    const paymentToken = preferredTokenOnSelectedChain ?? conversionTokens[0];
+      : conversionTokens[0];
 
     if (!paymentToken?.chainId || !paymentToken?.address) {
       return null;

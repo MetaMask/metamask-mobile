@@ -392,7 +392,7 @@ describe('useMusdConversionFlowData', () => {
       });
     });
 
-    it('falls back to first token when selected chain has no tokens', () => {
+    it('returns null when selected chain has no tokens', () => {
       mockUseMusdConversionTokens.mockReturnValue({
         tokens: [mockUsdcMainnet],
         getMusdOutputChainId: mockGetMusdOutputChainId,
@@ -410,10 +410,7 @@ describe('useMusdConversionFlowData', () => {
       const { result } = renderHook(() => useMusdConversionFlowData());
       const paymentToken = result.current.getPaymentTokenForSelectedNetwork();
 
-      expect(paymentToken).toEqual({
-        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        chainId: '0x1',
-      });
+      expect(paymentToken).toBe(null);
     });
 
     it('returns null when no tokens available', () => {
