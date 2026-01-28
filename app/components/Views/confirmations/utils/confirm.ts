@@ -68,12 +68,17 @@ export function shouldNavigateConfirmationModal(
     return true;
   }
 
-  // 2. Batch transactions always use modal
+  // 2. Full screen confirmations handle their own navigation
+  if (isFullScreenConfirmation) {
+    return false;
+  }
+
+  // 3. Batch transactions use modal
   if (approvalType === ApprovalType.TransactionBatch) {
     return true;
   }
 
-  // 3. Regular transactions - check type and conditions
+  // 4. Regular transactions - check type and conditions
   if (approvalType === ApprovalTypes.TRANSACTION) {
     // Skip swap-related transactions (handled by dedicated swap UI)
     if (
@@ -82,11 +87,6 @@ export function shouldNavigateConfirmationModal(
         transactionMetadata.type as TransactionType,
       )
     ) {
-      return false;
-    }
-
-    // Full screen confirmations handle their own navigation
-    if (isFullScreenConfirmation) {
       return false;
     }
 
@@ -101,7 +101,7 @@ export function shouldNavigateConfirmationModal(
     }
   }
 
-  // 4. All other approval types (wallet_requestPermissions, wallet_watchAsset, etc.)
+  // 5. All other approval types (wallet_requestPermissions, wallet_watchAsset, etc.)
   // These are handled by RootRPCMethodsUI.js, not ConfirmRoot
   return false;
 }
