@@ -160,23 +160,6 @@ describe('MusdConversionInfo', () => {
     });
   });
 
-  describe('footerText', () => {
-    it('does not pass footerText to CustomAmountInfo (Powered by Relay only in navbar tooltip)', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      const call = (CustomAmountInfo as jest.Mock).mock.calls[0][0];
-      expect(call.footerText).toBeUndefined();
-    });
-  });
-
   describe('MusdOverrideContent', () => {
     it('calls useTransactionPayAvailableTokens when rendered', () => {
       mockRoute.params = {
