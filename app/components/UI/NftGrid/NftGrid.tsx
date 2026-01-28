@@ -218,14 +218,12 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           testID={RefreshTestId}
           decelerationRate="fast"
           refreshControl={
-            !isHomepageRedesignV1Enabled ? (
-              <RefreshControl
-                colors={[colors.primary.default]}
-                tintColor={colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-              />
-            ) : undefined
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
           }
           contentContainerStyle={!isFullView ? undefined : tw`px-4`}
           scrollEnabled={isFullView || !isHomepageRedesignV1Enabled}
