@@ -10,10 +10,23 @@
     └── build.yml        # HOW to build (CI/CD automation)
 
 scripts/
-├── apply-build-config.js      # Reads builds.yml → sets env vars + remote flag defaults
-├── validate-build-config.js   # Validates builds.yml structure
-└── set-secrets-from-config.js # Maps GitHub Secrets → env vars
+├── apply-build-config.js                  # Runtime: reads builds.yml → exports env, code_fencing, remote_feature_flags
+├── validate-build-config.js              # Validates builds.yml structure
+├── set-secrets-from-config.js            # Runtime: maps GitHub Secrets → env vars (writes to GITHUB_ENV)
+└── generate-build-workflow-secrets-env.js # Maintenance: regenerates build.yml "Set secrets" env from builds.yml
 ```
+
+---
+
+## Build scripts: runtime vs maintenance
+
+| Script                                     | When it runs                                               | Responsibility                                                                                                                                                                                                                                        |
+| ------------------------------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **apply-build-config.js**                  | At workflow runtime (during "Apply build config" step)     | Exports non-secret config from builds.yml: `env`, `code_fencing`, `remote_feature_flags`. Does **not** handle secrets.                                                                                                                                |
+| **set-secrets-from-config.js**             | At workflow runtime (during "Set secrets" step)            | Maps GitHub Environment secrets to env vars and writes them to `GITHUB_ENV` so subsequent steps (e.g. build.sh) see them.                                                                                                                             |
+| **generate-build-workflow-secrets-env.js** | At edit time (on your machine, when you change builds.yml) | Regenerates the "Set secrets" step `env:` block in build.yml from builds.yml. GitHub Actions requires each secret to be explicitly listed in the workflow YAML; this script keeps that list in sync with builds.yml so you don't maintain it by hand. |
+
+**Why two scripts for builds.yml?** `apply-build-config.js` runs during the workflow and exports config. Secrets cannot be injected dynamically at runtime—the workflow file must list each `secrets.SECRET_NAME` explicitly. So a separate maintenance script (`generate-build-workflow-secrets-env.js`) reads builds.yml and generates that list into build.yml. Single source of truth: builds.yml.
 
 ---
 
@@ -108,11 +121,13 @@ builds:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+**Maintenance:** The "Set secrets" step env block in `build.yml` is generated from `builds.yml`. When you add, remove, or rename entries in any build's `secrets` map, run `yarn build:workflow:update-secrets` to regenerate that block (single source of truth: `builds.yml`).
+
 ---
 
-### 3. `scripts/apply-build-config.js` — Config Loader
+### 3. `scripts/apply-build-config.js` — Config Loader (runtime)
 
-**Purpose:** Reads `builds.yml` and exports environment variables + remote feature flag defaults.
+**Purpose:** Reads `builds.yml` and exports non-secret config: env vars, code fencing, remote feature flag defaults. Does **not** handle secrets (those are injected by the "Set secrets" step).
 
 **Two modes:**
 
@@ -193,6 +208,24 @@ MM_SENTRY_DSN: "MM_SENTRY_DSN_TEST"  →  $MM_SENTRY_DSN_TEST  →  $MM_SENTRY_D
 ```bash
 CONFIG_SECRETS='{"SEGMENT_WRITE_KEY":"SEGMENT_KEY_QA"}' node scripts/set-secrets-from-config.js
 # ✓ SEGMENT_WRITE_KEY
+```
+
+---
+
+### 6. `scripts/generate-build-workflow-secrets-env.js` — Workflow Env Generator (maintenance)
+
+**Purpose:** Regenerates the "Set secrets" step `env:` block in `.github/workflows/build.yml` from `builds.yml`. Runs at **edit time** (on your machine), not during workflow execution.
+
+**Why?** GitHub Actions requires each secret to be explicitly listed in the workflow YAML (e.g. `SECRET_NAME: ${{ secrets.SECRET_NAME }}`). It cannot dynamically inject secrets from a list. This script keeps that list in sync with `builds.yml` so you don't maintain it by hand.
+
+**When to run:** After adding, removing, or renaming entries in any build's `secrets` map in `builds.yml`.
+
+**Usage:**
+
+```bash
+yarn build:workflow:update-secrets
+# Found 45 unique secret names from builds.yml
+# Updated .github/workflows/build.yml
 ```
 
 ---
