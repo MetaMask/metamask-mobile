@@ -392,7 +392,9 @@ describe('tokenToIncludeAsset', () => {
     const result = tokenToIncludeAsset(token);
 
     expect(result).toEqual({
+      address: '0x1234567890123456789012345678901234567890',
       assetId: 'eip155:1/erc20:0xabcd',
+      chainId: '0x1',
       name: 'USD Coin',
       symbol: 'USDC',
       decimals: 6,
@@ -405,6 +407,7 @@ describe('tokenToIncludeAsset', () => {
     );
     mockIsNonEvmChainId.mockReturnValue(true);
     const token = createMockToken({
+      address: 'bc1qe0vuqc0338sxdjz3jncel3wfa5xut48m4yv5wv',
       symbol: 'BTC',
       name: 'Bitcoin',
       decimals: 8,
@@ -414,7 +417,9 @@ describe('tokenToIncludeAsset', () => {
     const result = tokenToIncludeAsset(token);
 
     expect(result).toEqual({
+      address: 'bc1qe0vuqc0338sxdjz3jncel3wfa5xut48m4yv5wv',
       assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      chainId: 'bip122:000000000019d6689c085ae165831e93',
       name: 'Bitcoin',
       symbol: 'BTC',
       decimals: 8,
