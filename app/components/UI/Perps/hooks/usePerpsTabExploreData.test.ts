@@ -1,12 +1,10 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-hooks';
 import { usePerpsTabExploreData } from './usePerpsTabExploreData';
 import {
   usePerpsMarkets,
   type PerpsMarketDataWithVolumeNumber,
 } from './usePerpsMarkets';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsMarketData } from '../controllers/types';
 
 // Mock dependencies
@@ -18,21 +16,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
-}));
-
 const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
   typeof usePerpsMarkets
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseNavigation = useNavigation as jest.MockedFunction<
-  typeof useNavigation
->;
 
 describe('usePerpsTabExploreData', () => {
-  const mockNavigate = jest.fn();
-
   const mockMarkets: PerpsMarketDataWithVolumeNumber[] = [
     {
       symbol: 'BTC',
@@ -72,9 +61,6 @@ describe('usePerpsTabExploreData', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseNavigation.mockReturnValue({
-      navigate: mockNavigate,
-    } as unknown as ReturnType<typeof useNavigation>);
     mockUsePerpsMarkets.mockReturnValue({
       markets: mockMarkets,
       isLoading: false,
@@ -117,43 +103,6 @@ describe('usePerpsTabExploreData', () => {
       expect(mockUsePerpsMarkets).toHaveBeenCalledWith({
         skipInitialFetch: false,
         showZeroVolume: false,
-      });
-    });
-
-    it('navigates to market details on handleMarketPress', () => {
-      // Arrange
-      const { result } = renderHook(() =>
-        usePerpsTabExploreData({ enabled: true }),
-      );
-      const market = mockMarkets[0];
-
-      // Act
-      act(() => {
-        result.current.handleMarketPress(market);
-      });
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
-      });
-    });
-
-    it('navigates to market list on handleSeeAllMarketsPress', () => {
-      // Arrange
-      const { result } = renderHook(() =>
-        usePerpsTabExploreData({ enabled: true }),
-      );
-
-      // Act
-      act(() => {
-        result.current.handleSeeAllMarketsPress();
-      });
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_LIST,
-        params: { defaultMarketTypeFilter: 'all' },
       });
     });
   });

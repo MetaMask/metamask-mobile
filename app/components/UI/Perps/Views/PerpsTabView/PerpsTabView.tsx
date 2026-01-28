@@ -283,6 +283,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 marketType="all"
                 sortBy="volume"
                 isLoading={isExploreLoading}
+                style={styles.exploreSectionStyle}
                 headerStyle={styles.exploreHeaderStyle}
                 contentContainerStyle={styles.exploreContentContainerStyle}
               />

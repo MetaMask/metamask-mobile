@@ -1,13 +1,8 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
-import type {
-  PerpsMarketData,
-  PerpsNavigationParamList,
-} from '../controllers/types';
-import Routes from '../../../../constants/navigation/Routes';
+import type { PerpsMarketData } from '../controllers/types';
 
 const EXPLORE_MARKETS_LIMIT = 8;
 
@@ -23,10 +18,6 @@ interface UsePerpsTabExploreDataResult {
   watchlistMarkets: PerpsMarketData[];
   /** Loading state for markets data */
   isLoading: boolean;
-  /** Navigate to market details */
-  handleMarketPress: (market: PerpsMarketData) => void;
-  /** Navigate to market list with "all" filter */
-  handleSeeAllMarketsPress: () => void;
 }
 
 /**
@@ -36,13 +27,10 @@ interface UsePerpsTabExploreDataResult {
  * Provides:
  * - Top 8 markets by volume (crypto + equity)
  * - Watchlist markets
- * - Navigation handlers
  */
 export const usePerpsTabExploreData = ({
   enabled,
 }: UsePerpsTabExploreDataOptions): UsePerpsTabExploreDataResult => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-
   // Fetch markets (skip when disabled to avoid unnecessary data fetching)
   const { markets, isLoading } = usePerpsMarkets({
     skipInitialFetch: !enabled,
@@ -67,30 +55,9 @@ export const usePerpsTabExploreData = ({
     return markets.filter((m) => watchlistSymbols.includes(m.symbol));
   }, [markets, watchlistSymbols, enabled]);
 
-  // Navigate to market details
-  const handleMarketPress = useCallback(
-    (market: PerpsMarketData) => {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
-      });
-    },
-    [navigation],
-  );
-
-  // Navigate to market list with "all" filter
-  const handleSeeAllMarketsPress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_LIST,
-      params: { defaultMarketTypeFilter: 'all' },
-    });
-  }, [navigation]);
-
   return {
     exploreMarkets,
     watchlistMarkets,
     isLoading,
-    handleMarketPress,
-    handleSeeAllMarketsPress,
   };
 };
