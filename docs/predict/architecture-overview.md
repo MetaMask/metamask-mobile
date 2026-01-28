@@ -145,6 +145,65 @@ Files using `StyleSheet.create()` instead of Tailwind:
 3. `polymarket/utils.ts:662` - "remove this temporary fix for Super Bowl LX"
 4. `PredictPositions.tsx:123` - "Sort positions in controller"
 
+#### 5. Toast Event Subscription Issues (Critical)
+
+**Problem**: Toast hooks (`usePredictDepositToasts`, `usePredictClaimToasts`, `usePredictWithdrawToasts`) are mounted only in `PredictTabView`. When the user navigates away from the Predict tab, these hooks unmount and unsubscribe from `TransactionController:transactionStatusUpdated` events.
+
+**Impact**: If a transaction completes while the user is on a different tab, the toast notification is never shown.
+
+**Current Mounting Location**:
+
+```typescript
+// PredictTabView.tsx (lines 39-41)
+const PredictTabView = () => {
+  usePredictDepositToasts(); // Mounted here only
+  usePredictClaimToasts(); // Unmounts when tab switches
+  usePredictWithdrawToasts(); // Events are missed
+  // ...
+};
+```
+
+**Subscription Pattern**:
+
+```typescript
+// usePredictToasts.tsx (lines 202-255)
+useEffect(() => {
+  Engine.controllerMessenger.subscribe(
+    'TransactionController:transactionStatusUpdated',
+    handleTransactionStatusUpdate,
+  );
+  return () => {
+    // Cleanup runs when component unmounts (tab switch)
+    Engine.controllerMessenger.unsubscribe(...);
+  };
+}, [...]);
+```
+
+#### 6. No Centralized Data Fetching Layer
+
+**Problem**: Data fetching is scattered across 12+ hooks with inconsistent patterns:
+
+| Pattern                   | Used In                                | Issues                                  |
+| ------------------------- | -------------------------------------- | --------------------------------------- |
+| Direct controller calls   | usePredictMarket, usePredictPositions  | No caching, duplicate requests possible |
+| Ref-based deduplication   | usePredictBalance                      | Manual, error-prone                     |
+| Exponential backoff retry | usePredictMarketData                   | Not shared across hooks                 |
+| Focus-based refresh       | usePredictPositions, usePredictBalance | Duplicated logic                        |
+
+**Current Caching**:
+
+- **GameCache**: 5-minute TTL for game updates (provider-level)
+- **TeamsCache**: Persistent with request deduplication (provider-level)
+- **Redux selectors**: For balance and claimable positions only
+- **No general-purpose cache**: Most data refetched on every mount
+
+**Missing Features**:
+
+- Request deduplication across components
+- Stale-while-revalidate pattern
+- Automatic garbage collection
+- Unified loading/error states
+
 ---
 
 ## Target Architecture
@@ -153,6 +212,10 @@ Files using `StyleSheet.create()` instead of Tailwind:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
+│                     APP-LEVEL PROVIDERS (New)                    │
+│  PredictProvider (global event subscriptions)                   │
+│  PredictQueryProvider (data fetching cache layer)               │
+├─────────────────────────────────────────────────────────────────┤
 │                        VIEWS (Screens)                           │
 │  Each <500 lines, orchestration only, minimal hooks             │
 ├─────────────────────────────────────────────────────────────────┤
@@ -163,23 +226,60 @@ Files using `StyleSheet.create()` instead of Tailwind:
 │  Design system compliant, Tailwind styling, memoized            │
 ├─────────────────────────────────────────────────────────────────┤
 │                         HOOKS (Unified)                          │
-│  Consolidated toast hooks, clear single responsibility          │
+│  usePredictQuery (data fetching), usePredictToast (unified)     │
 ├─────────────────────────────────────────────────────────────────┤
 │                      CONTEXT (State Sharing)                     │
-│  PredictFeedContext for scroll state, eliminate prop drilling   │
+│  PredictFeedContext, PredictQueryContext                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                    CONTROLLERS (Refactored)                      │
 │  Extracted error handling, <2,000 lines, domain separation      │
 ├─────────────────────────────────────────────────────────────────┤
-│                    PROVIDERS (Unchanged)                         │
+│                    PROVIDERS (Protocol Layer)                    │
 │  PolymarketProvider | WebSocketManager | Caches                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+### New: App-Level Provider Hierarchy
+
+The Predict feature will introduce providers that mount at the app level to solve event subscription and data caching issues:
+
+```
+Root (app/components/Views/Root/index.tsx)
+└── SafeAreaProvider
+    └── Redux Provider
+        └── PersistGate
+            └── ThemeProvider
+                └── NavigationProvider
+                    └── ControllersGate
+                        └── ToastContextWrapper
+                            └── ErrorBoundary
+                                └── App
+                                    └── PredictProvider (NEW - global subscriptions)
+                                        └── PredictQueryProvider (NEW - data cache)
+                                            └── AppFlow
+```
+
+**Why App-Level?**
+
+- **PredictProvider**: Must persist across all navigation to catch transaction events
+- **PredictQueryProvider**: Cache should survive tab switches for instant data on return
 
 ### Target Directory Structure
 
 ```
 app/components/UI/Predict/
+├── context/                       # NEW: App-level providers
+│   ├── PredictProvider/           # Global event subscriptions
+│   │   ├── PredictProvider.tsx
+│   │   ├── PredictProvider.test.tsx
+│   │   └── index.ts
+│   ├── PredictQueryProvider/      # Data fetching cache layer
+│   │   ├── PredictQueryProvider.tsx
+│   │   ├── PredictQueryClient.ts  # Cache management
+│   │   ├── usePredictQuery.ts     # Main hook
+│   │   ├── usePredictMutation.ts  # Mutation hook
+│   │   └── index.ts
+│   └── index.ts
 ├── components/                    # Shared, reusable components
 │   └── [Component]/
 │       ├── Component.tsx          # Implementation (Box/Text, Tailwind)
@@ -200,6 +300,7 @@ app/components/UI/Predict/
 ├── types/
 │   ├── index.ts                   # Core types
 │   ├── chart.ts                   # NEW: Consolidated chart types
+│   ├── query.ts                   # NEW: Query types (React Query compatible)
 │   └── navigation.ts              # Navigation types
 ├── utils/
 │   └── controllerErrorHandler.ts  # NEW: Extracted error handling
@@ -208,14 +309,16 @@ app/components/UI/Predict/
 
 ### Target Metrics
 
-| Metric                   | Current     | Target       |
-| ------------------------ | ----------- | ------------ |
-| PredictMarketDetails.tsx | 1,391 lines | <500 lines   |
-| PredictFeed.tsx          | 738 lines   | <400 lines   |
-| PredictController.ts     | 2,401 lines | <2,000 lines |
-| StyleSheet files         | 10          | 0            |
-| Duplicate chart types    | 2           | 1 (unified)  |
-| Toast hooks              | 4 separate  | 1 unified    |
+| Metric                   | Current          | Target                                    |
+| ------------------------ | ---------------- | ----------------------------------------- |
+| PredictMarketDetails.tsx | 1,391 lines      | <500 lines                                |
+| PredictFeed.tsx          | 738 lines        | <400 lines                                |
+| PredictController.ts     | 2,401 lines      | <2,000 lines                              |
+| StyleSheet files         | 10               | 0                                         |
+| Duplicate chart types    | 2                | 1 (unified)                               |
+| Toast hooks              | 4 separate       | 1 unified                                 |
+| App-level providers      | 0                | 2 (PredictProvider, PredictQueryProvider) |
+| Data fetching hooks      | 12+ inconsistent | All using usePredictQuery                 |
 
 ---
 
@@ -580,6 +683,157 @@ views/PredictMarketDetails/
 - Consistent styling approach across codebase
 - Benefits from design system tokens
 - Better dark/light mode support
+
+### Decision 6: App-Level PredictProvider for Global Event Subscriptions
+
+**Decision**: Create a `PredictProvider` component mounted at the app level (in `App.tsx`) that handles all transaction event subscriptions.
+
+**Problem Being Solved**: Toast hooks currently mount in `PredictTabView` and unsubscribe when the user navigates away, causing missed transaction events.
+
+**Rationale**:
+
+- Event subscriptions persist across all navigation
+- No missed transaction events regardless of current screen
+- Centralized event handling logic
+- Cleaner separation between event handling and UI
+
+**Implementation Approach**:
+
+```typescript
+// context/PredictProvider/PredictProvider.tsx
+const PredictProvider = ({ children }) => {
+  // Subscribe to TransactionController events ONCE at app level
+  useEffect(() => {
+    const handleTransactionUpdate = ({ transactionMeta }) => {
+      // Check if this is a Predict transaction
+      if (isPredictTransaction(transactionMeta)) {
+        // Queue the event for consumption by any interested hooks
+        eventQueue.push(transactionMeta);
+        notifySubscribers();
+      }
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionStatusUpdated',
+      handleTransactionUpdate,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(...);
+    };
+  }, []);
+
+  return (
+    <PredictContext.Provider value={{ /* event queue, subscribe method */ }}>
+      {children}
+    </PredictContext.Provider>
+  );
+};
+```
+
+**Migration Path**:
+
+1. Create PredictProvider with event queue
+2. Create `usePredictTransactionEvents` hook to consume events
+3. Refactor existing toast hooks to use the new hook
+4. Mount PredictProvider in App.tsx
+5. Remove direct subscriptions from toast hooks
+
+### Decision 7: PredictQueryProvider - Lightweight React Query Alternative
+
+**Decision**: Create a lightweight data fetching layer (`PredictQueryProvider` + `usePredictQuery`) that mimics React Query's API but with minimal implementation, designed to be replaced by real React Query when approved.
+
+**Problem Being Solved**: Data fetching is scattered across 12+ hooks with no caching, leading to:
+
+- Duplicate requests from multiple components
+- No stale-while-revalidate pattern
+- Inconsistent loading/error handling
+- Data refetched on every mount
+
+**Design Goals**:
+
+1. **React Query-compatible API**: Same interface so migration is seamless
+2. **Minimal implementation**: Only implement what we need now
+3. **Replaceable**: Can be swapped for real React Query with minimal code changes
+
+**Core API (React Query Compatible)**:
+
+```typescript
+// usePredictQuery - matches React Query's useQuery
+const { data, isLoading, isError, error, refetch, isFetching } =
+  usePredictQuery({
+    queryKey: ['market', marketId],
+    queryFn: () => controller.getMarket({ marketId }),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!marketId,
+  });
+
+// usePredictMutation - matches React Query's useMutation
+const { mutate, isPending, isError } = usePredictMutation({
+  mutationFn: (params) => controller.placeOrder(params),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['positions'] }),
+});
+
+// PredictQueryClient - matches React Query's QueryClient
+const queryClient = usePredictQueryClient();
+queryClient.invalidateQueries({ queryKey: ['positions'] });
+queryClient.setQueryData(['market', id], newData);
+```
+
+**Features to Implement (MVP)**:
+
+| Feature               | Priority | Description                                  |
+| --------------------- | -------- | -------------------------------------------- |
+| Query caching         | P0       | Store results by queryKey                    |
+| Request deduplication | P0       | Single in-flight request per queryKey        |
+| staleTime             | P0       | Don't refetch if data is fresh               |
+| enabled flag          | P0       | Conditional fetching                         |
+| refetch()             | P0       | Manual refetch                               |
+| invalidateQueries     | P0       | Mark queries as stale                        |
+| Loading/error states  | P0       | isPending, isError, error                    |
+| isFetching            | P1       | Background refetch indicator                 |
+| setQueryData          | P1       | Direct cache updates                         |
+| gcTime                | P2       | Garbage collection (can default to Infinity) |
+| refetchOnMount        | P2       | Auto-refetch on mount (can default to false) |
+
+**Features to Skip (Let Real React Query Handle)**:
+
+- refetchOnWindowFocus
+- refetchOnReconnect
+- Complex retry logic
+- Structural sharing
+- Suspense support
+- Devtools
+
+**Migration Path**:
+
+1. Create PredictQueryClient class (cache + deduplication)
+2. Create PredictQueryProvider context
+3. Implement usePredictQuery hook
+4. Implement usePredictMutation hook
+5. Migrate one data hook (e.g., usePredictMarket) as proof of concept
+6. Gradually migrate other hooks
+7. When React Query is approved, swap providers and remove custom implementation
+
+**Future React Query Migration**:
+
+```typescript
+// Before (our lightweight implementation)
+import {
+  PredictQueryProvider,
+  usePredictQuery,
+} from '../context/PredictQueryProvider';
+
+// After (real React Query)
+import { QueryClientProvider, useQuery } from '@tanstack/react-query';
+
+// Consumer code stays the same!
+const { data, isLoading } = useQuery({
+  // or usePredictQuery
+  queryKey: ['market', marketId],
+  queryFn: () => controller.getMarket({ marketId }),
+});
+```
 
 ---
 

@@ -21,19 +21,19 @@ This document provides a prioritized breakdown of all refactoring tasks for the 
 
 | Metric                 | Value          |
 | ---------------------- | -------------- |
-| Total Tasks            | 26             |
-| P0 (Critical)          | 5 tasks        |
+| Total Tasks            | 28             |
+| P0 (Critical)          | 7 tasks        |
 | P1 (High)              | 13 tasks       |
 | P2 (Medium)            | 6 tasks        |
 | P3 (Low)               | 2 tasks        |
-| Estimated Total Effort | XL (40+ hours) |
+| Estimated Total Effort | XL (50+ hours) |
 
 ### Task Distribution
 
 ```
-P0 ████████░░░░░░░░░░░░  19% (5 tasks)  - Component decomposition
-P1 ██████████████████░░  50% (13 tasks) - Styling & types
-P2 ████████████░░░░░░░░  23% (6 tasks)  - Test coverage
+P0 ██████████░░░░░░░░░░  25% (7 tasks)  - Architecture + Component decomposition
+P1 ████████████████░░░░  46% (13 tasks) - Styling & types
+P2 ██████████░░░░░░░░░░  21% (6 tasks)  - Test coverage
 P3 ████░░░░░░░░░░░░░░░░   8% (2 tasks)  - Documentation polish
 ```
 
@@ -78,7 +78,7 @@ These tasks are prerequisites for other work and have the highest impact on main
 
 ### Task 3: Documentation - Implementation Guide
 
-**Status**: ⏳ In Progress
+**Status**: ✅ Completed
 
 - **File**: `docs/predict/implementation-guide.md`
 - **Effort**: S (1-2 hours)
@@ -87,7 +87,110 @@ These tasks are prerequisites for other work and have the highest impact on main
 
 ---
 
-### Task 4: Remove Super Bowl LX Temporary Fix
+### Task 4: Create PredictProvider (App-Level Event Subscriptions)
+
+**Status**: ⬜ Pending
+
+- **Files**:
+  - `app/components/UI/Predict/context/PredictProvider/PredictProvider.tsx`
+  - `app/components/UI/Predict/context/PredictProvider/usePredictTransactionEvents.ts`
+  - `app/components/Nav/App/App.tsx` (mount provider)
+- **Effort**: L (4-6 hours)
+- **Description**: Create app-level provider to handle TransactionController event subscriptions globally, fixing the issue where toast hooks miss events when user navigates away from Predict tab.
+
+**Problem Being Solved**:
+
+Currently, toast hooks (`usePredictDepositToasts`, etc.) are mounted only in `PredictTabView`. When the user switches tabs, these hooks unmount and unsubscribe from events, causing missed transaction notifications.
+
+**Implementation**:
+
+1. Create `PredictProvider` with event subscription to `TransactionController:transactionStatusUpdated`
+2. Create event queue for Predict transaction events
+3. Create `usePredictTransactionEvents` hook to consume events
+4. Mount `PredictProvider` in `App.tsx` (after `ToastContextWrapper`)
+5. Refactor existing toast hooks to use `usePredictTransactionEvents`
+
+**Verification**:
+
+```bash
+# Verify provider mounted in App.tsx
+grep -n "PredictProvider" app/components/Nav/App/App.tsx
+
+# Run tests
+yarn jest app/components/UI/Predict/context/PredictProvider/
+```
+
+- **Commit**: `feat(predict): add PredictProvider for global event subscriptions`
+
+---
+
+### Task 5: Create PredictQueryProvider (Lightweight React Query Alternative)
+
+**Status**: ⬜ Pending
+
+- **Files**:
+  - `app/components/UI/Predict/context/PredictQueryProvider/PredictQueryClient.ts`
+  - `app/components/UI/Predict/context/PredictQueryProvider/PredictQueryProvider.tsx`
+  - `app/components/UI/Predict/context/PredictQueryProvider/usePredictQuery.ts`
+  - `app/components/UI/Predict/context/PredictQueryProvider/usePredictMutation.ts`
+  - `app/components/UI/Predict/types/query.ts`
+- **Effort**: XL (8-12 hours)
+- **Description**: Create a lightweight data fetching layer that mimics React Query's API, designed to be replaced by real React Query when approved.
+
+**Problem Being Solved**:
+
+- 12+ data fetching hooks with inconsistent patterns
+- No caching - data refetched on every mount
+- No request deduplication - multiple components can trigger same request
+- No stale-while-revalidate pattern
+
+**Features to Implement (MVP)**:
+
+| Feature               | Description                                |
+| --------------------- | ------------------------------------------ |
+| Query caching         | Store results by queryKey (JSON.stringify) |
+| Request deduplication | Single in-flight request per queryKey      |
+| staleTime             | Don't refetch if data is fresh             |
+| enabled flag          | Conditional fetching                       |
+| refetch()             | Manual refetch                             |
+| invalidateQueries     | Mark queries as stale                      |
+| Loading/error states  | isPending, isError, error                  |
+| isFetching            | Background refetch indicator               |
+| setQueryData          | Direct cache updates (for optimistic UI)   |
+
+**API Design (React Query Compatible)**:
+
+```typescript
+// usePredictQuery
+const { data, isLoading, error, refetch } = usePredictQuery({
+  queryKey: ['market', marketId],
+  queryFn: () => controller.getMarket({ marketId }),
+  staleTime: 5 * 60 * 1000,
+  enabled: !!marketId,
+});
+
+// usePredictMutation
+const { mutate, isPending } = usePredictMutation({
+  mutationFn: (params) => controller.placeOrder(params),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['positions'] }),
+});
+```
+
+**Verification**:
+
+```bash
+# Run tests
+yarn jest app/components/UI/Predict/context/PredictQueryProvider/
+
+# Type check
+yarn lint:tsc
+```
+
+- **Commit**: `feat(predict): add PredictQueryProvider with usePredictQuery hook`
+
+---
+
+### Task 6: Remove Super Bowl LX Temporary Fix
 
 **Status**: ⬜ Pending
 
@@ -104,7 +207,7 @@ These tasks are prerequisites for other work and have the highest impact on main
 
 ---
 
-### Task 5: Fix Navigation Stack TODO
+### Task 7: Fix Navigation Stack TODO
 
 **Status**: ⬜ Pending
 
@@ -119,7 +222,7 @@ These tasks are prerequisites for other work and have the highest impact on main
 
 ---
 
-### Task 6: Decompose PredictMarketDetails.tsx
+### Task 8: Decompose PredictMarketDetails.tsx
 
 **Status**: ⬜ Pending
 
@@ -143,7 +246,7 @@ These tasks are prerequisites for other work and have the highest impact on main
 
 ---
 
-### Task 7: Decompose PredictFeed.tsx
+### Task 9: Decompose PredictFeed.tsx
 
 **Status**: ⬜ Pending
 
@@ -166,7 +269,7 @@ These tasks are prerequisites for other work and have the highest impact on main
 
 ---
 
-### Task 8: Extract PredictController Error Handling
+### Task 10: Extract PredictController Error Handling
 
 **Status**: ⬜ Pending
 
@@ -188,7 +291,7 @@ These tasks are prerequisites for other work and have the highest impact on main
 
 ---
 
-### Task 9: Consolidate Toast Hooks
+### Task 11: Consolidate Toast Hooks
 
 **Status**: ⬜ Pending
 
@@ -216,7 +319,7 @@ These tasks are prerequisites for other work and have the highest impact on main
 
 ## P1: High Priority
 
-### Tasks 10-19: Migrate StyleSheet Files to Tailwind
+### Tasks 12-21: Migrate StyleSheet Files to Tailwind
 
 **Effort**: S each (1-2 hours), M total (10-15 hours)
 
@@ -224,16 +327,16 @@ All files using `StyleSheet.create()` need migration to Tailwind + design system
 
 | #   | Component               | File                                                                   | Status |
 | --- | ----------------------- | ---------------------------------------------------------------------- | ------ |
-| 10  | PredictMarketOutcome    | `components/PredictMarketOutcome/PredictMarketOutcome.styles.ts`       | ⬜     |
-| 11  | PredictMarketSingle     | `components/PredictMarketSingle/PredictMarketSingle.styles.ts`         | ⬜     |
-| 12  | PredictPosition         | `components/PredictPosition/PredictPosition.styles.ts`                 | ⬜     |
-| 13  | PredictPositionEmpty    | `components/PredictPositionEmpty/PredictPositionEmpty.styles.ts`       | ⬜     |
-| 14  | PredictPositionResolved | `components/PredictPositionResolved/PredictPositionResolved.styles.ts` | ⬜     |
-| 15  | PredictOffline          | `components/PredictOffline/PredictOffline.styles.ts`                   | ⬜     |
-| 16  | PredictGTMModal         | `components/PredictGTMModal/PredictGTMModal.styles.ts`                 | ⬜     |
-| 17  | PredictMarketRowItem    | `components/PredictMarketRowItem/PredictMarketRowItem.styles.ts`       | ⬜     |
-| 18  | PredictMarketMultiple   | `components/PredictMarketMultiple/PredictMarketMultiple.styles.ts`     | ⬜     |
-| 19  | PredictSellPreview      | `views/PredictSellPreview/PredictSellPreview.styles.ts`                | ⬜     |
+| 12  | PredictMarketOutcome    | `components/PredictMarketOutcome/PredictMarketOutcome.styles.ts`       | ⬜     |
+| 13  | PredictMarketSingle     | `components/PredictMarketSingle/PredictMarketSingle.styles.ts`         | ⬜     |
+| 14  | PredictPosition         | `components/PredictPosition/PredictPosition.styles.ts`                 | ⬜     |
+| 15  | PredictPositionEmpty    | `components/PredictPositionEmpty/PredictPositionEmpty.styles.ts`       | ⬜     |
+| 16  | PredictPositionResolved | `components/PredictPositionResolved/PredictPositionResolved.styles.ts` | ⬜     |
+| 17  | PredictOffline          | `components/PredictOffline/PredictOffline.styles.ts`                   | ⬜     |
+| 18  | PredictGTMModal         | `components/PredictGTMModal/PredictGTMModal.styles.ts`                 | ⬜     |
+| 19  | PredictMarketRowItem    | `components/PredictMarketRowItem/PredictMarketRowItem.styles.ts`       | ⬜     |
+| 20  | PredictMarketMultiple   | `components/PredictMarketMultiple/PredictMarketMultiple.styles.ts`     | ⬜     |
+| 21  | PredictSellPreview      | `views/PredictSellPreview/PredictSellPreview.styles.ts`                | ⬜     |
 
 **Migration Steps** (for each):
 
@@ -261,7 +364,7 @@ yarn jest app/components/UI/Predict/components/<ComponentName>/
 
 ---
 
-### Task 20: Consolidate Duplicate Chart Types
+### Task 22: Consolidate Duplicate Chart Types
 
 **Status**: ⬜ Pending
 
@@ -284,13 +387,13 @@ yarn jest app/components/UI/Predict/components/<ComponentName>/
 
 ---
 
-### Task 21: Add Missing Memoization to PredictMarketDetails
+### Task 23: Add Missing Memoization to PredictMarketDetails
 
-**Status**: ⬜ Pending (Blocked by Task 6)
+**Status**: ⬜ Pending (Blocked by Task 8)
 
 - **File**: `app/components/UI/Predict/views/PredictMarketDetails/`
 - **Effort**: S (1-2 hours)
-- **Dependencies**: Task 6 (component decomposition)
+- **Dependencies**: Task 8 (component decomposition)
 - **Actions**:
   - [ ] Add `React.memo()` to extracted sub-components
   - [ ] Add `useMemo` for expensive computations
@@ -305,13 +408,13 @@ yarn jest app/components/UI/Predict/components/<ComponentName>/
 
 ---
 
-### Task 22: Fix Prop Drilling with Context
+### Task 24: Fix Prop Drilling with Context
 
-**Status**: ⬜ Pending (Blocked by Task 7)
+**Status**: ⬜ Pending (Blocked by Task 9)
 
 - **File**: `app/components/UI/Predict/views/PredictFeed/`
 - **Effort**: S (1-2 hours)
-- **Dependencies**: Task 7 (PredictFeed decomposition)
+- **Dependencies**: Task 9 (PredictFeed decomposition)
 - **Actions**:
   - [ ] Create `PredictFeedContext.tsx`
   - [ ] Provide scrollHandler, headerHeight, tabBarHeight via context
@@ -327,7 +430,7 @@ yarn jest app/components/UI/Predict/components/<ComponentName>/
 
 ## P2: Medium Priority
 
-### Task 23: Add Tests for PredictMarketRowItem
+### Task 25: Add Tests for PredictMarketRowItem
 
 **Status**: ⬜ Pending
 
@@ -346,7 +449,7 @@ yarn jest app/components/UI/Predict/components/<ComponentName>/
 
 ---
 
-### Task 24: Add Tests for Chart Subcomponents
+### Task 26: Add Tests for Chart Subcomponents
 
 **Status**: ⬜ Pending
 
@@ -368,13 +471,13 @@ yarn jest app/components/UI/Predict/components/<ComponentName>/
 
 ---
 
-### Task 25: Update README with New Architecture
+### Task 27: Update README with New Architecture
 
-**Status**: ⬜ Pending (Blocked by Tasks 6-9)
+**Status**: ⬜ Pending (Blocked by Tasks 8-11)
 
 - **File**: `app/components/UI/Predict/README.md`
 - **Effort**: S (1 hour)
-- **Dependencies**: Tasks 6-9, 10-19
+- **Dependencies**: Tasks 8-11, 12-21
 - **Actions**:
   - [ ] Update component structure diagram
   - [ ] Update hook documentation (consolidated hooks)
@@ -387,7 +490,7 @@ yarn jest app/components/UI/Predict/components/<ComponentName>/
 
 ---
 
-### Task 26: Archive Outdated Documentation
+### Task 28: Archive Outdated Documentation
 
 **Status**: ⬜ Pending
 
@@ -418,51 +521,56 @@ These tasks are not included in the current plan but could be addressed later:
 
 Tasks are organized into waves that can be executed in parallel within each wave.
 
-### Wave 1: Documentation & Quick Wins (Start Immediately)
+### Wave 1: Documentation & Architecture Foundation (Start Immediately)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Task 1: Architecture Overview    ✅ Completed               │
-│ Task 2: Refactoring Tasks        ✅ Completed               │
-│ Task 3: Implementation Guide     ⏳ In Progress             │
-│ Task 4: Remove Super Bowl Fix    ⬜ Pending                 │
-│ Task 5: Fix Navigation TODO      ⬜ Pending                 │
+│ Task 1: Architecture Overview Doc       ✅ Completed        │
+│ Task 2: Refactoring Tasks Doc           ✅ Completed        │
+│ Task 3: Implementation Guide Doc        ✅ Completed        │
+│ Task 4: Create PredictProvider          ⬜ Pending (P0)     │
+│ Task 5: Create PredictQueryProvider     ⬜ Pending (P0)     │
+│ Task 6: Remove Super Bowl Fix           ⬜ Pending          │
+│ Task 7: Fix Navigation TODO             ⬜ Pending          │
 └─────────────────────────────────────────────────────────────┘
+Tasks 4-5 are the new architectural foundations.
+Tasks 6-7 are quick cleanup wins.
 ```
 
 ### Wave 2: P0 Component Decomposition (After Wave 1)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Task 6: Decompose PredictMarketDetails    ⬜ Pending        │
-│ Task 7: Decompose PredictFeed             ⬜ Pending        │
-│ Task 8: Extract Controller Error Handling ⬜ Pending        │
-│ Task 9: Consolidate Toast Hooks           ⬜ Pending        │
+│ Task 8: Decompose PredictMarketDetails  ⬜ Pending          │
+│ Task 9: Decompose PredictFeed           ⬜ Pending          │
+│ Task 10: Extract Controller Error Handling ⬜ Pending       │
+│ Task 11: Consolidate Toast Hooks        ⬜ Pending          │
 └─────────────────────────────────────────────────────────────┘
 All tasks in Wave 2 can run in parallel.
+Task 11 benefits from Task 4 (PredictProvider) being complete.
 ```
 
 ### Wave 3: P1 Styling & Types (After Wave 2)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Tasks 10-19: StyleSheet → Tailwind migrations (10 tasks)   │
-│ Task 20: Consolidate Chart Types                            │
-│ Task 21: Add Memoization (blocked by Task 6)               │
-│ Task 22: Fix Prop Drilling (blocked by Task 7)             │
+│ Tasks 12-21: StyleSheet → Tailwind migrations (10 tasks)   │
+│ Task 22: Consolidate Chart Types                            │
+│ Task 23: Add Memoization (blocked by Task 8)               │
+│ Task 24: Fix Prop Drilling (blocked by Task 9)             │
 └─────────────────────────────────────────────────────────────┘
-Tasks 10-19 and 20 can run in parallel.
-Tasks 21-22 depend on Wave 2 completion.
+Tasks 12-21 and 22 can run in parallel.
+Tasks 23-24 depend on Wave 2 completion.
 ```
 
 ### Wave 4: P2 Test Coverage & Polish (After Wave 3)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Task 23: Tests for PredictMarketRowItem                    │
-│ Task 24: Tests for Chart Subcomponents                      │
-│ Task 25: Update README (blocked by Waves 2-3)              │
-│ Task 26: Archive Outdated Docs                              │
+│ Task 25: Tests for PredictMarketRowItem                    │
+│ Task 26: Tests for Chart Subcomponents                      │
+│ Task 27: Update README (blocked by Waves 2-3)              │
+│ Task 28: Archive Outdated Docs                              │
 └─────────────────────────────────────────────────────────────┘
 All tasks can run in parallel.
 ```
@@ -474,12 +582,12 @@ All tasks can run in parallel.
 ### Overall Progress
 
 ```
-Wave 1: ██████████░░░░░░░░░░  60% (3/5 tasks)
+Wave 1: ██████████░░░░░░░░░░  43% (3/7 tasks)
 Wave 2: ░░░░░░░░░░░░░░░░░░░░   0% (0/4 tasks)
 Wave 3: ░░░░░░░░░░░░░░░░░░░░   0% (0/13 tasks)
 Wave 4: ░░░░░░░░░░░░░░░░░░░░   0% (0/4 tasks)
 ────────────────────────────────────────────
-Total:  ████░░░░░░░░░░░░░░░░  12% (3/26 tasks)
+Total:  ████░░░░░░░░░░░░░░░░  11% (3/28 tasks)
 ```
 
 ### Task Checklist
@@ -488,30 +596,32 @@ Total:  ████░░░░░░░░░░░░░░░░  12% (3/26 
 | --- | --------------------------------- | -------- | ------ | ---- |
 | 1   | Architecture Overview Doc         | P0       | ✅     | 1    |
 | 2   | Refactoring Tasks Doc             | P0       | ✅     | 1    |
-| 3   | Implementation Guide Doc          | P0       | ⏳     | 1    |
-| 4   | Remove Super Bowl LX Fix          | P0       | ⬜     | 1    |
-| 5   | Fix Navigation Stack TODO         | P0       | ⬜     | 1    |
-| 6   | Decompose PredictMarketDetails    | P0       | ⬜     | 2    |
-| 7   | Decompose PredictFeed             | P0       | ⬜     | 2    |
-| 8   | Extract Controller Error Handling | P0       | ⬜     | 2    |
-| 9   | Consolidate Toast Hooks           | P1       | ⬜     | 2    |
-| 10  | Migrate PredictMarketOutcome      | P1       | ⬜     | 3    |
-| 11  | Migrate PredictMarketSingle       | P1       | ⬜     | 3    |
-| 12  | Migrate PredictPosition           | P1       | ⬜     | 3    |
-| 13  | Migrate PredictPositionEmpty      | P1       | ⬜     | 3    |
-| 14  | Migrate PredictPositionResolved   | P1       | ⬜     | 3    |
-| 15  | Migrate PredictOffline            | P1       | ⬜     | 3    |
-| 16  | Migrate PredictGTMModal           | P1       | ⬜     | 3    |
-| 17  | Migrate PredictMarketRowItem      | P1       | ⬜     | 3    |
-| 18  | Migrate PredictMarketMultiple     | P1       | ⬜     | 3    |
-| 19  | Migrate PredictSellPreview        | P1       | ⬜     | 3    |
-| 20  | Consolidate Chart Types           | P1       | ⬜     | 3    |
-| 21  | Add Memoization                   | P1       | ⬜     | 3    |
-| 22  | Fix Prop Drilling                 | P1       | ⬜     | 3    |
-| 23  | Tests for PredictMarketRowItem    | P2       | ⬜     | 4    |
-| 24  | Tests for Chart Subcomponents     | P2       | ⬜     | 4    |
-| 25  | Update README                     | P2       | ⬜     | 4    |
-| 26  | Archive Outdated Docs             | P2       | ⬜     | 4    |
+| 3   | Implementation Guide Doc          | P0       | ✅     | 1    |
+| 4   | Create PredictProvider            | P0       | ⬜     | 1    |
+| 5   | Create PredictQueryProvider       | P0       | ⬜     | 1    |
+| 6   | Remove Super Bowl LX Fix          | P0       | ⬜     | 1    |
+| 7   | Fix Navigation Stack TODO         | P0       | ⬜     | 1    |
+| 8   | Decompose PredictMarketDetails    | P0       | ⬜     | 2    |
+| 9   | Decompose PredictFeed             | P0       | ⬜     | 2    |
+| 10  | Extract Controller Error Handling | P0       | ⬜     | 2    |
+| 11  | Consolidate Toast Hooks           | P1       | ⬜     | 2    |
+| 12  | Migrate PredictMarketOutcome      | P1       | ⬜     | 3    |
+| 13  | Migrate PredictMarketSingle       | P1       | ⬜     | 3    |
+| 14  | Migrate PredictPosition           | P1       | ⬜     | 3    |
+| 15  | Migrate PredictPositionEmpty      | P1       | ⬜     | 3    |
+| 16  | Migrate PredictPositionResolved   | P1       | ⬜     | 3    |
+| 17  | Migrate PredictOffline            | P1       | ⬜     | 3    |
+| 18  | Migrate PredictGTMModal           | P1       | ⬜     | 3    |
+| 19  | Migrate PredictMarketRowItem      | P1       | ⬜     | 3    |
+| 20  | Migrate PredictMarketMultiple     | P1       | ⬜     | 3    |
+| 21  | Migrate PredictSellPreview        | P1       | ⬜     | 3    |
+| 22  | Consolidate Chart Types           | P1       | ⬜     | 3    |
+| 23  | Add Memoization                   | P1       | ⬜     | 3    |
+| 24  | Fix Prop Drilling                 | P1       | ⬜     | 3    |
+| 25  | Tests for PredictMarketRowItem    | P2       | ⬜     | 4    |
+| 26  | Tests for Chart Subcomponents     | P2       | ⬜     | 4    |
+| 27  | Update README                     | P2       | ⬜     | 4    |
+| 28  | Archive Outdated Docs             | P2       | ⬜     | 4    |
 
 ---
 

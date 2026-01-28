@@ -927,6 +927,285 @@ const OrchestrationComponent = () => {
 
 ---
 
+## App-Level Providers
+
+### PredictProvider Pattern
+
+The `PredictProvider` handles global event subscriptions that need to persist across navigation.
+
+```typescript
+// context/PredictProvider/PredictProvider.tsx
+
+import React, { createContext, useContext, useEffect, useRef, useCallback } from 'react';
+import Engine from '../../../../core/Engine';
+import { TransactionMeta, TransactionStatus } from '@metamask/transaction-controller';
+
+interface PredictEvent {
+  transactionMeta: TransactionMeta;
+  timestamp: number;
+}
+
+interface PredictContextValue {
+  subscribeToTransactionEvents: (
+    callback: (event: PredictEvent) => void
+  ) => () => void;
+}
+
+const PredictContext = createContext<PredictContextValue | null>(null);
+
+export const usePredictContext = () => {
+  const context = useContext(PredictContext);
+  if (!context) {
+    throw new Error('usePredictContext must be used within PredictProvider');
+  }
+  return context;
+};
+
+export const PredictProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const subscribersRef = useRef<Set<(event: PredictEvent) => void>>(new Set());
+
+  // Subscribe to TransactionController events ONCE at app level
+  useEffect(() => {
+    const handleTransactionUpdate = ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      // Check if this is a Predict transaction
+      const isPredictTx = [
+        'predictDeposit',
+        'predictWithdraw',
+        'predictClaim',
+      ].includes(transactionMeta.type as string);
+
+      if (isPredictTx) {
+        const event: PredictEvent = {
+          transactionMeta,
+          timestamp: Date.now(),
+        };
+        // Notify all subscribers
+        subscribersRef.current.forEach((callback) => callback(event));
+      }
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionStatusUpdated',
+      handleTransactionUpdate,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionStatusUpdated',
+        handleTransactionUpdate,
+      );
+    };
+  }, []);
+
+  const subscribeToTransactionEvents = useCallback(
+    (callback: (event: PredictEvent) => void) => {
+      subscribersRef.current.add(callback);
+      return () => {
+        subscribersRef.current.delete(callback);
+      };
+    },
+    [],
+  );
+
+  return (
+    <PredictContext.Provider value={{ subscribeToTransactionEvents }}>
+      {children}
+    </PredictContext.Provider>
+  );
+};
+```
+
+### usePredictQuery Pattern (Lightweight React Query)
+
+The `usePredictQuery` hook provides React Query-compatible data fetching with caching.
+
+```typescript
+// context/PredictQueryProvider/usePredictQuery.ts
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { usePredictQueryClient } from './PredictQueryProvider';
+
+interface UsePredictQueryOptions<TData> {
+  queryKey: unknown[];
+  queryFn: () => Promise<TData>;
+  staleTime?: number; // ms until data is stale (default: 0)
+  enabled?: boolean; // whether to fetch (default: true)
+}
+
+interface UsePredictQueryResult<TData> {
+  data: TData | undefined;
+  error: Error | null;
+  isLoading: boolean; // First load, no data yet
+  isFetching: boolean; // Any fetch in progress
+  isError: boolean;
+  isSuccess: boolean;
+  refetch: () => Promise<void>;
+}
+
+export function usePredictQuery<TData>({
+  queryKey,
+  queryFn,
+  staleTime = 0,
+  enabled = true,
+}: UsePredictQueryOptions<TData>): UsePredictQueryResult<TData> {
+  const queryClient = usePredictQueryClient();
+  const queryKeyString = JSON.stringify(queryKey);
+
+  const [data, setData] = useState<TData | undefined>(() =>
+    queryClient.getQueryData<TData>(queryKey),
+  );
+  const [error, setError] = useState<Error | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+
+  const isMountedRef = useRef(true);
+
+  const fetch = useCallback(async () => {
+    if (!enabled) return;
+
+    // Check if data is fresh
+    const cached = queryClient.getQueryState(queryKey);
+    if (cached && Date.now() - cached.dataUpdatedAt < staleTime) {
+      setData(cached.data as TData);
+      return;
+    }
+
+    // Check for in-flight request (deduplication)
+    const existingPromise = queryClient.getInFlightRequest(queryKey);
+    if (existingPromise) {
+      try {
+        const result = await existingPromise;
+        if (isMountedRef.current) {
+          setData(result as TData);
+        }
+      } catch (e) {
+        if (isMountedRef.current) {
+          setError(e as Error);
+        }
+      }
+      return;
+    }
+
+    setIsFetching(true);
+    setError(null);
+
+    try {
+      const promise = queryFn();
+      queryClient.setInFlightRequest(queryKey, promise);
+
+      const result = await promise;
+
+      queryClient.setQueryData(queryKey, result);
+      queryClient.clearInFlightRequest(queryKey);
+
+      if (isMountedRef.current) {
+        setData(result);
+        setIsFetching(false);
+      }
+    } catch (e) {
+      queryClient.clearInFlightRequest(queryKey);
+
+      if (isMountedRef.current) {
+        setError(e as Error);
+        setIsFetching(false);
+      }
+    }
+  }, [queryKeyString, queryFn, enabled, staleTime, queryClient]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    fetch();
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [fetch]);
+
+  const isLoading = isFetching && data === undefined;
+  const isError = error !== null;
+  const isSuccess = data !== undefined && !isError;
+
+  return {
+    data,
+    error,
+    isLoading,
+    isFetching,
+    isError,
+    isSuccess,
+    refetch: fetch,
+  };
+}
+```
+
+### PredictQueryClient Pattern
+
+```typescript
+// context/PredictQueryProvider/PredictQueryClient.ts
+
+interface CacheEntry<T = unknown> {
+  data: T;
+  dataUpdatedAt: number;
+}
+
+interface QueryState<T = unknown> {
+  data: T;
+  dataUpdatedAt: number;
+}
+
+export class PredictQueryClient {
+  private cache = new Map<string, CacheEntry>();
+  private inFlightRequests = new Map<string, Promise<unknown>>();
+  private subscribers = new Map<string, Set<() => void>>();
+
+  private hash(queryKey: unknown[]): string {
+    return JSON.stringify(queryKey);
+  }
+
+  getQueryData<T>(queryKey: unknown[]): T | undefined {
+    return this.cache.get(this.hash(queryKey))?.data as T | undefined;
+  }
+
+  setQueryData<T>(queryKey: unknown[], data: T): void {
+    const key = this.hash(queryKey);
+    this.cache.set(key, {
+      data,
+      dataUpdatedAt: Date.now(),
+    });
+    // Notify subscribers
+    this.subscribers.get(key)?.forEach((cb) => cb());
+  }
+
+  getQueryState(queryKey: unknown[]): QueryState | undefined {
+    return this.cache.get(this.hash(queryKey));
+  }
+
+  getInFlightRequest(queryKey: unknown[]): Promise<unknown> | undefined {
+    return this.inFlightRequests.get(this.hash(queryKey));
+  }
+
+  setInFlightRequest(queryKey: unknown[], promise: Promise<unknown>): void {
+    this.inFlightRequests.set(this.hash(queryKey), promise);
+  }
+
+  clearInFlightRequest(queryKey: unknown[]): void {
+    this.inFlightRequests.delete(this.hash(queryKey));
+  }
+
+  invalidateQueries(filters?: { queryKey?: unknown[] }): void {
+    if (filters?.queryKey) {
+      const prefix = this.hash(filters.queryKey);
+      for (const [key] of this.cache) {
+        if (key.startsWith(prefix)) {
+          this.cache.delete(key);
+        }
+      }
+    } else {
+      this.cache.clear();
+    }
+  }
+}
+```
+
+---
+
 ## Verification Commands
 
 ### Before Committing
