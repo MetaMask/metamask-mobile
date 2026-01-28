@@ -67,8 +67,14 @@ export type OrderType = 'market' | 'limit';
 // Market asset type classification (reusable across components)
 export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
 
-// Market type filter including 'all' option and combined 'stocks_and_commodities' for UI filtering
-export type MarketTypeFilter = MarketType | 'all' | 'stocks_and_commodities';
+// Market type filter for UI category badges
+// Note: 'stocks' maps to 'equity' and 'commodities' maps to 'commodity' in the data model
+export type MarketTypeFilter =
+  | 'all'
+  | 'crypto'
+  | 'stocks'
+  | 'commodities'
+  | 'forex';
 
 // Input method for amount entry tracking
 export type InputMethod =

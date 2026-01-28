@@ -45,6 +45,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   sortBy = 'volume',
   showBadge = true,
   contentContainerStyle,
+  filterKey,
   testID = 'perps-market-list',
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -79,9 +80,11 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
 
   return (
     <FlashList
+      key={filterKey}
       data={markets}
       renderItem={renderItem}
       keyExtractor={(item: PerpsMarketData) => item.symbol}
+      estimatedItemSize={PERPS_MARKET_LIST_CONSTANTS.ESTIMATED_ITEM_SIZE}
       contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={ListHeaderComponent}

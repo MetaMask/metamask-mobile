@@ -736,4 +736,130 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.marketCounts.equity).toBe(1);
     });
   });
+
+  describe('Market Type Category Filtering', () => {
+    const mixedMarkets = [
+      { ...createMockMarket('BTC', '$1B') }, // crypto (no marketType)
+      { ...createMockMarket('ETH', '$500M') }, // crypto (no marketType)
+      { ...createMockMarket('AAPL', '$2B'), marketType: 'equity' as const },
+      {
+        ...createMockMarket('GOOGL', '$1.5B'),
+        marketType: 'equity' as const,
+      },
+      {
+        ...createMockMarket('GOLD', '$800M'),
+        marketType: 'commodity' as const,
+      },
+      { ...createMockMarket('EURUSD', '$3B'), marketType: 'forex' as const },
+    ];
+
+    beforeEach(() => {
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: mixedMarkets as unknown as ReturnType<
+          typeof usePerpsMarkets
+        >['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: jest.fn(),
+        isSearchVisible: false,
+        setIsSearchVisible: jest.fn(),
+        toggleSearchVisibility: jest.fn(),
+        filteredMarkets: mixedMarkets,
+        clearSearch: jest.fn(),
+      });
+    });
+
+    it('shows all markets when filter is "all"', () => {
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'all' }),
+      );
+
+      expect(result.current.markets.length).toBe(6);
+    });
+
+    it('filters to crypto markets when filter is "crypto"', () => {
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'crypto' }),
+      );
+
+      // Should only include markets without marketType (crypto)
+      expect(result.current.markets.length).toBe(2);
+      expect(result.current.markets.every((m) => !m.marketType)).toBe(true);
+    });
+
+    it('filters to stocks (equity) when filter is "stocks"', () => {
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'stocks' }),
+      );
+
+      // Should only include equity markets
+      expect(result.current.markets.length).toBe(2);
+      expect(
+        result.current.markets.every((m) => m.marketType === 'equity'),
+      ).toBe(true);
+    });
+
+    it('filters to commodities when filter is "commodities"', () => {
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'commodities' }),
+      );
+
+      // Should only include commodity markets
+      expect(result.current.markets.length).toBe(1);
+      expect(
+        result.current.markets.every((m) => m.marketType === 'commodity'),
+      ).toBe(true);
+    });
+
+    it('filters to forex when filter is "forex"', () => {
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'forex' }),
+      );
+
+      // Should only include forex markets
+      expect(result.current.markets.length).toBe(1);
+      expect(
+        result.current.markets.every((m) => m.marketType === 'forex'),
+      ).toBe(true);
+    });
+
+    it('ignores category filter when searching', () => {
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: 'BTC',
+        setSearchQuery: jest.fn(),
+        isSearchVisible: true,
+        setIsSearchVisible: jest.fn(),
+        toggleSearchVisibility: jest.fn(),
+        filteredMarkets: [mixedMarkets[0]], // Only BTC from search
+        clearSearch: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'forex' }),
+      );
+
+      // When searching, should show search results regardless of category filter
+      expect(result.current.markets.length).toBe(1);
+      expect(result.current.markets[0].symbol).toBe('BTC');
+    });
+
+    it('exposes market type filter state', () => {
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'stocks' }),
+      );
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'stocks',
+      );
+      expect(
+        typeof result.current.marketTypeFilterState.setMarketTypeFilter,
+      ).toBe('function');
+    });
+  });
 });

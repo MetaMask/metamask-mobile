@@ -177,35 +177,33 @@ export const usePerpsMarketListView = ({
 
   // Apply market type filter AFTER search
   // When searching: show all search results across all market types
-  // When not searching: filter by current tab
+  // When not searching: filter by selected category
   const marketTypeFilteredMarkets = useMemo(() => {
-    // If searching, return search results from all markets (ignore tab filter)
+    // If searching, return search results from all markets (ignore category filter)
     if (searchQuery.trim()) {
       return searchedMarkets;
     }
 
-    // If not searching, filter by current tab
+    // If 'all' selected (no category badge selected), show all markets
     if (marketTypeFilter === 'all') {
-      // 'All' shows Crypto + Stocks + Commodities (excluding forex)
-      return searchedMarkets.filter(
-        (m) =>
-          !m.marketType ||
-          m.marketType === 'equity' ||
-          m.marketType === 'commodity',
-      );
+      return searchedMarkets;
     }
-    if (marketTypeFilter === 'crypto') {
-      // Crypto markets have no marketType set
-      return searchedMarkets.filter((m) => !m.marketType);
-    }
-    if (marketTypeFilter === 'stocks_and_commodities') {
-      // Combined stocks and commodities filter
-      return searchedMarkets.filter(
-        (m) => m.marketType === 'equity' || m.marketType === 'commodity',
-      );
-    }
-    // Filter by specific market type (equity, commodity, forex)
-    return searchedMarkets.filter((m) => m.marketType === marketTypeFilter);
+
+    // Map UI filter values to data model marketType
+    // Note: 'stocks' maps to 'equity', 'commodities' maps to 'commodity'
+    const filterMap: Record<string, string | undefined> = {
+      crypto: undefined, // crypto markets have no marketType set
+      stocks: 'equity',
+      commodities: 'commodity',
+      forex: 'forex',
+    };
+
+    const targetType = filterMap[marketTypeFilter];
+    const searchedFilteredMarkets = searchedMarkets.filter((m) =>
+      targetType === undefined ? !m.marketType : m.marketType === targetType,
+    );
+
+    return searchedFilteredMarkets;
   }, [searchedMarkets, searchQuery, marketTypeFilter]);
 
   // Use sorting hook for sort state and sorting logic
