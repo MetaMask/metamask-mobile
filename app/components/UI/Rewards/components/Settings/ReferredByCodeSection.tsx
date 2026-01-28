@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -16,10 +16,9 @@ import {
   selectReferralDetailsLoading,
   selectReferralDetailsError,
 } from '../../../../../reducers/rewards/selectors';
-import TextField from '../../../../../component-library/components/Form/TextField';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../component-library/components/Form/TextField';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
 import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
@@ -37,36 +36,61 @@ const ReferredByCodeSection: React.FC = () => {
     referralCode: inputCode,
     setReferralCode: setInputCode,
     isValidating,
-    isValid,
+    isValid: clientCheckValid,
     isUnknownError,
   } = useValidateReferralCode();
 
-  const { applyReferralCode, isApplyingReferralCode, applyReferralCodeError } =
-    useApplyReferralCode();
+  const {
+    applyReferralCode,
+    isApplyingReferralCode,
+    applyReferralCodeError,
+    clearApplyReferralCodeError,
+    applyReferralCodeSuccess,
+  } = useApplyReferralCode();
 
   const { fetchReferralDetails } = useReferralDetails();
 
   const hasReferredByCode = Boolean(referredByCode);
 
-  const handleApplyReferralCode = useCallback(async () => {
-    try {
-      await applyReferralCode(inputCode);
-      await fetchReferralDetails();
-    } catch {
-      // Error is handled by the hook
-    }
-  }, [applyReferralCode, fetchReferralDetails, inputCode]);
+  const isApplyingRef = useRef(false);
+
+  const handleInputChange = (text: string) => {
+    clearApplyReferralCodeError();
+    setInputCode(text);
+  };
+
+  // Auto-apply referral code when valid
+  useEffect(() => {
+    const autoApply = async () => {
+      // Only apply if valid, not currently applying, no existing code, and not already in progress
+      if (clientCheckValid && !hasReferredByCode && !isApplyingRef.current) {
+        isApplyingRef.current = true;
+        try {
+          await applyReferralCode(inputCode);
+          await fetchReferralDetails();
+        } catch {
+          // Error is handled by the hook
+        } finally {
+          isApplyingRef.current = false;
+        }
+      }
+    };
+
+    autoApply();
+  }, [
+    clientCheckValid,
+    hasReferredByCode,
+    applyReferralCode,
+    inputCode,
+    fetchReferralDetails,
+  ]);
 
   const renderIcon = () => {
-    if (hasReferredByCode) {
-      return null;
+    if ((isValidating || isApplyingReferralCode) && !hasReferredByCode) {
+      return <ActivityIndicator color={colors.icon.default} />;
     }
 
-    if (isValidating) {
-      return <ActivityIndicator />;
-    }
-
-    if (isValid) {
+    if ((clientCheckValid && applyReferralCodeSuccess) || hasReferredByCode) {
       return (
         <Icon
           name={IconName.Confirmation}
@@ -76,7 +100,7 @@ const ReferredByCodeSection: React.FC = () => {
       );
     }
 
-    if (inputCode.length >= 6) {
+    if (inputCode.length >= 6 || applyReferralCodeError) {
       return (
         <Icon
           name={IconName.Error}
@@ -89,8 +113,13 @@ const ReferredByCodeSection: React.FC = () => {
     return null;
   };
 
-  const showError =
-    inputCode.length >= 6 && !isValid && !isValidating && !isUnknownError;
+  const showClientValidationError =
+    inputCode.length >= 6 &&
+    !clientCheckValid &&
+    !isValidating &&
+    !isUnknownError &&
+    !isApplyingReferralCode &&
+    !applyReferralCodeSuccess;
 
   if (isLoading) {
     return (
@@ -157,17 +186,20 @@ const ReferredByCodeSection: React.FC = () => {
           testID="referred-by-code-input"
           placeholder={strings('rewards.referred_by_code.input_placeholder')}
           value={hasReferredByCode ? (referredByCode ?? '') : inputCode}
-          onChangeText={hasReferredByCode ? undefined : setInputCode}
+          onChangeText={hasReferredByCode ? undefined : handleInputChange}
           isDisabled={hasReferredByCode}
           autoCapitalize="characters"
           style={{
             backgroundColor: colors.background.muted,
-            borderColor: showError ? colors.error.default : colors.border.muted,
+            borderColor: showClientValidationError
+              ? colors.error.default
+              : colors.border.muted,
           }}
+          size={TextFieldSize.Lg}
           endAccessory={renderIcon()}
-          isError={showError}
+          isError={showClientValidationError}
         />
-        {showError && (
+        {showClientValidationError && (
           <Text
             variant={TextVariant.BodySm}
             twClassName="text-error-default mt-1"
@@ -176,28 +208,20 @@ const ReferredByCodeSection: React.FC = () => {
             {strings('rewards.referred_by_code.invalid_code')}
           </Text>
         )}
-        {applyReferralCodeError && (
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default mt-1"
-            testID="apply-referral-code-error"
-          >
-            {applyReferralCodeError}
-          </Text>
-        )}
+        {applyReferralCodeError &&
+          !isApplyingReferralCode &&
+          !showClientValidationError &&
+          !applyReferralCodeSuccess &&
+          inputCode.length >= 6 && (
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-error-default mt-1"
+              testID="apply-referral-code-error"
+            >
+              {applyReferralCodeError}
+            </Text>
+          )}
       </Box>
-
-      {!hasReferredByCode && (
-        <Button
-          testID="apply-referral-code-button"
-          variant={ButtonVariants.Primary}
-          label={strings('rewards.referred_by_code.apply_button')}
-          onPress={handleApplyReferralCode}
-          isDisabled={!isValid || isApplyingReferralCode}
-          loading={isApplyingReferralCode}
-          width={null as unknown as number}
-        />
-      )}
     </Box>
   );
 };

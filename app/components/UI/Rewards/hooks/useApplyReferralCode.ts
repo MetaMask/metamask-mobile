@@ -24,6 +24,11 @@ export interface UseApplyReferralCodeResult {
    * Function to clear the apply referral code error
    */
   clearApplyReferralCodeError: () => void;
+
+  /**
+   * Success state for apply referral code process
+   */
+  applyReferralCodeSuccess: boolean;
 }
 
 export const useApplyReferralCode = (): UseApplyReferralCodeResult => {
@@ -32,6 +37,8 @@ export const useApplyReferralCode = (): UseApplyReferralCodeResult => {
     string | undefined
   >(undefined);
   const [isApplyingReferralCode, setIsApplyingReferralCode] =
+    useState<boolean>(false);
+  const [applyReferralCodeSuccess, setApplyReferralCodeSuccess] =
     useState<boolean>(false);
 
   const handleApplyReferralCode = useCallback(
@@ -49,12 +56,13 @@ export const useApplyReferralCode = (): UseApplyReferralCodeResult => {
       try {
         setIsApplyingReferralCode(true);
         setApplyReferralCodeError(undefined);
-
+        setApplyReferralCodeSuccess(false);
         await Engine.controllerMessenger.call(
           'RewardsController:applyReferralCode',
           referralCode.trim().toUpperCase(),
           subscriptionId,
         );
+        setApplyReferralCodeSuccess(true);
       } catch (error) {
         const errorMessage = handleRewardsErrorMessage(error);
 
@@ -77,6 +85,7 @@ export const useApplyReferralCode = (): UseApplyReferralCodeResult => {
     isApplyingReferralCode,
     applyReferralCodeError,
     clearApplyReferralCodeError,
+    applyReferralCodeSuccess,
   };
 };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import ReferredByCodeSection from './ReferredByCodeSection';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
@@ -109,6 +109,11 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
             endAccessory,
           ),
       ),
+    TextFieldSize: {
+      Sm: '32',
+      Md: '40',
+      Lg: '48',
+    },
   };
 });
 
@@ -297,6 +302,7 @@ describe('ReferredByCodeSection', () => {
       isApplyingReferralCode: false,
       applyReferralCodeError: undefined,
       clearApplyReferralCodeError: jest.fn(),
+      applyReferralCodeSuccess: false,
     });
 
     mockUseSelector.mockImplementation(
@@ -428,12 +434,6 @@ describe('ReferredByCodeSection', () => {
       const input = getByTestId('referred-by-code-input-input');
       expect(input.props.editable).toBe(false);
     });
-
-    it('does not render apply button when referredByCode exists', () => {
-      const { queryByTestId } = render(<ReferredByCodeSection />);
-
-      expect(queryByTestId('apply-referral-code-button')).toBeNull();
-    });
   });
 
   describe('Success State without referredByCode', () => {
@@ -456,12 +456,6 @@ describe('ReferredByCodeSection', () => {
 
       const input = getByTestId('referred-by-code-input-input');
       expect(input.props.editable).toBe(true);
-    });
-
-    it('renders apply button when no referredByCode', () => {
-      const { getByTestId } = render(<ReferredByCodeSection />);
-
-      expect(getByTestId('apply-referral-code-button')).toBeOnTheScreen();
     });
 
     it('calls setInputCode when input text changes', () => {
@@ -492,7 +486,7 @@ describe('ReferredByCodeSection', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders success icon when code is valid', () => {
+    it('renders success icon when code is valid and apply succeeded', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'VALID1',
         setReferralCode: mockSetInputCode,
@@ -500,6 +494,13 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
+      });
+      mockUseApplyReferralCode.mockReturnValue({
+        applyReferralCode: mockApplyReferralCode,
+        isApplyingReferralCode: false,
+        applyReferralCodeError: undefined,
+        clearApplyReferralCodeError: jest.fn(),
+        applyReferralCodeSuccess: true,
       });
 
       const { getByTestId } = render(<ReferredByCodeSection />);
@@ -570,10 +571,51 @@ describe('ReferredByCodeSection', () => {
     });
   });
 
-  describe('Apply Button State', () => {
-    it('disables apply button when code is not valid', () => {
+  describe('Auto-Apply Referral Code', () => {
+    beforeEach(() => {
+      mockApplyReferralCode.mockResolvedValue(undefined);
+      mockFetchReferralDetails.mockResolvedValue(undefined);
+    });
+
+    it('auto-applies referral code when clientCheckValid becomes true', async () => {
       mockUseValidateReferralCode.mockReturnValue({
-        referralCode: 'TEST',
+        referralCode: 'VALID1',
+        setReferralCode: mockSetInputCode,
+        validateCode: jest.fn().mockResolvedValue(''),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+      });
+
+      render(<ReferredByCodeSection />);
+
+      await waitFor(() => {
+        expect(mockApplyReferralCode).toHaveBeenCalledWith('VALID1');
+      });
+      expect(mockFetchReferralDetails).toHaveBeenCalled();
+    });
+
+    it('does not auto-apply when user already has a referredByCode', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectors({ referredByCode: 'EXISTINGCODE' }),
+      );
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'VALID1',
+        setReferralCode: mockSetInputCode,
+        validateCode: jest.fn().mockResolvedValue(''),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+      });
+
+      render(<ReferredByCodeSection />);
+
+      expect(mockApplyReferralCode).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-apply when code is not valid', () => {
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'INVALID',
         setReferralCode: mockSetInputCode,
         validateCode: jest.fn().mockResolvedValue(''),
         isValidating: false,
@@ -581,13 +623,31 @@ describe('ReferredByCodeSection', () => {
         isUnknownError: false,
       });
 
-      const { getByTestId } = render(<ReferredByCodeSection />);
+      render(<ReferredByCodeSection />);
 
-      const button = getByTestId('apply-referral-code-button');
-      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(mockApplyReferralCode).not.toHaveBeenCalled();
     });
 
-    it('disables apply button when isApplyingReferralCode is true', () => {
+    it('handles error when auto-apply fails', async () => {
+      mockApplyReferralCode.mockRejectedValue(new Error('Failed to apply'));
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'VALID1',
+        setReferralCode: mockSetInputCode,
+        validateCode: jest.fn().mockResolvedValue(''),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+      });
+
+      render(<ReferredByCodeSection />);
+
+      await waitFor(() => {
+        expect(mockApplyReferralCode).toHaveBeenCalledTimes(1);
+      });
+      // Error is handled by the hook, no crash expected
+    });
+
+    it('renders loading indicator when applying referral code', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'VALID1',
         setReferralCode: mockSetInputCode,
@@ -601,62 +661,19 @@ describe('ReferredByCodeSection', () => {
         isApplyingReferralCode: true,
         applyReferralCodeError: undefined,
         clearApplyReferralCodeError: jest.fn(),
-      });
-
-      const { getByTestId } = render(<ReferredByCodeSection />);
-
-      const button = getByTestId('apply-referral-code-button');
-      expect(button.props.accessibilityState?.disabled).toBe(true);
-    });
-
-    it('enables apply button when code is valid and not applying', () => {
-      mockUseValidateReferralCode.mockReturnValue({
-        referralCode: 'VALID1',
-        setReferralCode: mockSetInputCode,
-        validateCode: jest.fn().mockResolvedValue(''),
-        isValidating: false,
-        isValid: true,
-        isUnknownError: false,
-      });
-      mockUseApplyReferralCode.mockReturnValue({
-        applyReferralCode: mockApplyReferralCode,
-        isApplyingReferralCode: false,
-        applyReferralCodeError: undefined,
-        clearApplyReferralCodeError: jest.fn(),
-      });
-
-      const { getByTestId } = render(<ReferredByCodeSection />);
-
-      const button = getByTestId('apply-referral-code-button');
-      expect(button.props.accessibilityState?.disabled).toBe(false);
-    });
-
-    it('shows loading indicator when applying referral code', () => {
-      mockUseValidateReferralCode.mockReturnValue({
-        referralCode: 'VALID1',
-        setReferralCode: mockSetInputCode,
-        validateCode: jest.fn().mockResolvedValue(''),
-        isValidating: false,
-        isValid: true,
-        isUnknownError: false,
-      });
-      mockUseApplyReferralCode.mockReturnValue({
-        applyReferralCode: mockApplyReferralCode,
-        isApplyingReferralCode: true,
-        applyReferralCodeError: undefined,
-        clearApplyReferralCodeError: jest.fn(),
+        applyReferralCodeSuccess: false,
       });
 
       const { getByTestId } = render(<ReferredByCodeSection />);
 
       expect(
-        getByTestId('apply-referral-code-button-loading'),
+        getByTestId('referred-by-code-input-end-accessory'),
       ).toBeOnTheScreen();
     });
   });
 
-  describe('Apply Button Interaction', () => {
-    beforeEach(() => {
+  describe('Apply Referral Code Error', () => {
+    it('renders error message when applyReferralCodeError exists and code is 6+ chars', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'VALID1',
         setReferralCode: mockSetInputCode,
@@ -665,58 +682,12 @@ describe('ReferredByCodeSection', () => {
         isValid: true,
         isUnknownError: false,
       });
-      mockApplyReferralCode.mockResolvedValue(undefined);
-      mockFetchReferralDetails.mockResolvedValue(undefined);
-    });
-
-    it('calls applyReferralCode with input code when button is pressed', async () => {
-      const { getByTestId } = render(<ReferredByCodeSection />);
-
-      const button = getByTestId('apply-referral-code-button');
-
-      await act(async () => {
-        fireEvent.press(button);
-      });
-
-      expect(mockApplyReferralCode).toHaveBeenCalledWith('VALID1');
-    });
-
-    it('calls fetchReferralDetails after applyReferralCode succeeds', async () => {
-      const { getByTestId } = render(<ReferredByCodeSection />);
-
-      const button = getByTestId('apply-referral-code-button');
-
-      await act(async () => {
-        fireEvent.press(button);
-      });
-
-      expect(mockApplyReferralCode).toHaveBeenCalledTimes(1);
-      expect(mockFetchReferralDetails).toHaveBeenCalledTimes(1);
-    });
-
-    it('handles error when applyReferralCode fails', async () => {
-      mockApplyReferralCode.mockRejectedValue(new Error('Failed to apply'));
-
-      const { getByTestId } = render(<ReferredByCodeSection />);
-
-      const button = getByTestId('apply-referral-code-button');
-
-      await act(async () => {
-        fireEvent.press(button);
-      });
-
-      expect(mockApplyReferralCode).toHaveBeenCalledTimes(1);
-      // Error is handled by the hook, no crash expected
-    });
-  });
-
-  describe('Apply Referral Code Error', () => {
-    it('renders error message when applyReferralCodeError exists', () => {
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
         isApplyingReferralCode: false,
         applyReferralCodeError: 'Failed to apply referral code',
         clearApplyReferralCodeError: jest.fn(),
+        applyReferralCodeSuccess: false,
       });
 
       const { getByTestId, getByText } = render(<ReferredByCodeSection />);
@@ -731,11 +702,92 @@ describe('ReferredByCodeSection', () => {
         isApplyingReferralCode: false,
         applyReferralCodeError: undefined,
         clearApplyReferralCodeError: jest.fn(),
+        applyReferralCodeSuccess: false,
       });
 
       const { queryByTestId } = render(<ReferredByCodeSection />);
 
       expect(queryByTestId('apply-referral-code-error')).toBeNull();
+    });
+
+    it('does not render error message when applyReferralCodeSuccess is true', () => {
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'VALID1',
+        setReferralCode: mockSetInputCode,
+        validateCode: jest.fn().mockResolvedValue(''),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+      });
+      mockUseApplyReferralCode.mockReturnValue({
+        applyReferralCode: mockApplyReferralCode,
+        isApplyingReferralCode: false,
+        applyReferralCodeError: 'Some error',
+        clearApplyReferralCodeError: jest.fn(),
+        applyReferralCodeSuccess: true,
+      });
+
+      const { queryByTestId } = render(<ReferredByCodeSection />);
+
+      expect(queryByTestId('apply-referral-code-error')).toBeNull();
+    });
+
+    it('does not render error message when input code is less than 6 chars', () => {
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'ABC',
+        setReferralCode: mockSetInputCode,
+        validateCode: jest.fn().mockResolvedValue(''),
+        isValidating: false,
+        isValid: false,
+        isUnknownError: false,
+      });
+      mockUseApplyReferralCode.mockReturnValue({
+        applyReferralCode: mockApplyReferralCode,
+        isApplyingReferralCode: false,
+        applyReferralCodeError: 'Some error',
+        clearApplyReferralCodeError: jest.fn(),
+        applyReferralCodeSuccess: false,
+      });
+
+      const { queryByTestId } = render(<ReferredByCodeSection />);
+
+      expect(queryByTestId('apply-referral-code-error')).toBeNull();
+    });
+  });
+
+  describe('Success Icon', () => {
+    it('renders success icon when applyReferralCodeSuccess is true and code is valid', () => {
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'VALID1',
+        setReferralCode: mockSetInputCode,
+        validateCode: jest.fn().mockResolvedValue(''),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+      });
+      mockUseApplyReferralCode.mockReturnValue({
+        applyReferralCode: mockApplyReferralCode,
+        isApplyingReferralCode: false,
+        applyReferralCodeError: undefined,
+        clearApplyReferralCodeError: jest.fn(),
+        applyReferralCodeSuccess: true,
+      });
+
+      const { getByTestId } = render(<ReferredByCodeSection />);
+
+      const endAccessory = getByTestId('referred-by-code-input-end-accessory');
+      expect(endAccessory).toBeOnTheScreen();
+    });
+
+    it('renders success icon when user has existing referredByCode', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectors({ referredByCode: 'EXISTINGCODE' }),
+      );
+
+      const { getByTestId } = render(<ReferredByCodeSection />);
+
+      const endAccessory = getByTestId('referred-by-code-input-end-accessory');
+      expect(endAccessory).toBeOnTheScreen();
     });
   });
 });

@@ -50,6 +50,7 @@ describe('useApplyReferralCode', () => {
 
       expect(result.current.isApplyingReferralCode).toBe(false);
       expect(result.current.applyReferralCodeError).toBeUndefined();
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
       expect(typeof result.current.applyReferralCode).toBe('function');
       expect(typeof result.current.clearApplyReferralCodeError).toBe(
         'function',
@@ -73,6 +74,7 @@ describe('useApplyReferralCode', () => {
       );
       expect(result.current.isApplyingReferralCode).toBe(false);
       expect(result.current.applyReferralCodeError).toBeUndefined();
+      expect(result.current.applyReferralCodeSuccess).toBe(true);
     });
 
     it('should convert referral code to uppercase', async () => {
@@ -119,9 +121,10 @@ describe('useApplyReferralCode', () => {
         result.current.applyReferralCode(mockReferralCode);
       });
 
-      // Check loading state is true
+      // Check loading state is true and success is false during loading
       expect(result.current.isApplyingReferralCode).toBe(true);
       expect(result.current.applyReferralCodeError).toBeUndefined();
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
 
       // Resolve the promise
       await act(async () => {
@@ -129,8 +132,9 @@ describe('useApplyReferralCode', () => {
         await promise;
       });
 
-      // Check loading state is false after completion
+      // Check loading state is false and success is true after completion
       expect(result.current.isApplyingReferralCode).toBe(false);
+      expect(result.current.applyReferralCodeSuccess).toBe(true);
     });
 
     it('should handle missing subscription ID', async () => {
@@ -146,6 +150,7 @@ describe('useApplyReferralCode', () => {
         'No subscription found. Please try again.',
       );
       expect(result.current.isApplyingReferralCode).toBe(false);
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
     });
 
     it('should handle empty referral code', async () => {
@@ -160,6 +165,7 @@ describe('useApplyReferralCode', () => {
         'Please enter a referral code.',
       );
       expect(result.current.isApplyingReferralCode).toBe(false);
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
     });
 
     it('should handle whitespace-only referral code', async () => {
@@ -174,6 +180,7 @@ describe('useApplyReferralCode', () => {
         'Please enter a referral code.',
       );
       expect(result.current.isApplyingReferralCode).toBe(false);
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
     });
 
     it('should handle invalid referral code error', async () => {
@@ -198,6 +205,7 @@ describe('useApplyReferralCode', () => {
         'Invalid referral code. Please check and try again.',
       );
       expect(result.current.isApplyingReferralCode).toBe(false);
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
     });
 
     it('should handle already referred error', async () => {
@@ -222,6 +230,7 @@ describe('useApplyReferralCode', () => {
         'You have already been referred by another user.',
       );
       expect(result.current.isApplyingReferralCode).toBe(false);
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
     });
 
     it('should handle own referral code error', async () => {
@@ -246,6 +255,7 @@ describe('useApplyReferralCode', () => {
         'You cannot use your own referral code.',
       );
       expect(result.current.isApplyingReferralCode).toBe(false);
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
     });
 
     it('should clear error before new apply attempt', async () => {
@@ -265,6 +275,7 @@ describe('useApplyReferralCode', () => {
       });
 
       expect(result.current.applyReferralCodeError).toBe('First error message');
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
 
       // Now make a successful apply
       mockEngineCall.mockResolvedValueOnce(undefined);
@@ -274,6 +285,38 @@ describe('useApplyReferralCode', () => {
       });
 
       expect(result.current.applyReferralCodeError).toBeUndefined();
+      expect(result.current.applyReferralCodeSuccess).toBe(true);
+    });
+
+    it('should reset success state before new apply attempt', async () => {
+      // First, make a successful apply
+      mockEngineCall.mockResolvedValueOnce(undefined);
+
+      const { result } = renderHook(() => useApplyReferralCode());
+
+      await act(async () => {
+        await result.current.applyReferralCode(mockReferralCode);
+      });
+
+      expect(result.current.applyReferralCodeSuccess).toBe(true);
+
+      // Now make another apply that fails
+      const mockError = new Error('Second attempt error');
+      mockEngineCall.mockRejectedValueOnce(mockError);
+      mockHandleRewardsErrorMessage.mockReturnValue('Second error message');
+
+      await act(async () => {
+        try {
+          await result.current.applyReferralCode(mockReferralCode);
+        } catch (error) {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
+      expect(result.current.applyReferralCodeError).toBe(
+        'Second error message',
+      );
     });
 
     it('should re-throw error after handling', async () => {
@@ -326,6 +369,7 @@ describe('useApplyReferralCode', () => {
 
       expect(result.current.applyReferralCodeError).toBeUndefined();
       expect(result.current.isApplyingReferralCode).toBe(false);
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
       expect(typeof result.current.applyReferralCode).toBe('function');
     });
   });
@@ -378,6 +422,7 @@ describe('useApplyReferralCode', () => {
       expect(result.current.applyReferralCodeError).toBe(
         'No subscription found. Please try again.',
       );
+      expect(result.current.applyReferralCodeSuccess).toBe(false);
     });
   });
 });
