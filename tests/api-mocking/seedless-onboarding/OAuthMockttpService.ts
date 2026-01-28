@@ -258,24 +258,33 @@ export class OAuthMockttpService {
             JSON.stringify(body, null, 2),
           );
 
-          // Override email with E2E email for scenario selection
-          body.email = this.config.email;
-          body.login_provider = this.config.loginProvider;
+          const emailForMock = this.config.email.replace(
+            /^(google|apple)\./,
+            '',
+          );
+
+          const mockRequestBody = {
+            email_id: emailForMock,
+            client_id: body.client_id || 'e2e-mock-client-id',
+            login_provider: this.config.loginProvider,
+            access_type: 'offline',
+          };
 
           console.log(
             `[E2E] Proxying OAuth token request for: ${this.config.email}`,
           );
           console.log(`[E2E] Proxying to: ${AuthServer.MockRequestToken}`);
+          console.log(`[E2E] Request body:`, JSON.stringify(mockRequestBody));
 
           // Call backend QA mock endpoint
           const response = await fetch(AuthServer.MockRequestToken, {
             method: 'POST',
             headers: {
+              accept: '*/*',
               'Content-Type': 'application/json',
-              // Add internal secret header if required by backend
-              'X-Internal-Secret': process.env.E2E_INTERNAL_SECRET || '',
+              'byoa-auth-secret': '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42',
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify(mockRequestBody),
           });
 
           let tokens;
@@ -285,8 +294,35 @@ export class OAuthMockttpService {
             );
             tokens = this.generateMockAuthResponse();
           } else {
-            tokens = await response.json();
-            console.log('[E2E] Received valid tokens from backend QA mock');
+            const rawResponse = await response.json();
+            const fallbackTokens = this.generateMockAuthResponse();
+            if (rawResponse.data?.tokens) {
+              const qaMockTokens = rawResponse.data.tokens;
+              tokens = {
+                ...fallbackTokens,
+                id_token:
+                  qaMockTokens.jwt_token ||
+                  qaMockTokens.id_token ||
+                  fallbackTokens.id_token,
+                access_token:
+                  qaMockTokens.access_token || fallbackTokens.access_token,
+                metadata_access_token:
+                  qaMockTokens.metadata_access_token ||
+                  fallbackTokens.metadata_access_token,
+                refresh_token:
+                  qaMockTokens.refresh_token || fallbackTokens.refresh_token,
+                revoke_token:
+                  qaMockTokens.revoke_token || fallbackTokens.revoke_token,
+                indexes: qaMockTokens.indexes || fallbackTokens.indexes,
+                endpoints: qaMockTokens.endpoints || fallbackTokens.endpoints,
+              };
+            } else {
+              // Fallback: QA mock returned flat structure
+              tokens = {
+                ...fallbackTokens,
+                ...rawResponse,
+              };
+            }
           }
 
           return {
@@ -295,9 +331,12 @@ export class OAuthMockttpService {
           };
         } catch (error) {
           console.error('[E2E] Error proxying to backend QA mock:', error);
+          // Fallback to local mock tokens on network error
+          console.log('[E2E] Using fallback mock tokens due to network error');
+          const tokens = this.generateMockAuthResponse();
           return {
-            statusCode: 500,
-            json: { error: 'Failed to proxy to backend QA mock' },
+            statusCode: 200,
+            json: tokens,
           };
         }
       });
@@ -315,22 +354,31 @@ export class OAuthMockttpService {
           const requestBody = (await request.body.getText()) || '{}';
           const body = JSON.parse(requestBody);
 
-          // Override email with E2E email for scenario selection
-          body.email = this.config.email;
-          body.login_provider = this.config.loginProvider;
+          const emailForMock = this.config.email.replace(
+            /^(google|apple)\./,
+            '',
+          );
+
+          const mockRequestBody = {
+            email_id: emailForMock,
+            client_id: body.client_id || 'e2e-mock-client-id',
+            login_provider: this.config.loginProvider,
+          };
 
           console.log(
             `[E2E] Proxying Apple id_token request for: ${this.config.email}`,
           );
+          console.log(`[E2E] Request body:`, JSON.stringify(mockRequestBody));
 
           // Call backend QA mock endpoint for id_token
           const response = await fetch(AuthServer.MockIdToken, {
             method: 'POST',
             headers: {
+              accept: '*/*',
               'Content-Type': 'application/json',
-              'X-Internal-Secret': process.env.E2E_INTERNAL_SECRET || '',
+              'byoa-auth-secret': '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42',
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify(mockRequestBody),
           });
 
           let tokens;
@@ -355,9 +403,12 @@ export class OAuthMockttpService {
             '[E2E] Error proxying id_token to backend QA mock:',
             error,
           );
+          // Fallback to local mock tokens on network error
+          console.log('[E2E] Using fallback mock tokens for id_token');
+          const tokens = this.generateMockAuthResponse();
           return {
-            statusCode: 500,
-            json: { error: 'Failed to proxy id_token to backend QA mock' },
+            statusCode: 200,
+            json: tokens,
           };
         }
       });
@@ -372,15 +423,34 @@ export class OAuthMockttpService {
       .asPriority(1000)
       .thenCallback(async (request) => {
         try {
-          const requestBody = await request.body.getText();
+          const requestBody = (await request.body.getText()) || '{}';
+          const body = JSON.parse(requestBody);
+
+          const emailForMock = this.config.email.replace(
+            /^(google|apple)\./,
+            '',
+          );
+
+          const mockRequestBody = {
+            email_id: emailForMock,
+            client_id: body.client_id || 'e2e-mock-client-id',
+            login_provider: this.config.loginProvider,
+            refresh_token: body.refresh_token,
+          };
+
+          console.log(
+            `[E2E] Proxying refresh token request for: ${this.config.email}`,
+          );
+          console.log(`[E2E] Request body:`, JSON.stringify(mockRequestBody));
 
           const response = await fetch(AuthServer.MockRenewRefreshToken, {
             method: 'POST',
             headers: {
+              accept: '*/*',
               'Content-Type': 'application/json',
-              'X-Internal-Secret': process.env.E2E_INTERNAL_SECRET || '',
+              'byoa-auth-secret': '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42',
             },
-            body: requestBody,
+            body: JSON.stringify(mockRequestBody),
           });
 
           if (!response.ok) {
@@ -404,7 +474,17 @@ export class OAuthMockttpService {
           return { statusCode: response.status, json: result };
         } catch (error) {
           console.error('[E2E] Error renewing refresh token:', error);
-          return { statusCode: 500, json: { error: 'Renewal failed' } };
+          console.log('[E2E] Using fallback mock tokens for refresh');
+          const mockTokens = this.generateMockAuthResponse();
+          return {
+            statusCode: 200,
+            json: {
+              id_token: mockTokens.id_token,
+              access_token: mockTokens.access_token,
+              metadata_access_token: mockTokens.metadata_access_token,
+              indexes: mockTokens.indexes,
+            },
+          };
         }
       });
 
