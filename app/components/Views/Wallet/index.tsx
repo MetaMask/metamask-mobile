@@ -1320,6 +1320,8 @@ const Wallet = ({
 
     try {
       await walletTokensTabViewRef.current?.refresh(refreshBalance);
+    } catch (error) {
+      Logger.error(error as Error, 'Error refreshing wallet');
     } finally {
       refreshInProgressRef.current = false;
 
