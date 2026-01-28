@@ -73,7 +73,7 @@ const useIsInsufficientBalance = ({
   try {
     const normalizedAmount = normalizeAmount(amount, token.decimals);
     inputAmount = parseAmount(normalizedAmount, token.decimals);
-  } catch (error) {
+  } catch {
     // If we can't parse the amount, treat it as invalid (insufficient balance)
     return true;
   }
