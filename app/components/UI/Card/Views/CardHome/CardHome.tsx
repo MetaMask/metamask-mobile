@@ -88,6 +88,7 @@ import {
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 
 /**
  * Route params for CardHome screen
@@ -1028,6 +1029,7 @@ const CardHome = () => {
           </TouchableOpacity>
         </>
       )}
+      <CardScreenshotDeterrent enabled={!!cardDetailsImageUrl} />
     </ScrollView>
   );
 };
