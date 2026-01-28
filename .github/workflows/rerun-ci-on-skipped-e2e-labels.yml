@@ -1,4 +1,4 @@
-name: Rerun CI on skip-smart-e2e-selection label
+name: Rerun CI on skipped E2E labels
 
 on:
   pull_request:
@@ -11,7 +11,10 @@ env:
 
 jobs:
   rerun-ci:
-    if: github.event.label.name == 'skip-smart-e2e-selection'
+    if: >-
+      github.event.label.name == 'skip-smart-e2e-selection' ||
+      github.event.label.name == 'skip-e2e' ||
+      github.event.label.name == 'skip-e2e-quality-gate'
     runs-on: ubuntu-latest
     permissions:
       actions: write
