@@ -533,7 +533,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     it('displays error for invalid word in pasted SRP', async () => {
       mockGetString.mockResolvedValue(invalidMnemonic);
 
-      const { getByText, getAllByText } = renderScreen(
+      const { getByText } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -548,17 +548,16 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const errorMessages = getAllByText(
-          messages.import_from_seed.spellcheck_error,
-        );
-        expect(errorMessages.length).toBeGreaterThan(0);
+        expect(
+          getByText(messages.import_from_seed.spellcheck_error),
+        ).toBeTruthy();
       });
     });
 
     it('clears error when SRP is cleared', async () => {
       mockGetString.mockResolvedValue(invalidMnemonic);
 
-      const { getByText, getAllByText, queryAllByText } = renderScreen(
+      const { getByText, queryByText } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -573,10 +572,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const errorMessages = getAllByText(
-          messages.import_from_seed.spellcheck_error,
-        );
-        expect(errorMessages.length).toBeGreaterThan(0);
+        expect(
+          getByText(messages.import_from_seed.spellcheck_error),
+        ).toBeTruthy();
       });
 
       const clearButton = getByText(messages.import_from_seed.clear_all);
@@ -587,8 +585,8 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(
-          queryAllByText(messages.import_from_seed.spellcheck_error).length,
-        ).toBe(0);
+          queryByText(messages.import_from_seed.spellcheck_error),
+        ).toBeNull();
       });
     });
 
@@ -901,10 +899,10 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
     });
 
-    it('dismisses keyboard when submit is pressed in grid input', async () => {
+    it('adds space when enter key is pressed in grid input', async () => {
       mockGetString.mockResolvedValue('word1 word2');
 
-      const { getByTestId, getByText, queryByTestId } = renderScreen(
+      const { getByTestId, getByText } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -930,11 +928,10 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         await fireEvent(input1, 'onSubmitEditing');
       });
 
-      // Verify no new input was created (keyboard just dismisses)
       await waitFor(() => {
         expect(
-          queryByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`),
-        ).toBeNull();
+          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`),
+        ).toBeTruthy();
       });
     });
 
@@ -978,7 +975,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     it('validates word on focus change', async () => {
       mockGetString.mockResolvedValue('word1 word2 word3');
 
-      const { getByTestId, getByText, queryAllByText } = renderScreen(
+      const { getByTestId, getByText, queryByText } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -1019,8 +1016,8 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(
-          queryAllByText(messages.import_from_seed.spellcheck_error).length,
-        ).toBeGreaterThan(0);
+          queryByText(messages.import_from_seed.spellcheck_error),
+        ).toBeTruthy();
       });
     });
 

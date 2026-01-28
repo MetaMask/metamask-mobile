@@ -1,9 +1,9 @@
 # Version: 1.0.0
-# DISABLED - Experimental workflow
 name: Cursor Issue Analysis
 
 on:
-  workflow_dispatch: # Manual only - disabled
+  issues:
+    types: [opened, labeled]
 
 permissions:
   issues: write
@@ -12,8 +12,12 @@ permissions:
 jobs:
   analyze-issue:
     runs-on: ubuntu-latest
-    # DISABLED - This workflow is disabled
-    if: false
+    # Check if issue has team-confirmations AND (Sev1-high OR Sev2-normal) AND NOT external-contributor
+    # Note: Only maintainers can add labels, providing first line of defense
+    if: |
+      contains(github.event.issue.labels.*.name, 'team-confirmations') &&
+      (contains(github.event.issue.labels.*.name, 'Sev1-high') || contains(github.event.issue.labels.*.name, 'Sev2-normal')) &&
+      !contains(github.event.issue.labels.*.name, 'external-contributor')
     steps:
       - name: Check for existing analysis comment
         id: check-comment

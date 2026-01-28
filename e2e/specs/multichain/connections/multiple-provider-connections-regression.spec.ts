@@ -9,6 +9,7 @@ import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import { requestPermissions } from './helpers';
+import { withSolanaAccountEnabled } from '../../../common-solana';
 import {
   navigateToSolanaTestDApp,
   connectSolanaTestDapp,
@@ -17,8 +18,6 @@ import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModa
 import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMultiSelector';
 import Assertions from '../../../../tests/framework/Assertions';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(
   RegressionNetworkExpansion('Multiple Provider Connections [Regression]'),
@@ -68,36 +67,25 @@ describe(
     });
 
     it('should retain EVM permissions when connecting through the Solana Wallet Standard', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder().withChainPermission(['0x1']).build(),
-          dapps: [
-            {
-              dappVariant: DappVariants.SOLANA_TEST_DAPP,
-            },
-          ],
-          restartDevice: true,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            );
-          },
-        },
+      await withSolanaAccountEnabled(
+        { evmAccountPermitted: true },
         async () => {
-          await loginToApp();
           await navigateToSolanaTestDApp();
           await connectSolanaTestDapp({
             // Validate the prompted accounts
             assert: async () => {
               await Assertions.expectTextDisplayed('Account 1');
+              await Assertions.expectTextDisplayed('Solana Account 1');
             },
           });
+
           // Validate both EVM and Solana accounts are connected
           await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
           await Assertions.expectTextDisplayed('Account 1');
+          await Assertions.expectTextDisplayed('Solana Account 1');
 
           // Navigate to the permissions summary tab
+          await ConnectedAccountsModal.tapManagePermissionsButton();
           await ConnectedAccountsModal.tapPermissionsSummaryTab();
           await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
@@ -110,24 +98,12 @@ describe(
     });
 
     it('should be able to request specific chains when connecting through the EVM provider with existing permissions', async () => {
-      await withFixtures(
+      await withSolanaAccountEnabled(
         {
-          fixture: new FixtureBuilder().withSolanaAccountPermission().build(),
-          dapps: [
-            {
-              dappVariant: DappVariants.TEST_DAPP,
-            },
-          ],
-          restartDevice: true,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            );
-          },
+          solanaAccountPermitted: true,
+          dappVariant: DappVariants.TEST_DAPP,
         },
         async () => {
-          await loginToApp();
           await navigateToBrowserView();
           await Browser.navigateToTestDApp();
 
@@ -146,14 +122,17 @@ describe(
 
           // Validate the prompted accounts
           await Assertions.expectTextDisplayed('Account 1');
+          await Assertions.expectTextDisplayed('Solana Account 1');
 
           await ConnectBottomSheet.tapConnectButton();
 
           //Validate both EVM and Solana accounts are connected
           await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
           await Assertions.expectTextDisplayed('Account 1');
+          await Assertions.expectTextDisplayed('Solana Account 1');
 
           // Navigate to the permissions summary tab
+          await ConnectedAccountsModal.tapManagePermissionsButton();
           await ConnectedAccountsModal.tapPermissionsSummaryTab();
           await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
@@ -169,12 +148,7 @@ describe(
 
           //Validate no other network Permissions exist
           await NetworkConnectMultiSelector.isNetworkChainPermissionNotSelected(
-            NetworkNonPemittedBottomSheetSelectorsText.TRON_NETWORK_NAME,
-          );
-
-          //Validate no other network Permissions exist
-          await NetworkConnectMultiSelector.isNetworkChainPermissionNotSelected(
-            NetworkNonPemittedBottomSheetSelectorsText.BITCOIN_NETWORK_NAME,
+            NetworkNonPemittedBottomSheetSelectorsText.LINEA_MAINNET_NETWORK_NAME,
           );
         },
       );

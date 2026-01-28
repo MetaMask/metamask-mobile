@@ -2,7 +2,7 @@ import { capitalize } from 'lodash';
 import type {
   OrderParams,
   Order,
-  PerpsDebugLogger,
+  IPerpsDebugLogger,
 } from '../controllers/types';
 import { Position } from '../hooks';
 
@@ -10,7 +10,7 @@ import { Position } from '../hooks';
  * Optional debug logger for order utility functions.
  * When provided, enables detailed logging for debugging.
  */
-export type OrderUtilsDebugLogger = PerpsDebugLogger | undefined;
+export type OrderUtilsDebugLogger = IPerpsDebugLogger | undefined;
 
 /**
  * Get the order direction based on the side and position size

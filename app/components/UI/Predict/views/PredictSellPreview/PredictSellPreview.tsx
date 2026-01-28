@@ -295,7 +295,7 @@ const PredictSellPreview = () => {
                 variant={TextVariant.BodyMd}
               >
                 {`${signal}${formatPrice(Math.abs(cashPnl), {
-                  maximumDecimals: 2,
+                  maximumDecimals: 4,
                 })} (${formatPercentage(percentPnl)})`}
               </Text>
             </>

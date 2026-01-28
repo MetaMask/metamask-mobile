@@ -89,7 +89,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('returns balanceFiat and TOKEN_RATE_UNDEFINED if token conversionRate is not available', () => {
+  it('returns balanceFiat and TOKEN_BALANCE_LOADING if token conversionRate is not available', () => {
     const result = deriveBalanceFromAssetMarketDetails(
       asset,
       tokenExchangeRates,
@@ -99,7 +99,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     );
 
     expect(result).toEqual({
-      balanceFiat: TOKEN_RATE_UNDEFINED,
+      balanceFiat: 'tokenBalanceLoading',
       balanceValueFormatted: '100 ABC',
     });
   });

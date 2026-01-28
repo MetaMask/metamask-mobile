@@ -8,7 +8,7 @@ import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import Assertions from '../../../tests/framework/Assertions';
-import { CustomNetworks } from '../../../tests/resources/networks.e2e';
+import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 
 describe.skip(RegressionAssets('Custom RPC Tests'), () => {

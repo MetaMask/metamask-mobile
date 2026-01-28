@@ -72,25 +72,25 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   const formattedPrice = useMemo(() => {
     // Handle invalid or edge case values
     if (!price || price <= 0 || !Number.isFinite(price)) {
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
 
     try {
       return formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
     } catch {
       // Fallback if formatPerpsFiat throws
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
   }, [price]);
 
   const formattedChange = useMemo(() => {
     if (!price || price <= 0 || !Number.isFinite(price)) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
     }
     try {
       return formatPercentage(priceChange.toString());
     } catch {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
     }
   }, [priceChange, price]);
 

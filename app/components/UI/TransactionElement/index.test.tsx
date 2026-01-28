@@ -2,25 +2,9 @@ import React from 'react';
 import TransactionElement from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { fireEvent, waitFor } from '@testing-library/react-native';
-import { TransactionType } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import Routes from '../../../constants/navigation/Routes';
-
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      setOptions: jest.fn(),
-    }),
-  };
-});
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -53,13 +37,6 @@ jest.mock('@metamask/controller-utils', () => ({
   query: jest.fn(),
 }));
 
-jest.mock('./utils', () =>
-  jest.fn().mockResolvedValue([
-    { actionKey: 'Test Action', value: '0.1 ETH', fiatValue: '$100' },
-    { summaryAmount: '0.1 ETH', summaryFiat: '$100' },
-  ]),
-);
-
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
@@ -75,11 +52,7 @@ const initialState = {
 const store = mockStore(initialState);
 
 describe('TransactionElement', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('renders correctly', () => {
+  it('should render correctly 1', () => {
     const component = renderWithProvider(
       <Provider store={store}>
         <TransactionElement
@@ -100,52 +73,5 @@ describe('TransactionElement', () => {
       </Provider>,
     );
     expect(component).toMatchSnapshot();
-  });
-
-  describe('MUSD conversion navigation', () => {
-    it('navigates to MUSD conversion details when transaction type is musdConversion', async () => {
-      const musdConversionTx = {
-        id: 'musd-tx-123',
-        type: TransactionType.musdConversion,
-        chainId: '0x1',
-        status: 'confirmed',
-        time: Date.now(),
-        txParams: {
-          to: '0x456',
-          from: '0x123',
-          nonce: '0x1',
-        },
-        metamaskPay: {
-          chainId: '0x1',
-          tokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          tokenAmount: '1000000',
-        },
-      };
-
-      const { getByText } = renderWithProvider(
-        <Provider store={store}>
-          <TransactionElement
-            tx={musdConversionTx}
-            navigation={{ navigate: mockNavigate }}
-          />
-        </Provider>,
-      );
-
-      // Wait for async decodeTransaction to complete and component to render
-      await waitFor(() => {
-        expect(getByText('Test Action')).toBeTruthy();
-      });
-
-      // Press the transaction element
-      fireEvent.press(getByText('Test Action'));
-
-      // Verify navigation to MUSD conversion details
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS,
-        {
-          transactionMeta: musdConversionTx,
-        },
-      );
-    });
   });
 });

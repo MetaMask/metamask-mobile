@@ -32,7 +32,6 @@ import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleTrendingUrl } from './handleTrendingUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
-import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import {
   createDeepLinkUsedEventBuilder,
   mapSupportedActionToRoute,
@@ -79,7 +78,6 @@ const SUPPORTED_ACTIONS = {
   CARD_ONBOARDING: ACTIONS.CARD_ONBOARDING,
   CARD_HOME: ACTIONS.CARD_HOME,
   TRENDING: ACTIONS.TRENDING,
-  SHIELD: ACTIONS.SHIELD,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -553,14 +551,6 @@ async function handleUniversalLink({
         origin: source,
       });
       break;
-    }
-    case SUPPORTED_ACTIONS.SHIELD: {
-      // shield is only available on extension for now, open shield website from in app browser
-      handleBrowserUrl({
-        url: SHIELD_WEBSITE_URL,
-        callback: browserCallBack,
-      });
-      return;
     }
     case SUPPORTED_ACTIONS.WC: {
       const { params: wcParams } = extractURLParams(urlObj.href);

@@ -4,11 +4,7 @@ import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import type { PerpsMarketData, MarketTypeFilter } from '../controllers/types';
-import {
-  sortMarkets,
-  type SortField,
-  type SortDirection,
-} from '../utils/sortMarkets';
+import type { SortField, SortDirection } from '../utils/sortMarkets';
 import type { SortOptionId } from '../constants/perpsConfig';
 import {
   selectPerpsWatchlistMarkets,
@@ -239,16 +235,7 @@ export const usePerpsMarketListView = ({
   }, [marketTypeFilteredMarkets, showFavoritesOnly, watchlistMarkets]);
 
   // Apply sorting to searched and favorites-filtered markets
-  // Use useMemo to ensure sorting is applied with current sortBy/direction when markets change
-  const finalMarkets = useMemo(
-    () =>
-      sortMarkets({
-        markets: favoritesFilteredMarkets,
-        sortBy: sortingHook.sortBy,
-        direction: sortingHook.direction,
-      }),
-    [favoritesFilteredMarkets, sortingHook.sortBy, sortingHook.direction],
-  );
+  const finalMarkets = sortingHook.sortMarketsList(favoritesFilteredMarkets);
 
   // Calculate market counts by type (for hiding empty tabs)
   const marketCounts = useMemo(() => {

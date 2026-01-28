@@ -9,6 +9,9 @@ export const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-start',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 8,
     },
     dropdownButton: {
       paddingHorizontal: 12,

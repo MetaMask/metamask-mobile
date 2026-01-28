@@ -150,7 +150,7 @@ const RecipientSelectorModal: React.FC = () => {
 
   return (
     <BottomSheet onClose={handleClose} keyboardAvoidingViewEnabled>
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader onBack={handleClose} onClose={handleClose}>
         Recipient account
       </BottomSheetHeader>
       <MultichainAccountSelectorList

@@ -1,6 +1,6 @@
 import type {
-  PerpsProvider,
-  PerpsLogger,
+  IPerpsProvider,
+  IPerpsLogger,
   PriceUpdate,
   Position,
   Order,
@@ -10,12 +10,12 @@ import type {
 import { SubscriptionMultiplexer } from './SubscriptionMultiplexer';
 
 // Mock logger factory
-const createMockLogger = (): jest.Mocked<PerpsLogger> => ({
+const createMockLogger = (): jest.Mocked<IPerpsLogger> => ({
   error: jest.fn(),
 });
 
 // Mock provider with test helper methods
-interface MockProviderWithEmit extends jest.Mocked<Partial<PerpsProvider>> {
+interface MockProviderWithEmit extends jest.Mocked<Partial<IPerpsProvider>> {
   _emitPrices: (prices: PriceUpdate[]) => void;
   _emitPositions: (positions: Position[]) => void;
   _emitOrders: (orders: Order[]) => void;
@@ -106,8 +106,8 @@ describe('SubscriptionMultiplexer', () => {
       mux.subscribeToPrices({
         symbols: ['BTC', 'ETH'],
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
-          ['myx', mockMYXProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
+          ['myx', mockMYXProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -122,7 +122,7 @@ describe('SubscriptionMultiplexer', () => {
       mux.subscribeToPrices({
         symbols: ['BTC'],
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -149,8 +149,8 @@ describe('SubscriptionMultiplexer', () => {
       mux.subscribeToPrices({
         symbols: ['BTC'],
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
-          ['myx', mockMYXProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
+          ['myx', mockMYXProvider as unknown as IPerpsProvider],
         ],
         callback,
         aggregationMode: 'merge',
@@ -181,8 +181,8 @@ describe('SubscriptionMultiplexer', () => {
       mux.subscribeToPrices({
         symbols: ['BTC'],
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
-          ['myx', mockMYXProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
+          ['myx', mockMYXProvider as unknown as IPerpsProvider],
         ],
         callback,
         aggregationMode: 'best_price',
@@ -211,8 +211,8 @@ describe('SubscriptionMultiplexer', () => {
       const unsubscribe = mux.subscribeToPrices({
         symbols: ['BTC'],
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
-          ['myx', mockMYXProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
+          ['myx', mockMYXProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -256,7 +256,7 @@ describe('SubscriptionMultiplexer', () => {
 
       mux.subscribeToPositions({
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -278,8 +278,8 @@ describe('SubscriptionMultiplexer', () => {
 
       mux.subscribeToPositions({
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
-          ['myx', mockMYXProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
+          ['myx', mockMYXProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -319,7 +319,7 @@ describe('SubscriptionMultiplexer', () => {
 
       mux.subscribeToOrders({
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -341,8 +341,8 @@ describe('SubscriptionMultiplexer', () => {
 
       mux.subscribeToOrders({
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
-          ['myx', mockMYXProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
+          ['myx', mockMYXProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -384,7 +384,7 @@ describe('SubscriptionMultiplexer', () => {
 
       mux.subscribeToOrderFills({
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -407,7 +407,7 @@ describe('SubscriptionMultiplexer', () => {
 
       mux.subscribeToOrderFills({
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -433,7 +433,7 @@ describe('SubscriptionMultiplexer', () => {
 
       mux.subscribeToAccount({
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -455,8 +455,8 @@ describe('SubscriptionMultiplexer', () => {
 
       mux.subscribeToAccount({
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
-          ['myx', mockMYXProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
+          ['myx', mockMYXProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -488,7 +488,7 @@ describe('SubscriptionMultiplexer', () => {
       mux.subscribeToPrices({
         symbols: ['BTC'],
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -511,8 +511,8 @@ describe('SubscriptionMultiplexer', () => {
       mux.subscribeToPrices({
         symbols: ['BTC'],
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
-          ['myx', mockMYXProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
+          ['myx', mockMYXProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -536,7 +536,7 @@ describe('SubscriptionMultiplexer', () => {
       mux.subscribeToPrices({
         symbols: ['BTC'],
         providers: [
-          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
+          ['hyperliquid', mockHLProvider as unknown as IPerpsProvider],
         ],
         callback,
       });
@@ -552,7 +552,7 @@ describe('SubscriptionMultiplexer', () => {
   });
 
   describe('subscription cleanup on partial failure', () => {
-    let mockLogger: jest.Mocked<PerpsLogger>;
+    let mockLogger: jest.Mocked<IPerpsLogger>;
     let muxWithLogger: SubscriptionMultiplexer;
     let successfulProvider: ReturnType<typeof createMockProvider>;
     let failingProvider: MockProviderWithEmit;
@@ -592,8 +592,8 @@ describe('SubscriptionMultiplexer', () => {
         muxWithLogger.subscribeToPrices({
           symbols: ['BTC'],
           providers: [
-            ['hyperliquid', successfulProvider as unknown as PerpsProvider],
-            ['myx', failingProvider as unknown as PerpsProvider],
+            ['hyperliquid', successfulProvider as unknown as IPerpsProvider],
+            ['myx', failingProvider as unknown as IPerpsProvider],
           ],
           callback: jest.fn(),
         });
@@ -625,8 +625,8 @@ describe('SubscriptionMultiplexer', () => {
       expect(() => {
         muxWithLogger.subscribeToPositions({
           providers: [
-            ['hyperliquid', successfulProvider as unknown as PerpsProvider],
-            ['myx', failingProvider as unknown as PerpsProvider],
+            ['hyperliquid', successfulProvider as unknown as IPerpsProvider],
+            ['myx', failingProvider as unknown as IPerpsProvider],
           ],
           callback: jest.fn(),
         });
@@ -652,8 +652,8 @@ describe('SubscriptionMultiplexer', () => {
       expect(() => {
         muxWithLogger.subscribeToOrders({
           providers: [
-            ['hyperliquid', successfulProvider as unknown as PerpsProvider],
-            ['myx', failingProvider as unknown as PerpsProvider],
+            ['hyperliquid', successfulProvider as unknown as IPerpsProvider],
+            ['myx', failingProvider as unknown as IPerpsProvider],
           ],
           callback: jest.fn(),
         });
@@ -679,8 +679,8 @@ describe('SubscriptionMultiplexer', () => {
       expect(() => {
         muxWithLogger.subscribeToOrderFills({
           providers: [
-            ['hyperliquid', successfulProvider as unknown as PerpsProvider],
-            ['myx', failingProvider as unknown as PerpsProvider],
+            ['hyperliquid', successfulProvider as unknown as IPerpsProvider],
+            ['myx', failingProvider as unknown as IPerpsProvider],
           ],
           callback: jest.fn(),
         });
@@ -706,8 +706,8 @@ describe('SubscriptionMultiplexer', () => {
       expect(() => {
         muxWithLogger.subscribeToAccount({
           providers: [
-            ['hyperliquid', successfulProvider as unknown as PerpsProvider],
-            ['myx', failingProvider as unknown as PerpsProvider],
+            ['hyperliquid', successfulProvider as unknown as IPerpsProvider],
+            ['myx', failingProvider as unknown as IPerpsProvider],
           ],
           callback: jest.fn(),
         });
@@ -735,8 +735,8 @@ describe('SubscriptionMultiplexer', () => {
         muxNoLogger.subscribeToPrices({
           symbols: ['BTC'],
           providers: [
-            ['hyperliquid', successfulProvider as unknown as PerpsProvider],
-            ['myx', failingProvider as unknown as PerpsProvider],
+            ['hyperliquid', successfulProvider as unknown as IPerpsProvider],
+            ['myx', failingProvider as unknown as IPerpsProvider],
           ],
           callback: jest.fn(),
         });
@@ -759,9 +759,9 @@ describe('SubscriptionMultiplexer', () => {
         muxWithLogger.subscribeToPrices({
           symbols: ['BTC'],
           providers: [
-            ['hyperliquid', provider1 as unknown as PerpsProvider],
-            ['myx', provider2 as unknown as PerpsProvider],
-            ['myx', failingProvider as unknown as PerpsProvider],
+            ['hyperliquid', provider1 as unknown as IPerpsProvider],
+            ['myx', provider2 as unknown as IPerpsProvider],
+            ['myx', failingProvider as unknown as IPerpsProvider],
           ],
           callback: jest.fn(),
         });

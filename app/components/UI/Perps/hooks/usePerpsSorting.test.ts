@@ -42,13 +42,13 @@ describe('usePerpsSorting', () => {
       const { result } = renderHook(() => usePerpsSorting());
 
       expect(result.current.selectedOptionId).toBe(
-        MARKET_SORTING_CONFIG.DefaultSortOptionId,
+        MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
       );
       expect(result.current.sortBy).toBe(
-        MARKET_SORTING_CONFIG.SortFields.Volume,
+        MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
       );
       expect(result.current.direction).toBe(
-        MARKET_SORTING_CONFIG.DefaultDirection,
+        MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
       );
     });
 
@@ -120,8 +120,8 @@ describe('usePerpsSorting', () => {
 
       expect(mockSortMarkets).toHaveBeenCalledWith({
         markets: mockMarkets,
-        sortBy: MARKET_SORTING_CONFIG.SortFields.Volume,
-        direction: MARKET_SORTING_CONFIG.DefaultDirection,
+        sortBy: MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
+        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
       });
     });
 
@@ -204,8 +204,8 @@ describe('usePerpsSorting', () => {
 
       expect(mockSortMarkets).toHaveBeenCalledWith({
         markets: [],
-        sortBy: MARKET_SORTING_CONFIG.SortFields.Volume,
-        direction: MARKET_SORTING_CONFIG.DefaultDirection,
+        sortBy: MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
+        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
       });
     });
 
@@ -218,10 +218,10 @@ describe('usePerpsSorting', () => {
 
       expect(result.current.selectedOptionId).toBe('invalid-option');
       expect(result.current.sortBy).toBe(
-        MARKET_SORTING_CONFIG.SortFields.Volume,
+        MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
       );
       expect(result.current.direction).toBe(
-        MARKET_SORTING_CONFIG.DefaultDirection,
+        MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
       );
     });
 

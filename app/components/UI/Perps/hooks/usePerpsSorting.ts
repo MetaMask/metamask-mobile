@@ -33,8 +33,8 @@ interface UsePerpsSortingReturn {
  * Direction can be toggled independently (used for price change option in UI)
  */
 export const usePerpsSorting = ({
-  initialOptionId = MARKET_SORTING_CONFIG.DefaultSortOptionId,
-  initialDirection = MARKET_SORTING_CONFIG.DefaultDirection,
+  initialOptionId = MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+  initialDirection = MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
 }: UsePerpsSortingParams = {}): UsePerpsSortingReturn => {
   const [selectedOptionId, setSelectedOptionId] =
     useState<SortOptionId>(initialOptionId);
@@ -44,10 +44,10 @@ export const usePerpsSorting = ({
 
   // Derive sortBy from selectedOptionId
   const sortBy = useMemo(() => {
-    const option = MARKET_SORTING_CONFIG.SortOptions.find(
+    const option = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
       (opt) => opt.id === selectedOptionId,
     );
-    return option?.field ?? MARKET_SORTING_CONFIG.SortFields.Volume;
+    return option?.field ?? MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME;
   }, [selectedOptionId]);
 
   const handleOptionChange = useCallback(

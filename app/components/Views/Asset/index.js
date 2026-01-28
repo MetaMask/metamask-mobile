@@ -75,6 +75,7 @@ import {
   selectTransactions,
 } from '../../../selectors/transactionController';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
+import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
@@ -263,6 +264,7 @@ class Asset extends PureComponent {
      * Array of ERC20 assets
      */
     tokens: PropTypes.array,
+    searchDiscoverySwapsTokens: PropTypes.array,
     swapsTransactions: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it
@@ -603,6 +605,7 @@ class Asset extends PureComponent {
 
     const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
       asset,
+      searchDiscoverySwapsTokens: this.props.searchDiscoverySwapsTokens,
     });
 
     const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
@@ -841,6 +844,10 @@ const mapStateToProps = (state, { route }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return {
+    searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
+      state,
+      route.params.chainId,
+    ),
     swapsTransactions: selectSwapsTransactions(state),
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),

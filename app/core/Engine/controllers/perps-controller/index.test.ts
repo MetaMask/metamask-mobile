@@ -105,8 +105,8 @@ describe('perps controller init', () => {
         mainnet: {},
       },
       marketFilterPreferences: {
-        optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
-        direction: MARKET_SORTING_CONFIG.DefaultDirection,
+        optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
       },
       hip3ConfigVersion: 0,
       withdrawInProgress: false,

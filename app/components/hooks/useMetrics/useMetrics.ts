@@ -23,9 +23,6 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  * - The anonymous event includes sensitive properties so you can know **what** but not **who**
  * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
  *
- * @deprecated Use useAnalytics from
- * app/components/hooks/useAnalytics/useAnalytics to migrate
- * away from MetaMetrics.
  * @returns Analytics functions
  *
  * @example basic non-anonymous tracking with no properties:

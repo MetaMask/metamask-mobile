@@ -258,14 +258,16 @@ const LeverageSlider: React.FC<{
   // Generate tick marks based on max leverage using configuration constants
   const tickMarks = useMemo(() => {
     const marks = [];
-    let step: number = LEVERAGE_SLIDER_CONFIG.TickStepMedium;
+    let step: number = LEVERAGE_SLIDER_CONFIG.TICK_STEP_MEDIUM;
 
-    if (maxValue <= LEVERAGE_SLIDER_CONFIG.MaxLeverageLowThreshold) {
-      step = LEVERAGE_SLIDER_CONFIG.TickStepLow;
-    } else if (maxValue <= LEVERAGE_SLIDER_CONFIG.MaxLeverageMediumThreshold) {
-      step = LEVERAGE_SLIDER_CONFIG.TickStepMedium;
+    if (maxValue <= LEVERAGE_SLIDER_CONFIG.MAX_LEVERAGE_LOW_THRESHOLD) {
+      step = LEVERAGE_SLIDER_CONFIG.TICK_STEP_LOW;
+    } else if (
+      maxValue <= LEVERAGE_SLIDER_CONFIG.MAX_LEVERAGE_MEDIUM_THRESHOLD
+    ) {
+      step = LEVERAGE_SLIDER_CONFIG.TICK_STEP_MEDIUM;
     } else {
-      step = LEVERAGE_SLIDER_CONFIG.TickStepHigh;
+      step = LEVERAGE_SLIDER_CONFIG.TICK_STEP_HIGH;
     }
 
     // Ensure we don't generate marks beyond maxValue
@@ -371,7 +373,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         asset,
       },
       {
-        debounceMs: PERFORMANCE_CONFIG.LiquidationPriceDebounceMs, // Debounced for performance
+        debounceMs: PERFORMANCE_CONFIG.LIQUIDATION_PRICE_DEBOUNCE_MS, // Debounced for performance
       },
     );
 

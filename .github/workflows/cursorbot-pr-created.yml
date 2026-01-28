@@ -1,9 +1,11 @@
 # Version: 1.0.0
-# DISABLED - Experimental workflow
 name: CursorBot PR Created
 
 on:
-  workflow_dispatch: # Manual only - disabled
+  pull_request:
+    types: [opened]
+    branches:
+      - main
 
 permissions:
   issues: write
@@ -12,8 +14,8 @@ permissions:
 jobs:
   process-cursorbot-pr:
     runs-on: ubuntu-latest
-    # DISABLED - This workflow is disabled
-    if: false
+    # Only run for PRs from cursorbot branches
+    if: startsWith(github.head_ref, 'cursorbot/issue-')
     steps:
       - name: Extract issue number
         id: extract

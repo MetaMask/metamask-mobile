@@ -168,15 +168,15 @@ export const selectMarketFilterPreferences = (
     // Handle other simple legacy strings (e.g., 'volume', 'openInterest', etc.)
     return {
       optionId: pref as SortOptionId,
-      direction: MARKET_SORTING_CONFIG.DefaultDirection,
+      direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
     };
   }
 
   // Return new object format or default
   return (
     pref ?? {
-      optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
-      direction: MARKET_SORTING_CONFIG.DefaultDirection,
+      optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+      direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
     }
   );
 };

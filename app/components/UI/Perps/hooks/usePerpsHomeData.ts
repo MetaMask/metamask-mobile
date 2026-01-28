@@ -59,10 +59,10 @@ interface UsePerpsHomeDataReturn {
  * Uses object parameters pattern for maintainability
  */
 export const usePerpsHomeData = ({
-  positionsLimit = HOME_SCREEN_CONFIG.PositionsCarouselLimit,
-  ordersLimit = HOME_SCREEN_CONFIG.OrdersCarouselLimit,
-  trendingLimit = HOME_SCREEN_CONFIG.TrendingMarketsLimit,
-  activityLimit = HOME_SCREEN_CONFIG.RecentActivityLimit,
+  positionsLimit = HOME_SCREEN_CONFIG.POSITIONS_CAROUSEL_LIMIT,
+  ordersLimit = HOME_SCREEN_CONFIG.ORDERS_CAROUSEL_LIMIT,
+  trendingLimit = HOME_SCREEN_CONFIG.TRENDING_MARKETS_LIMIT,
+  activityLimit = HOME_SCREEN_CONFIG.RECENT_ACTIVITY_LIMIT,
   searchQuery = '',
 }: UsePerpsHomeDataParams = {}): UsePerpsHomeDataReturn => {
   // Fetch positions via WebSocket with throttling for performance
@@ -167,12 +167,12 @@ export const usePerpsHomeData = ({
 
   // Derive sort field from saved preference
   const { sortBy, direction } = useMemo(() => {
-    const sortOption = MARKET_SORTING_CONFIG.SortOptions.find(
+    const sortOption = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
       (opt) => opt.id === savedSortPreference.optionId,
     );
 
     return {
-      sortBy: sortOption?.field ?? MARKET_SORTING_CONFIG.SortFields.Volume,
+      sortBy: sortOption?.field ?? MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
       direction: savedSortPreference.direction,
     };
   }, [savedSortPreference]);

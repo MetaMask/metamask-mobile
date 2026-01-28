@@ -48,10 +48,4 @@ export interface SrpInputGridProps {
    * Callback when the current input word changes
    */
   onCurrentWordChange?: (word: string) => void;
-
-  /**
-   * Whether to auto focus the first input on mount
-   * @default true
-   */
-  autoFocus?: boolean;
 }

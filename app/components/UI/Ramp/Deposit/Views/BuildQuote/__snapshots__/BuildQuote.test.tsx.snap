@@ -119,11 +119,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -249,11 +249,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -520,7 +520,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -549,8 +551,10 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -648,7 +652,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -890,8 +896,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -977,7 +984,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -1924,11 +1931,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -2054,11 +2061,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -2325,7 +2332,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -2354,8 +2363,10 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -2453,7 +2464,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -2695,8 +2708,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -2782,7 +2796,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -3729,11 +3743,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -3859,11 +3873,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -4130,7 +4144,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -4159,8 +4175,10 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -4258,7 +4276,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -4500,8 +4520,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -4587,7 +4608,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -5534,11 +5555,11 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -5664,11 +5685,11 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -5935,7 +5956,9 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -5964,8 +5987,10 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -6080,7 +6105,9 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -6244,8 +6271,9 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -6331,7 +6359,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -7278,11 +7306,11 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -7408,11 +7436,11 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -7679,7 +7707,9 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -7708,8 +7738,10 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -7824,7 +7856,9 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -7988,8 +8022,9 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -8075,7 +8110,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -9021,11 +9056,11 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -9151,11 +9186,11 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -9422,7 +9457,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -9451,8 +9488,10 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -9567,7 +9606,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -9731,8 +9772,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -9818,7 +9860,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -10765,11 +10807,11 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -10895,11 +10937,11 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -11166,7 +11208,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -11195,8 +11239,10 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -11311,7 +11357,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -11568,8 +11616,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -11655,7 +11704,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -12602,11 +12651,11 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -12732,11 +12781,11 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -13003,7 +13052,9 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -13032,8 +13083,10 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -13148,7 +13201,9 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -13312,8 +13367,9 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -14301,11 +14357,11 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -14431,11 +14487,11 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -14702,7 +14758,9 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -14731,8 +14789,10 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -14847,7 +14907,9 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -15011,8 +15073,9 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -15098,7 +15161,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -16045,11 +16108,11 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -16175,11 +16238,11 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -16446,7 +16509,9 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -16475,8 +16540,10 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -16591,7 +16658,9 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -16755,8 +16824,9 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -16842,7 +16912,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -17789,11 +17859,11 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -17919,11 +17989,11 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -18190,7 +18260,9 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -18219,8 +18291,10 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -18335,7 +18409,9 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -18499,8 +18575,9 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -18586,7 +18663,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -19533,11 +19610,11 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -19663,11 +19740,11 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -19934,7 +20011,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -19963,8 +20042,10 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -20079,7 +20160,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -20243,8 +20326,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -20330,7 +20414,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -21277,11 +21361,11 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -21407,11 +21491,11 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -21678,7 +21762,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -21707,8 +21793,10 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -21823,7 +21911,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -22080,8 +22170,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -22167,7 +22258,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -23114,11 +23205,11 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -23244,11 +23335,11 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -23515,7 +23606,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -23544,8 +23637,10 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -23658,7 +23753,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -23822,8 +23919,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -23909,7 +24007,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -24856,11 +24954,11 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -24986,11 +25084,11 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -25257,7 +25355,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -25286,8 +25386,10 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -25400,7 +25502,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -25657,8 +25761,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -25744,7 +25849,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -26691,11 +26796,11 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -26821,11 +26926,11 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -27092,7 +27197,9 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -27121,8 +27228,10 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -27237,7 +27346,9 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -27494,8 +27605,9 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -27581,7 +27693,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,
@@ -28528,11 +28640,11 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="ArrowLeft"
+                    name="Setting"
                     style={
                       [
                         {
@@ -28658,11 +28770,11 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="Close"
                     style={
                       [
                         {
@@ -28929,7 +29041,9 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "gap": 10,
                                     "justifyContent": "space-between",
@@ -28958,8 +29072,10 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
+                                    "borderWidth": 1,
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
                                   }
@@ -29074,7 +29190,9 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
+                                      "borderWidth": 1,
                                       "flexDirection": "row",
                                       "gap": 8,
                                       "paddingLeft": 8,
@@ -29238,8 +29356,9 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               onPress={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
+                                  "borderWidth": 1,
                                   "marginBottom": 16,
                                 }
                               }
@@ -29325,7 +29444,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "backgroundColor": "#ffffff",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 999,
-                                          "borderWidth": 0,
+                                          "borderWidth": 1,
                                           "color": "#121314",
                                           "padding": 16,
                                           "paddingHorizontal": 8,

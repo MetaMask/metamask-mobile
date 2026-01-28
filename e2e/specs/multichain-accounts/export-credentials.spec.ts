@@ -6,7 +6,7 @@ import {
 } from './common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import { completeSrpQuiz } from '../multisrp/utils';
-import { defaultOptions } from '../../../tests/seeder/anvil-manager';
+import { defaultOptions } from '../../seeder/anvil-manager';
 import TestHelpers from '../../helpers';
 
 const exportSrp = async () => {

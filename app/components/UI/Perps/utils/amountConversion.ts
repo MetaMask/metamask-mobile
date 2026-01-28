@@ -2,13 +2,13 @@ import { formatPerpsFiat } from '../utils/formatUtils';
 import BN from 'bnjs4';
 import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsLogger } from '../controllers/types';
+import type { IPerpsLogger } from '../controllers/types';
 
 /**
  * Optional logger for amount conversion functions.
  * When provided, enables error logging.
  */
-export type AmountConversionLogger = PerpsLogger | undefined;
+export type AmountConversionLogger = IPerpsLogger | undefined;
 
 /**
  * Converts various amount formats to USD display string for Perps
@@ -60,7 +60,7 @@ export const convertPerpsAmountToUSD = (
   } catch (error) {
     logger?.error(ensureError(error), {
       context: {
-        name: PERPS_CONSTANTS.FeatureName,
+        name: PERPS_CONSTANTS.FEATURE_NAME,
         data: { message: `Error converting Perps amount to USD: ${amount}` },
       },
     });

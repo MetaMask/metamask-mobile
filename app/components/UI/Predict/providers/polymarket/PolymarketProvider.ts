@@ -1512,9 +1512,15 @@ export class PolymarketProvider implements PredictProvider {
       type: TransactionType.predictDeposit,
     });
 
+    const chainId = CHAIN_IDS.POLYGON;
+    const isPolygonChain =
+      chainId.toLowerCase() ===
+      numberToHex(POLYGON_MAINNET_CHAIN_ID).toLowerCase();
+
     return {
-      chainId: CHAIN_IDS.POLYGON,
+      chainId,
       transactions,
+      gasFeeToken: isPolygonChain ? (collateral as Hex) : undefined,
     };
   }
 

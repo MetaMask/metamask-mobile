@@ -55,7 +55,7 @@ export const MusdConversionInfo = () => {
     );
   }
 
-  useMusdConversionNavbar();
+  useMusdConversionNavbar(outputChainId);
 
   useAddToken({
     chainId: outputChainId,

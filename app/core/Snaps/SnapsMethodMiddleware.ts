@@ -29,7 +29,7 @@ import {
   WebSocketServiceCloseAction,
   WebSocketServiceGetAllAction,
   WebSocketServiceSendMessageAction,
-} from '../Engine/controllers/snaps/constants';
+} from '../Engine/controllers/snaps';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MetaMetrics } from '../../../app/core/Analytics';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';

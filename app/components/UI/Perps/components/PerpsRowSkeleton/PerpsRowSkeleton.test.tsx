@@ -36,7 +36,7 @@ describe('PerpsRowSkeleton', () => {
       const { getByLabelText } = render(<PerpsRowSkeleton />);
 
       const iconSkeleton = getByLabelText(
-        `skeleton-${HOME_SCREEN_CONFIG.DefaultIconSize}x${HOME_SCREEN_CONFIG.DefaultIconSize}`,
+        `skeleton-${HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE}x${HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE}`,
       );
 
       expect(iconSkeleton).toBeTruthy();

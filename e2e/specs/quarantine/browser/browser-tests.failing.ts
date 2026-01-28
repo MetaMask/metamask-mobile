@@ -2,7 +2,7 @@ import { SmokeWalletPlatform } from '../../../tags.js';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper.ts';
 import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder.ts';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper.ts';
-import ExternalSites from '../../../../tests/resources/externalsites.json';
+import ExternalSites from '../../../resources/externalsites.json';
 import Browser from '../../../pages/Browser/BrowserView.ts';
 import EnsWebsite from '../../../pages/Browser/ExternalWebsites/EnsWebsite.ts';
 import Assertions from '../../../../tests/framework/Assertions.ts';

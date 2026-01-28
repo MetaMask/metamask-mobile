@@ -16,8 +16,9 @@ import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
+import { OPTIN_META_METRICS_UI_SEEN, TRUE } from '../../../constants/storage';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
-import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import Checkbox from '../../../component-library/components/Checkbox';
@@ -125,7 +126,7 @@ const OptinMetrics = () => {
    * Action to be triggered when pressing any button
    */
   const continueNavigation = useCallback(async () => {
-    await markMetricsOptInUISeen();
+    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
 
     const onContinue = route?.params?.onContinue as (() => void) | undefined;
     if (onContinue) {

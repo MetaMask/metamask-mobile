@@ -2,7 +2,6 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import PerpsMarketSortDropdowns from '../../../../components/PerpsMarketSortDropdowns';
-import PerpsMarketTypeDropdown from '../../../../components/PerpsMarketTypeDropdown';
 import PerpsStocksCommoditiesDropdown from '../../../../components/PerpsStocksCommoditiesDropdown';
 import type { PerpsMarketFiltersBarProps } from './PerpsMarketFiltersBar.types';
 import styleSheet from './PerpsMarketFiltersBar.styles';
@@ -10,31 +9,25 @@ import styleSheet from './PerpsMarketFiltersBar.styles';
 /**
  * PerpsMarketFiltersBar Component
  *
- * Combines market type filter, sort dropdown, and optional sub-filters
+ * Combines market sort dropdown with watchlist filter toggle
  * Provides a unified filter bar for the markets list
  *
  * Features:
- * - Market type dropdown (All, Crypto, Stocks & Commodities)
- * - Sort dropdown (volume, price change, funding rate, etc.)
- * - Optional stocks/commodities sub-filter dropdown
+ * - Sort dropdown on the left (market, volume, open interest, etc.)
+ * - Watchlist toggle button on the right (icon + text)
+ * - Visual feedback for active watchlist filter (filled vs outline star)
  *
  * @example
  * ```tsx
  * <PerpsMarketFiltersBar
  *   selectedOptionId="openInterest"
  *   onSortPress={() => setSheetVisible(true)}
- *   showMarketTypeDropdown
- *   marketTypeFilter="all"
- *   onMarketTypePress={() => setMarketTypeSheetVisible(true)}
  * />
  * ```
  */
 const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   selectedOptionId,
   onSortPress,
-  showMarketTypeDropdown = false,
-  marketTypeFilter = 'all',
-  onMarketTypePress,
   showStocksCommoditiesDropdown = false,
   stocksCommoditiesFilter = 'all',
   onStocksCommoditiesPress,
@@ -50,13 +43,6 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
         contentContainerStyle={styles.sortContainer}
         style={styles.sortScrollView}
       >
-        {showMarketTypeDropdown && onMarketTypePress && (
-          <PerpsMarketTypeDropdown
-            selectedFilter={marketTypeFilter}
-            onPress={onMarketTypePress}
-            testID={testID ? `${testID}-market-type` : undefined}
-          />
-        )}
         <PerpsMarketSortDropdowns
           selectedOptionId={selectedOptionId}
           onSortPress={onSortPress}

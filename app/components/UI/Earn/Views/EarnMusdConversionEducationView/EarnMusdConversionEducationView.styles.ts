@@ -36,7 +36,4 @@ export const styleSheet = (_params: { theme: Theme }) =>
       gap: 8,
       marginBottom: 16,
     },
-    termsText: {
-      textDecorationLine: 'underline',
-    },
   });

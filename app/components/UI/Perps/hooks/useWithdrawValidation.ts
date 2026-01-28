@@ -56,7 +56,7 @@ export const useWithdrawValidation = ({
     if (!withdrawAmount) return false;
     const minAmount = Number.parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
-        WITHDRAWAL_CONSTANTS.DefaultMinAmount,
+        WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
     );
     return Number.parseFloat(withdrawAmount) < minAmount;
   }, [withdrawAmount, withdrawalRoute]);
@@ -70,7 +70,7 @@ export const useWithdrawValidation = ({
     if (isBelowMinimum) {
       const minAmount = Number.parseFloat(
         withdrawalRoute?.constraints?.minAmount ||
-          WITHDRAWAL_CONSTANTS.DefaultMinAmount,
+          WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
       );
       return strings('perps.withdrawal.minimum_amount_error', {
         amount: minAmount,
@@ -85,7 +85,7 @@ export const useWithdrawValidation = ({
   const getMinimumAmount = () =>
     Number.parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
-        WITHDRAWAL_CONSTANTS.DefaultMinAmount,
+        WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
     );
 
   return {

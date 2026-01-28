@@ -22,7 +22,7 @@ const PerpsQuoteExpiredModal = () => {
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
-  const refreshRate = DEPOSIT_CONFIG.RefreshRate / 1000; // Convert to seconds
+  const refreshRate = DEPOSIT_CONFIG.refreshRate / 1000; // Convert to seconds
 
   const handleClose = () => {
     navigation.goBack();

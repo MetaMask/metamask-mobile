@@ -388,7 +388,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
               initialTab: undefined,
             });
           }
-        }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+        }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
 
         return () => clearTimeout(timer);
       }

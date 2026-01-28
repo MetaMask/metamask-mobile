@@ -11,7 +11,7 @@ import Browser from '../../pages/Browser/BrowserView';
 import TestDApp from '../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import { CustomNetworks } from '../../../tests/resources/networks.e2e';
+import { CustomNetworks } from '../../resources/networks.e2e';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -29,6 +29,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
+            .withSolanaFixture()
             .withTokensForAllPopularNetworks([
               {
                 address: '0x0000000000000000000000000000000000000000',

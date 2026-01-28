@@ -10,7 +10,7 @@ import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import { RegressionTrade } from '../../tags';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { LocalNodeType } from '../../../tests/framework/types';
-import { Hardfork } from '../../../tests/seeder/anvil-manager';
+import { Hardfork } from '../../seeder/anvil-manager';
 import {
   RampsRegions,
   RampsRegionsEnum,

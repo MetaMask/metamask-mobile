@@ -13,10 +13,7 @@ import {
 import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
 import { hasTransactionType } from '../../../utils/transaction';
-import {
-  TransactionPayQuote,
-  TransactionPayTotals,
-} from '@metamask/transaction-pay-controller';
+import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
@@ -30,59 +27,26 @@ import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
-import { Json } from '@metamask/utils';
 
 const NETWORK_FEE_ONLY_TYPES = [TransactionType.musdConversion];
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
 
-  if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
-    return (
-      <>
-        <NetworkFeeRow
-          totals={totals}
-          hasAlert={hasAlert}
-          isLoading={isLoading}
-        />
-        <MetaMaskFeeRow quotes={quotes} isLoading={isLoading} />
-      </>
-    );
-  }
+  const networkFeeUsd = useMemo(() => {
+    const sourceNetworkUsd = totals?.fees?.sourceNetwork?.estimate?.usd;
+    const targetNetworkUsd = totals?.fees?.targetNetwork?.usd;
 
-  return (
-    <>
-      <TransactionFeeRow
-        totals={totals}
-        quotes={quotes}
-        transactionMeta={transactionMetadata}
-        hasAlert={hasAlert}
-        isLoading={isLoading}
-      />
-      <MetaMaskFeeRow quotes={quotes} isLoading={isLoading} />
-    </>
-  );
-}
+    if (sourceNetworkUsd == null || targetNetworkUsd == null) return '';
 
-function TransactionFeeRow({
-  transactionMeta,
-  hasAlert,
-  quotes,
-  totals,
-  isLoading,
-}: {
-  transactionMeta: TransactionMeta;
-  hasAlert: boolean;
-  quotes?: TransactionPayQuote<Json>[];
-  totals?: TransactionPayTotals;
-  isLoading: boolean;
-}) {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
+    return formatFiat(new BigNumber(sourceNetworkUsd).plus(targetNetworkUsd));
+  }, [totals, formatFiat]);
 
   const feeTotalUsd = useMemo(() => {
     if (!totals?.fees) return '';
@@ -94,116 +58,82 @@ function TransactionFeeRow({
     );
   }, [totals, formatFiat]);
 
-  if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
-
-  const hasQuotes = Boolean(quotes?.length);
-
-  return (
-    <AlertRow
-      testID="bridge-fee-row"
-      alertField={RowAlertKey.PayWithFee}
-      label={strings('confirm.label.transaction_fee')}
-      tooltip={
-        hasQuotes && totals ? (
-          <Tooltip transactionMeta={transactionMeta} totals={totals} />
-        ) : undefined
-      }
-      tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
-      rowVariant={InfoRowVariant.Small}
-    >
-      <Text
-        variant={TextVariant.BodyMD}
-        color={hasAlert ? TextColor.Error : TextColor.Alternative}
-        testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
-      >
-        {feeTotalUsd}
-      </Text>
-    </AlertRow>
-  );
-}
-
-function getNetworkFeeUsdBN({
-  totals,
-}: {
-  totals?: TransactionPayTotals;
-}): BigNumber | undefined {
-  const sourceNetworkUsd = totals?.fees?.sourceNetwork?.estimate?.usd;
-  const targetNetworkUsd = totals?.fees?.targetNetwork?.usd;
-
-  if (sourceNetworkUsd == null || targetNetworkUsd == null) return undefined;
-
-  return new BigNumber(sourceNetworkUsd).plus(targetNetworkUsd);
-}
-
-function NetworkFeeRow({
-  totals,
-  hasAlert,
-  isLoading,
-}: {
-  totals?: TransactionPayTotals;
-  hasAlert: boolean;
-  isLoading: boolean;
-}) {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
-
-  const networkFeeUsd = useMemo(() => {
-    const networkFeeUsdBN = getNetworkFeeUsdBN({ totals });
-    return networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : '';
-  }, [totals, formatFiat]);
-
-  if (isLoading) return <InfoRowSkeleton testId="network-fee-row-skeleton" />;
-
-  return (
-    <AlertRow
-      testID="network-fee-row"
-      label={strings('confirm.label.network_fee')}
-      alertField={RowAlertKey.PayWithFee}
-      tooltipTitle={strings('confirm.label.network_fee')}
-      tooltip={strings('confirm.tooltip.network_fee')}
-      tooltipColor={IconColor.Alternative}
-      rowVariant={InfoRowVariant.Small}
-    >
-      <Text
-        variant={TextVariant.BodyMD}
-        color={hasAlert ? TextColor.Error : TextColor.Alternative}
-        testID={ConfirmationRowComponentIDs.NETWORK_FEE}
-      >
-        {networkFeeUsd}
-      </Text>
-    </AlertRow>
-  );
-}
-
-function MetaMaskFeeRow({
-  quotes,
-  isLoading,
-}: {
-  quotes?: TransactionPayQuote<Json>[];
-  isLoading: boolean;
-}) {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
-
-  const hasQuotes = Boolean(quotes?.length);
-
   const metamaskFeeUsd = useMemo(
     () => formatFiat(new BigNumber(0)),
     [formatFiat],
   );
 
-  if (isLoading) return <InfoRowSkeleton testId="metamask-fee-row-skeleton" />;
+  if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
+    if (isLoading) {
+      return <InfoRowSkeleton testId="network-fee-row-skeleton" />;
+    }
 
-  if (!hasQuotes) return null;
+    return (
+      <AlertRow
+        testID="network-fee-row"
+        label={strings('confirm.label.network_fee')}
+        alertField={RowAlertKey.PayWithFee}
+        tooltipTitle={strings('confirm.label.network_fee')}
+        tooltip={strings('confirm.tooltip.network_fee')}
+        tooltipColor={IconColor.Alternative}
+        rowVariant={InfoRowVariant.Small}
+      >
+        <Text
+          variant={TextVariant.BodyMD}
+          color={hasAlert ? TextColor.Error : TextColor.Alternative}
+          testID={ConfirmationRowComponentIDs.NETWORK_FEE}
+        >
+          {networkFeeUsd}
+        </Text>
+      </AlertRow>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <>
+        <InfoRowSkeleton testId="bridge-fee-row-skeleton" />
+        <InfoRowSkeleton testId="metamask-fee-row-skeleton" />
+      </>
+    );
+  }
+
+  const hasQuotes = Boolean(quotes?.length);
 
   return (
-    <InfoRow
-      testID="metamask-fee-row"
-      label={strings('confirm.label.metamask_fee')}
-      rowVariant={InfoRowVariant.Small}
-    >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-        {metamaskFeeUsd}
-      </Text>
-    </InfoRow>
+    <>
+      <AlertRow
+        testID="bridge-fee-row"
+        alertField={RowAlertKey.PayWithFee}
+        label={strings('confirm.label.transaction_fee')}
+        tooltip={
+          hasQuotes && totals ? (
+            <Tooltip transactionMeta={transactionMetadata} totals={totals} />
+          ) : undefined
+        }
+        tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
+        rowVariant={InfoRowVariant.Small}
+      >
+        <Text
+          variant={TextVariant.BodyMD}
+          color={hasAlert ? TextColor.Error : TextColor.Alternative}
+          testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
+        >
+          {feeTotalUsd}
+        </Text>
+      </AlertRow>
+      {hasQuotes && (
+        <InfoRow
+          testID="metamask-fee-row"
+          label={strings('confirm.label.metamask_fee')}
+          rowVariant={InfoRowVariant.Small}
+        >
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {metamaskFeeUsd}
+          </Text>
+        </InfoRow>
+      )}
+    </>
   );
 }
 
@@ -244,10 +174,15 @@ function FeesTooltip({
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
-  const networkFeeUsd = useMemo(() => {
-    const networkFeeUsdBN = getNetworkFeeUsdBN({ totals });
-    return networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : '';
-  }, [totals, formatFiat]);
+  const networkFeeUsd = useMemo(
+    () =>
+      formatFiat(
+        new BigNumber(totals.fees.sourceNetwork.estimate.usd).plus(
+          totals.fees.targetNetwork.usd,
+        ),
+      ),
+    [totals, formatFiat],
+  );
 
   const providerFeeUsd = useMemo(
     () => formatFiat(new BigNumber(totals.fees.provider.usd)),

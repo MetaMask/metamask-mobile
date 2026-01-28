@@ -31,7 +31,7 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [CHAIN_IDS.SEI]: 'Sei',
   [CHAIN_IDS.MONAD]: 'Monad',
   [SolScope.Mainnet]: 'Solana',
-  [BtcScope.Mainnet]: 'BTC',
+  [BtcScope.Mainnet]: 'Bitcoin',
   [TrxScope.Mainnet]: 'Tron',
 };
 

@@ -255,6 +255,7 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
+import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
@@ -429,6 +430,14 @@ type OptionalControllers = Pick<
   | 'StorageService'
 >;
 
+/**
+ * Controllers that are defined with state.
+ */
+export type StatefulControllers = Omit<
+  Controllers,
+  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
+>;
+
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
@@ -527,6 +536,7 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
+  | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents

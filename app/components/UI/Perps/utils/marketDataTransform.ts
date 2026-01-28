@@ -113,7 +113,7 @@ function extractFundingData(params: ExtractFundingDataParams): FundingData {
   const {
     predictedFundings,
     symbol,
-    exchangeName = HYPERLIQUID_CONFIG.ExchangeName,
+    exchangeName = HYPERLIQUID_CONFIG.EXCHANGE_NAME,
   } = params;
 
   const result: FundingData = {};
@@ -241,19 +241,19 @@ export function transformMarketData(
       name: symbol,
       maxLeverage: `${asset.maxLeverage}x`,
       price: isNaN(currentPrice)
-        ? PERPS_CONSTANTS.FallbackPriceDisplay
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
       change24h: isNaN(change24h)
-        ? PERPS_CONSTANTS.ZeroAmountDetailedDisplay
+        ? PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
         : formatChange(change24h),
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
         : formatPercentage(change24hPercent),
       volume: isNaN(volume)
-        ? PERPS_CONSTANTS.FallbackPriceDisplay
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatVolume(volume),
       openInterest: isNaN(openInterest)
-        ? PERPS_CONSTANTS.FallbackPriceDisplay
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatVolume(openInterest),
       nextFundingTime: fundingData.nextFundingTime,
       fundingIntervalHours: fundingData.fundingIntervalHours,

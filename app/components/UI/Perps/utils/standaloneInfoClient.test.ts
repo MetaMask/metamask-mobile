@@ -22,7 +22,7 @@ describe('createStandaloneInfoClient', () => {
 
     expect(HttpTransport).toHaveBeenCalledWith({
       isTestnet: false,
-      timeout: PERPS_CONSTANTS.ConnectionTimeoutMs,
+      timeout: PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS,
     });
     expect(InfoClient).toHaveBeenCalled();
   });
@@ -32,7 +32,7 @@ describe('createStandaloneInfoClient', () => {
 
     expect(HttpTransport).toHaveBeenCalledWith({
       isTestnet: true,
-      timeout: PERPS_CONSTANTS.ConnectionTimeoutMs,
+      timeout: PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS,
     });
   });
 
@@ -41,7 +41,7 @@ describe('createStandaloneInfoClient', () => {
 
     expect(HttpTransport).toHaveBeenCalledWith(
       expect.objectContaining({
-        timeout: PERPS_CONSTANTS.ConnectionTimeoutMs,
+        timeout: PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS,
       }),
     );
   });
@@ -70,7 +70,7 @@ describe('createStandaloneInfoClient', () => {
       transport: expect.objectContaining({
         config: {
           isTestnet: false,
-          timeout: PERPS_CONSTANTS.ConnectionTimeoutMs,
+          timeout: PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS,
         },
       }),
     });

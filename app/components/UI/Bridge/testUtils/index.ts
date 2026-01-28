@@ -8,9 +8,6 @@ import type { BridgeState } from '../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../reducers';
 import { DeepPartial } from '../../../../util/test/renderWithProvider';
 
-// Re-export all fixtures (no heavy dependencies)
-export * from './fixtures';
-
 type BridgeControllerStateOverride = Partial<BridgeControllerState>;
 
 /**

@@ -1,5 +1,4 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -14,12 +13,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { TokenI } from '../../../Tokens/types';
-import { useTheme } from '../../../../../util/theme';
 
 interface PendingMerklRewardsProps {
   asset: TokenI;
   claimableReward: string | null;
-  isProcessingClaim?: boolean;
 }
 
 /**
@@ -28,30 +25,7 @@ interface PendingMerklRewardsProps {
 const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
   asset,
   claimableReward,
-  isProcessingClaim = false,
 }) => {
-  const { colors } = useTheme();
-
-  // Show loading state while processing claim
-  if (isProcessingClaim) {
-    return (
-      <Box twClassName="px-4">
-        <Box twClassName="h-px bg-border-muted my-4 mt-6" />
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="py-4"
-        >
-          <ActivityIndicator size="small" color={colors.primary.default} />
-          <Text variant={TextVariant.BodyMd} twClassName="text-text-muted ml-2">
-            {strings('asset_overview.merkl_rewards.processing_claim')}
-          </Text>
-        </Box>
-      </Box>
-    );
-  }
-
   // Don't render anything if there's no claimable reward
   if (!claimableReward) {
     return null;

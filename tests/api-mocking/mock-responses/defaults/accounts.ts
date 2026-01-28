@@ -1316,45 +1316,6 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
     },
     {
       urlEndpoint:
-        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances\?accountAddresses=.*$/,
-      responseCode: 200,
-      response: {
-        balances: [
-          {
-            count: 2,
-            balances: [
-              {
-                object: 'token',
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'ETH',
-                name: 'Ether',
-                type: 'native',
-                decimals: 18,
-                chainId: 1,
-                balance: '0.000000000000000000',
-                accountAddress:
-                  'eip155:1:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-              },
-              {
-                object: 'token',
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'MATIC',
-                name: 'MATIC',
-                type: 'native',
-                decimals: 18,
-                chainId: 137,
-                balance: '0.000000000000000000',
-                accountAddress:
-                  'eip155:137:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-              },
-            ],
-            unprocessedNetworks: ['eip155:1329'],
-          },
-        ],
-      },
-    },
-    {
-      urlEndpoint:
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v\d+\/accounts\/\/.*$/,
       responseCode: 400,
       response: {

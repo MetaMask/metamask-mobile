@@ -33,6 +33,5 @@ export const mockBridgeReducerState: BridgeState = {
   isGasIncluded7702Supported: false,
   bridgeViewMode: BridgeViewMode.Bridge,
   isSelectingRecipient: false,
-  isSelectingToken: false,
   isDestTokenManuallySet: false,
 };

@@ -5,6 +5,9 @@ import { type Action } from 'redux';
 export enum UserActionType {
   LOCKED_APP = 'LOCKED_APP',
   CHECK_FOR_DEEPLINK = 'CHECK_FOR_DEEPLINK',
+  AUTH_SUCCESS = 'AUTH_SUCCESS',
+  AUTH_ERROR = 'AUTH_ERROR',
+  INTERRUPT_BIOMETRICS = 'INTERRUPT_BIOMETRICS',
   LOGIN = 'LOGIN',
   LOGOUT = 'LOGOUT',
   ON_PERSISTED_DATA_LOADED = 'ON_PERSISTED_DATA_LOADED',
@@ -33,6 +36,17 @@ export enum UserActionType {
 export type LockAppAction = Action<UserActionType.LOCKED_APP>;
 
 export type CheckForDeeplinkAction = Action<UserActionType.CHECK_FOR_DEEPLINK>;
+
+export type AuthSuccessAction = Action<UserActionType.AUTH_SUCCESS> & {
+  payload: { bioStateMachineId?: string };
+};
+
+export type AuthErrorAction = Action<UserActionType.AUTH_ERROR> & {
+  payload: { bioStateMachineId?: string };
+};
+
+export type InterruptBiometricsAction =
+  Action<UserActionType.INTERRUPT_BIOMETRICS>;
 
 export type LoginAction = Action<UserActionType.LOGIN>;
 
@@ -113,6 +127,9 @@ export type SetMusdConversionAssetDetailCtaSeenAction =
 export type UserAction =
   | LockAppAction
   | CheckForDeeplinkAction
+  | AuthSuccessAction
+  | AuthErrorAction
+  | InterruptBiometricsAction
   | LoginAction
   | LogoutAction
   | PersistedDataLoadedAction

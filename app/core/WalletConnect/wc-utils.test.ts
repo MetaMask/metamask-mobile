@@ -212,13 +212,6 @@ describe('WalletConnect Utils', () => {
       expect(methods).toContain('eth_sendTransaction');
       expect(methods).toContain('wallet_switchEthereumChain');
     });
-
-    it('includes EIP-5792 methods', () => {
-      const methods = getApprovedSessionMethods();
-      expect(methods).toContain('wallet_sendCalls');
-      expect(methods).toContain('wallet_getCallsStatus');
-      expect(methods).toContain('wallet_getCapabilities');
-    });
   });
 
   describe('getScopedPermissions', () => {

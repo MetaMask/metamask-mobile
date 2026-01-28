@@ -17,4 +17,6 @@ export const UPDATE_URL = otaConfig.UPDATE_URL;
  * @returns Full version string (e.g., "7.58.0 OTA Version: v3")
  */
 export const getFullVersion = (appVersion: string): string =>
-  OTA_VERSION !== 'v0' ? `${appVersion} OTA: ${OTA_VERSION}` : `${appVersion}`;
+  process.env.METAMASK_ENVIRONMENT !== 'production' && OTA_VERSION !== 'v0'
+    ? `${appVersion} OTA: ${OTA_VERSION}`
+    : `${appVersion}`;

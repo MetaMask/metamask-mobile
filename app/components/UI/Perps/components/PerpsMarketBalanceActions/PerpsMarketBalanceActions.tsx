@@ -290,7 +290,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               isFullWidth
               testID={PerpsMarketBalanceActionsSelectorsIDs.LEARN_MORE_BUTTON}
             >
-              {strings(LEARN_MORE_CONFIG.TitleKey)}
+              {strings(LEARN_MORE_CONFIG.TITLE_KEY)}
             </Button>
           </Box>
         ) : (

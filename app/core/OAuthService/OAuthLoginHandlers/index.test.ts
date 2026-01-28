@@ -593,65 +593,6 @@ describe('OAuth login handlers', () => {
 
         await expect(handler.login()).rejects.toThrow(existingError);
       });
-
-      // One Tap failure tests
-      it('throw GoogleLoginOneTapFailure when one tap fails without matching credential error', async () => {
-        // This message contains "failure response from one tap" but NOT "matching credential"
-        const message =
-          'During begin signin, failure response from one tap. 16: [28434] Unknown error';
-        mockSignInWithGoogle.mockRejectedValue(new Error(message));
-
-        const handler = createLoginHandler('android', AuthConnection.Google);
-        try {
-          await handler.login();
-        } catch (error) {
-          expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(
-            OAuthErrorType.GoogleLoginOneTapFailure,
-          );
-          // Error message should include original error context for debugging
-          expect((error as OAuthError).message).toContain(
-            'Google login one tap failure',
-          );
-          expect((error as OAuthError).message).toContain(message);
-        }
-      });
-
-      it('throw GoogleLoginNoMatchingCredential (not OneTapFailure) when message contains both patterns', async () => {
-        // This message contains BOTH "failure response from one tap" AND "matching credential"
-        // NO_MATCHING_CREDENTIAL should take precedence due to check order
-        const message =
-          'During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error';
-        mockSignInWithGoogle.mockRejectedValue(new Error(message));
-
-        const handler = createLoginHandler('android', AuthConnection.Google);
-        try {
-          await handler.login();
-        } catch (error) {
-          expect(error).toBeInstanceOf(OAuthError);
-          // Should be NO_MATCHING_CREDENTIAL, not ONE_TAP_FAILURE, due to check order
-          expect((error as OAuthError).code).toBe(
-            OAuthErrorType.GoogleLoginNoMatchingCredential,
-          );
-        }
-      });
-
-      it('verify successful login after a retry when one tap failure occurs on the first attempt', async () => {
-        const message =
-          'During begin signin, failure response from one tap. 16: [28434] Unknown error';
-        mockSignInWithGoogle.mockClear();
-        mockSignInWithGoogle.mockResolvedValue({
-          type: 'google-signin',
-          idToken: 'googleIdToken',
-        });
-        mockSignInWithGoogle.mockRejectedValueOnce(new Error(message));
-
-        const handler = createLoginHandler('android', AuthConnection.Google);
-        await handler.login();
-
-        expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
-        expect(mockSignInAsync).toHaveBeenCalledTimes(0);
-      });
     });
   });
 });

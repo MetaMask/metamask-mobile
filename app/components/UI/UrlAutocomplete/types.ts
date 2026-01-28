@@ -2,6 +2,8 @@
  * Props for the UrlAutocomplete component
  */
 
+import { Hex } from '@metamask/utils';
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UrlAutocompleteComponentProps = {
   /**
@@ -20,6 +22,7 @@ export enum UrlAutocompleteCategory {
   Sites = 'sites',
   Recents = 'recents',
   Favorites = 'favorites',
+  Tokens = 'tokens',
 }
 
 /**
@@ -54,4 +57,21 @@ export type FuseSearchResult = {
   name: string;
 };
 
-export type AutocompleteSearchResult = FuseSearchResult;
+/**
+ * The result of a token search
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TokenSearchResult = {
+  category: UrlAutocompleteCategory.Tokens;
+  name: string;
+  symbol: string;
+  address: string;
+  decimals: number;
+  chainId: Hex;
+  logoUrl?: string;
+  price: number;
+  percentChange: number;
+  isFromSearch: true;
+};
+
+export type AutocompleteSearchResult = FuseSearchResult | TokenSearchResult;

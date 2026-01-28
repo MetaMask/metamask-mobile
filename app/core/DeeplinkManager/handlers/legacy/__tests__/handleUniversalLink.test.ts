@@ -12,10 +12,8 @@ import { DeeplinkManager } from '../../../DeeplinkManager';
 import extractURLParams from '../../../utils/extractURLParams';
 import handleUniversalLink from '../handleUniversalLink';
 import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
-import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
-import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 // eslint-disable-next-line import/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -571,36 +569,6 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-    });
-  });
-
-  describe('ACTIONS.SHIELD', () => {
-    it('calls _handleBrowserUrl when action is SHIELD', async () => {
-      const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
-        typeof handleBrowserUrl
-      >;
-      const shieldUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SHIELD}`;
-      const shieldUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: shieldUrl,
-        pathname: `/${ACTIONS.SHIELD}`,
-      };
-
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: shieldUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: shieldUrl,
-        source: 'test-source',
-      });
-
-      expect(handled).toHaveBeenCalled();
-      expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
-        url: SHIELD_WEBSITE_URL,
-        callback: mockBrowserCallBack,
-      });
     });
   });
 

@@ -164,8 +164,6 @@ export default {
     PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
     MULTICHAIN_ACCOUNTS:
       'https://support.metamask.io/configure/accounts/multichain-accounts/',
-    MUSD_CONVERSION_BONUS_TERMS_OF_USE:
-      'https://metamask.io/musd-bonus-terms-of-use',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||

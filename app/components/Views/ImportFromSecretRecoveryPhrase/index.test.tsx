@@ -334,14 +334,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
     });
 
-    it('on submit editing, keyboard dismisses without creating new input', async () => {
-      const { getByPlaceholderText, getByTestId, queryByTestId } = renderScreen(
+    it('on enter key press, the new input field value is created', async () => {
+      const { getByPlaceholderText, getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // Enter a word
+      // Enter a valid 12-word seed phrase
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
@@ -367,11 +367,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent(firstGridInput, 'onSubmitEditing');
       });
 
-      // Verify no new input was created (keyboard just dismisses)
       await waitFor(() => {
-        expect(
-          queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeNull();
+        const secondInput = getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
+        );
+        expect(secondInput).toBeOnTheScreen();
       });
     });
 
@@ -575,7 +575,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('on entering an invalid seed phrase, spellcheck error message is shown', async () => {
-      const { getByPlaceholderText, getAllByText } = renderScreen(
+      const { getByPlaceholderText, getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
@@ -595,11 +595,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const errorMessages = getAllByText(
+        const errorMessage = getByText(
           strings('import_from_seed.spellcheck_error'),
         );
-        expect(errorMessages.length).toBeGreaterThan(0);
-        expect(errorMessages[0]).toBeOnTheScreen();
+        expect(errorMessage).toBeOnTheScreen();
       });
     });
 
