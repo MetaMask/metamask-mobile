@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { Linking } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -99,10 +99,25 @@ function SettingsModal() {
 
   const handleContactSupport = useCallback(() => {
     if (supportUrl) {
-      sheetRef.current?.onCloseBottomSheet();
-      Linking.openURL(supportUrl);
+      sheetRef.current?.onCloseBottomSheet(() => {
+        (async () => {
+          if (await InAppBrowser.isAvailable()) {
+            await InAppBrowser.open(supportUrl);
+          } else {
+            navigation.navigate('Webview', {
+              screen: 'SimpleWebview',
+              params: {
+                url: supportUrl,
+                title: strings(
+                  'fiat_on_ramp.build_quote_settings_modal.contact_support',
+                ),
+              },
+            });
+          }
+        })();
+      });
     }
-  }, [supportUrl]);
+  }, [navigation, supportUrl]);
 
   const handleLogOut = useCallback(async () => {
     try {

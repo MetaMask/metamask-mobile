@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import SettingsModal from './SettingsModal';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -91,15 +91,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native', () => {
-  const actualReactNative = jest.requireActual('react-native');
-  return {
-    ...actualReactNative,
-    Linking: {
-      openURL: jest.fn(),
-    },
-  };
-});
+jest.mock('react-native-inappbrowser-reborn', () => ({
+  isAvailable: jest.fn().mockResolvedValue(true),
+  open: jest.fn().mockResolvedValue({ type: 'dismiss' }),
+}));
 
 let mockPreferredProvider: Provider | null = createMockProvider();
 const mockSetPreferredProvider = jest.fn();
@@ -198,13 +193,36 @@ describe('SettingsModal', () => {
       expect(getByText('Contact support')).toBeOnTheScreen();
     });
 
-    it('opens support URL when contact support is pressed', () => {
+    it('opens support URL in in-app browser when contact support is pressed', async () => {
       const { getByText } = renderWithProvider(SettingsModal);
 
       const contactSupportButton = getByText('Contact support');
       fireEvent.press(contactSupportButton);
 
-      expect(Linking.openURL).toHaveBeenCalledWith(MOCK_SUPPORT_URL);
+      await waitFor(() => {
+        expect(InAppBrowser.isAvailable).toHaveBeenCalled();
+        expect(InAppBrowser.open).toHaveBeenCalledWith(MOCK_SUPPORT_URL);
+      });
+    });
+
+    it('navigates to SimpleWebview when InAppBrowser is not available', async () => {
+      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValueOnce(false);
+
+      const { getByText } = renderWithProvider(SettingsModal);
+
+      const contactSupportButton = getByText('Contact support');
+      fireEvent.press(contactSupportButton);
+
+      await waitFor(() => {
+        expect(InAppBrowser.isAvailable).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: MOCK_SUPPORT_URL,
+            title: 'Contact support',
+          },
+        });
+      });
     });
 
     it('hides contact support when provider has no support URL', () => {
