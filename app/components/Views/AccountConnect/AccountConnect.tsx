@@ -79,7 +79,10 @@ import {
   getRequestedCaip25CaveatValue,
   getDefaultSelectedChainIds,
 } from './utils';
-import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
+import {
+  getPhishingTestResultAsync,
+  prepareUrlForPhishingCheck,
+} from '../../../util/phishingDetection';
 import {
   CaipAccountId,
   CaipChainId,
@@ -102,7 +105,6 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
-import { isSnapId } from '@metamask/snaps-utils';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 
@@ -324,12 +326,10 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { hostname: hostnameFromUrlObj } = getUrlObj(urlWithProtocol);
 
   useEffect(() => {
-    let url = dappUrl || channelIdOrHostname || '';
-
     const checkOrigin = async () => {
-      if (!isSnapId(url)) {
-        url = prefixUrlWithProtocol(url);
-      }
+      const url = prepareUrlForPhishingCheck(
+        dappUrl || channelIdOrHostname || '',
+      );
       const scanResult = await getPhishingTestResultAsync(url);
       if (scanResult.result && isMountedRef.current) {
         setBlockedUrl(dappUrl);
