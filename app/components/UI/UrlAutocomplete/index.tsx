@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import Fuse from 'fuse.js';
 import styleSheet from './styles';
 import { useStyles } from '../../../component-library/hooks';
 import {
@@ -28,6 +29,7 @@ import {
   UrlAutocompleteCategory,
   PerpsSearchResult,
   PredictionsSearchResult,
+  FuseSearchResult,
 } from './types';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -36,7 +38,6 @@ import {
 } from '../../../selectors/browser';
 import {
   MAX_RECENTS,
-  EMPTY_STATE_CATEGORIES,
   BROWSER_SEARCH_SECTIONS_ORDER,
 } from './UrlAutocomplete.constants';
 import { Result } from './Result';
@@ -54,6 +55,23 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
 import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
+
+/**
+ * Fuse.js options for filtering browser history and bookmarks
+ * Matches the original UrlAutocomplete configuration
+ */
+const HISTORY_FUSE_OPTIONS = {
+  shouldSort: true,
+  threshold: 0.4,
+  location: 0,
+  distance: 100,
+  maxPatternLength: 32,
+  minMatchCharLength: 1,
+  keys: [
+    { name: 'name', weight: 0.5 },
+    { name: 'url', weight: 0.5 },
+  ],
+};
 
 export * from './types';
 
@@ -164,6 +182,8 @@ const transformPredictionsResult = (
  */
 interface SearchContentProps {
   searchQuery: string;
+  filteredRecents: FuseSearchResult[];
+  filteredFavorites: FuseSearchResult[];
   onSelect: (item: AutocompleteSearchResult) => void;
   hide: () => void;
   styles: ReturnType<typeof styleSheet>;
@@ -175,6 +195,8 @@ interface SearchContentProps {
  */
 const SearchContent: React.FC<SearchContentProps> = ({
   searchQuery,
+  filteredRecents,
+  filteredFavorites,
   onSelect,
   hide,
   styles,
@@ -193,60 +215,83 @@ const SearchContent: React.FC<SearchContentProps> = ({
     sectionsOrder: BROWSER_SEARCH_SECTIONS_ORDER,
   });
 
-  // Transform omni-search results to AutocompleteSearchResult format
+  // Transform omni-search results and interleave Recents/Favorites after Sites
+  // Order: Sites → Recents → Favorites → Tokens → Perps → Predictions
   const searchResults: ResultsWithCategory[] = useMemo(() => {
     if (!searchQuery.trim() || !isBasicFunctionalityEnabled) return [];
 
-    return sectionsOrder.flatMap((sectionId) => {
+    const results: ResultsWithCategory[] = [];
+
+    sectionsOrder.forEach((sectionId) => {
       const sectionData = omniSearchData[sectionId] ?? [];
       const sectionIsLoading = omniSearchLoading[sectionId] ?? false;
       const category = sectionIdToCategory(sectionId);
-
-      // Skip empty sections that aren't loading
-      if (sectionData.length === 0 && !sectionIsLoading) return [];
 
       // Transform data based on section type
       let transformedData: AutocompleteSearchResult[] = [];
 
       switch (sectionId) {
         case 'sites':
-          transformedData = (
-            sectionData as { name: string; url: string }[]
-          ).map((site) => ({
-            category: UrlAutocompleteCategory.Sites,
-            name: site.name,
-            url: site.url,
-          }));
+          transformedData = (sectionData as { name: string; url: string }[])
+            .filter((site) => site?.name && site?.url)
+            .map((site) => ({
+              category: UrlAutocompleteCategory.Sites,
+              name: site.name,
+              url: site.url,
+            }));
           break;
         case 'tokens':
-          transformedData = (sectionData as TrendingAsset[]).map(
-            transformTokenResult,
-          );
+          transformedData = (sectionData as TrendingAsset[])
+            .filter((token) => token?.assetId)
+            .map(transformTokenResult);
           break;
         case 'perps':
-          transformedData = (sectionData as PerpsMarketData[]).map(
-            transformPerpsResult,
-          );
+          transformedData = (sectionData as PerpsMarketData[])
+            .filter((market) => market?.symbol)
+            .map(transformPerpsResult);
           break;
         case 'predictions':
-          transformedData = (sectionData as PredictMarket[]).map(
-            transformPredictionsResult,
-          );
+          transformedData = (sectionData as PredictMarket[])
+            .filter((market) => market?.id)
+            .map(transformPredictionsResult);
           break;
       }
 
-      return {
-        category,
-        data: transformedData,
-        isLoading: sectionIsLoading,
-      };
+      // Add section if it has data or is loading
+      if (transformedData.length > 0 || sectionIsLoading) {
+        results.push({
+          category,
+          data: transformedData,
+          isLoading: sectionIsLoading,
+        });
+      }
+
+      // Insert Recents and Favorites after Sites section
+      if (sectionId === 'sites') {
+        if (filteredRecents.length > 0) {
+          results.push({
+            category: UrlAutocompleteCategory.Recents,
+            data: filteredRecents,
+          });
+        }
+        if (filteredFavorites.length > 0) {
+          results.push({
+            category: UrlAutocompleteCategory.Favorites,
+            data: filteredFavorites,
+          });
+        }
+      }
     });
+
+    return results;
   }, [
     searchQuery,
     omniSearchData,
     omniSearchLoading,
     sectionsOrder,
     isBasicFunctionalityEnabled,
+    filteredRecents,
+    filteredFavorites,
   ]);
 
   const { goToSwaps: goToSwapsHook, networkModal } = useSwapBridgeNavigation({
@@ -290,24 +335,30 @@ const SearchContent: React.FC<SearchContentProps> = ({
 
   const renderItem: SectionListRenderItem<AutocompleteSearchResult> =
     useCallback(
-      ({ item }) => (
-        <Result
-          result={item}
-          onPress={() => {
-            if (item.category !== UrlAutocompleteCategory.Tokens) {
-              hide();
-            }
-            onSelect(item);
-          }}
-          onSwapPress={goToSwaps}
-          navigation={navigation}
-        />
-      ),
+      ({ item }) => {
+        // Guard against undefined items
+        if (!item?.category) return null;
+        return (
+          <Result
+            result={item}
+            onPress={() => {
+              if (item.category !== UrlAutocompleteCategory.Tokens) {
+                hide();
+              }
+              onSelect(item);
+            }}
+            onSwapPress={goToSwaps}
+            navigation={navigation}
+          />
+        );
+      },
       [hide, onSelect, goToSwaps, navigation],
     );
 
   const keyExtractor = useCallback(
     (item: AutocompleteSearchResult, index: number) => {
+      // Guard against undefined items
+      if (!item?.category) return `undefined-${index}`;
       switch (item.category) {
         case UrlAutocompleteCategory.Tokens:
           return `${item.category}-${item.chainId}-${item.address}`;
@@ -358,34 +409,73 @@ const UrlAutocomplete = forwardRef<
   const resultsRef = useRef<View | null>(null);
   const { styles } = useStyles(styleSheet, {});
 
-  // Empty state: show Recents and Favorites from browser history/bookmarks
-  const emptyStateResults: ResultsWithCategory[] = useMemo(() => {
-    if (searchQuery.trim()) return [];
+  // Deduplicated browser history (Recents)
+  const deduplicatedRecents = useMemo(() => {
+    const recents = browserHistory.filter(
+      (result, index, self) =>
+        result.category === UrlAutocompleteCategory.Recents &&
+        index ===
+          self.findIndex(
+            (r) => r.url === result.url && r.category === result.category,
+          ),
+    );
+    return recents.slice(0, MAX_RECENTS);
+  }, [browserHistory]);
 
-    return EMPTY_STATE_CATEGORIES.flatMap((category) => {
-      const sourceData =
-        category === UrlAutocompleteCategory.Recents
-          ? browserHistory
-          : bookmarks;
-
-      let data = sourceData.filter(
+  // Deduplicated bookmarks (Favorites)
+  const deduplicatedFavorites = useMemo(
+    () =>
+      bookmarks.filter(
         (result, index, self) =>
-          result.category === category &&
+          result.category === UrlAutocompleteCategory.Favorites &&
           index ===
             self.findIndex(
               (r) => r.url === result.url && r.category === result.category,
             ),
-      );
+      ),
+    [bookmarks],
+  );
 
-      if (data.length === 0) return [];
+  // Filtered Recents using Fuse.js (for search mode)
+  // Fuse.js v3.x returns T[] directly (not FuseResult<T>[])
+  const filteredRecents = useMemo((): FuseSearchResult[] => {
+    if (!searchQuery.trim()) return [];
+    const recentsArray = [...deduplicatedRecents] as FuseSearchResult[];
+    const fuse = new Fuse(recentsArray, HISTORY_FUSE_OPTIONS);
+    return fuse.search(searchQuery) as FuseSearchResult[];
+  }, [deduplicatedRecents, searchQuery]);
 
-      if (category === UrlAutocompleteCategory.Recents) {
-        data = data.slice(0, MAX_RECENTS);
-      }
+  // Filtered Favorites using Fuse.js (for search mode)
+  // Fuse.js v3.x returns T[] directly (not FuseResult<T>[])
+  const filteredFavorites = useMemo((): FuseSearchResult[] => {
+    if (!searchQuery.trim()) return [];
+    const favoritesArray = [...deduplicatedFavorites] as FuseSearchResult[];
+    const fuse = new Fuse(favoritesArray, HISTORY_FUSE_OPTIONS);
+    return fuse.search(searchQuery) as FuseSearchResult[];
+  }, [deduplicatedFavorites, searchQuery]);
 
-      return { category, data };
-    });
-  }, [searchQuery, browserHistory, bookmarks]);
+  // Empty state: show Recents and Favorites from browser history/bookmarks
+  const emptyStateResults: ResultsWithCategory[] = useMemo(() => {
+    if (searchQuery.trim()) return [];
+
+    const results: ResultsWithCategory[] = [];
+
+    if (deduplicatedRecents.length > 0) {
+      results.push({
+        category: UrlAutocompleteCategory.Recents,
+        data: deduplicatedRecents,
+      });
+    }
+
+    if (deduplicatedFavorites.length > 0) {
+      results.push({
+        category: UrlAutocompleteCategory.Favorites,
+        data: deduplicatedFavorites,
+      });
+    }
+
+    return results;
+  }, [searchQuery, deduplicatedRecents, deduplicatedFavorites]);
 
   const hasEmptyStateResults = emptyStateResults.some(
     (section) => section.data.length > 0,
@@ -510,6 +600,8 @@ const UrlAutocomplete = forwardRef<
             <PerpsStreamProvider>
               <SearchContent
                 searchQuery={searchQuery}
+                filteredRecents={filteredRecents}
+                filteredFavorites={filteredFavorites}
                 onSelect={onSelect}
                 hide={hide}
                 styles={styles}
