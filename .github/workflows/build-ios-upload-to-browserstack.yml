@@ -15,10 +15,6 @@ on:
         required: false
         type: string
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
-      branch_name:
-        required: false
-        type: string
-        description: 'Branch name to use for builds (defaults to github.ref_name)'
     outputs:
       with-srp-ipa-uploaded:
         description: 'Whether the with-SRP IPA was successfully uploaded'
@@ -96,7 +92,7 @@ jobs:
           echo "Triggering iOS with-SRP build on Bitrise..."
           echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Current branch: ${{ inputs.branch_name || github.ref_name }}"
+          echo "Current branch: ${{ github.ref_name }}"
           
           # Validate required environment variables
           if [[ -z "$BITRISE_APP_ID" ]]; then
@@ -138,7 +134,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{
               "build_params": {
-                "branch": "${{ inputs.branch_name || github.ref_name }}",
+                "branch": "${{ github.ref_name }}",
                 "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
                 "commit_message": "Triggered by iOS Dual Versions workflow - Build with Predefined-SRP",
                 "environments": '"$ENV_VARS"',
@@ -232,7 +228,7 @@ jobs:
           echo "Triggering iOS without-SRP build on Bitrise..."
           echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Current branch: ${{ inputs.branch_name || github.ref_name }}"
+          echo "Current branch: ${{ github.ref_name }}"
           
           # Validate required environment variables
           if [[ -z "$BITRISE_APP_ID" ]]; then
@@ -264,7 +260,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{
               "build_params": {
-                "branch": "${{ inputs.branch_name || github.ref_name }}",
+                "branch": "${{ github.ref_name }}",
                 "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
                 "commit_message": "Triggered by iOS Dual Versions workflow - Build without Predefined-SRP",
                 "environments": '"$ENV_VARS"',

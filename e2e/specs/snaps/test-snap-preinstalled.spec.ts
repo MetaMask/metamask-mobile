@@ -4,7 +4,7 @@ import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import Assertions from '../../../tests/framework/Assertions';
-import { getEventsPayloads } from '../../../tests/helpers/analytics/helpers';
+import { getEventsPayloads } from '../analytics/helpers';
 import TestHelpers from '../../helpers';
 
 jest.setTimeout(150_000);

@@ -4,8 +4,8 @@ import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
-import TrendingView from '../../../tests/page-objects/Trending/TrendingView';
-import { TrendingViewSelectorsText } from '../../../tests/locators/Trending/TrendingView.selectors';
+import TrendingView from '../../pages/Trending/TrendingView';
+import { TrendingViewSelectorsText } from '../../selectors/Trending/TrendingView.selectors';
 import { TRENDING_API_MOCKS } from '../../../tests/api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../../tests/api-mocking/helpers/mockHelpers';
 import {

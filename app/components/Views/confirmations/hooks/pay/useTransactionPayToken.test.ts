@@ -10,13 +10,9 @@ import {
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { TransactionType } from '@metamask/transaction-controller';
-import {
-  TransactionPaymentToken,
-  TransactionPayRequiredToken,
-} from '@metamask/transaction-pay-controller';
+import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
-import { updateTransaction } from '../../../../../util/transaction-controller';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -30,10 +26,6 @@ jest.mock('../../../../../core/Engine', () => ({
       findNetworkClientIdByChainId: jest.fn(),
     },
   },
-}));
-
-jest.mock('../../../../../util/transaction-controller', () => ({
-  updateTransaction: jest.fn(),
 }));
 
 const STATE_MOCK = merge(
@@ -58,22 +50,14 @@ const PAY_TOKEN_MOCK = {
   symbol: 'TST',
 } as TransactionPaymentToken;
 
-const REQUIRED_TOKEN_MOCK = {
-  address: tokenAddress1Mock,
-  chainId: ChainId.mainnet,
-  skipIfBalance: false,
-} as unknown as TransactionPayRequiredToken;
-
 function runHook({
   currency,
   payToken,
   type,
-  requiredTokens,
 }: {
   currency?: string;
   payToken?: TransactionPaymentToken;
   type?: TransactionType;
-  requiredTokens?: TransactionPayRequiredToken[];
 } = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
@@ -82,7 +66,7 @@ function runHook({
       [TRANSACTION_ID_MOCK]: {
         isLoading: false,
         paymentToken: payToken,
-        tokens: requiredTokens ?? [],
+        tokens: [],
       },
     },
   };
@@ -172,105 +156,5 @@ describe('useTransactionPayToken', () => {
     });
 
     expect(result.current.isNative).toBe(true);
-  });
-
-  describe('selectedGasFeeToken update for predictDeposit', () => {
-    const updateTransactionMock = jest.mocked(updateTransaction);
-
-    beforeEach(() => {
-      updateTransactionMock.mockClear();
-    });
-
-    it('updates transaction with selectedGasFeeToken for predictDeposit when pay token matches required token', async () => {
-      const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
-        type: TransactionType.predictDeposit,
-        requiredTokens: [REQUIRED_TOKEN_MOCK],
-      });
-
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
-
-      await flushPromises();
-
-      expect(updateTransactionMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          selectedGasFeeToken: PAY_TOKEN_MOCK.address,
-          isGasFeeTokenIgnoredIfBalance: true,
-        }),
-        TRANSACTION_ID_MOCK,
-      );
-    });
-
-    it('does not update transaction for non-predictDeposit transaction types', async () => {
-      const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
-        type: TransactionType.simpleSend,
-        requiredTokens: [REQUIRED_TOKEN_MOCK],
-      });
-
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
-
-      await flushPromises();
-
-      expect(updateTransactionMock).not.toHaveBeenCalled();
-    });
-
-    it('resets selectedGasFeeToken when pay token does not match required token', async () => {
-      const differentToken = {
-        address: '0xDifferentTokenAddress1234567890123456789012',
-        chainId: ChainId.mainnet,
-        skipIfBalance: false,
-      } as unknown as TransactionPayRequiredToken;
-
-      const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
-        type: TransactionType.predictDeposit,
-        requiredTokens: [differentToken],
-      });
-
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
-
-      await flushPromises();
-
-      expect(updateTransactionMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          selectedGasFeeToken: undefined,
-          isGasFeeTokenIgnoredIfBalance: undefined,
-        }),
-        TRANSACTION_ID_MOCK,
-      );
-    });
-
-    it('resets selectedGasFeeToken when no required tokens exist', async () => {
-      const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
-        type: TransactionType.predictDeposit,
-        requiredTokens: [],
-      });
-
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
-
-      await flushPromises();
-
-      expect(updateTransactionMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          selectedGasFeeToken: undefined,
-          isGasFeeTokenIgnoredIfBalance: undefined,
-        }),
-        TRANSACTION_ID_MOCK,
-      );
-    });
   });
 });

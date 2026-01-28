@@ -12,51 +12,32 @@ class MultiChainTestDapp {
         this._device = device;
     }
 
-    get clearButton() {
+    get connectButton() {
         if (!this._device) {
             return null;
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@text="Clear Extension ID"]');
+            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@text="Connect"]');
         }
     }
 
-    get connectMMCButton() {
+    get connectedDappHeader() {
         if (!this._device) {
             return null;
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@text="Auto Connect via MM Connect"]');
+            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.TextView[@text="Connected Networks"]');
         }
     }
 
-    get connectedChainsHeader() {
-        if (!this._device) {
-            return null;
-        }
-
-        if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.TextView[@text="Connected Chains"]');
-        }
-    }
-
-    async tapClearButton() {
+    async tapConnectButton() {
         if (!this._device) {
             return;
         }
 
-        const element = await this.clearButton;
-        await AppwrightGestures.tap(element)
-    }
-
-    async tapConnectMMCButton() {
-        if (!this._device) {
-            return;
-        }
-
-        const element = await this.connectMMCButton;
+        const element = await this.connectButton;
         await AppwrightGestures.tap(element)
     }
 
@@ -65,7 +46,7 @@ class MultiChainTestDapp {
             return false;
         }
 
-        const element = await this.connectedChainsHeader;
+        const element = await this.connectedDappHeader;
         await appwrightExpect(element).toBeVisible({ timeout: 10000 });
     }
 }

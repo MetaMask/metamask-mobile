@@ -18,6 +18,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import TokenIcon from '../../../Base/TokenIcon';
 import { Box } from '../../Box/Box';
 import { ethers } from 'ethers';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
@@ -28,7 +29,6 @@ import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
-  TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -61,22 +61,18 @@ const createStyles = ({
       backgroundColor: vars.isSelected
         ? theme.colors.primary.muted
         : theme.colors.background.default,
-      paddingVertical: 4,
-      paddingLeft: 16,
-      paddingRight: 10,
+      padding: 4,
     },
     selectedIndicator: {
-      position: 'absolute',
-      left: 4,
-      top: 4,
-      bottom: 4,
       width: 4,
+      height: '100%',
       borderRadius: 8,
       backgroundColor: theme.colors.primary.default,
     },
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
+      paddingHorizontal: 15,
       paddingVertical: 10,
       alignItems: 'flex-start',
     },
@@ -104,44 +100,24 @@ const createStyles = ({
       marginLeft: 8,
       paddingHorizontal: 6,
     },
-    childrenWrapper: {
-      marginLeft: 12,
+    selectedItemWrapperReset: {
+      marginLeft: -4,
+    },
+    nativeTokenIcon: {
+      width: 32,
+      height: 32,
     },
   });
 
 interface TokenSelectorItemProps {
   token: BridgeToken;
   onPress: (token: BridgeToken) => void;
-  networkName?: string;
+  networkName: string;
   networkImageSource?: ImageSourcePropType;
   isSelected?: boolean;
   shouldShowBalance?: boolean;
   children?: React.ReactNode;
-  isNoFeeAsset?: boolean;
 }
-
-const FiatBalanceView = ({
-  balance,
-  isSelected,
-}: {
-  balance?: string;
-  isSelected: boolean;
-}) => {
-  const { styles } = useStyles(createStyles, { isSelected });
-
-  if (!balance || balance === TOKEN_RATE_UNDEFINED) {
-    return null;
-  }
-
-  if (
-    balance === TOKEN_BALANCE_LOADING ||
-    balance === TOKEN_BALANCE_LOADING_UPPERCASE
-  ) {
-    return <View style={styles.skeleton} />;
-  }
-
-  return <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>;
-};
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   token,
@@ -151,14 +127,13 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   isSelected = false,
   shouldShowBalance = true,
   children,
-  isNoFeeAsset = false,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
   const noFeeAssets = useSelector((state: RootState) =>
     selectNoFeeAssets(state, token.chainId),
   );
 
-  const showNoFeeBadge = isNoFeeAsset || noFeeAssets?.includes(token.address);
+  const isNoFeeAsset = noFeeAssets?.includes(token.address);
 
   const fiatValue = token.balanceFiat;
 
@@ -207,6 +182,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
           gap={4}
+          style={isSelected ? styles.selectedItemWrapperReset : {}}
         >
           {/* Token Icon */}
           <BadgeWrapper
@@ -220,16 +196,21 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               />
             }
           >
-            <AvatarToken
-              name={token.symbol}
-              imageSource={getTokenImageSource(token.symbol, token.image)}
-              size={AvatarSize.Md}
-              testID={
-                isNative
-                  ? `network-logo-${token.symbol}`
-                  : `token-logo-${token.symbol}`
-              }
-            />
+            {isNative ? (
+              <TokenIcon
+                symbol={token.symbol}
+                icon={token.image}
+                medium
+                style={styles.nativeTokenIcon}
+                testID={`network-logo-${token.symbol}`}
+              />
+            ) : (
+              <AvatarToken
+                name={token.symbol}
+                imageSource={getTokenImageSource(token.symbol, token.image)}
+                size={AvatarSize.Md}
+              />
+            )}
           </BadgeWrapper>
 
           {/* Token symbol and name */}
@@ -245,7 +226,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             >
               <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
               {label && <Tag label={label} />}
-              {showNoFeeBadge && (
+              {isNoFeeAsset && (
                 <TagBase
                   shape={TagShape.Rectangle}
                   severity={TagSeverity.Info}
@@ -256,19 +237,20 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                 </TagBase>
               )}
             </Box>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {token.name}
             </Text>
           </Box>
 
           {/* Token balance and fiat value */}
           <Box style={styles.balance} gap={4}>
-            <FiatBalanceView balance={balance} isSelected={isSelected} />
+            {balance &&
+              (balance === TOKEN_BALANCE_LOADING ||
+              balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                <View style={styles.skeleton} />
+              ) : (
+                <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
+              ))}
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
@@ -286,7 +268,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         </Box>
       </TouchableOpacity>
 
-      <View style={styles.childrenWrapper}>{children}</View>
+      {children}
     </Box>
   );
 };

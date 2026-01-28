@@ -1,5 +1,5 @@
 import { waitFor } from 'detox';
-import { blacklistURLs } from '../resources/blacklistURLs.json';
+import { blacklistURLs } from '../../e2e/resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types.ts';
 import { createLogger } from './logger.ts';
 import test from '@playwright/test';

@@ -15,10 +15,6 @@ export * from '../../types/navigation';
 import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
 import type { CandleData } from '../../types/perps-types';
 import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
-import { WebSocketConnectionState } from '../../services/HyperLiquidClientService';
-
-// Re-export WebSocketConnectionState for consumers of types
-export { WebSocketConnectionState };
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -136,7 +132,7 @@ export type OrderParams = {
   takeProfitPrice?: string; // Take profit price
   stopLossPrice?: string; // Stop loss price
   clientOrderId?: string; // Optional client-provided order ID
-  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000 = 3%)
+  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000 = 3%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
@@ -820,7 +816,7 @@ export interface Funding {
   transactionHash?: string; // Optional transaction hash
 }
 
-export interface PerpsProvider {
+export interface IPerpsProvider {
   readonly protocolId: string;
 
   // Unified asset and route information
@@ -938,14 +934,6 @@ export interface PerpsProvider {
   isReadyToTrade(): Promise<ReadyToTradeResult>;
   disconnect(): Promise<DisconnectResult>;
   ping(timeoutMs?: number): Promise<void>; // Lightweight WebSocket health check with configurable timeout
-  getWebSocketConnectionState?(): WebSocketConnectionState; // Optional: get current WebSocket connection state
-  subscribeToConnectionState?(
-    listener: (
-      state: WebSocketConnectionState,
-      reconnectionAttempt: number,
-    ) => void,
-  ): () => void; // Optional: subscribe to WebSocket connection state changes
-  reconnect?(): Promise<void>; // Optional: manually trigger WebSocket reconnection
 
   // Block explorer
   getBlockExplorerUrl(address?: string): string;
@@ -998,13 +986,13 @@ export type RoutingStrategy = 'default_provider';
  */
 export interface AggregatedProviderConfig {
   /** Map of provider ID to provider instance */
-  providers: Map<PerpsProviderType, PerpsProvider>;
+  providers: Map<PerpsProviderType, IPerpsProvider>;
   /** Default provider for write operations when providerId not specified */
   defaultProvider: PerpsProviderType;
   /** Aggregation mode for read operations (default: 'all') */
   aggregationMode?: AggregationMode;
   /** Platform dependencies for logging, metrics, etc. */
-  infrastructure: PerpsPlatformDependencies;
+  infrastructure: IPerpsPlatformDependencies;
 }
 
 /**
@@ -1041,7 +1029,7 @@ export interface AggregatedAccountState {
  * Injectable logger interface for error reporting.
  * Allows core package to be platform-agnostic (mobile: Sentry, extension: different impl)
  */
-export interface PerpsLogger {
+export interface IPerpsLogger {
   error(
     error: Error,
     options?: {
@@ -1122,42 +1110,42 @@ export type PerpsTraceName =
  */
 export const PerpsTraceNames = {
   // Trading operations
-  PlaceOrder: 'Perps Place Order',
-  EditOrder: 'Perps Edit Order',
-  CancelOrder: 'Perps Cancel Order',
-  ClosePosition: 'Perps Close Position',
-  UpdateTpsl: 'Perps Update TP/SL',
-  UpdateMargin: 'Perps Update Margin',
-  FlipPosition: 'Perps Flip Position',
+  PLACE_ORDER: 'Perps Place Order',
+  EDIT_ORDER: 'Perps Edit Order',
+  CANCEL_ORDER: 'Perps Cancel Order',
+  CLOSE_POSITION: 'Perps Close Position',
+  UPDATE_TPSL: 'Perps Update TP/SL',
+  UPDATE_MARGIN: 'Perps Update Margin',
+  FLIP_POSITION: 'Perps Flip Position',
 
   // Account operations
-  Withdraw: 'Perps Withdraw',
-  Deposit: 'Perps Deposit',
+  WITHDRAW: 'Perps Withdraw',
+  DEPOSIT: 'Perps Deposit',
 
   // Market data
-  GetPositions: 'Perps Get Positions',
-  GetAccountState: 'Perps Get Account State',
-  GetMarkets: 'Perps Get Markets',
-  OrderFillsFetch: 'Perps Order Fills Fetch',
-  OrdersFetch: 'Perps Orders Fetch',
-  FundingFetch: 'Perps Funding Fetch',
-  GetHistoricalPortfolio: 'Perps Get Historical Portfolio',
-  FetchHistoricalCandles: 'Perps Fetch Historical Candles',
+  GET_POSITIONS: 'Perps Get Positions',
+  GET_ACCOUNT_STATE: 'Perps Get Account State',
+  GET_MARKETS: 'Perps Get Markets',
+  ORDER_FILLS_FETCH: 'Perps Order Fills Fetch',
+  ORDERS_FETCH: 'Perps Orders Fetch',
+  FUNDING_FETCH: 'Perps Funding Fetch',
+  GET_HISTORICAL_PORTFOLIO: 'Perps Get Historical Portfolio',
+  FETCH_HISTORICAL_CANDLES: 'Perps Fetch Historical Candles',
 
   // Data lake
-  DataLakeReport: 'Perps Data Lake Report',
+  DATA_LAKE_REPORT: 'Perps Data Lake Report',
 
   // WebSocket
-  WebsocketConnected: 'Perps WebSocket Connected',
-  WebsocketDisconnected: 'Perps WebSocket Disconnected',
-  WebsocketFirstPositions: 'Perps WebSocket First Positions',
-  WebsocketFirstOrders: 'Perps WebSocket First Orders',
-  WebsocketFirstAccount: 'Perps WebSocket First Account',
+  WEBSOCKET_CONNECTED: 'Perps WebSocket Connected',
+  WEBSOCKET_DISCONNECTED: 'Perps WebSocket Disconnected',
+  WEBSOCKET_FIRST_POSITIONS: 'Perps WebSocket First Positions',
+  WEBSOCKET_FIRST_ORDERS: 'Perps WebSocket First Orders',
+  WEBSOCKET_FIRST_ACCOUNT: 'Perps WebSocket First Account',
 
   // Other
-  RewardsApiCall: 'Perps Rewards API Call',
-  ConnectionEstablishment: 'Perps Connection Establishment',
-  AccountSwitchReconnection: 'Perps Account Switch Reconnection',
+  REWARDS_API_CALL: 'Perps Rewards API Call',
+  CONNECTION_ESTABLISHMENT: 'Perps Connection Establishment',
+  ACCOUNT_SWITCH_RECONNECTION: 'Perps Account Switch Reconnection',
 } as const satisfies Record<string, PerpsTraceName>;
 
 /**
@@ -1165,10 +1153,10 @@ export const PerpsTraceNames = {
  * These categorize traces by type of operation for Sentry/observability filtering.
  */
 export const PerpsTraceOperations = {
-  Operation: 'perps.operation',
-  OrderSubmission: 'perps.order_submission',
-  PositionManagement: 'perps.position_management',
-  MarketData: 'perps.market_data',
+  OPERATION: 'perps.operation',
+  ORDER_SUBMISSION: 'perps.order_submission',
+  POSITION_MANAGEMENT: 'perps.position_management',
+  MARKET_DATA: 'perps.market_data',
 } as const;
 
 /**
@@ -1190,7 +1178,7 @@ export type PerpsAnalyticsProperties = Record<
  * Injectable metrics interface for analytics.
  * Allows core package to work with different analytics backends.
  */
-export interface PerpsMetrics {
+export interface IPerpsMetrics {
   isEnabled(): boolean;
 
   /**
@@ -1211,7 +1199,7 @@ export interface PerpsMetrics {
  * Only logs in development mode.
  * Accepts `unknown` to allow logging error objects from catch blocks.
  */
-export interface PerpsDebugLogger {
+export interface IPerpsDebugLogger {
   log(...args: unknown[]): void;
 }
 
@@ -1230,32 +1218,16 @@ export interface PerpsDebugLogger {
  * - Mobile: Wrap existing singleton (streamManager[channel].pause())
  * - Extension: Implement with whatever streaming solution they use
  */
-/**
- * Injectable stream manager interface for pause/resume during critical operations.
- *
- * WHY THIS IS NEEDED:
- * PerpsStreamManager is a React-based mobile-specific singleton that:
- * - Uses React Context for subscription management
- * - Uses react-native-performance for tracing
- * - Directly accesses Engine.context (mobile singleton pattern)
- * - Manages WebSocket connections with throttling/caching
- *
- * PerpsController only needs pause/resume during critical operations (withStreamPause method)
- * to prevent stale UI updates during batch operations. The minimal interface allows:
- * - Mobile: Wrap existing singleton (streamManager[channel].pause())
- * - Extension: Implement with whatever streaming solution they use
- */
-export interface PerpsStreamManager {
+export interface IPerpsStreamManager {
   pauseChannel(channel: string): void;
   resumeChannel(channel: string): void;
-  clearAllChannels(): void;
 }
 
 /**
  * Injectable performance monitor interface.
  * Wraps react-native-performance or browser Performance API.
  */
-export interface PerpsPerformance {
+export interface IPerpsPerformance {
   now(): number;
 }
 
@@ -1266,7 +1238,7 @@ export interface PerpsPerformance {
  * Note: trace() returns void because services use name/id pairs to identify traces.
  * The actual span management is handled internally by the platform adapter.
  */
-export interface PerpsTracer {
+export interface IPerpsTracer {
   trace(params: {
     name: PerpsTraceName;
     id: string;
@@ -1288,7 +1260,7 @@ export interface PerpsTracer {
  * Injectable keyring controller interface for signing operations.
  * Allows services to sign typed messages without directly accessing Engine.
  */
-export interface PerpsKeyringController {
+export interface IPerpsKeyringController {
   signTypedMessage(
     msgParams: { from: string; data: unknown },
     version: string,
@@ -1299,7 +1271,7 @@ export interface PerpsKeyringController {
  * Injectable account utilities interface.
  * Provides access to selected account without coupling to Engine singleton.
  */
-export interface PerpsAccountUtils {
+export interface IPerpsAccountUtils {
   getSelectedEvmAccount(): { address: string } | undefined;
   formatAccountToCaipId(address: string, chainId: string): string | null;
 }
@@ -1314,11 +1286,7 @@ export interface PerpsAccountUtils {
  * Network controller operations required by Perps.
  * Provides chain ID lookups and network client identification.
  */
-/**
- * Network controller operations required by Perps.
- * Provides chain ID lookups and network client identification.
- */
-export interface PerpsNetworkOperations {
+export interface IPerpsNetworkOperations {
   /**
    * Get the chain ID for a given network client.
    */
@@ -1328,18 +1296,13 @@ export interface PerpsNetworkOperations {
    * Find the network client ID for a given chain.
    */
   findNetworkClientIdForChain(chainId: Hex): string | undefined;
-
-  /**
-   * Get the currently selected network client ID.
-   */
-  getSelectedNetworkClientId(): string;
 }
 
 /**
  * Transaction controller operations required by Perps.
  * Provides transaction submission capabilities.
  */
-export interface PerpsTransactionOperations {
+export interface IPerpsTransactionOperations {
   /**
    * Submit a transaction to the blockchain.
    * Returns the result promise and transaction metadata.
@@ -1368,7 +1331,7 @@ export interface PerpsTransactionOperations {
  * Rewards controller operations required by Perps (optional).
  * Provides fee discount capabilities for MetaMask rewards program.
  */
-export interface PerpsRewardsOperations {
+export interface IPerpsRewardsOperations {
   /**
    * Get fee discount for an account.
    * Returns discount in basis points (e.g., 6500 = 65% discount)
@@ -1376,17 +1339,6 @@ export interface PerpsRewardsOperations {
   getFeeDiscount(
     caipAccountId: `${string}:${string}:${string}`,
   ): Promise<number>;
-}
-
-/**
- * Authentication controller operations required by Perps (optional).
- * Provides bearer token access for authenticated API calls.
- */
-export interface PerpsAuthenticationOperations {
-  /**
-   * Get a bearer token for authenticated API requests.
-   */
-  getBearerToken(): Promise<string>;
 }
 
 /**
@@ -1399,19 +1351,17 @@ export interface PerpsAuthenticationOperations {
  * 3. Mockable: test can mock entire controllers object
  * 4. Future-proof: add new controller access without bloating top-level
  */
-export interface PerpsControllerAccess {
+export interface IPerpsControllerAccess {
   /** Account utilities - wraps AccountsController access */
-  accounts: PerpsAccountUtils;
+  accounts: IPerpsAccountUtils;
   /** Keyring operations - wraps KeyringController for signing */
-  keyring: PerpsKeyringController;
+  keyring: IPerpsKeyringController;
   /** Network operations - wraps NetworkController for chain lookups */
-  network: PerpsNetworkOperations;
+  network: IPerpsNetworkOperations;
   /** Transaction operations - wraps TransactionController for TX submission */
-  transaction: PerpsTransactionOperations;
-  /** Rewards operations - wraps RewardsController for fee discounts */
-  rewards: PerpsRewardsOperations;
-  /** Authentication operations - wraps AuthenticationController for bearer tokens */
-  authentication: PerpsAuthenticationOperations;
+  transaction: IPerpsTransactionOperations;
+  /** Rewards operations (optional) - wraps RewardsController for fee discounts */
+  rewards?: IPerpsRewardsOperations;
 }
 
 /**
@@ -1426,17 +1376,17 @@ export interface PerpsControllerAccess {
  * This interface enables dependency injection for platform-specific services,
  * allowing PerpsController to be moved to core without mobile-specific imports.
  */
-export interface PerpsPlatformDependencies {
+export interface IPerpsPlatformDependencies {
   // === Observability (stateless utilities) ===
-  logger: PerpsLogger;
-  debugLogger: PerpsDebugLogger;
-  metrics: PerpsMetrics;
-  performance: PerpsPerformance;
-  tracer: PerpsTracer;
+  logger: IPerpsLogger;
+  debugLogger: IPerpsDebugLogger;
+  metrics: IPerpsMetrics;
+  performance: IPerpsPerformance;
+  tracer: IPerpsTracer;
 
   // === Platform Services (mobile/extension specific) ===
-  streamManager: PerpsStreamManager;
+  streamManager: IPerpsStreamManager;
 
   // === Controller Access (ALL controllers consolidated) ===
-  controllers: PerpsControllerAccess;
+  controllers: IPerpsControllerAccess;
 }

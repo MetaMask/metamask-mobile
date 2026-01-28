@@ -301,15 +301,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       },
     );
 
-    // Filter out Bitcoin networks - they should only be included when explicitly requested
-    // This prevents errors when connecting to dApps that don't support Bitcoin
-    defaultSelectedNetworkList = defaultSelectedNetworkList.filter(
-      (caipChainId) => {
-        const { namespace } = parseCaipChainId(caipChainId);
-        return namespace !== KnownCaipNamespace.Bip122;
-      },
-    );
-
     // If the request is an EIP-1193 request (with no specific chains requested) or a Solana wallet standard request, return the default selected network list
     // Note: Tron Wallet Adapter requests are not handled here since Tron is not yet supported in mobile
     if (

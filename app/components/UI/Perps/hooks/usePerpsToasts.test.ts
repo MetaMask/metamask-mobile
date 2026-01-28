@@ -955,8 +955,12 @@ describe('usePerpsToasts', () => {
           { label: 'Failed to update TP/SL', isBold: true },
           { label: '\n', isBold: false },
           {
-            // Uses fallback message when no error provided
-            label: 'Unable to update take profit/stop loss. Please try again.',
+            label: {
+              description:
+                'An unexpected error occurred. Please try again later.',
+              retry: 'Retry',
+              title: 'Something went wrong',
+            },
             isBold: false,
           },
         ]);
@@ -979,8 +983,12 @@ describe('usePerpsToasts', () => {
           { label: 'Failed to update TP/SL', isBold: true },
           { label: '\n', isBold: false },
           {
-            // Uses fallback message when no error provided
-            label: 'Unable to update take profit/stop loss. Please try again.',
+            label: {
+              description:
+                'An unexpected error occurred. Please try again later.',
+              retry: 'Retry',
+              title: 'Something went wrong',
+            },
             isBold: false,
           },
         ]);

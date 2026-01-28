@@ -6,7 +6,7 @@ import {
 } from '../constants/hyperLiquidConfig';
 import type {
   GetSupportedPathsParams,
-  PerpsDebugLogger,
+  IPerpsDebugLogger,
 } from '../controllers/types';
 import { HYPERLIQUID_ORDER_LIMITS } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
@@ -16,7 +16,7 @@ import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
  * When provided, enables detailed logging for debugging.
  * When omitted, validation runs silently.
  */
-export type ValidationDebugLogger = PerpsDebugLogger | undefined;
+export type ValidationDebugLogger = IPerpsDebugLogger | undefined;
 
 /**
  * Validation utilities for HyperLiquid operations
@@ -435,17 +435,18 @@ export function getMaxOrderValue(
   let marketLimit: number;
 
   if (maxLeverage >= 25) {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.HighLeverage;
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.HIGH_LEVERAGE;
   } else if (maxLeverage >= 20) {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.MediumHighLeverage;
+    marketLimit =
+      HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.MEDIUM_HIGH_LEVERAGE;
   } else if (maxLeverage >= 10) {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.MediumLeverage;
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.MEDIUM_LEVERAGE;
   } else {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.LowLeverage;
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.LOW_LEVERAGE;
   }
 
   return orderType === 'limit'
-    ? marketLimit * HYPERLIQUID_ORDER_LIMITS.LimitOrderMultiplier
+    ? marketLimit * HYPERLIQUID_ORDER_LIMITS.LIMIT_ORDER_MULTIPLIER
     : marketLimit;
 }
 

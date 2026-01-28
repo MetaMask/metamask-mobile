@@ -22,7 +22,7 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { LocalNode } from '../../../tests/framework/types';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 

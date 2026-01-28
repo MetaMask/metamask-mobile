@@ -20,7 +20,7 @@ import { oldConfirmationsRemoteFeatureFlags } from '../../../tests/api-mocking/m
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { LocalNode } from '../../../tests/framework/types';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionConfirmations('ERC1155 token'), () => {
   const ERC1155_CONTRACT = SMART_CONTRACTS.ERC1155;

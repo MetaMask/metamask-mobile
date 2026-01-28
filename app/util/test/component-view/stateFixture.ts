@@ -538,9 +538,6 @@ export function createStateFixture(): StateFixtureBuilder {
         string,
         unknown
       >;
-      const existingRemoteFlags = (
-        (bg as PlainObject)?.RemoteFeatureFlagController as PlainObject
-      )?.remoteFeatureFlags as PlainObject;
       current = deepMerge(
         current as PlainObject,
         {
@@ -549,25 +546,6 @@ export function createStateFixture(): StateFixtureBuilder {
               ...bg,
               SmartTransactionsController: {
                 smartTransactionsState: {},
-              },
-              RemoteFeatureFlagController: {
-                ...((bg as PlainObject)
-                  ?.RemoteFeatureFlagController as PlainObject),
-                remoteFeatureFlags: {
-                  ...existingRemoteFlags,
-                  smartTransactionsNetworks: {
-                    default: {
-                      mobileActive: false,
-                      mobileActiveIOS: false,
-                      mobileActiveAndroid: false,
-                    },
-                    '0x1': {
-                      mobileActive: false,
-                      mobileActiveIOS: false,
-                      mobileActiveAndroid: false,
-                    },
-                  },
-                },
               },
             },
           },

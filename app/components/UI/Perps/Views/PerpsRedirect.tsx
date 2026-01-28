@@ -25,7 +25,7 @@ const PerpsRedirect: React.FC = () => {
           initialTab: 'perps',
           shouldSelectPerpsTab: true,
         });
-      }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+      }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
     }
   }, [isConnected, isInitialized]);
 

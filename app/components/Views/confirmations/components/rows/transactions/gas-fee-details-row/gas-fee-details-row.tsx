@@ -52,7 +52,7 @@ const SkeletonEstimationInfo = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <Skeleton width={140} height={28} style={styles.skeletonBorderRadius} />
+    <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
   );
 };
 

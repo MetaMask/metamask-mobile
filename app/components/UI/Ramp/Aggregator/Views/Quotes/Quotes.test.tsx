@@ -68,7 +68,6 @@ jest.mock('@react-navigation/native', () => {
       ),
       goBack: mockGoBack,
       reset: mockReset,
-      pop: mockPop,
       dangerouslyGetParent: () => ({
         pop: mockPop,
       }),
@@ -231,9 +230,9 @@ describe('Quotes', () => {
     expect(mockSetOptions).toHaveBeenCalled();
   });
 
-  it('navigates and tracks event on back button press', async () => {
+  it('navigates and tracks event on cancel button press', async () => {
     render(Quotes);
-    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
@@ -247,12 +246,12 @@ describe('Quotes', () => {
     });
   });
 
-  it('navigates and tracks event on SELL back button press', async () => {
+  it('navigates and tracks event on SELL cancel button press', async () => {
     mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
     render(Quotes);
-    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Quotes Screen',

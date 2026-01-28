@@ -1,11 +1,13 @@
-import type { PerpsProvider, Position, MarketInfo, Order } from '../types';
+import type { IPerpsProvider, Position, MarketInfo, Order } from '../types';
 import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
 import { AggregatedPerpsProvider } from './AggregatedPerpsProvider';
 import { CandlePeriod } from '../../constants/chartConfig';
 
 // Create a comprehensive mock provider
-const createMockProvider = (providerId: string): jest.Mocked<PerpsProvider> => {
-  const mockProvider: jest.Mocked<PerpsProvider> = {
+const createMockProvider = (
+  providerId: string,
+): jest.Mocked<IPerpsProvider> => {
+  const mockProvider: jest.Mocked<IPerpsProvider> = {
     protocolId: providerId,
 
     // Asset routes
@@ -149,8 +151,8 @@ const createMockOrder = (orderId: string, symbol: string): Order =>
 
 describe('AggregatedPerpsProvider', () => {
   let aggregatedProvider: AggregatedPerpsProvider;
-  let mockHLProvider: jest.Mocked<PerpsProvider>;
-  let mockMYXProvider: jest.Mocked<PerpsProvider>;
+  let mockHLProvider: jest.Mocked<IPerpsProvider>;
+  let mockMYXProvider: jest.Mocked<IPerpsProvider>;
   let mockInfrastructure: ReturnType<typeof createMockInfrastructure>;
 
   beforeEach(() => {

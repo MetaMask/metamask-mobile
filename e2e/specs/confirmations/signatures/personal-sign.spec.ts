@@ -15,7 +15,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpe
 import { oldConfirmationsRemoteFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { RegressionConfirmations } from '../../../tags';
 import { LocalNode } from '../../../../tests/framework/types';
-import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 describe(RegressionConfirmations('Personal Sign'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {

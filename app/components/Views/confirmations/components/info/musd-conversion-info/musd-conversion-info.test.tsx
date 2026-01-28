@@ -200,14 +200,18 @@ describe('MusdConversionInfo', () => {
   });
 
   describe('useMusdConversionNavbar', () => {
-    it('calls useMusdConversionNavbar', () => {
+    it('calls useMusdConversionNavbar with outputChainId', () => {
+      mockRoute.params = {
+        outputChainId: '0xe708' as Hex,
+      };
+
       mockUseRoute.mockReturnValue(mockRoute);
 
       renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
-      expect(mockUseMusdConversionNavbar).toHaveBeenCalledWith();
+      expect(mockUseMusdConversionNavbar).toHaveBeenCalledWith('0xe708');
     });
   });
 });

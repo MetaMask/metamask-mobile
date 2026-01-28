@@ -133,7 +133,7 @@ describe('SrpInputGrid', () => {
       expect(mockOnSeedPhraseChange).toHaveBeenCalled();
     });
 
-    it('dismisses keyboard on submit editing', () => {
+    it('handles enter key press to move to next input', () => {
       const seedPhrase = ['wallet', ''];
       const { getByTestId } = renderWithProvider(
         <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,

@@ -9,7 +9,7 @@ import {
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { POLYMARKET_COMPLETE_MOCKS } from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
-import PredictAddFunds from '../../../tests/page-objects/Predict/PredictAddFunds';
+import PredictAddFunds from '../../pages/Predict/PredictAddFunds';
 import {
   mockRelayQuote,
   mockRelayStatus,
@@ -22,7 +22,7 @@ import TransactionDetailsModal from '../../pages/Transactions/TransactionDetails
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import PredictMarketList from '../../../tests/page-objects/Predict/PredictMarketList';
+import PredictMarketList from '../../pages/Predict/PredictMarketList';
 
 describe(SmokeConfirmationsRedesigned('Transaction Pay'), () => {
   it('deposits to predict balance', async () => {

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useDispatch } from 'react-redux';
-import { View, Image, useColorScheme, Linking } from 'react-native';
+import { View, Image, useColorScheme } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
 import Text, {
@@ -28,7 +28,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
-import AppConstants from '../../../../../core/AppConstants';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * The payment token to preselect in the confirmation screen
@@ -177,10 +176,6 @@ const EarnMusdConversionEducationView = () => {
     }
   };
 
-  const handleTermsOfUsePressed = () => {
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  };
-
   return (
     // Do not remove the top edge as this screen does not have a navbar set in the route options.
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -193,14 +188,7 @@ const EarnMusdConversionEducationView = () => {
         <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
           {strings('earn.musd_conversion.education.description', {
             percentage: MUSD_CONVERSION_APY,
-          })}{' '}
-          <Text
-            variant={TextVariant.BodyMD}
-            style={styles.termsText}
-            onPress={handleTermsOfUsePressed}
-          >
-            {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
+          })}
         </Text>
       </View>
       <View style={styles.imageContainer}>

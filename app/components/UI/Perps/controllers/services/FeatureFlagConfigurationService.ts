@@ -1,16 +1,13 @@
 import { hasProperty } from '@metamask/utils';
+import {
+  type VersionGatedFeatureFlag,
+  validatedVersionGatedFeatureFlag,
+} from '../../../../../util/remoteFeatureFlag';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { ensureError } from '../../../../../util/errorUtils';
-import {
-  validatedVersionGatedFeatureFlag,
-  isVersionGatedFeatureFlag,
-} from '../../../../../util/remoteFeatureFlag';
-import {
-  parseCommaSeparatedString,
-  stripQuotes,
-} from '../../utils/stringParseUtils';
+import { parseCommaSeparatedString } from '../../utils/stringParseUtils';
 import type { ServiceContext } from './ServiceContext';
-import type { PerpsPlatformDependencies } from '../types';
+import type { IPerpsPlatformDependencies } from '../types';
 
 /**
  * FeatureFlagConfigurationService
@@ -29,13 +26,13 @@ import type { PerpsPlatformDependencies } from '../types';
  * Instance-based service with constructor injection of platform dependencies.
  */
 export class FeatureFlagConfigurationService {
-  private readonly deps: PerpsPlatformDependencies;
+  private readonly deps: IPerpsPlatformDependencies;
 
   /**
    * Create a new FeatureFlagConfigurationService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  constructor(deps: PerpsPlatformDependencies) {
+  constructor(deps: IPerpsPlatformDependencies) {
     this.deps = deps;
   }
 
@@ -58,9 +55,8 @@ export class FeatureFlagConfigurationService {
     );
 
     // LaunchDarkly returns comma-separated strings for list values
-    // Values may have literal quotes (e.g., '"xyz"') due to JSON encoding quirks
     if (typeof remoteValue === 'string') {
-      const parsed = parseCommaSeparatedString(remoteValue).map(stripQuotes);
+      const parsed = parseCommaSeparatedString(remoteValue);
 
       if (parsed.length > 0) {
         this.deps.debugLogger.log(
@@ -83,7 +79,7 @@ export class FeatureFlagConfigurationService {
       remoteValue.every((item) => typeof item === 'string' && item.length > 0)
     ) {
       const validatedMarkets = (remoteValue as string[])
-        .map((s) => stripQuotes(s.trim()))
+        .map((s) => s.trim())
         .filter((s) => s.length > 0);
 
       this.deps.debugLogger.log(
@@ -147,12 +143,9 @@ export class FeatureFlagConfigurationService {
     const currentConfig = context.getHip3Config();
 
     // Extract and validate remote HIP-3 equity enabled flag
-    const equityFlag = remoteFlags?.perpsHip3Enabled;
-    // Use type guard to validate before calling - validatedVersionGatedFeatureFlag also
-    // handles invalid flags internally, but proper typing requires the guard
-    const validatedEquity = isVersionGatedFeatureFlag(equityFlag)
-      ? validatedVersionGatedFeatureFlag(equityFlag)
-      : undefined;
+    const equityFlag =
+      remoteFlags?.perpsHip3Enabled as unknown as VersionGatedFeatureFlag;
+    const validatedEquity = validatedVersionGatedFeatureFlag(equityFlag);
 
     this.deps.debugLogger.log('PerpsController: HIP-3 equity flag validation', {
       equityFlag,

@@ -15,7 +15,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/
 import { oldConfirmationsRemoteFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../tests/framework/types';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 

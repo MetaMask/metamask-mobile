@@ -6,7 +6,7 @@ import type { ServiceContext } from './ServiceContext';
 import {
   PerpsTraceNames,
   PerpsTraceOperations,
-  type PerpsPlatformDependencies,
+  type IPerpsPlatformDependencies,
 } from '../types';
 
 /**
@@ -19,13 +19,13 @@ import {
  * Instance-based service with constructor injection of platform dependencies.
  */
 export class DataLakeService {
-  private readonly deps: PerpsPlatformDependencies;
+  private readonly deps: IPerpsPlatformDependencies;
 
   /**
    * Create a new DataLakeService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  constructor(deps: PerpsPlatformDependencies) {
+  constructor(deps: IPerpsPlatformDependencies) {
     this.deps = deps;
   }
 
@@ -98,8 +98,8 @@ export class DataLakeService {
     // Start trace only on first attempt
     if (retryCount === 0) {
       this.deps.tracer.trace({
-        name: PerpsTraceNames.DataLakeReport,
-        op: PerpsTraceOperations.Operation,
+        name: PerpsTraceNames.DATA_LAKE_REPORT,
+        op: PerpsTraceOperations.OPERATION,
         id: traceId,
         tags: {
           action,
@@ -124,7 +124,14 @@ export class DataLakeService {
     const apiCallStartTime = this.deps.performance.now();
 
     try {
-      const token = await this.deps.controllers.authentication.getBearerToken();
+      // Ensure messenger is available
+      if (!context.messenger) {
+        throw new Error('Messenger not available in ServiceContext');
+      }
+
+      const token = await context.messenger.call(
+        'AuthenticationController:getBearerToken',
+      );
       const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
 
       if (!evmAccount || !token) {
@@ -137,7 +144,7 @@ export class DataLakeService {
         return { success: false, error: 'No account or token available' };
       }
 
-      const response = await fetch(DATA_LAKE_API_CONFIG.OrdersEndpoint, {
+      const response = await fetch(DATA_LAKE_API_CONFIG.ORDERS_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -179,7 +186,7 @@ export class DataLakeService {
 
       // End trace on success
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.DataLakeReport,
+        name: PerpsTraceNames.DATA_LAKE_REPORT,
         id: traceId,
         data: {
           success: true,
@@ -243,7 +250,7 @@ export class DataLakeService {
       }
 
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.DataLakeReport,
+        name: PerpsTraceNames.DATA_LAKE_REPORT,
         id: traceId,
         data: {
           success: false,

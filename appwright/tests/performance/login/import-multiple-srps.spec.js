@@ -6,6 +6,7 @@ import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.j
 import AccountListComponent from '../../../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
+import SwapScreen from '../../../../wdio/screen-objects/SwapScreen.js';
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
 import {
   dismissMultichainAccountsIntroModal,
@@ -24,6 +25,7 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   AccountListComponent.device = device;
   AddAccountModal.device = device;
   WalletActionModal.device = device;
+  SwapScreen.device = device;
   TabBarModal.device = device;
   test.setTimeout(1800000);
   await login(device);

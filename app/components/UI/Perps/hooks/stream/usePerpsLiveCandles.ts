@@ -129,7 +129,7 @@ export function usePerpsLiveCandles(
           // Log to Sentry: async subscription initialization failure
           Logger.error(errorInstance, {
             tags: {
-              feature: PERPS_CONSTANTS.FeatureName,
+              feature: PERPS_CONSTANTS.FEATURE_NAME,
               component: 'usePerpsLiveCandles',
             },
             context: {
@@ -156,7 +156,7 @@ export function usePerpsLiveCandles(
       // Log to Sentry: subscription setup failure prevents live updates
       Logger.error(ensureError(errorInstance), {
         tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
           component: 'usePerpsLiveCandles',
         },
         context: {

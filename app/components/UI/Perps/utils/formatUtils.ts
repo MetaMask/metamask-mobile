@@ -216,7 +216,7 @@ export const countSignificantFigures = (priceString: string): number => {
  */
 export const hasExceededSignificantFigures = (
   priceString: string,
-  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES,
 ): boolean => {
   if (!priceString || priceString.trim() === '') return false;
 
@@ -250,7 +250,7 @@ export const hasExceededSignificantFigures = (
  */
 export const roundToSignificantFigures = (
   priceString: string,
-  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES,
 ): string => {
   if (!priceString || priceString.trim() === '') return priceString;
 
@@ -367,7 +367,7 @@ export const formatPerpsFiat = (
 
   if (isNaN(num)) {
     // Return placeholder for invalid values to avoid confusion with actual $0 values
-    return PERPS_CONSTANTS.FallbackPriceDisplay;
+    return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
   }
 
   // Use custom ranges or defaults
@@ -599,7 +599,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
     condition: (v) => Math.abs(v) >= PRICE_THRESHOLD.LOW,
     significantDigits: 5,
     minimumDecimals: 2,
-    maximumDecimals: DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+    maximumDecimals: DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
     threshold: PRICE_THRESHOLD.LOW,
   },
   {
@@ -608,7 +608,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
     condition: () => true,
     significantDigits: 4,
     minimumDecimals: 2,
-    maximumDecimals: DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+    maximumDecimals: DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
     threshold: PRICE_THRESHOLD.VERY_SMALL,
   },
 ];
@@ -625,7 +625,7 @@ export const formatPnl = (pnl: string | number): string => {
   const num = typeof pnl === 'string' ? parseFloat(pnl) : pnl;
 
   if (isNaN(num)) {
-    return PERPS_CONSTANTS.ZeroAmountDetailedDisplay;
+    return PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
   }
 
   const formatted = getIntlNumberFormatter('en-US', {
@@ -677,15 +677,15 @@ export const formatFundingRate = (
   const showZero = options?.showZero ?? true;
 
   if (value === undefined || value === null) {
-    return showZero ? FUNDING_RATE_CONFIG.ZeroDisplay : '';
+    return showZero ? FUNDING_RATE_CONFIG.ZERO_DISPLAY : '';
   }
 
-  const percentage = value * FUNDING_RATE_CONFIG.PercentageMultiplier;
-  const formatted = percentage.toFixed(FUNDING_RATE_CONFIG.Decimals);
+  const percentage = value * FUNDING_RATE_CONFIG.PERCENTAGE_MULTIPLIER;
+  const formatted = percentage.toFixed(FUNDING_RATE_CONFIG.DECIMALS);
 
   // Check if the result is effectively zero
   if (showZero && parseFloat(formatted) === 0) {
-    return FUNDING_RATE_CONFIG.ZeroDisplay;
+    return FUNDING_RATE_CONFIG.ZERO_DISPLAY;
   }
 
   return `${formatted}%`;

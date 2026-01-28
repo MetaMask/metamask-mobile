@@ -18,6 +18,8 @@ import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
 
@@ -48,6 +50,12 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           USER_STORAGE_WALLETS_FEATURE_KEY,
         ],
         sharedUserStorageController,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
       },
       async ({ userStorageMockttpController }) => {
         await loginToApp();
@@ -155,6 +163,12 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           USER_STORAGE_WALLETS_FEATURE_KEY,
         ],
         sharedUserStorageController,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
       },
       async () => {
         await loginToApp();

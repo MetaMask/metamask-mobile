@@ -141,25 +141,25 @@ export const HIP3_FEE_CONFIG = {
    * Growth Mode multiplier - 90% fee reduction for assets in growth phase
    * This is a protocol constant from HyperLiquid's fee formula
    */
-  GrowthModeScale: 0.1,
+  GROWTH_MODE_SCALE: 0.1,
 
   /**
    * Default deployerFeeScale when API is unavailable
    * Most HIP-3 DEXs use 1.0, which results in 2x base fees
    */
-  DefaultDeployerFeeScale: 1.0,
+  DEFAULT_DEPLOYER_FEE_SCALE: 1.0,
 
   /**
    * Cache TTL for perpDexs data (5 minutes)
    * Fee scales rarely change, so longer cache is acceptable
    */
-  PerpDexsCacheTtlMs: 5 * 60 * 1000,
+  PERP_DEXS_CACHE_TTL_MS: 5 * 60 * 1000,
 
   /**
    * @deprecated Use dynamic calculation via calculateHip3FeeMultiplier()
    * Kept for backwards compatibility during migration
    */
-  FeeMultiplier: 2,
+  FEE_MULTIPLIER: 2,
 } as const;
 
 const BUILDER_FEE_MAX_FEE_DECIMAL = 0.001;
@@ -167,13 +167,13 @@ const BUILDER_FEE_MAX_FEE_DECIMAL = 0.001;
 // Builder fee configuration
 export const BUILDER_FEE_CONFIG = {
   // Test builder wallet
-  TestnetBuilder: '0x724e57771ba749650875bd8adb2e29a85d0cacfa' as Hex,
+  testnetBuilder: '0x724e57771ba749650875bd8adb2e29a85d0cacfa' as Hex,
   // Production builder wallet
-  MainnetBuilder: '0xe95a5e31904e005066614247d309e00d8ad753aa' as Hex,
+  mainnetBuilder: '0xe95a5e31904e005066614247d309e00d8ad753aa' as Hex,
   // Fee in decimal (10 bp = 0.1%)
-  MaxFeeDecimal: BUILDER_FEE_MAX_FEE_DECIMAL,
-  MaxFeeTenthsBps: BUILDER_FEE_MAX_FEE_DECIMAL * 100000,
-  MaxFeeRate: `${(BUILDER_FEE_MAX_FEE_DECIMAL * 100)
+  maxFeeDecimal: BUILDER_FEE_MAX_FEE_DECIMAL,
+  maxFeeTenthsBps: BUILDER_FEE_MAX_FEE_DECIMAL * 100000,
+  maxFeeRate: `${(BUILDER_FEE_MAX_FEE_DECIMAL * 100)
     .toFixed(4)
     .replace(/\.?0+$/, '')}%`,
 };
@@ -181,9 +181,9 @@ export const BUILDER_FEE_CONFIG = {
 // Referral code configuration
 export const REFERRAL_CONFIG = {
   // Production referral code
-  MainnetCode: 'MMCSI',
+  mainnetCode: 'MMCSI',
   // Development/testnet referral code
-  TestnetCode: 'MMCSITEST',
+  testnetCode: 'MMCSITEST',
 };
 
 // MetaMask fee for deposits (temporary placeholder)
@@ -201,19 +201,19 @@ export const WITHDRAWAL_ESTIMATED_TIME = '5 minutes';
 export const ORDER_BOOK_SPREAD = {
   // Default bid/ask spread when real order book data is not available
   // This represents a 0.02% spread (2 basis points) which is typical for liquid markets
-  DefaultBidMultiplier: 0.9999, // Bid price is 0.01% below current price
-  DefaultAskMultiplier: 1.0001, // Ask price is 0.01% above current price
+  DEFAULT_BID_MULTIPLIER: 0.9999, // Bid price is 0.01% below current price
+  DEFAULT_ASK_MULTIPLIER: 1.0001, // Ask price is 0.01% above current price
 };
 
 // Deposit constants
 export const DEPOSIT_CONFIG = {
-  EstimatedGasLimit: 150000, // Estimated gas limit for bridge deposit
-  DefaultSlippage: 1, // 1% default slippage for bridge quotes
-  BridgeQuoteTimeout: 1000, // 1 second timeout for bridge quotes
-  RefreshRate: 30000, // 30 seconds quote refresh rate
-  EstimatedTime: {
-    DirectDeposit: '3-5 seconds', // Direct USDC deposit on Arbitrum
-    SameChainSwap: '30-60 seconds', // Swap on same chain before deposit
+  estimatedGasLimit: 150000, // Estimated gas limit for bridge deposit
+  defaultSlippage: 1, // 1% default slippage for bridge quotes
+  bridgeQuoteTimeout: 1000, // 1 second timeout for bridge quotes
+  refreshRate: 30000, // 30 seconds quote refresh rate
+  estimatedTime: {
+    directDeposit: '3-5 seconds', // Direct USDC deposit on Arbitrum
+    sameChainSwap: '30-60 seconds', // Swap on same chain before deposit
   },
 };
 
@@ -254,7 +254,7 @@ export function getSupportedAssets(isTestnet?: boolean): CaipAssetId[] {
 
 // CAIP asset namespace constants
 export const CAIP_ASSET_NAMESPACES = {
-  Erc20: 'erc20',
+  ERC20: 'erc20',
 } as const;
 
 /**
@@ -264,7 +264,7 @@ export const CAIP_ASSET_NAMESPACES = {
 export const HYPERLIQUID_CONFIG = {
   // Exchange name used in predicted funding data
   // HyperLiquid uses 'HlPerp' as their perps exchange identifier
-  ExchangeName: 'HlPerp',
+  EXCHANGE_NAME: 'HlPerp',
 } as const;
 
 /**
@@ -283,11 +283,11 @@ export const HYPERLIQUID_CONFIG = {
 export const HIP3_ASSET_ID_CONFIG = {
   // Base offset for HIP-3 asset IDs (100000)
   // Ensures HIP-3 asset IDs don't conflict with main DEX indices
-  BaseAssetId: 100000,
+  BASE_ASSET_ID: 100000,
 
   // Multiplier for DEX index in asset ID calculation (10000)
   // Allocates 10000 asset ID slots per DEX (0-9999)
-  DexMultiplier: 10000,
+  DEX_MULTIPLIER: 10000,
 } as const;
 
 /**
@@ -326,9 +326,6 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
 
   // xyz DEX - Commodities
   'xyz:GOLD': 'commodity',
-  'xyz:SILVER': 'commodity',
-  'xyz:CL': 'commodity',
-  'xyz:COPPER': 'commodity',
 
   // Future asset mappings as xyz adds more markets
 } as const;
@@ -348,13 +345,13 @@ export const TESTNET_HIP3_CONFIG = {
    * Empty array = main DEX only (no HIP-3 DEXs)
    * Add specific DEX names to test with particular HIP-3 DEXs: ['testdex1', 'testdex2']
    */
-  EnabledDexs: ['xyz'] as string[],
+  ENABLED_DEXS: ['xyz'] as string[],
 
   /**
    * Set to true to enable full HIP-3 discovery on testnet (not recommended)
    * When false, only DEXs in ENABLED_DEXS are used
    */
-  AutoDiscoverAll: false,
+  AUTO_DISCOVER_ALL: false,
 } as const;
 
 /**
@@ -370,19 +367,19 @@ export const HIP3_MARGIN_CONFIG = {
    * Margin buffer multiplier for fees and slippage (0.3% = multiply by 1.003)
    * Covers HyperLiquid's max taker fee (0.035%) with comfortable margin
    */
-  BufferMultiplier: 1.003,
+  BUFFER_MULTIPLIER: 1.003,
 
   /**
    * Desired buffer to keep on HIP-3 DEX after auto-rebalance (USDC amount)
    * Small buffer allows quick follow-up orders without transfers
    */
-  RebalanceDesiredBuffer: 0.1,
+  REBALANCE_DESIRED_BUFFER: 0.1,
 
   /**
    * Minimum excess threshold to trigger auto-rebalance (USDC amount)
    * Prevents unnecessary transfers for tiny amounts
    */
-  RebalanceMinThreshold: 0.1,
+  REBALANCE_MIN_THRESHOLD: 0.1,
 } as const;
 
 /**
@@ -393,14 +390,14 @@ export const HIP3_MARGIN_CONFIG = {
  */
 export const USDH_CONFIG = {
   /** Token name for USDH collateral */
-  TokenName: 'USDH',
+  TOKEN_NAME: 'USDH',
 
   /**
    * Maximum slippage for USDC→USDH spot swap in basis points
    * USDH is pegged 1:1 to USDC so slippage should be minimal
    * 10 bps (0.1%) provides small buffer for spread
    */
-  SwapSlippageBps: 10,
+  SWAP_SLIPPAGE_BPS: 10,
 } as const;
 
 // Progress bar constants

@@ -1,6 +1,10 @@
 import { LockManagerService } from '.';
 import { AppState, AppStateStatus } from 'react-native';
-import { lockApp, checkForDeeplink } from '../../actions/user';
+import {
+  interruptBiometrics,
+  lockApp,
+  checkForDeeplink,
+} from '../../actions/user';
 import Logger from '../../util/Logger';
 import ReduxService, { type ReduxStore } from '../redux';
 
@@ -120,6 +124,17 @@ describe('LockManagerService', () => {
       mockAppStateListener('inactive');
       mockAppStateListener('active');
       expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
+    });
+
+    it('should dispatch interruptBiometrics when lockTimer is undefined, lockTime is non-zero, and app state is not active', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 5 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+      mockAppStateListener('background');
+      expect(mockDispatch).toHaveBeenCalledWith(interruptBiometrics());
     });
 
     it('should dispatch lockApp when lockTimer is 0 while going into the background', async () => {

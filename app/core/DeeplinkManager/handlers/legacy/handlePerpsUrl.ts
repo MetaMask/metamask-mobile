@@ -157,7 +157,7 @@ const handleTabsNavigation = (tab?: string) => {
       // Future: could use tab parameter for more specific navigation
       ...(tab && { specificTab: tab }),
     });
-  }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+  }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
 };
 
 /**

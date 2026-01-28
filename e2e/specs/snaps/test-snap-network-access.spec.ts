@@ -5,7 +5,7 @@ import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import { getAnvilPortForTest } from '../../../tests/framework/fixtures/FixtureUtils';
 import { LocalNodeType } from '../../../tests/framework';
-import { defaultOptions } from '../../../tests/seeder/anvil-manager';
+import { defaultOptions } from '../../seeder/anvil-manager';
 
 jest.setTimeout(150_000);
 

@@ -11,7 +11,7 @@ import { buildPermissions } from '../../../../tests/framework/fixtures/FixtureUt
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../../tests/framework/Constants';
 
-import { NETWORK_TEST_CONFIGS } from '../../../../tests/resources/mock-configs';
+import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
 
 const SIGNATURE_LIST = [
   {

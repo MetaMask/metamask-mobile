@@ -24,6 +24,8 @@ const styleSheet = (params: { theme: Theme }) => {
     editButton: {
       flexDirection: 'row',
       alignItems: 'center',
+      // Intentional padding to increase touchable area
+      padding: 6,
       paddingRight: 0,
     },
     editIcon: {

@@ -7,7 +7,7 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import Assertions from '../../../../tests/framework/Assertions';
 import { buildPermissions } from '../../../../tests/framework/fixtures/FixtureUtils';
-import { NETWORK_TEST_CONFIGS } from '../../../../tests/resources/mock-configs';
+import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
 import { DappVariants } from '../../../../tests/framework/Constants';
 import TestHelpers from '../../../helpers';
 

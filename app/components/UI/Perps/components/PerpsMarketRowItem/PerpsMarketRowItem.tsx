@@ -34,7 +34,7 @@ import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 const PerpsMarketRowItem = ({
   market,
   onPress,
-  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
+  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
   displayMetric = 'volume',
   showBadge = true,
 }: PerpsMarketRowItemProps) => {
@@ -105,14 +105,14 @@ const PerpsMarketRowItem = ({
         updatedMarket.volume = formatVolume(volume);
       } else {
         // Only show $0 if volume is truly 0
-        updatedMarket.volume = PERPS_CONSTANTS.ZeroAmountDetailedDisplay;
+        updatedMarket.volume = PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
       }
     } else if (
       !market.volume ||
-      market.volume === PERPS_CONSTANTS.ZeroAmountDisplay
+      market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY
     ) {
       // Fallback: ensure volume field always has a value
-      updatedMarket.volume = PERPS_CONSTANTS.FallbackPriceDisplay;
+      updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
 
     // Update funding rate from live data if available
@@ -134,7 +134,7 @@ const PerpsMarketRowItem = ({
         return displayMarket.change24hPercent;
       case 'openInterest':
         return (
-          displayMarket.openInterest || PERPS_CONSTANTS.FallbackPriceDisplay
+          displayMarket.openInterest || PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         );
       case 'fundingRate':
         // Use formatFundingRate utility for consistent formatting with asset detail screen

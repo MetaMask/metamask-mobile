@@ -16,7 +16,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -364,13 +363,24 @@ const PerpsWithdrawView: React.FC = () => {
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <Box twClassName="flex-1 bg-default">
         {/* Header */}
-        <HeaderCenter
-          title={strings('perps.withdrawal.title')}
-          onBack={handleBack}
-          backButtonProps={{
-            testID: PerpsWithdrawViewSelectorsIDs.BACK_BUTTON,
-          }}
-        />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="px-4"
+        >
+          <Box twClassName="w-10" />
+          <Text variant={TextVariant.HeadingMD}>
+            {strings('perps.withdrawal.title')}
+          </Text>
+          <Pressable
+            onPress={handleBack}
+            style={tw.style('p-2')}
+            testID={PerpsWithdrawViewSelectorsIDs.BACK_BUTTON}
+          >
+            <Icon name={IconName.Close} size={IconSize.Md} />
+          </Pressable>
+        </Box>
 
         {/* Amount Display */}
         <Pressable onPress={handleAmountPress}>

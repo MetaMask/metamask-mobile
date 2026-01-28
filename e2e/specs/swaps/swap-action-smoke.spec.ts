@@ -7,17 +7,14 @@ import WalletView from '../../pages/wallet/WalletView';
 import { SmokeTrade } from '../../tags';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
-import {
-  EventPayload,
-  getEventsPayloads,
-} from '../../../tests/helpers/analytics/helpers';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
 import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { logger } from '../../../tests/framework/logger';
 import { testSpecificMock } from './helpers/swap-mocks';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',

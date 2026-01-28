@@ -20,7 +20,7 @@ import { oldConfirmationsRemoteFeatureFlags } from '../../../tests/api-mocking/m
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import WalletView from '../../pages/wallet/WalletView';
 import { LocalNode } from '../../../tests/framework/types';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;

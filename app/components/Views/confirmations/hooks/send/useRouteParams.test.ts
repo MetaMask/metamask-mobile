@@ -43,7 +43,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseNfts = useEVMNfts as jest.MockedFunction<typeof useEVMNfts>;
 
 describe('useRouteParams', () => {
-  it('does not call function mockUpdateAsset if asset is not found and has no symbol', async () => {
+  it('does not call function mockUpdateAsset if asset is not found', async () => {
     const asset = {
       id: '123',
       address: 'dummy_address',
@@ -65,70 +65,6 @@ describe('useRouteParams', () => {
 
     await waitFor(() => {
       expect(mockUpdateAsset).not.toHaveBeenCalled();
-    });
-  });
-
-  it('calls updateAsset with params asset when token not found but has symbol (zero balance scenario)', async () => {
-    const asset = {
-      id: '123',
-      address: 'dummy_address',
-      chainId: 'dummy_chainId',
-      symbol: 'TEST',
-      decimals: 18,
-      name: 'Test Token',
-    };
-    mockUseParams.mockReturnValue({ asset });
-    const mockUpdateAsset = jest.fn();
-    mockUseSendContext.mockReturnValue({
-      updateAsset: mockUpdateAsset,
-    } as unknown as ReturnType<typeof useSendContext>);
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectAssetsBySelectedAccountGroup) {
-        return { '0x1': [] };
-      }
-    });
-    mockUseNfts.mockReturnValue([]);
-
-    renderHookWithProvider(() => useRouteParams(), mockState);
-
-    await waitFor(() => {
-      expect(mockUpdateAsset).toHaveBeenCalledWith({
-        ...asset,
-        balance: '0',
-        rawBalance: '0x0',
-      });
-    });
-  });
-
-  it('calls updateAsset with params asset when token not found but has ticker (zero balance scenario)', async () => {
-    const asset = {
-      id: '123',
-      address: 'dummy_address',
-      chainId: 'dummy_chainId',
-      ticker: 'ETH',
-      decimals: 18,
-      name: 'Ether',
-    };
-    mockUseParams.mockReturnValue({ asset });
-    const mockUpdateAsset = jest.fn();
-    mockUseSendContext.mockReturnValue({
-      updateAsset: mockUpdateAsset,
-    } as unknown as ReturnType<typeof useSendContext>);
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectAssetsBySelectedAccountGroup) {
-        return { '0x1': [] };
-      }
-    });
-    mockUseNfts.mockReturnValue([]);
-
-    renderHookWithProvider(() => useRouteParams(), mockState);
-
-    await waitFor(() => {
-      expect(mockUpdateAsset).toHaveBeenCalledWith({
-        ...asset,
-        balance: '0',
-        rawBalance: '0x0',
-      });
     });
   });
 

@@ -33,3 +33,16 @@ export const selectTokenDisplayData = createDeepEqualSelector(
         d.currency === currentCurrency,
     ),
 );
+
+export const selectSupportedSwapTokenAddressesByChainId =
+  createDeepEqualSelector(
+    selectTokenSearchDiscoveryDataControllerState,
+    (state) => state?.swapsTokenAddressesByChainId,
+  );
+
+export const selectSupportedSwapTokenAddressesForChainId =
+  createDeepEqualSelector(
+    selectTokenSearchDiscoveryDataControllerState,
+    (_state: RootState, chainId: Hex) => chainId,
+    (state, chainId) => state?.swapsTokenAddressesByChainId[chainId]?.addresses,
+  );

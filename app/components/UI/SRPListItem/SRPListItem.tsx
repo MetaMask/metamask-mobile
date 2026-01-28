@@ -30,10 +30,6 @@ import { RootState } from '../../../reducers';
 import { selectIconSeedAddressByAccountGroupId } from '../../../selectors/multichainAccounts/accounts';
 import { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
 
-/**
- * Renders an individual account group item with avatar and name.
- * Used in the expanded account list within SRPListItem.
- */
 const AccountGroupItem = ({
   accountGroup,
   accountAvatarType,
@@ -78,6 +74,8 @@ const SRPListItem = ({
   const accountGroups = useSelector((state: RootState) =>
     selectAccountGroupsByKeyringId(state, keyring.metadata.id),
   );
+
+  const accountCount = accountGroups.length;
 
   const handleSRPSelection = () => {
     trackEvent(
@@ -151,7 +149,7 @@ const SRPListItem = ({
                     !showAccounts
                       ? 'accounts.show_accounts'
                       : 'accounts.hide_accounts',
-                  )} ${accountGroups.length} ${strings('accounts.accounts')}`}
+                  )} ${accountCount} ${strings('accounts.accounts')}`}
                 </Text>
               }
             />

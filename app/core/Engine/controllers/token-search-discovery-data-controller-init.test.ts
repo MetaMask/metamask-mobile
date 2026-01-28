@@ -40,7 +40,10 @@ describe('TokenSearchDiscoveryDataControllerInit', () => {
 
     const controllerMock = jest.mocked(TokenSearchDiscoveryDataController);
     expect(controllerMock).toHaveBeenCalledWith({
+      fetchSwapsTokensThresholdMs: expect.any(Number),
+      fetchTokens: expect.any(Function),
       messenger: expect.any(Object),
+      swapsSupportedChainIds: expect.any(Array),
       tokenPricesService: expect.any(Function),
     });
   });

@@ -50,17 +50,52 @@ describe('useAccountInfo', () => {
         state: mockInitialState,
       },
     );
-
     expect(result?.current?.accountName).toEqual('Account 1');
     expect(result?.current?.accountAddress).toEqual('0x0');
     expect(result?.current?.accountBalance).toEqual('< 0.00001 ETH');
     expect(result?.current?.accountFiatBalance).toEqual('$10.00');
   });
 
-  it('returns undefined walletName when walletsMap is empty', () => {
-    const stateWithEmptyWallets = merge({}, mockInitialState, {
+  it('returns undefined walletName when multichain accounts feature is disabled', () => {
+    const stateWithDisabledFeature = merge({}, mockInitialState, {
       engine: {
         backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccountsState2: {
+                enabled: false,
+                featureVersion: null,
+                minimumVersion: null,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useAccountInfo(MOCK_ADDRESS, '0x1' as Hex),
+      {
+        state: stateWithDisabledFeature,
+      },
+    );
+
+    expect(result?.current?.walletName).toBeUndefined();
+  });
+
+  it('returns undefined walletName when walletsMap is empty', () => {
+    const stateWithEnabledFeature = merge({}, mockInitialState, {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccountsState2: {
+                enabled: true,
+                featureVersion: '2',
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
           AccountTreeController: {
             accountTree: {
               wallets: {},
@@ -73,7 +108,7 @@ describe('useAccountInfo', () => {
     const { result } = renderHookWithProvider(
       () => useAccountInfo(MOCK_ADDRESS, '0x1' as Hex),
       {
-        state: stateWithEmptyWallets,
+        state: stateWithEnabledFeature,
       },
     );
 
@@ -89,6 +124,15 @@ describe('useAccountInfo', () => {
     const stateWithSingleWallet = merge({}, mockInitialState, {
       engine: {
         backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccountsState2: {
+                enabled: true,
+                featureVersion: '2',
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
           AccountsController: mockAccountsState,
           AccountTreeController: {
             accountTree: {
@@ -130,6 +174,15 @@ describe('useAccountInfo', () => {
     const stateWithMultipleWallets = merge({}, mockInitialState, {
       engine: {
         backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccountsState2: {
+                enabled: true,
+                featureVersion: '2',
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
           AccountsController: mockAccountsState,
           AccountTreeController: {
             accountTree: {
@@ -171,6 +224,15 @@ describe('useAccountInfo', () => {
     const stateWithMultipleWalletsNoMatch = merge({}, mockInitialState, {
       engine: {
         backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccountsState2: {
+                enabled: true,
+                featureVersion: '2',
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
           AccountsController: {
             internalAccounts: {
               accounts: {},
@@ -206,10 +268,46 @@ describe('useAccountInfo', () => {
     expect(result?.current?.walletName).toBeUndefined();
   });
 
+  it('returns undefined accountGroupName when multichain accounts feature is disabled', () => {
+    const stateWithDisabledFeature = merge({}, mockInitialState, {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccountsState2: {
+                enabled: false,
+                featureVersion: null,
+                minimumVersion: null,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useAccountInfo(MOCK_ADDRESS, '0x1' as Hex),
+      {
+        state: stateWithDisabledFeature,
+      },
+    );
+
+    expect(result?.current?.accountGroupName).toBeUndefined();
+  });
+
   it('returns undefined accountGroupName when no account groups exist', () => {
     const stateWithNoGroups = merge({}, mockInitialState, {
       engine: {
         backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccountsState2: {
+                enabled: true,
+                featureVersion: '2',
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
           AccountTreeController: {
             accountTree: {
               wallets: {},
@@ -238,6 +336,15 @@ describe('useAccountInfo', () => {
     const stateWithAccountGroups = merge({}, mockInitialState, {
       engine: {
         backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccountsState2: {
+                enabled: true,
+                featureVersion: '2',
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
           AccountsController: mockAccountsState,
           AccountTreeController: {
             accountTree: {

@@ -20,7 +20,7 @@ import { setupMockRequest } from '../../../../tests/api-mocking/helpers/mockHelp
 import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../../tests/framework/types';
-import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {

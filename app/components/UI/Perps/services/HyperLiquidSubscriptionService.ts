@@ -28,7 +28,7 @@ import type {
   SubscribeOrderBookParams,
   OrderBookData,
   OrderBookLevel,
-  PerpsPlatformDependencies,
+  IPerpsPlatformDependencies,
 } from '../controllers/types';
 import {
   adaptPositionFromSDK,
@@ -192,12 +192,12 @@ export class HyperLiquidSubscriptionService {
   >();
 
   // Platform dependencies for logging
-  private readonly deps: PerpsPlatformDependencies;
+  private readonly deps: IPerpsPlatformDependencies;
 
   constructor(
     clientService: HyperLiquidClientService,
     walletService: HyperLiquidWalletService,
-    platformDependencies: PerpsPlatformDependencies,
+    platformDependencies: IPerpsPlatformDependencies,
     hip3Enabled?: boolean,
     enabledDexs?: string[],
     allowlistMarkets?: string[],
@@ -232,7 +232,7 @@ export class HyperLiquidSubscriptionService {
   } {
     return {
       tags: {
-        feature: PERPS_CONSTANTS.FeatureName,
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
         provider: 'hyperliquid',
         network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
       },
@@ -485,7 +485,7 @@ export class HyperLiquidSubscriptionService {
    * Uses string concatenation of key fields instead of JSON.stringify()
    * Performance: ~100x faster than JSON.stringify() for typical objects
    * Tracks structural changes (coin, size, entryPrice, leverage, TP/SL prices/counts)
-   * and value changes (unrealizedPnl, returnOnEquity, liquidationPrice, marginUsed) for live updates
+   * and value changes (unrealizedPnl, returnOnEquity) for live P&L updates
    */
   private hashPositions(positions: Position[]): string {
     if (!positions || positions.length === 0) return '0';
@@ -496,7 +496,7 @@ export class HyperLiquidSubscriptionService {
             p.takeProfitPrice || ''
           }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}:${
             p.unrealizedPnl
-          }:${p.returnOnEquity}:${p.liquidationPrice || ''}:${p.marginUsed || ''}`,
+          }:${p.returnOnEquity}`,
       )
       .join('|');
   }
@@ -624,7 +624,7 @@ export class HyperLiquidSubscriptionService {
       let positionForCoin: Position | undefined;
 
       const matchPositionToTpsl = (p: Position) => {
-        if (TP_SL_CONFIG.UsePositionBoundTpsl) {
+        if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
           return (
             p.symbol === order.coin && order.reduceOnly && order.isPositionTpsl
           );
@@ -835,7 +835,7 @@ export class HyperLiquidSubscriptionService {
       }
     });
 
-    await this.clientService.ensureSubscriptionClient(
+    this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
 
@@ -968,7 +968,7 @@ export class HyperLiquidSubscriptionService {
   private async createUserDataSubscription(
     accountId?: CaipAccountId,
   ): Promise<void> {
-    await this.clientService.ensureSubscriptionClient(
+    this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
     const subscriptionClient = this.clientService.getSubscriptionClient();
@@ -1735,7 +1735,7 @@ export class HyperLiquidSubscriptionService {
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
-      await this.clientService.ensureSubscriptionClient(
+      this.clientService.ensureSubscriptionClient(
         this.walletService.createWalletAdapter(),
       );
       const client = this.clientService.getSubscriptionClient();
@@ -2223,7 +2223,7 @@ export class HyperLiquidSubscriptionService {
    * to avoid redundant meta() API calls during subscription setup
    */
   private async createAssetCtxsSubscription(dex: string): Promise<void> {
-    await this.clientService.ensureSubscriptionClient(
+    this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
     const subscriptionClient = this.clientService.getSubscriptionClient();
@@ -2647,24 +2647,8 @@ export class HyperLiquidSubscriptionService {
   /**
    * Restore all active subscriptions after WebSocket reconnection
    * Re-establishes WebSocket subscriptions for all active subscribers
-   *
-   * IMPORTANT: This method verifies transport readiness before attempting
-   * any subscriptions to prevent "subscribe error: undefined" errors.
    */
   public async restoreSubscriptions(): Promise<void> {
-    // CRITICAL: Verify transport is ready before attempting any subscriptions
-    // This prevents race conditions where subscriptions are attempted while
-    // the WebSocket is still in CONNECTING state
-    try {
-      await this.clientService.ensureTransportReady(5000);
-    } catch (error) {
-      this.deps.debugLogger.log(
-        'Transport not ready during subscription restore, will retry on next reconnect',
-        { error: error instanceof Error ? error.message : String(error) },
-      );
-      return;
-    }
-
     // Re-establish global allMids subscription if there are price subscribers
     if (this.priceSubscribers.size > 0) {
       // Clear existing subscription reference (it's dead after reconnection)

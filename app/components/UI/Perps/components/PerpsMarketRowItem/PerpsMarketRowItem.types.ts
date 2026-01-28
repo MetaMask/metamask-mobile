@@ -14,7 +14,7 @@ export interface PerpsMarketRowItemProps {
    */
   onPress?: (market: PerpsMarketData) => void;
   /**
-   * Size of the token icon (defaults to HOME_SCREEN_CONFIG.DefaultIconSize)
+   * Size of the token icon (defaults to HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE)
    */
   iconSize?: number;
   /**

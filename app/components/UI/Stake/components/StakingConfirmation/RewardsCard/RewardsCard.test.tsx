@@ -60,9 +60,6 @@ describe('RewardsCard', () => {
       params: {
         title: strings('tooltip_modal.reward_rate.title'),
         tooltip: strings('tooltip_modal.reward_rate.tooltip'),
-        footerText: undefined,
-        buttonText: undefined,
-        bottomPadding: undefined,
       },
       screen: 'tooltipModal',
     });
@@ -92,9 +89,6 @@ describe('RewardsCard', () => {
       params: {
         title: strings('tooltip_modal.reward_frequency.title'),
         tooltip: strings('tooltip_modal.reward_frequency.tooltip'),
-        footerText: undefined,
-        buttonText: undefined,
-        bottomPadding: undefined,
       },
       screen: 'tooltipModal',
     });

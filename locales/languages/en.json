@@ -193,10 +193,11 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search by site or address",
+    "placeholder": "Search by token, site or address",
     "recents": "Recents",
     "favorites": "Favorites",
-    "sites": "Sites"
+    "sites": "Sites",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Back",
@@ -1457,24 +1458,6 @@
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
-      "clientReinitializing": "Service is reinitializing. Please wait a moment and try again.",
-      "transferFailed": "Unable to transfer funds. Please try again.",
-      "swapFailed": "Unable to swap tokens. Please try again.",
-      "spotPairNotFound": "Trading pair is not available at this time.",
-      "priceUnavailable": "Price data is unavailable. Please refresh and try again.",
-      "batchCancelFailed": "Some orders couldn't be cancelled. Please try again.",
-      "batchCloseFailed": "Some positions couldn't be closed. Please try again.",
-      "insufficientMargin": "Insufficient margin to execute this trade. Consider adding more funds or reducing your position size.",
-      "reduceOnlyViolation": "This order would increase your position. Only reduce-only orders are allowed.",
-      "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
-      "marginAdjustmentFailed": "Unable to adjust margin. Please try again.",
-      "tpslUpdateFailed": "Unable to update take profit/stop loss. Please try again.",
-      "orderRejected": "Order was rejected. Please check your parameters and try again.",
-      "slippageExceeded": "Price moved too much. Try using a limit order or increase slippage tolerance.",
-      "rateLimitExceeded": "Too many requests. Please wait a moment and try again.",
-      "serviceUnavailable": "Service is temporarily unavailable. Please try again later.",
-      "networkErrorSimple": "Network error occurred. Please check your connection and try again.",
-      "insufficientBalance": "Insufficient balance to complete this operation. Please check your available funds.",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",
@@ -1720,14 +1703,7 @@
       "retry_connection": "Retry connection",
       "retrying_connection": "Connecting...",
       "connecting_to_perps": "Connecting to Perps",
-      "timeout_title": "Connection taking longer than expected",
-      "websocket_disconnected": "Your connection is offline.",
-      "websocket_disconnected_message": "Data may not be up to date.",
-      "websocket_connecting": "Connecting to perps...",
-      "websocket_connecting_message": "Restoring connection... Attempt {{attempt}}",
-      "websocket_connected": "Connected",
-      "websocket_connected_message": "Live data updates resumed",
-      "websocket_retry": "Retry"
+      "timeout_title": "Connection taking longer than expected"
     },
     "chart": {
       "no_data": "No chart data available",
@@ -1841,9 +1817,6 @@
       "past_24_hours": "Past 24 hours",
       "time": "Time",
       "apply": "Apply"
-    },
-    "market_type": {
-      "filter_by": "Filter by"
     },
     "perps_markets": "Perps markets",
     "volume": "Volume",
@@ -3304,8 +3277,7 @@
     "merkl_rewards": {
       "annual_bonus": "{{apy}}% bonus",
       "claimable_bonus": "Claimable bonus",
-      "claim": "Claim",
-      "processing_claim": "Processing claim..."
+      "claim": "Claim"
     },
     "tron": {
       "daily_resource_new_energy": "New daily energy",
@@ -4651,10 +4623,6 @@
   "fiat_on_ramp": {
     "buy_eth": "Buy ETH",
     "buy": "Buy {{ticker}}",
-    "on_network": "on {{networkName}}",
-    "debit_card": "Debit card",
-    "continue": "Continue",
-    "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
     "network_not_supported": "Current network not supported",
     "switch_network": "Please switch to Mainnet",
@@ -4742,14 +4710,6 @@
         "subtitle_5": "and see how much gas costs.",
         "cta": "Continue to purchase {{ticker}}"
       }
-    },
-    "build_quote_settings_modal": {
-      "title": "Settings",
-      "view_order_history": "View order history",
-      "contact_support": "Contact support",
-      "log_out": "Log out of {{provider}}",
-      "logged_out_success": "Successfully logged out",
-      "logged_out_error": "Error logging out"
     }
   },
   "fiat_on_ramp_aggregator": {
@@ -5760,8 +5720,7 @@
       "fee": "Fee"
     },
     "musd_conversion": {
-      "ok": "OK",
-      "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
+      "convert_to_musd": "Convert to mUSD",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
       "toasts": {
@@ -5772,8 +5731,7 @@
       },
       "education": {
         "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus.",
-        "terms_apply": "Terms apply.",
+        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus. Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now"
       },
@@ -6238,8 +6196,6 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
     "select_network": "Select network",
     "all_networks": "All networks",
     "num_networks": "{{numNetworks}} networks",
@@ -6247,7 +6203,6 @@
     "select_all_networks": "Select all",
     "deselect_all_networks": "Deselect all",
     "see_all": "See all",
-    "all": "All",
     "apply": "Apply",
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
@@ -7401,10 +7356,8 @@
     "still_connecting_network": "Still connecting to {{networkName}}...",
     "unable_to_connect_network": "Unable to connect to {{networkName}}.",
     "update_rpc": "Update RPC",
-    "switch_to_metamask_default_rpc": "Switch to MetaMask default RPC",
     "check_network_connectivity": "Check your network connectivity.",
-    "check_network_connectivity_or": "Check your network connectivity or",
-    "updated_to_metamask_default": "Updated to MetaMask default"
+    "check_network_connectivity_or": "Check your network connectivity or"
   },
   "trending": {
     "title": "Explore",

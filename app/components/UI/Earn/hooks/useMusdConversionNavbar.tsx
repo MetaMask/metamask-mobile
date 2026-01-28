@@ -1,9 +1,16 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, StyleSheet, Linking } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { MUSD_CONVERSION_APY } from '../constants/musd';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../../component-library/components/Badges/Badge';
+import { getNetworkImageSource } from '../../../../util/networks';
+import { MUSD_TOKEN } from '../constants/musd';
 import { strings } from '../../../../../locales/i18n';
 import {
   ButtonIcon,
@@ -12,22 +19,21 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
-import useTooltipModal from '../../../hooks/useTooltipModal';
-import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
   headerTitle: {
     flexDirection: 'row',
     gap: 8,
   },
+  tokenIcon: {
+    width: 16,
+    height: 16,
+  },
+  badgeWrapper: {
+    alignSelf: 'center',
+  },
   headerLeft: {
-    marginHorizontal: 16,
-  },
-  headerRight: {
-    marginRight: 16,
-  },
-  termsText: {
-    textDecorationLine: 'underline',
+    marginHorizontal: 8,
   },
 });
 
@@ -35,21 +41,36 @@ const styles = StyleSheet.create({
  * Hook that sets up the mUSD conversion navbar with custom styling.
  * Uses the centralized rejection logic from useNavbar.
  *
+ * @param chainId - Chain ID for the network badge
  */
-export function useMusdConversionNavbar() {
-  const { openTooltipModal } = useTooltipModal();
+export function useMusdConversionNavbar(chainId: string) {
+  const networkImageSource = getNetworkImageSource({ chainId });
 
   const renderHeaderTitle = useCallback(
     () => (
       <View style={styles.headerTitle}>
-        <Text variant={TextVariant.HeadingSM}>
-          {strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
+        <BadgeWrapper
+          style={styles.badgeWrapper}
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkImageSource}
+            />
+          }
+        >
+          <Image
+            source={MUSD_TOKEN.imageSource}
+            style={styles.tokenIcon}
+            testID="musd-token-icon"
+          />
+        </BadgeWrapper>
+        <Text variant={TextVariant.BodyMDBold}>
+          {strings('earn.musd_conversion.convert_to_musd')}
         </Text>
       </View>
     ),
-    [],
+    [networkImageSource],
   );
 
   const renderHeaderLeft = useCallback(
@@ -66,58 +87,13 @@ export function useMusdConversionNavbar() {
     [],
   );
 
-  const handleTermsOfUsePressed = () => {
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  };
-
-  const onInfoPress = useCallback(() => {
-    openTooltipModal(
-      strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
-        percentage: MUSD_CONVERSION_APY,
-      }),
-      <Text variant={TextVariant.BodyMD}>
-        {strings('earn.musd_conversion.education.description', {
-          percentage: MUSD_CONVERSION_APY,
-        })}{' '}
-        <Text variant={TextVariant.BodyMD}>
-          <Text onPress={handleTermsOfUsePressed} style={styles.termsText}>
-            {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
-        </Text>
-      </Text>,
-      strings('earn.musd_conversion.powered_by_relay'),
-      strings('earn.musd_conversion.ok'),
-    );
-  }, [openTooltipModal]);
-
-  const renderHeaderRight = useCallback(
-    () => (
-      <View style={styles.headerRight}>
-        <ButtonIcon
-          iconName={IconName.Info}
-          size={ButtonIconSize.Lg}
-          iconProps={{ color: IconColor.IconDefault }}
-          onPress={onInfoPress}
-        />
-      </View>
-    ),
-    [onInfoPress],
-  );
-
   const overrides = useMemo(
     () => ({
       headerTitle: renderHeaderTitle,
       headerLeft: renderHeaderLeft,
-      headerRight: renderHeaderRight,
     }),
-    [renderHeaderTitle, renderHeaderLeft, renderHeaderRight],
+    [renderHeaderTitle, renderHeaderLeft],
   );
 
-  useNavbar(
-    strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
-      percentage: MUSD_CONVERSION_APY,
-    }),
-    true,
-    overrides,
-  );
+  useNavbar(strings('earn.musd_conversion.convert_to_musd'), true, overrides);
 }

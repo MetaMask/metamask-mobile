@@ -119,7 +119,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -891,7 +891,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1581,7 +1581,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"

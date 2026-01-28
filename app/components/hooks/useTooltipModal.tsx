@@ -1,36 +1,17 @@
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
-import { ReactNode, useCallback, useMemo } from 'react';
-
-interface TooltipOptions {
-  bottomPadding?: number;
-}
+import { ReactNode } from 'react';
 
 const useTooltipModal = () => {
   const { navigate } = useNavigation();
 
-  const openTooltipModal = useCallback(
-    (
-      title: string,
-      tooltip: string | ReactNode,
-      footerText?: string,
-      buttonText?: string,
-      options?: TooltipOptions,
-    ) =>
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.TOOLTIP_MODAL,
-        params: {
-          title,
-          tooltip,
-          footerText,
-          buttonText,
-          bottomPadding: options?.bottomPadding,
-        },
-      }),
-    [navigate],
-  );
+  const openTooltipModal = (title: string, tooltip: string | ReactNode) =>
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.TOOLTIP_MODAL,
+      params: { title, tooltip },
+    });
 
-  return useMemo(() => ({ openTooltipModal }), [openTooltipModal]);
+  return { openTooltipModal };
 };
 
 export default useTooltipModal;
