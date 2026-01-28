@@ -230,14 +230,6 @@ jest.mock('../../../selectors/networkController', () => ({
   ),
 }));
 
-// Mock feature flag selectors
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(() => false),
-  }),
-);
-
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -765,9 +757,16 @@ describe('NetworkManager Component', () => {
       expect(getByTestId('custom-network-selector')).toBeOnTheScreen();
     });
 
-    it('should set initial tab to popular networks when selectedCount > 0', () => {
-      (useNetworksByNamespace as jest.Mock).mockReturnValue({
-        selectedCount: 3,
+    it('sets initial tab to popular networks when multiple networks are enabled', () => {
+      (useNetworkEnablement as jest.Mock).mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {
+          eip155: {
+            '0x1': true,
+            '0x89': true,
+          },
+        },
       });
 
       const { getByTestId } = renderComponent();
@@ -776,9 +775,11 @@ describe('NetworkManager Component', () => {
       expect(tabView.props.initialPage).toBe(0); // Popular tab
     });
 
-    it('should set initial tab to custom networks when selectedCount is 0', () => {
-      (useNetworksByNamespace as jest.Mock).mockReturnValue({
-        selectedCount: 0,
+    it('sets initial tab to custom networks when no networks are enabled', () => {
+      (useNetworkEnablement as jest.Mock).mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {},
       });
 
       const { getByTestId } = renderComponent();

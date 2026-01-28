@@ -48,7 +48,7 @@ export const AccountInfo = ({ account }: AccountInfoProps) => {
         <Text variant={TextVariant.BodyLGMedium} color={colors.primary.default}>
           {formatAddress(formattedAddress, 'short')}
         </Text>
-        <AddressCopy account={account} iconColor={IconColor.PrimaryDefault} />
+        <AddressCopy iconColor={IconColor.PrimaryDefault} />
       </Box>
     </Box>
   );

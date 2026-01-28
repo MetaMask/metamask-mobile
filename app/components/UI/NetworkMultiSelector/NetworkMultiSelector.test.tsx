@@ -14,7 +14,6 @@ import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkS
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import NetworkMultiSelector from './NetworkMultiSelector';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useMetrics } from '../../hooks/useMetrics';
@@ -94,13 +93,6 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => jest.fn()),
   Provider: jest.requireActual('react-redux').Provider,
 }));
-
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(),
-  }),
-);
 
 jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountByScope: jest.fn(() => jest.fn()),
@@ -289,7 +281,6 @@ describe('NetworkMultiSelector', () => {
         return evmConfigs;
       if (selector === selectNonEvmNetworkConfigurationsByChainId)
         return nonEvmConfigs;
-      if (selector === selectMultichainAccountsState2Enabled) return true;
       if (selector === selectSelectedInternalAccountByScope) {
         return (scope: string) => {
           if (scope === 'eip155:0') return { id: 'evm-account' };
@@ -401,9 +392,6 @@ describe('NetworkMultiSelector', () => {
     });
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
-      }
       if (selector === selectSelectedInternalAccountByScope) {
         return (scope: string) => {
           if (scope === 'eip155:0') {
@@ -566,7 +554,7 @@ describe('NetworkMultiSelector', () => {
       );
     });
 
-    it('renders custom network component even for non-EIP155 namespace when multichain is enabled', () => {
+    it('renders custom network component for non-EIP155 namespace', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: 'solana' as KnownCaipNamespace,
         enabledNetworksByNamespace: { solana: {} },
@@ -586,7 +574,7 @@ describe('NetworkMultiSelector', () => {
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
-      // Since multichain is enabled, it should still render the custom network component
+      // Custom network component should always render
       expect(networkList.props.additionalNetworksComponent).toBeTruthy();
       expect(networkList.props.additionalNetworksComponent.props.testID).toBe(
         NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORK_CONTAINER,
@@ -800,9 +788,6 @@ describe('NetworkMultiSelector', () => {
 
       // Setup selector mock
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return true;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === 'eip155:0') {
@@ -882,9 +867,6 @@ describe('NetworkMultiSelector', () => {
       });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return true;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope.includes('solana')) {
@@ -964,9 +946,6 @@ describe('NetworkMultiSelector', () => {
       });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return true;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return () => null; // No accounts selected
         }
@@ -981,7 +960,7 @@ describe('NetworkMultiSelector', () => {
       expect(networkList.props.networks).toEqual(mockNetworks);
     });
 
-    it('uses regular networks when multichain is disabled', () => {
+    it('uses regular networks from hook', () => {
       // Clear all mocks for clean state
       jest.clearAllMocks();
 
@@ -1018,7 +997,7 @@ describe('NetworkMultiSelector', () => {
         customNetworksToReset: [],
       });
 
-      // Mock useNetworksToUse to return default networks when multichain disabled
+      // Mock useNetworksToUse to return default networks
       mockUseNetworksToUse.mockReturnValue({
         networksToUse: mockNetworks,
         evmNetworks: [],
@@ -1029,7 +1008,7 @@ describe('NetworkMultiSelector', () => {
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
         selectedTronAccount: null,
-        isMultichainAccountsState2Enabled: false,
+        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
@@ -1038,9 +1017,6 @@ describe('NetworkMultiSelector', () => {
       });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === 'eip155:0') {
@@ -1101,9 +1077,6 @@ describe('NetworkMultiSelector', () => {
 
       // Override the selector for this specific test
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return true;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === 'eip155:0') {
@@ -2425,7 +2398,7 @@ describe('NetworkMultiSelector', () => {
       jest.clearAllMocks();
     });
 
-    it('renders custom network component for multichain enabled even with non-EIP155 namespace', () => {
+    it('always renders custom network component for any namespace', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: 'solana' as KnownCaipNamespace,
         enabledNetworksByNamespace: { solana: {} },
@@ -2439,12 +2412,6 @@ describe('NetworkMultiSelector', () => {
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
       });
-
-      mockUseSelector
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
-        .mockReturnValueOnce(() => null) // selectedEvmAccount
-        .mockReturnValueOnce(() => null) // selectedSolanaAccount
-        .mockReturnValueOnce(() => null); // selectedBitcoinAccount
 
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector openModal={mockOpenModal} />,
@@ -2676,9 +2643,6 @@ describe('NetworkMultiSelector', () => {
 
       // Override the selector for this specific test
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return true;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === 'eip155:0') {

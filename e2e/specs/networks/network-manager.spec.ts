@@ -105,7 +105,9 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
   it('should default to custom tab when custom network is enabled', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder()
+          .withMultichainAccountsState2Enabled()
+          .build(),
         restartDevice: true,
       },
       async () => {

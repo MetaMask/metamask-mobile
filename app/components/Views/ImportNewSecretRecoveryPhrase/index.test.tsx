@@ -10,13 +10,6 @@ import {
   MOCK_HD_KEYRING_METADATA,
 } from '../../../selectors/keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import useMetrics from '../../hooks/useMetrics/useMetrics';
-import {
-  ImportNewSecretRecoveryPhraseOptions,
-  ImportNewSecretRecoveryPhraseReturnType,
-} from '../../../actions/multiSrp';
 import {
   ToastContext,
   ToastVariants,
@@ -58,11 +51,9 @@ jest.mock('react-native', () => {
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
-const mockImportNewSecretRecoveryPhrase = jest.fn();
-const mockTrackEvent = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
-const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(true);
 const mockShowToast = jest.fn();
+const mockFetchAccountsWithActivity = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -79,12 +70,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../actions/multiSrp', () => ({
-  ...jest.requireActual('../../../actions/multiSrp'),
-  importNewSecretRecoveryPhrase: (...args: unknown[]) =>
-    mockImportNewSecretRecoveryPhrase(...args),
-}));
-
 jest.mock('../../../core', () => ({
   ...jest.requireActual('../../../core'),
   Authentication: {
@@ -97,16 +82,6 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
   getString: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMetrics/useMetrics', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
-jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsState2Enabled: () =>
-    mockIsMultichainAccountsState2Enabled(),
-}));
-
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -114,7 +89,7 @@ jest.mock('react', () => ({
 
 jest.mock('../../hooks/useAccountsWithNetworkActivitySync', () => ({
   useAccountsWithNetworkActivitySync: () => ({
-    fetchAccountsWithActivity: jest.fn(),
+    fetchAccountsWithActivity: mockFetchAccountsWithActivity,
   }),
 }));
 
@@ -162,7 +137,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
     mockGetString.mockResolvedValue('');
 
     (useContext as jest.Mock).mockImplementation((context) => {
@@ -177,32 +151,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         };
       }
       return jest.requireActual('react').useContext(context);
-    });
-
-    mockImportNewSecretRecoveryPhrase.mockImplementation(
-      (
-        _srp: string,
-        _options: ImportNewSecretRecoveryPhraseOptions,
-        callback?: (options: ImportNewSecretRecoveryPhraseReturnType) => void,
-      ) => {
-        if (callback) {
-          Promise.resolve().then(() => {
-            callback({
-              address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
-              discoveredAccountsCount: 3,
-            });
-          });
-        }
-        return Promise.resolve({
-          address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
-          discoveredAccountsCount: 0,
-        });
-      },
-    );
-
-    (useMetrics as jest.Mock).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
     });
 
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
@@ -238,7 +186,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     expect(getByText(messages.import_from_seed.paste)).toBeTruthy();
   });
 
-  it('imports valid pasted 12-word SRP', async () => {
+  it('navigates to WalletView after valid 12-word SRP submission', async () => {
     mockGetString.mockResolvedValue(valid12WordMnemonic);
 
     const { getByTestId, getByText } = renderScreen(
@@ -266,15 +214,12 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       await fireEvent.press(importButton);
     });
 
-    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
-      valid12WordMnemonic,
-      undefined,
-      expect.any(Function),
-    );
-    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    });
   });
 
-  it('imports valid pasted 24-word SRP', async () => {
+  it('navigates to WalletView after valid 24-word SRP submission', async () => {
     mockGetString.mockResolvedValue(valid24WordMnemonic);
 
     const { getByTestId, getByText } = renderScreen(
@@ -302,12 +247,42 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       await fireEvent.press(importButton);
     });
 
-    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
-      valid24WordMnemonic,
-      undefined,
-      expect.any(Function),
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    });
+  });
+
+  it('calls fetchAccountsWithActivity after valid SRP submission', async () => {
+    mockGetString.mockResolvedValue(valid12WordMnemonic);
+
+    const { getByTestId, getByText } = renderScreen(
+      ImportNewSecretRecoveryPhrase,
+      { name: 'ImportNewSecretRecoveryPhrase' },
+      {
+        state: initialState,
+      },
     );
-    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+
+    const pasteButton = getByText(messages.import_from_seed.paste);
+
+    await act(async () => {
+      await fireEvent.press(pasteButton);
+    });
+
+    await waitFor(() => {
+      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+      expect(importButton.props.disabled).toBe(false);
+    });
+
+    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+
+    await act(async () => {
+      await fireEvent.press(importButton);
+    });
+
+    await waitFor(() => {
+      expect(mockFetchAccountsWithActivity).toHaveBeenCalled();
+    });
   });
 
   it('disables import button when SRP is empty', () => {
@@ -397,95 +372,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
   });
 
-  it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import', async () => {
-    mockGetString.mockResolvedValue(valid24WordMnemonic);
-
-    const { getByTestId, getByText } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
-    );
-
-    const pasteButton = getByText(messages.import_from_seed.paste);
-
-    await act(async () => {
-      await fireEvent.press(pasteButton);
-    });
-
-    await waitFor(() => {
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
-    });
-
-    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-
-    await act(async () => {
-      await fireEvent.press(importButton);
-    });
-
-    // Check that the import function was called with the correct parameters
-    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
-      valid24WordMnemonic,
-      undefined,
-      expect.any(Function),
-    );
-
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-      )
-        .addProperties({
-          number_of_solana_accounts_discovered: 3,
-        })
-        .build(),
-    );
-  });
-
-  it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event when multichain state 2 is enabled', async () => {
-    mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-    mockGetString.mockResolvedValue(valid24WordMnemonic);
-
-    const { getByTestId, getByText } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
-    );
-
-    const pasteButton = getByText(messages.import_from_seed.paste);
-
-    await act(async () => {
-      await fireEvent.press(pasteButton);
-    });
-
-    await waitFor(() => {
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
-    });
-
-    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-
-    await act(async () => {
-      await fireEvent.press(importButton);
-    });
-
-    await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-        )
-          .addProperties({
-            number_of_solana_accounts_discovered: 3,
-          })
-          .build(),
-      );
-    });
-  });
-
-  it('displays success toast after successful SRP import', async () => {
+  it('displays success toast after successful SRP submission', async () => {
     mockGetString.mockResolvedValue(valid24WordMnemonic);
 
     const { getByTestId, getByText } = renderScreen(
@@ -592,9 +479,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
     });
 
-    it('displays error when import fails with duplicate SRP', async () => {
+    it('displays error when fetchAccountsWithActivity fails with duplicate SRP', async () => {
       const mockAlert = jest.spyOn(Alert, 'alert');
-      mockImportNewSecretRecoveryPhrase.mockRejectedValueOnce(
+      mockFetchAccountsWithActivity.mockRejectedValueOnce(
         new Error('This mnemonic has already been imported.'),
       );
       mockGetString.mockResolvedValue(valid12WordMnemonic);
@@ -633,9 +520,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       mockAlert.mockRestore();
     });
 
-    it('displays error when import fails with duplicate account', async () => {
+    it('displays error when fetchAccountsWithActivity fails with duplicate account', async () => {
       const mockAlert = jest.spyOn(Alert, 'alert');
-      mockImportNewSecretRecoveryPhrase.mockRejectedValueOnce(
+      mockFetchAccountsWithActivity.mockRejectedValueOnce(
         new Error(
           'KeyringController - The account you are trying to import is a duplicate',
         ),
@@ -676,9 +563,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       mockAlert.mockRestore();
     });
 
-    it('displays generic error when import fails', async () => {
+    it('displays generic error when fetchAccountsWithActivity fails', async () => {
       const mockAlert = jest.spyOn(Alert, 'alert');
-      mockImportNewSecretRecoveryPhrase.mockRejectedValueOnce(
+      mockFetchAccountsWithActivity.mockRejectedValueOnce(
         new Error('Network error'),
       );
       mockGetString.mockResolvedValue(valid12WordMnemonic);
@@ -720,7 +607,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   });
 
   describe('seedless password check', () => {
-    it('stops import when seedless password is outdated', async () => {
+    it('stops submission when seedless password is outdated', async () => {
       mockCheckIsSeedlessPasswordOutdated.mockResolvedValueOnce(true);
       mockGetString.mockResolvedValue(valid12WordMnemonic);
 
@@ -749,7 +636,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         await fireEvent.press(importButton);
       });
 
-      expect(mockImportNewSecretRecoveryPhrase).not.toHaveBeenCalled();
+      expect(mockFetchAccountsWithActivity).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });

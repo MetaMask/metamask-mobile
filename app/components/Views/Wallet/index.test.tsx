@@ -43,12 +43,7 @@ jest.mock('../../../util/remoteFeatureFlag', () => ({
   validatedVersionGatedFeatureFlag: jest.fn(() => false),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController//multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
+// Note: BIP-44 multichain accounts is now the default behavior
 
 // Mock the Perps feature flag selector - will be controlled per test
 let mockPerpsEnabled = true;
@@ -644,9 +639,9 @@ describe('Wallet', () => {
       );
     });
 
-    it('should handle onReceive callback correctly when multichain accounts state 2 is enabled', () => {
-      // Arrange - Create mock state with state2 enabled and required data
-      const mockStateWithState2 = {
+    it('should handle onReceive callback correctly with BIP-44 multichain accounts', () => {
+      // Arrange - Create mock state with required data
+      const mockStateWithMultichainAccounts = {
         ...mockInitialState,
         engine: {
           ...mockInitialState.engine,
@@ -663,14 +658,10 @@ describe('Wallet', () => {
 
       jest.mocked(useSelector).mockImplementation((callback) => {
         const selectorString = callback.toString();
-        // Override specific selectors for state2 test
-        if (selectorString.includes('selectMultichainAccountsState2Enabled')) {
-          return true;
-        }
         if (selectorString.includes('selectSelectedAccountGroupId')) {
           return 'group-id-123'; // Ensure this returns the group ID
         }
-        return callback(mockStateWithState2);
+        return callback(mockStateWithMultichainAccounts);
       });
 
       // Act
@@ -682,7 +673,7 @@ describe('Wallet', () => {
       // Assert - createAddressListNavigationDetails spreads an array [route, params]
       expect(mockNavigate).toHaveBeenCalled();
       expect(mockNavigate.mock.calls[0]).toBeDefined();
-      // Verify it was called with address list navigation (state2 behavior)
+      // Verify it was called with address list navigation
       const [route, params] = mockNavigate.mock.calls[0];
       expect(route).toBeDefined();
       expect(params).toBeDefined();
