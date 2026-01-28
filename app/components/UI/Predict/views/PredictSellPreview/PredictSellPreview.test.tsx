@@ -1,8 +1,4 @@
-import {
-  NavigationProp,
-  RouteProp,
-  StackActions,
-} from '@react-navigation/native';
+import { RouteProp, StackActions } from '@react-navigation/native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
@@ -202,7 +198,7 @@ const mockRoute: RouteProp<PredictNavigationParamList, 'PredictSellPreview'> = {
   },
 };
 
-const mockNavigation: NavigationProp<PredictNavigationParamList> = {
+const mockNavigation = {
   goBack: mockGoBack,
   dispatch: mockDispatch,
   navigate: jest.fn(),

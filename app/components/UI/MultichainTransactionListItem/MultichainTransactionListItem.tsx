@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   Image,
@@ -27,12 +26,10 @@ import { getNetworkImageSource } from '../../../util/networks';
 const MultichainTransactionListItem = ({
   transaction,
   chainId,
-  navigation,
   index,
 }: {
   transaction: Transaction;
   chainId: SupportedCaipChainId;
-  navigation: NavigationProp<ParamListBase>;
   index?: number;
 }) => {
   const { colors, typography } = useTheme();
@@ -130,7 +127,6 @@ const MultichainTransactionListItem = ({
         onClose={() => setIsModalVisible(false)}
         displayData={displayData}
         transaction={transaction}
-        navigation={navigation}
       />
     </>
   );

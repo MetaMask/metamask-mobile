@@ -1,4 +1,4 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {
   Image,
@@ -33,14 +33,13 @@ import { parseCaipAssetType } from '@metamask/utils';
 const MultichainBridgeTransactionListItem = ({
   transaction,
   bridgeHistoryItem,
-  navigation,
   index,
 }: {
   transaction: Transaction;
   bridgeHistoryItem: BridgeHistoryItem;
-  navigation: NavigationProp<ParamListBase>;
   index?: number;
 }) => {
+  const navigation = useNavigation();
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
   const appTheme = useSelector((state: RootState) => state.user.appTheme);

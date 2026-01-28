@@ -1,9 +1,16 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
-import { ParamListBase, NavigationProp } from '@react-navigation/native';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionDetailsModal from './MultichainTransactionDetailsModal';
 import { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 // Mock react-native-modal to capture onModalHide callback
 let mockOnModalHide: (() => void) | undefined;
@@ -45,7 +52,6 @@ jest.mock('../../../core/Multichain/utils', () => ({
 }));
 
 describe('MultichainTransactionDetailsModal', () => {
-  const mockNavigation = { navigate: jest.fn() };
   const mockOnClose = jest.fn();
   const mockTransaction: Transaction = {
     id: 'tx-123',
@@ -98,7 +104,6 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -118,7 +123,6 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -134,7 +138,6 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -151,7 +154,6 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -164,14 +166,14 @@ describe('MultichainTransactionDetailsModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
 
     // Navigation should not happen immediately
-    expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
 
     // Simulate modal hide event
     await act(async () => {
       mockOnModalHide?.();
     });
 
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: { url: 'https://solscan.io/tx/123' },
     });
@@ -184,7 +186,6 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -197,14 +198,14 @@ describe('MultichainTransactionDetailsModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
 
     // Navigation should not happen immediately
-    expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
 
     // Simulate modal hide event
     await act(async () => {
       mockOnModalHide?.();
     });
 
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: { url: 'https://solscan.io/account/123' },
     });
@@ -217,7 +218,6 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -226,6 +226,6 @@ describe('MultichainTransactionDetailsModal', () => {
       mockOnModalHide?.();
     });
 
-    expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

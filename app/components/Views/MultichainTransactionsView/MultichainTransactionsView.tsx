@@ -152,13 +152,11 @@ const MultichainTransactionsView = ({
       <MultichainBridgeTransactionListItem
         transaction={item}
         bridgeHistoryItem={bridgeHistoryItem}
-        navigation={nav}
         index={index}
       />
     ) : (
       <MultichainTransactionListItem
         transaction={item}
-        navigation={nav}
         index={index}
         chainId={chainId}
       />

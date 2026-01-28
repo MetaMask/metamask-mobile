@@ -1,4 +1,4 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View, TouchableOpacity, TextStyle } from 'react-native';
 import Modal from 'react-native-modal';
@@ -23,7 +23,6 @@ interface TransactionDetailsProps {
   onClose: () => void;
   displayData: MultichainTransactionDisplayData;
   transaction: Transaction;
-  navigation: NavigationProp<ParamListBase>;
 }
 
 const TransactionDetailRow = {
@@ -41,8 +40,8 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
   onClose,
   displayData,
   transaction,
-  navigation,
 }) => {
+  const navigation = useNavigation();
   const { colors, typography } = useTheme();
   const style = styles(colors, typography);
   const [pendingNavigation, setPendingNavigation] = React.useState<
