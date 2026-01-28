@@ -271,6 +271,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 isLoading={isExploreLoading}
                 positions={[]}
                 orders={[]}
+                headerStyle={styles.exploreHeaderStyle}
+                contentContainerStyle={styles.exploreContentContainerStyle}
               />
 
               {/* Explore markets section - top 8 by volume */}
