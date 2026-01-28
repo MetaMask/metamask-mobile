@@ -4,7 +4,7 @@ import { Linking } from 'react-native';
 import DaimoPayModal from './DaimoPayModal';
 import { DaimoPayModalSelectors } from '../../../../../../e2e/selectors/Card/DaimoPayModal.selectors';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardScreens } from '../../util/metrics';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -587,10 +587,9 @@ describe('DaimoPayModal', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+        MetaMetricsEvents.CARD_METAL_CHECKOUT_USER_CANCELED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
-        action: CardActions.DAIMO_PAY_CLOSED,
         screen: CardScreens.DAIMO_PAY,
       });
     });
@@ -618,7 +617,7 @@ describe('DaimoPayModal', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_VIEWED,
+        MetaMetricsEvents.CARD_METAL_CHECKOUT_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         screen: CardScreens.DAIMO_PAY,
@@ -648,10 +647,9 @@ describe('DaimoPayModal', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+        MetaMetricsEvents.CARD_METAL_CHECKOUT_STARTED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
-        action: CardActions.DAIMO_PAYMENT_STARTED,
         screen: CardScreens.DAIMO_PAY,
       });
     });
@@ -682,12 +680,10 @@ describe('DaimoPayModal', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+        MetaMetricsEvents.CARD_METAL_CHECKOUT_COMPLETED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
-        action: CardActions.DAIMO_PAYMENT_COMPLETED,
         screen: CardScreens.DAIMO_PAY,
-        transaction_hash: '0x123',
         chain_id: 59144,
       });
     });
@@ -715,10 +711,9 @@ describe('DaimoPayModal', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+        MetaMetricsEvents.CARD_METAL_CHECKOUT_FAILED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
-        action: CardActions.DAIMO_PAYMENT_BOUNCED,
         screen: CardScreens.DAIMO_PAY,
         error: undefined,
       });

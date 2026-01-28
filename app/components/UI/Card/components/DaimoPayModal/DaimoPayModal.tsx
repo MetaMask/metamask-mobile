@@ -18,7 +18,7 @@ import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardScreens } from '../../util/metrics';
 import DaimoPayService, {
   DaimoPayEvent,
   DaimoPayEventType,
@@ -138,9 +138,8 @@ const DaimoPayModal: React.FC = () => {
 
   const handleClose = useCallback(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.CARD_METAL_CHECKOUT_USER_CANCELED)
         .addProperties({
-          action: CardActions.DAIMO_PAY_CLOSED,
           screen: CardScreens.DAIMO_PAY,
         })
         .build(),
@@ -151,11 +150,9 @@ const DaimoPayModal: React.FC = () => {
   const handlePaymentSuccess = useCallback(
     (txHash?: string, chainId?: number) => {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_METAL_CHECKOUT_COMPLETED)
           .addProperties({
-            action: CardActions.DAIMO_PAYMENT_COMPLETED,
             screen: CardScreens.DAIMO_PAY,
-            transaction_hash: txHash,
             chain_id: chainId,
           })
           .build(),
@@ -209,9 +206,8 @@ const DaimoPayModal: React.FC = () => {
   const handlePaymentBounced = useCallback(
     (errorMessage?: string) => {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_METAL_CHECKOUT_FAILED)
           .addProperties({
-            action: CardActions.DAIMO_PAYMENT_BOUNCED,
             screen: CardScreens.DAIMO_PAY,
             error: errorMessage,
           })
@@ -328,7 +324,7 @@ const DaimoPayModal: React.FC = () => {
       switch (eventType) {
         case 'modalOpened':
           trackEvent(
-            createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+            createEventBuilder(MetaMetricsEvents.CARD_METAL_CHECKOUT_VIEWED)
               .addProperties({
                 screen: CardScreens.DAIMO_PAY,
               })
@@ -342,9 +338,8 @@ const DaimoPayModal: React.FC = () => {
 
         case 'paymentStarted':
           trackEvent(
-            createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            createEventBuilder(MetaMetricsEvents.CARD_METAL_CHECKOUT_STARTED)
               .addProperties({
-                action: CardActions.DAIMO_PAYMENT_STARTED,
                 screen: CardScreens.DAIMO_PAY,
               })
               .build(),
