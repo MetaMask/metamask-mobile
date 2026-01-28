@@ -105,6 +105,19 @@ export const useMusdConversionStatus = () => {
       };
     };
 
+    // Schedule cleanup of toast tracking entries after final transaction status
+    const scheduleCleanup = (
+      transactionId: string,
+      finalStatus: TransactionStatus,
+    ) => {
+      setTimeout(() => {
+        shownToastsRef.current.delete(
+          `${transactionId}-${TransactionStatus.approved}`,
+        );
+        shownToastsRef.current.delete(`${transactionId}-${finalStatus}`);
+      }, 5000);
+    };
+
     // Shared helper to validate and extract common data for mUSD conversion handlers
     const getConversionData = (
       transactionMeta: TransactionMeta,
@@ -159,15 +172,7 @@ export const useMusdConversionStatus = () => {
           submitConversionEvent(transactionMeta, tokenData);
           showToast(EarnToastOptions.mUsdConversion.failed);
           shownToastsRef.current.add(toastKey);
-          // Clean up entries for this transaction after final status
-          setTimeout(() => {
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.approved}`,
-            );
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.failed}`,
-            );
-          }, 5000);
+          scheduleCleanup(transactionId, TransactionStatus.failed);
           break;
         default:
           break;
@@ -195,15 +200,7 @@ export const useMusdConversionStatus = () => {
       submitConversionEvent(transactionMeta, tokenData);
       showToast(EarnToastOptions.mUsdConversion.success);
       shownToastsRef.current.add(toastKey);
-      // Clean up entries for this transaction after final status
-      setTimeout(() => {
-        shownToastsRef.current.delete(
-          `${transactionId}-${TransactionStatus.approved}`,
-        );
-        shownToastsRef.current.delete(
-          `${transactionId}-${TransactionStatus.confirmed}`,
-        );
-      }, 5000);
+      scheduleCleanup(transactionId, TransactionStatus.confirmed);
     };
 
     Engine.controllerMessenger.subscribe(
