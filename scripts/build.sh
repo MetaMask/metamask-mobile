@@ -239,8 +239,11 @@ createEnvFile() {
     # Export to GITHUB_ENV if in CI environment
     local exported_count=0
     for var in "${ENV_VARS[@]}"; do
-        value="${!var}"
-        if [ -n "$value" ]; then
+        # Check if variable is set (defined), not just non-empty
+        # This allows explicitly empty strings (e.g., MM_PERPS_HIP3_ALLOWLIST_MARKETS='')
+        # to be written to .env, which is semantically different from undefined variables
+        if [ -n "${!var+x}" ]; then
+            value="${!var}"
             # Use double quotes with proper escaping (consistent with .js.env format)
             # Escape special characters to prevent shell interpretation when sourcing
             escaped_value="${value//\\/\\\\}"  # Escape backslashes first
@@ -250,8 +253,9 @@ createEnvFile() {
             echo "${var}=\"${escaped_value}\"" >> .env
             
             # Export to GITHUB_ENV if in GitHub Actions
+            # Note: GITHUB_ENV expects NAME=value format without quotes
             if [ -n "$GITHUB_ENV" ]; then
-                echo "${var}=\"${escaped_value}\"" >> "$GITHUB_ENV"
+                echo "${var}=${value}" >> "$GITHUB_ENV"
             fi
             
             ((exported_count++))
@@ -736,22 +740,23 @@ buildExpoUpdate() {
 			echo "⚠️ WARNING: .env file was not created!"
 		fi
 
-		if [ -z "${EXPO_TOKEN}" ]; then
-			echo "EXPO_TOKEN is NOT set in build.sh env"
-		else
-			echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
-		fi
+	# Validate required Expo Update environment variables
+	if [ -z "${EXPO_TOKEN}" ]; then
+		echo "::error title=Missing EXPO_TOKEN::EXPO_TOKEN secret is not configured. Cannot authenticate with Expo." >&2
+		exit 1
+	else
+		echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
+	fi
 
-		# Validate required Expo Update environment variables
-		if [ -z "${EXPO_CHANNEL}" ]; then
-			echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
-			exit 1
-		fi
+	if [ -z "${EXPO_CHANNEL}" ]; then
+		echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
+		exit 1
+	fi
 
-		if [ -z "${EXPO_KEY_PRIV}" ]; then
-			echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
-			exit 1
-		fi
+	if [ -z "${EXPO_KEY_PRIV}" ]; then
+		echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
+		exit 1
+	fi
 
 		# Prepare Expo update signing key
 		mkdir -p keys
