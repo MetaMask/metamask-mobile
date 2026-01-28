@@ -21,6 +21,7 @@ import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { strings } from '../../../../../../../locales/i18n';
+import { MUSD_CONVERSION_APY } from '../../../constants/musd';
 
 const createMockToken = (overrides: Partial<TokenI> = {}): TokenI => ({
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -125,11 +126,14 @@ describe('MusdConversionAssetOverviewCta', () => {
         { state: initialRootState },
       );
 
-      expect(getByText('Boost your stablecoin balance')).toBeOnTheScreen();
       expect(
-        getByText(/Earn a bonus every time you convert stablecoins to/),
+        getByText(`Get ${MUSD_CONVERSION_APY}% on your stablecoins`),
       ).toBeOnTheScreen();
-      expect(getByText('mUSD')).toBeOnTheScreen();
+      expect(
+        getByText(
+          `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('renders close button when onDismiss is provided', () => {
@@ -382,14 +386,16 @@ describe('MusdConversionAssetOverviewCta', () => {
 
       const asset = createMockToken();
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={asset} />,
         { state: initialRootState },
       );
 
       // Act
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       // Assert
@@ -425,14 +431,16 @@ describe('MusdConversionAssetOverviewCta', () => {
 
       const asset = createMockToken();
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={asset} />,
         { state: initialRootState },
       );
 
       // Act
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       // Assert
