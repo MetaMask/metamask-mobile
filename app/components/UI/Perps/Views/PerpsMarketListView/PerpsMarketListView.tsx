@@ -386,7 +386,9 @@ const PerpsMarketListView = ({
         <HeaderCenter
           title={title || strings('perps.home.markets')}
           onBack={handleBackPressed}
-          backButtonProps={{ testID: 'back-button' }}
+          backButtonProps={{
+            testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
+          }}
           endButtonIconProps={[
             {
               iconName: DSIconName.Search,

@@ -64,6 +64,7 @@ import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
+import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeQuoteResponse, BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
@@ -136,6 +137,8 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
+
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
@@ -552,7 +555,12 @@ const BridgeView = () => {
           />
           <FLipQuoteButton
             onPress={handleSwitchTokens(destTokenAmount)}
-            disabled={!destChainId || !destToken || !sourceToken}
+            disabled={
+              !destChainId ||
+              !destToken ||
+              !sourceToken ||
+              !isDestNetworkEnabled
+            }
           />
           <TokenInputArea
             amount={destTokenAmount}
