@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import ClaimMerklRewards from './ClaimMerklRewards';
 import { useMerklClaim } from './hooks/useMerklClaim';
+import { usePendingMerklClaim } from './hooks/usePendingMerklClaim';
 import { TokenI } from '../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
@@ -36,6 +37,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('./hooks/useMerklClaim', () => ({
   useMerklClaim: jest.fn(),
+}));
+
+jest.mock('./hooks/usePendingMerklClaim', () => ({
+  usePendingMerklClaim: jest.fn(),
 }));
 
 const mockNavigate = jest.fn();
@@ -118,6 +123,10 @@ const mockUseMerklClaim = useMerklClaim as jest.MockedFunction<
   typeof useMerklClaim
 >;
 
+const mockUsePendingMerklClaim = usePendingMerklClaim as jest.MockedFunction<
+  typeof usePendingMerklClaim
+>;
+
 const mockAsset: TokenI = {
   name: 'Angle Merkl',
   symbol: 'aglaMerkl',
@@ -147,6 +156,9 @@ describe('ClaimMerklRewards', () => {
       claimRewards: mockClaimRewards,
       isClaiming: false,
       error: null,
+    });
+    mockUsePendingMerklClaim.mockReturnValue({
+      hasPendingClaim: false,
     });
   });
 
@@ -273,5 +285,32 @@ describe('ClaimMerklRewards', () => {
       expect(mockClaimRewards).toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
+  });
+
+  it('disables button when there is a pending claim transaction', () => {
+    mockUsePendingMerklClaim.mockReturnValue({
+      hasPendingClaim: true,
+    });
+
+    const { getByTestId } = render(<ClaimMerklRewards asset={mockAsset} />);
+    const buttonElement = getByTestId('claim-merkl-rewards-button');
+
+    expect(buttonElement.props.disabled).toBe(true);
+  });
+
+  it('disables button when both isClaiming and hasPendingClaim are true', () => {
+    mockUseMerklClaim.mockReturnValue({
+      claimRewards: mockClaimRewards,
+      isClaiming: true,
+      error: null,
+    });
+    mockUsePendingMerklClaim.mockReturnValue({
+      hasPendingClaim: true,
+    });
+
+    const { getByTestId } = render(<ClaimMerklRewards asset={mockAsset} />);
+    const buttonElement = getByTestId('claim-merkl-rewards-button');
+
+    expect(buttonElement.props.disabled).toBe(true);
   });
 });

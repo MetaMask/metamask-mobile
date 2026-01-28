@@ -7,8 +7,10 @@ import {
   isEligibleForMerklRewards,
   useMerklRewards,
 } from './hooks/useMerklRewards';
+import { usePendingMerklClaim } from './hooks/usePendingMerklClaim';
 
 jest.mock('./hooks/useMerklRewards');
+jest.mock('./hooks/usePendingMerklClaim');
 
 jest.mock('./PendingMerklRewards', () => {
   const ReactActual = jest.requireActual('react');
@@ -43,6 +45,9 @@ const mockIsEligibleForMerklRewards =
 const mockUseMerklRewards = useMerklRewards as jest.MockedFunction<
   typeof useMerklRewards
 >;
+const mockUsePendingMerklClaim = usePendingMerklClaim as jest.MockedFunction<
+  typeof usePendingMerklClaim
+>;
 
 // Helper to create mock return value with all required properties
 const createMockUseMerklRewardsReturn = (
@@ -70,6 +75,7 @@ const mockAsset: TokenI = {
 describe('MerklRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: false });
   });
 
   it('returns null when asset is not eligible', () => {
@@ -138,5 +144,31 @@ describe('MerklRewards', () => {
 
     const claimRewards = getByTestId('claim-merkl-rewards');
     expect(claimRewards.props['data-asset']).toBe(mockAsset.symbol);
+  });
+
+  it('calls refetch when onClaimConfirmed callback is triggered', () => {
+    const mockRefetch = jest.fn();
+    mockIsEligibleForMerklRewards.mockReturnValue(true);
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '1.5',
+      refetch: mockRefetch,
+    });
+
+    // Capture the onClaimConfirmed callback passed to usePendingMerklClaim
+    let capturedOnClaimConfirmed: (() => void) | undefined;
+    mockUsePendingMerklClaim.mockImplementation((options) => {
+      capturedOnClaimConfirmed = options?.onClaimConfirmed;
+      return { hasPendingClaim: false };
+    });
+
+    render(<MerklRewards asset={mockAsset} />);
+
+    // Verify usePendingMerklClaim was called with onClaimConfirmed callback
+    expect(capturedOnClaimConfirmed).toBeDefined();
+
+    // Simulate claim being confirmed
+    capturedOnClaimConfirmed?.();
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 });

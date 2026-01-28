@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import {
   isEligibleForMerklRewards,
   useMerklRewards,
 } from './hooks/useMerklRewards';
+import { usePendingMerklClaim } from './hooks/usePendingMerklClaim';
 import PendingMerklRewards from './PendingMerklRewards';
 import ClaimMerklRewards from './ClaimMerklRewards';
 
@@ -23,7 +24,15 @@ const MerklRewards: React.FC<MerklRewardsProps> = ({ asset }) => {
   );
 
   // Fetch claimable rewards data
-  const { claimableReward } = useMerklRewards({ asset });
+  const { claimableReward, refetch } = useMerklRewards({ asset });
+
+  // Refetch rewards data when a pending claim is confirmed
+  // This ensures the UI updates to reflect zero claimable rewards after claim
+  const handleClaimConfirmed = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  usePendingMerklClaim({ onClaimConfirmed: handleClaimConfirmed });
 
   if (!isEligible) {
     return null;
