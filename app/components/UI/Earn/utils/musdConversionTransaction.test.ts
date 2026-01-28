@@ -203,7 +203,7 @@ describe('musdConversionTransaction', () => {
 
   describe('createMusdConversionTransaction', () => {
     it('returns transactionId and creates an mUSD conversion transaction when networkClientId is provided', async () => {
-      const outputChainId = '0x1' as Hex;
+      const chainId = '0x1' as Hex;
       const networkClientId = 'mainnet';
       const fromAddress = '0x1234567890abcdef1234567890abcdef12345678' as Hex;
       const recipientAddress =
@@ -215,7 +215,7 @@ describe('musdConversionTransaction', () => {
       });
 
       const result = await createMusdConversionTransaction({
-        outputChainId,
+        chainId,
         fromAddress,
         recipientAddress,
         amountHex,
@@ -247,7 +247,7 @@ describe('musdConversionTransaction', () => {
     });
 
     it('resolves networkClientId from NetworkController when not provided', async () => {
-      const outputChainId = '0x1' as Hex;
+      const chainId = '0x1' as Hex;
       const fromAddress = '0x1234567890abcdef1234567890abcdef12345678' as Hex;
       const recipientAddress =
         '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
@@ -259,7 +259,7 @@ describe('musdConversionTransaction', () => {
       });
 
       const result = await createMusdConversionTransaction({
-        outputChainId,
+        chainId,
         fromAddress,
         recipientAddress,
         amountHex,
@@ -271,7 +271,7 @@ describe('musdConversionTransaction', () => {
       });
       expect(
         networkControllerFindNetworkClientIdByChainId,
-      ).toHaveBeenCalledWith(outputChainId);
+      ).toHaveBeenCalledWith(chainId);
       expect(transactionControllerAddTransaction).toHaveBeenCalledWith(
         expect.any(Object),
         expect.objectContaining({
@@ -281,20 +281,18 @@ describe('musdConversionTransaction', () => {
     });
 
     it('throws when network client cannot be resolved', async () => {
-      const outputChainId = '0x1' as Hex;
+      const chainId = '0x1' as Hex;
 
       networkControllerFindNetworkClientIdByChainId.mockReturnValue(undefined);
 
       await expect(
         createMusdConversionTransaction({
-          outputChainId,
+          chainId,
           fromAddress: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
           recipientAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
           amountHex: '0x1',
         }),
-      ).rejects.toThrow(
-        `Network client not found for chain ID: ${outputChainId}`,
-      );
+      ).rejects.toThrow(`Network client not found for chain ID: ${chainId}`);
 
       expect(generateTransferData).not.toHaveBeenCalled();
       expect(transactionControllerAddTransaction).not.toHaveBeenCalled();
@@ -307,7 +305,7 @@ describe('musdConversionTransaction', () => {
 
       await expect(
         createMusdConversionTransaction({
-          outputChainId: unsupportedChainId,
+          chainId: unsupportedChainId,
           fromAddress: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
           recipientAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
           amountHex: '0x1',
@@ -326,14 +324,14 @@ describe('musdConversionTransaction', () => {
     ])(
       'passes amountHex through to generateTransferData for $description',
       async ({ amountHex }) => {
-        const outputChainId = '0x1' as Hex;
+        const chainId = '0x1' as Hex;
 
         transactionControllerAddTransaction.mockResolvedValue({
           transactionMeta: { id: 'tx-789' },
         });
 
         await createMusdConversionTransaction({
-          outputChainId,
+          chainId,
           fromAddress: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
           recipientAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
           amountHex,
@@ -403,17 +401,19 @@ describe('musdConversionTransaction', () => {
       );
     });
 
-    it('throws when mUSD is not supported on selected chain', async () => {
+    it('returns undefined and logs when mUSD is not supported on selected chain', async () => {
       const transactionMeta = createTransactionMeta();
       const newPayToken = createPayTokenSelection({ chainId: '0x1234' });
 
-      await expect(
-        replaceMusdConversionTransactionForPayToken(
-          transactionMeta,
-          newPayToken,
-        ),
-      ).rejects.toThrow(
-        '[mUSD Conversion] mUSD not supported on selected chain: 0x1234',
+      const result = await replaceMusdConversionTransactionForPayToken(
+        transactionMeta,
+        newPayToken,
+      );
+
+      expect(result).toBeUndefined();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[mUSD Conversion] Failed to replace transaction on chain change',
+        expect.any(Error),
       );
     });
 

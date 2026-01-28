@@ -17,10 +17,6 @@ import { createMusdConversionTransaction } from '../utils/musdConversionTransact
  */
 export interface MusdConversionConfig {
   /**
-   * The chain ID of the mUSD token to convert to.
-   */
-  outputChainId: Hex;
-  /**
    * The payment token to prefill in the confirmation screen
    */
   preferredPaymentToken: {
@@ -50,7 +46,6 @@ export interface MusdConversionConfig {
  * const { initiateConversion } = useMusdConversion();
  *
  * await initiateConversion({
- *   outputChainId: CHAIN_IDS.MAINNET,
  *   preferredPaymentToken: {
  *     address: USDC_ADDRESS_MAINNET,
  *     chainId: CHAIN_IDS.MAINNET,
@@ -74,7 +69,6 @@ export const useMusdConversion = () => {
 
   const navigateToConversionScreen = useCallback(
     ({
-      outputChainId,
       preferredPaymentToken,
       navigationStack = Routes.EARN.ROOT,
     }: MusdConversionConfig) => {
@@ -83,7 +77,7 @@ export const useMusdConversion = () => {
         name: TraceName.MusdConversionNavigation,
         op: TraceOperation.MusdConversionOperation,
         tags: {
-          outputChainId,
+          outputChainId: preferredPaymentToken.chainId,
           paymentTokenChainId: preferredPaymentToken.chainId,
         },
       });
@@ -93,7 +87,7 @@ export const useMusdConversion = () => {
         params: {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken,
-          outputChainId,
+          outputChainId: preferredPaymentToken.chainId,
         },
       });
     },
@@ -110,17 +104,13 @@ export const useMusdConversion = () => {
         return false;
       }
 
-      const {
-        outputChainId,
-        preferredPaymentToken,
-        navigationStack = Routes.EARN.ROOT,
-      } = config;
+      const { preferredPaymentToken, navigationStack = Routes.EARN.ROOT } =
+        config;
 
       navigation.navigate(navigationStack, {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken,
-          outputChainId,
         },
       });
 
@@ -141,15 +131,13 @@ export const useMusdConversion = () => {
         return;
       }
 
-      const { outputChainId, preferredPaymentToken } = config;
+      const { preferredPaymentToken } = config;
 
       try {
         setError(null);
 
-        if (!outputChainId || !preferredPaymentToken) {
-          throw new Error(
-            'Output chain ID and preferred payment token are required',
-          );
+        if (!preferredPaymentToken) {
+          throw new Error('Preferred payment token is required');
         }
 
         if (!selectedAddress) {
@@ -157,12 +145,13 @@ export const useMusdConversion = () => {
         }
 
         const { NetworkController } = Engine.context;
-        const networkClientId =
-          NetworkController.findNetworkClientIdByChainId(outputChainId);
+        const networkClientId = NetworkController.findNetworkClientIdByChainId(
+          preferredPaymentToken.chainId,
+        );
 
         if (!networkClientId) {
           throw new Error(
-            `Network client not found for chain ID: ${outputChainId}`,
+            `Network client not found for chain ID: ${preferredPaymentToken.chainId}`,
           );
         }
 
@@ -179,7 +168,7 @@ export const useMusdConversion = () => {
           const selectedAddressHex = selectedAddress as Hex;
 
           const { transactionId } = await createMusdConversionTransaction({
-            outputChainId,
+            chainId: preferredPaymentToken.chainId,
             fromAddress: selectedAddressHex,
             recipientAddress: selectedAddressHex,
             amountHex: ZERO_HEX_VALUE,
