@@ -53,6 +53,8 @@ const createMockMarket = (symbol: string, volume: string): PerpsMarketData => ({
   change24h: '+2.5%',
   change24hPercent: '2.5',
   volume,
+  isHip3: false, // Default to crypto (non-HIP3)
+  isNewMarket: false,
 });
 
 const mockMarketsWithValidVolume: PerpsMarketData[] = [
@@ -599,23 +601,34 @@ describe('usePerpsMarketListView', () => {
         equity: 0,
         commodity: 0,
         forex: 0,
+        new: 0,
       });
     });
 
     it('returns correct counts for mixed market types', () => {
       const mixedMarkets = [
-        { ...createMockMarket('BTC', '$1B') }, // crypto (no marketType)
-        { ...createMockMarket('ETH', '$500M') }, // crypto (no marketType)
-        { ...createMockMarket('AAPL', '$2B'), marketType: 'equity' as const },
+        { ...createMockMarket('BTC', '$1B'), isHip3: false }, // crypto (no marketType, not HIP-3)
+        { ...createMockMarket('ETH', '$500M'), isHip3: false }, // crypto (no marketType, not HIP-3)
+        {
+          ...createMockMarket('AAPL', '$2B'),
+          marketType: 'equity' as const,
+          isHip3: true,
+        },
         {
           ...createMockMarket('GOOGL', '$1.5B'),
           marketType: 'equity' as const,
+          isHip3: true,
         },
         {
           ...createMockMarket('GOLD', '$800M'),
           marketType: 'commodity' as const,
+          isHip3: true,
         },
-        { ...createMockMarket('EURUSD', '$3B'), marketType: 'forex' as const },
+        {
+          ...createMockMarket('EURUSD', '$3B'),
+          marketType: 'forex' as const,
+          isHip3: true,
+        },
       ];
 
       mockUsePerpsMarkets.mockReturnValue({
@@ -645,6 +658,7 @@ describe('usePerpsMarketListView', () => {
         equity: 2,
         commodity: 1,
         forex: 1,
+        new: 0,
       });
     });
 
@@ -674,14 +688,21 @@ describe('usePerpsMarketListView', () => {
         equity: 0,
         commodity: 0,
         forex: 0,
+        new: 0,
       });
     });
 
     it('updates counts when markets change', () => {
-      const initialMarkets = [createMockMarket('BTC', '$1B')];
+      const initialMarkets = [
+        { ...createMockMarket('BTC', '$1B'), isHip3: false },
+      ];
       const updatedMarkets = [
         ...initialMarkets,
-        { ...createMockMarket('AAPL', '$2B'), marketType: 'equity' as const },
+        {
+          ...createMockMarket('AAPL', '$2B'),
+          marketType: 'equity' as const,
+          isHip3: true,
+        },
       ];
 
       mockUsePerpsMarkets.mockReturnValue({
@@ -739,18 +760,28 @@ describe('usePerpsMarketListView', () => {
 
   describe('Market Type Category Filtering', () => {
     const mixedMarkets = [
-      { ...createMockMarket('BTC', '$1B') }, // crypto (no marketType)
-      { ...createMockMarket('ETH', '$500M') }, // crypto (no marketType)
-      { ...createMockMarket('AAPL', '$2B'), marketType: 'equity' as const },
+      { ...createMockMarket('BTC', '$1B'), isHip3: false }, // crypto (no marketType, not HIP-3)
+      { ...createMockMarket('ETH', '$500M'), isHip3: false }, // crypto (no marketType, not HIP-3)
+      {
+        ...createMockMarket('AAPL', '$2B'),
+        marketType: 'equity' as const,
+        isHip3: true,
+      },
       {
         ...createMockMarket('GOOGL', '$1.5B'),
         marketType: 'equity' as const,
+        isHip3: true,
       },
       {
         ...createMockMarket('GOLD', '$800M'),
         marketType: 'commodity' as const,
+        isHip3: true,
       },
-      { ...createMockMarket('EURUSD', '$3B'), marketType: 'forex' as const },
+      {
+        ...createMockMarket('EURUSD', '$3B'),
+        marketType: 'forex' as const,
+        isHip3: true,
+      },
     ];
 
     beforeEach(() => {
@@ -788,9 +819,9 @@ describe('usePerpsMarketListView', () => {
         usePerpsMarketListView({ defaultMarketTypeFilter: 'crypto' }),
       );
 
-      // Should only include markets without marketType (crypto)
+      // Should only include markets where isHip3 is false (crypto = non-HIP3)
       expect(result.current.markets.length).toBe(2);
-      expect(result.current.markets.every((m) => !m.marketType)).toBe(true);
+      expect(result.current.markets.every((m) => !m.isHip3)).toBe(true);
     });
 
     it('filters to stocks (equity) when filter is "stocks"', () => {
