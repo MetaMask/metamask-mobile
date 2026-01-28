@@ -637,11 +637,8 @@ describe('BridgeView', () => {
 
     // Button should be disabled when dest network is disabled
     expect(arrowButton.props.disabled).toBe(true);
-
-    // Pressing the button should not trigger token switch
-    fireEvent.press(arrowButton);
-    expect(setSourceToken).not.toHaveBeenCalled();
-    expect(setDestToken).not.toHaveBeenCalled();
+    // When disabled, onPress is set to undefined in FLipQuoteButton
+    expect(arrowButton.props.onPress).toBeUndefined();
   });
 
   describe('Solana Swap', () => {
