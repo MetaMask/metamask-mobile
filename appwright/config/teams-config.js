@@ -12,35 +12,35 @@
 export const TEAMS = {
   '@swap-bridge-dev-team': {
     name: 'Swap & Bridge Dev Team',
-    slackGroupId: 'S04NGHK3U9Z',
+    slackGroupId: null, // S04NGHK3U9Z
   },
   '@metamask-onboarding-team': {
     name: 'Onboarding Team',
-    slackGroupId: 'S090QC71NQ2',
+    slackGroupId: null, // S090QC71NQ2
   },
   '@metamask-mobile-platform': {
     name: 'Mobile Platform Team',
-    slackGroupId: 'S04EF225J1M',
+    slackGroupId: null, // S04EF225J1M
   },
   '@mm-perps-engineering-team': {
     name: 'Perps Engineering Team',
-    slackGroupId: 'S094DMAQNCV',
+    slackGroupId: null, // S094DMAQNCV
   },
   '@accounts-team': {
     name: 'Accounts Team',
-    slackGroupId: 'S05NSFC03GF',
+    slackGroupId: null, // S05NSFC03GF
   },
   '@assets-dev-team': {
     name: 'Assets Dev Team',
-    slackGroupId: 'S09C9U4K953',
+    slackGroupId: null, // S09C9U4K953
   },
   '@team-predict': {
     name: 'Predict Team',
-    slackGroupId: 'S095BEYMASG',
+    slackGroupId: null, // S095BEYMASG
   },
   '@performance-team': {
     name: 'Performance Team',
-    slackGroupId: null, // No Slack group ID available
+    slackGroupId: null,
   },
 };
 

@@ -61,8 +61,14 @@ class BridgeScreen {
   }
 
   async enterSourceTokenAmount(amount) {
-    AmountScreen.device = this._device;
-    await AmountScreen.enterAmount(amount);
+    // Tap each digit on the numeric keypad
+    const digits = amount.split('');
+    for (const digit of digits) {
+      const digitButton = await AppwrightSelectors.getElementByText(this._device, digit, true);
+      await appwrightExpect(digitButton).toBeVisible({ timeout: 10000 });
+      AmountScreen.device = this._device;
+      await AmountScreen.tapNumberKey(digit);
+    }
   }
 
   async selectNetworkAndTokenTo(network, token) {
