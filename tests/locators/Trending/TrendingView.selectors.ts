@@ -30,7 +30,8 @@ export const TrendingViewSelectorsText = {
 export const SECTION_BACK_BUTTONS: Record<string, string> = {
   [TrendingViewSelectorsText.SECTION_TOKENS]:
     'trending-tokens-header-back-button',
-  [TrendingViewSelectorsText.SECTION_PERPS]: 'back-button',
+  [TrendingViewSelectorsText.SECTION_PERPS]:
+    'perps-market-list-close-button-back-button',
   [TrendingViewSelectorsText.SECTION_SITES]:
     'sites-full-view-header-back-button',
   [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button',
