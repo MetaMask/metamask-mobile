@@ -23,7 +23,8 @@ import { selectAccountTokensAcrossChainsForAddress } from '../../../../../select
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
 import { renderNumber } from '../../../../../util/number';
-import { formatCurrency } from '../../utils/currencyUtils';
+import { formatWithThreshold } from '../../../../../util/assets';
+import I18n from '../../../../../../locales/i18n';
 import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
@@ -233,10 +234,16 @@ export const useTokensWithBalance: ({
         const nonEvmTokenFiatAmount = Number(token.balanceFiat);
         const tokenFiatAmount = evmTokenFiatAmount ?? nonEvmTokenFiatAmount;
 
-        // Use formatCurrency for consistent decimal formatting across all currencies
-        const balanceFiat = formatCurrency(
+        // Use formatWithThreshold for consistent decimal formatting across all currencies
+        // Matches the formatting used by the main asset list (assets-list.ts)
+        const balanceFiat = formatWithThreshold(
           tokenFiatAmount ?? 0,
-          currentCurrency,
+          0.01,
+          I18n.locale,
+          {
+            style: 'currency',
+            currency: currentCurrency,
+          },
         );
 
         return {
