@@ -1615,23 +1615,61 @@ describe('AssetOverview', () => {
 
       const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
 
-      // Balance is displayed directly from the asset
+      // Should display the balance directly (no truncation)
       expect(secondaryBalance.props.children).toBe('123.456789 SOL');
     });
   });
 
-  it('does not render Balance component when balance is undefined', () => {
-    const assetWithNoBalance = {
+  it('should not render Balance component when balance is undefined', () => {
+    // Mock an EVM account that doesn't have balance in AccountTrackerController
+    // and create asset with undefined balance on a chain without account data
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    selectSelectedInternalAccount.mockReturnValue({
+      address: MOCK_ADDRESS_2,
+      type: 'eip155:eoa',
+    });
+
+    // Asset on a chain (0x999) that has no account data in AccountTrackerController
+    const assetOnUnknownChain = {
       ...asset,
       balance: undefined as unknown as string,
+      chainId: '0x999', // Chain not in AccountTrackerController.accountsByChainId
+      isETH: false,
+      isNative: false,
+    };
+
+    // State without any account data for chain 0x999
+    const stateWithNoChainData = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              // No data for 0x999
+            },
+          },
+          TokenBalancesController: {
+            tokenBalances: {
+              // No token balances for this account/chain
+            },
+          },
+        },
+      },
     };
 
     const { queryByTestId } = renderWithProvider(
-      <AssetOverview asset={assetWithNoBalance} />,
-      { state: mockInitialState },
+      <AssetOverview asset={assetOnUnknownChain} />,
+      { state: stateWithNoChainData },
     );
 
+    // Balance component should not render when balance cannot be determined
     expect(queryByTestId(BALANCE_TEST_ID)).toBeNull();
+
+    selectSelectedInternalAccount.mockReset();
   });
 
   describe('Exchange Rate Fetching', () => {
