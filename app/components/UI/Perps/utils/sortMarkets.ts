@@ -16,8 +16,14 @@ interface SortMarketsParams {
 }
 
 /**
- * Sorts markets based on the specified criteria
- * Uses object parameters pattern for maintainability
+ * Sorts markets based on the specified criteria.
+ * Uses object parameters pattern for maintainability.
+ *
+ * @param options - Sort options object
+ * @param options.markets - Array of market data to sort
+ * @param options.sortBy - Field to sort by (volume, priceChange, fundingRate, openInterest)
+ * @param options.direction - Sort direction (asc or desc, defaults to desc)
+ * @returns Sorted array of market data
  */
 export const sortMarkets = ({
   markets,
