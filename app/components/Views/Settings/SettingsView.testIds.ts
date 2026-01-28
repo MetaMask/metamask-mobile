@@ -8,6 +8,7 @@ export const SettingsViewSelectorsText = {
 
 export const SettingsViewSelectorsIDs = {
   SETTINGS_SCROLL_ID: 'settings-scroll',
+  SETTINGS_HEADER: 'settings-header',
   GENERAL: 'general-settings',
   SECURITY: 'security-settings',
   ADVANCED: 'advanced-settings',

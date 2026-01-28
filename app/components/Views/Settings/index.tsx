@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsDrawer from '../../UI/SettingsDrawer';
-import { getSettingsNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useSelector } from 'react-redux';
@@ -22,6 +21,7 @@ import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -48,19 +48,9 @@ const Settings = () => {
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getSettingsNavigationOptions(
-        strings('app_settings.title'),
-        colors,
-        navigation,
-      ),
-    );
-  }, [navigation, colors]);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const onPressGeneral = () => {
     trackEvent(createEventBuilder(MetaMetricsEvents.SETTINGS_GENERAL).build());
@@ -216,6 +206,12 @@ const Settings = () => {
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
+      <HeaderCenter
+        title={strings('app_settings.title')}
+        onBack={handleBack}
+        testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
+        includesTopInset
+      />
       <ScrollView
         style={styles.wrapper}
         testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
