@@ -6600,8 +6600,8 @@
       "select_method": "Select method"
     },
     "card_onboarding": {
-      "title": "Spend\nand\nEarn",
-      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% cashback.",
+      "title": "Spend\nand Earn",
+      "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
       "apply_now_button": "Apply now",
       "login_button": "Log in",
       "not_now_button": "Not now",
