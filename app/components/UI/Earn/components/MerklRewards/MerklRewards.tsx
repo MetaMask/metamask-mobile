@@ -107,7 +107,6 @@ const MerklRewards: React.FC<MerklRewardsProps> = ({ asset }) => {
   return (
     <>
       <PendingMerklRewards
-        asset={asset}
         claimableReward={claimableReward}
         isProcessingClaim={isProcessingClaim}
       />
