@@ -241,11 +241,17 @@ createEnvFile() {
     for var in "${ENV_VARS[@]}"; do
         value="${!var}"
         if [ -n "$value" ]; then
-            echo "${var}=${value}" >> .env
+            # Use double quotes with proper escaping (consistent with .js.env format)
+            # Escape special characters to prevent shell interpretation when sourcing
+            escaped_value="${value//\\/\\\\}"  # Escape backslashes first
+            escaped_value="${escaped_value//\"/\\\"}"  # Escape double quotes
+            escaped_value="${escaped_value//\$/\\\$}"  # Escape dollar signs to prevent variable expansion
+            
+            echo "${var}=\"${escaped_value}\"" >> .env
             
             # Export to GITHUB_ENV if in GitHub Actions
             if [ -n "$GITHUB_ENV" ]; then
-                echo "${var}=${value}" >> "$GITHUB_ENV"
+                echo "${var}=\"${escaped_value}\"" >> "$GITHUB_ENV"
             fi
             
             ((exported_count++))
