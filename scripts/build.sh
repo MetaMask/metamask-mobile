@@ -252,6 +252,13 @@ createEnvFile() {
             
             echo "${var}=\"${escaped_value}\"" >> .env
             
+            # Log exported variable (show empty strings explicitly)
+            if [ -z "$value" ]; then
+                echo "✅ Exported: ${var} (empty string)"
+            else
+                echo "✅ Exported: ${var} (value hidden)"
+            fi
+            
             # Export to GITHUB_ENV if in GitHub Actions
             # Note: GITHUB_ENV expects NAME=value format without quotes
             if [ -n "$GITHUB_ENV" ]; then
