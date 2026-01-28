@@ -34,7 +34,7 @@ export const useSlippageConfig = (
           AppConstants.BRIDGE.SLIPPAGE_CONFIG,
         ),
       );
-    } catch (error) {
+    } catch {
       // If formatChainIdToCaip throws (invalid chain ID format),
       // return default config
       return defaultConfig;
