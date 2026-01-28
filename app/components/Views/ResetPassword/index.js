@@ -363,7 +363,7 @@ class ResetPassword extends PureComponent {
     ready: true,
     showPasswordIndex: [0, 1],
     showPasswordChangeWarning: false,
-    isPasswordFieldTouched: false,
+    isPasswordFieldFocused: false,
   };
 
   mounted = true;
@@ -686,11 +686,11 @@ class ResetPassword extends PureComponent {
   };
 
   handlePasswordFocus = () => {
-    this.setState({ isPasswordFieldTouched: false });
+    this.setState({ isPasswordFieldFocused: true });
   };
 
   handlePasswordBlur = () => {
-    this.setState({ isPasswordFieldTouched: true });
+    this.setState({ isPasswordFieldFocused: false });
   };
 
   learnMore = () => {
@@ -719,10 +719,10 @@ class ResetPassword extends PureComponent {
 
   // Method to check if password field should show error state
   isPasswordTooShort = () => {
-    const { isPasswordFieldTouched, password } = this.state;
+    const { isPasswordFieldFocused, password } = this.state;
     return (
-      isPasswordFieldTouched &&
-      password !== '' &&
+      !isPasswordFieldFocused &&
+      !!password &&
       password.length < MIN_PASSWORD_LENGTH
     );
   };
