@@ -637,9 +637,9 @@ describe('HyperLiquidClientService', () => {
     it('handles different interval formats', async () => {
       // Arrange
       const testCases = [
-        { interval: CandlePeriod.THREE_MINUTES, expected: 180000 }, // 3 minutes = 3 * 60 * 1000
-        { interval: CandlePeriod.ONE_HOUR, expected: 3600000 },
-        { interval: CandlePeriod.ONE_DAY, expected: 86400000 },
+        { interval: CandlePeriod.ThreeMinutes, expected: 180000 }, // 3 minutes = 3 * 60 * 1000
+        { interval: CandlePeriod.OneHour, expected: 3600000 },
+        { interval: CandlePeriod.OneDay, expected: 86400000 },
       ];
 
       for (const { interval, expected } of testCases) {
@@ -1306,7 +1306,7 @@ describe('HyperLiquidClientService', () => {
 
       // Verify initial state is CONNECTED
       expect(service.getConnectionState()).toBe(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
       );
 
       // Get the terminate event handler
@@ -1320,7 +1320,7 @@ describe('HyperLiquidClientService', () => {
 
       // Verify state changed to DISCONNECTED
       expect(service.getConnectionState()).toBe(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
       );
     });
 
@@ -1384,7 +1384,7 @@ describe('HyperLiquidClientService', () => {
 
       // Verify initial state is CONNECTED
       expect(service.getConnectionState()).toBe(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
       );
 
       // Call reconnect
@@ -1392,7 +1392,7 @@ describe('HyperLiquidClientService', () => {
 
       // After successful reconnect, state should be CONNECTED again
       expect(service.getConnectionState()).toBe(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
       );
     });
 
@@ -1436,7 +1436,7 @@ describe('HyperLiquidClientService', () => {
       await service.disconnect();
 
       expect(service.getConnectionState()).toBe(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
       );
 
       // Verify we can reconnect after disconnect (isReconnecting was reset)
@@ -1449,7 +1449,7 @@ describe('HyperLiquidClientService', () => {
       await service.initialize(mockWallet);
 
       expect(service.getConnectionState()).toBe(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
       );
     });
   });
@@ -1476,7 +1476,7 @@ describe('HyperLiquidClientService', () => {
 
       // Should be called immediately with current state
       expect(listener).toHaveBeenCalledWith(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
         0,
       );
     });
@@ -1503,7 +1503,7 @@ describe('HyperLiquidClientService', () => {
 
       // Listener should be notified of DISCONNECTED state
       expect(listener).toHaveBeenCalledWith(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
         0,
       );
     });
@@ -1548,15 +1548,15 @@ describe('HyperLiquidClientService', () => {
 
       // All should be called with initial state
       expect(listener1).toHaveBeenCalledWith(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
         0,
       );
       expect(listener2).toHaveBeenCalledWith(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
         0,
       );
       expect(listener3).toHaveBeenCalledWith(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
         0,
       );
 
@@ -1575,15 +1575,15 @@ describe('HyperLiquidClientService', () => {
 
       // All should be notified
       expect(listener1).toHaveBeenCalledWith(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
         0,
       );
       expect(listener2).toHaveBeenCalledWith(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
         0,
       );
       expect(listener3).toHaveBeenCalledWith(
-        WebSocketConnectionState.DISCONNECTED,
+        WebSocketConnectionState.Disconnected,
         0,
       );
     });
@@ -1606,7 +1606,7 @@ describe('HyperLiquidClientService', () => {
       // Listener should have been called with CONNECTING state
       const connectingCall = listener.mock.calls.find(
         (call: [string, number]) =>
-          call[0] === WebSocketConnectionState.CONNECTING,
+          call[0] === WebSocketConnectionState.Connecting,
       );
       expect(connectingCall).toBeDefined();
     });
@@ -1629,7 +1629,7 @@ describe('HyperLiquidClientService', () => {
       // Find the CONNECTED call after reconnection
       const connectedCalls = listener.mock.calls.filter(
         (call: [string, number]) =>
-          call[0] === WebSocketConnectionState.CONNECTED,
+          call[0] === WebSocketConnectionState.Connected,
       );
 
       expect(connectedCalls.length).toBeGreaterThan(0);

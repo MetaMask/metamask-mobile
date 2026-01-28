@@ -13,16 +13,20 @@ import {
 import {
   fetchMerklRewardsForAsset,
   getClaimedAmountFromContract,
+  getClaimChainId,
 } from '../merkl-client';
 import Logger from '../../../../../../util/Logger';
 import Engine from '../../../../../../core/Engine';
 
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
+const MUSD_ADDRESS_MAINNET = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
 
 // Map of chains and eligible tokens
+// mUSD on mainnet is eligible because users earn rewards for holding it,
+// even though the actual reward claiming happens on Linea
 export const eligibleTokens: Record<Hex, Hex[]> = {
-  [CHAIN_IDS.MAINNET]: [AGLAMERKL_ADDRESS_MAINNET], // Testing
-  [CHAIN_IDS.LINEA_MAINNET]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // Musd and AGLAMERKL
+  [CHAIN_IDS.MAINNET]: [AGLAMERKL_ADDRESS_MAINNET, MUSD_ADDRESS_MAINNET], // mUSD and test token
+  [CHAIN_IDS.LINEA_MAINNET]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // mUSD and test token
   ['0xe709' as Hex]: [AGLAMERKL_ADDRESS_LINEA], // Linea fork
 };
 
@@ -127,10 +131,12 @@ export const useMerklRewards = ({
         // The API's claimed value doesn't update immediately after claiming,
         // but the contract's claimed mapping is updated immediately
         // If the contract call fails, fall back to the API's claimed value
+        // For mUSD, we always check the Linea contract since that's where claims happen
+        const claimChainId = getClaimChainId(asset);
         const claimedFromContract = await getClaimedAmountFromContract(
           selectedAddress,
-          asset.address as Hex,
-          asset.chainId as Hex,
+          matchingReward.token.address as Hex,
+          claimChainId,
         );
 
         // Use contract value if available, otherwise fall back to API value

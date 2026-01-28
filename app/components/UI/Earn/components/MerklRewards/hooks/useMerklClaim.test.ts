@@ -7,6 +7,28 @@ import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RootState } from '../../../../../../reducers';
 
+// Mock @metamask/transaction-controller to avoid import issues
+jest.mock('@metamask/transaction-controller', () => ({
+  CHAIN_IDS: {
+    MAINNET: '0x1',
+    LINEA_MAINNET: '0xe708',
+  },
+  TransactionType: {
+    contractInteraction: 'contractInteraction',
+  },
+  WalletDevice: {
+    MM_MOBILE: 'metamask_mobile',
+  },
+}));
+
+// Mock musd constants
+jest.mock('../../../constants/musd', () => ({
+  MUSD_TOKEN_ADDRESS_BY_CHAIN: {
+    '0x1': '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    '0xe708': '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  },
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
