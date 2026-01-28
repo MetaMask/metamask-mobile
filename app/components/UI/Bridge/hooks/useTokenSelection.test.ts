@@ -281,9 +281,9 @@ describe('useTokenSelection', () => {
 
       expect(mockIsStockToken).toHaveBeenCalledWith(mockStockToken);
       expect(mockIsTokenTradingOpen).toHaveBeenCalledWith(mockStockToken);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+      });
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
@@ -325,9 +325,9 @@ describe('useTokenSelection', () => {
         await result.current.handleTokenPress(mockStockToken);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+      });
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
