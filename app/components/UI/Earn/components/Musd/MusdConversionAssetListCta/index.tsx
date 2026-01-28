@@ -41,7 +41,7 @@ import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetw
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  const { goToAggregator } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const {
     isEmptyWallet,
@@ -103,7 +103,7 @@ const MusdConversionAssetListCta = () => {
       const rampIntent: RampIntent = {
         assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
       };
-      goToAggregator(rampIntent);
+      goToBuy(rampIntent);
       return;
     }
 

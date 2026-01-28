@@ -67,7 +67,7 @@ const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
   const { initiateConversion } = useMusdConversion();
-  const { goToAggregator } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const { preferredPaymentToken, outputChainId, isDeeplink } =
     useParams<EarnMusdConversionEducationViewRouteParams>();
@@ -244,7 +244,7 @@ const EarnMusdConversionEducationView = () => {
           const rampIntent: RampIntent = {
             assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
           };
-          goToAggregator(rampIntent);
+          goToBuy(rampIntent);
           return;
         }
 
@@ -290,7 +290,7 @@ const EarnMusdConversionEducationView = () => {
     submitContinuePressedEvent,
     deeplinkState,
     navigation,
-    goToAggregator,
+    goToBuy,
     isDeeplink,
   ]);
 

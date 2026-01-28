@@ -51,7 +51,7 @@ describe('MusdConversionAssetListCta', () => {
   const mockAddProperties = jest.fn();
   const mockBuild = jest.fn();
 
-  const mockGoToAggregator = jest.fn();
+  const mockGoToBuy = jest.fn();
   const mockInitiateConversion = jest.fn();
   const mockLoggerError = jest.spyOn(Logger, 'error');
 
@@ -82,8 +82,8 @@ describe('MusdConversionAssetListCta', () => {
     (
       useRampNavigation as jest.MockedFunction<typeof useRampNavigation>
     ).mockReturnValue({
-      goToBuy: jest.fn(),
-      goToAggregator: mockGoToAggregator,
+      goToBuy: mockGoToBuy,
+      goToAggregator: jest.fn(),
       goToSell: jest.fn(),
       goToDeposit: jest.fn(),
     });
@@ -269,14 +269,14 @@ describe('MusdConversionAssetListCta', () => {
       });
     });
 
-    it('calls goToAggregator with correct ramp intent', () => {
+    it('calls goToBuy with correct ramp intent', () => {
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
       fireEvent.press(getByText('Buy mUSD'));
 
-      expect(mockGoToAggregator).toHaveBeenCalledWith({
+      expect(mockGoToBuy).toHaveBeenCalledWith({
         assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
       });
     });
@@ -457,7 +457,7 @@ describe('MusdConversionAssetListCta', () => {
       });
 
       await waitFor(() => {
-        expect(mockGoToAggregator).not.toHaveBeenCalled();
+        expect(mockGoToBuy).not.toHaveBeenCalled();
       });
     });
   });
