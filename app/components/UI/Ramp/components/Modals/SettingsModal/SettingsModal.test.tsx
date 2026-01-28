@@ -197,7 +197,9 @@ describe('SettingsModal', () => {
       const { getByText } = renderWithProvider(SettingsModal);
 
       const contactSupportButton = getByText('Contact support');
-      fireEvent.press(contactSupportButton);
+      await act(async () => {
+        fireEvent.press(contactSupportButton);
+      });
 
       await waitFor(() => {
         expect(InAppBrowser.isAvailable).toHaveBeenCalled();
@@ -211,7 +213,9 @@ describe('SettingsModal', () => {
       const { getByText } = renderWithProvider(SettingsModal);
 
       const contactSupportButton = getByText('Contact support');
-      fireEvent.press(contactSupportButton);
+      await act(async () => {
+        fireEvent.press(contactSupportButton);
+      });
 
       await waitFor(() => {
         expect(InAppBrowser.isAvailable).toHaveBeenCalled();
