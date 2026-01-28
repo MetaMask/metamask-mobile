@@ -93,7 +93,6 @@ const PerpsHeroCardView: React.FC = () => {
   const isReferralEnabled = useSelector(selectRewardsReferralEnabledFlag);
 
   // Fetch season status to populate seasonId (required by useReferralDetails)
-  // Hooks must be called unconditionally, but data is only rendered when flag is enabled
   useSeasonStatus({ onlyForExplicitFetch: false });
 
   // Fetch referral details to ensure code is available for display
