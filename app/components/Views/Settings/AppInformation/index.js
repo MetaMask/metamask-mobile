@@ -24,8 +24,9 @@ import {
   checkAutomatically,
 } from 'expo-updates';
 import { connect } from 'react-redux';
-import { getFullVersion } from '../../../../constants/ota';
+import { getFullVersion, OTA_VERSION } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
+import { captureExceptionForced } from '../../../../util/sentry/utils';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -191,6 +192,23 @@ class AppInformation extends PureComponent {
   handleLongPressFox = () => {
     this.setState({ showEnvironmentInfo: true });
   };
+  onSendSentryTestError = async () => {
+    try {
+      await captureExceptionForced(
+        new Error(`OTA update Sentry test error production ${OTA_VERSION}`),
+        {
+          otaVersion: OTA_VERSION,
+          channel,
+          environment: process.env.METAMASK_ENVIRONMENT,
+          timestamp: new Date().toISOString(),
+        },
+      );
+
+      alert('Sentry test error sent successfully');
+    } catch (error) {
+      alert(`Failed to send Sentry test error: ${error.message}`);
+    }
+  };
 
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
@@ -271,6 +289,11 @@ class AppInformation extends PureComponent {
             )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
+          <TouchableOpacity onPress={this.onSendSentryTestError}>
+            <Text style={styles.link}>
+              Send Sentry test error production {OTA_VERSION}
+            </Text>
+          </TouchableOpacity>
           <View style={styles.links}>
             <TouchableOpacity onPress={this.onPrivacyPolicy}>
               <Text style={styles.link}>
