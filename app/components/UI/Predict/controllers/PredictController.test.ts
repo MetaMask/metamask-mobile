@@ -13,7 +13,6 @@ import {
 } from '@metamask/transaction-controller';
 import type { NetworkState } from '@metamask/network-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import type { Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -22,7 +21,6 @@ import {
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
 import type { OrderPreview } from '../providers/types';
 import {
   PredictBalance,
@@ -3005,7 +3003,6 @@ describe('PredictController', () => {
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: mockTransactions,
         chainId: mockChainId,
-        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
       });
 
       (addTransactionBatch as jest.Mock).mockResolvedValue({
@@ -3073,7 +3070,6 @@ describe('PredictController', () => {
           disableUpgrade: true,
           skipInitialGasEstimate: true,
           transactions: mockTransactions,
-          gasFeeToken: MATIC_CONTRACTS.collateral,
         });
       });
     });

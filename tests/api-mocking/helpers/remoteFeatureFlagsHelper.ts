@@ -260,6 +260,18 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     },
   },
   {
+    tronAccounts: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+  },
+  {
+    bitcoinAccounts: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+  },
+  {
     mobileMinimumVersions: {
       androidMinimumAPIVersion: 0,
       appMinimumBuild: 0,
