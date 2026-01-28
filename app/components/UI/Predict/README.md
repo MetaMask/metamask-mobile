@@ -32,13 +32,14 @@ The Predict feature enables users to participate in prediction markets within Me
 │   └── /SearchBox               # Market search component
 ├── /controllers                 # Controllers for PredictMarket
 │   └── PredictController.ts     # Main controller with tests
-├── /hooks                       # React integration hooks (6 hooks)
+├── /hooks                       # React integration hooks
 │   ├── usePredictBuy.ts         # Buy order placement hook
 │   ├── usePredictSell.ts        # Sell order placement hook
 │   ├── usePredictTrading.ts     # Core trading operations
 │   ├── usePredictMarketData.tsx # Market data fetching with pagination
 │   ├── usePredictPositions.ts   # User positions management
-│   └── usePredictOrders.tsx     # Order state management and notifications
+│   ├── usePredictOrders.tsx     # Order state management and notifications
+│   └── usePredictNavigation.ts  # Centralized navigation logic
 ├── /mocks                       # Test mocks and fixtures
 │   └── remoteFeatureFlagMocks.ts
 ├── /providers                   # Protocol implementations
@@ -81,6 +82,10 @@ The Predict feature enables users to participate in prediction markets within Me
 - `usePredictPositions` - User positions management with focus refresh, loading states, and refresh capabilities
 - `usePredictOrders` - Order state management with automatic toast notifications for status changes
 
+### Navigation
+
+- `usePredictNavigation` - Centralized navigation logic that automatically handles navigation based on entry point (inside vs outside Predict navigator)
+
 ### Implementation Details
 
 #### Trading Hooks (`usePredictBuy`, `usePredictSell`)
@@ -96,6 +101,26 @@ The Predict feature enables users to participate in prediction markets within Me
 - **`usePredictMarketData`**: Supports category filtering, search, pagination with `fetchMore()`, and exponential backoff retry logic
 - **`usePredictPositions`**: Implements `useFocusEffect` for screen refresh, separate loading states for initial load vs refresh
 - **`usePredictOrders`**: Automatic toast notifications based on Redux state changes, manages notification queue
+
+#### Navigation Hook
+
+- **`usePredictNavigation`**: Centralizes Predict navigation logic
+  - Detects if user is outside Predict navigator (e.g., from Carousel)
+  - Routes to PREDICT.ROOT first when outside, direct navigation when inside
+  - Provides `navigateToBuyPreview` method for navigating to buy preview modal
+  - Provides `navigateToUnavailableModal` method for navigating to unavailable/geo-blocked modal
+  - Automatically includes `entryPoint` in navigation params
+  - Exposes `isOutsidePredictNavigator` boolean for conditional logic
+  - Used by `usePredictActionGuard` for eligibility navigation
+
+#### Deposit Hook
+
+- **`usePredictDeposit`**: Manages deposit flow with automatic navigation context detection
+  - Automatically detects if called from outside Predict navigator using `useNavigationState`
+  - Sets `stack` parameter automatically when outside Predict navigator
+  - No need to pass `entryPoint` - hook is self-contained and intelligent
+  - Handles deposit flow, errors, and toast notifications
+  - Used by `usePredictActionGuard` for balance checks
 
 ## Duplication Prevention
 
@@ -136,6 +161,7 @@ Component input → Hook state → Validation → Controller action
 | Market data              | `usePredictMarket`       | Market data fetching with pagination, search, infinite scroll, and retry logic   |
 | Price history            | `usePredictPriceHistory` | Price history fetching with pagination, search, infinite scroll, and retry logic |
 | Order notifications      | `usePredictOrders`       | Automatic toast notifications, status tracking                                   |
+| Navigate in Predict      | `usePredictNavigation`   | Entry point-aware navigation (buy preview, unavailable modal)                    |
 
 ## Core Types and Utilities
 

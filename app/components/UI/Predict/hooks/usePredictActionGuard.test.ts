@@ -406,8 +406,8 @@ describe('usePredictActionGuard', () => {
       });
     });
 
-    describe('usePredictDeposit is called with correct stack parameter', () => {
-      it('passes stack parameter when entryPoint is CAROUSEL', () => {
+    describe('usePredictDeposit is called with correct providerId', () => {
+      it('passes providerId to usePredictDeposit', () => {
         renderHook(() =>
           usePredictActionGuard({
             providerId: 'polymarket',
@@ -418,22 +418,6 @@ describe('usePredictActionGuard', () => {
 
         expect(mockUsePredictDeposit).toHaveBeenCalledWith({
           providerId: 'polymarket',
-          stack: Routes.PREDICT.ROOT,
-        });
-      });
-
-      it('passes undefined stack when entryPoint is not CAROUSEL', () => {
-        renderHook(() =>
-          usePredictActionGuard({
-            providerId: 'polymarket',
-            navigation: mockNavigation,
-            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-          }),
-        );
-
-        expect(mockUsePredictDeposit).toHaveBeenCalledWith({
-          providerId: 'polymarket',
-          stack: undefined,
         });
       });
     });

@@ -1,4 +1,8 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useNavigationState,
+} from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -15,21 +19,28 @@ import { PredictNavigationParamList } from '../types/navigation';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface UsePredictDepositParams {
   providerId?: string;
-  stack?: string;
 }
 
 export const usePredictDeposit = ({
   providerId = 'polymarket',
-  stack,
 }: UsePredictDepositParams = {}) => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
+
+  const routeName = useNavigationState((state) => {
+    const currentRoute = state?.routes[state.index];
+    return currentRoute?.name;
+  });
+
+  const isOutsidePredictNavigator = routeName !== Routes.PREDICT.ROOT;
+  const stack = isOutsidePredictNavigator ? Routes.PREDICT.ROOT : undefined;
 
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';

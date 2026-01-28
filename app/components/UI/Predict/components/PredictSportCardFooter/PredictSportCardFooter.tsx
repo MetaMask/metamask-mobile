@@ -12,7 +12,6 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
@@ -20,6 +19,7 @@ import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 
 interface PredictSportCardFooterProps {
   market: PredictMarketType;
@@ -63,6 +63,11 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     providerId: market.providerId,
   });
 
+  const { navigateToBuyPreview } = usePredictNavigation({
+    navigation,
+    entryPoint: resolvedEntryPoint,
+  });
+
   const outcome = market.outcomes?.[0];
   const isMarketOpen =
     market.status === PredictMarketStatus.OPEN &&
@@ -72,29 +77,11 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     (token: PredictOutcomeToken) => {
       executeGuardedAction(
         () => {
-          // When accessed from Carousel, we're outside the Predict navigator,
-          // so we need to navigate through the ROOT first
-          if (
-            isCarousel ||
-            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL
-          ) {
-            navigation.navigate(Routes.PREDICT.ROOT, {
-              screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-              params: {
-                market,
-                outcome,
-                outcomeToken: token,
-                entryPoint: resolvedEntryPoint,
-              },
-            });
-          } else {
-            navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
-              market,
-              outcome,
-              outcomeToken: token,
-              entryPoint: resolvedEntryPoint,
-            });
-          }
+          navigateToBuyPreview({
+            market,
+            outcome,
+            outcomeToken: token,
+          });
         },
         {
           checkBalance: true,
@@ -102,14 +89,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
         },
       );
     },
-    [
-      executeGuardedAction,
-      isCarousel,
-      resolvedEntryPoint,
-      navigation,
-      market,
-      outcome,
-    ],
+    [executeGuardedAction, navigateToBuyPreview, market, outcome],
   );
 
   const handleClaimPress = useCallback(async () => {
