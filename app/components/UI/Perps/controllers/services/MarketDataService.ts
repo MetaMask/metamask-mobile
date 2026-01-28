@@ -264,7 +264,7 @@ export class MarketDataService {
 
       const completionDuration = this.deps.performance.now() - startTime;
       this.deps.tracer.setMeasurement(
-        PerpsMeasurementName.PERPS_GET_OPEN_ORDERS_OPERATION,
+        PerpsMeasurementName.PerpsGetOpenOrdersOperation,
         completionDuration,
         'millisecond',
       );
