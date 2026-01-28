@@ -44,7 +44,24 @@ import {
 } from '@metamask/multichain-network-controller';
 ///: END:ONLY_INCLUDE_IF
 
-// Transaction type definition
+/**
+ * Transaction type alias for this hook.
+ *
+ * This hook processes two incompatible transaction types in unified arrays:
+ * - EVM: TransactionMeta from @metamask/transaction-controller
+ * - Non-EVM: Transaction from @metamask/keyring-api
+ *
+ * These types have fundamentally conflicting structures:
+ * - `type`: EVM uses TransactionType enum, non-EVM uses string literals
+ * - `status`: Different allowed values between types
+ * - `from`: EVM has `txParams.from` (string), non-EVM has `from` (array with discriminated union assets)
+ *
+ * Properly typing would require refactoring with type guards throughout.
+ * Using `any` here is intentional to maintain the existing mixed-type handling.
+ *
+ * @see TransactionMeta from @metamask/transaction-controller for EVM transactions
+ * @see Transaction from @metamask/keyring-api for non-EVM transactions
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Transaction = any;
 
