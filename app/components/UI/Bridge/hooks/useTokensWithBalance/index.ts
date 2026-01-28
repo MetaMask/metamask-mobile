@@ -252,6 +252,13 @@ export const useTokensWithBalance: ({
           balance: evmBalance ?? nonEvmBalance,
           balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
           accountType: token.accountType,
+          aggregators: token.aggregators ?? [],
+          metadata: ('metadata' in token
+            ? token.metadata
+            : undefined) as BridgeToken['metadata'],
+          rwaData: ('rwaData' in token
+            ? token.rwaData
+            : undefined) as BridgeToken['rwaData'],
         };
       });
     return sortAssets(properTokens, tokenSortConfig);

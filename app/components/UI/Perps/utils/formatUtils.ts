@@ -551,7 +551,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Very high values (> $100,000): No decimals, 6 significant figures
     // Ex: $123,456.78 → $123,457
-    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.VERY_HIGH,
+    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.VERY_HIGH,
     minimumDecimals: 0,
     maximumDecimals: 0,
     significantDigits: 6,
@@ -560,7 +560,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // High values ($10,000-$100,000]: No decimals, 5 significant figures
     // Ex: $12,345.67 → $12,346
-    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.HIGH,
+    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.HIGH,
     minimumDecimals: 0,
     maximumDecimals: 0,
     significantDigits: 5,
@@ -569,7 +569,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Large values ($1,000-$10,000]: Max 1 decimal, 5 significant figures
     // Ex: $1,234.56 → $1,234.6
-    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.LARGE,
+    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.LARGE,
     minimumDecimals: 0,
     maximumDecimals: 1,
     significantDigits: 5,
@@ -578,7 +578,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Medium values ($100-$1,000]: Max 2 decimals, 5 significant figures
     // Ex: $123.456 → $123.46
-    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.MEDIUM,
+    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.MEDIUM,
     minimumDecimals: 0,
     maximumDecimals: 2,
     significantDigits: 5,
@@ -587,7 +587,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Medium-low values ($10-$100]: Max 4 decimals, 5 significant figures
     // Ex: $12.34567 → $12.346
-    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.MEDIUM_LOW,
+    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.MEDIUM_LOW,
     minimumDecimals: 0,
     maximumDecimals: 4,
     significantDigits: 5,
@@ -596,7 +596,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Low values ($0.01-$10]: 5 significant figures, min 2 max MAX_PRICE_DECIMALS decimals
     // Ex: $1.3445555 → $1.3446 | $0.333333 → $0.33333
-    condition: (v) => Math.abs(v) >= PRICE_THRESHOLD.LOW,
+    condition: (val) => Math.abs(val) >= PRICE_THRESHOLD.LOW,
     significantDigits: 5,
     minimumDecimals: 2,
     maximumDecimals: DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,

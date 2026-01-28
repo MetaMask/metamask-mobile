@@ -6,7 +6,7 @@ import Assertions from '../../framework/Assertions';
 import WalletView from '../../../e2e/pages/wallet/WalletView';
 import {
   remoteFeatureFlagPredictEnabled,
-  confirmationsRedesignedFeatureFlags,
+  confirmationFeatureFlags,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
@@ -30,7 +30,7 @@ import {
 import { PredictHelpers } from './helpers/predict-helpers';
 import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response';
 import Utilities from '../../framework/Utilities';
-import { getEventsPayloads } from '../../../e2e/specs/analytics/helpers';
+import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
 
 /*
@@ -54,7 +54,7 @@ Test Scenario: Claim winning positions
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
-    ...Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    ...Object.assign({}, ...confirmationFeatureFlags),
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
