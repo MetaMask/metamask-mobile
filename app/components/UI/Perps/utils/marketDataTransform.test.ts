@@ -357,7 +357,9 @@ describe('marketDataTransform', () => {
       expect(result[0].marketType).toBe('commodity');
     });
 
-    it('handles unmapped HIP-3 DEX - defaults to equity marketType', () => {
+    it('handles unmapped HIP-3 DEX - remains undefined (treated as crypto)', () => {
+      // Unmapped HIP-3 assets should NOT default to equity to prevent
+      // crypto assets on HIP-3 DEXs (like xyz:BTC) from being misclassified as stocks
       const unknownDexAsset = {
         name: 'unknown:ASSET1',
         maxLeverage: 10,
@@ -376,7 +378,39 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0].symbol).toBe('unknown:ASSET1');
       expect(result[0].marketSource).toBe('unknown');
-      expect(result[0].marketType).toBe('equity');
+      // Unmapped assets remain undefined (crypto) - they must be explicitly mapped
+      // to equity/commodity/forex to appear in those sections
+      expect(result[0].marketType).toBeUndefined();
+    });
+
+    it('handles crypto asset on HIP-3 DEX - remains undefined when not in mapping', () => {
+      // This test ensures that crypto assets like BTC that exist on HIP-3 DEXs
+      // are NOT incorrectly classified as stocks (equity)
+      const hip3CryptoAsset = {
+        name: 'xyz:BTC',
+        maxLeverage: 50,
+        szDecimals: 4,
+        marginTableId: 0,
+      };
+      const cryptoAssetCtx = createMockAssetCtx({ prevDayPx: '50000' });
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [hip3CryptoAsset],
+        assetCtxs: [cryptoAssetCtx],
+        allMids: { 'xyz:BTC': '52000' },
+      };
+
+      // Using HIP3_ASSET_MARKET_TYPES which doesn't have xyz:BTC mapped
+      const result = transformMarketData(
+        hyperLiquidData,
+        HIP3_ASSET_MARKET_TYPES,
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('xyz:BTC');
+      expect(result[0].marketSource).toBe('xyz');
+      // xyz:BTC is not in HIP3_ASSET_MARKET_TYPES, so it remains undefined (crypto)
+      // This prevents BTC from appearing in the Stocks section
+      expect(result[0].marketType).toBeUndefined();
     });
 
     it('handles main DEX assets with no marketSource or marketType', () => {

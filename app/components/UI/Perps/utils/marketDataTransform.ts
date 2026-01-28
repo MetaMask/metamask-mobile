@@ -232,11 +232,13 @@ export function transformMarketData(
     const marketSource = dex || undefined;
 
     // Determine market type:
-    // 1. Check explicit mapping (e.g., 'xyz:GOLD' → 'commodity')
-    // 2. Default HIP-3 DEX markets to 'equity' (stocks) if not mapped
-    // 3. Main DEX markets remain undefined (crypto)
-    const marketType: MarketType | undefined =
-      assetMarketTypes?.[symbol] || (dex ? 'equity' : undefined);
+    // 1. Check explicit mapping (e.g., 'xyz:GOLD' → 'commodity', 'xyz:TSLA' → 'equity')
+    // 2. If not in mapping, remain undefined (crypto) - this includes:
+    //    - Main DEX assets (no prefix)
+    //    - HIP-3 DEX crypto assets (e.g., 'xyz:BTC' if not mapped)
+    // Note: We no longer default HIP-3 DEX markets to 'equity' as this incorrectly
+    // classified crypto assets like BTC that may exist on HIP-3 DEXs
+    const marketType: MarketType | undefined = assetMarketTypes?.[symbol];
 
     return {
       symbol,
