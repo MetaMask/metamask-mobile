@@ -345,6 +345,10 @@ describe('RemoteImage', () => {
       });
     });
 
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('calculates dimensions for horizontal image', async () => {
       const { UNSAFE_getByType } = render(
         <RemoteImage
@@ -362,8 +366,12 @@ describe('RemoteImage', () => {
         });
       });
 
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image.props.style.width).toBe(368);
+      });
+
       const image = UNSAFE_getByType(Image);
-      expect(image.props.style.width).toBe(368);
       expect(image.props.style.height).toBe(184);
     });
 
@@ -384,8 +392,12 @@ describe('RemoteImage', () => {
         });
       });
 
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image.props.style.width).toBe(138);
+      });
+
       const image = UNSAFE_getByType(Image);
-      expect(image.props.style.width).toBe(138);
       expect(image.props.style.height).toBe(276);
     });
 
@@ -406,8 +418,12 @@ describe('RemoteImage', () => {
         });
       });
 
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image.props.style.width).toBe(276);
+      });
+
       const image = UNSAFE_getByType(Image);
-      expect(image.props.style.width).toBe(276);
       expect(image.props.style.height).toBe(276);
     });
 
@@ -428,6 +444,11 @@ describe('RemoteImage', () => {
         });
       });
 
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image.props.style.width).toBe(276);
+      });
+
       const firstImage = UNSAFE_getByType(Image);
       const firstStyle = firstImage.props.style;
 
@@ -436,6 +457,11 @@ describe('RemoteImage', () => {
         image.props.onLoad({
           source: { width: 500, height: 500 },
         });
+      });
+
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image.props.style.width).toBe(276);
       });
 
       const secondImage = UNSAFE_getByType(Image);
@@ -466,6 +492,10 @@ describe('RemoteImage', () => {
   });
 
   describe('Rendering Modes', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('renders default image without fadeIn', () => {
       const { UNSAFE_getByType } = render(
         <RemoteImage source={{ uri: 'https://example.com/image.png' }} />,
@@ -539,8 +569,12 @@ describe('RemoteImage', () => {
         });
       });
 
+      await waitFor(() => {
+        const image = UNSAFE_getByType(Image);
+        expect(image.props.style.width).toBe(368);
+      });
+
       const image = UNSAFE_getByType(Image);
-      expect(image.props.style.width).toBe(368);
       expect(image.props.style.height).toBeCloseTo(245.33, 1);
     });
 
