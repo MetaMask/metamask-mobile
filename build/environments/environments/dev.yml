@@ -1,0 +1,18 @@
+environment:
+  name: dev
+  display_name: Development
+  requires_approval: false
+  approval_team: null
+  github_environment: build-dev
+
+features:
+  bridge_use_dev_apis: true
+  ramp_internal_build: true
+
+secrets:
+  SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_DEV"
+  SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_DEV"
+  SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_QA"
+  SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_QA"
+  MM_SENTRY_DSN: "MM_SENTRY_DSN_DEV"
+  MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_DEV"

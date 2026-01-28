@@ -1,0 +1,53 @@
+# Universal configuration shared by ALL builds
+# This is the foundation - everything inherits from here
+
+# Server URLs (same for all environments)
+servers:
+  portfolio_api: "https://portfolio.api.cx.metamask.io"
+  security_alerts_api: "https://security-alerts.api.cx.metamask.io"
+  ramp_eligibility: "https://on-ramp-content.api.cx.metamask.io"
+  ramp_tokens: "https://on-ramp-cache.api.cx.metamask.io"
+  auth_service: "https://auth-service.api.cx.metamask.io"
+  rewards_api: "https://rewards.api.cx.metamask.io"
+  decoding_api: "https://signature-insights.api.cx.metamask.io"
+
+# Common feature flags (can be overridden per environment)
+features:
+  seedless_onboarding_enabled: true
+  mm_notifications_ui_enabled: true
+  mm_security_alerts_api_enabled: true
+
+# Common secrets that are identical across all builds
+common_secrets:
+  MM_SENTRY_AUTH_TOKEN: "MM_SENTRY_AUTH_TOKEN"
+  GOOGLE_SERVICES_B64_IOS: "GOOGLE_SERVICES_B64_IOS"
+  GOOGLE_SERVICES_B64_ANDROID: "GOOGLE_SERVICES_B64_ANDROID"
+  MM_INFURA_PROJECT_ID: "MM_INFURA_PROJECT_ID"
+  WALLET_CONNECT_PROJECT_ID: "WALLET_CONNECT_PROJECT_ID"
+  MM_FOX_CODE: "MM_FOX_CODE"
+  FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: "FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
+  FEATURES_ANNOUNCEMENTS_SPACE_ID: "FEATURES_ANNOUNCEMENTS_SPACE_ID"
+  FCM_CONFIG_API_KEY: "FCM_CONFIG_API_KEY"
+  FCM_CONFIG_AUTH_DOMAIN: "FCM_CONFIG_AUTH_DOMAIN"
+  FCM_CONFIG_STORAGE_BUCKET: "FCM_CONFIG_STORAGE_BUCKET"
+  FCM_CONFIG_PROJECT_ID: "FCM_CONFIG_PROJECT_ID"
+  FCM_CONFIG_MESSAGING_SENDER_ID: "FCM_CONFIG_MESSAGING_SENDER_ID"
+  FCM_CONFIG_APP_ID: "FCM_CONFIG_APP_ID"
+  FCM_CONFIG_MEASUREMENT_ID: "FCM_CONFIG_MEASUREMENT_ID"
+  QUICKNODE_MAINNET_URL: "QUICKNODE_MAINNET_URL"
+  QUICKNODE_ARBITRUM_URL: "QUICKNODE_ARBITRUM_URL"
+  QUICKNODE_AVALANCHE_URL: "QUICKNODE_AVALANCHE_URL"
+  QUICKNODE_BASE_URL: "QUICKNODE_BASE_URL"
+  QUICKNODE_LINEA_MAINNET_URL: "QUICKNODE_LINEA_MAINNET_URL"
+  QUICKNODE_MONAD_URL: "QUICKNODE_MONAD_URL"
+  QUICKNODE_OPTIMISM_URL: "QUICKNODE_OPTIMISM_URL"
+  QUICKNODE_POLYGON_URL: "QUICKNODE_POLYGON_URL"
+
+# Common build settings
+build:
+  android:
+    package_name: "io.metamask"
+  ios:
+    scheme: "MetaMask"
+    bundle_id: "io.metamask"
+    export_method: "enterprise"

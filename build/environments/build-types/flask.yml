@@ -1,0 +1,39 @@
+# Configuration common to ALL flask builds (prod, rc, test, dev, e2e)
+
+# Code fencing features for flask builds
+code_fencing:
+  available_features:
+    - flask
+    - preinstalled-snaps
+    - external-snaps
+    - keyring-snaps
+    - multi-srp
+    - bitcoin
+    - solana
+    - tron
+    - sample-feature  # Only if INCLUDE_SAMPLE_FEATURE=true
+
+  # Flask feature set (same for all flask environments)
+  base_features:
+    - flask
+    - preinstalled-snaps
+    - external-snaps
+    - keyring-snaps
+    - multi-srp
+    - bitcoin
+    - solana
+    - tron
+
+# OAuth configuration common to flask builds
+oauth:
+  google_grouped_auth_connection_id: "mm-google-flask"
+  apple_grouped_auth_connection_id: "mm-apple-flask"
+  auth_server_url: "https://auth-service.api.cx.metamask.io"
+  web3auth_network: "sapphire_mainnet"
+
+# Build type specific settings
+build:
+  android:
+    flavor: "Flask"  # Android flavor for flask builds
+  ios:
+    scheme: "MetaMask-Flask"

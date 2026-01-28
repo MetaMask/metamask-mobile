@@ -1,0 +1,17 @@
+environment:
+  name: beta
+  display_name: Beta
+  requires_approval: false
+  approval_team: null
+  github_environment: build-beta
+
+features:
+  bridge_use_dev_apis: false
+  ramp_internal_build: false
+
+secrets:
+  SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_BETA"
+  SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_BETA"
+  SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_QA"
+  SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_QA"
+  MM_SENTRY_DSN: "MM_SENTRY_DSN_TEST"

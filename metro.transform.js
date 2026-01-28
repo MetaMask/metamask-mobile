@@ -57,16 +57,30 @@ const flaskFeatureSet = new Set([
 const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
 
 /**
- * Gets the features for the current build type, used to determine which code
- * fences to remove.
+ * Gets the features for the current build type from config
+ * Falls back to hardcoded logic if config not available
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
 function getBuildTypeFeatures() {
   const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
   const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
-  let features;
 
+  // Try to load from config first
+  try {
+    const { mergeConfigs } = require('./scripts/merge-config.js');
+    const config = mergeConfigs(buildType, envType);
+
+    if (config.code_fencing?.active_features) {
+      return new Set(config.code_fencing.active_features);
+    }
+  } catch (error) {
+    // Fallback to hardcoded logic if config loading fails
+    console.warn('Failed to load config, using fallback logic:', error.message);
+  }
+
+  // Fallback to original hardcoded logic
+  let features;
   switch (buildType) {
     // TODO: Remove uppercase QA once we've consolidated build types
     case 'qa':

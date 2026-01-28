@@ -1,0 +1,59 @@
+# Configuration common to ALL main builds (prod, beta, rc, test, exp, dev, e2e)
+# This includes code fencing features and OAuth configs for main
+
+# Code fencing features for main builds
+# Based on metro.transform.js logic
+code_fencing:
+  available_features:
+    - preinstalled-snaps
+    - keyring-snaps
+    - multi-srp
+    - solana
+    - bitcoin
+    - tron
+    - experimental  # Only included in exp environment
+    - sample-feature  # Only if INCLUDE_SAMPLE_FEATURE=true
+
+  # Base feature set for main (used in prod, beta, rc, test, dev)
+  base_features:
+    - preinstalled-snaps
+    - keyring-snaps
+    - multi-srp
+    - solana
+    - bitcoin
+    - tron
+
+  # Beta feature set (includes 'beta' feature)
+  beta_features:
+    - beta
+    - preinstalled-snaps
+    - keyring-snaps
+    - multi-srp
+    - solana
+    - bitcoin
+    - tron
+
+  # Experimental feature set (base + experimental)
+  experimental_features:
+    - preinstalled-snaps
+    - keyring-snaps
+    - multi-srp
+    - solana
+    - bitcoin
+    - tron
+    - experimental
+
+# OAuth configuration common to main builds
+oauth:
+  # These will be overridden per environment with specific client IDs
+  google_grouped_auth_connection_id: "mm-google-main"
+  apple_grouped_auth_connection_id: "mm-apple-main"
+  auth_server_url: "https://auth-service.api.cx.metamask.io"
+  web3auth_network: "sapphire_mainnet"
+
+# Build type specific settings
+build:
+  android:
+    flavor: "Prod"  # Android flavor for main builds
+  ios:
+    scheme: "MetaMask"
