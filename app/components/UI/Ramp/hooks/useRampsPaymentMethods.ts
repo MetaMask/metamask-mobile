@@ -4,6 +4,9 @@ import {
   selectPaymentMethods,
   selectPaymentMethodsRequest,
   selectSelectedPaymentMethod,
+  selectSelectedProvider,
+  selectSelectedToken,
+  selectUserRegion,
 } from '../../../../selectors/rampsController';
 import {
   RequestSelectorResult,
@@ -49,18 +52,9 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const paymentMethods = useSelector(selectPaymentMethods);
   const selectedPaymentMethod = useSelector(selectSelectedPaymentMethod);
 
-  const userRegion = useSelector(
-    (state: Parameters<typeof selectPaymentMethods>[0]) =>
-      state.engine.backgroundState.RampsController?.userRegion,
-  );
-  const selectedToken = useSelector(
-    (state: Parameters<typeof selectPaymentMethods>[0]) =>
-      state.engine.backgroundState.RampsController?.selectedToken,
-  );
-  const selectedProvider = useSelector(
-    (state: Parameters<typeof selectPaymentMethods>[0]) =>
-      state.engine.backgroundState.RampsController?.selectedProvider,
-  );
+  const userRegion = useSelector(selectUserRegion);
+  const selectedToken = useSelector(selectSelectedToken);
+  const selectedProvider = useSelector(selectSelectedProvider);
 
   const regionCode = useMemo(
     () => userRegion?.regionCode ?? '',
@@ -92,13 +86,10 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   ) as RequestSelectorResult<PaymentMethodsResponse>;
 
   const setSelectedPaymentMethod = useCallback(
-    (paymentMethod: PaymentMethod | null) => {
-      (
-        Engine.context.RampsController.setSelectedPaymentMethod as (
-          paymentMethodId: string | null,
-        ) => void
-      )(paymentMethod?.id ?? null);
-    },
+    (paymentMethod: PaymentMethod | null) =>
+      Engine.context.RampsController.setSelectedPaymentMethod(
+        paymentMethod?.id ?? null,
+      ),
     [],
   );
 

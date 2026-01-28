@@ -74,6 +74,17 @@ function isGroupedResult(item: ListItem): item is GroupedSearchResult {
   return 'country' in item && 'matchingStates' in item;
 }
 
+function isRegionSupported(supported: unknown): boolean {
+  return (
+    supported == null ||
+    supported === true ||
+    (typeof supported === 'object' &&
+      supported !== null &&
+      (Boolean((supported as { buy?: boolean }).buy) ||
+        Boolean((supported as { sell?: boolean }).sell)))
+  );
+}
+
 interface HeaderBackButtonProps {
   onPress: () => void;
   testID?: string;
@@ -334,14 +345,7 @@ function RegionSelector() {
     ({ item }: { item: ListItem }) => {
       if (isGroupedResult(item)) {
         const countryIsSelected = isRegionSelected(item.country);
-        const supportedValue = item.country.supported as unknown;
-        const isSupported =
-          supportedValue == null ||
-          supportedValue === true ||
-          (typeof supportedValue === 'object' &&
-            supportedValue !== null &&
-            ((supportedValue as { buy?: boolean }).buy ||
-              (supportedValue as { sell?: boolean }).sell));
+        const isSupported = isRegionSupported(item.country.supported);
         const showStateName =
           userRegion?.state &&
           activeView === RegionViewType.COUNTRY &&
@@ -402,14 +406,7 @@ function RegionSelector() {
             </ListItemSelect>
             {item.matchingStates.map((state) => {
               const stateIsSelected = isRegionSelected(state, item.country);
-              const stateSupportedValue = state.supported as unknown;
-              const isStateSupported =
-                stateSupportedValue == null ||
-                stateSupportedValue === true ||
-                (typeof stateSupportedValue === 'object' &&
-                  stateSupportedValue !== null &&
-                  ((stateSupportedValue as { buy?: boolean }).buy ||
-                    (stateSupportedValue as { sell?: boolean }).sell));
+              const isStateSupported = isRegionSupported(state.supported);
               return (
                 <ListItemSelect
                   key={state.stateId || state.name}
@@ -452,14 +449,7 @@ function RegionSelector() {
       );
 
       if (isCountry(region)) {
-        const countrySupportedValue = region.supported as unknown;
-        const isSupported =
-          countrySupportedValue == null ||
-          countrySupportedValue === true ||
-          (typeof countrySupportedValue === 'object' &&
-            countrySupportedValue !== null &&
-            ((countrySupportedValue as { buy?: boolean }).buy ||
-              (countrySupportedValue as { sell?: boolean }).sell));
+        const isSupported = isRegionSupported(region.supported);
         const showStateName =
           userRegion?.state &&
           activeView === RegionViewType.COUNTRY &&
@@ -515,14 +505,7 @@ function RegionSelector() {
         );
       }
 
-      const regionSupportedValue = region.supported as unknown;
-      const isStateSupported =
-        regionSupportedValue == null ||
-        regionSupportedValue === true ||
-        (typeof regionSupportedValue === 'object' &&
-          regionSupportedValue !== null &&
-          ((regionSupportedValue as { buy?: boolean }).buy ||
-            (regionSupportedValue as { sell?: boolean }).sell));
+      const isStateSupported = isRegionSupported(region.supported);
       return (
         <ListItemSelect
           isSelected={isSelected}

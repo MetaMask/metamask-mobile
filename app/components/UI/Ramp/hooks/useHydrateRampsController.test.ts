@@ -8,9 +8,15 @@ import Engine from '../../../../core/Engine';
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      hydrateState: jest.fn(),
+      hydrateState: jest.fn().mockResolvedValue(undefined),
     },
   },
+}));
+
+const mockUseRampsUnifiedV2Enabled = jest.fn();
+jest.mock('./useRampsUnifiedV2Enabled', () => ({
+  __esModule: true,
+  default: () => mockUseRampsUnifiedV2Enabled(),
 }));
 
 const createMockStore = (userRegion: { regionCode?: string } | null = null) =>
@@ -34,9 +40,10 @@ const wrapper = (store: ReturnType<typeof createMockStore>) =>
 describe('useHydrateRampsController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
   });
 
-  it('calls hydrateState when userRegion has regionCode', () => {
+  it('calls hydrateState when V2 unified is enabled and userRegion has regionCode', () => {
     const store = createMockStore({ regionCode: 'us-ca' });
     renderHook(() => useHydrateRampsController(), {
       wrapper: wrapper(store),
@@ -85,5 +92,33 @@ describe('useHydrateRampsController', () => {
     expect(Engine.context.RampsController.hydrateState).toHaveBeenCalledTimes(
       2,
     );
+  });
+
+  it('handles hydrateState rejection gracefully', async () => {
+    (
+      Engine.context.RampsController.hydrateState as jest.Mock
+    ).mockRejectedValueOnce(new Error('Network error'));
+
+    const store = createMockStore({ regionCode: 'us-ca' });
+    renderHook(() => useHydrateRampsController(), {
+      wrapper: wrapper(store),
+    });
+
+    await Promise.resolve();
+
+    expect(Engine.context.RampsController.hydrateState).toHaveBeenCalledTimes(
+      1,
+    );
+  });
+
+  it('does not call hydrateState when V2 unified is disabled', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
+
+    const store = createMockStore({ regionCode: 'us-ca' });
+    renderHook(() => useHydrateRampsController(), {
+      wrapper: wrapper(store),
+    });
+
+    expect(Engine.context.RampsController.hydrateState).not.toHaveBeenCalled();
   });
 });

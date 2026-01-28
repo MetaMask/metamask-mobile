@@ -4,6 +4,7 @@ import {
   selectProviders,
   selectProvidersRequest,
   selectSelectedProvider,
+  selectUserRegion,
 } from '../../../../selectors/rampsController';
 import {
   RequestSelectorResult,
@@ -57,10 +58,7 @@ export function useRampsProviders(
 ): UseRampsProvidersResult {
   const providers = useSelector(selectProviders);
   const selectedProvider = useSelector(selectSelectedProvider);
-  const userRegion = useSelector(
-    (state: Parameters<typeof selectProviders>[0]) =>
-      state.engine.backgroundState.RampsController?.userRegion,
-  );
+  const userRegion = useSelector(selectUserRegion);
 
   const regionCode = useMemo(
     () => region ?? userRegion?.regionCode ?? '',

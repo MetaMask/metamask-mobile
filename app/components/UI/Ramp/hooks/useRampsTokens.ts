@@ -4,6 +4,7 @@ import {
   selectTokens,
   selectTokensRequest,
   selectSelectedToken,
+  selectUserRegion,
 } from '../../../../selectors/rampsController';
 import {
   RequestSelectorResult,
@@ -55,10 +56,7 @@ export function useRampsTokens(
 ): UseRampsTokensResult {
   const tokens = useSelector(selectTokens);
   const selectedToken = useSelector(selectSelectedToken);
-  const userRegion = useSelector(
-    (state: Parameters<typeof selectTokens>[0]) =>
-      state.engine.backgroundState.RampsController?.userRegion,
-  );
+  const userRegion = useSelector(selectUserRegion);
 
   const regionCode = useMemo(
     () => region ?? userRegion?.regionCode ?? '',
@@ -74,13 +72,11 @@ export function useRampsTokens(
     requestSelector,
   ) as RequestSelectorResult<TokensResponse>;
 
-  const setSelectedToken = useCallback((assetId: string) => {
-    (
-      Engine.context.RampsController.setSelectedToken as (
-        assetId: string,
-      ) => void
-    )(assetId);
-  }, []);
+  const setSelectedToken = useCallback(
+    (assetId: string) =>
+      Engine.context.RampsController.setSelectedToken(assetId),
+    [],
+  );
 
   return {
     tokens,
