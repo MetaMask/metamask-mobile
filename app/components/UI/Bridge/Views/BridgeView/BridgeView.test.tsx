@@ -636,7 +636,7 @@ describe('BridgeView', () => {
     const arrowButton = getByTestId('arrow-button');
 
     // Button should be disabled when dest network is disabled
-    expect(arrowButton.props.accessibilityState?.disabled).toBe(true);
+    expect(arrowButton.props.disabled).toBe(true);
 
     // Pressing the button should not trigger token switch
     fireEvent.press(arrowButton);
