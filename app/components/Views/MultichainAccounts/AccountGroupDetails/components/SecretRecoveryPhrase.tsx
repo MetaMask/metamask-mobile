@@ -53,7 +53,7 @@ export const SecretRecoveryPhrase = ({
     if (account?.options.entropySource) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        keyringId: account.options.entropySource,
+        params: { keyringId: account.options.entropySource },
       });
     }
   }, [navigation, account?.options.entropySource]);

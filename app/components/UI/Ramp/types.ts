@@ -1,4 +1,13 @@
 /**
+ * Intent for Ramp navigation with optional parameters.
+ */
+export interface RampIntent {
+  assetId?: string;
+  amount?: string;
+  currency?: string;
+}
+
+/**
  * Param list for the Ramp token list main stack navigator.
  */
 export interface RampMainParamList {
