@@ -83,13 +83,15 @@ type TransactionStatusUpdatedHandler = (event: {
   transactionMeta: TransactionMeta;
 }) => void;
 
+type TransactionConfirmedHandler = (transactionMeta: TransactionMeta) => void;
+
 const mockSubscribe = jest.fn<
   void,
-  [string, TransactionStatusUpdatedHandler]
+  [string, TransactionStatusUpdatedHandler | TransactionConfirmedHandler]
 >();
 const mockUnsubscribe = jest.fn<
   void,
-  [string, TransactionStatusUpdatedHandler]
+  [string, TransactionStatusUpdatedHandler | TransactionConfirmedHandler]
 >();
 const mockUseEarnToasts = jest.mocked(useEarnToasts);
 
@@ -256,37 +258,62 @@ describe('useMusdConversionStatus', () => {
     }) as TransactionMeta;
 
   const getSubscribedHandler = (): TransactionStatusUpdatedHandler => {
-    const subscribeCalls = mockSubscribe.mock.calls;
-    const lastCall = subscribeCalls.at(-1);
-    if (!lastCall) {
-      throw new Error('No subscription found');
+    const statusUpdatedCall = mockSubscribe.mock.calls.find(
+      (call) => call[0] === 'TransactionController:transactionStatusUpdated',
+    );
+    if (!statusUpdatedCall) {
+      throw new Error('No transactionStatusUpdated subscription found');
     }
-    return lastCall[1];
+    return statusUpdatedCall[1] as TransactionStatusUpdatedHandler;
+  };
+
+  const getConfirmedHandler = (): TransactionConfirmedHandler => {
+    const confirmedCall = mockSubscribe.mock.calls.find(
+      (call) => call[0] === 'TransactionController:transactionConfirmed',
+    );
+    if (!confirmedCall) {
+      throw new Error('No transactionConfirmed subscription found');
+    }
+    return confirmedCall[1] as TransactionConfirmedHandler;
   };
 
   describe('subscription lifecycle', () => {
-    it('subscribes to TransactionController:transactionStatusUpdated on mount', () => {
+    it('subscribes to TransactionController:transactionStatusUpdated and transactionConfirmed on mount', () => {
       renderHook(() => useMusdConversionStatus());
 
-      expect(mockSubscribe).toHaveBeenCalledTimes(1);
-      const handler = getSubscribedHandler();
-      expect(typeof handler).toBe('function');
-      expect(mockSubscribe.mock.calls[0][0]).toBe(
+      expect(mockSubscribe).toHaveBeenCalledTimes(2);
+
+      const statusHandler = getSubscribedHandler();
+      expect(typeof statusHandler).toBe('function');
+      expect(mockSubscribe).toHaveBeenCalledWith(
         'TransactionController:transactionStatusUpdated',
+        expect.any(Function),
+      );
+
+      const confirmedHandler = getConfirmedHandler();
+      expect(typeof confirmedHandler).toBe('function');
+      expect(mockSubscribe).toHaveBeenCalledWith(
+        'TransactionController:transactionConfirmed',
+        expect.any(Function),
       );
     });
 
-    it('unsubscribes from TransactionController:transactionStatusUpdated on unmount', () => {
+    it('unsubscribes from TransactionController:transactionStatusUpdated and transactionConfirmed on unmount', () => {
       const { unmount } = renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const statusHandler = getSubscribedHandler();
+      const confirmedHandler = getConfirmedHandler();
 
       unmount();
 
-      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(2);
       expect(mockUnsubscribe).toHaveBeenCalledWith(
         'TransactionController:transactionStatusUpdated',
-        handler,
+        statusHandler,
+      );
+      expect(mockUnsubscribe).toHaveBeenCalledWith(
+        'TransactionController:transactionConfirmed',
+        confirmedHandler,
       );
     });
   });
@@ -432,15 +459,16 @@ describe('useMusdConversionStatus', () => {
   });
 
   describe('confirmed transaction status', () => {
-    it('shows success toast when transaction status is confirmed', () => {
+    it('shows success toast when transactionConfirmed event fires with confirmed status', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const handler = getConfirmedHandler();
       const transactionMeta = createTransactionMeta(
         TransactionStatus.confirmed,
       );
 
-      handler({ transactionMeta });
+      // transactionConfirmed event receives transactionMeta directly (not wrapped)
+      handler(transactionMeta);
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledWith(
@@ -448,16 +476,29 @@ describe('useMusdConversionStatus', () => {
       );
     });
 
+    it('ignores transactionConfirmed event when status is failed', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getConfirmedHandler();
+      // transactionConfirmed can fire with failed status (see useCardDelegation.ts pattern)
+      const transactionMeta = createTransactionMeta(TransactionStatus.failed);
+
+      handler(transactionMeta);
+
+      // Success toast not shown - failed status is handled by transactionStatusUpdated
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
     it('prevents duplicate success toast for same transaction', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const handler = getConfirmedHandler();
       const transactionMeta = createTransactionMeta(
         TransactionStatus.confirmed,
       );
 
-      handler({ transactionMeta });
-      handler({ transactionMeta });
+      handler(transactionMeta);
+      handler(transactionMeta);
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
@@ -465,7 +506,8 @@ describe('useMusdConversionStatus', () => {
     it('cleans up toast tracking entries after 5 seconds for confirmed status', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const statusHandler = getSubscribedHandler();
+      const confirmedHandler = getConfirmedHandler();
       const transactionId = 'test-transaction-1';
       const approvedMeta = createTransactionMeta(
         TransactionStatus.approved,
@@ -476,16 +518,16 @@ describe('useMusdConversionStatus', () => {
         transactionId,
       );
 
-      handler({ transactionMeta: approvedMeta });
-      handler({ transactionMeta: confirmedMeta });
+      statusHandler({ transactionMeta: approvedMeta });
+      confirmedHandler(confirmedMeta);
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
 
       jest.advanceTimersByTime(5000);
 
       // After cleanup, should be able to show toasts again for same transaction
-      handler({ transactionMeta: approvedMeta });
-      handler({ transactionMeta: confirmedMeta });
+      statusHandler({ transactionMeta: approvedMeta });
+      confirmedHandler(confirmedMeta);
 
       expect(mockShowToast).toHaveBeenCalledTimes(4);
     });
@@ -551,7 +593,8 @@ describe('useMusdConversionStatus', () => {
     it('shows both in-progress and success toasts for transaction flow', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const statusHandler = getSubscribedHandler();
+      const confirmedHandler = getConfirmedHandler();
       const transactionId = 'test-transaction-3';
       const approvedMeta = createTransactionMeta(
         TransactionStatus.approved,
@@ -562,12 +605,12 @@ describe('useMusdConversionStatus', () => {
         transactionId,
       );
 
-      handler({ transactionMeta: approvedMeta });
+      statusHandler({ transactionMeta: approvedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledWith(mockInProgressToast);
 
-      handler({ transactionMeta: confirmedMeta });
+      confirmedHandler(confirmedMeta);
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
       expect(mockShowToast).toHaveBeenCalledWith(
@@ -619,17 +662,17 @@ describe('useMusdConversionStatus', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('ignores transaction when type is swap', () => {
+    it('ignores transaction when type is swap (via transactionConfirmed)', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const handler = getConfirmedHandler();
       const transactionMeta = createTransactionMeta(
         TransactionStatus.confirmed,
         'test-transaction-6',
         'swap' as typeof TransactionType.musdConversion,
       );
 
-      handler({ transactionMeta });
+      handler(transactionMeta);
 
       expect(mockShowToast).not.toHaveBeenCalled();
     });
@@ -693,7 +736,8 @@ describe('useMusdConversionStatus', () => {
     it('tracks and shows toasts for different transactions independently', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const statusHandler = getSubscribedHandler();
+      const confirmedHandler = getConfirmedHandler();
       const transaction1Approved = createTransactionMeta(
         TransactionStatus.approved,
         'transaction-1',
@@ -711,10 +755,10 @@ describe('useMusdConversionStatus', () => {
         'transaction-2',
       );
 
-      handler({ transactionMeta: transaction1Approved });
-      handler({ transactionMeta: transaction2Approved });
-      handler({ transactionMeta: transaction1Confirmed });
-      handler({ transactionMeta: transaction2Failed });
+      statusHandler({ transactionMeta: transaction1Approved });
+      statusHandler({ transactionMeta: transaction2Approved });
+      confirmedHandler(transaction1Confirmed);
+      statusHandler({ transactionMeta: transaction2Failed });
 
       expect(mockShowToast).toHaveBeenCalledTimes(4);
       expect(mockShowToast).toHaveBeenNthCalledWith(1, mockInProgressToast);
@@ -732,7 +776,7 @@ describe('useMusdConversionStatus', () => {
     it('cleans up only entries for specific transaction after timeout', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const handler = getConfirmedHandler();
       const transaction1Confirmed = createTransactionMeta(
         TransactionStatus.confirmed,
         'transaction-1',
@@ -742,16 +786,16 @@ describe('useMusdConversionStatus', () => {
         'transaction-2',
       );
 
-      handler({ transactionMeta: transaction1Confirmed });
-      handler({ transactionMeta: transaction2Confirmed });
+      handler(transaction1Confirmed);
+      handler(transaction2Confirmed);
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
 
       jest.advanceTimersByTime(5000);
 
       // Both transactions should be cleaned up after 5 seconds
-      handler({ transactionMeta: transaction1Confirmed });
-      handler({ transactionMeta: transaction2Confirmed });
+      handler(transaction1Confirmed);
+      handler(transaction2Confirmed);
 
       expect(mockShowToast).toHaveBeenCalledTimes(4);
     });
@@ -774,12 +818,12 @@ describe('useMusdConversionStatus', () => {
     it('uses EarnToastOptions from useEarnToasts hook', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const handler = getConfirmedHandler();
       const transactionMeta = createTransactionMeta(
         TransactionStatus.confirmed,
       );
 
-      handler({ transactionMeta });
+      handler(transactionMeta);
 
       expect(mockShowToast).toHaveBeenCalledWith(
         mockEarnToastOptions.mUsdConversion.success,
@@ -845,7 +889,7 @@ describe('useMusdConversionStatus', () => {
 
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const handler = getConfirmedHandler();
       const transactionMeta = createTransactionMeta(
         TransactionStatus.confirmed,
         'test-tx-metrics-confirmed',
@@ -853,7 +897,7 @@ describe('useMusdConversionStatus', () => {
         { chainId, tokenAddress },
       );
 
-      handler({ transactionMeta });
+      handler(transactionMeta);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -1017,13 +1061,13 @@ describe('useMusdConversionStatus', () => {
     it('ends confirmation trace with success when transaction is confirmed', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const handler = getConfirmedHandler();
       const transactionMeta = createTransactionMeta(
         TransactionStatus.confirmed,
         'test-trace-confirmed',
       );
 
-      handler({ transactionMeta });
+      handler(transactionMeta);
 
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.MusdConversionConfirm,
@@ -1152,11 +1196,12 @@ describe('useMusdConversionStatus', () => {
     it('completes full trace lifecycle from approved to confirmed', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const statusHandler = getSubscribedHandler();
+      const confirmedHandler = getConfirmedHandler();
       const transactionId = 'test-lifecycle-tx';
 
       // Transaction approved - starts trace
-      handler({
+      statusHandler({
         transactionMeta: createTransactionMeta(
           TransactionStatus.approved,
           transactionId,
@@ -1170,13 +1215,10 @@ describe('useMusdConversionStatus', () => {
         }),
       );
 
-      // Transaction confirmed - ends trace
-      handler({
-        transactionMeta: createTransactionMeta(
-          TransactionStatus.confirmed,
-          transactionId,
-        ),
-      });
+      // Transaction confirmed - ends trace (via transactionConfirmed event)
+      confirmedHandler(
+        createTransactionMeta(TransactionStatus.confirmed, transactionId),
+      );
 
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.MusdConversionConfirm,
