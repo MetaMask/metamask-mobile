@@ -29,7 +29,7 @@ export interface WebSocketHealthToastContextParams {
 
 const defaultState: WebSocketHealthToastState = {
   isVisible: false,
-  connectionState: WebSocketConnectionState.DISCONNECTED,
+  connectionState: WebSocketConnectionState.Disconnected,
   reconnectionAttempt: 0,
 };
 
