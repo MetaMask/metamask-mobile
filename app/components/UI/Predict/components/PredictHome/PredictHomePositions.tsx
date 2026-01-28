@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   useRef,
+  useState,
 } from 'react';
 import Engine from '../../../../../core/Engine';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
@@ -27,6 +28,9 @@ const PredictHomePositions = forwardRef<
   PredictHomePositionsProps
 >(({ isVisible, onError }, ref) => {
   const accountStateRef = useRef<PredictPositionsHeaderHandle>(null);
+  const [accountStateError, setAccountStateError] = useState<string | null>(
+    null,
+  );
 
   const {
     positions: activePositions,
@@ -55,9 +59,9 @@ const PredictHomePositions = forwardRef<
     activePositions.length > 0 || claimablePositions.length > 0;
 
   useEffect(() => {
-    const combinedError = activeError || claimableError;
+    const combinedError = activeError || claimableError || accountStateError;
     onError?.(combinedError);
-  }, [activeError, claimableError, onError]);
+  }, [activeError, claimableError, accountStateError, onError]);
 
   useImperativeHandle(ref, () => ({
     refresh: async () => {
@@ -77,12 +81,9 @@ const PredictHomePositions = forwardRef<
     }
   }, [isVisible, isLoading, activePositions.length]);
 
-  const handleAccountStateError = useCallback(
-    (error: string | null) => {
-      onError?.(error);
-    },
-    [onError],
-  );
+  const handleAccountStateError = useCallback((error: string | null) => {
+    setAccountStateError(error);
+  }, []);
 
   const showSkeleton = isLoading || (isRefreshing && !hasPositions);
 
