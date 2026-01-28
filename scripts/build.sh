@@ -248,10 +248,7 @@ createEnvFile() {
                 echo "${var}=${value}" >> "$GITHUB_ENV"
             fi
             
-            echo "✅ Exported: ${var} (value hidden)"
             ((exported_count++))
-        else
-            echo "⚠️ Skipped (empty): ${var}"
         fi
     done
 
