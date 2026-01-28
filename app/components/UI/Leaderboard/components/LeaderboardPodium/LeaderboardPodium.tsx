@@ -76,31 +76,31 @@ interface PodiumItemProps {
 const PodiumItem: React.FC<PodiumItemProps> = ({ trader, rank, onPress }) => {
   const tw = useTailwind();
 
-  // Configuration based on rank - using blue gradients
+  // Configuration based on rank - Gold, Silver, Bronze
   const config = {
     1: {
       avatarSize: 64,
       pedestalHeight: 80,
-      gradientColors: ['#1098FC', '#037DD6', '#0260A8'], // Light to dark blue (top to bottom)
-      pedestalTextColor: 'rgba(255, 255, 255, 0.8)',
-      badgeColor: 'bg-primary-default',
-      rankTextColor: 'text-primary-inverse',
+      gradientColors: ['#FFD700', '#D4AF37', '#B8860B'], // Gold gradient
+      pedestalTextColor: 'rgba(255, 255, 255, 0.9)',
+      badgeColor: 'bg-warning-default',
+      rankTextColor: 'text-default',
     },
     2: {
       avatarSize: 54,
       pedestalHeight: 60,
-      gradientColors: ['#6BA8E8', '#4A90D9', '#3D7AB8'], // Medium blue gradient
-      pedestalTextColor: 'rgba(255, 255, 255, 0.7)',
-      badgeColor: 'bg-primary-muted',
-      rankTextColor: 'text-primary-default',
+      gradientColors: ['#E8E8E8', '#C0C0C0', '#A8A8A8'], // Silver gradient
+      pedestalTextColor: 'rgba(255, 255, 255, 0.8)',
+      badgeColor: 'bg-muted',
+      rankTextColor: 'text-default',
     },
     3: {
       avatarSize: 54,
       pedestalHeight: 48,
-      gradientColors: ['#A0C8F0', '#7EB0E5', '#5A9AD9'], // Light blue gradient
-      pedestalTextColor: 'rgba(255, 255, 255, 0.8)',
-      badgeColor: 'bg-primary-muted',
-      rankTextColor: 'text-primary-default',
+      gradientColors: ['#CD9B6D', '#CD7F32', '#A0522D'], // Bronze gradient
+      pedestalTextColor: 'rgba(255, 255, 255, 0.9)',
+      badgeColor: 'bg-warning-muted',
+      rankTextColor: 'text-default',
     },
   }[rank];
 
