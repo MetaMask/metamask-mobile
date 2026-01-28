@@ -7356,6 +7356,7 @@
   },
   "transaction_details": {
     "title": {
+      "musd_conversion": "Converted to mUSD",
       "perps_deposit": "Funded perps account",
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
@@ -7379,6 +7380,7 @@
       "bridge_receive": "Receive {{targetSymbol}} on {{targetChain}}",
       "bridge_receive_loading": "Bridge receive",
       "default": "Transaction",
+      "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
