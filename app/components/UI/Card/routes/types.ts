@@ -47,6 +47,8 @@ export interface CardMainParamList {
   CardAuthentication: undefined;
   CardSpendingLimit: SpendingLimitRouteParams | undefined;
   CardOnboarding: NavigatorScreenParams<CardOnboardingParamList>;
+  CardModals: NavigatorScreenParams<CardModalsParamList> | undefined;
+  CardMainRoutes: undefined;
 }
 
 /**

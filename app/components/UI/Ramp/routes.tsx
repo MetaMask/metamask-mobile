@@ -22,10 +22,7 @@ const clearStackNavigatorOptions = {
 };
 
 const MainRoutes = () => (
-  <Stack.Navigator
-    initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-    headerMode="screen"
-  >
+  <Stack.Navigator initialRouteName={Routes.RAMP.TOKEN_SELECTION}>
     <Stack.Screen
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
@@ -47,7 +44,7 @@ const TokenListModalsRoutes = () => (
 const TokenListRoutes = () => (
   <RootStack.Navigator
     initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-    headerMode="none"
+    screenOptions={{ headerShown: false }}
   >
     <RootStack.Screen
       name={Routes.RAMP.TOKEN_SELECTION}

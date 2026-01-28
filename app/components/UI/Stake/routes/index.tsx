@@ -35,7 +35,7 @@ const StakeScreenStack = () => {
 
   return (
     <StakeSDKProvider>
-      <Stack.Navigator headerMode="screen">
+      <Stack.Navigator>
         <Stack.Screen name={Routes.STAKING.STAKE} component={EarnInputView} />
         <Stack.Screen
           name={Routes.STAKING.UNSTAKE}

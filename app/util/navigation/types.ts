@@ -155,6 +155,8 @@ export type RootParamList = {
           newTabUrl?: string;
           timestamp?: number;
           fromTrending?: boolean;
+          linkType?: string;
+          fromPerps?: boolean;
         };
       }
     | undefined;
@@ -337,7 +339,7 @@ export type RootParamList = {
   DepositErrorDetailsModal: undefined;
 
   // Bridge Flow
-  Bridge: NavigatorScreenParams<BridgeParamList>;
+  Bridge: NavigatorScreenParams<BridgeParamList> | undefined;
   BridgeRoot: undefined;
   BridgeModalsRoot: undefined;
   BridgeModals:
@@ -545,7 +547,7 @@ export type RootParamList = {
   PerpsCrossMarginWarning: undefined;
 
   // Predict Flow
-  Predict: NavigatorScreenParams<PredictNavigationParamList>;
+  Predict: NavigatorScreenParams<PredictNavigationParamList> | undefined;
   PredictRoot: undefined;
   PredictModalsRoot: undefined;
   PredictModals: NavigatorScreenParams<PredictNavigationParamList> | undefined;
@@ -723,7 +725,7 @@ export type RootParamList = {
 
   // Modals
   DeleteWalletModal: undefined;
-  RootModalFlow: NavigatorScreenParams<RootModalFlowParamList>;
+  RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
   ModalConfirmation: object | undefined;
   ModalMandatory: object | undefined;
   WhatsNewModal: undefined;
