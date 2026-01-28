@@ -1,0 +1,302 @@
+---
+description: Page Structure and Navigation Guidelines
+globs:
+  - 'app/**/*.{tsx,jsx}'
+alwaysApply: true
+---
+
+# MetaMask Mobile Page Structure and Navigation Guidelines
+
+## Core Principles
+
+1. **Consistent Page Structure**: All pages should follow a standardized layout pattern for consistency and maintainability.
+2. **Safe Area Handling**: Pages must respect device safe areas (notches, status bars, home indicators).
+3. **Navigation Transitions**: Pages always animate from the right to maintain consistent user experience.
+4. **Contextual Actions**: Bottom sheets are reserved for quick, contextual actions without subflows.
+
+## Page Structure (MANDATORY)
+
+All pages must follow this structure:
+
+```
+SafeAreaView (when applicable)
+├── Header (inline - matters for transitions)
+├── Content (flex: 1 to fill whole screen)
+│   └── ScrollView (when content exceeds screen)
+└── Footer (with CTA buttons - when applicable)
+```
+
+### SafeAreaView Usage
+
+- **ALWAYS** wrap pages in `SafeAreaView` when applicable
+- Use `SafeAreaView` from `react-native-safe-area-context` for consistent behavior across platforms
+- Essential for pages that need to respect device notches, status bars, and home indicators
+
+```tsx
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const MyPage = () => {
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      {/* Page content */}
+    </SafeAreaView>
+  );
+};
+```
+
+### Header Placement
+
+- **MUST** be inline (not separate component wrapper)
+- Inline headers are critical for proper transition animations
+- Headers should be part of the page component structure, not wrapped separately
+
+```tsx
+// ✅ CORRECT: Inline header
+<SafeAreaView style={{ flex: 1 }}>
+  <Header title="My Page" />
+  <Content />
+</SafeAreaView>
+
+// ❌ INCORRECT: Separate wrapper
+<SafeAreaView style={{ flex: 1 }}>
+  <HeaderWrapper>
+    <Header title="My Page" />
+  </HeaderWrapper>
+  <Content />
+</SafeAreaView>
+```
+
+### Content Layout
+
+- **MUST** use `flex: 1` to fill the entire available screen space
+- Content area should expand to fill space between header and footer
+- Decide whether to use `ScrollView` based on content length:
+  - Use `ScrollView` when content may exceed screen height
+  - Use regular `View`/`Box` when content fits on screen
+
+```tsx
+// Content with ScrollView (for scrollable content)
+<Box style={{ flex: 1 }}>
+  <ScrollView>
+    {/* Scrollable content */}
+  </ScrollView>
+</Box>
+
+// Content without ScrollView (for fixed content)
+<Box style={{ flex: 1 }}>
+  {/* Fixed content that fits on screen */}
+</Box>
+```
+
+### Footer with CTA Buttons
+
+When a page has CTA (Call-to-Action) buttons in the footer:
+
+#### Margin Requirements (MANDATORY):
+
+- **Bottom margin**: 
+  - iOS: `16px`
+  - Android: `0px`
+- **Horizontal margin**: `16px` (both sides)
+- **Top margin**: `24px` to content above (excluding help text above button)
+
+```tsx
+import { Platform } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Box } from '@metamask/design-system-react-native';
+
+const MyPage = () => {
+  const tw = useTailwind();
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <Header title="My Page" />
+      <Box style={{ flex: 1 }}>
+        {/* Content */}
+      </Box>
+      <Box
+        twClassName={`px-4 pt-6 ${Platform.OS === 'ios' ? 'pb-4' : 'pb-0'}`}
+      >
+        {/* Help text (if any) - excluded from top margin calculation */}
+        <Text variant={TextVariant.BodySm} twClassName="mb-6">
+          Help text here
+        </Text>
+        {/* CTA Button */}
+        <Button>Submit</Button>
+      </Box>
+    </SafeAreaView>
+  );
+};
+```
+
+#### Platform-Specific Footer Implementation:
+
+```tsx
+import { Platform } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
+const Footer = ({ children }) => {
+  const tw = useTailwind();
+  
+  return (
+    <Box
+      twClassName={`px-4 pt-6 ${Platform.OS === 'ios' ? 'pb-4' : 'pb-0'}`}
+    >
+      {children}
+    </Box>
+  );
+};
+```
+
+## Bottom Sheet Guidelines
+
+### When to Use Bottom Sheets
+
+- **Reserved for**: Quick, contextual actions that don't have subflows
+- **Use cases**: 
+  - Confirmation dialogs
+  - Quick actions (share, copy, etc.)
+  - Simple forms (single input)
+  - Selection lists (no navigation)
+- **NOT for**: 
+  - Multi-step flows
+  - Pages with navigation
+  - Complex forms with multiple screens
+  - Any flow that requires sub-navigation
+
+### Bottom Sheet Pattern
+
+```tsx
+import { BottomSheet } from 'app/component-library';
+
+// ✅ CORRECT: Quick contextual action
+const handleShare = () => {
+  BottomSheet.open({
+    content: <ShareOptions />,
+  });
+};
+
+// ❌ INCORRECT: Multi-step flow in bottom sheet
+const handleComplexFlow = () => {
+  BottomSheet.open({
+    content: <MultiStepForm />, // Should be a page instead
+  });
+};
+```
+
+## Navigation and Animation Rules
+
+### Page Transitions
+
+- **MANDATORY**: Pages **always** animate in from the right
+- This creates a consistent navigation experience
+- Users expect forward navigation to come from the right side
+
+```tsx
+// Navigation to a new page
+navigation.navigate('NextPage'); // Animates from right automatically
+```
+
+### Caret Direction Rules (MANDATORY)
+
+The caret (chevron) direction indicates the type of action:
+
+- **Caret pointing RIGHT (→)**: Opens a **page** (navigates to new screen)
+- **Caret pointing DOWN (↓)**: Opens a **bottom sheet** (contextual action)
+
+```tsx
+import { Icon, IconName } from '@metamask/design-system-react-native';
+
+// ✅ CORRECT: Right caret for page navigation
+<ListItem
+  title="Settings"
+  rightIcon={IconName.ArrowRight}
+  onPress={() => navigation.navigate('Settings')}
+/>
+
+// ✅ CORRECT: Down caret for bottom sheet
+<ListItem
+  title="Share Options"
+  rightIcon={IconName.ArrowDown}
+  onPress={() => BottomSheet.open({ content: <ShareOptions /> })}
+/>
+
+// ❌ INCORRECT: Wrong caret direction
+<ListItem
+  title="Settings"
+  rightIcon={IconName.ArrowDown} // Should be ArrowRight for page
+  onPress={() => navigation.navigate('Settings')}
+/>
+```
+
+## Complete Page Template
+
+```tsx
+import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform, ScrollView } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  Text,
+  Button,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import Header from 'app/component-library/components/Header';
+
+const MyPage = () => {
+  const tw = useTailwind();
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      {/* Inline Header */}
+      <Header title="Page Title" />
+
+      {/* Content with flex: 1 */}
+      <Box style={{ flex: 1 }}>
+        <ScrollView>
+          {/* Page content */}
+        </ScrollView>
+      </Box>
+
+      {/* Footer with CTA (when applicable) */}
+      <Box
+        twClassName={`px-4 pt-6 ${Platform.OS === 'ios' ? 'pb-4' : 'pb-0'}`}
+      >
+        {/* Help text (excluded from top margin calculation) */}
+        <Text variant={TextVariant.BodySm} twClassName="mb-6">
+          Optional help text
+        </Text>
+        {/* CTA Button */}
+        <Button>Action</Button>
+      </Box>
+    </SafeAreaView>
+  );
+};
+
+export default MyPage;
+```
+
+## Code Review Checklist
+
+Before submitting page code, ensure:
+
+- [ ] Page wrapped in `SafeAreaView` when applicable
+- [ ] Header is inline (not wrapped separately)
+- [ ] Content uses `flex: 1` to fill screen
+- [ ] `ScrollView` used appropriately based on content length
+- [ ] Footer margins follow platform-specific rules (iOS: 16px bottom, Android: 0px)
+- [ ] Footer horizontal margin is 16px
+- [ ] Footer top margin is 24px to content (excluding help text)
+- [ ] Bottom sheets only used for quick contextual actions without subflows
+- [ ] Pages animate from the right
+- [ ] Caret direction matches action type (right = page, down = bottom sheet)
+
+## Enforcement
+
+- **REJECT** pages without `SafeAreaView` when applicable
+- **REJECT** headers wrapped in separate components (must be inline)
+- **REJECT** content without `flex: 1` when it should fill screen
+- **REJECT** bottom sheets used for multi-step flows or pages with navigation
+- **REJECT** incorrect caret directions (right caret for bottom sheet, down caret for page)
+- **REJECT** incorrect footer margins (must follow platform-specific rules)
