@@ -90,7 +90,7 @@ const ReferredByCodeSection: React.FC = () => {
       return <ActivityIndicator color={colors.icon.default} />;
     }
 
-    if ((clientCheckValid && applyReferralCodeSuccess) || hasReferredByCode) {
+    if (clientCheckValid && applyReferralCodeSuccess) {
       return (
         <Icon
           name={IconName.Confirmation}
@@ -100,7 +100,10 @@ const ReferredByCodeSection: React.FC = () => {
       );
     }
 
-    if (inputCode.length >= 6 || applyReferralCodeError) {
+    if (
+      (inputCode.length >= 6 && !clientCheckValid) ||
+      applyReferralCodeError
+    ) {
       return (
         <Icon
           name={IconName.Error}
@@ -191,13 +194,14 @@ const ReferredByCodeSection: React.FC = () => {
           autoCapitalize="characters"
           style={{
             backgroundColor: colors.background.muted,
-            borderColor: showClientValidationError
-              ? colors.error.default
-              : colors.border.muted,
+            borderColor:
+              showClientValidationError || Boolean(applyReferralCodeError)
+                ? colors.error.default
+                : colors.border.muted,
           }}
           size={TextFieldSize.Lg}
           endAccessory={renderIcon()}
-          isError={showClientValidationError}
+          isError={showClientValidationError || Boolean(applyReferralCodeError)}
         />
         {showClientValidationError && (
           <Text

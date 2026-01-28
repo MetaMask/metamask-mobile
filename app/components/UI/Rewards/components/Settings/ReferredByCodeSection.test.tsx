@@ -778,16 +778,5 @@ describe('ReferredByCodeSection', () => {
       const endAccessory = getByTestId('referred-by-code-input-end-accessory');
       expect(endAccessory).toBeOnTheScreen();
     });
-
-    it('renders success icon when user has existing referredByCode', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectors({ referredByCode: 'EXISTINGCODE' }),
-      );
-
-      const { getByTestId } = render(<ReferredByCodeSection />);
-
-      const endAccessory = getByTestId('referred-by-code-input-end-accessory');
-      expect(endAccessory).toBeOnTheScreen();
-    });
   });
 });
