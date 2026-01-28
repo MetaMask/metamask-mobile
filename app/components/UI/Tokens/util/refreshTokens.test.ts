@@ -59,8 +59,23 @@ describe('refreshTokens', () => {
     internalAccount: '',
   };
 
+  beforeEach(() => {
+    jest.useRealTimers();
+    // Reset mocks to resolved state
+    (
+      Engine.context.TokenDetectionController.detectTokens as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.TokenBalancesController.updateBalances as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.TokenRatesController.updateExchangeRates as jest.Mock
+    ).mockResolvedValue(undefined);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
   });
 
   it('refreshes tokens when EVM is selected', async () => {
@@ -115,17 +130,38 @@ describe('refreshTokens', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('logs an error if an exception occurs', async () => {
-    (
-      Engine.context.TokenDetectionController.detectTokens as jest.Mock
-    ).mockRejectedValue(new Error('Failed to detect tokens'));
+  it('logs an error if a timeout occurs', async () => {
+    jest.useFakeTimers();
 
-    await refreshTokens(mockProps);
+    try {
+      // Mock a promise that never resolves to trigger timeout
+      const mockDetectTokens = jest.fn().mockImplementation(
+        () =>
+          new Promise(() => {
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+          }),
+      );
+      (
+        Engine.context.TokenDetectionController.detectTokens as jest.Mock
+      ).mockImplementation(mockDetectTokens);
 
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      'Error while refreshing tokens',
-    );
+      const refreshPromise = refreshTokens(mockProps);
+
+      // Advance timers past the 5 second timeout
+      jest.advanceTimersByTime(6000);
+
+      await refreshPromise;
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('timed out'),
+        }),
+        'Error while refreshing tokens',
+      );
+    } finally {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    }
   });
 
   it('does not call updateBalance if selectedAccountId is undefined', async () => {
