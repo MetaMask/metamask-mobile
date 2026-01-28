@@ -102,7 +102,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
-      style={styles.container}
+      style={styles.scrollContainer}
       testID={testID}
     >
       {displayCategories.map((config) => (
