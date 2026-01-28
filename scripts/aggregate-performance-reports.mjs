@@ -290,10 +290,10 @@ function createSummary(groupedResults) {
   let totalCpuUsage = 0;
   let totalMemoryUsage = 0;
   let profilingTestCount = 0;
-  const failedTestsByTeam = {};
-  let totalFailedTests = 0;
-  // Track failures per platform separately
-  const failedTestsByPlatform = { android: 0, ios: 0 };
+  
+  // First pass: collect all test executions grouped by unique test key
+  // This allows us to determine if a test ultimately passed (at least one retry succeeded)
+  const testExecutions = {}; // Key: testName|platform|device -> { passed: bool, failed: bool, testInfo: {} }
   
   Object.keys(groupedResults).forEach(platform => {
     Object.keys(groupedResults[platform]).forEach(device => {
@@ -317,37 +317,81 @@ function createSummary(groupedResults) {
           profilingTestCount++;
         }
         
-        // Track failed tests by team and platform
-        if (test.testFailed) {
-          totalFailedTests++;
-          
-          // Track per-platform failures
-          const platformKey = platform.toLowerCase();
-          if (platformKey === 'android' || platformKey === 'ios') {
-            failedTestsByPlatform[platformKey]++;
-          }
-          
-          // Track by team if team info available
-          if (test.team) {
-            const teamId = test.team.teamId || 'unknown';
-            if (!failedTestsByTeam[teamId]) {
-              failedTestsByTeam[teamId] = {
-                team: test.team,
-                tests: []
-              };
-            }
-            failedTestsByTeam[teamId].tests.push({
+        // Track test executions by unique key (testName + platform + device)
+        const uniqueKey = `${test.testName}|${platform}|${device}`;
+        
+        if (!testExecutions[uniqueKey]) {
+          testExecutions[uniqueKey] = {
+            hasPassed: false,
+            hasFailed: false,
+            testInfo: {
               testName: test.testName,
               testFilePath: test.testFilePath,
               tags: test.tags || [],
               platform,
               device,
+              team: test.team,
               failureReason: test.failureReason
-            });
-          }
+            }
+          };
+        }
+        
+        // Track if this test has ever passed or failed
+        if (test.testFailed) {
+          testExecutions[uniqueKey].hasFailed = true;
+          // Update failure reason with the latest one
+          testExecutions[uniqueKey].testInfo.failureReason = test.failureReason;
+        } else {
+          testExecutions[uniqueKey].hasPassed = true;
         }
       });
     });
+  });
+  
+  // Second pass: determine final test status
+  // A test is only considered failed if ALL executions failed (no successful retry)
+  const failedTestsByTeam = {};
+  let totalFailedTests = 0;
+  const failedTestsByPlatform = { android: 0, ios: 0 };
+  
+  Object.values(testExecutions).forEach(execution => {
+    // If test passed at least once, it's considered passed (successful retry)
+    if (execution.hasPassed) {
+      return; // Skip - test ultimately passed
+    }
+    
+    // Test failed all executions - count as 1 failure
+    if (execution.hasFailed) {
+      totalFailedTests++;
+      
+      const { testInfo } = execution;
+      const platformKey = testInfo.platform.toLowerCase();
+      
+      // Track per-platform failures
+      if (platformKey === 'android' || platformKey === 'ios') {
+        failedTestsByPlatform[platformKey]++;
+      }
+      
+      // Track by team if team info available
+      if (testInfo.team) {
+        const teamId = testInfo.team.teamId || 'unknown';
+        if (!failedTestsByTeam[teamId]) {
+          failedTestsByTeam[teamId] = {
+            team: testInfo.team,
+            tests: []
+          };
+        }
+        
+        failedTestsByTeam[teamId].tests.push({
+          testName: testInfo.testName,
+          testFilePath: testInfo.testFilePath,
+          tags: testInfo.tags,
+          platform: testInfo.platform,
+          device: testInfo.device,
+          failureReason: testInfo.failureReason
+        });
+      }
+    }
   });
   
   // Count tests by platform
@@ -391,6 +435,7 @@ function createSummary(groupedResults) {
       profilingTestCount
     },
     // Failed tests grouped by team for Slack notifications
+    // Only includes tests that failed ALL retries (if a retry passed, test is not counted as failed)
     failedTestsStats: {
       totalFailedTests,
       teamsAffected: Object.keys(failedTestsByTeam).length,

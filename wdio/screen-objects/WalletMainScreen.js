@@ -231,8 +231,12 @@ class WalletMainScreen {
   }
 
   async checkActiveAccount(name) {
-    const element = await AppwrightSelectors.getElementByText(this.device, name);
-    await appwrightExpect(element).toBeVisible();
+    const accountPicker = await AppwrightSelectors.getElementByID(this.device, 'account-picker');
+    await appwrightExpect(accountPicker).toBeVisible({ timeout: 10000 });
+    const accountText = await accountPicker.getText({ timeout: 5000 });
+    if (!accountText.includes(name)) {
+      throw new Error(`Expected account "${name}" but found "${accountText}"`);
+    }
   }
 
 

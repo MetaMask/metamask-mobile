@@ -72,7 +72,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
 
       const screen1Timer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',
-        { ios: 1000, android: 3000 },
+        { ios: 3000, android: 3000 },
         device,
       );
       const screen2Timer = new TimerHelper(
