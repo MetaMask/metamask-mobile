@@ -19,6 +19,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
+import { MUSD_CONVERSION_APY } from '../../../constants/musd';
 import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
@@ -105,10 +106,14 @@ const MusdConversionAssetOverviewCta = ({
       {/* Text content in the center */}
       <View style={styles.textContainer}>
         <Text variant={TextVariant.BodySMMedium} style={styles.title}>
-          {strings('earn.musd_conversion.boost_title')}
+          {strings('earn.musd_conversion.boost_title', {
+            percentage: MUSD_CONVERSION_APY,
+          })}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {strings('earn.musd_conversion.boost_description')}
+          {strings('earn.musd_conversion.boost_description', {
+            percentage: MUSD_CONVERSION_APY,
+          })}
         </Text>
       </View>
 
