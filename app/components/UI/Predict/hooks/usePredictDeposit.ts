@@ -32,8 +32,7 @@ export const usePredictDeposit = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const isInPredictNavigator = useIsInPredictNavigator();
-  const isOutsidePredictNavigator = !isInPredictNavigator;
-  const stack = isOutsidePredictNavigator ? Routes.PREDICT.ROOT : undefined;
+  const stack = !isInPredictNavigator ? Routes.PREDICT.ROOT : undefined;
 
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';

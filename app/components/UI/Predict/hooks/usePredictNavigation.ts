@@ -14,7 +14,6 @@ export interface UsePredictNavigationOptions {
 
 export interface UsePredictNavigationResult {
   navigate: (screen: string, params?: Record<string, unknown>) => void;
-  isOutsidePredictNavigator: boolean;
 }
 
 /**
@@ -47,11 +46,10 @@ export const usePredictNavigation = ({
   entryPoint,
 }: UsePredictNavigationOptions): UsePredictNavigationResult => {
   const isInPredictNavigator = useIsInPredictNavigator();
-  const isOutsidePredictNavigator = !isInPredictNavigator;
 
   const navigate = useCallback(
     (screen: string, params?: Record<string, unknown>) => {
-      if (isOutsidePredictNavigator) {
+      if (!isInPredictNavigator) {
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen,
           params: {
@@ -66,11 +64,10 @@ export const usePredictNavigation = ({
         });
       }
     },
-    [navigation, entryPoint, isOutsidePredictNavigator],
+    [isInPredictNavigator, navigation, entryPoint],
   );
 
   return {
     navigate,
-    isOutsidePredictNavigator,
   };
 };

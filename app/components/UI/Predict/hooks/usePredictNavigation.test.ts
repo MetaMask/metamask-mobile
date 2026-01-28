@@ -33,17 +33,6 @@ describe('usePredictNavigation', () => {
       mockUseIsInPredictNavigator.mockReturnValue(false);
     });
 
-    it('indicates user is outside predict navigator', () => {
-      const { result } = renderHook(() =>
-        usePredictNavigation({
-          navigation: mockNavigation,
-          entryPoint,
-        }),
-      );
-
-      expect(result.current.isOutsidePredictNavigator).toBe(true);
-    });
-
     it('navigates to buy preview with predict root as parent', () => {
       const { result } = renderHook(() =>
         usePredictNavigation({
@@ -98,17 +87,6 @@ describe('usePredictNavigation', () => {
       mockUseIsInPredictNavigator.mockReturnValue(true);
     });
 
-    it('indicates user is inside predict navigator', () => {
-      const { result } = renderHook(() =>
-        usePredictNavigation({
-          navigation: mockNavigation,
-          entryPoint,
-        }),
-      );
-
-      expect(result.current.isOutsidePredictNavigator).toBe(false);
-    });
-
     it('navigates directly to buy preview', () => {
       const { result } = renderHook(() =>
         usePredictNavigation({
@@ -156,16 +134,6 @@ describe('usePredictNavigation', () => {
   describe('when entry point is undefined', () => {
     beforeEach(() => {
       mockUseIsInPredictNavigator.mockReturnValue(true);
-    });
-
-    it('treats undefined as inside predict navigator', () => {
-      const { result } = renderHook(() =>
-        usePredictNavigation({
-          navigation: mockNavigation,
-        }),
-      );
-
-      expect(result.current.isOutsidePredictNavigator).toBe(false);
     });
 
     it('navigates directly when entry point is undefined', () => {

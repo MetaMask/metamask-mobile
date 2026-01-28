@@ -16,8 +16,4 @@ export {
   type UseLivePositionsResult,
 } from './useLivePositions';
 
-export {
-  usePredictNavigation,
-  type UsePredictNavigationOptions,
-  type UsePredictNavigationResult,
-} from './usePredictNavigation';
+export { usePredictNavigation } from './usePredictNavigation';
