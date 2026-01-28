@@ -74,7 +74,12 @@ export function PayWithModal() {
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
     >
-      <HeaderCenter title={strings('pay_with_modal.title')} onClose={close} />
+      <HeaderCenter
+        title={strings('pay_with_modal.title')}
+        // HeaderCenter close handler receives a press event; we must ignore it so it
+        // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
+        onClose={() => close()}
+      />
       <Asset
         includeNoBalance
         hideNfts
