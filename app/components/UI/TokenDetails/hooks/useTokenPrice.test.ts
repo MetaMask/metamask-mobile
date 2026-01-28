@@ -100,7 +100,7 @@ describe('useTokenPrice', () => {
     it('identifies EVM chains by hex prefix', () => {
       const isEvmChain = (chainId: string): boolean => chainId.startsWith('0x');
 
-      expect(isEvmChain(mockToken.chainId)).toBe(true);
+      expect(isEvmChain(mockToken.chainId as string)).toBe(true);
       expect(isEvmChain('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp')).toBe(false);
     });
   });
