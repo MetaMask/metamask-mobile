@@ -486,12 +486,12 @@ const PerpsHomeView = () => {
           />
         </View>
 
-        {/* Stocks & Commodities Markets List */}
+        {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
           <PerpsMarketTypeSection
-            title={strings('perps.home.stocks_and_commodities')}
+            title={strings('perps.home.stocks')}
             markets={stocksAndCommoditiesMarkets}
-            marketType="stocks_and_commodities"
+            marketType="stocks"
             sortBy={sortBy}
             isLoading={isLoading.markets}
           />

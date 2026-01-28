@@ -254,7 +254,10 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
       const translations: Record<string, string> = {
         all: 'All',
         crypto: 'Crypto',
-        stocks_and_commodities: 'Stocks & Commodities',
+        stocks: 'Stocks',
+        commodities: 'Commodities',
+        forex: 'Forex',
+        new: 'New',
       };
       return translations[filter] || filter;
     };
@@ -1235,76 +1238,7 @@ describe('PerpsMarketListView', () => {
   // Note: TabBar Navigation tests removed - PerpsMarketListView does not render a bottom tab bar
   // The component only renders market type tabs (All, Crypto, Stocks) for filtering markets
 
-  describe('Stocks/Commodities Dropdown', () => {
-    it('does not show stocks/commodities dropdown when market type filter is not stocks_and_commodities', async () => {
-      renderWithProvider(<PerpsMarketListView />, { state: mockState });
-
-      // Wait for filter bar to render
-      await waitFor(() => {
-        expect(screen.getByText('Volume')).toBeOnTheScreen();
-      });
-
-      // Verify stocks/commodities dropdown is not present when filter is 'all'
-      expect(
-        screen.queryByTestId(
-          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-stocks-commodities-dropdown`,
-        ),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('shows stocks/commodities dropdown when market type filter is stocks_and_commodities', async () => {
-      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
-
-      // Mock the hook to return stocks_and_commodities as the active filter
-      usePerpsMarketListView.mockReturnValue({
-        markets: mockMarketData,
-        searchState: {
-          searchQuery: '',
-          setSearchQuery: jest.fn(),
-          isSearchVisible: false,
-          setIsSearchVisible: jest.fn(),
-          toggleSearchVisibility: jest.fn(),
-          clearSearch: jest.fn(),
-        },
-        sortState: {
-          selectedOptionId: 'volume',
-          sortBy: 'volume',
-          direction: 'desc',
-          handleOptionChange: jest.fn(),
-        },
-        favoritesState: {
-          showFavoritesOnly: false,
-          setShowFavoritesOnly: jest.fn(),
-        },
-        marketTypeFilterState: {
-          marketTypeFilter: 'stocks_and_commodities',
-          setMarketTypeFilter: jest.fn(),
-        },
-        marketCounts: {
-          crypto: 3,
-          equity: 2,
-          commodity: 1,
-          forex: 0,
-        },
-        isLoading: false,
-        error: null,
-      });
-
-      renderWithProvider(<PerpsMarketListView />, { state: mockState });
-
-      // Wait for filter bar to render
-      await waitFor(() => {
-        expect(screen.getByText('Volume')).toBeOnTheScreen();
-      });
-
-      // Verify stocks/commodities dropdown is present when filter is stocks_and_commodities
-      expect(
-        screen.getByTestId(
-          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-stocks-commodities-dropdown`,
-        ),
-      ).toBeOnTheScreen();
-    });
-  });
+  // Note: Stocks/Commodities Dropdown tests removed - replaced with category badges
 
   describe('Market Type Dropdown', () => {
     it('shows market type dropdown when multiple market types exist', async () => {
