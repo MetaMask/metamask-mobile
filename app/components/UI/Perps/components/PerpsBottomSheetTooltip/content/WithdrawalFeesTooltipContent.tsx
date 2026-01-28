@@ -39,7 +39,7 @@ const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
   const networkFee = useMemo(() => {
     const fee =
       withdrawalRoute?.constraints?.fees?.fixed ??
-      WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT;
+      WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
     return formatPerpsFiat(fee);
   }, [withdrawalRoute]);
 
@@ -47,7 +47,7 @@ const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
   const totalFees = useMemo(() => {
     const providerFee =
       withdrawalRoute?.constraints?.fees?.fixed ??
-      WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT;
+      WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
     // MetaMask fee is currently 0
     const metamaskFee = 0;
     return formatPerpsFiat(providerFee + metamaskFee);

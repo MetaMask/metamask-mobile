@@ -62,10 +62,10 @@ const mockMarketsWithValidVolume: PerpsMarketData[] = [
 ];
 
 const mockMarketsWithInvalidVolume: PerpsMarketData[] = [
-  createMockMarket('ZERO1', PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY),
-  createMockMarket('ZERO2', PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY),
-  createMockMarket('FALLBACK1', PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
-  createMockMarket('FALLBACK2', PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY),
+  createMockMarket('ZERO1', PERPS_CONSTANTS.ZeroAmountDisplay),
+  createMockMarket('ZERO2', PERPS_CONSTANTS.ZeroAmountDetailedDisplay),
+  createMockMarket('FALLBACK1', PERPS_CONSTANTS.FallbackPriceDisplay),
+  createMockMarket('FALLBACK2', PERPS_CONSTANTS.FallbackDataDisplay),
 ];
 
 const mockAllMarkets = [
@@ -217,7 +217,7 @@ describe('usePerpsMarketListView', () => {
         expect.objectContaining({
           markets: expect.not.arrayContaining([
             expect.objectContaining({
-              volume: PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY,
+              volume: PERPS_CONSTANTS.ZeroAmountDisplay,
             }),
           ]),
         }),
@@ -232,7 +232,7 @@ describe('usePerpsMarketListView', () => {
         expect.objectContaining({
           markets: expect.not.arrayContaining([
             expect.objectContaining({
-              volume: PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY,
+              volume: PERPS_CONSTANTS.FallbackPriceDisplay,
             }),
           ]),
         }),

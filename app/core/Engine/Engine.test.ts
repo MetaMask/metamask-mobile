@@ -971,6 +971,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       const findNetworkClientIdByChainIdSpy = jest
@@ -1017,6 +1018,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1047,6 +1049,7 @@ describe('Engine', () => {
           enabledNetworkMap: {
             [KnownCaipNamespace.Eip155]: {},
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1075,6 +1078,7 @@ describe('Engine', () => {
             string,
             Record<string, boolean>
           >,
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1100,6 +1104,7 @@ describe('Engine', () => {
         .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
         .mockReturnValue({
           enabledNetworkMap: {},
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1133,6 +1138,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1163,6 +1169,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1200,6 +1207,7 @@ describe('Engine', () => {
               '0xa': true,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();

@@ -12,7 +12,7 @@ import { selectDefaultEndpointByChainId } from '../../../../../../selectors/netw
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
-import { fetchMerklRewardsForAsset } from '../merkl-client';
+import { fetchMerklRewardsForAsset, getClaimChainId } from '../merkl-client';
 import { DISTRIBUTOR_CLAIM_ABI, MERKL_DISTRIBUTOR_ADDRESS } from '../constants';
 import Engine from '../../../../../../core/Engine';
 
@@ -62,8 +62,13 @@ export const useMerklClaim = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+
+  // Get the chain ID where claims should be executed
+  // For mUSD, claims always go to Linea regardless of which chain the user is viewing
+  const claimChainId = getClaimChainId(asset);
+
   const endpoint = useSelector((state: RootState) =>
-    selectDefaultEndpointByChainId(state, asset.chainId as Hex),
+    selectDefaultEndpointByChainId(state, claimChainId),
   );
   const networkClientId = endpoint?.networkClientId;
 
@@ -111,9 +116,10 @@ export const useMerklClaim = ({
       );
 
       // Create transaction params
-      // Use chainId from reward data (from API) or fall back to asset chainId
+      // Use chainId from reward data (from API), fall back to the claim chain
+      // For mUSD, the reward token is always on Linea so this will be Linea's chainId
       const transactionChainId =
-        rewardData.token.chainId ?? Number(asset.chainId);
+        rewardData.token.chainId ?? Number(claimChainId);
 
       const txParams = {
         from: selectedAddress as Hex,
@@ -218,7 +224,7 @@ export const useMerklClaim = ({
       setIsClaiming(false);
       throw e;
     }
-  }, [selectedAddress, networkClientId, asset]);
+  }, [selectedAddress, networkClientId, asset, claimChainId]);
 
   return {
     claimRewards,
