@@ -11,15 +11,11 @@ class AddContactView {
   }
 
   get addButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON)
-      : Matchers.getElementByLabel(AddContactViewSelectorsIDs.ADD_BUTTON);
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON);
   }
 
   get editButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(AddContactViewSelectorsIDs.EDIT_BUTTON)
-      : Matchers.getElementByLabel(AddContactViewSelectorsText.EDIT_BUTTON);
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.EDIT_BUTTON);
   }
 
   get editContact(): DetoxElement {
@@ -27,9 +23,7 @@ class AddContactView {
   }
 
   get deleteButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON)
-      : Matchers.getElementByLabel(AddContactViewSelectorsIDs.DELETE_BUTTON);
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON);
   }
 
   get nameInput(): DetoxElement {
