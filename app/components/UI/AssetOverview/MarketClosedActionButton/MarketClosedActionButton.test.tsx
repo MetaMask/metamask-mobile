@@ -33,7 +33,7 @@ describe('MarketClosedActionButton', () => {
         onPress={mockOnPress}
       />,
     );
-    expect(getByText(customLabel)).toBeTruthy();
+    expect(getByText(customLabel)).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {
@@ -83,7 +83,7 @@ describe('MarketClosedActionButton', () => {
       />,
     );
 
-    expect(getByText('Default Button')).toBeTruthy();
+    expect(getByText('Default Button')).toBeOnTheScreen();
   });
 
   it('renders with correct icon and text', () => {
@@ -97,7 +97,7 @@ describe('MarketClosedActionButton', () => {
     );
 
     // Test that the label is rendered
-    expect(getByText('Buy/Sell')).toBeTruthy();
+    expect(getByText('Buy/Sell')).toBeOnTheScreen();
   });
 
   it('applies custom style when provided', () => {
