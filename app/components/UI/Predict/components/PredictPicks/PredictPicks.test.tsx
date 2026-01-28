@@ -19,8 +19,18 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
 }));
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: (Component: React.ComponentType) => Component,
+  createSwitchNavigator: jest.fn(),
+}));
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
+jest.mock('../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => ({
+    deposit: jest.fn(),
+    isDepositPending: false,
+  }),
+}));
 jest.mock('../../hooks/useLivePositions', () => ({
   useLivePositions: jest.fn((positions: unknown[]) => ({
     livePositions: positions ?? [],

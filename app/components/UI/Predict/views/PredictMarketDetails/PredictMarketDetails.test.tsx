@@ -229,6 +229,15 @@ jest.mock('../../hooks/usePredictMeasurement', () => ({
   usePredictMeasurement: jest.fn(),
 }));
 
+// Mock usePredictDeposit hook (used by usePredictActionGuard)
+const mockDeposit = jest.fn();
+jest.mock('../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => ({
+    deposit: mockDeposit,
+    isDepositPending: false,
+  }),
+}));
+
 let mockUsePredictOrderPreview: jest.Mock;
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: (mockUsePredictOrderPreview = jest.fn()),
@@ -2322,7 +2331,7 @@ describe('PredictMarketDetails', () => {
       });
     });
 
-    it('handles no balance scenario for Yes button', () => {
+    it('calls deposit when user has no balance - Yes button', () => {
       const { usePredictBalance } = jest.requireMock(
         '../../hooks/usePredictBalance',
       );
@@ -2345,19 +2354,16 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const yesButton = findActionButtonByPrice(65);
       expect(yesButton).toBeDefined();
       fireEvent.press(yesButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
+      expect(mockDeposit).toHaveBeenCalled();
     });
 
-    it('handles no balance scenario for No button', () => {
+    it('calls deposit when user has no balance - No button', () => {
       const { usePredictBalance } = jest.requireMock(
         '../../hooks/usePredictBalance',
       );
@@ -2380,16 +2386,13 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const noButton = findActionButtonByPrice(35);
       expect(noButton).toBeDefined();
       fireEvent.press(noButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
+      expect(mockDeposit).toHaveBeenCalled();
     });
 
     it('navigates to unavailable modal when user is not eligible - Yes button', () => {
