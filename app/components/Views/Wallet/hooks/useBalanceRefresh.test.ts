@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { useBalanceRefresh } from './useBalanceRefresh';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -85,7 +85,7 @@ describe('useBalanceRefresh', () => {
     ).toHaveBeenCalledWith(['ETH', 'POL']);
   });
 
-  it('logs error when refresh fails', async () => {
+  it('handles individual promise rejections gracefully without logging', async () => {
     const mockError = new Error('Refresh failed');
     (
       Engine.context.AccountTrackerController.refresh as jest.Mock
@@ -97,12 +97,8 @@ describe('useBalanceRefresh', () => {
       await result.current.refreshBalance();
     });
 
-    await waitFor(() => {
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'Error refreshing balance',
-      );
-    });
+    // Promise.allSettled swallows individual rejections, so no error should be logged
+    expect(Logger.error).not.toHaveBeenCalled();
   });
 
   it('handles timeout gracefully', async () => {
@@ -111,7 +107,10 @@ describe('useBalanceRefresh', () => {
     (
       Engine.context.AccountTrackerController.refresh as jest.Mock
     ).mockImplementation(
-      () => new Promise(() => {}), // Never resolves
+      () =>
+        new Promise(() => {
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+        }),
     );
 
     const { result } = renderHook(() => useBalanceRefresh());

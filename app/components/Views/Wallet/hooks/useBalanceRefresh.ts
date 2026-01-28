@@ -12,11 +12,10 @@ const REFRESH_TIMEOUT_MS = 5000;
 /**
  * Hook to manage balance refresh functionality for the Wallet screen.
  * Handles refreshing account balances and currency exchange rates.
- *
- * @returns {object} Object containing:
- *   - refreshBalance: Function to refresh balance without managing loading state
- *   - handleRefresh: Function to refresh balance with loading state management
- *   - refreshing: Boolean indicating if a refresh is in progress
+ * @returns Object containing:
+ * - refreshBalance: Function to refresh balance without managing loading state
+ * - handleRefresh: Function to refresh balance with loading state management
+ * - refreshing: Boolean indicating if a refresh is in progress.
  */
 export const useBalanceRefresh = () => {
   const [refreshing, setRefreshing] = useState(false);
