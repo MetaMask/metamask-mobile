@@ -1,9 +1,9 @@
 # Version: 2.0.0
+# DISABLED - Experimental workflow
 name: CursorBot Issue Implementation
 
 on:
-  issues:
-    types: [assigned]
+  workflow_dispatch: # Manual only - disabled
 
 permissions:
   issues: write
@@ -13,8 +13,8 @@ permissions:
 jobs:
   implement-issue:
     runs-on: ubuntu-latest
-    # Only run when assigned to metamaskbot. TODO: Change this to "cursorbot" once we create the user.
-    if: github.event.assignee.login == 'metamaskbot'
+    # DISABLED - This workflow is disabled
+    if: false
     steps:
       - name: Check for existing implementation PR
         id: check-pr

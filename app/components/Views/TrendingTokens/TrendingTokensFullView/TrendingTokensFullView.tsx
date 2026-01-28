@@ -6,10 +6,12 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import {
+  Platform,
   StyleSheet,
   View,
   TouchableOpacity,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAppThemeFromContext } from '../../../../util/theme';
@@ -53,7 +55,6 @@ const createStyles = (theme: Theme) =>
     safeArea: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
-      paddingBottom: 16,
     },
     headerContainer: {
       backgroundColor: theme.colors.background.default,
@@ -70,24 +71,26 @@ const createStyles = (theme: Theme) =>
       paddingRight: 16,
     },
     controlBarWrapper: {
-      flexDirection: 'row',
       paddingVertical: 16,
       paddingHorizontal: 16,
-      justifyContent: 'space-between',
+      flexGrow: 0,
+    },
+    controlBarScrollView: {
+      flexGrow: 0,
       alignItems: 'center',
-      alignSelf: 'stretch',
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
-      flex: 1,
       justifyContent: 'space-between',
       alignItems: 'center',
+      minWidth: '100%',
     },
     controlButtonInnerWrapper: {
       flexDirection: 'row',
       gap: 8,
       alignItems: 'center',
       flexShrink: 0,
+      marginLeft: 8,
     },
     controlButton: {
       paddingVertical: 8,
@@ -302,7 +305,12 @@ const TrendingTokensFullView = () => {
   }, [selectedPriceChangeOption]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={
+        Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']
+      }
+    >
       <View
         style={[
           styles.headerContainer,
@@ -322,7 +330,12 @@ const TrendingTokensFullView = () => {
         />
       </View>
       {!isSearchVisible ? (
-        <View style={styles.controlBarWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.controlBarScrollView}
+          style={styles.controlBarWrapper}
+        >
           <View style={styles.controlButtonOuterWrapper}>
             <TouchableOpacity
               testID="price-change-button"
@@ -386,7 +399,7 @@ const TrendingTokensFullView = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </ScrollView>
       ) : null}
 
       {isLoading ? (

@@ -355,7 +355,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   } = usePerpsLiveCandles({
     symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
-    duration: TimeDuration.YEAR_TO_DATE,
+    duration: TimeDuration.YearToDate,
     throttleMs: 1000,
   });
 
@@ -536,7 +536,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Just reset the UI state and the chart will update automatically
     } catch (error) {
       Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         message: 'Failed to refresh chart state',
       });
     } finally {
@@ -689,13 +689,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Initialize deposit in the background without blocking
       depositWithConfirmation().catch((error) => {
         Logger.error(ensureError(error), {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
           message: 'Failed to initialize deposit',
         });
       });
     } catch (error) {
       Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         message: 'Failed to navigate to deposit',
       });
     }
@@ -704,7 +704,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleTradingViewPress = useCallback(() => {
     Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
       Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         message: 'Failed to open Trading View URL',
       });
     });
@@ -849,7 +849,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       });
     } catch (error) {
       Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         message: 'Failed to set stop loss from prompt banner',
       });
     } finally {
@@ -893,7 +893,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleChartError = useCallback(() => {
     // Log the error but don't block the UI
     Logger.error(new Error('Chart rendering error in market details view'), {
-      feature: PERPS_CONSTANTS.FEATURE_NAME,
+      feature: PERPS_CONSTANTS.FeatureName,
     });
   }, []);
 
@@ -1260,7 +1260,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         isVisible={isMoreCandlePeriodsVisible}
         onClose={handleMoreCandlePeriodsClose}
         selectedPeriod={selectedCandlePeriod}
-        selectedDuration={TimeDuration.YEAR_TO_DATE} // Not used when showAllPeriods is true
+        selectedDuration={TimeDuration.YearToDate} // Not used when showAllPeriods is true
         onPeriodChange={handleCandlePeriodChange}
         showAllPeriods
         asset={market?.symbol}

@@ -6,6 +6,7 @@ import {
   type UserFillsWsEvent,
   type ActiveAssetCtxWsEvent,
   type ActiveSpotAssetCtxWsEvent,
+  type BboWsEvent,
   type L2BookResponse,
   type AssetCtxsWsEvent,
   type FrontendOpenOrdersResponse,
@@ -27,7 +28,7 @@ import type {
   SubscribeOrderBookParams,
   OrderBookData,
   OrderBookLevel,
-  IPerpsPlatformDependencies,
+  PerpsPlatformDependencies,
 } from '../controllers/types';
 import {
   adaptPositionFromSDK,
@@ -41,7 +42,7 @@ import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
 import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../../../../util/errorUtils';
-import { processL2BookData } from '../utils/hyperLiquidOrderBookProcessor';
+import { processBboData } from '../utils/hyperLiquidOrderBookProcessor';
 import { calculateOpenInterestUSD } from '../utils/marketDataTransform';
 
 /**
@@ -93,7 +94,7 @@ export class HyperLiquidSubscriptionService {
     Set<(prices: PriceUpdate[]) => void>
   >();
 
-  // Track which subscribers want L2Book (order book) data
+  // Track which subscribers want top-of-book (best bid/ask) data
   private readonly orderBookSubscribers = new Map<
     string,
     Set<(prices: PriceUpdate[]) => void>
@@ -106,7 +107,7 @@ export class HyperLiquidSubscriptionService {
     string,
     ISubscription
   >();
-  private readonly globalL2BookSubscriptions = new Map<string, ISubscription>();
+  private readonly globalBboSubscriptions = new Map<string, ISubscription>();
   // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
   private readonly orderFillSubscriptions = new Map<string, ISubscription>();
   private readonly symbolSubscriberCounts = new Map<string, number>();
@@ -191,12 +192,12 @@ export class HyperLiquidSubscriptionService {
   >();
 
   // Platform dependencies for logging
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   constructor(
     clientService: HyperLiquidClientService,
     walletService: HyperLiquidWalletService,
-    platformDependencies: IPerpsPlatformDependencies,
+    platformDependencies: PerpsPlatformDependencies,
     hip3Enabled?: boolean,
     enabledDexs?: string[],
     allowlistMarkets?: string[],
@@ -231,7 +232,7 @@ export class HyperLiquidSubscriptionService {
   } {
     return {
       tags: {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         provider: 'hyperliquid',
         network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
       },
@@ -484,7 +485,7 @@ export class HyperLiquidSubscriptionService {
    * Uses string concatenation of key fields instead of JSON.stringify()
    * Performance: ~100x faster than JSON.stringify() for typical objects
    * Tracks structural changes (coin, size, entryPrice, leverage, TP/SL prices/counts)
-   * and value changes (unrealizedPnl, returnOnEquity) for live P&L updates
+   * and value changes (unrealizedPnl, returnOnEquity, liquidationPrice, marginUsed) for live updates
    */
   private hashPositions(positions: Position[]): string {
     if (!positions || positions.length === 0) return '0';
@@ -495,7 +496,7 @@ export class HyperLiquidSubscriptionService {
             p.takeProfitPrice || ''
           }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}:${
             p.unrealizedPnl
-          }:${p.returnOnEquity}`,
+          }:${p.returnOnEquity}:${p.liquidationPrice || ''}:${p.marginUsed || ''}`,
       )
       .join('|');
   }
@@ -623,7 +624,7 @@ export class HyperLiquidSubscriptionService {
       let positionForCoin: Position | undefined;
 
       const matchPositionToTpsl = (p: Position) => {
-        if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
+        if (TP_SL_CONFIG.UsePositionBoundTpsl) {
           return (
             p.symbol === order.coin && order.reduceOnly && order.isPositionTpsl
           );
@@ -834,7 +835,7 @@ export class HyperLiquidSubscriptionService {
       }
     });
 
-    this.clientService.ensureSubscriptionClient(
+    await this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
 
@@ -885,7 +886,7 @@ export class HyperLiquidSubscriptionService {
         this.ensureActiveAssetSubscription(symbol);
       }
       if (includeOrderBook) {
-        this.ensureL2BookSubscription(symbol);
+        this.ensureBboSubscription(symbol);
       }
     });
 
@@ -906,7 +907,7 @@ export class HyperLiquidSubscriptionService {
           this.cleanupActiveAssetSubscription(symbol);
         }
         if (includeOrderBook) {
-          this.cleanupL2BookSubscription(symbol);
+          this.cleanupBboSubscription(symbol);
         }
       });
 
@@ -1904,7 +1905,11 @@ export class HyperLiquidSubscriptionService {
 
     return () => {
       if (subscribers instanceof Map && key) {
-        subscribers.get(key)?.delete(callback);
+        const set = subscribers.get(key);
+        set?.delete(callback);
+        if (set && set.size === 0) {
+          subscribers.delete(key);
+        }
       } else if (subscribers instanceof Set) {
         subscribers.delete(callback);
       }
@@ -2370,11 +2375,13 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
-   * Ensure L2 book subscription for specific symbol (with reference counting)
+   * Ensure BBO subscription for specific symbol (singleton)
+   *
+   * BBO provides best bid/ask without being affected by L2Book aggregation parameters,
+   * keeping spread consistent across order book grouping selections (matches Hyperliquid UI).
    */
-  private ensureL2BookSubscription(symbol: string): void {
-    // If subscription already exists, just return
-    if (this.globalL2BookSubscriptions.has(symbol)) {
+  private ensureBboSubscription(symbol: string): void {
+    if (this.globalBboSubscriptions.has(symbol)) {
       return;
     }
 
@@ -2384,8 +2391,8 @@ export class HyperLiquidSubscriptionService {
     }
 
     subscriptionClient
-      .l2Book({ coin: symbol, nSigFigs: 5 }, (data: L2BookResponse) => {
-        processL2BookData({
+      .bbo({ coin: symbol }, (data: BboWsEvent) => {
+        processBboData({
           symbol,
           data,
           orderBookCache: this.orderBookCache,
@@ -2395,36 +2402,41 @@ export class HyperLiquidSubscriptionService {
         });
       })
       .then((sub) => {
-        this.globalL2BookSubscriptions.set(symbol, sub);
+        this.globalBboSubscriptions.set(symbol, sub);
         this.deps.debugLogger.log(
-          `HyperLiquid: L2 book subscription established for ${symbol}`,
+          `HyperLiquid: BBO subscription established for ${symbol}`,
         );
       })
       .catch((error) => {
         this.deps.logger.error(
           ensureError(error),
-          this.getErrorContext('ensureL2BookSubscription', { symbol }),
+          this.getErrorContext('ensureBboSubscription', { symbol }),
         );
       });
   }
 
   /**
-   * Cleanup L2 book subscription when no longer needed
+   * Cleanup BBO subscription when no longer needed
    */
-  private cleanupL2BookSubscription(symbol: string): void {
-    const subscription = this.globalL2BookSubscriptions.get(symbol);
+  private cleanupBboSubscription(symbol: string): void {
+    // If anyone still wants order book (top-of-book) data for this symbol, keep the subscription alive.
+    if ((this.orderBookSubscribers.get(symbol)?.size ?? 0) > 0) {
+      return;
+    }
+
+    const subscription = this.globalBboSubscriptions.get(symbol);
     if (subscription && typeof subscription.unsubscribe === 'function') {
       const unsubscribeResult = Promise.resolve(subscription.unsubscribe());
       unsubscribeResult.catch(() => {
         // Ignore errors during cleanup
       });
 
-      this.globalL2BookSubscriptions.delete(symbol);
+      this.globalBboSubscriptions.delete(symbol);
       this.orderBookCache.delete(symbol);
     } else if (subscription) {
       // Subscription exists but unsubscribe is not a function or doesn't return a Promise
       // Just clean up the reference
-      this.globalL2BookSubscriptions.delete(symbol);
+      this.globalBboSubscriptions.delete(symbol);
       this.orderBookCache.delete(symbol);
     }
   }
@@ -2721,17 +2733,17 @@ export class HyperLiquidSubscriptionService {
       });
     }
 
-    // Re-establish L2Book subscriptions if there are order book subscribers
+    // Re-establish BBO subscriptions if there are order book subscribers
     if (this.orderBookSubscribers.size > 0) {
       // Clear existing subscriptions (they're dead after reconnection)
-      this.globalL2BookSubscriptions.clear();
+      this.globalBboSubscriptions.clear();
 
       // Re-establish subscriptions for all symbols with order book subscribers
       const symbolsNeedingOrderBook = Array.from(
         this.orderBookSubscribers.keys(),
       );
       symbolsNeedingOrderBook.forEach((symbol) => {
-        this.ensureL2BookSubscription(symbol);
+        this.ensureBboSubscription(symbol);
       });
     }
 
@@ -2833,7 +2845,7 @@ export class HyperLiquidSubscriptionService {
     // Clear subscription references (actual cleanup handled by client service)
     this.globalAllMidsSubscription = undefined;
     this.globalActiveAssetSubscriptions.clear();
-    this.globalL2BookSubscriptions.clear();
+    this.globalBboSubscriptions.clear();
     this.webData3Subscriptions.clear();
     this.webData3SubscriptionPromise = undefined;
 

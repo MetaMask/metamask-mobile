@@ -10,7 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../util/test/platform';
-import { QuoteViewSelectorIDs } from '../../../Swaps/QuoteView.testIds';
+import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 
@@ -35,14 +35,14 @@ describeForPlatforms('BridgeView', () => {
 
     // Input areas are rendered
     expect(
-      getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA),
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT),
+      getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeOnTheScreen();
 
     // Confirm button should NOT be rendered without valid inputs and quote
-    expect(queryByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON)).toBeNull();
+    expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
   });
 
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
@@ -80,7 +80,7 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Type 9.5 using keypad buttons inside the bridge scroll container
-    const scroll = getByTestId(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
+    const scroll = getByTestId(BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL);
     fireEvent.press(within(scroll).getByText('9'));
     fireEvent.press(within(scroll).getByText('.'));
     fireEvent.press(within(scroll).getByText('5'));
@@ -131,7 +131,7 @@ describeForPlatforms('BridgeView', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    const button = getByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON);
+    const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
     expect(button).toBeOnTheScreen();
     expect(
       (button as unknown as { props: { isDisabled?: boolean } }).props
