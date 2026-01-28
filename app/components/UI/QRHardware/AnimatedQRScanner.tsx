@@ -2,7 +2,7 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import {
   Camera,
@@ -304,6 +304,19 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     onCodeScanned: onBarCodeRead,
   });
 
+  const hintText = useMemo(
+    () => (
+      <Text style={styles.overlayText}>
+        {strings(
+          purpose === QrScanRequestType.PAIR
+            ? 'connect_qr_hardware.hint_text_pair'
+            : 'connect_qr_hardware.hint_text_sign',
+        )}
+      </Text>
+    ),
+    [purpose, styles],
+  );
+
   // Handle camera permission error
   useEffect(() => {
     if (visible && !hasPermission) {
@@ -339,13 +352,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               <View style={styles.overlay} />
 
               <View style={styles.overlayContainerRow}>
-                <Text style={styles.overlayText}>
-                  {strings(
-                    purpose === QrScanRequestType.PAIR
-                      ? 'connect_qr_hardware.hint_text_pair'
-                      : 'connect_qr_hardware.hint_text_sign',
-                  )}
-                </Text>
+                {hintText}
                 <View style={styles.overlay} />
                 <Image source={frameImage} style={styles.frame} />
                 <View style={styles.overlay} />
