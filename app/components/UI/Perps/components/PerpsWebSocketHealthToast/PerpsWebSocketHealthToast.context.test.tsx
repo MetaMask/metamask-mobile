@@ -38,7 +38,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
 
       expect(result.current.state).toEqual({
         isVisible: false,
-        connectionState: WebSocketConnectionState.DISCONNECTED,
+        connectionState: WebSocketConnectionState.Disconnected,
         reconnectionAttempt: 0,
       });
     });
@@ -50,12 +50,12 @@ describe('PerpsWebSocketHealthToast.context', () => {
         });
 
         act(() => {
-          result.current.show(WebSocketConnectionState.CONNECTING, 1);
+          result.current.show(WebSocketConnectionState.Connecting, 1);
         });
 
         expect(result.current.state).toEqual({
           isVisible: true,
-          connectionState: WebSocketConnectionState.CONNECTING,
+          connectionState: WebSocketConnectionState.Connecting,
           reconnectionAttempt: 1,
         });
       });
@@ -66,7 +66,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
         });
 
         act(() => {
-          result.current.show(WebSocketConnectionState.CONNECTING, 5);
+          result.current.show(WebSocketConnectionState.Connecting, 5);
         });
 
         expect(result.current.state.reconnectionAttempt).toBe(5);
@@ -78,7 +78,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
         });
 
         act(() => {
-          result.current.show(WebSocketConnectionState.CONNECTED);
+          result.current.show(WebSocketConnectionState.Connected);
         });
 
         expect(result.current.state.reconnectionAttempt).toBe(0);
@@ -90,12 +90,12 @@ describe('PerpsWebSocketHealthToast.context', () => {
         });
 
         act(() => {
-          result.current.show(WebSocketConnectionState.DISCONNECTED, 3);
+          result.current.show(WebSocketConnectionState.Disconnected, 3);
         });
 
         expect(result.current.state).toEqual({
           isVisible: true,
-          connectionState: WebSocketConnectionState.DISCONNECTED,
+          connectionState: WebSocketConnectionState.Disconnected,
           reconnectionAttempt: 3,
         });
       });
@@ -106,12 +106,12 @@ describe('PerpsWebSocketHealthToast.context', () => {
         });
 
         act(() => {
-          result.current.show(WebSocketConnectionState.CONNECTED, 0);
+          result.current.show(WebSocketConnectionState.Connected, 0);
         });
 
         expect(result.current.state).toEqual({
           isVisible: true,
-          connectionState: WebSocketConnectionState.CONNECTED,
+          connectionState: WebSocketConnectionState.Connected,
           reconnectionAttempt: 0,
         });
       });
@@ -125,7 +125,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
 
         // First show the toast
         act(() => {
-          result.current.show(WebSocketConnectionState.DISCONNECTED, 1);
+          result.current.show(WebSocketConnectionState.Disconnected, 1);
         });
 
         expect(result.current.state.isVisible).toBe(true);
@@ -145,7 +145,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
 
         // Show with specific state
         act(() => {
-          result.current.show(WebSocketConnectionState.CONNECTING, 2);
+          result.current.show(WebSocketConnectionState.Connecting, 2);
         });
 
         // Hide
@@ -155,7 +155,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
 
         // Other state properties should be preserved
         expect(result.current.state.connectionState).toBe(
-          WebSocketConnectionState.CONNECTING,
+          WebSocketConnectionState.Connecting,
         );
         expect(result.current.state.reconnectionAttempt).toBe(2);
         expect(result.current.state.isVisible).toBe(false);
@@ -252,13 +252,13 @@ describe('PerpsWebSocketHealthToast.context', () => {
       // Default values should exist and not throw
       expect(result.current.state).toEqual({
         isVisible: false,
-        connectionState: WebSocketConnectionState.DISCONNECTED,
+        connectionState: WebSocketConnectionState.Disconnected,
         reconnectionAttempt: 0,
       });
 
       // Default functions should be no-ops
       expect(() => {
-        result.current.show(WebSocketConnectionState.CONNECTED);
+        result.current.show(WebSocketConnectionState.Connected);
         result.current.hide();
         result.current.setOnRetry(() => undefined);
       }).not.toThrow();

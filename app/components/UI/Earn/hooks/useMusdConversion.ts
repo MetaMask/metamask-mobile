@@ -13,6 +13,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { TransactionType } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 
 /**
  * Configuration for mUSD conversion
@@ -80,6 +81,16 @@ export const useMusdConversion = () => {
       preferredPaymentToken,
       navigationStack = Routes.EARN.ROOT,
     }: MusdConversionConfig) => {
+      // Start trace for navigation to conversion screen
+      trace({
+        name: TraceName.MusdConversionNavigation,
+        op: TraceOperation.MusdConversionOperation,
+        tags: {
+          outputChainId,
+          paymentTokenChainId: preferredPaymentToken.chainId,
+        },
+      });
+
       navigation.navigate(navigationStack, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {

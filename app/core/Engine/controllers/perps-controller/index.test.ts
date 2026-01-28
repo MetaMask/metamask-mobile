@@ -118,7 +118,7 @@ describe('perps controller init', () => {
         activeWithdrawalId: null,
       },
       depositRequests: [],
-      initializationState: InitializationState.UNINITIALIZED,
+      initializationState: InitializationState.Uninitialized,
       initializationError: null,
       initializationAttempts: 0,
     };
