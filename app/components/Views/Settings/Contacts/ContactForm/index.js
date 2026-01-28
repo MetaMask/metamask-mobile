@@ -453,17 +453,16 @@ class ContactForm extends PureComponent {
     const isEditMode = editable && mode === EDIT;
 
     return (
-      <>
+      <SafeAreaView
+        style={styles.wrapper}
+        testID={AddContactViewSelectorsIDs.CONTAINER}
+        edges={{ bottom: 'additive' }}
+      >
         <HeaderCenter
           title={strings(`address_book.${mode}_contact_title`)}
           onBack={() => this.props.navigation.goBack()}
           includesTopInset
         />
-        <SafeAreaView
-          style={styles.wrapper}
-          testID={AddContactViewSelectorsIDs.CONTAINER}
-          edges={{ bottom: 'additive' }}
-        >
           <KeyboardAwareScrollView
             style={styles.informationWrapper}
             showsVerticalScrollIndicator={false}
@@ -680,8 +679,7 @@ class ContactForm extends PureComponent {
               sheetRef={this.sheetRef}
             />
           ) : null}
-        </SafeAreaView>
-      </>
+      </SafeAreaView>
     );
   };
 }

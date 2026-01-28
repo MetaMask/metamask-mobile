@@ -135,51 +135,49 @@ class Contacts extends PureComponent {
     const { chainId } = this.props;
 
     return (
-      <>
+      <SafeAreaView
+        style={styles.wrapper}
+        testID={ContactsViewSelectorIDs.CONTAINER}
+        edges={{ bottom: 'additive' }}
+      >
         <HeaderCenter
           title={strings('app_settings.contacts_title')}
           onBack={() => this.props.navigation.goBack()}
           includesTopInset
         />
-        <SafeAreaView
-          style={styles.wrapper}
-          testID={ContactsViewSelectorIDs.CONTAINER}
-          edges={{ bottom: 'additive' }}
-        >
-          <AddressList
-            chainId={chainId}
-            onlyRenderAddressBook
-            reloadAddressList={reloadAddressList}
-            onAccountPress={this.onAddressPress}
-            onIconPress={this.onIconPress}
-            onAccountLongPress={this.onAddressLongPress}
-          />
-          <View style={styles.addContact}>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={this.goToAddContact}
-              testID={ContactsViewSelectorIDs.ADD_BUTTON}
-            >
-              {strings('address_book.add_contact')}
-            </Button>
-          </View>
-          <ActionSheet
-            ref={this.createActionSheetRef}
-            title={strings('address_book.delete_contact')}
-            options={[
-              strings('address_book.delete'),
-              strings('address_book.cancel'),
-            ]}
-            cancelButtonIndex={1}
-            destructiveButtonIndex={0}
-            // eslint-disable-next-line react/jsx-no-bind
-            onPress={(index) => (index === 0 ? this.deleteContact() : null)}
-            theme={themeAppearance}
-          />
-        </SafeAreaView>
-      </>
+        <AddressList
+          chainId={chainId}
+          onlyRenderAddressBook
+          reloadAddressList={reloadAddressList}
+          onAccountPress={this.onAddressPress}
+          onIconPress={this.onIconPress}
+          onAccountLongPress={this.onAddressLongPress}
+        />
+        <View style={styles.addContact}>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={this.goToAddContact}
+            testID={ContactsViewSelectorIDs.ADD_BUTTON}
+          >
+            {strings('address_book.add_contact')}
+          </Button>
+        </View>
+        <ActionSheet
+          ref={this.createActionSheetRef}
+          title={strings('address_book.delete_contact')}
+          options={[
+            strings('address_book.delete'),
+            strings('address_book.cancel'),
+          ]}
+          cancelButtonIndex={1}
+          destructiveButtonIndex={0}
+          // eslint-disable-next-line react/jsx-no-bind
+          onPress={(index) => (index === 0 ? this.deleteContact() : null)}
+          theme={themeAppearance}
+        />
+      </SafeAreaView>
     );
   };
 }
