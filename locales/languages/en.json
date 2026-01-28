@@ -197,7 +197,9 @@
     "recents": "Recents",
     "favorites": "Favorites",
     "sites": "Sites",
-    "tokens": "Tokens"
+    "tokens": "Tokens",
+    "perps": "Perpetuals",
+    "predictions": "Predictions"
   },
   "navigation": {
     "back": "Back",

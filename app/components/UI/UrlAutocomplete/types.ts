@@ -23,6 +23,8 @@ export enum UrlAutocompleteCategory {
   Recents = 'recents',
   Favorites = 'favorites',
   Tokens = 'tokens',
+  Perps = 'perps',
+  Predictions = 'predictions',
 }
 
 /**
@@ -74,4 +76,46 @@ export type TokenSearchResult = {
   isFromSearch: true;
 };
 
-export type AutocompleteSearchResult = FuseSearchResult | TokenSearchResult;
+/**
+ * The result of a perps market search
+ * Re-exports PerpsMarketData from the Perps controller with category added
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsSearchResult = {
+  category: UrlAutocompleteCategory.Perps;
+  symbol: string;
+  name: string;
+  maxLeverage: string;
+  price: string;
+  change24h: string;
+  change24hPercent: string;
+  volume: string;
+  openInterest?: string;
+  marketType?: 'crypto' | 'equity' | 'commodity' | 'forex';
+  marketSource?: string | null;
+};
+
+/**
+ * The result of a predictions market search
+ * Re-exports PredictMarket from Predict types with category added
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictionsSearchResult = {
+  category: UrlAutocompleteCategory.Predictions;
+  id: string;
+  providerId: string;
+  slug: string;
+  title: string;
+  description: string;
+  endDate?: string;
+  image: string;
+  status: 'open' | 'closed' | 'resolved';
+  liquidity: number;
+  volume: number;
+};
+
+export type AutocompleteSearchResult =
+  | FuseSearchResult
+  | TokenSearchResult
+  | PerpsSearchResult
+  | PredictionsSearchResult;

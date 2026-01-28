@@ -80,6 +80,45 @@ jest.mock(
   },
 );
 
+// Mock useExploreSearch hook for omni-search integration
+const mockExploreSearchData = {
+  sites: [],
+  tokens: [],
+  perps: [],
+  predictions: [],
+};
+const mockExploreSearchLoading = {
+  sites: false,
+  tokens: false,
+  perps: false,
+  predictions: false,
+};
+const mockSectionsOrder = ['sites', 'tokens', 'perps', 'predictions'];
+
+jest.mock('../../Views/TrendingView/hooks/useExploreSearch', () => ({
+  useExploreSearch: jest.fn(() => ({
+    data: mockExploreSearchData,
+    isLoading: mockExploreSearchLoading,
+    sectionsOrder: mockSectionsOrder,
+  })),
+}));
+
+// Mock Perps providers
+jest.mock('../Perps/providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('../Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+// Mock settings selector
+jest.mock('../../../selectors/settings', () => ({
+  selectBasicFunctionalityEnabled: jest.fn(() => true),
+}));
+
 const mockUseTSDReturnValue = ({
   results,
   isLoading,
