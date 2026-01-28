@@ -3305,6 +3305,9 @@
     "merkl_rewards": {
       "annual_bonus": "{{apy}}% bonus",
       "claimable_bonus": "Claimable bonus",
+      "claimable_bonus_tooltip_description": "mUSD bonuses are claimed on Linea.",
+      "terms_apply": "Terms apply.",
+      "ok": "OK",
       "claim": "Claim",
       "processing_claim": "Processing claim..."
     },
