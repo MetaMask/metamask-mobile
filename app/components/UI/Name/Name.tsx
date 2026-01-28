@@ -36,7 +36,7 @@ const TrustIcon: React.FC<{ icon: TrustSignalIcon | null }> = ({ icon }) => {
     <Icon
       name={icon.name}
       color={icon.color}
-      size={IconSize.Xs}
+      size={IconSize.Sm}
       testID="trust-signal-icon"
     />
   );
@@ -71,13 +71,16 @@ const UnknownEthereumAddress: React.FC<{
 
   return (
     <View style={[styles.base, style]}>
-      <Identicon
-        avatarSize={iconSize}
-        address={address}
-        diameter={16}
-        customStyle={styles.image}
-      />
-      <TrustIcon icon={icon} />
+      {icon ? (
+        <TrustIcon icon={icon} />
+      ) : (
+        <Identicon
+          avatarSize={iconSize}
+          address={address}
+          diameter={16}
+          customStyle={styles.image}
+        />
+      )}
       <NameLabel displayNameVariant={displayNameVariant} ellipsizeMode="middle">
         {renderShortAddress(address, 5)}
       </NameLabel>
@@ -140,7 +143,9 @@ const Name: React.FC<NameProperties> = ({
         onPress={() => setIsTooltipVisible(true)}
       >
         <View style={[styles.base, style]}>
-          {isFirstPartyContractName ? (
+          {icon ? (
+            <TrustIcon icon={icon} />
+          ) : isFirstPartyContractName ? (
             <Badge
               size={AvatarSize.Xs}
               imageSource={images.FOX_LOGO}
@@ -155,7 +160,6 @@ const Name: React.FC<NameProperties> = ({
               customStyle={styles.image}
             />
           )}
-          <TrustIcon icon={icon} />
           <View style={styles.labelContainer}>
             <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
               {truncatedName}
