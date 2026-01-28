@@ -298,7 +298,7 @@ export const TokenListItem = React.memo(
 
       if (
         isStablecoinLendingEnabled &&
-        earnToken?.experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
       ) {
         return {
           text: `${strings('stake.earn')}`,
@@ -331,7 +331,7 @@ export const TokenListItem = React.memo(
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,
-      earnToken?.experience.type,
+      earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
       asset,
