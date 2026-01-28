@@ -5,22 +5,19 @@ import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { useMusdConversionFlowData } from './useMusdConversionFlowData';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { useMusdConversionEligibility } from './useMusdConversionEligibility';
+import { useMusdRampAvailability } from './useMusdRampAvailability';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNetworksByCustomNamespace } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { useRampTokens, RampsToken } from '../../Ramp/hooks/useRampTokens';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
 import { AssetType } from '../../../Views/confirmations/types/token';
-import {
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-} from '../constants/musd';
+import { MUSD_CONVERSION_DEFAULT_CHAIN_ID } from '../constants/musd';
 
 jest.mock('react-redux');
 jest.mock('./useMusdConversionTokens');
 jest.mock('./useMusdConversionEligibility');
+jest.mock('./useMusdRampAvailability');
 jest.mock('../../../hooks/useCurrentNetworkInfo');
 jest.mock('../../../hooks/useNetworksByNamespace/useNetworksByNamespace');
-jest.mock('../../Ramp/hooks/useRampTokens');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseMusdConversionTokens =
@@ -31,6 +28,10 @@ const mockUseMusdConversionEligibility =
   useMusdConversionEligibility as jest.MockedFunction<
     typeof useMusdConversionEligibility
   >;
+const mockUseMusdRampAvailability =
+  useMusdRampAvailability as jest.MockedFunction<
+    typeof useMusdRampAvailability
+  >;
 const mockUseCurrentNetworkInfo = useCurrentNetworkInfo as jest.MockedFunction<
   typeof useCurrentNetworkInfo
 >;
@@ -38,9 +39,6 @@ const mockUseNetworksByCustomNamespace =
   useNetworksByCustomNamespace as jest.MockedFunction<
     typeof useNetworksByCustomNamespace
   >;
-const mockUseRampTokens = useRampTokens as jest.MockedFunction<
-  typeof useRampTokens
->;
 
 describe('useMusdConversionFlowData', () => {
   const mockUsdcMainnet: AssetType = {
@@ -101,31 +99,22 @@ describe('useMusdConversionFlowData', () => {
     chainId ? (chainId as Hex) : MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   );
 
-  const createMusdRampToken = (
-    chainId: Hex,
-    tokenSupported = true,
-  ): RampsToken => {
-    const assetId = MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId].toLowerCase();
-    const caipChainId = assetId.split('/')[0] as `${string}:${string}`;
-    return {
-      assetId: assetId as `${string}:${string}/${string}:${string}`,
-      symbol: 'MUSD',
-      chainId: caipChainId,
-      tokenSupported,
-      name: 'MetaMask USD',
-      decimals: 6,
-      iconUrl: 'https://example.com/musd.png',
-    };
-  };
+  const mockGetIsMusdBuyable = jest.fn(
+    (selectedChainId: Hex | null, isPopularNetworksFilterActive: boolean) => {
+      if (isPopularNetworksFilterActive) return true;
+      if (selectedChainId === CHAIN_IDS.MAINNET) return true;
+      if (selectedChainId === CHAIN_IDS.LINEA_MAINNET) return false;
+      return false;
+    },
+  );
 
-  const defaultRampTokens = {
-    topTokens: null,
-    allTokens: [
-      createMusdRampToken(CHAIN_IDS.MAINNET as Hex),
-      createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex),
-    ],
-    isLoading: false,
-    error: null,
+  const defaultRampAvailability = {
+    isMusdBuyableOnChain: {
+      [CHAIN_IDS.MAINNET]: true,
+      [CHAIN_IDS.LINEA_MAINNET]: true,
+    } as Record<Hex, boolean>,
+    isMusdBuyableOnAnyChain: true,
+    getIsMusdBuyable: mockGetIsMusdBuyable,
   };
 
   beforeEach(() => {
@@ -153,6 +142,8 @@ describe('useMusdConversionFlowData', () => {
       blockedCountries: ['GB'],
     });
 
+    mockUseMusdRampAvailability.mockReturnValue(defaultRampAvailability);
+
     mockUseCurrentNetworkInfo.mockReturnValue({
       enabledNetworks: [
         { chainId: CHAIN_IDS.MAINNET, enabled: true },
@@ -163,8 +154,6 @@ describe('useMusdConversionFlowData', () => {
     mockUseNetworksByCustomNamespace.mockReturnValue({
       areAllNetworksSelected: false,
     } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
-
-    mockUseRampTokens.mockReturnValue(defaultRampTokens);
   });
 
   afterEach(() => {
@@ -182,7 +171,9 @@ describe('useMusdConversionFlowData', () => {
       expect(result.current).toHaveProperty('isEmptyWallet');
       expect(result.current).toHaveProperty('hasConvertibleTokens');
       expect(result.current).toHaveProperty('conversionTokens');
-      expect(result.current).toHaveProperty('getPreferredPaymentToken');
+      expect(result.current).toHaveProperty(
+        'getPaymentTokenForSelectedNetwork',
+      );
       expect(result.current).toHaveProperty('getChainIdForBuyFlow');
       expect(result.current).toHaveProperty('getMusdOutputChainId');
       expect(result.current).toHaveProperty('isMusdBuyableOnChain');
@@ -193,7 +184,9 @@ describe('useMusdConversionFlowData', () => {
     it('returns helper functions as functions', () => {
       const { result } = renderHook(() => useMusdConversionFlowData());
 
-      expect(typeof result.current.getPreferredPaymentToken).toBe('function');
+      expect(typeof result.current.getPaymentTokenForSelectedNetwork).toBe(
+        'function',
+      );
       expect(typeof result.current.getChainIdForBuyFlow).toBe('function');
       expect(typeof result.current.getMusdOutputChainId).toBe('function');
     });
@@ -353,7 +346,7 @@ describe('useMusdConversionFlowData', () => {
     });
   });
 
-  describe('getPreferredPaymentToken', () => {
+  describe('getPaymentTokenForSelectedNetwork', () => {
     it('returns first token when all networks selected', () => {
       mockUseMusdConversionTokens.mockReturnValue({
         tokens: [mockUsdcMainnet, mockUsdtMainnet],
@@ -367,7 +360,7 @@ describe('useMusdConversionFlowData', () => {
       } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
-      const paymentToken = result.current.getPreferredPaymentToken();
+      const paymentToken = result.current.getPaymentTokenForSelectedNetwork();
 
       expect(paymentToken).toEqual({
         address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -391,7 +384,7 @@ describe('useMusdConversionFlowData', () => {
       } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
-      const paymentToken = result.current.getPreferredPaymentToken();
+      const paymentToken = result.current.getPaymentTokenForSelectedNetwork();
 
       expect(paymentToken).toEqual({
         address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
@@ -415,7 +408,7 @@ describe('useMusdConversionFlowData', () => {
       } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
       const { result } = renderHook(() => useMusdConversionFlowData());
-      const paymentToken = result.current.getPreferredPaymentToken();
+      const paymentToken = result.current.getPaymentTokenForSelectedNetwork();
 
       expect(paymentToken).toEqual({
         address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -433,7 +426,7 @@ describe('useMusdConversionFlowData', () => {
       });
 
       const { result } = renderHook(() => useMusdConversionFlowData());
-      const paymentToken = result.current.getPreferredPaymentToken();
+      const paymentToken = result.current.getPaymentTokenForSelectedNetwork();
 
       expect(paymentToken).toBe(null);
     });
@@ -453,7 +446,7 @@ describe('useMusdConversionFlowData', () => {
       });
 
       const { result } = renderHook(() => useMusdConversionFlowData());
-      const paymentToken = result.current.getPreferredPaymentToken();
+      const paymentToken = result.current.getPaymentTokenForSelectedNetwork();
 
       expect(paymentToken).toBe(null);
     });
@@ -473,7 +466,7 @@ describe('useMusdConversionFlowData', () => {
       });
 
       const { result } = renderHook(() => useMusdConversionFlowData());
-      const paymentToken = result.current.getPreferredPaymentToken();
+      const paymentToken = result.current.getPaymentTokenForSelectedNetwork();
 
       expect(paymentToken).toBe(null);
     });
@@ -534,89 +527,28 @@ describe('useMusdConversionFlowData', () => {
 
   describe('mUSD buyability', () => {
     describe('isMusdBuyableOnChain', () => {
-      it('returns empty object when allTokens is null', () => {
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: null,
+      it('returns value from useMusdRampAvailability hook', () => {
+        const customBuyability = {
+          [CHAIN_IDS.MAINNET]: true,
+          [CHAIN_IDS.LINEA_MAINNET]: false,
+        } as Record<Hex, boolean>;
+
+        mockUseMusdRampAvailability.mockReturnValue({
+          ...defaultRampAvailability,
+          isMusdBuyableOnChain: customBuyability,
         });
 
         const { result } = renderHook(() => useMusdConversionFlowData());
 
-        expect(result.current.isMusdBuyableOnChain).toEqual({});
-      });
-
-      it('returns buyability status for each chain', () => {
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET as Hex, true),
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, false),
-          ],
-        });
-
-        const { result } = renderHook(() => useMusdConversionFlowData());
-
-        expect(result.current.isMusdBuyableOnChain[CHAIN_IDS.MAINNET]).toBe(
-          true,
-        );
-        expect(
-          result.current.isMusdBuyableOnChain[CHAIN_IDS.LINEA_MAINNET],
-        ).toBe(false);
-      });
-
-      it('returns false for chain when token not supported', () => {
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET as Hex, false),
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, false),
-          ],
-        });
-
-        const { result } = renderHook(() => useMusdConversionFlowData());
-
-        expect(result.current.isMusdBuyableOnChain[CHAIN_IDS.MAINNET]).toBe(
-          false,
-        );
-        expect(
-          result.current.isMusdBuyableOnChain[CHAIN_IDS.LINEA_MAINNET],
-        ).toBe(false);
+        expect(result.current.isMusdBuyableOnChain).toEqual(customBuyability);
       });
     });
 
     describe('isMusdBuyableOnAnyChain', () => {
-      it('returns true when at least one chain has buyable mUSD', () => {
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET as Hex, false),
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, true),
-          ],
-        });
-
-        const { result } = renderHook(() => useMusdConversionFlowData());
-
-        expect(result.current.isMusdBuyableOnAnyChain).toBe(true);
-      });
-
-      it('returns false when no chains have buyable mUSD', () => {
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET as Hex, false),
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, false),
-          ],
-        });
-
-        const { result } = renderHook(() => useMusdConversionFlowData());
-
-        expect(result.current.isMusdBuyableOnAnyChain).toBe(false);
-      });
-
-      it('returns false when allTokens is empty', () => {
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [],
+      it('returns value from useMusdRampAvailability hook', () => {
+        mockUseMusdRampAvailability.mockReturnValue({
+          ...defaultRampAvailability,
+          isMusdBuyableOnAnyChain: false,
         });
 
         const { result } = renderHook(() => useMusdConversionFlowData());
@@ -626,37 +558,44 @@ describe('useMusdConversionFlowData', () => {
     });
 
     describe('isMusdBuyable', () => {
-      it('returns isMusdBuyableOnAnyChain when popular networks filter active', () => {
+      it('calls getIsMusdBuyable with correct arguments when popular networks filter active', () => {
         mockUseNetworksByCustomNamespace.mockReturnValue({
           areAllNetworksSelected: true,
         } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET as Hex, false),
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, true),
-          ],
-        });
 
-        const { result } = renderHook(() => useMusdConversionFlowData());
+        renderHook(() => useMusdConversionFlowData());
 
-        expect(result.current.isMusdBuyable).toBe(true);
+        expect(mockGetIsMusdBuyable).toHaveBeenCalledWith(null, true);
       });
 
-      it('returns chain-specific buyability when single chain selected', () => {
+      it('calls getIsMusdBuyable with correct arguments when single chain selected', () => {
         mockUseCurrentNetworkInfo.mockReturnValue({
           enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
         } as ReturnType<typeof useCurrentNetworkInfo>);
         mockUseNetworksByCustomNamespace.mockReturnValue({
           areAllNetworksSelected: false,
         } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET as Hex, true),
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, false),
-          ],
+
+        renderHook(() => useMusdConversionFlowData());
+
+        expect(mockGetIsMusdBuyable).toHaveBeenCalledWith(
+          CHAIN_IDS.MAINNET,
+          false,
+        );
+      });
+
+      it('returns result from getIsMusdBuyable for single chain', () => {
+        const localMockGetIsMusdBuyable = jest.fn().mockReturnValue(true);
+        mockUseMusdRampAvailability.mockReturnValue({
+          ...defaultRampAvailability,
+          getIsMusdBuyable: localMockGetIsMusdBuyable,
         });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
+        } as ReturnType<typeof useCurrentNetworkInfo>);
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          areAllNetworksSelected: false,
+        } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
 
         const { result } = renderHook(() => useMusdConversionFlowData());
 
@@ -664,6 +603,11 @@ describe('useMusdConversionFlowData', () => {
       });
 
       it('returns false when selected chain not buyable', () => {
+        const localMockGetIsMusdBuyable = jest.fn().mockReturnValue(false);
+        mockUseMusdRampAvailability.mockReturnValue({
+          ...defaultRampAvailability,
+          getIsMusdBuyable: localMockGetIsMusdBuyable,
+        });
         mockUseCurrentNetworkInfo.mockReturnValue({
           enabledNetworks: [
             { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
@@ -672,13 +616,6 @@ describe('useMusdConversionFlowData', () => {
         mockUseNetworksByCustomNamespace.mockReturnValue({
           areAllNetworksSelected: false,
         } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET as Hex, true),
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, false),
-          ],
-        });
 
         const { result } = renderHook(() => useMusdConversionFlowData());
 
@@ -686,6 +623,11 @@ describe('useMusdConversionFlowData', () => {
       });
 
       it('returns false when no networks selected', () => {
+        const localMockGetIsMusdBuyable = jest.fn().mockReturnValue(false);
+        mockUseMusdRampAvailability.mockReturnValue({
+          ...defaultRampAvailability,
+          getIsMusdBuyable: localMockGetIsMusdBuyable,
+        });
         mockUseCurrentNetworkInfo.mockReturnValue({
           enabledNetworks: [],
         } as unknown as ReturnType<typeof useCurrentNetworkInfo>);
@@ -721,9 +663,9 @@ describe('useMusdConversionFlowData', () => {
 
       expect(mockUseMusdConversionTokens).toHaveBeenCalled();
       expect(mockUseMusdConversionEligibility).toHaveBeenCalled();
+      expect(mockUseMusdRampAvailability).toHaveBeenCalled();
       expect(mockUseCurrentNetworkInfo).toHaveBeenCalled();
       expect(mockUseNetworksByCustomNamespace).toHaveBeenCalled();
-      expect(mockUseRampTokens).toHaveBeenCalled();
     });
   });
 });

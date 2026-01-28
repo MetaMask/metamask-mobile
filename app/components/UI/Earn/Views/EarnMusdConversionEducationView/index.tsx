@@ -75,7 +75,7 @@ const EarnMusdConversionEducationView = () => {
   const {
     isGeoEligible,
     hasConvertibleTokens,
-    getPreferredPaymentToken,
+    getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
     getMusdOutputChainId,
     isMusdBuyable,
@@ -104,7 +104,7 @@ const EarnMusdConversionEducationView = () => {
 
     // Try conversion flow if user has convertible tokens
     if (hasConvertibleTokens) {
-      const paymentToken = getPreferredPaymentToken();
+      const paymentToken = getPaymentTokenForSelectedNetwork();
       if (paymentToken) {
         return {
           action: 'convert' as const,
@@ -127,7 +127,7 @@ const EarnMusdConversionEducationView = () => {
     isDeeplink,
     isGeoEligible,
     hasConvertibleTokens,
-    getPreferredPaymentToken,
+    getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
     getMusdOutputChainId,
     isMusdBuyable,

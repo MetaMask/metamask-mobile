@@ -5,19 +5,14 @@ import { toHex } from '@metamask/controller-utils';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { useMusdConversionEligibility } from './useMusdConversionEligibility';
+import { useMusdRampAvailability } from './useMusdRampAvailability';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import {
   NetworkType,
   useNetworksByCustomNamespace,
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
-import {
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  MUSD_BUYABLE_CHAIN_IDS,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-} from '../constants/musd';
-import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
-import { toLowerCaseEquals } from '../../../../util/general';
+import { MUSD_CONVERSION_DEFAULT_CHAIN_ID } from '../constants/musd';
 import { toChecksumAddress } from '../../../../util/address';
 
 export interface MusdConversionFlowData {
@@ -28,7 +23,10 @@ export interface MusdConversionFlowData {
   isEmptyWallet: boolean;
   hasConvertibleTokens: boolean;
   conversionTokens: AssetType[];
-  getPreferredPaymentToken: () => { address: Hex; chainId: Hex } | null;
+  getPaymentTokenForSelectedNetwork: () => {
+    address: Hex;
+    chainId: Hex;
+  } | null;
   getChainIdForBuyFlow: () => Hex;
   getMusdOutputChainId: (inputChainId?: string) => Hex;
   isMusdBuyableOnChain: Record<Hex, boolean>;
@@ -56,6 +54,9 @@ export const useMusdConversionFlowData = (): MusdConversionFlowData => {
 
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
+  const { isMusdBuyableOnChain, isMusdBuyableOnAnyChain, getIsMusdBuyable } =
+    useMusdRampAvailability();
+
   const { enabledNetworks } = useCurrentNetworkInfo();
 
   const { areAllNetworksSelected } = useNetworksByCustomNamespace({
@@ -65,8 +66,6 @@ export const useMusdConversionFlowData = (): MusdConversionFlowData => {
 
   const accountBalance = useSelector(selectAccountGroupBalanceForEmptyState);
   const isEmptyWallet = accountBalance?.totalBalanceInUserCurrency === 0;
-
-  const { allTokens } = useRampTokens();
 
   const selectedChains = useMemo(
     () =>
@@ -94,61 +93,13 @@ export const useMusdConversionFlowData = (): MusdConversionFlowData => {
     [conversionTokens],
   );
 
-  // Check if mUSD is buyable on a specific chain based on ramp availability
-  const isMusdBuyableOnChain = useMemo(() => {
-    if (!allTokens) {
-      return {};
-    }
-
-    const buyableByChain: Record<Hex, boolean> = {};
-
-    MUSD_BUYABLE_CHAIN_IDS.forEach((chainId) => {
-      const musdAssetId = MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId];
-      if (!musdAssetId) {
-        buyableByChain[chainId] = false;
-        return;
-      }
-
-      const musdToken = allTokens.find(
-        (token) =>
-          toLowerCaseEquals(token.assetId, musdAssetId) &&
-          token.tokenSupported === true,
-      );
-
-      buyableByChain[chainId] = Boolean(musdToken);
-    });
-
-    return buyableByChain;
-  }, [allTokens]);
-
-  // Check if mUSD is buyable on any chain (for "all networks" view)
-  const isMusdBuyableOnAnyChain = useMemo(
-    () => Object.values(isMusdBuyableOnChain).some(Boolean),
-    [isMusdBuyableOnChain],
+  // Convenience property: checks buyability based on current network view
+  const isMusdBuyable = useMemo(
+    () => getIsMusdBuyable(selectedChainId, isPopularNetworksFilterActive),
+    [getIsMusdBuyable, selectedChainId, isPopularNetworksFilterActive],
   );
 
-  // Convenience property: checks buyability based on current network view
-  const isMusdBuyable = useMemo(() => {
-    // If popular networks filter active → check if buyable on any chain
-    if (isPopularNetworksFilterActive) {
-      return isMusdBuyableOnAnyChain;
-    }
-
-    // If single chain selected → check if buyable on that specific chain
-    if (selectedChainId) {
-      return isMusdBuyableOnChain[selectedChainId] ?? false;
-    }
-
-    // No networks selected or unknown state
-    return false;
-  }, [
-    isPopularNetworksFilterActive,
-    isMusdBuyableOnAnyChain,
-    selectedChainId,
-    isMusdBuyableOnChain,
-  ]);
-
-  const getPreferredPaymentToken = useCallback(() => {
+  const getPaymentTokenForSelectedNetwork = useCallback(() => {
     if (conversionTokens.length === 0) return null;
 
     const preferredTokenOnSelectedChain = selectedChainId
@@ -180,7 +131,7 @@ export const useMusdConversionFlowData = (): MusdConversionFlowData => {
     isEmptyWallet,
     hasConvertibleTokens,
     conversionTokens,
-    getPreferredPaymentToken,
+    getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
     getMusdOutputChainId,
     isMusdBuyableOnChain,

@@ -110,7 +110,7 @@ describe('MusdConversionAssetListCta', () => {
       >
     ).mockReturnValue({
       isEmptyWallet: false,
-      getPreferredPaymentToken: mockGetPreferredPaymentToken,
+      getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
       getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
       getMusdOutputChainId: mockGetMusdOutputChainId,
       isPopularNetworksFilterActive: false,
@@ -189,7 +189,7 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         isEmptyWallet: true,
-        getPreferredPaymentToken: mockGetPreferredPaymentToken,
+        getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
         getMusdOutputChainId: mockGetMusdOutputChainId,
         isPopularNetworksFilterActive: false,
@@ -254,7 +254,7 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         isEmptyWallet: true,
-        getPreferredPaymentToken: mockGetPreferredPaymentToken,
+        getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
         getMusdOutputChainId: mockGetMusdOutputChainId,
         isPopularNetworksFilterActive: false,
@@ -328,7 +328,7 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         isEmptyWallet: false,
-        getPreferredPaymentToken: mockGetPreferredPaymentToken,
+        getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
         getMusdOutputChainId: mockGetMusdOutputChainId,
         isPopularNetworksFilterActive: false,
@@ -385,7 +385,7 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         isEmptyWallet: false,
-        getPreferredPaymentToken: mockGetPreferredPaymentToken,
+        getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
         getMusdOutputChainId: mockGetMusdOutputChainId,
         isPopularNetworksFilterActive: false,
@@ -665,7 +665,7 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         isEmptyWallet: true,
-        getPreferredPaymentToken: mockGetPreferredPaymentToken,
+        getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
         getMusdOutputChainId: mockGetMusdOutputChainId,
         isPopularNetworksFilterActive: false,
