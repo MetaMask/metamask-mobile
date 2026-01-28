@@ -11,11 +11,12 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 describe('MarketClosedActionButton', () => {
   it('renders correctly', () => {
+    const mockOnPress = jest.fn();
     const { toJSON } = render(
       <MarketClosedActionButton
         iconName={IconName.Add}
         label="Test Button"
-        onPress={jest.fn}
+        onPress={mockOnPress}
         testID={MARKETCLOSED_ACTIONBUTTON_TEST_ID}
       />,
     );
@@ -24,11 +25,12 @@ describe('MarketClosedActionButton', () => {
 
   it('renders with custom label', () => {
     const customLabel = 'Custom Label';
+    const mockOnPress = jest.fn();
     const { getByText } = render(
       <MarketClosedActionButton
         iconName={IconName.Add}
         label={customLabel}
-        onPress={jest.fn}
+        onPress={mockOnPress}
       />,
     );
     expect(getByText(customLabel)).toBeTruthy();
@@ -72,11 +74,12 @@ describe('MarketClosedActionButton', () => {
   });
 
   it('renders with default props when not provided', () => {
+    const mockOnPress = jest.fn();
     const { getByText } = render(
       <MarketClosedActionButton
         iconName={IconName.Add}
         label="Default Button"
-        onPress={jest.fn}
+        onPress={mockOnPress}
       />,
     );
 
@@ -84,11 +87,12 @@ describe('MarketClosedActionButton', () => {
   });
 
   it('renders with correct icon and text', () => {
+    const mockOnPress = jest.fn();
     const { getByText } = render(
       <MarketClosedActionButton
         iconName={IconName.BuySell}
         label="Buy/Sell"
-        onPress={jest.fn}
+        onPress={mockOnPress}
       />,
     );
 
@@ -98,11 +102,12 @@ describe('MarketClosedActionButton', () => {
 
   it('applies custom style when provided', () => {
     const customStyle = { backgroundColor: 'red' };
+    const mockOnPress = jest.fn();
     const { getByTestId } = render(
       <MarketClosedActionButton
         iconName={IconName.Add}
         label="Styled Button"
-        onPress={jest.fn}
+        onPress={mockOnPress}
         style={customStyle}
         testID={MARKETCLOSED_ACTIONBUTTON_TEST_ID}
       />,
