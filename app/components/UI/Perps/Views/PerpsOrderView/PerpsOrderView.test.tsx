@@ -443,9 +443,10 @@ jest.mock(
   }),
 );
 
-// Mock Redux selectors
+// Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(() => jest.fn()),
   useSelector: jest.fn((selector) => {
     if (selector.toString().includes('selectTokenList')) {
       return {};
