@@ -85,7 +85,7 @@ const selectPerpsInitializationState = createSelector(
   selectPerpsControllerState,
   (perpsControllerState) =>
     perpsControllerState?.initializationState ||
-    InitializationState.UNINITIALIZED,
+    InitializationState.Uninitialized,
 );
 
 // Factory function to create selector for specific market

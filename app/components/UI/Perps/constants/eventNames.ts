@@ -214,6 +214,9 @@ export const PerpsEventValues = {
     ADD_FUNDS_ACTION: 'add_funds_action',
     CANCEL_ORDER: 'cancel_order',
     ASSET_DETAIL_SCREEN: 'asset_detail_screen',
+    // TAT-2449: Geo-block sources for close/modify actions
+    CLOSE_POSITION_ACTION: 'close_position_action',
+    MODIFY_POSITION_ACTION: 'modify_position_action',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
