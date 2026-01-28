@@ -2,33 +2,12 @@ import { renderHook } from '@testing-library/react-hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { usePredictNavigation } from './usePredictNavigation';
 import { PredictEventValues } from '../constants/eventNames';
-import { PredictMarket, PredictOutcome, PredictOutcomeToken } from '../types';
 
 const mockNavigate = jest.fn();
 const mockNavigation = {
   navigate: mockNavigate,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
-
-const createMockMarket = (): PredictMarket =>
-  ({
-    id: 'market-123',
-    title: 'Test Market',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }) as any;
-
-const createMockOutcome = (): PredictOutcome =>
-  ({
-    id: 'outcome-123',
-    title: 'Yes',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }) as any;
-
-const createMockOutcomeToken = (): PredictOutcomeToken =>
-  ({
-    id: 'token-123',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }) as any;
 
 describe('usePredictNavigation', () => {
   beforeEach(() => {
@@ -61,18 +40,18 @@ describe('usePredictNavigation', () => {
         }),
       );
 
-      const market = createMockMarket();
-      const outcome = createMockOutcome();
-      const outcomeToken = createMockOutcomeToken();
-
-      result.current.navigateToBuyPreview({ market, outcome, outcomeToken });
+      result.current.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+        market: { id: 'market-123' },
+        outcome: { id: 'outcome-123' },
+        outcomeToken: { id: 'token-123' },
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
         params: {
-          market,
-          outcome,
-          outcomeToken,
+          market: { id: 'market-123' },
+          outcome: { id: 'outcome-123' },
+          outcomeToken: { id: 'token-123' },
           entryPoint,
         },
       });
@@ -86,12 +65,15 @@ describe('usePredictNavigation', () => {
         }),
       );
 
-      result.current.navigateToUnavailableModal();
+      result.current.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MODALS.ROOT,
         params: {
           screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+          entryPoint,
         },
       });
     });
@@ -119,18 +101,18 @@ describe('usePredictNavigation', () => {
         }),
       );
 
-      const market = createMockMarket();
-      const outcome = createMockOutcome();
-      const outcomeToken = createMockOutcomeToken();
-
-      result.current.navigateToBuyPreview({ market, outcome, outcomeToken });
+      result.current.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+        market: { id: 'market-123' },
+        outcome: { id: 'outcome-123' },
+        outcomeToken: { id: 'token-123' },
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PREDICT.MODALS.BUY_PREVIEW,
         {
-          market,
-          outcome,
-          outcomeToken,
+          market: { id: 'market-123' },
+          outcome: { id: 'outcome-123' },
+          outcomeToken: { id: 'token-123' },
           entryPoint,
         },
       );
@@ -144,10 +126,13 @@ describe('usePredictNavigation', () => {
         }),
       );
 
-      result.current.navigateToUnavailableModal();
+      result.current.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+        entryPoint,
       });
     });
   });
@@ -170,35 +155,17 @@ describe('usePredictNavigation', () => {
         }),
       );
 
-      const market = createMockMarket();
-      const outcome = createMockOutcome();
-      const outcomeToken = createMockOutcomeToken();
-
-      result.current.navigateToBuyPreview({ market, outcome, outcomeToken });
+      result.current.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+        market: { id: 'market-123' },
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PREDICT.MODALS.BUY_PREVIEW,
         {
-          market,
-          outcome,
-          outcomeToken,
+          market: { id: 'market-123' },
           entryPoint: undefined,
         },
       );
-    });
-
-    it('navigates directly to unavailable modal when entry point is undefined', () => {
-      const { result } = renderHook(() =>
-        usePredictNavigation({
-          navigation: mockNavigation,
-        }),
-      );
-
-      result.current.navigateToUnavailableModal();
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
     });
   });
 });

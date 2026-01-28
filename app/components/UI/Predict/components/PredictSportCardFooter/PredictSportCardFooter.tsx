@@ -12,6 +12,7 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
+import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
@@ -63,7 +64,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     providerId: market.providerId,
   });
 
-  const { navigateToBuyPreview } = usePredictNavigation({
+  const { navigate: navigatePredict } = usePredictNavigation({
     navigation,
     entryPoint: resolvedEntryPoint,
   });
@@ -77,7 +78,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     (token: PredictOutcomeToken) => {
       executeGuardedAction(
         () => {
-          navigateToBuyPreview({
+          navigatePredict(Routes.PREDICT.MODALS.BUY_PREVIEW, {
             market,
             outcome,
             outcomeToken: token,
@@ -89,7 +90,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
         },
       );
     },
-    [executeGuardedAction, navigateToBuyPreview, market, outcome],
+    [executeGuardedAction, navigatePredict, market, outcome],
   );
 
   const handleClaimPress = useCallback(async () => {

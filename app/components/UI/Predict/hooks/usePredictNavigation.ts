@@ -6,7 +6,6 @@ import {
   PredictEntryPoint,
 } from '../types/navigation';
 import { PredictEventValues } from '../constants/eventNames';
-import { PredictMarket, PredictOutcome, PredictOutcomeToken } from '../types';
 
 export interface UsePredictNavigationOptions {
   navigation: NavigationProp<PredictNavigationParamList>;
@@ -14,66 +13,54 @@ export interface UsePredictNavigationOptions {
 }
 
 export interface UsePredictNavigationResult {
-  navigateToBuyPreview: (params: {
-    market: PredictMarket;
-    outcome: PredictOutcome;
-    outcomeToken: PredictOutcomeToken;
-  }) => void;
-  navigateToUnavailableModal: () => void;
+  navigate: (screen: string, params?: Record<string, unknown>) => void;
   isOutsidePredictNavigator: boolean;
 }
 
 /**
- * Helper function to determine if user is outside the Predict navigator
- */
-const checkIsOutsidePredictNavigator = (
-  entryPoint?: PredictEntryPoint,
-): boolean => entryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL;
-
-/**
- * Hook to centralize Predict navigation logic.
+ * Hook to wrap navigation with automatic stack routing for Predict feature.
  *
- * Automatically detects where the user currently is based on entry point,
- * and ensures proper navigation to Predict screens and modals.
+ * Automatically detects where the user currently is and routes through
+ * PREDICT.ROOT when outside the Predict navigator.
  *
  * @param options - Navigation configuration
  * @param options.navigation - React Navigation navigation object
  * @param options.entryPoint - The entry point from which navigation was triggered
- * @returns Navigation helpers
+ * @returns Wrapped navigation methods
  *
  * @example
  * ```tsx
- * const { navigateToBuyPreview, navigateToUnavailableModal } = usePredictNavigation({
+ * const { navigate } = usePredictNavigation({
  *   navigation,
  *   entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL
  * });
  *
- * navigateToBuyPreview({ market, outcome, outcomeToken });
- * navigateToUnavailableModal();
+ * navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+ *   market,
+ *   outcome,
+ *   outcomeToken,
+ * });
  * ```
  */
 export const usePredictNavigation = ({
   navigation,
   entryPoint,
 }: UsePredictNavigationOptions): UsePredictNavigationResult => {
-  const isOutsidePredictNavigator = checkIsOutsidePredictNavigator(entryPoint);
+  const isOutsidePredictNavigator =
+    entryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL;
 
-  const navigateToBuyPreview = useCallback(
-    (params: {
-      market: PredictMarket;
-      outcome: PredictOutcome;
-      outcomeToken: PredictOutcomeToken;
-    }) => {
+  const navigate = useCallback(
+    (screen: string, params?: Record<string, unknown>) => {
       if (isOutsidePredictNavigator) {
         navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          screen,
           params: {
             ...params,
             entryPoint,
           },
         });
       } else {
-        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+        navigation.navigate(screen, {
           ...params,
           entryPoint,
         });
@@ -82,24 +69,8 @@ export const usePredictNavigation = ({
     [navigation, entryPoint, isOutsidePredictNavigator],
   );
 
-  const navigateToUnavailableModal = useCallback(() => {
-    if (isOutsidePredictNavigator) {
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MODALS.ROOT,
-        params: {
-          screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-        },
-      });
-    } else {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-    }
-  }, [navigation, isOutsidePredictNavigator]);
-
   return {
-    navigateToBuyPreview,
-    navigateToUnavailableModal,
+    navigate,
     isOutsidePredictNavigator,
   };
 };

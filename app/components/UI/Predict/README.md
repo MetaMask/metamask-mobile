@@ -104,14 +104,14 @@ The Predict feature enables users to participate in prediction markets within Me
 
 #### Navigation Hook
 
-- **`usePredictNavigation`**: Centralizes Predict navigation logic
-  - Detects if user is outside Predict navigator (e.g., from Carousel)
-  - Routes to PREDICT.ROOT first when outside, direct navigation when inside
-  - Provides `navigateToBuyPreview` method for navigating to buy preview modal
-  - Provides `navigateToUnavailableModal` method for navigating to unavailable/geo-blocked modal
-  - Automatically includes `entryPoint` in navigation params
+- **`usePredictNavigation`**: Simple wrapper around `useNavigation` with automatic stack routing
+  - Detects if user is outside Predict navigator based on `entryPoint`
+  - Routes through PREDICT.ROOT when outside, direct navigation when inside
+  - Provides generic `navigate(screen, params)` method
+  - Automatically includes `entryPoint` in all navigation params
   - Exposes `isOutsidePredictNavigator` boolean for conditional logic
-  - Used by `usePredictActionGuard` for eligibility navigation
+  - **No need to remember specific methods** - just use `navigate()` with any screen
+  - Used by `usePredictActionGuard` and `PredictSportCardFooter`
 
 #### Deposit Hook
 

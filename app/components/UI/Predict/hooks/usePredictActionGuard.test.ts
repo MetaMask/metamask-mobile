@@ -350,6 +350,7 @@ describe('usePredictActionGuard', () => {
           screen: Routes.PREDICT.MODALS.ROOT,
           params: {
             screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
           },
         });
         expect(mockAction).not.toHaveBeenCalled();

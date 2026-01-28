@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { NavigationProp } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   PredictNavigationParamList,
   PredictEntryPoint,
@@ -37,7 +38,7 @@ export const usePredictActionGuard = ({
 }: UsePredictActionGuardOptions): UsePredictActionGuardResult => {
   const { isEligible } = usePredictEligibility({ providerId });
   const { hasNoBalance } = usePredictBalance({ loadOnMount: true });
-  const { navigateToUnavailableModal } = usePredictNavigation({
+  const { navigate: navigatePredict } = usePredictNavigation({
     navigation,
     entryPoint,
   });
@@ -60,7 +61,9 @@ export const usePredictActionGuard = ({
           });
         }
 
-        navigateToUnavailableModal();
+        navigatePredict(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+        });
         return;
       }
 
@@ -77,7 +80,7 @@ export const usePredictActionGuard = ({
       isDepositPending,
       providerId,
       deposit,
-      navigateToUnavailableModal,
+      navigatePredict,
     ],
   );
 
