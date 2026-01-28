@@ -28,7 +28,7 @@ import type {
   SubscribeOrderBookParams,
   OrderBookData,
   OrderBookLevel,
-  IPerpsPlatformDependencies,
+  PerpsPlatformDependencies,
 } from '../controllers/types';
 import {
   adaptPositionFromSDK,
@@ -192,12 +192,12 @@ export class HyperLiquidSubscriptionService {
   >();
 
   // Platform dependencies for logging
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   constructor(
     clientService: HyperLiquidClientService,
     walletService: HyperLiquidWalletService,
-    platformDependencies: IPerpsPlatformDependencies,
+    platformDependencies: PerpsPlatformDependencies,
     hip3Enabled?: boolean,
     enabledDexs?: string[],
     allowlistMarkets?: string[],
@@ -232,7 +232,7 @@ export class HyperLiquidSubscriptionService {
   } {
     return {
       tags: {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         provider: 'hyperliquid',
         network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
       },
@@ -485,7 +485,7 @@ export class HyperLiquidSubscriptionService {
    * Uses string concatenation of key fields instead of JSON.stringify()
    * Performance: ~100x faster than JSON.stringify() for typical objects
    * Tracks structural changes (coin, size, entryPrice, leverage, TP/SL prices/counts)
-   * and value changes (unrealizedPnl, returnOnEquity) for live P&L updates
+   * and value changes (unrealizedPnl, returnOnEquity, liquidationPrice, marginUsed) for live updates
    */
   private hashPositions(positions: Position[]): string {
     if (!positions || positions.length === 0) return '0';
@@ -496,7 +496,7 @@ export class HyperLiquidSubscriptionService {
             p.takeProfitPrice || ''
           }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}:${
             p.unrealizedPnl
-          }:${p.returnOnEquity}`,
+          }:${p.returnOnEquity}:${p.liquidationPrice || ''}:${p.marginUsed || ''}`,
       )
       .join('|');
   }
@@ -624,7 +624,7 @@ export class HyperLiquidSubscriptionService {
       let positionForCoin: Position | undefined;
 
       const matchPositionToTpsl = (p: Position) => {
-        if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
+        if (TP_SL_CONFIG.UsePositionBoundTpsl) {
           return (
             p.symbol === order.coin && order.reduceOnly && order.isPositionTpsl
           );
