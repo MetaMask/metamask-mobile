@@ -1,0 +1,37 @@
+# Release Candidate configuration using YAML anchors
+# References anchors from shared.yml
+
+# Use anchors from shared.yml
+servers: *servers
+features: *features
+
+environment:
+  name: rc
+  display_name: Release Candidate
+  requires_approval: false
+  approval_team: null
+  github_environment: build-rc
+
+# Extend build-base anchor with RC-specific overrides
+build:
+  <<: *build-base
+  android:
+    <<: *build-base.android
+    keystore: "mainRc"
+    signing_config: "mainRc"
+
+# Merge common secrets with RC-specific secrets
+secrets:
+  <<: *common-secrets
+  # RC-specific overrides
+  SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_QA"
+  SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_QA"
+  SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_QA"
+  SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_QA"
+  MM_SENTRY_DSN: "MM_SENTRY_DSN_TEST"
+  IOS_GOOGLE_CLIENT_ID: "MAIN_IOS_GOOGLE_CLIENT_ID_PROD"
+  IOS_GOOGLE_REDIRECT_URI: "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD"
+  ANDROID_APPLE_CLIENT_ID: "MAIN_ANDROID_APPLE_CLIENT_ID_PROD"
+  ANDROID_GOOGLE_CLIENT_ID: "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD"
+  ANDROID_GOOGLE_SERVER_CLIENT_ID: "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD"
+  MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_PROD"
