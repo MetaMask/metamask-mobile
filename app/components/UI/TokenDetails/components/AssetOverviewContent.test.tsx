@@ -163,7 +163,7 @@ describe('AssetOverviewContent', () => {
   const mockSetTimePeriod = jest.fn();
 
   const defaultProps: AssetOverviewContentProps = {
-    asset: mockAsset,
+    token: mockAsset,
     balance: '100',
     mainBalance: '$100.00',
     secondaryBalance: '100 DAI',
@@ -179,7 +179,7 @@ describe('AssetOverviewContent', () => {
     isMerklCampaignClaimingEnabled: false,
     displayBuyButton: true,
     displaySwapsButton: true,
-    isAssetBuyable: true,
+    isTokenBuyable: true,
     currentCurrency: 'usd',
     onBuy: mockOnBuy,
     onSend: mockOnSend,
@@ -244,7 +244,7 @@ describe('AssetOverviewContent', () => {
     });
 
     it('hides buy button when isAssetBuyable is false', () => {
-      const { queryByTestId } = renderComponent({ isAssetBuyable: false });
+      const { queryByTestId } = renderComponent({ isTokenBuyable: false });
 
       expect(queryByTestId('buy-button')).toBeNull();
     });
@@ -253,7 +253,7 @@ describe('AssetOverviewContent', () => {
   describe('balance error state', () => {
     it('renders warning when asset has balance error', () => {
       const assetWithError = { ...mockAsset, hasBalanceError: true };
-      const { queryByTestId } = renderComponent({ asset: assetWithError });
+      const { queryByTestId } = renderComponent({ token: assetWithError });
 
       expect(queryByTestId('asset-details-actions')).toBeNull();
     });

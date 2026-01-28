@@ -86,7 +86,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
 export interface AssetOverviewContentProps {
   // Asset
-  asset: TokenI;
+  token: TokenI;
 
   // Balance data
   balance: string | number | undefined;
@@ -112,7 +112,7 @@ export interface AssetOverviewContentProps {
   // Display flags
   displayBuyButton: boolean;
   displaySwapsButton: boolean;
-  isAssetBuyable: boolean;
+  isTokenBuyable: boolean;
 
   // Currency
   currentCurrency: string;
@@ -140,7 +140,7 @@ export interface AssetOverviewContentProps {
  * - Token details (contract, decimals, etc.)
  */
 const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
-  asset,
+  token,
   balance,
   mainBalance,
   secondaryBalance,
@@ -156,7 +156,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   isMerklCampaignClaimingEnabled,
   displayBuyButton,
   displaySwapsButton,
-  isAssetBuyable,
+  isTokenBuyable,
   currentCurrency,
   onBuy,
   onSend,
@@ -168,11 +168,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const merklRewardsRef = useRef<View>(null);
-  const chainId = asset.chainId;
+  const chainId = token.chainId;
 
   // Perps Discovery Banner hooks
   const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
-    isPerpsEnabled ? asset.symbol : null,
+    isPerpsEnabled ? token.symbol : null,
   );
 
   const goToBrowserUrl = (url: string) => {
@@ -208,7 +208,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
         <Text style={styles.warning}>
-          {strings('asset_overview.were_unable')} {asset.symbol}{' '}
+          {strings('asset_overview.were_unable')} {token.symbol}{' '}
           {strings('asset_overview.balance')}{' '}
           <Text style={styles.warningLinks}>
             {strings('asset_overview.troubleshooting_missing')}
@@ -236,13 +236,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
-      {asset.hasBalanceError ? (
+      {token.hasBalanceError ? (
         renderWarning()
       ) : (
         <View>
           <PriceChartProvider>
             <Price
-              asset={asset}
+              asset={token}
               prices={prices}
               priceDiff={priceDiff}
               currentCurrency={currentCurrency}
@@ -256,14 +256,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             {renderChartNavigationButton()}
           </View>
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton && isAssetBuyable}
+            displayBuyButton={displayBuyButton && isTokenBuyable}
             displaySwapsButton={displaySwapsButton}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}
             onSend={onSend}
             asset={{
-              address: asset.address,
+              address: token.address,
               chainId,
             }}
           />
@@ -274,7 +274,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {balance != null && (
             <Balance
-              asset={asset}
+              asset={token}
               mainBalance={mainBalance}
               secondaryBalance={secondaryBalance}
             />
@@ -294,7 +294,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {isMerklCampaignClaimingEnabled && (
             <View ref={merklRewardsRef} testID="merkl-rewards-section">
-              <MerklRewards asset={asset} />
+              <MerklRewards asset={token} />
             </View>
           )}
           {isPerpsEnabled && hasPerpsMarket && marketData && (
@@ -313,7 +313,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             </>
           )}
           <View style={styles.tokenDetailsWrapper}>
-            <TokenDetails asset={asset} />
+            <TokenDetails asset={token} />
           </View>
         </View>
       )}

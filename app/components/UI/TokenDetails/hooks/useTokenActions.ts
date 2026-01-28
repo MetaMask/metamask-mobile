@@ -18,7 +18,7 @@ import { getEther } from '../../../../util/transactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useMetrics } from '../../../hooks/useMetrics';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -59,22 +59,22 @@ import { RootState } from '../../../../reducers';
  * Determines the source and destination tokens for swap/bridge navigation.
  */
 export const getSwapTokens = (
-  asset: TokenI,
+  token: TokenI,
 ): {
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
 } => {
-  const wantsToBuyToken = isAssetFromTrending(asset);
-  const isNative = isNativeAddress(asset.address);
+  const wantsToBuyToken = isAssetFromTrending(token);
+  const isNative = isNativeAddress(token.address);
 
   const bridgeToken: BridgeToken = {
-    ...asset,
-    address: asset.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
-    chainId: asset.chainId as Hex | CaipChainId,
-    decimals: asset.decimals,
-    symbol: asset.symbol,
-    name: asset.name,
-    image: asset.image,
+    ...token,
+    address: token.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
+    chainId: token.chainId as Hex | CaipChainId,
+    decimals: token.decimals,
+    symbol: token.symbol,
+    name: token.name,
+    image: token.image,
   };
 
   if (wantsToBuyToken) {
@@ -96,7 +96,7 @@ export const getSwapTokens = (
   };
 };
 
-export interface UseAssetActionsResult {
+export interface UseTokenActionsResult {
   onBuy: () => void;
   onSend: () => Promise<void>;
   onReceive: () => void;
@@ -104,8 +104,8 @@ export interface UseAssetActionsResult {
   networkModal: React.ReactNode;
 }
 
-export interface UseAssetActionsParams {
-  asset: TokenI;
+export interface UseTokenActionsParams {
+  token: TokenI;
   networkName?: string;
 }
 
@@ -113,18 +113,18 @@ export interface UseAssetActionsParams {
  * Hook that provides action handlers for token actions (buy, send, receive, swap).
  * Extracts handler logic from AssetOverview.tsx.
  */
-export const useAssetActions = ({
-  asset,
+export const useTokenActions = ({
+  token,
   networkName,
-}: UseAssetActionsParams): UseAssetActionsResult => {
+}: UseTokenActionsParams): UseTokenActionsResult => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  // Determine if asset is EVM or non-EVM
-  const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
-  const isNonEvmAsset = resultChainId === asset.chainId;
+  // Determine if token is EVM or non-EVM
+  const resultChainId = formatChainIdToCaip(token.chainId as Hex);
+  const isNonEvmToken = resultChainId === token.chainId;
 
-  const chainId = asset.chainId as Hex;
+  const chainId = token.chainId as Hex;
   const nativeCurrency = useSelector(
     (state: RootState) =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -149,7 +149,7 @@ export const useAssetActions = ({
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
   // Swap/Bridge navigation
-  const { sourceToken, destToken } = getSwapTokens(asset);
+  const { sourceToken, destToken } = getSwapTokens(token);
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenView,
     sourcePage: 'MainView',
@@ -159,7 +159,7 @@ export const useAssetActions = ({
 
   // Non-EVM send hook
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const { sendNonEvmAsset } = useSendNonEvmAsset({ asset });
+  const { sendNonEvmAsset } = useSendNonEvmAsset({ asset: token });
   ///: END:ONLY_INCLUDE_IF
 
   const onReceive = useCallback(() => {
@@ -171,8 +171,8 @@ export const useAssetActions = ({
     });
 
     const accountForChain =
-      isNonEvmAsset && asset.chainId
-        ? getAccountByScope(asset.chainId as CaipChainId)
+      isNonEvmToken && token.chainId
+        ? getAccountByScope(token.chainId as CaipChainId)
         : selectedInternalAccount;
 
     const addressForChain = accountForChain?.address;
@@ -190,22 +190,22 @@ export const useAssetActions = ({
     } else {
       Logger.error(
         new Error(
-          'useAssetActions::onReceive - Missing required data for navigation',
+          'useTokenActions::onReceive - Missing required data for navigation',
         ),
         {
           hasAddress: !!addressForChain,
           hasAccountGroup: !!selectedAccountGroup,
           hasChainId: !!chainId,
-          isNonEvmAsset,
-          assetChainId: asset.chainId,
+          isNonEvmAsset: isNonEvmToken,
+          assetChainId: token.chainId,
         },
       );
     }
   }, [
     trackEvent,
     createEventBuilder,
-    isNonEvmAsset,
-    asset.chainId,
+    isNonEvmToken,
+    token.chainId,
     getAccountByScope,
     selectedInternalAccount,
     selectedAccountGroup,
@@ -238,11 +238,11 @@ export const useAssetActions = ({
       },
     });
 
-    if (asset.chainId !== selectedChainId) {
+    if (token.chainId !== selectedChainId) {
       const { NetworkController, MultichainNetworkController } = Engine.context;
       const networkConfiguration =
         NetworkController.getNetworkConfigurationByChainId(
-          asset.chainId as Hex,
+          token.chainId as Hex,
         );
 
       const networkClientId =
@@ -255,13 +255,16 @@ export const useAssetActions = ({
       );
     }
 
-    if ((asset.isETH || asset.isNative) && nativeCurrency) {
+    if ((token.isETH || token.isNative) && nativeCurrency) {
       dispatch(newAssetTransaction(getEther(nativeCurrency)));
     } else {
-      dispatch(newAssetTransaction(asset));
+      dispatch(newAssetTransaction(token));
     }
 
-    navigateToSendPage({ location: InitSendLocation.AssetOverview, asset });
+    navigateToSendPage({
+      location: InitSendLocation.AssetOverview,
+      asset: token,
+    });
   }, [
     trackEvent,
     createEventBuilder,
@@ -269,7 +272,7 @@ export const useAssetActions = ({
     sendNonEvmAsset,
     ///: END:ONLY_INCLUDE_IF
     navigation,
-    asset,
+    token,
     selectedChainId,
     nativeCurrency,
     dispatch,
@@ -288,13 +291,13 @@ export const useAssetActions = ({
 
     try {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      if (isCaipAssetType(asset.address)) {
-        assetId = asset.address;
+      if (isCaipAssetType(token.address)) {
+        assetId = token.address;
       } else {
         ///: END:ONLY_INCLUDE_IF
         assetId = parseRampIntent({
           chainId: getDecimalChainId(chainId),
-          address: asset.address,
+          address: token.address,
         })?.assetId;
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       }
@@ -323,7 +326,7 @@ export const useAssetActions = ({
   }, [
     trackEvent,
     createEventBuilder,
-    asset.address,
+    token.address,
     chainId,
     rampUnifiedV1Enabled,
     rampGeodetectedRegion,
@@ -340,4 +343,4 @@ export const useAssetActions = ({
   };
 };
 
-export default useAssetActions;
+export default useTokenActions;

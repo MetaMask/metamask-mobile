@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useAssetActions, getSwapTokens } from './useAssetActions';
+import { useTokenActions, getSwapTokens } from './useTokenActions';
 import { TokenI } from '../../Tokens/types';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -193,7 +193,7 @@ jest.mock('../../../../constants/bridge', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-describe('useAssetActions', () => {
+describe('useTokenActions', () => {
   const mockToken: TokenI = {
     address: '0x6b175474e89094c44da98b954eedeac495271d0f',
     symbol: 'DAI',
@@ -249,7 +249,7 @@ describe('useAssetActions', () => {
   describe('hook initialization', () => {
     it('returns all action handlers', () => {
       const { result } = renderHook(() =>
-        useAssetActions({ asset: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
       );
 
       expect(result.current.onBuy).toBeDefined();
@@ -263,7 +263,7 @@ describe('useAssetActions', () => {
   describe('onBuy', () => {
     it('calls goToBuy with asset id', () => {
       const { result } = renderHook(() =>
-        useAssetActions({ asset: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
       );
 
       act(() => {
@@ -275,7 +275,7 @@ describe('useAssetActions', () => {
 
     it('tracks buy button click event', () => {
       const { result } = renderHook(() =>
-        useAssetActions({ asset: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
       );
 
       act(() => {
@@ -289,7 +289,7 @@ describe('useAssetActions', () => {
   describe('onSend', () => {
     it('navigates to wallet and calls navigateToSendPage', async () => {
       const { result } = renderHook(() =>
-        useAssetActions({ asset: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
       );
 
       await act(async () => {
@@ -302,7 +302,7 @@ describe('useAssetActions', () => {
 
     it('dispatches newAssetTransaction', async () => {
       const { result } = renderHook(() =>
-        useAssetActions({ asset: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
       );
 
       await act(async () => {
@@ -317,7 +317,7 @@ describe('useAssetActions', () => {
     it('navigates to share address QR modal when all required data is available', () => {
       // Default beforeEach setup provides all required data
       const { result } = renderHook(() =>
-        useAssetActions({ asset: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
       );
 
       act(() => {
@@ -345,7 +345,7 @@ describe('useAssetActions', () => {
       });
 
       const { result } = renderHook(() =>
-        useAssetActions({ asset: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
       );
 
       act(() => {
@@ -360,7 +360,7 @@ describe('useAssetActions', () => {
   describe('goToSwaps', () => {
     it('calls goToSwaps from useSwapBridgeNavigation', () => {
       const { result } = renderHook(() =>
-        useAssetActions({ asset: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
       );
 
       act(() => {

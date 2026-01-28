@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import { useAssetBuyability } from './useAssetBuyability';
+import { useTokenBuyability } from './useTokenBuyability';
 import { TokenI } from '../../Tokens/types';
 
 // Mock dependencies
@@ -39,7 +39,7 @@ const mockUseRampTokens = useRampTokens as jest.MockedFunction<
   typeof useRampTokens
 >;
 
-describe('useAssetBuyability', () => {
+describe('useTokenBuyability', () => {
   const mockToken: TokenI = {
     address: '0x6b175474e89094c44da98b954eedeac495271d0f',
     symbol: 'DAI',
@@ -60,31 +60,31 @@ describe('useAssetBuyability', () => {
   });
 
   describe('when allTokens is null', () => {
-    it('returns isAssetBuyable as false', () => {
+    it('returns isTokenBuyable as false', () => {
       mockUseRampTokens.mockReturnValue({
         allTokens: null,
       } as ReturnType<typeof useRampTokens>);
 
-      const { result } = renderHook(() => useAssetBuyability(mockToken));
+      const { result } = renderHook(() => useTokenBuyability(mockToken));
 
-      expect(result.current.isAssetBuyable).toBe(false);
+      expect(result.current).toBe(false);
     });
   });
 
   describe('when allTokens is empty array', () => {
-    it('returns isAssetBuyable as false', () => {
+    it('returns isTokenBuyable as false', () => {
       mockUseRampTokens.mockReturnValue({
         allTokens: [],
       } as unknown as ReturnType<typeof useRampTokens>);
 
-      const { result } = renderHook(() => useAssetBuyability(mockToken));
+      const { result } = renderHook(() => useTokenBuyability(mockToken));
 
-      expect(result.current.isAssetBuyable).toBe(false);
+      expect(result.current).toBe(false);
     });
   });
 
   describe('when token is found and supported', () => {
-    it('returns isAssetBuyable as true', () => {
+    it('returns isTokenBuyable as true', () => {
       mockUseRampTokens.mockReturnValue({
         allTokens: [
           {
@@ -96,14 +96,14 @@ describe('useAssetBuyability', () => {
         ],
       } as unknown as ReturnType<typeof useRampTokens>);
 
-      const { result } = renderHook(() => useAssetBuyability(mockToken));
+      const { result } = renderHook(() => useTokenBuyability(mockToken));
 
-      expect(result.current.isAssetBuyable).toBe(true);
+      expect(result.current).toBe(true);
     });
   });
 
   describe('when token is found but not supported', () => {
-    it('returns isAssetBuyable as false', () => {
+    it('returns isTokenBuyable as false', () => {
       mockUseRampTokens.mockReturnValue({
         allTokens: [
           {
@@ -115,14 +115,14 @@ describe('useAssetBuyability', () => {
         ],
       } as unknown as ReturnType<typeof useRampTokens>);
 
-      const { result } = renderHook(() => useAssetBuyability(mockToken));
+      const { result } = renderHook(() => useTokenBuyability(mockToken));
 
-      expect(result.current.isAssetBuyable).toBe(false);
+      expect(result.current).toBe(false);
     });
   });
 
   describe('when token is not found in allTokens', () => {
-    it('returns isAssetBuyable as false', () => {
+    it('returns isTokenBuyable as false', () => {
       mockUseRampTokens.mockReturnValue({
         allTokens: [
           {
@@ -133,9 +133,9 @@ describe('useAssetBuyability', () => {
         ],
       } as unknown as ReturnType<typeof useRampTokens>);
 
-      const { result } = renderHook(() => useAssetBuyability(mockToken));
+      const { result } = renderHook(() => useTokenBuyability(mockToken));
 
-      expect(result.current.isAssetBuyable).toBe(false);
+      expect(result.current).toBe(false);
     });
   });
 
@@ -158,14 +158,14 @@ describe('useAssetBuyability', () => {
         ],
       } as unknown as ReturnType<typeof useRampTokens>);
 
-      const { result } = renderHook(() => useAssetBuyability(nativeToken));
+      const { result } = renderHook(() => useTokenBuyability(nativeToken));
 
-      expect(result.current.isAssetBuyable).toBe(true);
+      expect(result.current).toBe(true);
     });
   });
 
   describe('token without assetId', () => {
-    it('returns isAssetBuyable as false when token has no assetId', () => {
+    it('returns isTokenBuyable as false when token has no assetId', () => {
       mockUseRampTokens.mockReturnValue({
         allTokens: [
           {
@@ -176,9 +176,9 @@ describe('useAssetBuyability', () => {
         ],
       } as unknown as ReturnType<typeof useRampTokens>);
 
-      const { result } = renderHook(() => useAssetBuyability(mockToken));
+      const { result } = renderHook(() => useTokenBuyability(mockToken));
 
-      expect(result.current.isAssetBuyable).toBe(false);
+      expect(result.current).toBe(false);
     });
   });
 
@@ -199,9 +199,9 @@ describe('useAssetBuyability', () => {
         ],
       } as unknown as ReturnType<typeof useRampTokens>);
 
-      const { result } = renderHook(() => useAssetBuyability(caipToken));
+      const { result } = renderHook(() => useTokenBuyability(caipToken));
 
-      expect(result.current.isAssetBuyable).toBe(true);
+      expect(result.current).toBe(true);
     });
   });
 });

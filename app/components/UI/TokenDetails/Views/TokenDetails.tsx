@@ -14,12 +14,12 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { isMainnetByChainId } from '../../../../util/networks';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
-import { AssetInlineHeader } from '../components/AssetInlineHeader';
+import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenBalance } from '../hooks/useTokenBalance';
-import { useAssetBuyability } from '../hooks/useAssetBuyability';
-import { useAssetActions } from '../hooks/useAssetActions';
+import { useTokenBuyability } from '../hooks/useTokenBuyability';
+import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -117,7 +117,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     setTimePeriod,
     chartNavigationButtons,
     currentCurrency,
-  } = useTokenPrice({ asset: token });
+  } = useTokenPrice({ token });
 
   // Balance data hook
   const {
@@ -131,12 +131,12 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   } = useTokenBalance(token);
 
   // Buyability check
-  const { isAssetBuyable } = useAssetBuyability(token);
+  const isTokenBuyable = useTokenBuyability(token);
 
   // Use actions hook for all action handlers
-  const { onBuy, onSend, onReceive, goToSwaps, networkModal } = useAssetActions(
+  const { onBuy, onSend, onReceive, goToSwaps, networkModal } = useTokenActions(
     {
-      asset: token,
+      token,
       networkName,
     },
   );
@@ -199,7 +199,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const renderHeader = () => (
     <>
       <AssetOverviewContent
-        asset={token}
+        token={token}
         balance={balance}
         mainBalance={mainBalance}
         secondaryBalance={secondaryBalance}
@@ -215,7 +215,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         isMerklCampaignClaimingEnabled={isMerklCampaignClaimingEnabled}
         displayBuyButton={displayBuyButton}
         displaySwapsButton={displaySwapsButton}
-        isAssetBuyable={isAssetBuyable}
+        isTokenBuyable={isTokenBuyable}
         currentCurrency={currentCurrency}
         onBuy={onBuy}
         onSend={onSend}
@@ -244,12 +244,12 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
 
   return (
     <View style={styles.wrapper}>
-      <AssetInlineHeader
+      <TokenDetailsInlineHeader
         title={token.symbol}
         networkName={networkName ?? ''}
         onBackPress={() => navigation.goBack()}
         onOptionsPress={
-          shouldShowMoreOptionsInNavBar ? openAssetOptions : () => undefined
+          shouldShowMoreOptionsInNavBar ? openAssetOptions : undefined
         }
       />
       {txLoading ? (

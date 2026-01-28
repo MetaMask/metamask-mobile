@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { AssetInlineHeader } from './AssetInlineHeader';
+import { TokenDetailsInlineHeader } from './TokenDetailsInlineHeader';
 
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => ({
@@ -20,7 +20,7 @@ jest.mock('../../../hooks/useStyles', () => ({
   }),
 }));
 
-describe('AssetInlineHeader', () => {
+describe('TokenDetailsInlineHeader', () => {
   const mockOnBackPress = jest.fn();
   const mockOnOptionsPress = jest.fn();
 
@@ -37,33 +37,41 @@ describe('AssetInlineHeader', () => {
 
   describe('rendering', () => {
     it('renders title text', () => {
-      const { getByText } = render(<AssetInlineHeader {...defaultProps} />);
+      const { getByText } = render(
+        <TokenDetailsInlineHeader {...defaultProps} />,
+      );
 
       expect(getByText('ETH')).toBeOnTheScreen();
     });
 
     it('renders network name when provided', () => {
-      const { getByText } = render(<AssetInlineHeader {...defaultProps} />);
+      const { getByText } = render(
+        <TokenDetailsInlineHeader {...defaultProps} />,
+      );
 
       expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
     });
 
     it('does not render network name when empty string', () => {
       const { queryByText } = render(
-        <AssetInlineHeader {...defaultProps} networkName="" />,
+        <TokenDetailsInlineHeader {...defaultProps} networkName="" />,
       );
 
       expect(queryByText('Ethereum Mainnet')).toBeNull();
     });
 
     it('renders back button with testID', () => {
-      const { getByTestId } = render(<AssetInlineHeader {...defaultProps} />);
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader {...defaultProps} />,
+      );
 
       expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
     });
 
     it('renders options button when onOptionsPress is provided', () => {
-      const { getByTestId } = render(<AssetInlineHeader {...defaultProps} />);
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader {...defaultProps} />,
+      );
 
       // Both buttons are rendered - back button and options button (button-icon)
       expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
@@ -77,7 +85,7 @@ describe('AssetInlineHeader', () => {
       };
 
       const { getByTestId, queryByTestId } = render(
-        <AssetInlineHeader {...props} />,
+        <TokenDetailsInlineHeader {...props} />,
       );
 
       // Only back button is rendered, options button should not be present
@@ -88,7 +96,9 @@ describe('AssetInlineHeader', () => {
 
   describe('interactions', () => {
     it('calls onBackPress when back button is pressed', () => {
-      const { getByTestId } = render(<AssetInlineHeader {...defaultProps} />);
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader {...defaultProps} />,
+      );
 
       fireEvent.press(getByTestId('back-arrow-button'));
 
@@ -96,7 +106,9 @@ describe('AssetInlineHeader', () => {
     });
 
     it('calls onOptionsPress when options button is pressed', () => {
-      const { getByTestId } = render(<AssetInlineHeader {...defaultProps} />);
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader {...defaultProps} />,
+      );
 
       fireEvent.press(getByTestId('button-icon'));
 
@@ -108,7 +120,7 @@ describe('AssetInlineHeader', () => {
     it('handles long title text with truncation', () => {
       const longTitle = 'VeryLongTokenSymbolName';
       const { getByText } = render(
-        <AssetInlineHeader {...defaultProps} title={longTitle} />,
+        <TokenDetailsInlineHeader {...defaultProps} title={longTitle} />,
       );
 
       const titleElement = getByText(longTitle);
@@ -118,7 +130,10 @@ describe('AssetInlineHeader', () => {
     it('handles long network name with truncation', () => {
       const longNetworkName = 'Very Long Network Name That Should Be Truncated';
       const { getByText } = render(
-        <AssetInlineHeader {...defaultProps} networkName={longNetworkName} />,
+        <TokenDetailsInlineHeader
+          {...defaultProps}
+          networkName={longNetworkName}
+        />,
       );
 
       const networkElement = getByText(longNetworkName);

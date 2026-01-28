@@ -63,14 +63,14 @@ jest.mock('../hooks/useTokenBalance', () => ({
   }),
 }));
 
-jest.mock('../hooks/useAssetBuyability', () => ({
-  useAssetBuyability: () => ({
+jest.mock('../hooks/useTokenBuyability', () => ({
+  useTokenBuyability: () => ({
     isAssetBuyable: true,
   }),
 }));
 
-jest.mock('../hooks/useAssetActions', () => ({
-  useAssetActions: () => ({
+jest.mock('../hooks/useTokenActions', () => ({
+  useTokenActions: () => ({
     onBuy: jest.fn(),
     onSend: jest.fn(),
     onReceive: jest.fn(),
@@ -85,11 +85,13 @@ jest.mock('../hooks/useTokenTransactions', () => ({
     submittedTxs: [],
     confirmedTxs: [],
     loading: false,
+    refreshing: false,
     transactionsUpdated: true,
     selectedAddress: '0xuser123',
     conversionRate: 2500,
     currentCurrency: 'usd',
     isNonEvmAsset: false,
+    onRefresh: jest.fn(),
   }),
 }));
 
@@ -350,12 +352,16 @@ describe('TokenDetails', () => {
       jest.mock('../hooks/useTokenTransactions', () => ({
         useTokenTransactions: () => ({
           transactions: [],
+          submittedTxs: [],
+          confirmedTxs: [],
           loading: true,
+          refreshing: false,
           transactionsUpdated: false,
           selectedAddress: '0xuser123',
           conversionRate: 2500,
           currentCurrency: 'usd',
           isNonEvmAsset: false,
+          onRefresh: jest.fn(),
         }),
       }));
 

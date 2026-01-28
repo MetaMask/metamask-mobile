@@ -47,7 +47,7 @@ export interface UseTokenPriceResult {
 }
 
 export interface UseTokenPriceParams {
-  asset: TokenI;
+  token: TokenI;
   multichainAssetRates?: {
     rate: number;
     marketData: undefined;
@@ -59,14 +59,14 @@ export interface UseTokenPriceParams {
  * Manages historical prices, exchange rates, and price comparisons.
  */
 export const useTokenPrice = ({
-  asset,
+  token,
   multichainAssetRates,
 }: UseTokenPriceParams): UseTokenPriceResult => {
-  const chainId = asset.chainId as Hex;
+  const chainId = token.chainId as Hex;
 
   // Determine if asset is EVM or non-EVM
   const resultChainId = formatChainIdToCaip(chainId);
-  const isNonEvmAsset = resultChainId === asset.chainId;
+  const isNonEvmToken = resultChainId === token.chainId;
 
   // Time period state
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('1d');
@@ -82,19 +82,19 @@ export const useTokenPrice = ({
   );
 
   const tokenResult = useSelector((state: RootState) =>
-    selectTokenDisplayData(state, chainId, asset.address as Hex),
+    selectTokenDisplayData(state, chainId, token.address as Hex),
   );
 
   // Calculate item address
-  const itemAddress = !isNonEvmAsset
-    ? safeToChecksumAddress(asset.address)
-    : asset.address;
+  const itemAddress = !isNonEvmToken
+    ? safeToChecksumAddress(token.address)
+    : token.address;
 
-  const currentAddress = asset.address as Hex;
+  const currentAddress = token.address as Hex;
 
   // Historical prices
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
-    asset,
+    asset: token,
     address: currentAddress,
     chainId,
     timePeriod,
@@ -122,10 +122,10 @@ export const useTokenPrice = ({
   // Chart navigation buttons based on asset type
   const chartNavigationButtons: TimePeriod[] = useMemo(
     () =>
-      !isNonEvmAsset
+      !isNonEvmToken
         ? ['1d', '1w', '1m', '3m', '1y', '3y']
         : ['1d', '1w', '1m', '3m', '1y', 'all'],
-    [isNonEvmAsset],
+    [isNonEvmToken],
   );
 
   const currentChainId = chainId as Hex;
@@ -141,11 +141,11 @@ export const useTokenPrice = ({
     }
 
     const isNonEvm = isNonEvmChainId(currentChainId);
-    const nativeAssetConversionRate =
+    const nativeTokenConversionRate =
       nativeCurrency &&
       conversionRateByTicker?.[nativeCurrency]?.conversionRate;
 
-    if (!isNonEvm && !nativeAssetConversionRate) {
+    if (!isNonEvm && !nativeTokenConversionRate) {
       return;
     }
 
@@ -164,8 +164,8 @@ export const useTokenPrice = ({
 
         if (isNonEvm) {
           setFetchedRate(tokenFiatPrice);
-        } else if (nativeAssetConversionRate) {
-          setFetchedRate(tokenFiatPrice / nativeAssetConversionRate);
+        } else if (nativeTokenConversionRate) {
+          setFetchedRate(tokenFiatPrice / nativeTokenConversionRate);
         }
       } catch (error) {
         console.error('Failed to fetch token exchange rate:', error);
@@ -190,7 +190,7 @@ export const useTokenPrice = ({
   let priceDiff = 0;
   let comparePrice = 0;
 
-  if (isAssetFromSearch(asset) && tokenResult?.found) {
+  if (isAssetFromSearch(token) && tokenResult?.found) {
     currentPrice = tokenResult.price?.price || 0;
   } else {
     const {
@@ -198,8 +198,8 @@ export const useTokenPrice = ({
       priceDiff: calculatedPriceDiff,
       comparePrice: calculatedComparePrice,
     } = calculateAssetPrice({
-      _asset: asset,
-      isEvmAssetSelected: !isNonEvmAsset,
+      _asset: token,
+      isEvmAssetSelected: !isNonEvmToken,
       exchangeRate,
       tickerConversionRate:
         conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? undefined,

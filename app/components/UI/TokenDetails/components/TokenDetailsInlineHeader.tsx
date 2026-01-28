@@ -48,7 +48,7 @@ const inlineHeaderStyles = (params: {
   });
 };
 
-export const AssetInlineHeader = ({
+export const TokenDetailsInlineHeader = ({
   title,
   networkName,
   onBackPress,
@@ -57,7 +57,7 @@ export const AssetInlineHeader = ({
   title: string;
   networkName: string;
   onBackPress: () => void;
-  onOptionsPress: () => void;
+  onOptionsPress: (() => void) | undefined;
 }) => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(inlineHeaderStyles, { insets });
