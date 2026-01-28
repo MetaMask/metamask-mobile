@@ -5,7 +5,10 @@ import {
 } from '@metamask/transaction-controller';
 
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
-import { SIGNATURE_APPROVAL_TYPES } from '../constants/confirmations';
+import {
+  SIGNATURE_APPROVAL_TYPES,
+  REDESIGNED_TRANSACTION_TYPES,
+} from '../constants/confirmations';
 
 export const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
 
@@ -60,26 +63,45 @@ export function shouldNavigateConfirmationModal(
   transactionMetadata: TransactionMeta | undefined,
   isFullScreenConfirmation: boolean,
 ): boolean {
-  // Check if signature approval type
+  // 1. Signature types always use modal
   if (SIGNATURE_APPROVAL_TYPES.includes(approvalType as ApprovalType)) {
     return true;
   }
 
-  // Skip transaction types that should not render the confirmation modal
-  if (approvalType === ApprovalTypes.TRANSACTION && transactionMetadata) {
+  // 2. Batch transactions always use modal
+  if (approvalType === ApprovalType.TransactionBatch) {
+    return true;
+  }
+
+  // 3. Regular transactions - check type and conditions
+  if (approvalType === ApprovalTypes.TRANSACTION) {
+    // Skip swap-related transactions (handled by dedicated swap UI)
     if (
+      transactionMetadata &&
       TRANSACTION_TYPES_TO_SKIP_RENDER_CONFIRMATION.includes(
         transactionMetadata.type as TransactionType,
       )
     ) {
       return false;
     }
+
+    // Full screen confirmations handle their own navigation
+    if (isFullScreenConfirmation) {
+      return false;
+    }
+
+    // Valid transaction types use modal
+    if (
+      transactionMetadata &&
+      REDESIGNED_TRANSACTION_TYPES.includes(
+        transactionMetadata.type as TransactionType,
+      )
+    ) {
+      return true;
+    }
   }
 
-  // Skip full-screen confirmations
-  if (isFullScreenConfirmation) {
-    return false;
-  }
-
-  return true;
+  // 4. All other approval types (wallet_requestPermissions, wallet_watchAsset, etc.)
+  // These are handled by RootRPCMethodsUI.js, not ConfirmRoot
+  return false;
 }

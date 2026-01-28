@@ -136,18 +136,18 @@ describe('Confirmation utils', () => {
       ).toBe(true);
     });
 
-    it('returns true for other approval types', () => {
+    it('returns false for other approval types', () => {
       expect(
         shouldNavigateConfirmationModal(
           'wallet_requestPermissions',
           undefined,
           false,
         ),
-      ).toBe(true);
+      ).toBe(false);
 
       expect(
         shouldNavigateConfirmationModal('wallet_watchAsset', undefined, false),
-      ).toBe(true);
+      ).toBe(false);
 
       expect(
         shouldNavigateConfirmationModal(
@@ -155,7 +155,7 @@ describe('Confirmation utils', () => {
           undefined,
           false,
         ),
-      ).toBe(true);
+      ).toBe(false);
     });
   });
 });
