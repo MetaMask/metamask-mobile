@@ -176,18 +176,7 @@ jest.mock('../Analytics/helpers/SnapKeyring/trackSnapAccountEvent', () => ({
   trackSnapAccountEvent: jest.fn(),
 }));
 
-// Mock the isMultichainAccountsState2Enabled function
-const mockIsMultichainAccountsState2Enabled = jest.fn();
-jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsState2Enabled: () =>
-    mockIsMultichainAccountsState2Enabled(),
-}));
-
 describe('Snap Keyring Methods', () => {
-  beforeEach(() => {
-    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
-  });
-
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -221,14 +210,16 @@ describe('Snap Keyring Methods', () => {
 
   describe('addAccount', () => {
     beforeEach(() => {
-      mockAddRequest.mockReturnValue(true).mockReturnValue({ success: true });
+      // The SnapKeyring library may still call approval requests internally
+      mockAddRequest.mockResolvedValue({ success: true });
       (isSnapPreinstalled as jest.Mock).mockReset();
     });
     afterEach(() => {
       jest.resetAllMocks();
     });
 
-    it('handles account creation with without a user defined name', async () => {
+    it('handles account creation for non-preinstalled snap', async () => {
+      // Non-preinstalled snaps use the approval flow in addAccountFinalize
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
         method: KeyringEvent.AccountCreated,
@@ -238,20 +229,10 @@ describe('Snap Keyring Methods', () => {
         },
       });
 
-      expect(mockStartFlow).toHaveBeenCalledTimes(2);
-      expect(mockAddRequest).toHaveBeenNthCalledWith(1, [
-        {
-          origin: mockSnapId,
-          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
-          requestData: {
-            snapSuggestedAccountName: '',
-          },
-        },
-        true,
-      ]);
+      // The implementation no longer shows dialogs - it just calls addAccountFinalize
+      // which uses an approval flow (startFlow/endFlow) for non-preinstalled snaps
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
       expect(mockGetAccounts).toHaveBeenCalledTimes(1);
-      expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
 
       // Wait for any pending promises (including the account finalization which tracks the event)
       await waitForAllPromises();
@@ -261,16 +242,17 @@ describe('Snap Keyring Methods', () => {
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
       expect(mockSetAccountName).not.toHaveBeenCalled();
 
+      // Verify approval flow was used (startFlow and endFlow called)
+      expect(mockStartFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
+
       // Verify trackSnapAccountEvent was called for successful account creation
       expect(trackSnapAccountEvent).toHaveBeenCalled();
     });
 
-    it('handles account creation with user defined name', async () => {
+    it('handles account creation with account name suggestion', async () => {
       const mockNameSuggestion = 'suggested name';
-      mockAddRequest.mockReturnValueOnce({
-        success: true,
-        name: mockNameSuggestion,
-      });
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
         method: KeyringEvent.AccountCreated,
@@ -281,18 +263,7 @@ describe('Snap Keyring Methods', () => {
         },
       });
 
-      expect(mockStartFlow).toHaveBeenCalledTimes(2);
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
-      expect(mockAddRequest).toHaveBeenNthCalledWith(1, [
-        {
-          origin: mockSnapId,
-          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
-          requestData: {
-            snapSuggestedAccountName: mockNameSuggestion,
-          },
-        },
-        true,
-      ]);
       expect(mockGetAccounts).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization which tracks the event)
@@ -301,86 +272,18 @@ describe('Snap Keyring Methods', () => {
       // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockEndFlow).toHaveBeenCalledTimes(2);
+      expect(mockSetAccountName).not.toHaveBeenCalled();
+
+      // Verify approval flow was used
+      expect(mockStartFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledTimes(1);
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
 
       // Verify trackSnapAccountEvent was called
       expect(trackSnapAccountEvent).toHaveBeenCalled();
     });
 
-    it('handles account creation without using user defined name - state 2', async () => {
-      // Enable state 2 feature flag
-      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-
-      const mockNameSuggestion = "suggested name that won't be used";
-      mockAddRequest.mockReturnValueOnce({
-        success: true,
-        name: mockNameSuggestion,
-      });
-      const builder = createSnapKeyringBuilder();
-      await builder().handleKeyringSnapMessage(mockSnapId, {
-        method: KeyringEvent.AccountCreated,
-        params: {
-          account: mockAccount,
-          displayConfirmation: false,
-          accountNameSuggestion: mockNameSuggestion,
-        },
-      });
-
-      // Wait for any pending promises (including the account finalization which tracks the event)
-      await waitForAllPromises();
-
-      // Verify that setAccountName is not called since state 2 auto handles it
-      expect(mockStartFlow).toHaveBeenCalled();
-      expect(mockSetAccountName).not.toHaveBeenCalled();
-      expect(mockEndFlow).toHaveBeenCalled();
-    });
-
-    it('throws an error when user denies account creation', async () => {
-      // Mock the addRequest to return success: false to simulate user denial
-      mockAddRequest.mockReturnValueOnce({
-        success: false,
-      });
-
-      const builder = createSnapKeyringBuilder();
-
-      // We expect the handleKeyringSnapMessage to throw an error
-      await expect(
-        builder().handleKeyringSnapMessage(mockSnapId, {
-          method: KeyringEvent.AccountCreated,
-          params: {
-            account: mockAccount,
-            displayConfirmation: false,
-          },
-        }),
-      ).rejects.toThrow('User denied account creation');
-
-      // Verify that the approval flow was started and ended
-      expect(mockStartFlow).toHaveBeenCalledTimes(1);
-      expect(mockAddRequest).toHaveBeenCalledTimes(1);
-      expect(mockAddRequest).toHaveBeenCalledWith([
-        {
-          origin: mockSnapId,
-          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
-          requestData: {
-            snapSuggestedAccountName: '',
-          },
-        },
-        true,
-      ]);
-
-      // Verify that the handleUserInput callback was called with false
-      expect(mockSnapControllerHandleRequest).not.toHaveBeenCalled();
-
-      // Verify that the persistKeyringHelper was not called
-      expect(mockPersisKeyringHelper).not.toHaveBeenCalled();
-
-      // Verify that the flow was ended
-      expect(mockEndFlow).toHaveBeenCalledTimes(1);
-      expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
-    });
-
-    it('ends approval flow on error', async () => {
+    it('ends approval flow on error during save', async () => {
       const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
 
       const errorMessage = 'save error';
@@ -422,18 +325,17 @@ describe('Snap Keyring Methods', () => {
         'Error occurred while creating snap account',
       );
 
-      expect(mockStartFlow).toHaveBeenCalledTimes(2);
-      expect(mockEndFlow).toHaveBeenCalledTimes(2);
-      expect(mockEndFlow).toHaveBeenNthCalledWith(1, [{ id: mockFlowId }]);
-      expect(mockEndFlow).toHaveBeenNthCalledWith(2, [{ id: mockFlowId }]);
+      // Approval flow should still be properly ended even on error
+      expect(mockStartFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
       expect(trackSnapAccountEvent).not.toHaveBeenCalled();
     });
-    it('skips account name suggestion dialog for preinstalled snaps when displayAccountNameSuggestion is false', async () => {
+    it('skips approval flow for preinstalled snaps when both confirmations are disabled', async () => {
       // Mock isSnapPreinstalled to return true for this test
       (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
 
       const mockNameSuggestion = 'auto generated name';
-      mockListMultichainAccounts.mockReturnValueOnce([]);
 
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
@@ -446,57 +348,41 @@ describe('Snap Keyring Methods', () => {
         },
       });
 
-      // Verify the account name suggestion dialog was not shown
-      expect(mockAddRequest).not.toHaveBeenCalledWith([
-        {
-          origin: mockSnapId,
-          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
-          requestData: {
-            snapSuggestedAccountName: mockNameSuggestion,
-          },
-        },
-        true,
-      ]);
-
-      // Verify that listMultichainAccounts was called to generate a unique name
-      expect(mockListMultichainAccounts).toHaveBeenCalledTimes(1);
-
       // Verify that the account was created
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
+      // When both confirmations are disabled for preinstalled snaps,
+      // skipApprovalFlow is true, so no approval flow is used
+      expect(mockStartFlow).not.toHaveBeenCalled();
+      expect(mockEndFlow).not.toHaveBeenCalled();
+
+      // Verify that setSelectedAccount is called
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
+
+      // Verify trackSnapAccountEvent was called
+      expect(trackSnapAccountEvent).toHaveBeenCalled();
     });
 
-    it('shows account name suggestion dialog for preinstalled snaps when displayAccountNameSuggestion is true', async () => {
+    it('uses approval flow for preinstalled snaps when confirmations are enabled', async () => {
       // Mock isSnapPreinstalled to return true for this test
       (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
 
       const mockNameSuggestion = 'suggested name';
 
-      // Set up mockAddRequest to return success with the name
-      mockAddRequest.mockReturnValueOnce({
-        success: true,
-        name: mockNameSuggestion,
-      });
-
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
         method: KeyringEvent.AccountCreated,
         params: {
           account: mockAccount,
-          displayConfirmation: true, // This should trigger skipConfirmation=false
+          displayConfirmation: true,
           accountNameSuggestion: mockNameSuggestion,
-          displayAccountNameSuggestion: true, // This should trigger the dialog
+          displayAccountNameSuggestion: true,
         },
       });
-
-      // Verify that the approval flow was started
-      expect(mockStartFlow).toHaveBeenCalledTimes(2);
 
       // Verify that the account was created
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
@@ -504,25 +390,21 @@ describe('Snap Keyring Methods', () => {
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
+      // When confirmations are enabled, approval flow is used
+      expect(mockStartFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
+
+      // Verify that setSelectedAccount is called
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-
-      // Verify that the approval flow was ended
-      expect(mockEndFlow).toHaveBeenCalledTimes(2);
-      expect(mockEndFlow).toHaveBeenNthCalledWith(1, [{ id: mockFlowId }]);
-      expect(mockEndFlow).toHaveBeenNthCalledWith(2, [{ id: mockFlowId }]);
     });
 
-    it('always shows account name suggestion dialog for non-preinstalled snaps regardless of displayAccountNameSuggestion', async () => {
+    it('always uses approval flow for non-preinstalled snaps', async () => {
       // Mock isSnapPreinstalled to return false for this test
       (isSnapPreinstalled as jest.Mock).mockReturnValue(false);
 
       const mockNameSuggestion = 'suggested name';
-      mockAddRequest.mockReturnValueOnce({
-        success: true,
-        name: mockNameSuggestion,
-      });
 
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
@@ -531,21 +413,9 @@ describe('Snap Keyring Methods', () => {
           account: mockAccount,
           displayConfirmation: false,
           accountNameSuggestion: mockNameSuggestion,
-          displayAccountNameSuggestion: false, // Even though this is false, dialog should show for non-preinstalled snaps
+          displayAccountNameSuggestion: false,
         },
       });
-
-      // Verify the account name suggestion dialog was shown
-      expect(mockAddRequest).toHaveBeenCalledWith([
-        {
-          origin: mockSnapId,
-          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
-          requestData: {
-            snapSuggestedAccountName: mockNameSuggestion,
-          },
-        },
-        true,
-      ]);
 
       // Verify that the account was created
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
@@ -553,20 +423,20 @@ describe('Snap Keyring Methods', () => {
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
+      // Non-preinstalled snaps always use approval flow
+      expect(mockStartFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledTimes(1);
+
+      // Verify that setSelectedAccount is called
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
     });
 
-    it('always sets selected account for both preinstalled and non-preinstalled snaps with default options', async () => {
-      // Test with preinstalled snap first
+    it('sets selected account for both preinstalled and non-preinstalled snaps', async () => {
+      // Test with preinstalled snap first (with confirmations disabled to skip approval flow)
       (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
 
       const mockNameSuggestion = 'suggested name';
-      mockAddRequest.mockReturnValueOnce({
-        success: true,
-        name: mockNameSuggestion,
-      });
 
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
@@ -574,6 +444,7 @@ describe('Snap Keyring Methods', () => {
         params: {
           account: mockAccount,
           displayConfirmation: false,
+          displayAccountNameSuggestion: false,
           accountNameSuggestion: mockNameSuggestion,
         },
       });
@@ -581,24 +452,19 @@ describe('Snap Keyring Methods', () => {
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount is called for preinstalled snap (setAccountName is no longer called directly)
+      // Verify that setSelectedAccount is called for preinstalled snap
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
 
       // Reset mocks for second test and set them up again
       mockSetSelectedAccount.mockReset();
       mockSetAccountName.mockReset();
-      mockAddRequest.mockReset();
       mockPersisKeyringHelper.mockReset();
       mockStartFlow.mockReset();
       mockEndFlow.mockReset();
       mockGetAccounts.mockReset();
 
       // Set up mocks for second test
-      mockAddRequest.mockReturnValueOnce({
-        success: true,
-        name: mockNameSuggestion,
-      });
       mockStartFlow.mockReturnValue({ id: mockFlowId });
       mockEndFlow.mockReturnValue(true);
       mockGetAccounts.mockResolvedValue([]);
@@ -618,86 +484,9 @@ describe('Snap Keyring Methods', () => {
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount is called for non-preinstalled snap too (setAccountName is no longer called directly)
+      // Verify that setSelectedAccount is called for non-preinstalled snap too
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-    });
-
-    it('skips startFlow when skipConfirmation is true for preinstalled snaps', async () => {
-      // Mock isSnapPreinstalled to return true for this test
-      (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
-
-      const mockNameSuggestion = 'suggested name';
-      mockListMultichainAccounts.mockReturnValueOnce([]);
-
-      const builder = createSnapKeyringBuilder();
-      await builder().handleKeyringSnapMessage(mockSnapId, {
-        method: KeyringEvent.AccountCreated,
-        params: {
-          account: mockAccount,
-          displayConfirmation: false, // This should trigger skipApprovalFlow=true
-          displayAccountNameSuggestion: false, // This should trigger skipAccountNameSuggestionDialog=true
-          accountNameSuggestion: mockNameSuggestion,
-        },
-      });
-
-      // Verify that startFlow was NOT called during account creation
-      expect(mockStartFlow).not.toHaveBeenCalled();
-
-      // Verify that the account was created
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
-
-      // Wait for any pending promises (including the account finalization)
-      await waitForAllPromises();
-
-      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
-      expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
-      expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-
-      // Verify trackSnapAccountEvent was called
-      expect(trackSnapAccountEvent).toHaveBeenCalled();
-    });
-
-    it('calls startFlow when skipConfirmation is false for preinstalled snaps', async () => {
-      // Mock isSnapPreinstalled to return true for this test
-      (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
-
-      const mockNameSuggestion = 'suggested name';
-      mockAddRequest.mockReturnValueOnce({
-        success: true,
-        name: mockNameSuggestion,
-      });
-
-      const builder = createSnapKeyringBuilder();
-      await builder().handleKeyringSnapMessage(mockSnapId, {
-        method: KeyringEvent.AccountCreated,
-        params: {
-          account: mockAccount,
-          displayConfirmation: true, // This should trigger skipConfirmation=false
-          accountNameSuggestion: mockNameSuggestion,
-        },
-      });
-
-      // Verify that startFlow was called during account creation
-      expect(mockStartFlow).toHaveBeenCalledTimes(2);
-
-      // Verify that the account was created
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
-
-      // Wait for any pending promises (including the account finalization)
-      await waitForAllPromises();
-
-      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
-      expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
-      expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-
-      // Verify that the approval flow was ended
-      expect(mockEndFlow).toHaveBeenCalledTimes(2);
-      expect(mockEndFlow).toHaveBeenNthCalledWith(1, [{ id: mockFlowId }]);
-      expect(mockEndFlow).toHaveBeenNthCalledWith(2, [{ id: mockFlowId }]);
-
-      // Verify trackSnapAccountEvent was called
-      expect(trackSnapAccountEvent).toHaveBeenCalled();
     });
   });
   describe('removeAccount', () => {

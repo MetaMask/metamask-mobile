@@ -185,7 +185,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   async addAccount(
     address: string,
     snapId: string,
-    _handleUserInput: (accepted: boolean) => Promise<void>,
+    handleUserInput: (accepted: boolean) => Promise<void>,
     onceSaved: Promise<string>,
     _accountNameSuggestion: string = '',
     {
@@ -220,6 +220,10 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
 
     const skipApprovalFlow =
       skipConfirmationDialog && skipAccountNameSuggestionDialog;
+
+    // Auto-approve account creation - the SnapKeyring library requires this callback
+    // to be called to proceed with saving the account
+    await handleUserInput(true);
 
     // The second part is about selecting the newly created account and showing some other
     // confirmation dialogs (or error dialogs if anything goes wrong while persisting the account
