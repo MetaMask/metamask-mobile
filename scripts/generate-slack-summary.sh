@@ -15,6 +15,10 @@ if [ -f "$SUMMARY_FILE" ]; then
     iosCount=$(jq -r '.platformDevices.iOS | length' "$SUMMARY_FILE")
     totalDevices=$((androidCount + iosCount))
     
+    # Get failed tests statistics
+    totalFailedTests=$(jq -r '.failedTestsStats.totalFailedTests // 0' "$SUMMARY_FILE")
+    teamsAffected=$(jq -r '.failedTestsStats.teamsAffected // 0' "$SUMMARY_FILE")
+    
     # Determine test results status by checking job statuses via GitHub API
     if [ -n "$GITHUB_TOKEN" ] && [ -n "$GITHUB_RUN_ID" ]; then
         
@@ -104,6 +108,36 @@ if [ -f "$SUMMARY_FILE" ]; then
     SUMMARY+="  • Android: $androidImportedWalletStatus\n"
     SUMMARY+="  • iOS: $iosImportedWalletStatus\n\n"
     SUMMARY+="---------------\n\n"
+    
+    # Add failed tests by team section if there are failures
+    if [ "$totalFailedTests" -gt 0 ]; then
+        SUMMARY+="*:rotating_light: Failed Tests by Team:*\n"
+        SUMMARY+="_${totalFailedTests} test(s) failed across ${teamsAffected} team(s)_\n\n"
+        
+        # Get all team IDs that have failed tests
+        teamIds=$(jq -r '.failedTestsStats.failedTestsByTeam | keys[]' "$SUMMARY_FILE" 2>/dev/null)
+        
+        for teamId in $teamIds; do
+            # Get team info - the teamId IS the Slack ID (e.g., @swap-bridge-dev-team)
+            teamName=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].team.teamName // \"Unknown Team\"" "$SUMMARY_FILE")
+            failedCount=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests | length" "$SUMMARY_FILE")
+            
+            # Add team header with Slack mention (teamId is the Slack ID)
+            SUMMARY+="• *${teamName}* ${teamId} - ${failedCount} failed test(s):\n"
+            
+            # List each failed test for this team
+            failedTests=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[] | \"  → \(.testName) [\(.platform)/\(.device)]\"" "$SUMMARY_FILE" 2>/dev/null)
+            while IFS= read -r testLine; do
+                if [ -n "$testLine" ]; then
+                    SUMMARY+="${testLine}\n"
+                fi
+            done <<< "$failedTests"
+            SUMMARY+="\n"
+        done
+        
+        SUMMARY+="---------------\n\n"
+    fi
+    
     SUMMARY+="*Build Info:*\n"
     SUMMARY+="• Commit Hash: \`$GITHUB_SHA\`\n"
     SUMMARY+="• Branch: \`$GITHUB_REF_NAME\`\n"

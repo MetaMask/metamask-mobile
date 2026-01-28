@@ -2,6 +2,7 @@
 import { PerformanceTracker } from './PerformanceTracker';
 import { AppProfilingDataHandler } from './AppProfilingDataHandler';
 import QualityGatesValidator from '../utils/QualityGatesValidator';
+import { getTeamInfoFromTags } from '../config/teams-config.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -11,6 +12,7 @@ class CustomReporter {
     this.sessions = []; // Array to store all session data
     this.processedTests = new Set(); // Track processed tests to avoid duplicates
     this.qualityGatesValidator = new QualityGatesValidator();
+    this.failedTestsByTeam = {}; // Track failed tests grouped by team
   }
 
   // We'll skip the onStdOut and onStdErr methods since the list reporter will handle those
@@ -29,7 +31,23 @@ class CustomReporter {
     }
     this.processedTests.add(testId);
 
+    // Get team info from test tags (e.g., { tag: '@swap-bridge-dev-team' })
+    // Tags can be in test.tags (Playwright 1.42+) or extracted from test title annotations
+    let testTags = test.tags || [];
+
+    // If tags is not an array, try to get from other sources
+    if (!Array.isArray(testTags)) {
+      testTags = [];
+    }
+
+    const testFilePath = test?.location?.file || '';
+    const teamInfo = getTeamInfoFromTags(testTags);
+
     console.log(`\n🔍 Processing test: ${test.title} (${result.status})`);
+    console.log(`👥 Team: ${teamInfo.teamName} (${teamInfo.teamId})`);
+    console.log(
+      `🏷️ Tags: ${testTags.length > 0 ? testTags.join(', ') : 'none (using default team)'}`,
+    );
 
     const sessionAttachment = result.attachments.find(
       (att) => att.name === 'session-data',
@@ -42,6 +60,7 @@ class CustomReporter {
           ...sessionData,
           testStatus: result.status,
           testDuration: result.duration,
+          team: sessionData.team || teamInfo, // Use team from session data or fallback
         });
       } catch (error) {
         console.log(`❌ Error parsing session data: ${error.message}`);
@@ -61,12 +80,33 @@ class CustomReporter {
           this.sessions.push({
             sessionId,
             testTitle: test.title,
+            testFilePath,
             testStatus: result.status,
             testDuration: result.duration,
             timestamp: new Date().toISOString(),
+            team: teamInfo,
           });
         }
       }
+    }
+
+    // Track failed tests by team for Slack notification
+    if (result.status !== 'passed') {
+      const teamId = teamInfo.teamId;
+      if (!this.failedTestsByTeam[teamId]) {
+        this.failedTestsByTeam[teamId] = {
+          team: teamInfo,
+          tests: [],
+        };
+      }
+      this.failedTestsByTeam[teamId].tests.push({
+        testName: test.title,
+        testFilePath,
+        tags: testTags,
+        status: result.status,
+        duration: result.duration,
+        projectName,
+      });
     }
 
     // Look for metrics in the attachments (including fallback metrics)
@@ -93,6 +133,8 @@ class CustomReporter {
         // Create metrics entry with proper handling for both regular and fallback metrics
         const metricsEntry = {
           testName: test.title,
+          testFilePath,
+          tags: testTags,
           ...metrics,
         };
 
@@ -105,6 +147,11 @@ class CustomReporter {
         // Ensure consistent device info for all metrics
         const deviceInfo = this.getDeviceInfo(test, result);
         metricsEntry.device = deviceInfo;
+
+        // Ensure team info is included (from metrics or fallback)
+        if (!metricsEntry.team) {
+          metricsEntry.team = teamInfo;
+        }
 
         // For fallback metrics, ensure we have proper structure for reporting
         if (isFallbackMetrics) {
@@ -151,12 +198,15 @@ class CustomReporter {
 
       const basicEntry = {
         testName: test.title,
+        testFilePath,
+        tags: testTags,
         total: result.duration / 1000,
         device: deviceInfo,
         steps: [],
         testFailed: true,
         failureReason: result.status,
         note: 'Test failed - no performance metrics collected',
+        team: teamInfo,
       };
 
       this.metrics.push(basicEntry);
@@ -196,12 +246,30 @@ class CustomReporter {
       };
     }
 
-    // Last resort fallback
     return {
       name: 'Unknown',
       osVersion: 'Unknown',
       provider: 'unknown',
     };
+  }
+
+  /**
+   * Try to extract device info from profiling data metadata
+   * @param {Object} profilingData - The profiling data object
+   * @returns {Object|null} Device info or null
+   */
+  getDeviceInfoFromProfiling(profilingData) {
+    if (
+      profilingData?.metadata?.device &&
+      profilingData?.metadata?.os_version
+    ) {
+      return {
+        name: profilingData.metadata.device,
+        osVersion: profilingData.metadata.os_version,
+        provider: 'browserstack',
+      };
+    }
+    return null;
   }
 
   /**
@@ -400,8 +468,26 @@ class CustomReporter {
             (session) => session.testTitle === metric.testName,
           );
 
-          // Use device info from session if available, otherwise keep the existing device info
-          const deviceInfo = matchingSession?.deviceInfo || metric.device;
+          // Determine device info with fallbacks:
+          // 1. Use existing device info if valid (not Unknown)
+          // 2. Try to get from profiling data metadata
+          // 3. Keep Unknown as last resort
+          let deviceInfo = metric.device;
+
+          if (
+            deviceInfo?.name === 'Unknown' &&
+            matchingSession?.profilingData
+          ) {
+            const profilingDeviceInfo = this.getDeviceInfoFromProfiling(
+              matchingSession.profilingData,
+            );
+            if (profilingDeviceInfo) {
+              deviceInfo = profilingDeviceInfo;
+              console.log(
+                `📱 Device info recovered from profiling: ${deviceInfo.name} (${deviceInfo.osVersion})`,
+              );
+            }
+          }
 
           return {
             ...metric,
@@ -1131,6 +1217,44 @@ class CustomReporter {
       );
       fs.writeFileSync(csvPath, csvRows.join('\n'));
       console.log(`✅ Performance CSV report saved: ${csvPath}`);
+
+      // Generate failed tests by team report for Slack notifications
+      if (Object.keys(this.failedTestsByTeam).length > 0) {
+        const failedTestsReport = {
+          timestamp: new Date().toISOString(),
+          totalFailedTests: Object.values(this.failedTestsByTeam).reduce(
+            (acc, team) => acc + team.tests.length,
+            0,
+          ),
+          teamsAffected: Object.keys(this.failedTestsByTeam).length,
+          failedTestsByTeam: this.failedTestsByTeam,
+        };
+
+        const failedTestsPath = path.join(
+          reportsDir,
+          'failed-tests-by-team.json',
+        );
+        fs.writeFileSync(
+          failedTestsPath,
+          JSON.stringify(failedTestsReport, null, 2),
+        );
+        console.log(`🚨 Failed tests by team report saved: ${failedTestsPath}`);
+        console.log(
+          `   Total failed tests: ${failedTestsReport.totalFailedTests}`,
+        );
+        console.log(`   Teams affected: ${failedTestsReport.teamsAffected}`);
+
+        // Log which teams have failed tests
+        for (const [teamId, teamData] of Object.entries(
+          this.failedTestsByTeam,
+        )) {
+          console.log(
+            `   - ${teamData.team.teamName}: ${teamData.tests.length} failed test(s)`,
+          );
+        }
+      } else {
+        console.log(`✅ No failed tests to report by team`);
+      }
     } catch (error) {
       console.error('Error generating performance report:', error);
     }

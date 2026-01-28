@@ -151,11 +151,15 @@ function extractPlatformScenarioAndDevice(filePath) {
 function processTestReport(testReport) {
   const cleanedReport = {
     testName: testReport.testName,
+    testFilePath: testReport.testFilePath || null,
+    tags: testReport.tags || [],
     steps: testReport.steps || [],
     totalTime: testReport.total,
     videoURL: testReport.videoURL || null,
     sessionId: testReport.sessionId || null,
     device: testReport.device || null,
+    // Include team information
+    team: testReport.team || null,
     // Include profiling data if available
     profilingData: testReport.profilingData || null,
     profilingSummary: testReport.profilingSummary || null
@@ -286,6 +290,8 @@ function createSummary(groupedResults) {
   let totalCpuUsage = 0;
   let totalMemoryUsage = 0;
   let profilingTestCount = 0;
+  const failedTestsByTeam = {};
+  let totalFailedTests = 0;
   
   Object.keys(groupedResults).forEach(platform => {
     Object.keys(groupedResults[platform]).forEach(device => {
@@ -307,6 +313,26 @@ function createSummary(groupedResults) {
           totalCpuUsage += test.profilingSummary.cpu?.avg || 0;
           totalMemoryUsage += test.profilingSummary.memory?.avg || 0;
           profilingTestCount++;
+        }
+        
+        // Track failed tests by team
+        if (test.testFailed && test.team) {
+          totalFailedTests++;
+          const teamId = test.team.teamId || 'unknown';
+          if (!failedTestsByTeam[teamId]) {
+            failedTestsByTeam[teamId] = {
+              team: test.team,
+              tests: []
+            };
+          }
+          failedTestsByTeam[teamId].tests.push({
+            testName: test.testName,
+            testFilePath: test.testFilePath,
+            tags: test.tags || [],
+            platform,
+            device,
+            failureReason: test.failureReason
+          });
         }
       });
     });
@@ -352,13 +378,19 @@ function createSummary(groupedResults) {
       avgMemoryUsage: `${avgMemoryUsage} MB`,
       profilingTestCount
     },
+    // Failed tests grouped by team for Slack notifications
+    failedTestsStats: {
+      totalFailedTests,
+      teamsAffected: Object.keys(failedTestsByTeam).length,
+      failedTestsByTeam
+    },
     metadata: {
       generatedAt: new Date().toISOString(),
       totalReports: summaryDevices.length,
       platforms,
       jobResults: {
-        android: "success", // This would need to be determined from actual test results
-        ios: "success"
+        android: totalFailedTests > 0 ? "failure" : "success",
+        ios: totalFailedTests > 0 ? "failure" : "success"
       },
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',

@@ -4,6 +4,23 @@ import { BrowserStackCredentials } from '../utils/BrowserStackCredentials.js';
 export class PerformanceTracker {
   constructor() {
     this.timers = [];
+    this.teamInfo = null;
+  }
+
+  /**
+   * Set the team information for this test
+   * @param {Object} teamInfo - Team info object with teamId, teamName, slackId, slackMention
+   */
+  setTeamInfo(teamInfo) {
+    this.teamInfo = teamInfo;
+  }
+
+  /**
+   * Get the team information for this test
+   * @returns {Object|null} Team info object or null if not set
+   */
+  getTeamInfo() {
+    return this.teamInfo;
   }
 
   addTimers(...timers) {
@@ -122,6 +139,7 @@ export class PerformanceTracker {
       steps: [],
       timestamp: new Date().toISOString(),
       thresholdMarginPercent: THRESHOLD_MARGIN_PERCENT,
+      team: this.teamInfo, // Include team info in metrics
     };
     let totalSeconds = 0;
     let totalThresholdMs = 0;

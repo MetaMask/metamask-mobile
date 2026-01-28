@@ -1,12 +1,22 @@
 import { test as base } from 'appwright';
 import { PerformanceTracker } from '../reporters/PerformanceTracker.js';
 import QualityGatesValidator from '../utils/QualityGatesValidator.js';
+import { getTeamInfoFromTags } from '../config/teams-config.js';
 
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend({
   // eslint-disable-next-line no-empty-pattern
   performanceTracker: async ({}, use, testInfo) => {
     const performanceTracker = new PerformanceTracker();
+
+    // Get team info from test tags (e.g., { tag: '@swap-bridge-dev-team' })
+    const testTags = testInfo.tags || [];
+    const teamInfo = getTeamInfoFromTags(testTags);
+    performanceTracker.setTeamInfo(teamInfo);
+
+    console.log(
+      `👥 Test assigned to team: ${teamInfo.teamName} (${teamInfo.teamId})`,
+    );
 
     // Provide the tracker to the test
     await use(performanceTracker);
@@ -58,12 +68,16 @@ export const test = base.extend({
 
     if (sessionId) {
       // Store session data as a test attachment for the reporter to find
+      // Include team info and tags in session data
       await testInfo.attach('session-data', {
         body: JSON.stringify({
           sessionId,
           testTitle: testInfo.title,
+          testFilePath: testInfo.file || '',
+          tags: testTags,
           projectName: testInfo.project.name,
           timestamp: new Date().toISOString(),
+          team: teamInfo,
         }),
         contentType: 'application/json',
       });
