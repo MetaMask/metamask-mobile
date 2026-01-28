@@ -15,11 +15,7 @@ jest.mock('./PendingMerklRewards', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      claimableReward,
-    }: {
-      claimableReward: string | null;
-    }) =>
+    default: ({ claimableReward }: { claimableReward: string | null }) =>
       ReactActual.createElement(View, {
         testID: 'pending-merkl-rewards',
         'data-claimable': claimableReward,

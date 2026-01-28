@@ -31,10 +31,8 @@ const MerklRewards: React.FC<MerklRewardsProps> = ({ asset }) => {
 
   return (
     <>
-      <PendingMerklRewards claimableReward={claimableReward}/>
-      {claimableReward && (
-        <ClaimMerklRewards asset={asset} />
-      )}
+      <PendingMerklRewards claimableReward={claimableReward} />
+      {claimableReward && <ClaimMerklRewards asset={asset} />}
     </>
   );
 };
