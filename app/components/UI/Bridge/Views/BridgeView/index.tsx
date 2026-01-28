@@ -64,10 +64,7 @@ import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
-import {
-  selectEVMEnabledNetworks,
-  selectNonEVMEnabledNetworks,
-} from '../../../../../selectors/networkEnablementController';
+import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeQuoteResponse, BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
@@ -80,10 +77,7 @@ import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalTooltip from '../../components/ApprovalText';
-import {
-  BRIDGE_MM_FEE_RATE,
-  isNonEvmChainId,
-} from '@metamask/bridge-controller';
+import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
@@ -143,22 +137,7 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
-  const evmEnabledNetworks = useSelector(selectEVMEnabledNetworks);
-  const nonEvmEnabledNetworks = useSelector(selectNonEVMEnabledNetworks);
-
-  // Check if the destination token's network is enabled
-  // If not enabled, we should disable the switch button to prevent switching to a disabled network
-  const isDestNetworkEnabled = useMemo(() => {
-    if (!destToken?.chainId) return true; // No dest token = allow switching
-
-    const chainId = destToken.chainId;
-
-    if (isNonEvmChainId(chainId)) {
-      return nonEvmEnabledNetworks.includes(chainId);
-    }
-
-    return evmEnabledNetworks.includes(chainId as Hex);
-  }, [destToken?.chainId, evmEnabledNetworks, nonEvmEnabledNetworks]);
+  const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears

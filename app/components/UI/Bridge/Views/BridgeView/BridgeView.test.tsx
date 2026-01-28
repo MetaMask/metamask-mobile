@@ -569,7 +569,7 @@ describe('BridgeView', () => {
     );
   });
 
-  it('should disable switch button when destination token network is disabled', () => {
+  it('disables switch button when destination token network is disabled', () => {
     const avalancheChainId = '0xa86a' as Hex; // Avalanche C-Chain
 
     // Create base state with the disabled network configuration
