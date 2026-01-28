@@ -1,5 +1,5 @@
 import { CaipChainId, Hex } from '@metamask/utils';
 
-export interface DefaultSLippageModalParams {
+export interface DefaultSlippageModalParams {
   network?: CaipChainId | Hex;
 }

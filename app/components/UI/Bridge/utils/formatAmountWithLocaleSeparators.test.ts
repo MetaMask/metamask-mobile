@@ -1,10 +1,6 @@
 import { formatAmountWithLocaleSeparators } from './formatAmountWithLocaleSeparators';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
-jest.mock('../../../../../locales/i18n', () => ({
-  locale: 'en-US',
-}));
-
 jest.mock('../../../../util/intl', () => ({
   getIntlNumberFormatter: jest.fn(),
 }));
@@ -14,7 +10,7 @@ const mockGetIntlNumberFormatter =
 
 describe('formatAmountWithLocaleSeparators', () => {
   beforeEach(() => {
-    // Mock default en-US number formatter
+    // Mock default en number formatter
     mockGetIntlNumberFormatter.mockReturnValue({
       format: (value: number) => {
         const parts = value.toString().split('.');
@@ -76,7 +72,7 @@ describe('formatAmountWithLocaleSeparators', () => {
     it('preserves zero decimal places for whole numbers', () => {
       const result = formatAmountWithLocaleSeparators('5000');
 
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
         useGrouping: true,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
@@ -87,7 +83,7 @@ describe('formatAmountWithLocaleSeparators', () => {
     it('preserves one decimal place', () => {
       const result = formatAmountWithLocaleSeparators('100.50');
 
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
         useGrouping: true,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -98,7 +94,7 @@ describe('formatAmountWithLocaleSeparators', () => {
     it('preserves six decimal places', () => {
       const result = formatAmountWithLocaleSeparators('1.123456');
 
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
         useGrouping: true,
         minimumFractionDigits: 6,
         maximumFractionDigits: 6,
@@ -109,7 +105,7 @@ describe('formatAmountWithLocaleSeparators', () => {
     it('handles trailing zeros in decimals', () => {
       const result = formatAmountWithLocaleSeparators('10.00');
 
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
         useGrouping: true,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -148,7 +144,7 @@ describe('formatAmountWithLocaleSeparators', () => {
       const result = formatAmountWithLocaleSeparators('100.');
 
       // parseFloat('100.') = 100, no decimal places
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
         useGrouping: true,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
@@ -164,7 +160,7 @@ describe('formatAmountWithLocaleSeparators', () => {
     it('handles zero with decimals', () => {
       const result = formatAmountWithLocaleSeparators('0.00');
 
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
         useGrouping: true,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -207,10 +203,20 @@ describe('formatAmountWithLocaleSeparators', () => {
         null as unknown as Intl.NumberFormat,
       );
 
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
       const result = formatAmountWithLocaleSeparators('1234.56');
 
       // Should fallback to original value
       expect(result).toBe('1234.56');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Number formatting error:',
+        expect.any(TypeError),
+      );
+
+      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -219,7 +225,7 @@ describe('formatAmountWithLocaleSeparators', () => {
       formatAmountWithLocaleSeparators('1234.56');
 
       expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith(
-        'en-US',
+        'en',
         expect.any(Object),
       );
     });
@@ -227,7 +233,7 @@ describe('formatAmountWithLocaleSeparators', () => {
     it('calls formatter with correct options', () => {
       formatAmountWithLocaleSeparators('1000.123');
 
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
         useGrouping: true,
         minimumFractionDigits: 3,
         maximumFractionDigits: 3,

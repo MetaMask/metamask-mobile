@@ -1,32 +1,9 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSlippageConfig } from './index';
 import AppConstants from '../../../../../core/AppConstants';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-
-// Mock formatChainIdToCaip
-jest.mock('@metamask/bridge-controller', () => ({
-  formatChainIdToCaip: jest.fn((chainId) => {
-    // Mock implementation that returns CAIP format
-    if (!chainId) return undefined;
-    if (chainId === '0x1') return 'eip155:1';
-    if (chainId === 'eip155:1') return 'eip155:1';
-    if (chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
-      return 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-    }
-    return chainId;
-  }),
-}));
-
-const mockFormatChainIdToCaip = formatChainIdToCaip as jest.MockedFunction<
-  typeof formatChainIdToCaip
->;
 
 describe('useSlippageConfig', () => {
   const defaultConfig = AppConstants.BRIDGE.SLIPPAGE_CONFIG.__default__;
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
 
   it('returns default config if network is not defined', () => {
     const { result } = renderHook(() => useSlippageConfig(undefined));
@@ -118,8 +95,9 @@ describe('useSlippageConfig', () => {
   describe('deep merge behavior', () => {
     beforeEach(() => {
       // Add a test network config with partial nested object override
+      // Using eip155:999 (unused test network)
       (AppConstants.BRIDGE.SLIPPAGE_CONFIG as Record<string, unknown>)[
-        'test:network:1'
+        'eip155:999'
       ] = {
         max_amount: 50,
         lower_allowed_slippage_threshold: {
@@ -131,19 +109,13 @@ describe('useSlippageConfig', () => {
     afterEach(() => {
       // Clean up test config
       delete (AppConstants.BRIDGE.SLIPPAGE_CONFIG as Record<string, unknown>)[
-        'test:network:1'
+        'eip155:999'
       ];
     });
 
     it('deep merges nested threshold objects', () => {
-      mockFormatChainIdToCaip.mockImplementation((chainId) =>
-        chainId === 'test:network:1'
-          ? ('test:network:1' as `${string}:${string}`)
-          : (chainId as `${string}:${string}`),
-      );
-
       const { result } = renderHook(() =>
-        useSlippageConfig('test:network:1' as `${string}:${string}`),
+        useSlippageConfig('eip155:999' as `${string}:${string}`),
       );
 
       // Key assertions for critical behavior
@@ -156,7 +128,7 @@ describe('useSlippageConfig', () => {
 
     it('handles complete threshold object replacement', () => {
       (AppConstants.BRIDGE.SLIPPAGE_CONFIG as Record<string, unknown>)[
-        'test:network:2'
+        'eip155:998'
       ] = {
         upper_allowed_slippage_threshold: {
           messageId: 'custom.message',
@@ -165,14 +137,8 @@ describe('useSlippageConfig', () => {
         },
       };
 
-      mockFormatChainIdToCaip.mockImplementation((chainId) =>
-        chainId === 'test:network:2'
-          ? ('test:network:2' as `${string}:${string}`)
-          : (chainId as `${string}:${string}`),
-      );
-
       const { result } = renderHook(() =>
-        useSlippageConfig('test:network:2' as `${string}:${string}`),
+        useSlippageConfig('eip155:998' as `${string}:${string}`),
       );
 
       // Key assertion
@@ -183,25 +149,19 @@ describe('useSlippageConfig', () => {
 
       // Cleanup
       delete (AppConstants.BRIDGE.SLIPPAGE_CONFIG as Record<string, unknown>)[
-        'test:network:2'
+        'eip155:998'
       ];
     });
 
     it('handles null threshold override', () => {
       (AppConstants.BRIDGE.SLIPPAGE_CONFIG as Record<string, unknown>)[
-        'test:network:3'
+        'eip155:997'
       ] = {
         lower_suggested_slippage_threshold: null,
       };
 
-      mockFormatChainIdToCaip.mockImplementation((chainId) =>
-        chainId === 'test:network:3'
-          ? ('test:network:3' as `${string}:${string}`)
-          : (chainId as `${string}:${string}`),
-      );
-
       const { result } = renderHook(() =>
-        useSlippageConfig('test:network:3' as `${string}:${string}`),
+        useSlippageConfig('eip155:997' as `${string}:${string}`),
       );
 
       // Key assertion
@@ -212,25 +172,19 @@ describe('useSlippageConfig', () => {
 
       // Cleanup
       delete (AppConstants.BRIDGE.SLIPPAGE_CONFIG as Record<string, unknown>)[
-        'test:network:3'
+        'eip155:997'
       ];
     });
 
     it('replaces arrays rather than merging them', () => {
       (AppConstants.BRIDGE.SLIPPAGE_CONFIG as Record<string, unknown>)[
-        'test:network:4'
+        'eip155:996'
       ] = {
         default_slippage_options: ['10', '20'],
       };
 
-      mockFormatChainIdToCaip.mockImplementation((chainId) =>
-        chainId === 'test:network:4'
-          ? ('test:network:4' as `${string}:${string}`)
-          : (chainId as `${string}:${string}`),
-      );
-
       const { result } = renderHook(() =>
-        useSlippageConfig('test:network:4' as `${string}:${string}`),
+        useSlippageConfig('eip155:996' as `${string}:${string}`),
       );
 
       // Key assertion - array replaced, not merged
@@ -241,13 +195,13 @@ describe('useSlippageConfig', () => {
 
       // Cleanup
       delete (AppConstants.BRIDGE.SLIPPAGE_CONFIG as Record<string, unknown>)[
-        'test:network:4'
+        'eip155:996'
       ];
     });
 
     it('handles multiple property overrides with deep merge', () => {
       (AppConstants.BRIDGE.SLIPPAGE_CONFIG as Record<string, unknown>)[
-        'test:network:5'
+        'eip155:995'
       ] = {
         input_step: 0.5,
         max_amount: 200,
@@ -260,14 +214,8 @@ describe('useSlippageConfig', () => {
         },
       };
 
-      mockFormatChainIdToCaip.mockImplementation((chainId) =>
-        chainId === 'test:network:5'
-          ? ('test:network:5' as `${string}:${string}`)
-          : (chainId as `${string}:${string}`),
-      );
-
       const { result } = renderHook(() =>
-        useSlippageConfig('test:network:5' as `${string}:${string}`),
+        useSlippageConfig('eip155:995' as `${string}:${string}`),
       );
 
       // Key assertions for overridden values
@@ -280,7 +228,7 @@ describe('useSlippageConfig', () => {
 
       // Cleanup
       delete (AppConstants.BRIDGE.SLIPPAGE_CONFIG as Record<string, unknown>)[
-        'test:network:5'
+        'eip155:995'
       ];
     });
   });
@@ -300,12 +248,39 @@ describe('useSlippageConfig', () => {
       expect(result.current).toEqual(defaultConfig);
     });
 
-    it('handles malformed chainId', () => {
+    it('handles unknown but valid CAIP chainId', () => {
       const { result } = renderHook(() =>
-        useSlippageConfig('invalid-chain-id' as `${string}:${string}`),
+        useSlippageConfig('eip155:9999' as `${string}:${string}`),
       );
 
       // Should return default config (no match in config object)
+      expect(result.current).toEqual(defaultConfig);
+    });
+
+    it('handles invalid hex chainId and returns default config', () => {
+      const { result } = renderHook(() =>
+        useSlippageConfig('0xGGG' as `0x${string}`),
+      );
+
+      // Should return default config when formatChainIdToCaip throws
+      expect(result.current).toEqual(defaultConfig);
+    });
+
+    it('handles malformed CAIP chainId and returns default config', () => {
+      const { result } = renderHook(() =>
+        useSlippageConfig('invalid:format:chain' as `${string}:${string}`),
+      );
+
+      // Should return default config when formatChainIdToCaip throws
+      expect(result.current).toEqual(defaultConfig);
+    });
+
+    it('handles non-numeric hex chainId and returns default config', () => {
+      const { result } = renderHook(() =>
+        useSlippageConfig('0xZZZ' as `0x${string}`),
+      );
+
+      // Should return default config when formatChainIdToCaip throws
       expect(result.current).toEqual(defaultConfig);
     });
 

@@ -1,16 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useGetSlippageOptions } from './index';
 
-// Mock i18n
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'bridge.custom': 'Custom',
-    };
-    return translations[key] || key;
-  }),
-}));
-
 describe('useGetSlippageOptions', () => {
   const defaultProps = {
     slippageOptions: ['auto', '1', '2', '3'] as const,

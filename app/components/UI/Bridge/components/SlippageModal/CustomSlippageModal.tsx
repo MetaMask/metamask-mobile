@@ -12,7 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import Keypad from '../../../../Base/Keypad';
 import { InputStepper } from '../InputStepper';
-import { DefaultSLippageModalParams } from './types';
+import { DefaultSlippageModalParams } from './types';
 import { customSlippageModalStyles } from './styles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
@@ -27,7 +27,7 @@ import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisa
 export const CustomSlippageModal = () => {
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { network } = useParams<DefaultSLippageModalParams>();
+  const { network } = useParams<DefaultSlippageModalParams>();
   const slippageConfig = useSlippageConfig(network);
   const currentSlippage = useSelector(selectSlippage);
   const [inputAmount, setInputAmount] = useState(currentSlippage ?? '0');
@@ -56,7 +56,7 @@ export const CustomSlippageModal = () => {
       const [, decimalPart] = data.value.split('.');
       setHasAttemptedToExceedMax(false);
 
-      // Cap the value to SLIPPAGE_MAX_AMOUNT
+      // Cap the value to input_max_decimals
       if ((decimalPart?.length ?? 0) > slippageConfig.input_max_decimals) {
         return;
       }
@@ -66,7 +66,7 @@ export const CustomSlippageModal = () => {
         return;
       }
 
-      // Do not render dot when reaching SLIPPAGE_MAX_AMOUNT
+      // Do not render dot when reaching max_amount
       if (data.value === slippageConfig.max_amount + '.') {
         setInputAmount(String(slippageConfig.max_amount));
         setHasAttemptedToExceedMax(true);
@@ -83,7 +83,7 @@ export const CustomSlippageModal = () => {
 
     setInputAmount((value) => {
       const newValue = parseFloat(value) + slippageConfig.input_step;
-      // Cap the value to SLIPPAGE_MAX_AMOUNT and to SLIPPAGE_MAX_DECIMALS due to JS rounding issues
+      // Cap the value to max_amount and to input_max_decimals due to JS rounding issues
       return newValue >= slippageConfig.max_amount
         ? String(slippageConfig.max_amount)
         : String(
@@ -97,7 +97,7 @@ export const CustomSlippageModal = () => {
 
     setInputAmount((value) => {
       const newValue = parseFloat(value) - slippageConfig.input_step;
-      // Cap the value to SLIPPAGE_MIN_AMOUNT and to SLIPPAGE_MAX_DECIMALS due to JS rounding issues
+      // Cap the value to min_amount and to input_max_decimals due to JS rounding issues
       return newValue <= slippageConfig.min_amount
         ? String(slippageConfig.min_amount)
         : String(

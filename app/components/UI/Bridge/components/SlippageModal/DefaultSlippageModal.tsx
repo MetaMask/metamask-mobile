@@ -22,7 +22,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { useGetSlippageOptions } from '../../hooks/useGetSlippageOptions';
 import { AUTO_SLIPPAGE_VALUE } from './constants';
-import { DefaultSLippageModalParams } from './types';
+import { DefaultSlippageModalParams } from './types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { SlippageType } from '../../types';
@@ -35,7 +35,7 @@ export const DefaultSlippageModal = () => {
   const [selectedSlippage, setSelectedSlippage] = useState<SlippageType>(
     slippage ?? AUTO_SLIPPAGE_VALUE,
   );
-  const { network } = useParams<DefaultSLippageModalParams>();
+  const { network } = useParams<DefaultSlippageModalParams>();
   const slippageConfig = useSlippageConfig(network);
 
   const handleClose = useCallback(() => {

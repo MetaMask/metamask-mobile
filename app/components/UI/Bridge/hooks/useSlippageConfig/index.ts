@@ -13,22 +13,28 @@ export const useSlippageConfig = (
     return defaultConfig;
   }
 
-  // Merge default config with network-specific overrides.
-  // Arrays are replaced, not merged by index.
-  const customizer = (_objValue: unknown, srcValue: unknown) => {
-    if (Array.isArray(srcValue)) {
-      return srcValue; // Replace array entirely
-    }
-    return undefined; // Use default merge behavior for other types
-  };
+  try {
+    // Merge default config with network-specific overrides.
+    // Arrays are replaced, not merged by index.
+    const customizer = (_objValue: unknown, srcValue: unknown) => {
+      if (Array.isArray(srcValue)) {
+        return srcValue; // Replace array entirely
+      }
+      return undefined; // Use default merge behavior for other types
+    };
 
-  return mergeWith(
-    customizer,
-    defaultConfig,
-    getOr(
-      {},
-      formatChainIdToCaip(network),
-      AppConstants.BRIDGE.SLIPPAGE_CONFIG,
-    ),
-  );
+    return mergeWith(
+      customizer,
+      defaultConfig,
+      getOr(
+        {},
+        formatChainIdToCaip(network),
+        AppConstants.BRIDGE.SLIPPAGE_CONFIG,
+      ),
+    );
+  } catch (error) {
+    // If formatChainIdToCaip throws (invalid chain ID format),
+    // return default config
+    return defaultConfig;
+  }
 };
