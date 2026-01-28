@@ -201,7 +201,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         if (hasActiveSubscribers && !this.wsSubscriptions.has(cacheKey)) {
           this.connect(symbol, interval, cacheKey);
         }
-      }, PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+      }, PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
       return;
     }
 
@@ -423,7 +423,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       // Log to Sentry: fetch failures affect multiple subscribers
       Logger.error(errorInstance, {
         tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
           component: 'CandleStreamChannel',
         },
         context: {

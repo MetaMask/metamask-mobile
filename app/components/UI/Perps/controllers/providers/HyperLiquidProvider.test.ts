@@ -15,7 +15,7 @@ import {
 import type {
   ClosePositionParams,
   DepositParams,
-  IPerpsPlatformDependencies,
+  PerpsPlatformDependencies,
   LiveDataConfig,
   OrderParams,
 } from '../types';
@@ -278,7 +278,7 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
 });
 
 // Create shared mock platform dependencies for provider tests
-const mockPlatformDependencies: IPerpsPlatformDependencies =
+const mockPlatformDependencies: PerpsPlatformDependencies =
   createMockInfrastructure();
 
 /**
@@ -4509,7 +4509,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'ready',
-            data: { code: REFERRAL_CONFIG.mainnetCode },
+            data: { code: REFERRAL_CONFIG.MainnetCode },
           },
           referredBy: null, // User has no referral set
         }),
@@ -4612,7 +4612,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'ready',
-            data: { code: REFERRAL_CONFIG.mainnetCode },
+            data: { code: REFERRAL_CONFIG.MainnetCode },
           },
           referredBy: null, // User has no referral set
         }),

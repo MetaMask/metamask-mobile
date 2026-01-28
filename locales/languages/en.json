@@ -193,11 +193,10 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search by token, site or address",
+    "placeholder": "Search by site or address",
     "recents": "Recents",
     "favorites": "Favorites",
-    "sites": "Sites",
-    "tokens": "Tokens"
+    "sites": "Sites"
   },
   "navigation": {
     "back": "Back",
@@ -2602,7 +2601,8 @@
     "all_time_high": "All time high",
     "all_time_low": "All time low",
     "fully_diluted": "Fully diluted",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "stock": "Stock"
   },
   "collectible": {
     "collectible_address": "Address",
@@ -4759,6 +4759,14 @@
         "subtitle_5": "and see how much gas costs.",
         "cta": "Continue to purchase {{ticker}}"
       }
+    },
+    "build_quote_settings_modal": {
+      "title": "Settings",
+      "view_order_history": "View order history",
+      "contact_support": "Contact support",
+      "log_out": "Log out of {{provider}}",
+      "logged_out_success": "Successfully logged out",
+      "logged_out_error": "Error logging out"
     }
   },
   "fiat_on_ramp_aggregator": {
@@ -5781,14 +5789,15 @@
       },
       "education": {
         "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus. Terms apply.",
+        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus.",
+        "terms_apply": "Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now"
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "boost_title": "Boost your stablecoin balance",
-      "boost_description": "Earn a bonus every time you convert stablecoins to",
+      "boost_title": "Get {{percentage}}% on your stablecoins",
+      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
       "powered_by_relay": "Powered by Relay"
     },
     "rewards": {
@@ -7409,8 +7418,10 @@
     "still_connecting_network": "Still connecting to {{networkName}}...",
     "unable_to_connect_network": "Unable to connect to {{networkName}}.",
     "update_rpc": "Update RPC",
+    "switch_to_metamask_default_rpc": "Switch to MetaMask default RPC",
     "check_network_connectivity": "Check your network connectivity.",
-    "check_network_connectivity_or": "Check your network connectivity or"
+    "check_network_connectivity_or": "Check your network connectivity or",
+    "updated_to_metamask_default": "Updated to MetaMask default"
   },
   "trending": {
     "title": "Explore",

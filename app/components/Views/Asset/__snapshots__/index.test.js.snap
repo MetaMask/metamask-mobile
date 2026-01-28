@@ -2084,20 +2084,29 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "flexDirection": "row",
+                                            "justifyContent": "flex-start",
                                           }
                                         }
                                       >
-                                        SOL
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          SOL
+                                        </Text>
+                                      </View>
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -3541,20 +3550,29 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "flexDirection": "row",
+                                            "justifyContent": "flex-start",
                                           }
                                         }
                                       >
-                                        UNKNOWN
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          UNKNOWN
+                                        </Text>
+                                      </View>
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -5067,20 +5085,29 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "flexDirection": "row",
+                                            "justifyContent": "flex-start",
                                           }
                                         }
                                       >
-                                        SOL
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          SOL
+                                        </Text>
+                                      </View>
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -6524,20 +6551,29 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "flexDirection": "row",
+                                            "justifyContent": "flex-start",
                                           }
                                         }
                                       >
-                                        SOL
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          SOL
+                                        </Text>
+                                      </View>
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -7981,20 +8017,29 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "flexDirection": "row",
+                                            "justifyContent": "flex-start",
                                           }
                                         }
                                       >
-                                        USDC
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          USDC
+                                        </Text>
+                                      </View>
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -9507,20 +9552,29 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "flexDirection": "row",
+                                            "justifyContent": "flex-start",
                                           }
                                         }
                                       >
-                                        SOL
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          SOL
+                                        </Text>
+                                      </View>
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -11530,20 +11584,29 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "flexDirection": "row",
+                                            "justifyContent": "flex-start",
                                           }
                                         }
                                       >
-                                        SOL
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          SOL
+                                        </Text>
+                                      </View>
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -12987,20 +13050,29 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "flexDirection": "row",
+                                            "justifyContent": "flex-start",
                                           }
                                         }
                                       >
-                                        SOL
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          SOL
+                                        </Text>
+                                      </View>
                                       <Text
                                         accessibilityRole="text"
                                         style={
