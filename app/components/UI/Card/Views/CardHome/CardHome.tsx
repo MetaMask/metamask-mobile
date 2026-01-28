@@ -73,6 +73,7 @@ import {
   resetAuthenticatedData,
   selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { isAuthenticationError } from '../../util/isAuthenticationError';
@@ -117,6 +118,9 @@ const CardHome = () => {
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
   const userLocation = useSelector(selectUserCardLocation);
+  const isMetalCardCheckoutEnabled = useSelector(
+    selectMetalCardCheckoutFeatureFlag,
+  );
   const {
     fetchCardDetailsToken,
     isLoading: isCardDetailsLoading,
@@ -471,12 +475,14 @@ const CardHome = () => {
 
   const isUserEligibleForMetalCard = useMemo(
     () =>
+      isMetalCardCheckoutEnabled &&
       isBaanxLoginEnabled &&
       isAuthenticated &&
       userLocation === 'us' &&
       userShippingAddress &&
       cardDetails?.type === CardType.VIRTUAL,
     [
+      isMetalCardCheckoutEnabled,
       isBaanxLoginEnabled,
       isAuthenticated,
       userLocation,
@@ -610,6 +616,10 @@ const CardHome = () => {
       );
     }
 
+    if (isCardProvisioning) {
+      return null;
+    }
+
     if (cardSetupState.needsSetup) {
       if (!cardSetupState.canEnable) {
         return null;
@@ -662,6 +672,7 @@ const CardHome = () => {
     isSwapEnabledForPriorityToken,
     tw,
     openOnboardingDelegationAction,
+    isCardProvisioning,
   ]);
 
   useEffect(
@@ -849,7 +860,7 @@ const CardHome = () => {
         />
       }
     >
-      <Text style={tw.style('px-4 py-4')} variant={TextVariant.HeadingLg}>
+      <Text style={tw.style('px-4 pt-4')} variant={TextVariant.HeadingLg}>
         {strings('card.card_home.title')}
       </Text>
       {isCloseSpendingLimitWarningShown && isCloseSpendingLimitWarning && (
@@ -875,7 +886,7 @@ const CardHome = () => {
       {isCardProvisioning && (
         <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
       )}
-      <Box twClassName=" bg-background-muted rounded-lg mx-4 py-4 px-4">
+      <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
         <Box twClassName="w-full relative">
           {isLoading || isCardDetailsLoading ? (
             <Box
@@ -1053,7 +1064,7 @@ const CardHome = () => {
             />
           )}
       </Box>
-      {!isLoading && !cardSetupState.isKYCPending && (
+      {!isLoading && !cardSetupState.isKYCPending && !isCardProvisioning && (
         <>
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.manage_card')}
@@ -1090,7 +1101,9 @@ const CardHome = () => {
       )}
       {isAuthenticated && !isLoading && (
         <>
-          <Box twClassName="h-px mx-4 bg-border-muted" />
+          <Box
+            twClassName={`h-px mx-4 bg-border-muted ${cardSetupState.isKYCPending || isCardProvisioning ? 'hidden' : ''}`}
+          />
           <TouchableOpacity
             onPress={navigateToCardTosPage}
             testID={CardHomeSelectors.CARD_TOS_ITEM}

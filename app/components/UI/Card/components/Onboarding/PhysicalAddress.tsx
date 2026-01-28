@@ -39,6 +39,7 @@ import {
   setSelectedCountry,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import { CardError } from '../../types';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
@@ -245,6 +246,9 @@ const PhysicalAddress = () => {
   const onboardingId = useSelector(selectOnboardingId);
   const initialSelectedCountry = useSelector(selectSelectedCountry);
   const existingConsentSetId = useSelector(selectConsentSetId);
+  const isMetalCardCheckoutEnabled = useSelector(
+    selectMetalCardCheckoutFeatureFlag,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -546,7 +550,7 @@ const PhysicalAddress = () => {
             setUser(userDetails);
 
             if (currentVerificationState === 'VERIFIED') {
-              if (location === 'us') {
+              if (location === 'us' && isMetalCardCheckoutEnabled) {
                 const shippingAddress: ShippingAddress = {
                   line1: addressLine1,
                   line2: addressLine2 || undefined,

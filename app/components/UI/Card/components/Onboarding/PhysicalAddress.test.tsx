@@ -326,6 +326,14 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
+// Mock card feature flag selectors
+const mockSelectMetalCardCheckoutFeatureFlag = jest.fn();
+jest.mock('../../../../../selectors/featureFlagController/card', () => ({
+  ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
+  selectMetalCardCheckoutFeatureFlag: () =>
+    mockSelectMetalCardCheckoutFeatureFlag(),
+}));
+
 // Create test store
 const createTestStore = (initialState = {}) =>
   configureStore({
@@ -391,6 +399,9 @@ describe('PhysicalAddress Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     store = createTestStore();
+
+    // Default: Metal card checkout feature flag is enabled
+    mockSelectMetalCardCheckoutFeatureFlag.mockReturnValue(true);
 
     // Mock navigation
     mockUseNavigation.mockReturnValue({
@@ -843,6 +854,120 @@ describe('PhysicalAddress Component', () => {
                     zip: '12345',
                   },
                 },
+              },
+            ],
+          });
+        },
+        { timeout: 5000 },
+      );
+    });
+
+    it('navigates to SPENDING_LIMIT when metal card checkout flag is disabled for US users', async () => {
+      // Disable the metal card checkout feature flag
+      mockSelectMetalCardCheckoutFeatureFlag.mockReturnValue(false);
+
+      const mockGetOnboardingConsentSetByOnboardingId = jest
+        .fn()
+        .mockResolvedValue(null);
+      const mockCreateOnboardingConsent = jest
+        .fn()
+        .mockResolvedValue('consent-set-123');
+      const mockLinkUserToConsent = jest.fn().mockResolvedValue(undefined);
+      const mockRegisterAddress = jest.fn().mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-id' },
+      });
+
+      mockUseRegisterPhysicalAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      // Mock useCardSDK with user data that includes usState and SDK with getUserDetails
+      const mockSetUser = jest.fn();
+      mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
+        sdk: {
+          getUserDetails: jest.fn().mockResolvedValue({
+            verificationState: 'VERIFIED',
+            userId: 'user-id',
+          }),
+        } as any,
+        isLoading: false,
+        user: {
+          id: 'user-id',
+          email: 'test@example.com',
+          usState: 'CA',
+        },
+        fetchUserData: jest.fn(),
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '12345');
+      fireEvent.press(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      );
+
+      await waitFor(() => {
+        const button = getByTestId('physical-address-continue-button');
+        expect(button.props.disabled).toBe(false);
+      });
+
+      const button = getByTestId('physical-address-continue-button');
+
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      await waitFor(() => {
+        expect(mockRegisterAddress).toHaveBeenCalledWith({
+          onboardingId: 'test-id',
+          addressLine1: '123 Main St',
+          addressLine2: '',
+          city: 'San Francisco',
+          usState: 'CA',
+          zip: '12345',
+          isSameMailingAddress: true,
+        });
+      });
+
+      // When feature flag is disabled, US users should go to SPENDING_LIMIT instead of CHOOSE_YOUR_CARD
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [
+              {
+                name: Routes.CARD.SPENDING_LIMIT,
+                params: { flow: 'onboarding' },
               },
             ],
           });

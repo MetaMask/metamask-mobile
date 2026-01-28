@@ -57,6 +57,7 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
+import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import {
   selectCardholderAccounts,
   selectIsAuthenticatedCard,
@@ -257,6 +258,12 @@ jest.mock('react-native-device-info', () => ({
 jest.mock('../../../../../selectors/featureFlagController/deposit', () => ({
   selectDepositActiveFlag: jest.fn(),
   selectDepositMinimumVersionFlag: jest.fn(),
+}));
+
+// Mock card feature flag selectors
+jest.mock('../../../../../selectors/featureFlagController/card', () => ({
+  ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
+  selectMetalCardCheckoutFeatureFlag: jest.fn(),
 }));
 
 // Mock bridge actions
@@ -465,6 +472,7 @@ function setupMockSelectors(
     selectedAccount: typeof mockSelectedInternalAccount;
     isAuthenticated: boolean;
     userLocation: 'us' | 'international';
+    isMetalCardCheckoutEnabled: boolean;
   }>,
 ) {
   const defaults = {
@@ -476,6 +484,7 @@ function setupMockSelectors(
     selectedAccount: mockSelectedInternalAccount,
     isAuthenticated: false,
     userLocation: 'international' as const,
+    isMetalCardCheckoutEnabled: true,
   };
 
   const config = { ...defaults, ...overrides };
@@ -490,6 +499,8 @@ function setupMockSelectors(
     if (selector === selectCardholderAccounts) return config.cardholderAccounts;
     if (selector === selectIsAuthenticatedCard) return config.isAuthenticated;
     if (selector === selectUserCardLocation) return config.userLocation;
+    if (selector === selectMetalCardCheckoutFeatureFlag)
+      return config.isMetalCardCheckoutEnabled;
 
     const selectorString =
       typeof selector === 'function' ? selector.toString() : '';
@@ -3710,6 +3721,37 @@ describe('CardHome Component', () => {
       render();
 
       // Then: order metal card item should not be visible (already has metal card)
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeNull();
+      });
+    });
+
+    it('does not show order metal card item when feature flag is disabled', async () => {
+      // Given: US user eligible for metal card but feature flag is disabled
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'us',
+        isMetalCardCheckoutEnabled: false,
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsWithMailingAddress,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: order metal card item should not be visible (feature flag disabled)
       await waitFor(() => {
         const orderMetalCardItem = screen.queryByTestId(
           CardHomeSelectors.ORDER_METAL_CARD_ITEM,
