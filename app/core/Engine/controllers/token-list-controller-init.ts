@@ -36,7 +36,7 @@ export const tokenListControllerInit: ControllerInitFunction<
   });
 
   controller.initialize().catch(() => {
-    // Initialization failed 
+    // Initialization failed
   });
 
   return {
