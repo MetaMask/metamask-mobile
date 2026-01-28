@@ -77,6 +77,9 @@ export function usePredictPositions(
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dataLoadedForAddress, setDataLoadedForAddress] = useState<
+    string | null
+  >(null);
 
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
@@ -171,6 +174,7 @@ export function usePredictPositions(
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
+        setDataLoadedForAddress(selectedInternalAccountAddress);
       }
     },
     // eslint-disable-next-line react-compiler/react-compiler
@@ -221,12 +225,14 @@ export function usePredictPositions(
     };
   }, [autoRefreshTimeout]);
 
+  const isDataStale = dataLoadedForAddress !== selectedInternalAccountAddress;
+
   return {
     // Get claimable positions from controller state if claimable is true.
     // This will ensure that we can refresh claimable positions when the user
     // performs a claim operation.
     positions: claimable ? filteredClaimablePositions : positions,
-    isLoading,
+    isLoading: isLoading || isDataStale,
     isRefreshing,
     error,
     loadPositions,

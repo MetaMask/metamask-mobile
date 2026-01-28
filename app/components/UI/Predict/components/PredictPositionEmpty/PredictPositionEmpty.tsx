@@ -22,9 +22,13 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { PredictEntryPointProvider } from '../../contexts';
 import { PredictNavigationParamList } from '../../types/navigation';
 
-interface PredictPositionEmptyProps {}
+interface PredictPositionEmptyProps {
+  testID?: string;
+}
 
-const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
+const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = ({
+  testID = 'predict-position-empty',
+}) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -48,7 +52,7 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
   }, [navigation]);
 
   return (
-    <Box testID="predict-position-empty">
+    <Box testID={testID}>
       <TouchableOpacity
         testID="predict-position-empty-section-header"
         style={tw.style('flex-row items-center mb-2')}
