@@ -220,7 +220,7 @@ export const useMusdConversionStatus = () => {
             id: transactionId,
             data: {
               success: false,
-              status,
+              status: transactionMeta.status,
             },
           });
           break;

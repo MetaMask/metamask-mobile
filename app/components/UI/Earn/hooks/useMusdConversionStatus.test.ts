@@ -1032,13 +1032,13 @@ describe('useMusdConversionStatus', () => {
     it('ends confirmation trace with success when transaction is confirmed', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const handler = getConfirmedHandler();
       const transactionMeta = createTransactionMeta(
         TransactionStatus.confirmed,
         'test-trace-confirmed',
       );
 
-      handler({ transactionMeta });
+      handler(transactionMeta);
 
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.MusdConversionConfirm,
@@ -1167,11 +1167,12 @@ describe('useMusdConversionStatus', () => {
     it('completes full trace lifecycle from approved to confirmed', () => {
       renderHook(() => useMusdConversionStatus());
 
-      const handler = getSubscribedHandler();
+      const statusHandler = getSubscribedHandler();
+      const confirmedHandler = getConfirmedHandler();
       const transactionId = 'test-lifecycle-tx';
 
       // Transaction approved - starts trace
-      handler({
+      statusHandler({
         transactionMeta: createTransactionMeta(
           TransactionStatus.approved,
           transactionId,
@@ -1185,13 +1186,10 @@ describe('useMusdConversionStatus', () => {
         }),
       );
 
-      // Transaction confirmed - ends trace
-      handler({
-        transactionMeta: createTransactionMeta(
-          TransactionStatus.confirmed,
-          transactionId,
-        ),
-      });
+      // Transaction confirmed - ends trace (via transactionConfirmed event)
+      confirmedHandler(
+        createTransactionMeta(TransactionStatus.confirmed, transactionId),
+      );
 
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.MusdConversionConfirm,
