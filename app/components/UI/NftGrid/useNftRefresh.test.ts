@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import { useNftRefresh } from './useNftRefresh';
 import Engine from '../../../core/Engine';
 import { useNftDetection } from '../../hooks/useNftDetection';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
@@ -60,19 +62,13 @@ describe('useNftRefresh', () => {
     mockUseNftDetection.mockReturnValue({
       detectNfts: mockDetectNfts,
       chainIdsToDetectNftsFor: ['0x1', '0x89'],
+      abortDetection: jest.fn(),
     });
 
     (
       Engine.context.NftController
         .checkAndUpdateAllNftsOwnershipStatus as jest.Mock
     ).mockImplementation(mockCheckAndUpdateAllNftsOwnershipStatus);
-
-    const { selectEvmNetworkConfigurationsByChainId } = require(
-      '../../../selectors/networkController',
-    );
-    const { selectTokenNetworkFilter } = require(
-      '../../../selectors/preferencesController',
-    );
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectEvmNetworkConfigurationsByChainId) {
@@ -157,10 +153,6 @@ describe('useNftRefresh', () => {
   });
 
   it('does not call checkAndUpdateAllNftsOwnershipStatus when no network client IDs', async () => {
-    const { selectTokenNetworkFilter } = require(
-      '../../../selectors/preferencesController',
-    );
-
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenNetworkFilter) {
         return {};
@@ -179,13 +171,6 @@ describe('useNftRefresh', () => {
   });
 
   it('skips network client IDs that are undefined', async () => {
-    const { selectEvmNetworkConfigurationsByChainId } = require(
-      '../../../selectors/networkController',
-    );
-    const { selectTokenNetworkFilter } = require(
-      '../../../selectors/preferencesController',
-    );
-
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectEvmNetworkConfigurationsByChainId) {
         return {
