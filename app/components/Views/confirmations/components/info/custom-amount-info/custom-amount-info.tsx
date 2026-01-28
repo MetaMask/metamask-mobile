@@ -28,8 +28,8 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
-  useTransactionPaySourceAmounts,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import Text, {
@@ -68,6 +68,10 @@ export interface CustomAmountInfoProps {
    * When set, automatically hides PayTokenAmount, PayWithRow, and children.
    */
   overrideContent?: (amountHuman: string) => ReactNode;
+  /**
+   * Callback fired when user presses Done after entering an amount.
+   */
+  onAmountSubmit?: () => void;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -76,6 +80,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     currency,
     disablePay,
     hasMax,
+    onAmountSubmit,
     overrideContent,
     preferredToken,
     footerText,
@@ -118,7 +123,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount();
       EngineService.flushState();
       setIsKeyboardVisible(false);
-    }, [updateTokenAmount]);
+      onAmountSubmit?.();
+    }, [onAmountSubmit, updateTokenAmount]);
 
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
@@ -290,16 +296,7 @@ function useIsResultReady({
 }) {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
-  const requiredTokens = useTransactionPayRequiredTokens();
-  const sourceAmounts = useTransactionPaySourceAmounts();
-
-  const hasSourceAmount = sourceAmounts?.some((a) =>
-    requiredTokens.some(
-      (rt) =>
-        rt.address.toLowerCase() === a.targetTokenAddress.toLowerCase() &&
-        !rt.skipIfBalance,
-    ),
-  );
+  const hasSourceAmount = useTransactionPayHasSourceAmount();
 
   return (
     !isKeyboardVisible &&
