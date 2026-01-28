@@ -190,6 +190,10 @@ export default class SnapBridge {
     return engine;
   }
 
+  /**
+   * Sets up the provider engine for the Snaps CAIP stream.
+   * @returns The configured JSON-RPC engine.
+   */
   #setupProviderEngineCaip() {
     const origin = this.#snapId;
 
