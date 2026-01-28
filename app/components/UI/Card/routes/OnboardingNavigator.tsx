@@ -11,6 +11,7 @@ import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
 import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import KYCFailed from '../components/Onboarding/KYCFailed';
+import KYCPending from '../components/Onboarding/KYCPending';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import { cardDefaultNavigationOptions, headerStyle } from '.';
@@ -95,6 +96,11 @@ export const KYCStatusNavigationOptions = ({
   ),
   gestureEnabled: false,
 });
+
+export const KYCPendingNavigationOptions: StackNavigationOptions = {
+  headerShown: false,
+  gestureEnabled: false,
+};
 
 const OnboardingNavigator: React.FC = () => {
   const { cardUserPhase } = useParams<{
@@ -269,7 +275,12 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
         component={KYCFailed}
-        options={KYCStatusNavigationOptions}
+        options={KYCPendingNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.KYC_PENDING}
+        component={KYCPending}
+        options={KYCPendingNavigationOptions}
       />
     </Stack.Navigator>
   );
