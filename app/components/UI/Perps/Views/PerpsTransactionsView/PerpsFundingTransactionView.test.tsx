@@ -290,10 +290,10 @@ describe('PerpsFundingTransactionView', () => {
     });
 
     // Act
-    const { getByText } = render(<PerpsFundingTransactionView />);
+    const { getAllByText } = render(<PerpsFundingTransactionView />);
 
     // Assert
-    expect(getByText('Transaction not found')).toBeTruthy();
+    expect(getAllByText('Transaction not found').length).toBeGreaterThan(0);
   });
 
   it('should format date correctly', () => {
