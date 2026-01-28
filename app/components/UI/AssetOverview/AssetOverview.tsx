@@ -842,7 +842,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 iconName={IconName.Info}
                 label={strings('asset_overview.market_closed')}
                 onPress={handleMarketClosedButtonPress}
-                testID={'test'}
               />
             </View>
           )}
