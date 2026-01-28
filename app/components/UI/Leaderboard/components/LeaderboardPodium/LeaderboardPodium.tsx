@@ -83,8 +83,8 @@ const PodiumItem: React.FC<PodiumItemProps> = ({ trader, rank, onPress }) => {
       pedestalHeight: 80,
       gradientColors: ['#FFD700', '#D4AF37', '#B8860B'], // Gold gradient
       pedestalTextColor: 'rgba(255, 255, 255, 0.9)',
-      badgeColor: 'bg-warning-default',
-      rankTextColor: 'text-default',
+      badgeColor: '#f0c63e', // Gold badge
+      badgeTextColor: '#FFFFFF', // White text
     },
     2: {
       avatarSize: 54,
@@ -130,7 +130,9 @@ const PodiumItem: React.FC<PodiumItemProps> = ({ trader, rank, onPress }) => {
               style={styles.avatarImage}
             />
           ) : (
-            <View style={[styles.avatarPlaceholder, tw.style('bg-alternative')]}>
+            <View
+              style={[styles.avatarPlaceholder, tw.style('bg-alternative')]}
+            >
               <Icon
                 name={IconName.User}
                 size={rank === 1 ? IconSize.Lg : IconSize.Md}
@@ -141,10 +143,26 @@ const PodiumItem: React.FC<PodiumItemProps> = ({ trader, rank, onPress }) => {
         </View>
 
         {/* Rank badge */}
-        <View style={[styles.rankBadge, tw.style(config.badgeColor)]}>
+        <View
+          style={[
+            styles.rankBadge,
+            config.badgeColor.startsWith('#')
+              ? { backgroundColor: config.badgeColor }
+              : tw.style(config.badgeColor),
+          ]}
+        >
           <Text
             variant={TextVariant.BodyXs}
-            twClassName={`${config.rankTextColor} font-bold`}
+            style={
+              config.badgeTextColor
+                ? { color: config.badgeTextColor, fontWeight: 'bold' }
+                : undefined
+            }
+            twClassName={
+              !config.badgeTextColor
+                ? `${config.rankTextColor} font-bold`
+                : undefined
+            }
           >
             #{rank}
           </Text>
