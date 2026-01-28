@@ -68,7 +68,7 @@ exports[`MarketClosedActionButton renders correctly 1`] = `
         color="#686e7d"
         fill="currentColor"
         height={24}
-        name="Clock"
+        name="ClockHalfDotted"
         style={
           {
             "height": 24,

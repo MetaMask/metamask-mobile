@@ -79,7 +79,7 @@ const MarketClosedActionButton = ({
         <View style={styles.container}>
           <Icon
             style={styles.clockIcon}
-            name={IconName.Clock}
+            name={IconName.ClockHalfDotted}
             size={IconSize.Lg}
             color={IconColor.Alternative}
             testID={MARKETCLOSED_ACTIONBUTTON_CLOCKICON_TEST_ID}
