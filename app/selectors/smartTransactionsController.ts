@@ -1,4 +1,3 @@
-import { Alert } from 'react-native';
 import { selectSmartTransactionsOptInStatus } from './preferencesController';
 import { RootState } from '../reducers';
 import { areAddressesEqual, isHardwareAccount } from '../util/address';
@@ -82,18 +81,11 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
       : false;
     const isAllowedNetwork =
       getAllowedSmartTransactionsChainIds().includes(effectiveChainId);
-
     const isSmartTransactionEnabledOnNetworkWithFeatureFlags =
       isSmartTransactionEnabledWithNetworkFeatureFlag(
         smartTransactionsFeatureFlags,
       );
-    const isAllowedRpcUrl =
-      getIsAllowedRpcUrlForSmartTransactions(providerConfigRpcUrl);
-    const liveness = smartTransactionsLivenessByChainId?.[effectiveChainId];
-    Alert.alert(
-      'Debug Values',
-      `isAllowedNetwork: ${isAllowedNetwork}\naddressIsHardwareAccount: ${addressIsHardwareAccount}\nisSmartTransactionEnabledOnNetworkWithFeatureFlags: ${isSmartTransactionEnabledOnNetworkWithFeatureFlags}\nisAllowedRpcUrl: ${isAllowedRpcUrl}\nliveness: ${liveness}`,
-    );
+
     return Boolean(
       isAllowedNetwork &&
         !addressIsHardwareAccount &&
