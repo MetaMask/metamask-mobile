@@ -226,19 +226,29 @@ class AuthenticationService {
   };
 
   private postLoginAsyncOperations = async (): Promise<void> => {
-    await Promise.all(
-      Object.values(WalletClientType).map(async (clientType) => {
-        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+    // READ THIS CAREFULLY:
+    // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
+    // automatically "fix" this corrupted state, we run this method which will re-sync
+    // MetaMask accounts and Snap accounts upon login.
+    try {
+      const { MultichainAccountService } = Engine.context;
+      await MultichainAccountService.resyncAccounts();
+    } catch (error) {
+      console.warn('Failed to resync accounts:', error);
+    }
 
-        try {
-          const isPending = await StorageWrapper.getItem(discoveryStorageId);
-          if (isPending === TRUE) {
-            await this.attemptAccountDiscovery(clientType);
-          }
-        } catch (error) {
-          console.warn('Failed to check/retry discovery:', clientType, error);
-        }
-      }),
+    // We just re-run the same discovery here.
+    // 1. Each wallets know their highest group index and restart the discovery from
+    // there, thus acting naturally as a "retry".
+    // 2. Running the discovery every time allow to auto-discover accounts that could
+    // have been added on external wallets.
+    // 3. We run the alignment at the end of the discovery, thus, automatically
+    // creating accounts for new account providers.
+    await Promise.allSettled(
+      this.getEntropySourceIds().map(
+        async (entropySource) =>
+          await this.attemptMultichainAccountWalletDiscovery(entropySource),
+      ),
     );
   };
 
@@ -1042,7 +1052,8 @@ class AuthenticationService {
               await this.importSeedlessMnemonicToVault(mnemonicToRestore);
 
             // discover multichain accounts from imported srp
-            this.addMultichainAccounts([keyringMetadata]);
+            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+            this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
           } else {
             Logger.error(
               new Error('SeedlessOnboardingController: Unknown secret type'),
@@ -1291,8 +1302,10 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        this.addMultichainAccounts(keyringMetadataList);
-
+        for (const { id } of keyringMetadataList) {
+          // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+          this.attemptMultichainAccountWalletDiscovery(id);
+        }
         this.dispatchOauthReset();
 
         ReduxService.store.dispatch(setExistingUser(true));
