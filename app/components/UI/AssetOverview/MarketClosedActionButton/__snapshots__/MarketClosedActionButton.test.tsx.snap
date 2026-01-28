@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MainActionButton should render correctly 1`] = `
+exports[`MarketClosedActionButton renders correctly 1`] = `
 <View
   collapsable={false}
   style={
