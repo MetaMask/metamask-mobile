@@ -1,246 +1,614 @@
-import migrate, { migrationVersion } from './112';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
+import { captureException } from '@sentry/react-native';
+import migrate from './112';
+import { ensureValidState } from './util';
 
-// Storage key constants matching the migration
-const STORAGE_KEY_PREFIX = 'storageService:';
-const CONTROLLER_NAME = 'TokenListController';
-const CACHE_KEY_PREFIX = 'tokensChainsCache';
-
-function makeStorageKey(chainId: string): string {
-  return `${STORAGE_KEY_PREFIX}${CONTROLLER_NAME}:${CACHE_KEY_PREFIX}:${chainId}`;
-}
-
-jest.mock('redux-persist-filesystem-storage', () => ({
-  getItem: jest.fn(),
-  setItem: jest.fn(),
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
 }));
 
-jest.mock('../../util/device', () => ({
-  isIos: jest.fn().mockReturnValue(false),
+jest.mock('./util', () => ({
+  ensureValidState: jest.fn(),
 }));
 
-const mockFilesystemStorage = FilesystemStorage as jest.Mocked<
-  typeof FilesystemStorage
->;
-
-const createValidState = (
-  tokenListControllerState: Record<string, unknown> = {},
-) => ({
+interface TestState {
   engine: {
     backgroundState: {
-      TokenListController: {
-        tokensChainsCache: {},
-        preventPollingOnNetworkRestart: false,
-        ...tokenListControllerState,
-      },
-    },
-  },
-});
+      PerpsController?: {
+        withdrawalRequests?: {
+          id: string;
+          status: string;
+          amount: string;
+          asset: string;
+          accountAddress: string;
+          timestamp: number;
+          txHash?: string;
+        }[];
+        withdrawalProgress?: {
+          progress: number;
+          lastUpdated: number;
+          activeWithdrawalId: string | null;
+        };
+        activeProvider?: string;
+        isTestnet?: boolean;
+        [key: string]: unknown;
+      };
+      [key: string]: unknown;
+    };
+  };
+}
 
-describe(`Migration ${migrationVersion}`, () => {
+const mockedEnsureValidState = jest.mocked(ensureValidState);
+const mockedCaptureException = jest.mocked(captureException);
+
+describe('Migration 112: Clear stuck pending withdrawal requests from PerpsController', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockFilesystemStorage.getItem.mockResolvedValue(undefined);
-    mockFilesystemStorage.setItem.mockResolvedValue(undefined);
+    jest.resetAllMocks();
   });
 
-  it('returns state unchanged if state is invalid', async () => {
-    const invalidState = null;
-    const result = await migrate(invalidState);
-    expect(result).toBe(invalidState);
+  it('returns state unchanged if ensureValidState returns false', () => {
+    const state = { some: 'state' };
+    mockedEnsureValidState.mockReturnValue(false);
+
+    const result = migrate(state);
+
+    expect(result).toBe(state);
   });
 
-  it('returns state unchanged if engine is missing', async () => {
-    const invalidState = { foo: 'bar' };
-    const result = await migrate(invalidState);
-    expect(result).toStrictEqual(invalidState);
+  it('returns state unchanged if PerpsController does not exist', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          OtherController: { someData: true },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(result).toBe(state);
+    expect(result.engine.backgroundState.PerpsController).toBeUndefined();
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged if TokenListController is missing', async () => {
+  it('returns state unchanged if PerpsController is not an object', () => {
     const state = {
       engine: {
-        backgroundState: {},
+        backgroundState: {
+          PerpsController: 'invalid',
+        },
       },
     };
-    const result = await migrate(state);
-    expect(result).toStrictEqual(state);
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state);
+
+    expect(result).toBe(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged if tokensChainsCache is missing', async () => {
-    const state = createValidState({
-      tokensChainsCache: undefined,
-    });
-    const result = await migrate(state);
-    // tokensChainsCache should remain as-is (not modified)
-    expect(result).toStrictEqual(state);
-  });
+  it('returns state unchanged if withdrawalRequests does not exist', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            activeProvider: 'hyperliquid',
+            isTestnet: false,
+          },
+        },
+      },
+    };
 
-  it('returns state unchanged if tokensChainsCache is empty', async () => {
-    const state = createValidState({
-      tokensChainsCache: {},
-    });
-    const result = await migrate(state);
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(result).toBe(state);
     expect(
-      (result as typeof state).engine.backgroundState.TokenListController
-        .tokensChainsCache,
-    ).toStrictEqual({});
+      result.engine.backgroundState.PerpsController?.withdrawalRequests,
+    ).toBeUndefined();
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('migrates tokensChainsCache to FilesystemStorage for single chain', async () => {
-    const chainId = '0x1';
-    const cacheData = {
-      timestamp: 1234567890,
-      data: { token1: { name: 'Token1' } },
+  it('returns state unchanged if withdrawalRequests is not an array', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: 'not-an-array',
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
     };
 
-    const state = createValidState({
-      tokensChainsCache: {
-        [chainId]: cacheData,
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state);
+
+    expect(result).toBe(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('removes pending withdrawal requests', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'pending',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+              },
+              {
+                id: 'withdrawal-2',
+                status: 'completed',
+                amount: '200',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567891,
+                txHash: '0xabc',
+              },
+            ],
+            activeProvider: 'hyperliquid',
+          },
+        },
       },
-    });
+    };
 
-    const result = await migrate(state);
+    mockedEnsureValidState.mockReturnValue(true);
 
-    // Verify data was saved to FilesystemStorage
-    expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
-      makeStorageKey(chainId),
-      JSON.stringify(cacheData),
-      false, // Device.isIos() returns false in mock
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests,
+    ).toHaveLength(1);
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0].id,
+    ).toBe('withdrawal-2');
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0]
+        .status,
+    ).toBe('completed');
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('removes bridging withdrawal requests', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'bridging',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+              },
+              {
+                id: 'withdrawal-2',
+                status: 'completed',
+                amount: '200',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567891,
+                txHash: '0xabc',
+              },
+            ],
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests,
+    ).toHaveLength(1);
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0].id,
+    ).toBe('withdrawal-2');
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('removes both pending and bridging withdrawal requests', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'pending',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+              },
+              {
+                id: 'withdrawal-2',
+                status: 'bridging',
+                amount: '150',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567891,
+              },
+              {
+                id: 'withdrawal-3',
+                status: 'completed',
+                amount: '200',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567892,
+                txHash: '0xabc',
+              },
+              {
+                id: 'withdrawal-4',
+                status: 'failed',
+                amount: '50',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567893,
+              },
+            ],
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests,
+    ).toHaveLength(2);
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests?.map(
+        (w) => w.id,
+      ),
+    ).toEqual(['withdrawal-3', 'withdrawal-4']);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('preserves completed and failed withdrawal requests', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'completed',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+                txHash: '0xabc',
+              },
+              {
+                id: 'withdrawal-2',
+                status: 'failed',
+                amount: '200',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567891,
+              },
+            ],
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests,
+    ).toHaveLength(2);
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests?.map(
+        (w) => w.status,
+      ),
+    ).toEqual(['completed', 'failed']);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('clears array when all withdrawals are pending/bridging', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'pending',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+              },
+              {
+                id: 'withdrawal-2',
+                status: 'bridging',
+                amount: '200',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567891,
+              },
+            ],
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests,
+    ).toHaveLength(0);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles empty withdrawalRequests array', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [],
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests,
+    ).toHaveLength(0);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('removes invalid entries without status property', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              { id: 'invalid-1', amount: '100' }, // missing status
+              {
+                id: 'valid-1',
+                status: 'completed',
+                amount: '200',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567891,
+              },
+              null, // null entry
+              'string-entry', // invalid type
+            ],
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests,
+    ).toHaveLength(1);
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0].id,
+    ).toBe('valid-1');
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('preserves other PerpsController properties', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'pending',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+              },
+            ],
+            activeProvider: 'hyperliquid',
+            isTestnet: false,
+            someOtherProperty: 'preserved',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalRequests,
+    ).toHaveLength(0);
+    expect(result.engine.backgroundState.PerpsController?.activeProvider).toBe(
+      'hyperliquid',
     );
-
-    // Verify tokensChainsCache was cleared from state
-    expect(
-      (result as typeof state).engine.backgroundState.TokenListController
-        .tokensChainsCache,
-    ).toStrictEqual({});
-  });
-
-  it('migrates tokensChainsCache to FilesystemStorage for multiple chains', async () => {
-    const chainIds = ['0x1', '0x89', '0xa'] as const;
-    const cacheData = {
-      '0x1': { timestamp: 1234567890, data: { token1: { name: 'Token1' } } },
-      '0x89': { timestamp: 1234567891, data: { token2: { name: 'Token2' } } },
-      '0xa': { timestamp: 1234567892, data: { token3: { name: 'Token3' } } },
-    };
-
-    const state = createValidState({
-      tokensChainsCache: cacheData,
-    });
-
-    const result = await migrate(state);
-
-    // Verify data was saved for each chain
-    expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(3);
-    chainIds.forEach((chainId) => {
-      expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
-        makeStorageKey(chainId),
-        JSON.stringify(cacheData[chainId]),
-        false,
-      );
-    });
-
-    // Verify tokensChainsCache was cleared from state
-    expect(
-      (result as typeof state).engine.backgroundState.TokenListController
-        .tokensChainsCache,
-    ).toStrictEqual({});
-  });
-
-  it('does not overwrite existing data in FilesystemStorage', async () => {
-    const existingChainId = '0x1';
-    const newChainId = '0x89';
-
-    // Mock that 0x1 already exists in storage
-    mockFilesystemStorage.getItem.mockImplementation(async (key: string) => {
-      if (key === makeStorageKey(existingChainId)) {
-        return JSON.stringify({ timestamp: 999, data: {} });
-      }
-      return undefined;
-    });
-
-    const state = createValidState({
-      tokensChainsCache: {
-        [existingChainId]: { timestamp: 1234567890, data: {} },
-        [newChainId]: { timestamp: 1234567891, data: {} },
-      },
-    });
-
-    const result = await migrate(state);
-
-    // Verify only new chain was saved
-    expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(1);
-    expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
-      makeStorageKey(newChainId),
-      expect.any(String),
+    expect(result.engine.backgroundState.PerpsController?.isTestnet).toBe(
       false,
     );
-
-    // Verify tokensChainsCache was still cleared
     expect(
-      (result as typeof state).engine.backgroundState.TokenListController
-        .tokensChainsCache,
-    ).toStrictEqual({});
+      result.engine.backgroundState.PerpsController?.someOtherProperty,
+    ).toBe('preserved');
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('handles FilesystemStorage.setItem errors gracefully', async () => {
-    const chainId = '0x1';
-    mockFilesystemStorage.setItem.mockRejectedValue(
-      new Error('Storage write failed'),
+  it('preserves other controllers in backgroundState', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'pending',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+              },
+            ],
+          },
+          OtherController: {
+            shouldStayUntouched: true,
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(result.engine.backgroundState.OtherController).toEqual({
+      shouldStayUntouched: true,
+    });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('resets withdrawalProgress when removing pending withdrawals', () => {
+    const mockNow = 1700000000000;
+    jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'pending',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+              },
+            ],
+            withdrawalProgress: {
+              progress: 50,
+              lastUpdated: 1234567800,
+              activeWithdrawalId: 'withdrawal-1',
+            },
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalProgress,
+    ).toEqual({
+      progress: 0,
+      lastUpdated: mockNow,
+      activeWithdrawalId: null,
+    });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('leaves withdrawalProgress unchanged if not present', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'pending',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+              },
+            ],
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalProgress,
+    ).toBeUndefined();
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles error during migration and captures exception', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [],
+          },
+        },
+      },
+    };
+
+    // Mock an error by making the property throw when accessed
+    Object.defineProperty(
+      state.engine.backgroundState.PerpsController,
+      'withdrawalRequests',
+      {
+        get() {
+          throw new Error('Test error');
+        },
+        configurable: true,
+      },
     );
 
-    const state = createValidState({
-      tokensChainsCache: {
-        [chainId]: { timestamp: 1234567890, data: {} },
-      },
-    });
+    mockedEnsureValidState.mockReturnValue(true);
 
-    // Should not throw
-    const result = await migrate(state);
+    const result = migrate(state);
 
-    // State should still have tokensChainsCache cleared
-    expect(
-      (result as typeof state).engine.backgroundState.TokenListController
-        .tokensChainsCache,
-    ).toStrictEqual({});
-  });
-
-  it('clears tokensChainsCache even when all chains already migrated', async () => {
-    const chainId = '0x1';
-    mockFilesystemStorage.getItem.mockResolvedValue(
-      JSON.stringify({ timestamp: 999, data: {} }),
+    expect(result).toBe(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          'Migration 112: Failed to clear stuck pending withdrawal requests',
+        ),
+      }),
     );
-
-    const state = createValidState({
-      tokensChainsCache: {
-        [chainId]: { timestamp: 1234567890, data: {} },
-      },
-    });
-
-    const result = await migrate(state);
-
-    // No setItem calls since data already exists
-    expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
-
-    // tokensChainsCache should still be cleared
-    expect(
-      (result as typeof state).engine.backgroundState.TokenListController
-        .tokensChainsCache,
-    ).toStrictEqual({});
-  });
-
-  it('preserves other TokenListController state properties', async () => {
-    const state = createValidState({
-      tokensChainsCache: {
-        '0x1': { timestamp: 1234567890, data: {} },
-      },
-      preventPollingOnNetworkRestart: true,
-    });
-
-    const result = await migrate(state);
-
-    expect(
-      (result as typeof state).engine.backgroundState.TokenListController
-        .preventPollingOnNetworkRestart,
-    ).toBe(true);
   });
 });

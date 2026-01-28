@@ -11,6 +11,9 @@ import {
   selectMusdConversionPaymentTokensAllowlist,
   selectMusdConversionPaymentTokensBlocklist,
   selectIsMusdConversionRewardsUiEnabledFlag,
+  selectMusdConversionBlockedCountries,
+  parseBlockedCountriesEnv,
+  selectMusdConversionMinAssetBalanceRequired,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { Json } from '@metamask/utils';
@@ -1760,6 +1763,387 @@ describe('Earn Feature Flag Selectors', () => {
         );
         expect(result).toEqual({});
       });
+    });
+  });
+
+  describe('parseBlockedCountriesEnv', () => {
+    it('returns empty array for undefined input', () => {
+      const result = parseBlockedCountriesEnv(undefined);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array for empty string', () => {
+      const result = parseBlockedCountriesEnv('');
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array for whitespace-only string', () => {
+      const result = parseBlockedCountriesEnv('   ');
+
+      expect(result).toEqual([]);
+    });
+
+    it('parses single country code', () => {
+      const result = parseBlockedCountriesEnv('GB');
+
+      expect(result).toEqual(['GB']);
+    });
+
+    it('parses comma-separated country codes', () => {
+      const result = parseBlockedCountriesEnv('GB,US,FR');
+
+      expect(result).toEqual(['GB', 'US', 'FR']);
+    });
+
+    it('trims whitespace around country codes', () => {
+      const result = parseBlockedCountriesEnv('GB , US , FR');
+
+      expect(result).toEqual(['GB', 'US', 'FR']);
+    });
+
+    it('converts country codes to uppercase', () => {
+      const result = parseBlockedCountriesEnv('gb,us,fr');
+
+      expect(result).toEqual(['GB', 'US', 'FR']);
+    });
+
+    it('filters out empty entries', () => {
+      const result = parseBlockedCountriesEnv('GB,,US,');
+
+      expect(result).toEqual(['GB', 'US']);
+    });
+
+    it('handles mixed case and whitespace', () => {
+      const result = parseBlockedCountriesEnv(' gb , Us, FR ');
+
+      expect(result).toEqual(['GB', 'US', 'FR']);
+    });
+  });
+
+  describe('selectMusdConversionBlockedCountries', () => {
+    it('returns blocked countries array when remote flag is valid', () => {
+      const blockedRegions = ['GB', 'US'];
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnMusdConversionGeoBlockedCountries: { blockedRegions },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectMusdConversionBlockedCountries(state);
+
+      expect(result).toEqual(['GB', 'US']);
+    });
+
+    it('returns default blocked countries when remote flag is undefined', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectMusdConversionBlockedCountries(state);
+
+      expect(result).toEqual(['GB']);
+    });
+
+    it('returns default blocked countries when blockedRegions is not an array', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnMusdConversionGeoBlockedCountries: {
+                  blockedRegions: 'GB',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectMusdConversionBlockedCountries(state);
+
+      expect(result).toEqual(['GB']);
+    });
+
+    it('returns default blocked countries when flag is null', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnMusdConversionGeoBlockedCountries: null,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectMusdConversionBlockedCountries(state);
+
+      expect(result).toEqual(['GB']);
+    });
+
+    it('returns default blocked countries when flag has wrong structure', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnMusdConversionGeoBlockedCountries: ['GB', 'US'],
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectMusdConversionBlockedCountries(state);
+
+      expect(result).toEqual(['GB']);
+    });
+
+    it('returns default blocked countries when RemoteFeatureFlagController is undefined', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: undefined,
+          },
+        },
+      };
+
+      const result = selectMusdConversionBlockedCountries(state);
+
+      expect(result).toEqual(['GB']);
+    });
+
+    describe('local env var fallback', () => {
+      afterEach(() => {
+        delete process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES;
+      });
+
+      it('falls back to local env var when remote flag is unavailable', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'GB,US';
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionBlockedCountries(state);
+
+        expect(result).toEqual(['GB', 'US']);
+      });
+
+      it('remote flag takes precedence over local env var', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'FR,DE';
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConversionGeoBlockedCountries: {
+                    blockedRegions: ['GB'],
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionBlockedCountries(state);
+
+        expect(result).toEqual(['GB']);
+      });
+
+      it('parses comma-separated country codes from env var', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'GB, US, FR';
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionBlockedCountries(state);
+
+        expect(result).toEqual(['GB', 'US', 'FR']);
+      });
+
+      it('converts country codes to uppercase', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'gb,us';
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionBlockedCountries(state);
+
+        expect(result).toEqual(['GB', 'US']);
+      });
+
+      it('returns default blocked countries when env var is empty string', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = '';
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionBlockedCountries(state);
+
+        expect(result).toEqual(['GB']);
+      });
+
+      it('filters out empty entries from env var', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'GB,,US,';
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionBlockedCountries(state);
+
+        expect(result).toEqual(['GB', 'US']);
+      });
+    });
+  });
+
+  describe('selectMusdConversionMinAssetBalanceRequired', () => {
+    afterEach(() => {
+      delete process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED;
+    });
+
+    it('returns remote value when remote is a finite number', () => {
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '0.01';
+
+      const stateWithRemote = createStateWithRemoteFlags({
+        earnMusdConversionMinAssetBalanceRequired: 0.02,
+      });
+
+      const result =
+        selectMusdConversionMinAssetBalanceRequired(stateWithRemote);
+
+      expect(result).toBe(0.02);
+    });
+
+    it('returns remote value when remote is zero', () => {
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '0.01';
+
+      const stateWithRemote = createStateWithRemoteFlags({
+        earnMusdConversionMinAssetBalanceRequired: 0,
+      });
+
+      const result =
+        selectMusdConversionMinAssetBalanceRequired(stateWithRemote);
+
+      expect(result).toBe(0);
+    });
+
+    it('falls back to local env value when remote is undefined', () => {
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '0.01';
+
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result =
+        selectMusdConversionMinAssetBalanceRequired(stateWithoutRemote);
+
+      expect(result).toBe(0.01);
+    });
+
+    it('returns fallback value when both remote and local values are not finite', () => {
+      // Some test environments may preload this env var; explicitly set it to a non-finite value
+      // to validate the selector's fallback behavior.
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '';
+
+      const stateWithoutRemote = createStateWithRemoteFlags({
+        someOtherEarnFlag: true,
+      });
+
+      const result =
+        selectMusdConversionMinAssetBalanceRequired(stateWithoutRemote);
+
+      expect(result).toBe(0.01);
+    });
+
+    it('falls back to local env value when remote is not finite', () => {
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '0.01';
+
+      const stateWithInvalidRemote = createStateWithRemoteFlags({
+        earnMusdConversionMinAssetBalanceRequired: 'not-a-number',
+      });
+
+      const result = selectMusdConversionMinAssetBalanceRequired(
+        stateWithInvalidRemote,
+      );
+
+      expect(result).toBe(0.01);
+    });
+
+    it('returns fallback value when local env value is not finite and remote is missing', () => {
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED =
+        'not-a-number';
+
+      // Provide an unrelated remote flag to force selector recomputation (reselect memoization
+      // only tracks the remote flags object, not process.env).
+      const stateWithoutRemote = createStateWithRemoteFlags({
+        someOtherEarnFlag: true,
+      });
+
+      const result =
+        selectMusdConversionMinAssetBalanceRequired(stateWithoutRemote);
+
+      expect(result).toBe(0.01);
     });
   });
 });

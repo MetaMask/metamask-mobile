@@ -30,7 +30,7 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="justify-center gap-2 mt-3"
+      twClassName="justify-center gap-2 pt-2 px-4"
     >
       {TIMEFRAMES.map(({ value, label }) => {
         const isSelected = selected === value;
@@ -54,7 +54,7 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
               color={
                 isSelected ? TextColor.TextDefault : TextColor.TextAlternative
               }
-              style={tw.style('text-center')}
+              style={tw.style('text-center', isSelected && 'font-medium')}
             >
               {label}
             </Text>

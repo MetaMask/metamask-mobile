@@ -2,9 +2,23 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { Text, View } from 'react-native';
+import { TextVariant } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import TitleLeft from './TitleLeft';
+import { TitleLeftSize } from './TitleLeft.types';
+
+const mockText = jest.fn();
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    Text: (props: Record<string, unknown>) => {
+      mockText(props);
+      return <actual.Text {...props} />;
+    },
+  };
+});
 
 const TEST_IDS = {
   CONTAINER: 'title-left-container',
@@ -16,6 +30,7 @@ const TEST_IDS = {
 describe('TitleLeft', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockText.mockClear();
   });
 
   describe('rendering', () => {
@@ -39,6 +54,35 @@ describe('TitleLeft', () => {
       );
 
       expect(getByTestId(TEST_IDS.TITLE)).toBeOnTheScreen();
+    });
+  });
+
+  describe('size', () => {
+    it('uses DisplayMd variant by default', () => {
+      render(<TitleLeft title="$4.42" />);
+
+      const titleCall = mockText.mock.calls.find(
+        (call) => call[0].children === '$4.42',
+      );
+      expect(titleCall?.[0].variant).toBe(TextVariant.DisplayMd);
+    });
+
+    it('uses DisplayMd variant for medium size', () => {
+      render(<TitleLeft size={TitleLeftSize.Md} title="$4.42" />);
+
+      const titleCall = mockText.mock.calls.find(
+        (call) => call[0].children === '$4.42',
+      );
+      expect(titleCall?.[0].variant).toBe(TextVariant.DisplayMd);
+    });
+
+    it('uses HeadingLg variant for small size', () => {
+      render(<TitleLeft size={TitleLeftSize.Sm} title="$4.42" />);
+
+      const titleCall = mockText.mock.calls.find(
+        (call) => call[0].children === '$4.42',
+      );
+      expect(titleCall?.[0].variant).toBe(TextVariant.HeadingLg);
     });
   });
 

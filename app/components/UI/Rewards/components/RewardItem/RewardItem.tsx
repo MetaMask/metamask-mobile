@@ -35,7 +35,7 @@ interface RewardItemProps {
   isEndOfSeasonReward?: boolean;
   endOfSeasonClaimedDescription?: string;
   compact?: boolean;
-  onPress?: (rewardId: string, seasonReward: SeasonRewardDto) => void;
+  onPress?: (reward: RewardDto, seasonReward: SeasonRewardDto) => void;
   claimCtaLabel?: string;
 }
 
@@ -136,12 +136,12 @@ const RewardItem: React.FC<RewardItemProps> = ({
             <Icon
               name={IconName.Clock}
               size={IconSize.Sm}
-              twClassName="text-warning-default"
+              twClassName="text-text-alternative"
             />
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
-              twClassName="text-warning-default"
+              twClassName="text-text-alternative"
             >
               {remainingTime} {strings('rewards.unlocked_rewards.time_left')}
             </Text>
@@ -188,6 +188,16 @@ const RewardItem: React.FC<RewardItemProps> = ({
             twClassName="text-text-alternative"
           >
             {strings('rewards.unlocked_rewards.expired')}
+          </Text>
+        );
+      } else if (isLocked) {
+        return (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-text-alternative"
+          >
+            {strings('rewards.end_of_season_rewards.check_back_soon')}
           </Text>
         );
       }
@@ -323,8 +333,8 @@ const RewardItem: React.FC<RewardItemProps> = ({
   const handleRewardItemPress = useCallback(() => {
     if (isLocked || hasClaimed || isSeasonRewardClaimExpired) return;
 
-    if (onPress) {
-      onPress(reward?.id as string, seasonReward);
+    if (onPress && reward) {
+      onPress(reward, seasonReward);
       return;
     }
 
@@ -342,17 +352,17 @@ const RewardItem: React.FC<RewardItemProps> = ({
       hasClaimed,
     });
   }, [
+    isLocked,
+    hasClaimed,
     isSeasonRewardClaimExpired,
-    navigation,
     onPress,
+    navigation,
     seasonReward,
     longDescription,
     rewardClaimUrl,
     rewardInputAction,
     rewardInputPlaceholder,
-    reward?.id,
-    isLocked,
-    hasClaimed,
+    reward,
   ]);
 
   return (
@@ -382,7 +392,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="text-text-default mb-1"
+            twClassName="text-text-default"
             testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
           >
             {isEndOfSeasonReward && seasonReward.endOfSeasonName
@@ -395,23 +405,32 @@ const RewardItem: React.FC<RewardItemProps> = ({
         </Box>
 
         {/* Claim Button - hidden when locked, already claimed, or end of season reward claim period has expired */}
-        {!isLocked && !hasClaimed && !isSeasonRewardClaimExpired && (
-          <Button
-            variant={
-              isEndOfSeasonReward
-                ? ButtonVariant.Primary
-                : ButtonVariant.Secondary
-            }
-            size={isEndOfSeasonReward ? ButtonSize.Md : ButtonSize.Sm}
-            onPress={(e) => {
-              e.stopPropagation();
-              handleRewardItemPress();
-            }}
-            testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON}
-          >
-            {claimCtaLabel || strings('rewards.unlocked_rewards.claim_label')}
-          </Button>
-        )}
+        {!isLocked &&
+          !hasClaimed &&
+          !isSeasonRewardClaimExpired &&
+          (isEndOfSeasonReward ? (
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              twClassName="text-text-alternative mr-1"
+            />
+          ) : (
+            <Button
+              variant={
+                isEndOfSeasonReward
+                  ? ButtonVariant.Primary
+                  : ButtonVariant.Secondary
+              }
+              size={isEndOfSeasonReward ? ButtonSize.Md : ButtonSize.Sm}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleRewardItemPress();
+              }}
+              testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON}
+            >
+              {claimCtaLabel || strings('rewards.unlocked_rewards.claim_label')}
+            </Button>
+          ))}
       </Box>
     </TouchableOpacity>
   );

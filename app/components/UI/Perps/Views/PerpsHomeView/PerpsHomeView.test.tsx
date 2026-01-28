@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
+import { PerpsEventValues } from '../../constants/eventNames';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 
 // Mock navigation
@@ -17,9 +18,13 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({
     params: {
-      source: 'main_action_button',
+      source: 'main_action_button', // PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON
     },
   }),
+  useFocusEffect: (callback: () => void) => {
+    // Call the callback immediately in tests
+    callback();
+  },
 }));
 
 // Mock Redux - default feedback disabled
@@ -68,6 +73,11 @@ jest.mock('../../hooks', () => ({
     isEligible: true,
     isProcessing: false,
     error: null,
+  })),
+  usePerpsHomeSectionTracking: jest.fn(() => ({
+    handleSectionLayout: jest.fn(() => jest.fn()),
+    handleScroll: jest.fn(),
+    resetTracking: jest.fn(),
   })),
 }));
 
@@ -139,19 +149,29 @@ jest.mock('react-native-safe-area-context', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: 'Box',
-  BoxFlexDirection: {
-    Row: 'Row',
-  },
-  BoxAlignItems: {
-    Center: 'Center',
-  },
-  TextVariant: {
-    HeadingSm: 'heading-sm',
-    HeadingLg: 'heading-lg',
-  },
-}));
+// Mock design system - needed because real module requires tailwind setup
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const React = jest.requireActual('react');
+  return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    ButtonIcon: ({
+      testID,
+      onPress,
+    }: {
+      testID?: string;
+      onPress?: () => void;
+    }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    Text: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(RNText, { testID }, children),
+    Box: 'Box',
+  };
+});
 
 // Mock stylesheet
 jest.mock('./PerpsHomeView.styles', () => ({}));
@@ -206,11 +226,14 @@ jest.mock('../../constants/eventNames', () => ({
     BUTTON_CLICKED: 'button_clicked',
     BUTTON_LOCATION: 'button_location',
     INTERACTION_TYPE: 'interaction_type',
+    LOCATION: 'location',
   },
   PerpsEventValues: {
     SCREEN_TYPE: {
       MARKETS: 'markets',
       HOMESCREEN: 'homescreen',
+      PERPS_HOME: 'perps_home',
+      WALLET_HOME_PERPS_TAB: 'wallet_home_perps_tab',
     },
     SOURCE: {
       MAIN_ACTION_BUTTON: 'main_action_button',
@@ -228,6 +251,7 @@ jest.mock('../../constants/eventNames', () => ({
     },
     INTERACTION_TYPE: {
       BUTTON_CLICKED: 'button_clicked',
+      CONTACT_SUPPORT: 'contact_support',
     },
   },
 }));
@@ -532,7 +556,7 @@ describe('PerpsHomeView', () => {
     // Assert - Should navigate to MarketListView with search enabled
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultSearchVisible: true,
-      source: 'homescreen_tab',
+      source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
       button_clicked: 'magnifying_glass',
       button_location: 'perps_home',
@@ -547,7 +571,7 @@ describe('PerpsHomeView', () => {
       ...mockDefaultData,
       positions: [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
           positionValue: '25000',
@@ -589,7 +613,7 @@ describe('PerpsHomeView', () => {
       orders: [
         {
           orderId: '123',
-          coin: 'ETH',
+          symbol: 'ETH',
           side: 'buy' as const,
           size: '1.0',
           limitPrice: '3000',
@@ -653,7 +677,7 @@ describe('PerpsHomeView', () => {
       ...mockDefaultData,
       positions: [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
           positionValue: '25000',
@@ -698,7 +722,7 @@ describe('PerpsHomeView', () => {
       orders: [
         {
           orderId: '123',
-          coin: 'ETH',
+          symbol: 'ETH',
           side: 'buy' as const,
           size: '1.0',
           limitPrice: '3000',
@@ -727,7 +751,7 @@ describe('PerpsHomeView', () => {
     // Assert - Verify navigation card is rendered (if it has a testID)
     // Or just verify component renders without error
     // The navigation card is tested separately
-    expect(getByTestId('perps-home-back-button')).toBeTruthy();
+    expect(getByTestId('back-button')).toBeTruthy();
   });
 
   it('renders main sections', () => {

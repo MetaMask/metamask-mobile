@@ -7,13 +7,14 @@ export const DOT_RADIUS = 6;
 export const DOT_STROKE_WIDTH = 2;
 export const GLOW_RADIUS = 16;
 export const GLOW_OPACITY = 0.15;
-export const LABEL_OFFSET_X = 12;
-export const RIGHT_LABEL_OFFSET = 12;
+export const LABEL_OFFSET_X = 20;
+export const RIGHT_LABEL_OFFSET = 20;
 export const LABEL_TEXT_OFFSET_Y = 8;
 export const VALUE_TEXT_OFFSET_Y = 16;
 export const TIMESTAMP_Y = 12;
 export const CROSSHAIR_START_Y = 20;
 export const CROSSHAIR_STROKE_WIDTH = 1;
+export const TIMESTAMP_TEXT_HALF_WIDTH = 75;
 
 export interface DotPosition {
   dotY: number;

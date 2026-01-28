@@ -14,18 +14,70 @@ import { NotificationFeedbackType } from 'expo-haptics';
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('./useEarnToasts');
+jest.mock('../../../hooks/useMetrics');
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../../../../selectors/tokenListController', () => ({
   selectERC20TokensByChain: jest.fn(),
 }));
+jest.mock('../../../../util/transactions', () => {
+  const actual = jest.requireActual('../../../../util/transactions');
+  return {
+    ...actual,
+    decodeTransferData: jest.fn(),
+  };
+});
+jest.mock('../../../../util/networks', () => ({}));
+jest.mock('../../../../selectors/networkController', () => ({
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+}));
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    MusdConversionConfirm: 'mUSD Conversion Confirm',
+  },
+  TraceOperation: {
+    MusdConversionOperation: 'musd.conversion.operation',
+  },
+}));
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({})),
+  },
+}));
+jest.mock('../../../../selectors/transactionPayController', () => ({
+  selectTransactionPayQuotesByTransactionId: jest.fn(),
+}));
 
 import { useSelector } from 'react-redux';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
+import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { decodeTransferData } from '../../../../util/transactions';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
+import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
+
+const mockTrace = trace as jest.MockedFunction<typeof trace>;
+const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+const mockSelectTransactionPayQuotesByTransactionId = jest.mocked(
+  selectTransactionPayQuotesByTransactionId,
+);
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockSelectERC20TokensByChain = jest.mocked(selectERC20TokensByChain);
+const mockUseMetrics = jest.mocked(useMetrics);
+const mockDecodeTransferData = jest.mocked(decodeTransferData);
+const mockSelectEvmNetworkConfigurationsByChainId = jest.mocked(
+  selectEvmNetworkConfigurationsByChainId,
+);
 
 type TransactionStatusUpdatedHandler = (event: {
   transactionMeta: TransactionMeta;
@@ -51,6 +103,12 @@ Object.defineProperty(Engine, 'controllerMessenger', {
 });
 
 describe('useMusdConversionStatus', () => {
+  const FIXED_NOW_MS = 1730000000000;
+  const mockTrackEvent = jest.fn();
+  const mockCreateEventBuilder = jest.fn();
+  const mockAddProperties = jest.fn();
+  const mockBuild = jest.fn();
+
   const mockShowToast = jest.fn();
   const mockInProgressToast = {
     variant: ToastVariants.Icon as const,
@@ -94,6 +152,24 @@ describe('useMusdConversionStatus', () => {
     jest.useFakeTimers();
     mockInProgressFn.mockClear();
 
+    jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
+
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
+    mockUseMetrics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as unknown as ReturnType<typeof useMetrics>);
+
+    mockDecodeTransferData.mockReturnValue([
+      '',
+      '1.23',
+      '0x1234',
+    ] as unknown as ReturnType<typeof decodeTransferData>);
+
     mockUseEarnToasts.mockReturnValue({
       showToast: mockShowToast,
       EarnToastOptions: mockEarnToastOptions,
@@ -103,6 +179,9 @@ describe('useMusdConversionStatus', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === mockSelectERC20TokensByChain) {
         return defaultTokensChainsCache;
+      }
+      if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
+        return { '0x1': { name: 'Ethereum Mainnet' } };
       }
       return {};
     });
@@ -114,12 +193,16 @@ describe('useMusdConversionStatus', () => {
       if (selector === mockSelectERC20TokensByChain) {
         return tokenData;
       }
+      if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
+        return { '0x1': { name: 'Ethereum Mainnet' } };
+      }
       return {};
     });
   };
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -157,9 +240,10 @@ describe('useMusdConversionStatus', () => {
       renderHook(() => useMusdConversionStatus());
 
       expect(mockSubscribe).toHaveBeenCalledTimes(1);
-      expect(mockSubscribe).toHaveBeenCalledWith(
+      const handler = getSubscribedHandler();
+      expect(typeof handler).toBe('function');
+      expect(mockSubscribe.mock.calls[0][0]).toBe(
         'TransactionController:transactionStatusUpdated',
-        expect.any(Function),
       );
     });
 
@@ -671,6 +755,408 @@ describe('useMusdConversionStatus', () => {
       expect(mockShowToast).toHaveBeenCalledWith(
         mockEarnToastOptions.mUsdConversion.success,
       );
+    });
+  });
+
+  describe('MetaMetrics', () => {
+    it('tracks status updated event when transaction status is approved', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x1';
+      setupTokensCacheMock({
+        [chainId]: {
+          data: {
+            [tokenAddress]: { symbol: 'USDC', name: 'USD Coin' },
+          },
+        },
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-metrics-approved',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_STATUS_UPDATED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        transaction_id: 'test-tx-metrics-approved',
+        transaction_status: TransactionStatus.approved,
+        transaction_type: TransactionType.musdConversion,
+        asset_symbol: 'USDC',
+        network_chain_id: '0x1',
+        network_name: 'Ethereum Mainnet',
+        amount_decimal: '1.23',
+        amount_hex: '0x1234',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks status updated event when transaction status is confirmed', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x1';
+      setupTokensCacheMock({
+        [chainId]: {
+          data: {
+            [tokenAddress]: { symbol: 'USDC', name: 'USD Coin' },
+          },
+        },
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.confirmed,
+        'test-tx-metrics-confirmed',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_STATUS_UPDATED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        transaction_id: 'test-tx-metrics-confirmed',
+        transaction_status: TransactionStatus.confirmed,
+        transaction_type: TransactionType.musdConversion,
+        asset_symbol: 'USDC',
+        network_chain_id: '0x1',
+        network_name: 'Ethereum Mainnet',
+        amount_decimal: '1.23',
+        amount_hex: '0x1234',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks status updated event when transaction status is failed', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x1';
+      setupTokensCacheMock({
+        [chainId]: {
+          data: {
+            [tokenAddress]: { symbol: 'USDC', name: 'USD Coin' },
+          },
+        },
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.failed,
+        'test-tx-metrics-failed',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_STATUS_UPDATED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        transaction_id: 'test-tx-metrics-failed',
+        transaction_status: TransactionStatus.failed,
+        transaction_type: TransactionType.musdConversion,
+        asset_symbol: 'USDC',
+        network_chain_id: '0x1',
+        network_name: 'Ethereum Mainnet',
+        amount_decimal: '1.23',
+        amount_hex: '0x1234',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('does not track status updated event when transaction type is not musdConversion', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-metrics-ignored',
+        'swap' as typeof TransactionType.musdConversion,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+      expect(mockAddProperties).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Sentry traces', () => {
+    beforeEach(() => {
+      mockSelectTransactionPayQuotesByTransactionId.mockReturnValue([
+        { strategy: TransactionPayStrategy.Relay },
+      ] as ReturnType<typeof mockSelectTransactionPayQuotesByTransactionId>);
+    });
+
+    it('starts confirmation trace when transaction status is approved', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-trace-approved',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        op: TraceOperation.MusdConversionOperation,
+        id: 'test-trace-approved',
+        tags: {
+          transactionId: 'test-trace-approved',
+          chainId: '0x1',
+          strategy: 'relay',
+        },
+      });
+    });
+
+    it('includes bridge strategy when quote uses Bridge', () => {
+      mockSelectTransactionPayQuotesByTransactionId.mockReturnValue([
+        { strategy: TransactionPayStrategy.Bridge },
+      ] as ReturnType<typeof mockSelectTransactionPayQuotesByTransactionId>);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-trace-bridge',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            strategy: 'bridge',
+          }),
+        }),
+      );
+    });
+
+    it('includes unknown strategy when no quotes exist', () => {
+      mockSelectTransactionPayQuotesByTransactionId.mockReturnValue(undefined);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-trace-no-quotes',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            strategy: 'unknown',
+          }),
+        }),
+      );
+    });
+
+    it('ends confirmation trace with success when transaction is confirmed', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.confirmed,
+        'test-trace-confirmed',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        id: 'test-trace-confirmed',
+        data: {
+          success: true,
+          status: TransactionStatus.confirmed,
+        },
+      });
+    });
+
+    it('ends confirmation trace with failure when transaction fails', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.failed,
+        'test-trace-failed',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        id: 'test-trace-failed',
+        data: {
+          success: false,
+          status: TransactionStatus.failed,
+        },
+      });
+    });
+
+    it('does not start trace for non-mUSD conversion transactions', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-trace-non-musd',
+        'swap' as typeof TransactionType.musdConversion,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockTrace).not.toHaveBeenCalled();
+    });
+
+    it('does not end trace for non-mUSD conversion transactions', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.confirmed,
+        'test-trace-non-musd-confirm',
+        'swap' as typeof TransactionType.musdConversion,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('ends confirmation trace when transaction is rejected', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.rejected,
+        'test-trace-rejected',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        id: 'test-trace-rejected',
+        data: {
+          success: false,
+          status: TransactionStatus.rejected,
+        },
+      });
+    });
+
+    it('ends confirmation trace when transaction is dropped', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.dropped,
+        'test-trace-dropped',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        id: 'test-trace-dropped',
+        data: {
+          success: false,
+          status: TransactionStatus.dropped,
+        },
+      });
+    });
+
+    it('ends confirmation trace when transaction is cancelled', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.cancelled,
+        'test-trace-cancelled',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        id: 'test-trace-cancelled',
+        data: {
+          success: false,
+          status: TransactionStatus.cancelled,
+        },
+      });
+    });
+
+    it('completes full trace lifecycle from approved to confirmed', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionId = 'test-lifecycle-tx';
+
+      // Transaction approved - starts trace
+      handler({
+        transactionMeta: createTransactionMeta(
+          TransactionStatus.approved,
+          transactionId,
+        ),
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.MusdConversionConfirm,
+          id: transactionId,
+        }),
+      );
+
+      // Transaction confirmed - ends trace
+      handler({
+        transactionMeta: createTransactionMeta(
+          TransactionStatus.confirmed,
+          transactionId,
+        ),
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionConfirm,
+        id: transactionId,
+        data: {
+          success: true,
+          status: TransactionStatus.confirmed,
+        },
+      });
     });
   });
 });

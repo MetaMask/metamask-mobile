@@ -8,6 +8,7 @@ import {
 import {
   ExecuteRequestOptions,
   RequestSelectorResult,
+  type UserRegion,
 } from '@metamask/ramps-controller';
 
 /**
@@ -15,9 +16,9 @@ import {
  */
 export interface UseRampsUserRegionResult {
   /**
-   * The user's region code (e.g., "US-CA"), or null if not loaded.
+   * The user's region object with country, state, and regionCode, or null if not loaded.
    */
-  userRegion: string | null;
+  userRegion: UserRegion | null;
   /**
    * Whether the user region request is currently loading.
    */
@@ -29,14 +30,16 @@ export interface UseRampsUserRegionResult {
   /**
    * Manually fetch the user region from geolocation.
    */
-  fetchUserRegion: (options?: ExecuteRequestOptions) => Promise<string>;
+  fetchUserRegion: (
+    options?: ExecuteRequestOptions,
+  ) => Promise<UserRegion | null>;
   /**
    * Set the user region manually (without fetching geolocation).
    */
   setUserRegion: (
     region: string,
     options?: ExecuteRequestOptions,
-  ) => Promise<void>;
+  ) => Promise<UserRegion | null>;
 }
 
 /**
@@ -49,18 +52,17 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
   const userRegion = useSelector(selectUserRegion);
   const { isFetching, error } = useSelector(
     selectUserRegionRequest,
-  ) as RequestSelectorResult<string>;
+  ) as RequestSelectorResult<UserRegion | null>;
 
   const fetchUserRegion = useCallback(
-    (options?: ExecuteRequestOptions) =>
-      Engine.context.RampsController.updateUserRegion(options),
+    async (options?: ExecuteRequestOptions) =>
+      await Engine.context.RampsController.updateUserRegion(options),
     [],
   );
 
   const setUserRegion = useCallback(
-    async (region: string, options?: ExecuteRequestOptions) => {
-      await Engine.context.RampsController.setUserRegion(region, options);
-    },
+    (region: string, options?: ExecuteRequestOptions) =>
+      Engine.context.RampsController.setUserRegion(region, options),
     [],
   );
 

@@ -226,7 +226,7 @@ describe('PerpsTabView', () => {
   ).selectSelectedInternalAccountByScope;
 
   const mockPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     entryPrice: '2000.00',
     positionValue: '5000.00',
@@ -434,7 +434,7 @@ describe('PerpsTabView', () => {
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'position_tab' },
+        params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
       });
     });
 

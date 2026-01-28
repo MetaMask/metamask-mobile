@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 class MultiChainTestDapp {
     constructor() {}
@@ -12,32 +12,51 @@ class MultiChainTestDapp {
         this._device = device;
     }
 
-    get connectButton() {
+    get clearButton() {
         if (!this._device) {
             return null;
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@text="Connect"]');
+            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@text="Clear Extension ID"]');
         }
     }
 
-    get connectedDappHeader() {
+    get connectMMCButton() {
         if (!this._device) {
             return null;
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.TextView[@text="Connected Networks"]');
+            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@text="Auto Connect via MM Connect"]');
         }
     }
 
-    async tapConnectButton() {
+    get connectedChainsHeader() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.TextView[@text="Connected Chains"]');
+        }
+    }
+
+    async tapClearButton() {
         if (!this._device) {
             return;
         }
 
-        const element = await this.connectButton;
+        const element = await this.clearButton;
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapConnectMMCButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.connectMMCButton;
         await AppwrightGestures.tap(element)
     }
 
@@ -46,7 +65,7 @@ class MultiChainTestDapp {
             return false;
         }
 
-        const element = await this.connectedDappHeader;
+        const element = await this.connectedChainsHeader;
         await appwrightExpect(element).toBeVisible({ timeout: 10000 });
     }
 }

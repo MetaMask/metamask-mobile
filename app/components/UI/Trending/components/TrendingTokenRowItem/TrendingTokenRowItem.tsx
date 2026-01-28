@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -36,12 +36,13 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatMarketStats } from './utils';
-import { formatPrice } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { TimeOption } from '../TrendingTokensBottomSheet';
-import NetworkModals from '../../../NetworkModal';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
-import type { Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
+import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
+import StockBadge from '../../../shared/StockBadge';
+import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 
 /**
  * Extracts CAIP chain ID from asset ID
@@ -112,6 +113,17 @@ const getPriceChangeColor = (priceChange: number): TextColor => {
 };
 
 /**
+ * Gets the prefix symbol for price percentage change
+ */
+const getPriceChangePrefix = (
+  priceChange: number,
+  isPositive: boolean,
+): string => {
+  if (priceChange === 0) return '';
+  return isPositive ? '+' : '-';
+};
+
+/**
  * Maps TimeOption to the corresponding priceChangePct field key
  */
 export const getPriceChangeFieldKey = (
@@ -145,9 +157,9 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
 
   const isEvmChain = caipChainId.startsWith('eip155:');
   const isNativeToken = assetIdentifier?.startsWith('slip44:');
-  const address = (
-    isNativeToken ? NATIVE_SWAPS_TOKEN_ADDRESS : assetIdentifier?.split(':')[1]
-  ) as Hex | undefined;
+  const address = isNativeToken
+    ? NATIVE_SWAPS_TOKEN_ADDRESS
+    : assetIdentifier?.split(':')[1];
 
   const hexChainId = caipChainIdToHex(caipChainId);
 
@@ -176,8 +188,8 @@ const TrendingTokenRowItem = ({
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
-  const [isNetworkModalVisible, setIsNetworkModalVisible] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
+  const { addPopularNetwork } = useAddPopularNetwork();
+  const { isStockToken } = useRWAToken();
 
   // Memoize derived values
   const caipChainId = useMemo(
@@ -206,7 +218,7 @@ const TrendingTokenRowItem = ({
     pricePercentChange !== undefined && !isNaN(pricePercentChange);
   const isPositiveChange = hasPercentageChange && pricePercentChange > 0;
 
-  const handlePress = useCallback(() => {
+  const handlePress = useCallback(async () => {
     if (!assetParams) return;
 
     const isNetworkAdded = Boolean(networkConfigurations[caipChainId]);
@@ -217,114 +229,97 @@ const TrendingTokenRowItem = ({
       );
 
       if (popularNetwork) {
-        setSelectedNetwork(popularNetwork);
-        setIsNetworkModalVisible(true);
-        return;
+        // Add the network directly without showing confirmation modal
+        // addPopularNetwork handles both enabling the network in the filter
+        // and switching to it (shouldSwitchNetwork defaults to true)
+        try {
+          await addPopularNetwork(popularNetwork);
+        } catch (error) {
+          // If network addition fails, don't navigate
+          console.error('Failed to add network:', error);
+          return;
+        }
       }
     }
 
     navigation.navigate('Asset', assetParams);
-  }, [assetParams, caipChainId, navigation, networkConfigurations]);
-
-  const closeNetworkModal = useCallback(() => {
-    setIsNetworkModalVisible(false);
-    setSelectedNetwork(null);
-  }, []);
-
-  const handleNetworkModalAccept = useCallback(() => {
-    if (assetParams) {
-      navigation.navigate('Asset', assetParams);
-    }
-    closeNetworkModal();
-  }, [assetParams, navigation, closeNetworkModal]);
+  }, [
+    assetParams,
+    caipChainId,
+    navigation,
+    networkConfigurations,
+    addPopularNetwork,
+  ]);
 
   return (
-    <>
-      {isNetworkModalVisible && selectedNetwork && (
-        <NetworkModals
-          showPopularNetworkModal
-          isVisible={isNetworkModalVisible}
-          onClose={closeNetworkModal}
-          networkConfiguration={{
-            chainId: selectedNetwork.chainId,
-            nickname: selectedNetwork.nickname,
-            ticker: selectedNetwork.ticker,
-            rpcUrl: selectedNetwork.rpcUrl,
-            failoverRpcUrls: selectedNetwork.failoverRpcUrls,
-            formattedRpcUrl: selectedNetwork.rpcUrl,
-            rpcPrefs: {
-              blockExplorerUrl: selectedNetwork.rpcPrefs.blockExplorerUrl,
-              imageUrl: selectedNetwork.rpcPrefs.imageUrl,
-            },
-          }}
-          allowNetworkSwitch={false}
-          skipEnableNetwork
-          onAccept={handleNetworkModalAccept}
-        />
-      )}
-      <TouchableOpacity
-        style={styles.container}
-        onPress={handlePress}
-        testID={`trending-token-row-item-${token.assetId}`}
-      >
-        <View>
-          <BadgeWrapper
-            style={styles.badge}
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                size={AvatarSize.Xs}
-                variant={BadgeVariant.Network}
-                imageSource={networkBadgeImageSource}
-                isScaled={false}
-              />
-            }
-          >
-            <TrendingTokenLogo
-              assetId={token.assetId}
-              symbol={token.symbol}
-              size={40}
-              recyclingKey={token.assetId}
+    <TouchableOpacity
+      style={styles.container}
+      onPress={handlePress}
+      testID={`trending-token-row-item-${token.assetId}`}
+    >
+      <View>
+        <BadgeWrapper
+          style={styles.badge}
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              size={AvatarSize.Xs}
+              variant={BadgeVariant.Network}
+              imageSource={networkBadgeImageSource}
+              isScaled={false}
             />
-          </BadgeWrapper>
+          }
+        >
+          <TrendingTokenLogo
+            assetId={token.assetId}
+            symbol={token.symbol}
+            size={40}
+            recyclingKey={token.assetId}
+          />
+        </BadgeWrapper>
+      </View>
+      <View style={styles.leftContainer}>
+        <View style={styles.tokenHeaderRow}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Default}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {token?.name ?? token?.symbol}
+          </Text>
         </View>
-        <View style={styles.leftContainer}>
-          <View style={styles.tokenHeaderRow}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Default}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {token.name}
-            </Text>
-          </View>
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {formatMarketStats(
+            token.marketCap ?? 0,
+            token.aggregatedUsdVolume ?? 0,
+          )}
+        </Text>
+        {isStockToken(token) && (
+          <StockBadge style={styles.stockBadgeWrapper} token={token} />
+        )}
+      </View>
+      <View style={styles.rightContainer}>
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          {formatPriceWithSubscriptNotation(token.price)}
+        </Text>
+        {parseFloat(token.price) === 0 ? (
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {formatMarketStats(
-              token.marketCap ?? 0,
-              token.aggregatedUsdVolume ?? 0,
-            )}
+            —
           </Text>
-        </View>
-        <View style={styles.rightContainer}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {formatPrice(token.price, {
-              minimumDecimals: 2,
-              maximumDecimals: 4,
-            })}
-          </Text>
-          {hasPercentageChange && (
+        ) : (
+          hasPercentageChange && (
             <Text
               variant={TextVariant.BodySM}
               color={getPriceChangeColor(pricePercentChange)}
             >
-              {pricePercentChange === 0 ? '' : isPositiveChange ? '+' : '-'}
+              {getPriceChangePrefix(pricePercentChange, isPositiveChange)}
               {Math.abs(pricePercentChange).toFixed(2)}%
             </Text>
-          )}
-        </View>
-      </TouchableOpacity>
-    </>
+          )
+        )}
+      </View>
+    </TouchableOpacity>
   );
 };
 

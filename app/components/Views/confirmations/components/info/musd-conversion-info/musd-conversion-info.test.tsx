@@ -8,11 +8,22 @@ import { CustomAmountInfo } from '../custom-amount-info';
 import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
+import { strings } from '../../../../../../../locales/i18n';
 
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../hooks/earn/useCustomAmount');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../../../UI/Earn/hooks/useMusdConversionNavbar');
+jest.mock('../../../../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  TraceName: {
+    MusdConversionNavigation: 'mUSD Conversion Navigation',
+  },
+}));
+const mockStartQuoteTrace = jest.fn();
+jest.mock('../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace', () => ({
+  useMusdConversionQuoteTrace: () => ({ startQuoteTrace: mockStartQuoteTrace }),
+}));
 
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
@@ -150,6 +161,27 @@ describe('MusdConversionInfo', () => {
     });
   });
 
+  describe('footerText', () => {
+    it('passes footerText to CustomAmountInfo', () => {
+      mockRoute.params = {
+        outputChainId: '0x1' as Hex,
+      };
+
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<MusdConversionInfo />, {
+        state: {},
+      });
+
+      expect(CustomAmountInfo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          footerText: strings('earn.musd_conversion.powered_by_relay'),
+        }),
+        expect.anything(),
+      );
+    });
+  });
+
   describe('MusdOverrideContent', () => {
     it('calls useTransactionPayAvailableTokens when rendered', () => {
       mockRoute.params = {
@@ -178,18 +210,14 @@ describe('MusdConversionInfo', () => {
   });
 
   describe('useMusdConversionNavbar', () => {
-    it('calls useMusdConversionNavbar with outputChainId', () => {
-      mockRoute.params = {
-        outputChainId: '0xe708' as Hex,
-      };
-
+    it('calls useMusdConversionNavbar', () => {
       mockUseRoute.mockReturnValue(mockRoute);
 
       renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
-      expect(mockUseMusdConversionNavbar).toHaveBeenCalledWith('0xe708');
+      expect(mockUseMusdConversionNavbar).toHaveBeenCalledWith();
     });
   });
 });

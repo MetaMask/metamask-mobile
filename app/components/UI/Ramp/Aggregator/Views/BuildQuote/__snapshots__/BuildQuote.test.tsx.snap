@@ -119,11 +119,11 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -249,11 +249,11 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -2571,11 +2571,11 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -2701,11 +2701,11 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -3190,56 +3190,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
           <View>
             <View
               onLayout={[Function]}
-            />
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Sell
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
             >
               <View
                 style={
@@ -3302,11 +3252,11 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -3321,6 +3271,56 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 </View>
               </View>
             </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Sell
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -3853,11 +3853,11 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -3983,11 +3983,11 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -4534,11 +4534,11 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -4664,11 +4664,11 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -6832,11 +6832,11 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -6962,11 +6962,11 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -7513,11 +7513,11 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -7643,11 +7643,11 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -9791,11 +9791,11 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -9921,11 +9921,11 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -10472,11 +10472,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -10602,11 +10602,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -12881,11 +12881,11 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -13011,11 +13011,11 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -15283,11 +15283,11 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -15413,11 +15413,11 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -15964,11 +15964,11 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -16094,11 +16094,11 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -18218,11 +18218,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -18348,11 +18348,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -20608,56 +20608,6 @@ exports[`BuildQuote View renders correctly 2`] = `
           <View>
             <View
               onLayout={[Function]}
-            />
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Sell
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
             >
               <View
                 style={
@@ -20720,11 +20670,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -20739,6 +20689,56 @@ exports[`BuildQuote View renders correctly 2`] = `
                 </View>
               </View>
             </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Sell
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -23057,11 +23057,11 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -23187,11 +23187,11 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-configuration-menu-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="Setting"
                     style={
                       [
                         {
@@ -23676,56 +23676,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
           <View>
             <View
               onLayout={[Function]}
-            />
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Sell
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
             >
               <View
                 style={
@@ -23788,11 +23738,11 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Close"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -23807,6 +23757,56 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 </View>
               </View>
             </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Sell
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>

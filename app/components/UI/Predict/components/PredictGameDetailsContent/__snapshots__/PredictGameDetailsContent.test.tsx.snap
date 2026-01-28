@@ -6,17 +6,16 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
     [
       "left",
       "right",
-      "bottom",
     ]
   }
   style={
     {
-      "backgroundColor": "#ffffff",
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,
     }
   }
+  testID="predict-market-details-screen"
 >
   <View
     style={
@@ -79,17 +78,18 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
       onStartShouldSetResponder={[Function]}
     >
       <SvgMock
-        color="#121314"
         fill="currentColor"
-        height={24}
         name="ArrowLeft"
         style={
-          {
-            "height": 24,
-            "width": 24,
-          }
+          [
+            {
+              "color": "#121314",
+              "height": 24,
+              "width": 24,
+            },
+            undefined,
+          ]
         }
-        width={24}
       />
     </View>
     <View
@@ -137,9 +137,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
   <RCTScrollView
     contentContainerStyle={
       {
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
+        "paddingBottom": 16,
       }
     }
     refreshControl={
@@ -169,15 +167,96 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
           [
             {
               "display": "flex",
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
+              "paddingBottom": 8,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "paddingTop": 8,
             },
             undefined,
           ]
         }
-      />
+      >
+        <View
+          accessibilityHint="state:PreGame,away:TB,home:TA"
+          testID="game-scoreboard"
+        />
+      </View>
+      <View
+        style={
+          [
+            {
+              "display": "flex",
+              "marginTop": 16,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          accessibilityHint="marketId:test-market-id"
+          testID="game-chart"
+        />
+      </View>
+      <View
+        style={
+          [
+            {
+              "display": "flex",
+              "paddingBottom": 8,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "paddingTop": 8,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          accessibilityHint="marketId:test-market-id"
+          testID="game-picks"
+        />
+      </View>
     </View>
   </RCTScrollView>
+  <View
+    testID="predict-game-details-footer"
+  >
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      testID="mock-info-button"
+    >
+      <Text>
+        Info
+      </Text>
+    </View>
+  </View>
 </View>
 `;
