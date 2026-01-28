@@ -1,6 +1,7 @@
 import migrate, { migrationVersion } from './114';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { captureException } from '@sentry/react-native';
+import { STORAGE_KEY_PREFIX } from '@metamask/storage-service';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -11,7 +12,6 @@ const mockCaptureException = captureException as jest.MockedFunction<
 >;
 
 // Storage key constants matching the migration
-const STORAGE_KEY_PREFIX = 'storageService:';
 const CONTROLLER_NAME = 'TokenListController';
 const CACHE_KEY_PREFIX = 'tokensChainsCache';
 
