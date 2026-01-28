@@ -6,8 +6,10 @@ import {
   setDestToken,
   selectSourceToken,
   selectDestToken,
+  setIsDestTokenManuallySet,
 } from '../../../../core/redux/slices/bridge';
 import { BridgeToken, TokenSelectorType } from '../types';
+import { useSwitchTokens } from './useSwitchTokens';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
@@ -19,9 +21,10 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const navigation = useNavigation();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const { handleSwitchTokens } = useSwitchTokens();
 
   const handleTokenPress = useCallback(
-    (token: BridgeToken) => {
+    async (token: BridgeToken) => {
       const isSourcePicker = type === TokenSelectorType.Source;
       const otherToken = isSourcePicker ? destToken : sourceToken;
 
@@ -33,16 +36,18 @@ export const useTokenSelection = (type: TokenSelectorType) => {
 
       if (isSelectingOtherToken && sourceToken && destToken) {
         // Swap the tokens: old source becomes dest, old dest becomes source
-        dispatch(setSourceToken(destToken));
-        dispatch(setDestToken(sourceToken));
+        await handleSwitchTokens()();
       } else {
         // Normal selection: just update the current token
         dispatch(isSourcePicker ? setSourceToken(token) : setDestToken(token));
+        if (!isSourcePicker) {
+          dispatch(setIsDestTokenManuallySet(true));
+        }
       }
 
       navigation.goBack();
     },
-    [type, sourceToken, destToken, dispatch, navigation],
+    [type, sourceToken, destToken, dispatch, navigation, handleSwitchTokens],
   );
 
   const selectedToken =
