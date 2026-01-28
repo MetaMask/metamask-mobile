@@ -46,7 +46,7 @@ const MarketClosedBottomSheet = () => {
         {strings('bridge.market_closed.title')}
       </BottomSheetHeader>
       <View style={styles.container}>
-        <Text variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMD} testID="market-closed-description">
           {strings('bridge.market_closed.description')}{' '}
           <Text
             variant={TextVariant.BodyMD}

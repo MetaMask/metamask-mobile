@@ -69,7 +69,7 @@ describe('MarketClosedBottomSheet', () => {
   it('opens support URL when Learn more link is pressed', () => {
     const { getByText } = renderMarketClosedBottomSheet();
 
-    const learnMoreLink = getByText(/learn_more/);
+    const learnMoreLink = getByText(/Learn more/);
     fireEvent.press(learnMoreLink);
 
     expect(Linking.openURL).toHaveBeenCalledWith(
@@ -86,10 +86,10 @@ describe('MarketClosedBottomSheet', () => {
   });
 
   it('renders description and learn more text', () => {
-    const { getByText } = renderMarketClosedBottomSheet();
+    const { getByText, getByTestId } = renderMarketClosedBottomSheet();
 
-    expect(getByText(/description/)).toBeTruthy();
-    expect(getByText(/learn_more/)).toBeTruthy();
+    expect(getByTestId('market-closed-description')).toBeTruthy();
+    expect(getByText(/Learn more/)).toBeTruthy();
   });
 
   it('renders Done button in footer', () => {

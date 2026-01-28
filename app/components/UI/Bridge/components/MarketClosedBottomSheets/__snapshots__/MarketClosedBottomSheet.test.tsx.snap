@@ -244,8 +244,9 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
                 "lineHeight": 24,
               }
             }
+            testID="market-closed-description"
           >
-            The market that backs this token is currently closed. Tokens can be transferred on-chain at any time
+            The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.
              
             <Text
               accessibilityRole="text"
