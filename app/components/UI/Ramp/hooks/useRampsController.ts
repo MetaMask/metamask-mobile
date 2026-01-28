@@ -1,4 +1,3 @@
-import { useSelector } from 'react-redux';
 import {
   useRampsUserRegion,
   type UseRampsUserRegionResult,
@@ -14,10 +13,8 @@ import {
 } from './useRampsCountries';
 import {
   useRampsPaymentMethods,
-  type UseRampsPaymentMethodsResult
+  type UseRampsPaymentMethodsResult,
 } from './useRampsPaymentMethods';
-import { selectSelectedToken } from '../../../../selectors/rampsController';
-import type { RampsToken } from '@metamask/ramps-controller';
 
 /**
  * Options for the useRampsController hook.
@@ -49,44 +46,34 @@ export interface UseRampsControllerOptions {
  * This combines all ramps controller functionality into a single interface.
  */
 export interface UseRampsControllerResult {
-  // User region
   userRegion: UseRampsUserRegionResult['userRegion'];
   userRegionLoading: UseRampsUserRegionResult['isLoading'];
   userRegionError: UseRampsUserRegionResult['error'];
   fetchUserRegion: UseRampsUserRegionResult['fetchUserRegion'];
   setUserRegion: UseRampsUserRegionResult['setUserRegion'];
 
-  // Selected provider
   selectedProvider: UseRampsProvidersResult['selectedProvider'];
   setSelectedProvider: UseRampsProvidersResult['setSelectedProvider'];
 
-  // Providers
   providers: UseRampsProvidersResult['providers'];
   providersLoading: UseRampsProvidersResult['isLoading'];
   providersError: UseRampsProvidersResult['error'];
-  fetchProviders: UseRampsProvidersResult['fetchProviders'];
 
-  // Tokens
   tokens: UseRampsTokensResult['tokens'];
+  selectedToken: UseRampsTokensResult['selectedToken'];
+  setSelectedToken: UseRampsTokensResult['setSelectedToken'];
   tokensLoading: UseRampsTokensResult['isLoading'];
   tokensError: UseRampsTokensResult['error'];
-  fetchTokens: UseRampsTokensResult['fetchTokens'];
 
-  // Countries
   countries: UseRampsCountriesResult['countries'];
   countriesLoading: UseRampsCountriesResult['isLoading'];
   countriesError: UseRampsCountriesResult['error'];
-  fetchCountries: UseRampsCountriesResult['fetchCountries'];
 
-  // Payment methods
   paymentMethods: UseRampsPaymentMethodsResult['paymentMethods'];
+  selectedPaymentMethod: UseRampsPaymentMethodsResult['selectedPaymentMethod'];
+  setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
   paymentMethodsLoading: UseRampsPaymentMethodsResult['isLoading'];
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
-  setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
-  selectedPaymentMethod: UseRampsPaymentMethodsResult['selectedPaymentMethod'];
-
-  // Selected token
-  selectedToken: RampsToken | null;
 }
 
 /**
@@ -99,43 +86,33 @@ export interface UseRampsControllerResult {
  * @example
  * ```tsx
  * const {
- *   // User region
  *   userRegion,
  *   userRegionLoading,
  *   userRegionError,
  *   fetchUserRegion,
  *   setUserRegion,
  *
- *   // Selected provider
  *   selectedProvider,
  *   setSelectedProvider,
- *
- *   // Providers
  *   providers,
  *   providersLoading,
  *   providersError,
- *   fetchProviders,
  *
- *   // Tokens
  *   tokens,
+ *   selectedToken,
+ *   setSelectedToken,
  *   tokensLoading,
  *   tokensError,
- *   fetchTokens,
  *
- *   // Countries
  *   countries,
  *   countriesLoading,
  *   countriesError,
- *   fetchCountries,
  *
- *   // Payment methods
  *   paymentMethods,
  *   selectedPaymentMethod,
+ *   setSelectedPaymentMethod,
  *   paymentMethodsLoading,
  *   paymentMethodsError,
- *   fetchPaymentMethods,
- *   setSelectedPaymentMethod,
- *
  * } = useRampsController({ action: 'buy' });
  * ```
  */
@@ -153,77 +130,64 @@ export function useRampsController(
   const {
     providers,
     selectedProvider,
+    setSelectedProvider,
     isLoading: providersLoading,
     error: providersError,
-    fetchProviders,
-    setSelectedProvider,
   } = useRampsProviders(options?.region, options?.providerFilters);
 
   console.log('[useRampsController] selectedProvider:', selectedProvider);
 
   const {
     tokens,
+    selectedToken,
+    setSelectedToken,
     isLoading: tokensLoading,
     error: tokensError,
-    fetchTokens,
   } = useRampsTokens(options?.region, options?.action);
 
   const {
     countries,
     isLoading: countriesLoading,
     error: countriesError,
-    fetchCountries,
   } = useRampsCountries();
 
   const {
     paymentMethods,
     selectedPaymentMethod,
+    setSelectedPaymentMethod,
     isLoading: paymentMethodsLoading,
     error: paymentMethodsError,
-    setSelectedPaymentMethod,
   } = useRampsPaymentMethods();
 
-  const selectedToken = useSelector(selectSelectedToken);
-
   return {
-    // User region
     userRegion,
     userRegionLoading,
     userRegionError,
     fetchUserRegion,
     setUserRegion,
 
-    // Selected provider
     selectedProvider,
     setSelectedProvider,
 
-    // Providers
     providers,
     providersLoading,
     providersError,
-    fetchProviders,
 
-    // Tokens
     tokens,
+    selectedToken,
+    setSelectedToken,
     tokensLoading,
     tokensError,
-    fetchTokens,
 
-    // Countries
     countries,
     countriesLoading,
     countriesError,
-    fetchCountries,
 
-    // Payment methods
     paymentMethods,
     selectedPaymentMethod,
+    setSelectedPaymentMethod,
     paymentMethodsLoading,
     paymentMethodsError,
-    setSelectedPaymentMethod,
-
-    // Selected token
-    selectedToken,
   };
 }
 

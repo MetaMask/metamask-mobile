@@ -1,17 +1,18 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
 import {
   selectTokens,
   selectTokensRequest,
+  selectSelectedToken,
 } from '../../../../selectors/rampsController';
 import {
-  ExecuteRequestOptions,
   RequestSelectorResult,
   type RampsControllerState,
 } from '@metamask/ramps-controller';
+import Engine from '../../../../core/Engine';
 
 type TokensResponse = NonNullable<RampsControllerState['tokens']>;
+type SelectedToken = RampsControllerState['selectedToken'];
 
 /**
  * Result returned by the useRampsTokens hook.
@@ -22,6 +23,15 @@ export interface UseRampsTokensResult {
    */
   tokens: TokensResponse | null;
   /**
+   * The currently selected token, or null if none selected.
+   */
+  selectedToken: SelectedToken;
+  /**
+   * Sets the selected token by asset ID.
+   * @param assetId - The asset identifier in CAIP-19 format (e.g., "eip155:1/erc20:0x...").
+   */
+  setSelectedToken: (assetId: string) => void;
+  /**
    * Whether the tokens request is currently loading.
    */
   isLoading: boolean;
@@ -29,14 +39,6 @@ export interface UseRampsTokensResult {
    * The error message if the request failed, or null.
    */
   error: string | null;
-  /**
-   * Fetch tokens for a given region and action.
-   */
-  fetchTokens: (
-    region?: string,
-    action?: 'buy' | 'sell',
-    options?: ExecuteRequestOptions,
-  ) => Promise<TokensResponse>;
 }
 
 /**
@@ -45,13 +47,14 @@ export interface UseRampsTokensResult {
  *
  * @param region - Optional region code to use for request state. If not provided, uses userRegion from state.
  * @param action - Optional action type ('buy' or 'sell'). Defaults to 'buy'.
- * @returns Tokens state and fetch function.
+ * @returns Tokens state.
  */
 export function useRampsTokens(
   region?: string,
   action: 'buy' | 'sell' = 'buy',
 ): UseRampsTokensResult {
   const tokens = useSelector(selectTokens);
+  const selectedToken = useSelector(selectSelectedToken);
   const userRegion = useSelector(
     (state: Parameters<typeof selectTokens>[0]) =>
       state.engine.backgroundState.RampsController?.userRegion,
@@ -71,25 +74,20 @@ export function useRampsTokens(
     requestSelector,
   ) as RequestSelectorResult<TokensResponse>;
 
-  const fetchTokens = useCallback(
-    async (
-      fetchRegion?: string,
-      fetchAction: 'buy' | 'sell' = action,
-      options?: ExecuteRequestOptions,
-    ) =>
-      await Engine.context.RampsController.getTokens(
-        fetchRegion ?? regionCode,
-        fetchAction,
-        options,
-      ),
-    [action, regionCode],
-  );
+  const setSelectedToken = useCallback((assetId: string) => {
+    (
+      Engine.context.RampsController.setSelectedToken as (
+        assetId: string,
+      ) => void
+    )(assetId);
+  }, []);
 
   return {
     tokens,
+    selectedToken,
+    setSelectedToken,
     isLoading: isFetching,
     error,
-    fetchTokens,
   };
 }
 

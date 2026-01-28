@@ -29,7 +29,7 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
       ? {
           stateId: stateCode,
           name: stateCode,
-          supported: true,
+          supported: { buy: true, sell: true },
         }
       : null,
     regionCode: regionCode.toLowerCase(),
@@ -94,9 +94,11 @@ describe('ramps controller init', () => {
       selectedProvider: null,
       providers: [],
       tokens: null,
+      selectedToken: null,
       requests: {},
       paymentMethods: [],
       selectedPaymentMethod: null,
+      countries: [],
     };
 
     initRequestMock.persistedState = {

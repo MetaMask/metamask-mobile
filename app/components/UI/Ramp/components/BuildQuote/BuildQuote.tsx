@@ -29,6 +29,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
+import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -45,7 +46,6 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
-  // Get user region, selected provider, and tokens from RampsController
   const { userRegion, selectedProvider, tokens, selectedPaymentMethod, paymentMethodsLoading } = useRampsController();
 
   console.log('[BuildQuote] data:', {
@@ -55,26 +55,21 @@ function BuildQuote() {
     selectedPaymentMethod,
   });
 
-  // Get currency and quick amounts from user's region
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
-  // Get network info helper
   const getTokenNetworkInfo = useTokenNetworkInfo();
 
-  // Find the selected token from assetId param
   const selectedToken = useMemo(() => {
     if (!assetId || !tokens?.allTokens) return null;
     return tokens.allTokens.find((token) => token.assetId === assetId) ?? null;
   }, [assetId, tokens?.allTokens]);
 
-  // Get network info for the selected token
   const networkInfo = useMemo(() => {
     if (!selectedToken) return null;
     return getTokenNetworkInfo(selectedToken.chainId as CaipChainId);
   }, [selectedToken, getTokenNetworkInfo]);
 
-  // Update navigation options - shows skeleton when data is loading
   useEffect(() => {
     navigation.setOptions(
       getRampsBuildQuoteNavbarOptions(navigation, {
@@ -84,7 +79,7 @@ function BuildQuote() {
         networkName: networkInfo?.networkName ?? undefined,
         networkImageSource: networkInfo?.networkImageSource,
         onSettingsPress: () => {
-          // TODO: Implement settings handler
+          navigation.navigate(...createSettingsModalNavDetails());
         },
       }),
     );
@@ -123,7 +118,6 @@ function BuildQuote() {
               >
                 {formatCurrency(amountAsNumber, currency, {
                   currencyDisplay: 'narrowSymbol',
-                  maximumFractionDigits: 0,
                 })}
               </Text>
               <PaymentMethodPill

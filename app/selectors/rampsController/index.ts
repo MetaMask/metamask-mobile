@@ -53,35 +53,35 @@ export const selectTokens = createSelector(
 );
 
 /**
- * Selects the list of payment methods available for the current region.
- */
-export const selectPaymentMethods = createSelector(
-  selectRampsControllerState,
-  (rampsControllerState) => {
-    const paymentMethods = rampsControllerState?.paymentMethods ?? [];
-    console.log('[selectPaymentMethods] Selector called:', {
-      hasRampsControllerState: !!rampsControllerState,
-      paymentMethodsCount: paymentMethods.length,
-      paymentMethods: paymentMethods.map((pm) => ({ id: pm.id, name: pm.name })),
-    });
-    return paymentMethods;
-  },
-);
-
-/**
- * Selects the currently selected payment method from state.
- */
-export const selectSelectedPaymentMethod = createSelector(
-  selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.selectedPaymentMethod ?? null,
-);
-
-/**
- * Selects the currently selected token from state.
+ * Selects the user's selected token from state.
  */
 export const selectSelectedToken = createSelector(
   selectRampsControllerState,
   (rampsControllerState) => rampsControllerState?.selectedToken ?? null,
+);
+
+/**
+ * Selects the list of countries available for ramp actions.
+ */
+export const selectCountries = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.countries ?? [],
+);
+
+/**
+ * Selects the payment methods available for the current context.
+ */
+export const selectPaymentMethods = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.paymentMethods ?? [],
+);
+
+/**
+ * Selects the user's selected payment method from state.
+ */
+export const selectSelectedPaymentMethod = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.selectedPaymentMethod ?? null,
 );
 
 /**
@@ -90,19 +90,17 @@ export const selectSelectedToken = createSelector(
 export const selectUserRegionRequest = createRequestSelector<
   RootState,
   UserRegion | null
->(selectRampsControllerState, 'updateUserRegion', []);
+>(selectRampsControllerState, 'init', []);
 
 /**
  * Selects the countries request state.
  *
  * @returns Request selector for countries.
  */
-export const selectCountriesRequest = () =>
-  createRequestSelector<RootState, Country[]>(
-    selectRampsControllerState,
-    'getCountries',
-    [],
-  );
+export const selectCountriesRequest = createRequestSelector<
+  RootState,
+  Country[]
+>(selectRampsControllerState, 'getCountries', []);
 
 /**
  * Selects the tokens request state for a given region and action.
@@ -153,9 +151,9 @@ export const selectProvidersRequest = (
  * Selects the payment methods request state for a given context.
  *
  * @param region - The region code (e.g., "us", "fr", "us-ny").
- * @param fiat - The fiat currency code (e.g., "usd").
- * @param assetId - The CAIP-19 cryptocurrency identifier.
- * @param provider - The provider ID path.
+ * @param fiat - The fiat currency code (e.g., "usd", "eur").
+ * @param assetId - The asset ID in CAIP-19 format.
+ * @param provider - The provider ID.
  * @returns Request selector for payment methods.
  */
 export const selectPaymentMethodsRequest = (
@@ -167,11 +165,5 @@ export const selectPaymentMethodsRequest = (
   createRequestSelector<RootState, PaymentMethodsResponse>(
     selectRampsControllerState,
     'getPaymentMethods',
-    [
-      region.toLowerCase().trim(),
-      fiat.toLowerCase().trim(),
-      assetId,
-      provider,
-    ],
+    [region.toLowerCase().trim(), fiat.toLowerCase().trim(), assetId, provider],
   );
-

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
 import {
   selectProviders,
   selectProvidersRequest,
@@ -9,10 +8,10 @@ import {
 import { getOrders } from '../../../../reducers/fiatOrders';
 import { determinePreferredProvider } from '../utils/determinePreferredProvider';
 import {
-  ExecuteRequestOptions,
   RequestSelectorResult,
   type Provider,
 } from '@metamask/ramps-controller';
+import Engine from '../../../../core/Engine';
 
 /**
  * Result returned by the useRampsProviders hook.
@@ -23,9 +22,14 @@ export interface UseRampsProvidersResult {
    */
   providers: Provider[];
   /**
-   * The user's selected provider, or null if not set.
+   * The currently selected provider, or null if none selected.
    */
   selectedProvider: Provider | null;
+  /**
+   * Sets the selected provider.
+   * @param provider - The provider to select, or null to clear selection.
+   */
+  setSelectedProvider: (provider: Provider | null) => void;
   /**
    * Whether the providers request is currently loading.
    */
@@ -34,22 +38,6 @@ export interface UseRampsProvidersResult {
    * The error message if the request failed, or null.
    */
   error: string | null;
-  /**
-   * Fetch providers for a given region.
-   */
-  fetchProviders: (
-    region?: string,
-    options?: ExecuteRequestOptions & {
-      provider?: string | string[];
-      crypto?: string | string[];
-      fiat?: string | string[];
-      payments?: string | string[];
-    },
-  ) => Promise<{ providers: Provider[] }>;
-  /**
-   * Set the user's selected provider.
-   */
-  setSelectedProvider: (provider: Provider | null) => void;
 }
 
 /**
@@ -58,7 +46,7 @@ export interface UseRampsProvidersResult {
  *
  * @param region - Optional region code to use for request state. If not provided, uses userRegion from state.
  * @param filterOptions - Optional filter options for the request cache key.
- * @returns Providers state and fetch function.
+ * @returns Providers state.
  */
 export function useRampsProviders(
   region?: string,
@@ -91,40 +79,16 @@ export function useRampsProviders(
     requestSelector,
   ) as RequestSelectorResult<{ providers: Provider[] }>;
 
-  const fetchProviders = useCallback(
-    async (
-      fetchRegion?: string,
-      options?: ExecuteRequestOptions & {
-        provider?: string | string[];
-        crypto?: string | string[];
-        fiat?: string | string[];
-        payments?: string | string[];
-      },
-    ) =>
-      await Engine.context.RampsController.getProviders(
-        fetchRegion ?? regionCode,
-        options,
-      ),
-    [regionCode],
-  );
-
-  const setSelectedProvider = useCallback((provider: Provider) => {
-    if(provider?.id) {  
-      Engine.context.RampsController.setSelectedProvider(provider.id);
-    } else {
-      throw new Error('Provider ID is required');
-    }
+  const setSelectedProvider = useCallback((provider: Provider | null) => {
+    (
+      Engine.context.RampsController.setSelectedProvider as (
+        providerId: string | null,
+      ) => void
+    )(provider?.id ?? null);
   }, []);
 
   useEffect(() => {
-    console.log('[useRampsProviders] useEffect:', {
-      orders: orders.length,
-      providers: providers.length,
-      selectedProvider,
-    });
-
     if (selectedProvider) {
-      console.log('[useRampsProviders] Provider already set, skipping auto-selection');
       return;
     }
 
@@ -134,10 +98,6 @@ export function useRampsProviders(
 
     const determinedProvider = determinePreferredProvider(orders, providers);
 
-    console.log('[useRampsProviders] determinedProvider:', {
-      determinedProvider,
-    });
-
     if (determinedProvider) {
       setSelectedProvider(determinedProvider);
     }
@@ -146,10 +106,9 @@ export function useRampsProviders(
   return {
     providers,
     selectedProvider,
+    setSelectedProvider,
     isLoading: isFetching,
     error,
-    fetchProviders,
-    setSelectedProvider,
   };
 }
 

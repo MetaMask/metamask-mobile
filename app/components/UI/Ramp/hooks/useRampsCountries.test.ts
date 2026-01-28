@@ -4,7 +4,6 @@ import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsCountries } from './useRampsCountries';
 import { RequestStatus, type Country } from '@metamask/ramps-controller';
-import Engine from '../../../../core/Engine';
 
 const mockCountries: Country[] = [
   {
@@ -29,17 +28,9 @@ const mockCountries: Country[] = [
       template: 'XXX-XXX-XXXX',
     },
     currency: 'CAD',
-    supported: { buy: true, sell: false },
+    supported: { buy: true, sell: true },
   },
 ];
-
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      getCountries: jest.fn().mockResolvedValue(mockCountries),
-    },
-  },
-}));
 
 const createMockStore = (rampsControllerState = {}) =>
   configureStore({
@@ -51,6 +42,7 @@ const createMockStore = (rampsControllerState = {}) =>
             selectedProvider: null,
             providers: [],
             tokens: null,
+            countries: [],
             requests: {},
             ...rampsControllerState,
           },
@@ -67,79 +59,37 @@ const wrapper = (store: ReturnType<typeof createMockStore>) =>
 describe('useRampsCountries', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (
-      Engine.context.RampsController.getCountries as jest.Mock
-    ).mockResolvedValue(mockCountries);
   });
 
   describe('return value structure', () => {
-    it('returns isLoading, error, countries, and fetchCountries', () => {
+    it('returns countries, isLoading, and error', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
       expect(result.current).toMatchObject({
+        countries: [],
         isLoading: false,
         error: null,
-        countries: null,
-      });
-      expect(typeof result.current.fetchCountries).toBe('function');
-    });
-  });
-
-  describe('countries with buy/sell support', () => {
-    it('returns countries with supported object containing buy and sell flags', () => {
-      const store = createMockStore({
-        requests: {
-          'getCountries:[]': {
-            status: RequestStatus.SUCCESS,
-            data: mockCountries,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(() => useRampsCountries(), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.countries).toEqual(mockCountries);
-      expect(result.current.countries?.[0].supported).toEqual({
-        buy: true,
-        sell: true,
-      });
-      expect(result.current.countries?.[1].supported).toEqual({
-        buy: true,
-        sell: false,
       });
     });
   });
 
   describe('countries state', () => {
-    it('returns countries from request data', () => {
-      const store = createMockStore({
-        requests: {
-          'getCountries:[]': {
-            status: RequestStatus.SUCCESS,
-            data: mockCountries,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
+    it('returns countries from state', () => {
+      const store = createMockStore({ countries: mockCountries });
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
       expect(result.current.countries).toEqual(mockCountries);
     });
 
-    it('returns null when data is not available', () => {
+    it('returns empty array when countries are not available', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
-      expect(result.current.countries).toBeNull();
+      expect(result.current.countries).toEqual([]);
     });
   });
 
@@ -188,57 +138,6 @@ describe('useRampsCountries', () => {
         wrapper: wrapper(store),
       });
       expect(result.current.error).toBe('Network error');
-    });
-  });
-
-  describe('fetchCountries', () => {
-    it('calls getCountries without action parameter', async () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsCountries(), {
-        wrapper: wrapper(store),
-      });
-      await result.current.fetchCountries();
-      expect(Engine.context.RampsController.getCountries).toHaveBeenCalledWith(
-        undefined,
-        undefined,
-      );
-    });
-
-    it('calls getCountries with options when provided', async () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsCountries(), {
-        wrapper: wrapper(store),
-      });
-      await result.current.fetchCountries({ forceRefresh: true });
-      expect(Engine.context.RampsController.getCountries).toHaveBeenCalledWith(
-        undefined,
-        { forceRefresh: true },
-      );
-    });
-
-    it('returns countries data', async () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsCountries(), {
-        wrapper: wrapper(store),
-      });
-      const countries = await result.current.fetchCountries();
-      expect(countries).toEqual(mockCountries);
-    });
-
-    it('rejects with error when getCountries fails', async () => {
-      const store = createMockStore();
-      const mockGetCountries = Engine.context.RampsController
-        .getCountries as jest.Mock;
-      mockGetCountries.mockReset();
-      mockGetCountries.mockRejectedValue(new Error('Network error'));
-
-      const { result } = renderHook(() => useRampsCountries(), {
-        wrapper: wrapper(store),
-      });
-
-      await expect(result.current.fetchCountries()).rejects.toThrow(
-        'Network error',
-      );
     });
   });
 });

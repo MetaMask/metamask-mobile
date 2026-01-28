@@ -1,506 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RegionSelector calls fetchCountries when regions are null 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
->
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
-    style={
-      [
-        {
-          "flex": 1,
-        },
-        undefined,
-      ]
-    }
-  >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                SettingsRegionSelector
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
-                  "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
-                }
-              }
-            >
-              <View
-                collapsable={false}
-                pointerEvents="none"
-                style={
-                  {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
-                      {
-                        "backgroundColor": "rgb(242, 242, 242)",
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                <View
-                  style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "flex": 1,
-                      }
-                    }
-                  >
-                    <View
-                      onLayout={[Function]}
-                      style={
-                        [
-                          {
-                            "flex": 1,
-                          },
-                          {
-                            "paddingBottom": 0,
-                          },
-                        ]
-                      }
-                    >
-                      <View
-                        style={
-                          {
-                            "paddingBottom": 16,
-                            "paddingHorizontal": 16,
-                            "paddingTop": 16,
-                          }
-                        }
-                      >
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#686e7d",
-                              "fontFamily": "Geist-Regular",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                              "marginBottom": 16,
-                              "textAlign": "center",
-                            }
-                          }
-                        >
-                          Payment methods and available tokens may vary based on your region and our providers.
-                        </Text>
-                        <View
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": undefined,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessibilityValue={
-                            {
-                              "max": undefined,
-                              "min": undefined,
-                              "now": undefined,
-                              "text": undefined,
-                            }
-                          }
-                          accessible={true}
-                          collapsable={false}
-                          focusable={true}
-                          onBlur={[Function]}
-                          onClick={[Function]}
-                          onFocus={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
-                              "borderWidth": 1,
-                              "flexDirection": "row",
-                              "height": 40,
-                              "opacity": 1,
-                              "paddingHorizontal": 16,
-                            }
-                          }
-                          testID="textfield"
-                        >
-                          <View
-                            style={
-                              {
-                                "marginRight": 8,
-                              }
-                            }
-                            testID="textfield-startacccessory"
-                          >
-                            <SvgMock
-                              color="#121314"
-                              fill="currentColor"
-                              height={16}
-                              name="Search"
-                              style={
-                                {
-                                  "height": 16,
-                                  "width": 16,
-                                }
-                              }
-                              width={16}
-                            />
-                          </View>
-                          <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
-                          >
-                            <TextInput
-                              autoFocus={false}
-                              editable={true}
-                              onBlur={[Function]}
-                              onChangeText={[Function]}
-                              onFocus={[Function]}
-                              placeholder="Search by country"
-                              style={
-                                {
-                                  "backgroundColor": "inherit",
-                                  "borderColor": "transparent",
-                                  "borderWidth": 1,
-                                  "color": "#121314",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 16,
-                                  "fontWeight": "400",
-                                  "height": 38,
-                                  "letterSpacing": 0,
-                                  "opacity": 1,
-                                  "paddingVertical": 2,
-                                  "textAlignVertical": "center",
-                                }
-                              }
-                              testID="textfieldsearch"
-                              value=""
-                            />
-                          </View>
-                        </View>
-                      </View>
-                      <RCTScrollView
-                        ListEmptyComponent={[Function]}
-                        collapsable={false}
-                        data={[]}
-                        extraData={null}
-                        getItem={[Function]}
-                        getItemCount={[Function]}
-                        handlerTag={-1}
-                        handlerType="NativeViewGestureHandler"
-                        keyExtractor={[Function]}
-                        keyboardDismissMode="none"
-                        keyboardShouldPersistTaps="always"
-                        onContentSizeChange={[Function]}
-                        onGestureHandlerEvent={[Function]}
-                        onGestureHandlerStateChange={[Function]}
-                        onLayout={[Function]}
-                        onMomentumScrollBegin={[Function]}
-                        onMomentumScrollEnd={[Function]}
-                        onScroll={[Function]}
-                        onScrollBeginDrag={[Function]}
-                        onScrollEndDrag={[Function]}
-                        removeClippedSubviews={false}
-                        renderItem={[Function]}
-                        renderScrollComponent={[Function]}
-                        scrollEventThrottle={0.0001}
-                        stickyHeaderIndices={[]}
-                        style={
-                          {
-                            "flex": 1,
-                          }
-                        }
-                        viewabilityConfigCallbackPairs={[]}
-                      >
-                        <View />
-                      </RCTScrollView>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
-  </RNCSafeAreaProvider>
-</View>
-`;
-
 exports[`RegionSelector clears search and scrolls to top when clear button is pressed 1`] = `
 <View
   style={
@@ -991,12 +490,18 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -1019,7 +524,10 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -1049,7 +557,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={53}
+                        handlerTag={49}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -1461,7 +969,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -2055,12 +1563,18 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -2083,7 +1597,10 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -2113,7 +1630,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={19}
+                        handlerTag={15}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -2525,7 +2042,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -3131,7 +2648,7 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={17}
+                        handlerTag={13}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -3714,12 +3231,18 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                   {
                                     "name": "California",
                                     "stateId": "CA",
-                                    "supported": true,
+                                    "supported": {
+                                      "buy": true,
+                                      "sell": true,
+                                    },
                                   },
                                   {
                                     "name": "New York",
                                     "stateId": "NY",
-                                    "supported": true,
+                                    "supported": {
+                                      "buy": true,
+                                      "sell": true,
+                                    },
                                   },
                                 ],
                                 "supported": {
@@ -3732,7 +3255,10 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                             },
@@ -3741,7 +3267,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={61}
+                        handlerTag={57}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -4521,7 +4047,7 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={65}
+                        handlerTag={61}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -5182,12 +4708,18 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                   {
                                     "name": "California",
                                     "stateId": "CA",
-                                    "supported": true,
+                                    "supported": {
+                                      "buy": true,
+                                      "sell": true,
+                                    },
                                   },
                                   {
                                     "name": "Texas",
                                     "stateId": "TX",
-                                    "supported": true,
+                                    "supported": {
+                                      "buy": true,
+                                      "sell": true,
+                                    },
                                   },
                                 ],
                                 "supported": {
@@ -5200,7 +4732,10 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                 {
                                   "name": "Texas",
                                   "stateId": "TX",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                             },
@@ -5209,7 +4744,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={63}
+                        handlerTag={59}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -5957,12 +5492,18 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -5985,7 +5526,10 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -6447,7 +5991,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -6996,12 +6540,18 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "New York",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
@@ -7026,13 +6576,16 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
                             "state": {
                               "name": "ON",
                               "stateId": "ON",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           }
                         }
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={97}
+                        handlerTag={93}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -7679,12 +7232,18 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "New York",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
@@ -7709,13 +7268,16 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
                             "state": {
                               "name": "NY",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           }
                         }
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={99}
+                        handlerTag={95}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -8377,12 +7939,18 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "New York",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
@@ -8398,7 +7966,10 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
                                 "prefix": "",
                                 "template": "",
                               },
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "us",
                             "state": null,
@@ -8406,7 +7977,7 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
                         }
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={101}
+                        handlerTag={97}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -9124,7 +8695,10 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                   {
                                     "name": "California",
                                     "stateId": "CA",
-                                    "supported": true,
+                                    "supported": {
+                                      "buy": true,
+                                      "sell": true,
+                                    },
                                   },
                                 ],
                                 "supported": {
@@ -9137,7 +8711,10 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                             },
@@ -9164,13 +8741,16 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                             "state": {
                               "name": "CA",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           }
                         }
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={105}
+                        handlerTag={101}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -9988,12 +9568,18 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                                   {
                                     "name": "California",
                                     "stateId": "CA",
-                                    "supported": true,
+                                    "supported": {
+                                      "buy": true,
+                                      "sell": true,
+                                    },
                                   },
                                   {
                                     "name": "New York",
                                     "stateId": "NY",
-                                    "supported": true,
+                                    "supported": {
+                                      "buy": true,
+                                      "sell": true,
+                                    },
                                   },
                                 ],
                                 "supported": {
@@ -10009,7 +9595,7 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={15}
+                        handlerTag={11}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -10677,12 +10263,18 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -10705,7 +10297,10 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -11182,7 +10777,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -11776,12 +11371,18 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -11804,7 +11405,10 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -11852,7 +11456,10 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                             "state": {
                               "name": "CA",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           }
                         }
@@ -12299,7 +11906,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -12919,12 +12526,18 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                   {
                                     "name": "California",
                                     "stateId": "CA",
-                                    "supported": true,
+                                    "supported": {
+                                      "buy": true,
+                                      "sell": true,
+                                    },
                                   },
                                   {
                                     "name": "New York",
                                     "stateId": "NY",
-                                    "supported": true,
+                                    "supported": {
+                                      "buy": true,
+                                      "sell": true,
+                                    },
                                   },
                                 ],
                                 "supported": {
@@ -12937,7 +12550,10 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                             },
@@ -12964,13 +12580,16 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                             "state": {
                               "name": "CA",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           }
                         }
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={95}
+                        handlerTag={91}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -13717,12 +13336,18 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "New York",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
@@ -13747,13 +13372,16 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
                             "state": {
                               "name": "CA",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           }
                         }
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={93}
+                        handlerTag={89}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -14815,7 +14443,7 @@ exports[`RegionSelector limits search results 1`] = `
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={81}
+                        handlerTag={77}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -16339,19 +15967,25 @@ exports[`RegionSelector navigates back to countries view when back button is pre
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "New York",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={25}
+                        handlerTag={21}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -16998,19 +16632,25 @@ exports[`RegionSelector navigates to states view when country with states is sel
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "New York",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={21}
+                        handlerTag={17}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -17702,12 +17342,18 @@ exports[`RegionSelector renders countries list 1`] = `
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -17730,7 +17376,10 @@ exports[`RegionSelector renders countries list 1`] = `
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -18172,7 +17821,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -18797,7 +18446,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -19374,7 +19023,10 @@ exports[`RegionSelector renders country without flag 1`] = `
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -20030,12 +19682,18 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -20058,7 +19716,10 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -20500,7 +20161,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -21049,19 +20710,25 @@ exports[`RegionSelector renders description text only in country view 2`] = `
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "New York",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={41}
+                        handlerTag={37}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -21753,12 +21420,18 @@ exports[`RegionSelector renders disabled country 1`] = `
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -21781,7 +21454,10 @@ exports[`RegionSelector renders disabled country 1`] = `
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -22223,7 +21899,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -22772,19 +22448,25 @@ exports[`RegionSelector renders disabled state 1`] = `
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "Texas",
                               "stateId": "TX",
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={69}
+                        handlerTag={65}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -22905,7 +22587,7 @@ exports[`RegionSelector renders disabled state 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -23513,40 +23195,6 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
                             >
                               Failed to fetch countries
                             </Text>
-                            <TouchableOpacity
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "borderRadius": 8,
-                                  "height": 28,
-                                  "justifyContent": "center",
-                                  "marginTop": 16,
-                                  "opacity": 1,
-                                  "width": 28,
-                                }
-                              }
-                              testID="retry-countries-button"
-                            >
-                              <SvgMock
-                                color="#121314"
-                                fill="currentColor"
-                                height={20}
-                                name="Refresh"
-                                style={
-                                  {
-                                    "height": 20,
-                                    "width": 20,
-                                  }
-                                }
-                                width={20}
-                              />
-                            </TouchableOpacity>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -25270,14 +24918,17 @@ exports[`RegionSelector renders state with supported set to false 1`] = `
                             {
                               "name": "Texas",
                               "stateId": "TX",
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={77}
+                        handlerTag={73}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -25318,7 +24969,7 @@ exports[`RegionSelector renders state with supported set to false 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -25871,7 +25522,10 @@ exports[`RegionSelector renders state without stateId 1`] = `
                               "states": [
                                 {
                                   "name": "State Without ID",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -26505,19 +26159,25 @@ exports[`RegionSelector renders states view 1`] = `
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "New York",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={23}
+                        handlerTag={19}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -27209,12 +26869,18 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -27237,7 +26903,10 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -27679,7 +27348,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -28228,19 +27897,25 @@ exports[`RegionSelector renders unsupported state 1`] = `
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "Texas",
                               "stateId": "TX",
-                              "supported": false,
+                              "supported": {
+                                "buy": false,
+                                "sell": false,
+                              },
                             },
                           ]
                         }
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={49}
+                        handlerTag={45}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -28361,7 +28036,7 @@ exports[`RegionSelector renders unsupported state 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -28932,12 +28607,18 @@ exports[`RegionSelector renders when country has states and user region state is
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -28960,7 +28641,10 @@ exports[`RegionSelector renders when country has states and user region state is
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -29008,7 +28692,10 @@ exports[`RegionSelector renders when country has states and user region state is
                             "state": {
                               "name": "CA",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           }
                         }
@@ -29455,7 +29142,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -30550,12 +30237,18 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -30578,7 +30271,10 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -30626,7 +30322,10 @@ exports[`RegionSelector renders with selected user region 1`] = `
                             "state": {
                               "name": "CA",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           }
                         }
@@ -31073,7 +30772,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }
@@ -31622,19 +31321,25 @@ exports[`RegionSelector resets search when navigating to state view 1`] = `
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "New York",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={73}
+                        handlerTag={69}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -32338,7 +32043,7 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={55}
+                        handlerTag={51}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -32850,19 +32555,25 @@ exports[`RegionSelector sets up back button in state view 1`] = `
                             {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             {
                               "name": "New York",
                               "stateId": "NY",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           ]
                         }
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={57}
+                        handlerTag={53}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -33554,12 +33265,18 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                                 {
                                   "name": "New York",
                                   "stateId": "NY",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -33582,7 +33299,10 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                 {
                                   "name": "Ontario",
                                   "stateId": "ON",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
                               "supported": {
@@ -33625,16 +33345,25 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                 {
                                   "name": "California",
                                   "stateId": "CA",
-                                  "supported": true,
+                                  "supported": {
+                                    "buy": true,
+                                    "sell": true,
+                                  },
                                 },
                               ],
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                             "regionCode": "us-ca",
                             "state": {
                               "name": "California",
                               "stateId": "CA",
-                              "supported": true,
+                              "supported": {
+                                "buy": true,
+                                "sell": true,
+                              },
                             },
                           }
                         }
@@ -34081,7 +33810,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                 {
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 4,
-                                  "opacity": 1,
+                                  "opacity": 0.5,
                                   "position": "relative",
                                 }
                               }

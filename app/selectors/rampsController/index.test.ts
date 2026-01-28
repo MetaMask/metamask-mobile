@@ -5,6 +5,7 @@ import {
   UserRegion,
   type Provider,
   type Country,
+  type PaymentMethod,
 } from '@metamask/ramps-controller';
 import {
   selectUserRegion,
@@ -12,10 +13,13 @@ import {
   selectSelectedProvider,
   selectProviders,
   selectTokens,
-  selectPaymentMethods,
+  selectSelectedToken,
+  selectCountries,
   selectCountriesRequest,
   selectTokensRequest,
   selectProvidersRequest,
+  selectPaymentMethods,
+  selectSelectedPaymentMethod,
   selectPaymentMethodsRequest,
   selectRampsControllerState,
 } from './index';
@@ -82,44 +86,30 @@ const mockCountries: Country[] = [
   },
 ];
 
-const mockTokens = {
-  topTokens: [
-    {
-      assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-      chainId: 'eip155:1',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      decimals: 18,
-      iconUrl: 'https://example.com/eth-icon.png',
-      tokenSupported: true,
-    },
-  ],
-  allTokens: [
-    {
-      assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-      chainId: 'eip155:1',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      decimals: 18,
-      iconUrl: 'https://example.com/eth-icon.png',
-      tokenSupported: true,
-    },
-  ],
+const mockToken = {
+  assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+  chainId: 'eip155:1',
+  name: 'Ethereum',
+  symbol: 'ETH',
+  decimals: 18,
+  iconUrl: 'https://example.com/eth-icon.png',
+  tokenSupported: true,
 };
 
-const mockPaymentMethods = [
-  {
-    id: '/payments/debit-credit-card',
-    paymentType: 'debit-credit-card',
-    name: 'Debit or Credit',
-    score: 90,
-    icon: 'card',
-    disclaimer: "Credit card purchases may incur your bank's cash advance fees.",
-    delay: '5 to 10 minutes.',
-    pendingOrderDescription:
-      'Card purchases may take a few minutes to complete.',
-  },
-];
+const mockTokens = {
+  topTokens: [mockToken],
+  allTokens: [mockToken],
+};
+
+const mockPaymentMethod: PaymentMethod = {
+  id: '/payments/debit-credit-card',
+  paymentType: 'debit-credit-card',
+  name: 'Debit/Credit Card',
+  score: 100,
+  icon: 'card',
+};
+
+const mockPaymentMethods: PaymentMethod[] = [mockPaymentMethod];
 
 describe('RampsController Selectors', () => {
   describe('selectUserRegion', () => {
@@ -140,7 +130,7 @@ describe('RampsController Selectors', () => {
     it('returns request state with data, isFetching, and error', () => {
       const state = createMockState({
         requests: {
-          'updateUserRegion:[]': {
+          'init:[]': {
             status: RequestStatus.SUCCESS,
             data: mockUserRegion,
             error: null,
@@ -162,7 +152,7 @@ describe('RampsController Selectors', () => {
     it('returns isFetching true when request is loading', () => {
       const state = createMockState({
         requests: {
-          'updateUserRegion:[]': {
+          'init:[]': {
             status: RequestStatus.LOADING,
             data: null,
             error: null,
@@ -180,7 +170,7 @@ describe('RampsController Selectors', () => {
     it('returns error when request failed', () => {
       const state = createMockState({
         requests: {
-          'updateUserRegion:[]': {
+          'init:[]': {
             status: RequestStatus.ERROR,
             data: null,
             error: 'Network error',
@@ -274,28 +264,48 @@ describe('RampsController Selectors', () => {
     });
   });
 
-  describe('selectPaymentMethods', () => {
-    it('returns payment methods from state', () => {
-      const state = createMockState({ paymentMethods: mockPaymentMethods });
+  describe('selectSelectedToken', () => {
+    it('returns selected token from state', () => {
+      const state = createMockState({ selectedToken: mockToken });
 
-      expect(selectPaymentMethods(state)).toEqual(mockPaymentMethods);
+      expect(selectSelectedToken(state)).toEqual(mockToken);
     });
 
-    it('returns empty array when paymentMethods is empty', () => {
-      const state = createMockState({ paymentMethods: [] });
+    it('returns null when selected token is null', () => {
+      const state = createMockState({ selectedToken: null });
 
-      expect(selectPaymentMethods(state)).toEqual([]);
+      expect(selectSelectedToken(state)).toBeNull();
     });
 
-    it('returns empty array when paymentMethods is undefined', () => {
+    it('returns null when RampsController state is undefined', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RampsController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectSelectedToken(state)).toBeNull();
+    });
+  });
+
+  describe('selectCountries', () => {
+    it('returns countries from state', () => {
+      const state = createMockState({ countries: mockCountries });
+
+      expect(selectCountries(state)).toEqual(mockCountries);
+    });
+
+    it('returns empty array when countries are not available', () => {
       const state = createMockState();
 
-      expect(selectPaymentMethods(state)).toEqual([]);
+      expect(selectCountries(state)).toEqual([]);
     });
   });
 
   describe('selectCountriesRequest', () => {
-    it('returns request state for countries', () => {
+    it('returns request state', () => {
       const state = createMockState({
         requests: {
           'getCountries:[]': {
@@ -308,7 +318,7 @@ describe('RampsController Selectors', () => {
         },
       });
 
-      const result = selectCountriesRequest()(state);
+      const result = selectCountriesRequest(state);
 
       expect(result).toEqual({
         data: mockCountries,
@@ -317,10 +327,54 @@ describe('RampsController Selectors', () => {
       });
     });
 
+    it('returns loading state when request is in progress', () => {
+      const state = createMockState({
+        requests: {
+          'getCountries:[]': {
+            status: RequestStatus.LOADING,
+            data: null,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const result = selectCountriesRequest(state);
+
+      expect(result).toEqual({
+        data: null,
+        isFetching: true,
+        error: null,
+      });
+    });
+
+    it('returns error state when request fails', () => {
+      const state = createMockState({
+        requests: {
+          'getCountries:[]': {
+            status: RequestStatus.ERROR,
+            data: null,
+            error: 'Network error',
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const result = selectCountriesRequest(state);
+
+      expect(result).toEqual({
+        data: null,
+        isFetching: false,
+        error: 'Network error',
+      });
+    });
+
     it('returns default state when request does not exist', () => {
       const state = createMockState();
 
-      const result = selectCountriesRequest()(state);
+      const result = selectCountriesRequest(state);
 
       expect(result).toEqual({
         data: null,
@@ -503,11 +557,53 @@ describe('RampsController Selectors', () => {
     });
   });
 
+  describe('selectPaymentMethods', () => {
+    it('returns payment methods from state', () => {
+      const state = createMockState({ paymentMethods: mockPaymentMethods });
+
+      expect(selectPaymentMethods(state)).toEqual(mockPaymentMethods);
+    });
+
+    it('returns empty array when payment methods are not available', () => {
+      const state = createMockState();
+
+      expect(selectPaymentMethods(state)).toEqual([]);
+    });
+  });
+
+  describe('selectSelectedPaymentMethod', () => {
+    it('returns selected payment method from state', () => {
+      const state = createMockState({
+        selectedPaymentMethod: mockPaymentMethod,
+      });
+
+      expect(selectSelectedPaymentMethod(state)).toEqual(mockPaymentMethod);
+    });
+
+    it('returns null when selected payment method is null', () => {
+      const state = createMockState({ selectedPaymentMethod: null });
+
+      expect(selectSelectedPaymentMethod(state)).toBeNull();
+    });
+
+    it('returns null when RampsController state is undefined', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RampsController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectSelectedPaymentMethod(state)).toBeNull();
+    });
+  });
+
   describe('selectPaymentMethodsRequest', () => {
-    it('returns request state for context', () => {
+    it('returns request state for region, fiat, assetId, and provider', () => {
       const state = createMockState({
         requests: {
-          'getPaymentMethods:["us-ca","usd","eip155:1/slip44:60","/providers/transak"]':
+          'getPaymentMethods:["us-ca","usd","eip155:1/erc20:0x123","provider-1"]':
             {
               status: RequestStatus.SUCCESS,
               data: { payments: mockPaymentMethods },
@@ -521,8 +617,8 @@ describe('RampsController Selectors', () => {
       const result = selectPaymentMethodsRequest(
         'us-ca',
         'usd',
-        'eip155:1/slip44:60',
-        '/providers/transak',
+        'eip155:1/erc20:0x123',
+        'provider-1',
       )(state);
 
       expect(result).toEqual({
@@ -535,7 +631,7 @@ describe('RampsController Selectors', () => {
     it('normalizes region and fiat to lowercase and trims', () => {
       const state = createMockState({
         requests: {
-          'getPaymentMethods:["us-ca","usd","eip155:1/slip44:60","/providers/transak"]':
+          'getPaymentMethods:["us-ca","usd","eip155:1/erc20:0x123","provider-1"]':
             {
               status: RequestStatus.SUCCESS,
               data: { payments: mockPaymentMethods },
@@ -549,59 +645,11 @@ describe('RampsController Selectors', () => {
       const result = selectPaymentMethodsRequest(
         '  US-CA  ',
         '  USD  ',
-        'eip155:1/slip44:60',
-        '/providers/transak',
+        'eip155:1/erc20:0x123',
+        'provider-1',
       )(state);
 
       expect(result.data).toEqual({ payments: mockPaymentMethods });
-    });
-
-    it('returns isFetching true when request is loading', () => {
-      const state = createMockState({
-        requests: {
-          'getPaymentMethods:["us-ca","usd","eip155:1/slip44:60","/providers/transak"]':
-            {
-              status: RequestStatus.LOADING,
-              data: null,
-              error: null,
-              timestamp: Date.now(),
-              lastFetchedAt: Date.now(),
-            },
-        },
-      });
-
-      const result = selectPaymentMethodsRequest(
-        'us-ca',
-        'usd',
-        'eip155:1/slip44:60',
-        '/providers/transak',
-      )(state);
-
-      expect(result.isFetching).toBe(true);
-    });
-
-    it('returns error when request failed', () => {
-      const state = createMockState({
-        requests: {
-          'getPaymentMethods:["us-ca","usd","eip155:1/slip44:60","/providers/transak"]':
-            {
-              status: RequestStatus.ERROR,
-              data: null,
-              error: 'Network error',
-              timestamp: Date.now(),
-              lastFetchedAt: Date.now(),
-            },
-        },
-      });
-
-      const result = selectPaymentMethodsRequest(
-        'us-ca',
-        'usd',
-        'eip155:1/slip44:60',
-        '/providers/transak',
-      )(state);
-
-      expect(result.error).toBe('Network error');
     });
 
     it('returns default state when request does not exist', () => {
@@ -610,8 +658,8 @@ describe('RampsController Selectors', () => {
       const result = selectPaymentMethodsRequest(
         'us-ca',
         'usd',
-        'eip155:1/slip44:60',
-        '/providers/transak',
+        'eip155:1/erc20:0x123',
+        'provider-1',
       )(state);
 
       expect(result).toEqual({

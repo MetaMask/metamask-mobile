@@ -1,62 +1,81 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsPaymentMethods } from './useRampsPaymentMethods';
-import { RequestStatus, type PaymentMethod } from '@metamask/ramps-controller';
+import {
+  RequestStatus,
+  type UserRegion,
+  type PaymentMethod,
+} from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      setSelectedPaymentMethod: jest.fn(),
+    },
+  },
+}));
+
+const mockUserRegion: UserRegion = {
+  country: {
+    isoCode: 'US',
+    name: 'United States',
+    flag: '🇺🇸',
+    phone: {
+      prefix: '+1',
+      placeholder: '(XXX) XXX-XXXX',
+      template: 'XXX-XXX-XXXX',
+    },
+    currency: 'USD',
+    supported: { buy: true, sell: true },
+  },
+  state: { stateId: 'CA', name: 'California' },
+  regionCode: 'us-ca',
+};
+
+const mockSelectedToken = {
+  assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+  chainId: 'eip155:1',
+  symbol: 'ETH',
+  name: 'Ethereum',
+  decimals: 18,
+  iconUrl: 'https://example.com/eth-icon.png',
+  tokenSupported: true,
+};
+
+const mockSelectedProvider = {
+  id: 'provider-1',
+  name: 'Provider 1',
+  environmentType: 'PRODUCTION',
+  description: 'Provider 1 Description',
+  hqAddress: '123 Provider 1 St, City, ST 12345',
+  links: [],
+  logos: {
+    light: 'https://example.com/logo1-light.png',
+    dark: 'https://example.com/logo1-dark.png',
+    height: 24,
+    width: 79,
+  },
+};
 
 const mockPaymentMethods: PaymentMethod[] = [
   {
     id: '/payments/debit-credit-card',
     paymentType: 'debit-credit-card',
-    name: 'Debit or Credit',
-    score: 90,
+    name: 'Debit/Credit Card',
+    score: 100,
     icon: 'card',
-    disclaimer: "Credit card purchases may incur your bank's cash advance fees.",
-    delay: '5 to 10 minutes.',
-    pendingOrderDescription:
-      'Card purchases may take a few minutes to complete.',
   },
   {
     id: '/payments/bank-transfer',
     paymentType: 'bank-transfer',
     name: 'Bank Transfer',
-    score: 80,
+    score: 90,
     icon: 'bank',
-    disclaimer: 'Bank transfers may take 1-3 business days.',
-    delay: '1-3 business days',
-    pendingOrderDescription:
-      'Bank transfers may take a few business days to complete.',
   },
 ];
-
-const mockPaymentMethodsResponse = {
-  payments: mockPaymentMethods,
-};
-
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      getPaymentMethods: jest.fn().mockResolvedValue({
-        payments: [
-          {
-            id: '/payments/debit-credit-card',
-            paymentType: 'debit-credit-card',
-            name: 'Debit or Credit',
-            score: 90,
-            icon: 'card',
-            disclaimer:
-              "Credit card purchases may incur your bank's cash advance fees.",
-            delay: '5 to 10 minutes.',
-            pendingOrderDescription:
-              'Card purchases may take a few minutes to complete.',
-          },
-        ],
-      }),
-    },
-  },
-}));
 
 const createMockStore = (rampsControllerState = {}) =>
   configureStore({
@@ -65,7 +84,10 @@ const createMockStore = (rampsControllerState = {}) =>
         backgroundState: {
           RampsController: {
             userRegion: null,
+            selectedToken: null,
+            selectedProvider: null,
             paymentMethods: [],
+            selectedPaymentMethod: null,
             requests: {},
             ...rampsControllerState,
           },
@@ -82,23 +104,21 @@ const wrapper = (store: ReturnType<typeof createMockStore>) =>
 describe('useRampsPaymentMethods', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mockResolvedValue(mockPaymentMethodsResponse);
   });
 
   describe('return value structure', () => {
-    it('returns paymentMethods, isLoading, error, and fetchPaymentMethods', () => {
+    it('returns paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod, isLoading, and error', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
       });
       expect(result.current).toMatchObject({
         paymentMethods: [],
+        selectedPaymentMethod: null,
         isLoading: false,
         error: null,
       });
-      expect(typeof result.current.fetchPaymentMethods).toBe('function');
+      expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
     });
   });
 
@@ -120,11 +140,36 @@ describe('useRampsPaymentMethods', () => {
     });
   });
 
+  describe('selectedPaymentMethod state', () => {
+    it('returns selectedPaymentMethod from state', () => {
+      const store = createMockStore({
+        selectedPaymentMethod: mockPaymentMethods[0],
+      });
+      const { result } = renderHook(() => useRampsPaymentMethods(), {
+        wrapper: wrapper(store),
+      });
+      expect(result.current.selectedPaymentMethod).toEqual(
+        mockPaymentMethods[0],
+      );
+    });
+
+    it('returns null when selectedPaymentMethod is not available', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsPaymentMethods(), {
+        wrapper: wrapper(store),
+      });
+      expect(result.current.selectedPaymentMethod).toBeNull();
+    });
+  });
+
   describe('loading state', () => {
     it('returns isLoading true when request is loading', () => {
       const store = createMockStore({
+        userRegion: mockUserRegion,
+        selectedToken: mockSelectedToken,
+        selectedProvider: mockSelectedProvider,
         requests: {
-          'getPaymentMethods:["us-ca","usd","eip155:1/slip44:60","/providers/transak"]':
+          [`getPaymentMethods:["us-ca","usd","${mockSelectedToken.assetId}","${mockSelectedProvider.id}"]`]:
             {
               status: RequestStatus.LOADING,
               data: null,
@@ -134,35 +179,21 @@ describe('useRampsPaymentMethods', () => {
             },
         },
       });
-      const { result } = renderHook(
-        () =>
-          useRampsPaymentMethods({
-            region: 'us-ca',
-            fiat: 'usd',
-            assetId: 'eip155:1/slip44:60',
-            provider: '/providers/transak',
-          }),
-        {
-          wrapper: wrapper(store),
-        },
-      );
-      expect(result.current.isLoading).toBe(true);
-    });
-
-    it('returns isLoading false when request is not loading', () => {
-      const store = createMockStore();
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
       });
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isLoading).toBe(true);
     });
   });
 
   describe('error state', () => {
     it('returns error from request state', () => {
       const store = createMockStore({
+        userRegion: mockUserRegion,
+        selectedToken: mockSelectedToken,
+        selectedProvider: mockSelectedProvider,
         requests: {
-          'getPaymentMethods:["us-ca","usd","eip155:1/slip44:60","/providers/transak"]':
+          [`getPaymentMethods:["us-ca","usd","${mockSelectedToken.assetId}","${mockSelectedProvider.id}"]`]:
             {
               status: RequestStatus.ERROR,
               data: null,
@@ -172,100 +203,42 @@ describe('useRampsPaymentMethods', () => {
             },
         },
       });
-      const { result } = renderHook(
-        () =>
-          useRampsPaymentMethods({
-            region: 'us-ca',
-            fiat: 'usd',
-            assetId: 'eip155:1/slip44:60',
-            provider: '/providers/transak',
-          }),
-        {
-          wrapper: wrapper(store),
-        },
-      );
-      expect(result.current.error).toBe('Network error');
-    });
-
-    it('returns null error when no error', () => {
-      const store = createMockStore();
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
       });
-      expect(result.current.error).toBeNull();
+      expect(result.current.error).toBe('Network error');
     });
   });
 
-  describe('fetchPaymentMethods', () => {
-    it('calls getPaymentMethods with required options', async () => {
+  describe('setSelectedPaymentMethod', () => {
+    it('calls Engine.context.RampsController.setSelectedPaymentMethod with payment method id', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
       });
-      await result.current.fetchPaymentMethods({
-        assetId: 'eip155:1/slip44:60',
-        provider: '/providers/transak',
+
+      act(() => {
+        result.current.setSelectedPaymentMethod(mockPaymentMethods[0]);
       });
+
       expect(
-        Engine.context.RampsController.getPaymentMethods,
-      ).toHaveBeenCalledWith({
-        assetId: 'eip155:1/slip44:60',
-        provider: '/providers/transak',
-      });
+        Engine.context.RampsController.setSelectedPaymentMethod,
+      ).toHaveBeenCalledWith(mockPaymentMethods[0].id);
     });
 
-    it('calls getPaymentMethods with all options when provided', async () => {
+    it('calls Engine.context.RampsController.setSelectedPaymentMethod with null when payment method is null', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
       });
-      await result.current.fetchPaymentMethods({
-        assetId: 'eip155:1/slip44:60',
-        provider: '/providers/transak',
-        region: 'us-ca',
-        fiat: 'usd',
-        forceRefresh: true,
+
+      act(() => {
+        result.current.setSelectedPaymentMethod(null);
       });
+
       expect(
-        Engine.context.RampsController.getPaymentMethods,
-      ).toHaveBeenCalledWith({
-        assetId: 'eip155:1/slip44:60',
-        provider: '/providers/transak',
-        region: 'us-ca',
-        fiat: 'usd',
-        forceRefresh: true,
-      });
-    });
-
-    it('returns payment methods response', async () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
-        wrapper: wrapper(store),
-      });
-      const response = await result.current.fetchPaymentMethods({
-        assetId: 'eip155:1/slip44:60',
-        provider: '/providers/transak',
-      });
-      expect(response).toEqual(mockPaymentMethodsResponse);
-    });
-
-    it('rejects with error when getPaymentMethods fails', async () => {
-      const store = createMockStore();
-      const mockGetPaymentMethods = Engine.context.RampsController
-        .getPaymentMethods as jest.Mock;
-      mockGetPaymentMethods.mockReset();
-      mockGetPaymentMethods.mockRejectedValue(new Error('Network error'));
-
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
-        wrapper: wrapper(store),
-      });
-
-      await expect(
-        result.current.fetchPaymentMethods({
-          assetId: 'eip155:1/slip44:60',
-          provider: '/providers/transak',
-        }),
-      ).rejects.toThrow('Network error');
+        Engine.context.RampsController.setSelectedPaymentMethod,
+      ).toHaveBeenCalledWith(null);
     });
   });
 });

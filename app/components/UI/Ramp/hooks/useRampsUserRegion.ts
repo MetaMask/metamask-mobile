@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
@@ -28,6 +28,10 @@ export interface UseRampsUserRegionResult {
    */
   error: string | null;
   /**
+   * Manually fetch the user region from geolocation.
+   */
+  fetchUserRegion: (options?: ExecuteRequestOptions) => Promise<void>;
+  /**
    * Set the user region manually (without fetching geolocation).
    */
   setUserRegion: (
@@ -48,17 +52,23 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
     selectUserRegionRequest,
   ) as RequestSelectorResult<UserRegion | null>;
 
+  const fetchUserRegion = useCallback(
+    async (options?: ExecuteRequestOptions) =>
+      await Engine.context.RampsController.init(options),
+    [],
+  );
+
   const setUserRegion = useCallback(
     (region: string, options?: ExecuteRequestOptions) =>
       Engine.context.RampsController.setUserRegion(region, options),
     [],
   );
 
-
   return {
     userRegion,
     isLoading: isFetching,
     error,
+    fetchUserRegion,
     setUserRegion,
   };
 }

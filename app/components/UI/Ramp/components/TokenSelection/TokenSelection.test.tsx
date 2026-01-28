@@ -152,6 +152,8 @@ describe('TokenSelection Component', () => {
         topTokens: rampsTokens,
         allTokens: rampsTokens,
       },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: null,
       userRegion: null,
@@ -164,12 +166,14 @@ describe('TokenSelection Component', () => {
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
   });
 
@@ -276,6 +280,8 @@ describe('TokenSelection Component', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     mockUseRampsController.mockReturnValue({
       tokens: null,
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: true,
       tokensError: null,
       userRegion: null,
@@ -288,12 +294,14 @@ describe('TokenSelection Component', () => {
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
@@ -320,6 +328,8 @@ describe('TokenSelection Component', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     mockUseRampsController.mockReturnValue({
       tokens: null,
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: 'Network error',
       userRegion: null,
@@ -332,12 +342,14 @@ describe('TokenSelection Component', () => {
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     const { getByText } = renderWithProvider(TokenSelection);
@@ -376,6 +388,8 @@ describe('TokenSelection Component', () => {
         topTokens,
         allTokens,
       },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: null,
       userRegion: null,
@@ -388,12 +402,14 @@ describe('TokenSelection Component', () => {
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     renderWithProvider(TokenSelection);
@@ -442,6 +458,8 @@ describe('TokenSelection Component', () => {
         topTokens,
         allTokens,
       },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: null,
       userRegion: null,
@@ -454,12 +472,14 @@ describe('TokenSelection Component', () => {
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -512,6 +532,8 @@ describe('TokenSelection Component', () => {
         topTokens,
         allTokens,
       },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: null,
       userRegion: null,
@@ -524,12 +546,14 @@ describe('TokenSelection Component', () => {
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -584,6 +608,8 @@ describe('TokenSelection Component', () => {
         topTokens: allTokensWithUnconfiguredNetwork,
         allTokens: allTokensWithUnconfiguredNetwork,
       },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: null,
       userRegion: null,
@@ -596,12 +622,14 @@ describe('TokenSelection Component', () => {
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     renderWithProvider(TokenSelection);

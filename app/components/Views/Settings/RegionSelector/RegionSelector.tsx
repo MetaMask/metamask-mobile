@@ -102,12 +102,11 @@ function RegionSelector() {
     countries,
     countriesLoading,
     countriesError,
-    fetchCountries,
   } = useRampsController();
 
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
-  const [currentData, setCurrentData] = useState<RegionItem[]>(countries || []);
+  const [currentData, setCurrentData] = useState<RegionItem[]>(countries);
   const [regionInTransit, setRegionInTransit] = useState<Country | null>(null);
   const { styles } = useStyles(styleSheet, {});
 
@@ -126,13 +125,7 @@ function RegionSelector() {
   }, [colors, navigation, activeView, regionInTransit]);
 
   useEffect(() => {
-    if (!countries && !countriesLoading && !countriesError) {
-      fetchCountries();
-    }
-  }, [countries, countriesLoading, countriesError, fetchCountries]);
-
-  useEffect(() => {
-    if (countries && activeView === RegionViewType.COUNTRY) {
+    if (countries.length > 0 && activeView === RegionViewType.COUNTRY) {
       setCurrentData(countries);
     }
   }, [countries, activeView]);
@@ -341,7 +334,14 @@ function RegionSelector() {
     ({ item }: { item: ListItem }) => {
       if (isGroupedResult(item)) {
         const countryIsSelected = isRegionSelected(item.country);
-        const isSupported = item.country.supported !== false;
+        const supportedValue = item.country.supported as unknown;
+        const isSupported =
+          supportedValue == null ||
+          supportedValue === true ||
+          (typeof supportedValue === 'object' &&
+            supportedValue !== null &&
+            ((supportedValue as { buy?: boolean }).buy ||
+              (supportedValue as { sell?: boolean }).sell));
         const showStateName =
           userRegion?.state &&
           activeView === RegionViewType.COUNTRY &&
@@ -356,7 +356,7 @@ function RegionSelector() {
               onPress={() => handleOnRegionPressCallback(item.country)}
               accessibilityRole="button"
               accessible
-              disabled={!isSupported}
+              isDisabled={!isSupported}
             >
               <ListItemColumn widthType={WidthType.Fill}>
                 <View style={styles.region}>
@@ -402,7 +402,14 @@ function RegionSelector() {
             </ListItemSelect>
             {item.matchingStates.map((state) => {
               const stateIsSelected = isRegionSelected(state, item.country);
-              const isStateSupported = state.supported !== false;
+              const stateSupportedValue = state.supported as unknown;
+              const isStateSupported =
+                stateSupportedValue == null ||
+                stateSupportedValue === true ||
+                (typeof stateSupportedValue === 'object' &&
+                  stateSupportedValue !== null &&
+                  ((stateSupportedValue as { buy?: boolean }).buy ||
+                    (stateSupportedValue as { sell?: boolean }).sell));
               return (
                 <ListItemSelect
                   key={state.stateId || state.name}
@@ -412,7 +419,7 @@ function RegionSelector() {
                   }
                   accessibilityRole="button"
                   accessible
-                  disabled={!isStateSupported}
+                  isDisabled={!isStateSupported}
                   style={styles.nestedStateItem}
                 >
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -445,7 +452,14 @@ function RegionSelector() {
       );
 
       if (isCountry(region)) {
-        const isSupported = region.supported !== false;
+        const countrySupportedValue = region.supported as unknown;
+        const isSupported =
+          countrySupportedValue == null ||
+          countrySupportedValue === true ||
+          (typeof countrySupportedValue === 'object' &&
+            countrySupportedValue !== null &&
+            ((countrySupportedValue as { buy?: boolean }).buy ||
+              (countrySupportedValue as { sell?: boolean }).sell));
         const showStateName =
           userRegion?.state &&
           activeView === RegionViewType.COUNTRY &&
@@ -459,7 +473,7 @@ function RegionSelector() {
             onPress={() => handleOnRegionPressCallback(region)}
             accessibilityRole="button"
             accessible
-            disabled={!isSupported}
+            isDisabled={!isSupported}
           >
             <ListItemColumn widthType={WidthType.Fill}>
               <View style={styles.region}>
@@ -501,14 +515,21 @@ function RegionSelector() {
         );
       }
 
-      const isStateSupported = region.supported !== false;
+      const regionSupportedValue = region.supported as unknown;
+      const isStateSupported =
+        regionSupportedValue == null ||
+        regionSupportedValue === true ||
+        (typeof regionSupportedValue === 'object' &&
+          regionSupportedValue !== null &&
+          ((regionSupportedValue as { buy?: boolean }).buy ||
+            (regionSupportedValue as { sell?: boolean }).sell));
       return (
         <ListItemSelect
           isSelected={isSelected}
           onPress={() => handleOnRegionPressCallback(region)}
           accessibilityRole="button"
           accessible
-          disabled={!isStateSupported}
+          isDisabled={!isStateSupported}
         >
           <ListItemColumn widthType={WidthType.Fill}>
             <View style={styles.region}>
@@ -542,7 +563,7 @@ function RegionSelector() {
   );
 
   const renderEmptyList = useCallback(() => {
-    if (countriesLoading && !countries) {
+    if (countriesLoading && countries.length === 0) {
       return (
         <View style={styles.emptyList}>
           <ActivityIndicator size="large" color={colors.primary.default} />
@@ -550,7 +571,7 @@ function RegionSelector() {
       );
     }
 
-    if (countriesError && !countries) {
+    if (countriesError && countries.length === 0) {
       return (
         <View style={styles.emptyList}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.errorText}>
@@ -559,13 +580,6 @@ function RegionSelector() {
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {countriesError}
           </Text>
-          <ButtonIcon
-            size={ButtonIconSizes.Md}
-            iconName={IconName.Refresh}
-            onPress={() => fetchCountries()}
-            style={styles.retryButton}
-            testID="retry-countries-button"
-          />
         </View>
       );
     }
@@ -590,9 +604,7 @@ function RegionSelector() {
     searchString,
     styles.emptyList,
     styles.errorText,
-    styles.retryButton,
     colors.primary.default,
-    fetchCountries,
   ]);
 
   const handleSearchTextChange = useCallback(

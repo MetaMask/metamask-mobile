@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
@@ -9,6 +9,14 @@ import {
   type Provider as RampProvider,
 } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      setSelectedProvider: jest.fn(),
+    },
+  },
+}));
 
 const mockUserRegion: UserRegion = {
   country: {
@@ -58,16 +66,7 @@ const mockProviders: RampProvider[] = [
   },
 ];
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      getProviders: jest.fn().mockResolvedValue({ providers: mockProviders }),
-      setSelectedProvider: jest.fn(),
-    },
-  },
-}));
-
-const createMockStore = (rampsControllerState = {}, fiatOrdersState = {}) =>
+const createMockStore = (rampsControllerState = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
@@ -81,10 +80,6 @@ const createMockStore = (rampsControllerState = {}, fiatOrdersState = {}) =>
           },
         },
       }),
-      fiatOrders: () => ({
-        orders: [],
-        ...fiatOrdersState,
-      }),
     },
   });
 
@@ -96,13 +91,10 @@ const wrapper = (store: ReturnType<typeof createMockStore>) =>
 describe('useRampsProviders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (
-      Engine.context.RampsController.getProviders as jest.Mock
-    ).mockResolvedValue({ providers: mockProviders });
   });
 
   describe('return value structure', () => {
-    it('returns providers, selectedProvider, isLoading, error, fetchProviders, and setSelectedProvider', () => {
+    it('returns providers, selectedProvider, setSelectedProvider, isLoading, and error', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
@@ -113,7 +105,6 @@ describe('useRampsProviders', () => {
         isLoading: false,
         error: null,
       });
-      expect(typeof result.current.fetchProviders).toBe('function');
       expect(typeof result.current.setSelectedProvider).toBe('function');
     });
   });
@@ -261,91 +252,6 @@ describe('useRampsProviders', () => {
     });
   });
 
-  describe('fetchProviders', () => {
-    it('calls getProviders with region when provided', async () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-      await result.current.fetchProviders('us-ny');
-      expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
-        'us-ny',
-        undefined,
-      );
-    });
-
-    it('calls getProviders with options when provided', async () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-      await result.current.fetchProviders('us-ca', {
-        forceRefresh: true,
-        provider: 'provider-1',
-        crypto: 'ETH',
-      });
-      expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
-        'us-ca',
-        {
-          forceRefresh: true,
-          provider: 'provider-1',
-          crypto: 'ETH',
-        },
-      );
-    });
-
-    it('returns providers data', async () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-      const response = await result.current.fetchProviders('us-ca');
-      expect(response).toEqual({ providers: mockProviders });
-    });
-
-    it('uses regionCode fallback when fetchRegion is not provided', async () => {
-      const store = createMockStore({
-        userRegion: mockUserRegion,
-      });
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-      await result.current.fetchProviders();
-      expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
-        'us-ca',
-        undefined,
-      );
-    });
-
-    it('uses provided region parameter as fallback when fetchRegion is not provided', async () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsProviders('us-ny'), {
-        wrapper: wrapper(store),
-      });
-      await result.current.fetchProviders();
-      expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
-        'us-ny',
-        undefined,
-      );
-    });
-
-    it('rejects with error when getProviders fails', async () => {
-      const store = createMockStore();
-      const mockGetProviders = Engine.context.RampsController
-        .getProviders as jest.Mock;
-      mockGetProviders.mockReset();
-      mockGetProviders.mockRejectedValue(new Error('Network error'));
-
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-
-      await expect(result.current.fetchProviders()).rejects.toThrow(
-        'Network error',
-      );
-    });
-  });
-
   describe('selectedProvider state', () => {
     it('returns selectedProvider from state', () => {
       const store = createMockStore({ selectedProvider: mockProviders[0] });
@@ -355,8 +261,8 @@ describe('useRampsProviders', () => {
       expect(result.current.selectedProvider).toEqual(mockProviders[0]);
     });
 
-    it('returns null when selectedProvider is not set', () => {
-      const store = createMockStore({ selectedProvider: null });
+    it('returns null when selectedProvider is not available', () => {
+      const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
@@ -365,23 +271,31 @@ describe('useRampsProviders', () => {
   });
 
   describe('setSelectedProvider', () => {
-    it('calls setSelectedProvider on controller with provider', () => {
+    it('calls Engine.context.RampsController.setSelectedProvider with provider id', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
-      result.current.setSelectedProvider(mockProviders[0]);
+
+      act(() => {
+        result.current.setSelectedProvider(mockProviders[0]);
+      });
+
       expect(
         Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(mockProviders[0]);
+      ).toHaveBeenCalledWith(mockProviders[0].id);
     });
 
-    it('calls setSelectedProvider on controller with null', () => {
+    it('calls Engine.context.RampsController.setSelectedProvider with null when provider is null', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
-      result.current.setSelectedProvider(null);
+
+      act(() => {
+        result.current.setSelectedProvider(null);
+      });
+
       expect(
         Engine.context.RampsController.setSelectedProvider,
       ).toHaveBeenCalledWith(null);

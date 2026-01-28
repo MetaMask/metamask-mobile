@@ -32,37 +32,37 @@ jest.mock('./useRampsProviders', () => ({
   useRampsProviders: jest.fn(() => ({
     providers: [],
     selectedProvider: null,
+    setSelectedProvider: jest.fn(),
     isLoading: false,
     error: null,
-    fetchProviders: jest.fn(),
-    setSelectedProvider: jest.fn(),
   })),
 }));
 
 jest.mock('./useRampsTokens', () => ({
   useRampsTokens: jest.fn(() => ({
     tokens: null,
+    selectedToken: null,
+    setSelectedToken: jest.fn(),
     isLoading: false,
     error: null,
-    fetchTokens: jest.fn(),
   })),
 }));
 
 jest.mock('./useRampsCountries', () => ({
   useRampsCountries: jest.fn(() => ({
-    countries: null,
+    countries: [],
     isLoading: false,
     error: null,
-    fetchCountries: jest.fn(),
   })),
 }));
 
 jest.mock('./useRampsPaymentMethods', () => ({
   useRampsPaymentMethods: jest.fn(() => ({
     paymentMethods: [],
+    selectedPaymentMethod: null,
+    setSelectedPaymentMethod: jest.fn(),
     isLoading: false,
     error: null,
-    fetchPaymentMethods: jest.fn(),
   })),
 }));
 
@@ -116,12 +116,14 @@ describe('useRampsController', () => {
       providersLoading: false,
       providersError: null,
       tokens: null,
+      selectedToken: null,
       tokensLoading: false,
       tokensError: null,
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
       paymentMethods: [],
+      selectedPaymentMethod: null,
       paymentMethodsLoading: false,
       paymentMethodsError: null,
     });
@@ -129,10 +131,8 @@ describe('useRampsController', () => {
     expect(typeof result.current.fetchUserRegion).toBe('function');
     expect(typeof result.current.setUserRegion).toBe('function');
     expect(typeof result.current.setSelectedProvider).toBe('function');
-    expect(typeof result.current.fetchProviders).toBe('function');
-    expect(typeof result.current.fetchTokens).toBe('function');
-    expect(typeof result.current.fetchCountries).toBe('function');
-    expect(typeof result.current.fetchPaymentMethods).toBe('function');
+    expect(typeof result.current.setSelectedToken).toBe('function');
+    expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
   });
 
   it('passes options to child hooks', () => {

@@ -1608,6 +1608,26 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
   };
 }
 
+export function getMusdConversionTransactionDetailsNavbar(navigation) {
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={strings('bridge_transaction_details.transaction_details')}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
+  };
+}
+
 export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
     perpsTransactionsTitle: {
@@ -1698,19 +1718,20 @@ export function getDepositNavbarOptions(
   theme,
   onClose = undefined,
 ) {
-  const handleClose = () => {
-    navigation.dangerouslyGetParent()?.pop();
-    onClose?.();
-  };
-
-  let startButtonIconProps;
-  if (showBack) {
+  let startButtonIconProps, closeButtonProps;
+  if (showBack || showClose) {
     startButtonIconProps = {
       iconName: IconName.ArrowLeft,
-      onPress: () => navigation.pop(),
+      onPress: () => {
+        navigation.pop();
+        onClose?.();
+      },
+      testID: 'deposit-back-navbar-button',
     };
-  } else if (showConfiguration) {
-    startButtonIconProps = {
+  }
+
+  if (showConfiguration) {
+    closeButtonProps = {
       iconName: IconName.Setting,
       onPress: onConfigurationPress,
       testID: 'deposit-configuration-menu-button',
@@ -1720,9 +1741,7 @@ export function getDepositNavbarOptions(
   return getHeaderCenterNavbarOptions({
     title,
     startButtonIconProps,
-    closeButtonProps: showClose
-      ? { onPress: handleClose, testID: 'deposit-close-navbar-button' }
-      : undefined,
+    closeButtonProps,
     includesTopInset: true,
   });
 }

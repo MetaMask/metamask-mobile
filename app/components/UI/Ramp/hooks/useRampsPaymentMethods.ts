@@ -1,39 +1,16 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
 import {
   selectPaymentMethods,
   selectPaymentMethodsRequest,
   selectSelectedPaymentMethod,
 } from '../../../../selectors/rampsController';
-import type {
-  PaymentMethod,
-  PaymentMethodsResponse,
+import {
   RequestSelectorResult,
+  type PaymentMethod,
+  type PaymentMethodsResponse,
 } from '@metamask/ramps-controller';
-
-
-/**
- * Options for the useRampsPaymentMethods hook to track request state.
- */
-export interface UseRampsPaymentMethodsOptions {
-  /**
-   * Region code for tracking request state.
-   */
-  region?: string;
-  /**
-   * Fiat currency code for tracking request state.
-   */
-  fiat?: string;
-  /**
-   * CAIP-19 cryptocurrency identifier for tracking request state.
-   */
-  assetId?: string;
-  /**
-   * Provider ID path for tracking request state.
-   */
-  provider?: string;
-}
+import Engine from '../../../../core/Engine';
 
 /**
  * Result returned by the useRampsPaymentMethods hook.
@@ -41,13 +18,17 @@ export interface UseRampsPaymentMethodsOptions {
 export interface UseRampsPaymentMethodsResult {
   /**
    * The list of payment methods available for the current context.
-   * Populated after calling fetchPaymentMethods or when setSelectedToken is called.
    */
   paymentMethods: PaymentMethod[];
   /**
-   * The currently selected payment method, or null if none is selected.
+   * The currently selected payment method, or null if none selected.
    */
   selectedPaymentMethod: PaymentMethod | null;
+  /**
+   * Sets the selected payment method by ID.
+   * @param paymentMethod - The payment method to select, or null to clear selection.
+   */
+  setSelectedPaymentMethod: (paymentMethod: PaymentMethod | null) => void;
   /**
    * Whether the payment methods request is currently loading.
    */
@@ -56,28 +37,15 @@ export interface UseRampsPaymentMethodsResult {
    * The error message if the request failed, or null.
    */
   error: string | null;
-  /**
-   * Set the selected payment method in the controller state.
-   */
-  setSelectedPaymentMethod: (paymentMethod: PaymentMethod | null) => void;
 }
 
 /**
  * Hook to get payment methods state from RampsController.
  * This hook assumes Engine is already initialized.
  *
- * Payment methods are filtered by region, fiat, asset, and provider.
- * The fetchPaymentMethods function requires assetId and provider parameters.
- *
- * To track loading/error state for a specific request, provide the request
- * parameters (region, fiat, assetId, provider) as options to the hook.
- *
- * @param options - Optional parameters to track a specific request's loading/error state.
- * @returns Payment methods state and fetch function.
+ * @returns Payment methods state.
  */
-export function useRampsPaymentMethods(
-  options?: UseRampsPaymentMethodsOptions,
-): UseRampsPaymentMethodsResult {
+export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const paymentMethods = useSelector(selectPaymentMethods);
   const selectedPaymentMethod = useSelector(selectSelectedPaymentMethod);
 
@@ -85,53 +53,51 @@ export function useRampsPaymentMethods(
     (state: Parameters<typeof selectPaymentMethods>[0]) =>
       state.engine.backgroundState.RampsController?.userRegion,
   );
-
-  const regionCode = useMemo(
-    () => options?.region ?? userRegion?.regionCode ?? '',
-    [options?.region, userRegion?.regionCode],
+  const selectedToken = useSelector(
+    (state: Parameters<typeof selectPaymentMethods>[0]) =>
+      state.engine.backgroundState.RampsController?.selectedToken,
+  );
+  const selectedProvider = useSelector(
+    (state: Parameters<typeof selectPaymentMethods>[0]) =>
+      state.engine.backgroundState.RampsController?.selectedProvider,
   );
 
-  const fiatCode = useMemo(
-    () => options?.fiat ?? userRegion?.country?.currency ?? '',
-    [options?.fiat, userRegion?.country?.currency],
+  const regionCode = useMemo(
+    () => userRegion?.regionCode ?? '',
+    [userRegion?.regionCode],
+  );
+
+  const fiat = useMemo(
+    () => userRegion?.country?.currency ?? '',
+    [userRegion?.country?.currency],
+  );
+
+  const assetId = useMemo(
+    () => selectedToken?.assetId ?? '',
+    [selectedToken?.assetId],
+  );
+
+  const providerId = useMemo(
+    () => selectedProvider?.id ?? '',
+    [selectedProvider?.id],
   );
 
   const requestSelector = useMemo(
-    () =>
-      selectPaymentMethodsRequest(
-        regionCode,
-        fiatCode,
-        options?.assetId ?? '',
-        options?.provider ?? '',
-      ),
-    [regionCode, fiatCode, options?.assetId, options?.provider],
+    () => selectPaymentMethodsRequest(regionCode, fiat, assetId, providerId),
+    [regionCode, fiat, assetId, providerId],
   );
 
   const { isFetching, error } = useSelector(
     requestSelector,
   ) as RequestSelectorResult<PaymentMethodsResponse>;
 
-  console.log('[useRampsPaymentMethods] Hook state:', {
-    selectedPaymentMethod,
-    paymentMethodsCount: paymentMethods?.length ?? 0,
-    paymentMethods: paymentMethods?.map((pm) => ({ id: pm.id, name: pm.name })) ?? [],
-    userRegion,
-    userRegionCurrency: userRegion?.country?.currency ?? null,
-    regionCode,
-    fiatCode,
-    optionsAssetId: options?.assetId ?? null,
-    optionsProvider: options?.provider ?? null,
-    isFetching,
-    error,
-  });
-
   const setSelectedPaymentMethod = useCallback(
     (paymentMethod: PaymentMethod | null) => {
-        if(paymentMethod?.id) {
-          Engine.context.RampsController.setSelectedPaymentMethod(paymentMethod.id);
-        } else {
-          throw new Error('Payment method ID is required');
-        }
+      (
+        Engine.context.RampsController.setSelectedPaymentMethod as (
+          paymentMethodId: string | null,
+        ) => void
+      )(paymentMethod?.id ?? null);
     },
     [],
   );
@@ -139,9 +105,9 @@ export function useRampsPaymentMethods(
   return {
     paymentMethods,
     selectedPaymentMethod,
+    setSelectedPaymentMethod,
     isLoading: isFetching,
     error,
-    setSelectedPaymentMethod,
   };
 }
 
