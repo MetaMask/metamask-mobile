@@ -16,9 +16,9 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 const mockInitialize = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@metamask/assets-controllers', () => {
-  const MockTokenListController = jest.fn().mockImplementation(function (
-    this: { initialize: jest.Mock },
-  ) {
+  const MockTokenListController = jest.fn().mockImplementation(function (this: {
+    initialize: jest.Mock;
+  }) {
     this.initialize = mockInitialize;
   });
   return {
