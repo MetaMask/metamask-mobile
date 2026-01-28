@@ -120,8 +120,8 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   // Balance data hook
   const {
     balance,
-    mainBalance,
-    secondaryBalance,
+    fiatBalance,
+    tokenFormattedBalance,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTronNative,
     stakedTrxAsset,
@@ -192,8 +192,8 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
       <AssetOverviewContent
         token={token}
         balance={balance}
-        mainBalance={mainBalance}
-        secondaryBalance={secondaryBalance}
+        mainBalance={fiatBalance ?? ''}
+        secondaryBalance={tokenFormattedBalance}
         currentPrice={currentPrice}
         priceDiff={priceDiff}
         comparePrice={comparePrice}

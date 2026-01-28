@@ -1,123 +1,92 @@
+import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import { useTokenBalance } from './useTokenBalance';
 import { TokenI } from '../../Tokens/types';
+import {
+  selectAsset,
+  selectTronResourcesBySelectedAccountGroup,
+} from '../../../../selectors/assets/assets-list';
+import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
+import { Asset } from '@metamask/assets-controllers';
 
-// Due to complex selector dependencies, we test the hook's logic and types
-// without rendering the full hook.
+jest.mock('../../../../selectors/assets/assets-list', () => ({
+  selectAsset: jest.fn(),
+  selectTronResourcesBySelectedAccountGroup: jest.fn(() => []),
+}));
+
+jest.mock('../../AssetOverview/utils/createStakedTrxAsset', () => ({
+  createStakedTrxAsset: jest.fn(),
+}));
+
+const mockSelectAsset = jest.mocked(selectAsset);
+const mockSelectTronResources = jest.mocked(
+  selectTronResourcesBySelectedAccountGroup,
+);
+const mockCreateStakedTrxAsset = jest.mocked(createStakedTrxAsset);
 
 describe('useTokenBalance', () => {
-  const mockEvmToken: TokenI = {
-    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-    symbol: 'DAI',
-    name: 'Dai Stablecoin',
-    decimals: 18,
-    chainId: '0x1',
-    balance: '100',
-    balanceFiat: '$100',
-    image: '',
-    logo: '',
-    aggregators: [],
-    isETH: false,
-    isNative: false,
-    ticker: 'DAI',
-  };
-
-  describe('type definitions', () => {
-    it('UseTokenBalanceResult interface defines expected properties', () => {
-      interface UseTokenBalanceResult {
-        balance: string | undefined;
-        mainBalance: string;
-        secondaryBalance: string | undefined;
-        itemAddress: string | undefined;
-        isNonEvmAsset: boolean;
-      }
-
-      const mockResult: UseTokenBalanceResult = {
-        balance: '100',
-        mainBalance: '$100.00',
-        secondaryBalance: '100 DAI',
-        itemAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
-        isNonEvmAsset: false,
-      };
-
-      expect(mockResult.balance).toBe('100');
-      expect(mockResult.mainBalance).toBe('$100.00');
-      expect(mockResult.isNonEvmAsset).toBe(false);
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelectTronResources.mockReturnValue([]);
   });
 
-  describe('balance formatting logic', () => {
-    it('formats secondary balance with token symbol', () => {
-      const formatSecondaryBalance = (
-        balance: string | undefined,
-        symbol: string,
-        isETH: boolean,
-        ticker?: string,
-      ): string | undefined => {
-        if (balance == null) return undefined;
-        const displaySymbol = isETH ? ticker : symbol;
-        return `${balance} ${displaySymbol}`;
-      };
-
-      expect(formatSecondaryBalance('100', 'DAI', false)).toBe('100 DAI');
-      expect(formatSecondaryBalance('50', 'ETH', true, 'ETH')).toBe('50 ETH');
-      expect(formatSecondaryBalance(undefined, 'DAI', false)).toBeUndefined();
-    });
-
-    it('returns empty mainBalance when balanceFiat is not available', () => {
-      const getMainBalance = (
-        liveBalanceFiat: string | undefined,
-        assetBalanceFiat: string | undefined,
-      ): string => liveBalanceFiat ?? assetBalanceFiat ?? '';
-
-      expect(getMainBalance('$200', '$100')).toBe('$200');
-      expect(getMainBalance(undefined, '$100')).toBe('$100');
-      expect(getMainBalance(undefined, undefined)).toBe('');
-    });
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
-  describe('chain ID detection', () => {
-    it('identifies EVM chains by hex prefix', () => {
-      const isEvmChain = (chainId: string): boolean => chainId.startsWith('0x');
+  it('returns balances from processed asset', () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+      isStaked: false,
+    } as TokenI;
 
-      expect(isEvmChain('0x1')).toBe(true);
-      expect(isEvmChain('0x89')).toBe(true);
-      expect(isEvmChain('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp')).toBe(false);
-    });
+    mockSelectAsset.mockReturnValue({
+      balance: '100',
+      balanceFiat: '$100.00',
+      symbol: 'DAI',
+    } as TokenI);
 
-    it('identifies non-EVM asset based on CAIP format', () => {
-      const isNonEvmAsset = (
-        originalChainId: string,
-        formattedChainId: string,
-      ): boolean => formattedChainId === originalChainId;
+    const { result } = renderHookWithProvider(() => useTokenBalance(token));
 
-      // When formatChainIdToCaip returns same value, it's already CAIP (non-EVM)
-      expect(
-        isNonEvmAsset(
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        ),
-      ).toBe(true);
-      // When formatChainIdToCaip transforms the value, it's EVM
-      expect(isNonEvmAsset('0x1', 'eip155:1')).toBe(false);
-    });
+    expect(result.current.balance).toBe('100');
+    expect(result.current.fiatBalance).toBe('$100.00');
+    expect(result.current.tokenFormattedBalance).toBe('100 DAI');
   });
 
-  describe('address handling', () => {
-    it('uses original address for non-EVM assets', () => {
-      const getItemAddress = (
-        address: string,
-        isNonEvmAsset: boolean,
-      ): string => {
-        if (isNonEvmAsset) return address;
-        // For EVM, would normally checksum
-        return address;
-      };
+  it('returns staked TRX asset for Tron native token', () => {
+    const tronToken = {
+      address: '',
+      chainId: 'tron:0x2b6653dc',
+      ticker: 'TRX',
+      symbol: 'TRX',
+    } as TokenI;
 
-      const nonEvmAddress =
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN';
-      expect(getItemAddress(nonEvmAddress, true)).toBe(nonEvmAddress);
-      expect(getItemAddress(mockEvmToken.address, false)).toBe(
-        mockEvmToken.address,
-      );
-    });
+    const mockStakedAsset = { symbol: 'sTRX', balance: '50' } as TokenI;
+
+    mockSelectAsset.mockReturnValue({
+      balance: '1000',
+      balanceFiat: '$100.00',
+      symbol: 'TRX',
+    } as TokenI);
+
+    mockSelectTronResources.mockReturnValue([
+      { symbol: 'strx-energy', balance: '100' },
+      { symbol: 'strx-bandwidth', balance: '200' },
+    ] as Asset[]);
+
+    mockCreateStakedTrxAsset.mockReturnValue(mockStakedAsset);
+
+    const { result } = renderHookWithProvider(() => useTokenBalance(tronToken));
+
+    expect(result.current.balance).toBe('1000');
+    expect(result.current.fiatBalance).toBe('$100.00');
+    expect(result.current.tokenFormattedBalance).toBe('1000 TRX');
+    expect(result.current.isTronNative).toBe(true);
+    expect(result.current.stakedTrxAsset).toBe(mockStakedAsset);
+    expect(mockCreateStakedTrxAsset).toHaveBeenCalledWith(
+      tronToken,
+      '100',
+      '200',
+    );
   });
 });
