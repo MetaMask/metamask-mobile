@@ -151,7 +151,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
     });
@@ -290,7 +289,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
       expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
@@ -346,7 +344,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
     });
@@ -386,7 +383,6 @@ describe('useMusdConversion', () => {
         name: TraceName.MusdConversionNavigation,
         op: TraceOperation.MusdConversionOperation,
         tags: {
-          outputChainId: '0x1',
           paymentTokenChainId: '0x1',
         },
       });

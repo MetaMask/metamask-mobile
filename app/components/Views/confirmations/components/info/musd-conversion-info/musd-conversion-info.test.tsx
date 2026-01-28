@@ -38,7 +38,12 @@ jest.mock('../../rows/pay-with-row', () => ({
 const mockRoute = {
   key: 'test-route',
   name: 'MusdConversionInfo',
-  params: {},
+  params: {
+    preferredPaymentToken: {
+      address: '0xdef' as Hex,
+      chainId: '0x1' as Hex,
+    },
+  },
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -63,6 +68,12 @@ describe('MusdConversionInfo', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRoute.params = {
+      preferredPaymentToken: {
+        address: '0xdef' as Hex,
+        chainId: '0x1' as Hex,
+      },
+    };
     mockUseMusdConversionNavbar.mockReturnValue(undefined);
     mockUseTransactionMetadataRequest.mockReturnValue({
       chainId: '0x1',
@@ -86,7 +97,6 @@ describe('MusdConversionInfo', () => {
           address: '0xdef' as Hex,
           chainId: '0x1' as Hex,
         },
-        outputChainId: '0x1' as Hex,
       };
 
       mockUseRoute.mockReturnValue(mockRoute);
@@ -101,10 +111,6 @@ describe('MusdConversionInfo', () => {
 
   describe('useAddToken', () => {
     it('calls useAddToken with mUSD token info', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
       mockUseRoute.mockReturnValue(mockRoute);
 
       renderWithProvider(<MusdConversionInfo />, {
@@ -130,7 +136,6 @@ describe('MusdConversionInfo', () => {
 
       mockRoute.params = {
         preferredPaymentToken,
-        outputChainId: '0x1' as Hex,
       };
 
       mockUseRoute.mockReturnValue(mockRoute);
@@ -150,10 +155,6 @@ describe('MusdConversionInfo', () => {
 
   describe('overrideContent', () => {
     it('passes overrideContent function to CustomAmountInfo', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
       mockUseRoute.mockReturnValue(mockRoute);
 
       renderWithProvider(<MusdConversionInfo />, {
@@ -171,10 +172,6 @@ describe('MusdConversionInfo', () => {
 
   describe('MusdOverrideContent', () => {
     it('calls useTransactionPayAvailableTokens when rendered', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
       mockUseRoute.mockReturnValue(mockRoute);
       mockUseTransactionPayAvailableTokens.mockReturnValue([
         { address: '0x123' },

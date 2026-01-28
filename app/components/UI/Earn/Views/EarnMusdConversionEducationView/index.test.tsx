@@ -139,7 +139,6 @@ describe('EarnMusdConversionEducationView', () => {
   const mockGoToAggregator = jest.fn();
   const mockGetPreferredPaymentToken = jest.fn();
   const mockGetChainIdForBuyFlow = jest.fn();
-  const mockGetMusdOutputChainId = jest.fn();
   const mockNavigation = {
     setOptions: jest.fn(),
     navigate: jest.fn(),
@@ -185,7 +184,6 @@ describe('EarnMusdConversionEducationView', () => {
       chainId: '0x1',
     });
     mockGetChainIdForBuyFlow.mockReturnValue('0x1' as Hex);
-    mockGetMusdOutputChainId.mockReturnValue('0x1' as Hex);
 
     mockUseMusdConversionFlowData.mockReturnValue({
       isGeoEligible: true,
@@ -193,7 +191,6 @@ describe('EarnMusdConversionEducationView', () => {
       isEmptyWallet: false,
       getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
       getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-      getMusdOutputChainId: mockGetMusdOutputChainId,
       isMusdBuyable: true,
       isPopularNetworksFilterActive: false,
       selectedChainId: null,
@@ -268,7 +265,6 @@ describe('EarnMusdConversionEducationView', () => {
           address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' as Hex,
           chainId: '0x1' as Hex,
         },
-        outputChainId: '0x1' as Hex,
         isDeeplink: false,
       });
 
@@ -288,8 +284,10 @@ describe('EarnMusdConversionEducationView', () => {
       // Should call initiateConversion directly, not deeplink logic
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: '0x1',
-          preferredPaymentToken: expect.any(Object),
+          preferredPaymentToken: {
+            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+            chainId: '0x1',
+          },
           skipEducationCheck: true,
         });
         expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
@@ -303,7 +301,6 @@ describe('EarnMusdConversionEducationView', () => {
     it('uses deeplink logic when isDeeplink is true', async () => {
       mockUseParams.mockReturnValue({
         preferredPaymentToken: null,
-        outputChainId: null,
         isDeeplink: true,
       });
 
@@ -329,7 +326,6 @@ describe('EarnMusdConversionEducationView', () => {
     it('logs error when normal flow missing params', async () => {
       mockUseParams.mockReturnValue({
         preferredPaymentToken: null,
-        outputChainId: null,
         isDeeplink: false,
       });
 
@@ -349,7 +345,7 @@ describe('EarnMusdConversionEducationView', () => {
       await waitFor(() => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           expect.any(Error),
-          '[mUSD Conversion Education] Cannot proceed without outputChainId and preferredPaymentToken',
+          '[mUSD Conversion Education] Cannot proceed without preferredPaymentToken',
         );
       });
     });
@@ -359,7 +355,6 @@ describe('EarnMusdConversionEducationView', () => {
     beforeEach(() => {
       mockUseParams.mockReturnValue({
         preferredPaymentToken: null,
-        outputChainId: null,
         isDeeplink: true,
       });
     });
@@ -371,7 +366,6 @@ describe('EarnMusdConversionEducationView', () => {
         isEmptyWallet: false,
         getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-        getMusdOutputChainId: mockGetMusdOutputChainId,
         isMusdBuyable: true,
         isPopularNetworksFilterActive: false,
         selectedChainId: null,
@@ -414,7 +408,6 @@ describe('EarnMusdConversionEducationView', () => {
         isEmptyWallet: true,
         getPaymentTokenForSelectedNetwork: jest.fn().mockReturnValue(null),
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-        getMusdOutputChainId: mockGetMusdOutputChainId,
         isMusdBuyable: false,
         isPopularNetworksFilterActive: false,
         selectedChainId: null,
@@ -457,7 +450,6 @@ describe('EarnMusdConversionEducationView', () => {
         isEmptyWallet: false,
         getPaymentTokenForSelectedNetwork: jest.fn().mockReturnValue(null),
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-        getMusdOutputChainId: mockGetMusdOutputChainId,
         isMusdBuyable: false,
         isPopularNetworksFilterActive: false,
         selectedChainId: null,
@@ -500,7 +492,6 @@ describe('EarnMusdConversionEducationView', () => {
         isEmptyWallet: false,
         getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-        getMusdOutputChainId: mockGetMusdOutputChainId,
         isMusdBuyable: true,
         isPopularNetworksFilterActive: false,
         selectedChainId: null,
@@ -805,7 +796,6 @@ describe('EarnMusdConversionEducationView', () => {
     it('tracks buy button text and buy_screen redirect when deeplink triggers buy flow', async () => {
       mockUseParams.mockReturnValue({
         preferredPaymentToken: null,
-        outputChainId: null,
         isDeeplink: true,
       });
 
@@ -815,7 +805,6 @@ describe('EarnMusdConversionEducationView', () => {
         isEmptyWallet: true,
         getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-        getMusdOutputChainId: mockGetMusdOutputChainId,
         isMusdBuyable: true,
         isPopularNetworksFilterActive: false,
         selectedChainId: null,
