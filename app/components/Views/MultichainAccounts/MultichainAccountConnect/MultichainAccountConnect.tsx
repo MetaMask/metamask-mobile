@@ -68,10 +68,7 @@ import {
   getRequestedCaip25CaveatValue,
   mergeCaip25Values,
 } from '../../AccountConnect/utils.ts';
-import {
-  getPhishingTestResultAsync,
-  prepareUrlForPhishingCheck,
-} from '../../../../util/phishingDetection.ts';
+import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.ts';
 import {
   CaipAccountId,
   CaipChainId,
@@ -103,6 +100,7 @@ import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMult
 import { Box } from '@metamask/design-system-react-native';
 import { TESTNET_CAIP_IDS } from '../../../../constants/network.js';
 import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope.ts';
+import { isSnapId } from '@metamask/snaps-utils';
 
 interface ScreenContainerProps {
   isVisible: boolean;
@@ -519,10 +517,12 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { hostname: hostnameFromUrlObj } = getUrlObj(urlWithProtocol);
 
   useEffect(() => {
+    let url = dappUrl || channelIdOrHostname || '';
+
     const checkOrigin = async () => {
-      const url = prepareUrlForPhishingCheck(
-        dappUrl || channelIdOrHostname || '',
-      );
+      if (!isSnapId(url)) {
+        url = prefixUrlWithProtocol(url);
+      }
       const scanResult = await getPhishingTestResultAsync(url);
       if (scanResult.result && isMountedRef.current) {
         setBlockedUrl(dappUrl);
