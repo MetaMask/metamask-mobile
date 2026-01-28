@@ -39,7 +39,7 @@ jest.mock('../../../../UI/QRHardware/AnimatedQRScanner', () => ({
     onScanSuccess: ({ cbor }: { cbor: string }) => void;
   }) => (
     <MockView>
-      <MockText>Scan your hardware wallet to confirm the transaction</MockText>
+      <MockText>Scan your hardware wallet</MockText>
       <MockButton onPress={hideModal} title="hideModal" />
       <MockButton onPress={onScanError} title="onScanError" />
       <MockButton
@@ -101,9 +101,7 @@ describe('QRInfo', () => {
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
-    expect(
-      getByText('Scan your hardware wallet to confirm the transaction'),
-    ).toBeTruthy();
+    expect(getByText('Scan your hardware wallet')).toBeTruthy();
   });
 
   it('invoke setScannerVisible when hideModal is called on scanner', () => {

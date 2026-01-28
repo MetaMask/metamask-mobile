@@ -171,9 +171,7 @@ describe('QRHardwareContext', () => {
       },
     );
     await userEvent.press(getByText('Get signature'));
-    expect(
-      getByText('Scan your hardware wallet to confirm the transaction'),
-    ).toBeTruthy();
+    expect(getByText('Scan your hardware wallet')).toBeTruthy();
   });
 });
 
