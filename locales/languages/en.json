@@ -5767,6 +5767,7 @@
     },
     "musd_conversion": {
       "ok": "OK",
+      "continue": "Continue",
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
@@ -5788,6 +5789,13 @@
       "boost_title": "Get {{percentage}}% on your stablecoins",
       "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
       "powered_by_relay": "Powered by Relay"
+    },
+    "bonus_claim": {
+      "toasts": {
+        "claiming": "Your mUSD bonus is processing",
+        "delivered": "Your mUSD bonus is here!",
+        "failed": "Bonus claim failed"
+      }
     },
     "rewards": {
       "rewards_tag_label": "Rewards",
