@@ -83,9 +83,9 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       fontWeight: '400',
       // make it smaller on smaller screens
       fontSize:
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 50,
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 45,
       lineHeight:
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 50, // 100% of font size
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 45, // 100% of font size
       letterSpacing: 0,
       textAlign: 'center',
       paddingTop: scaleVertical(
