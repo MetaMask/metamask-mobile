@@ -819,6 +819,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           "paddingHorizontal": 16,
                                         }
                                       }
+                                      testID="dest-token-area"
                                     >
                                       <Text
                                         accessibilityRole="text"
@@ -2659,6 +2660,7 @@ exports[`BridgeView renders 1`] = `
                                           "paddingHorizontal": 16,
                                         }
                                       }
+                                      testID="dest-token-area"
                                     >
                                       <Text
                                         accessibilityRole="text"
