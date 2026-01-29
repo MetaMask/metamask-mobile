@@ -28,7 +28,6 @@ export interface MusdConversionFlowData {
     chainId: Hex;
   } | null;
   getChainIdForBuyFlow: () => Hex;
-  getMusdOutputChainId: (inputChainId?: string) => Hex;
   isMusdBuyableOnChain: Record<Hex, boolean>;
   isMusdBuyableOnAnyChain: boolean;
   isMusdBuyable: boolean;
@@ -49,8 +48,7 @@ export interface MusdConversionFlowData {
  * @returns {MusdConversionFlowData} Consolidated mUSD conversion state and helpers
  */
 export const useMusdConversionFlowData = (): MusdConversionFlowData => {
-  const { tokens: conversionTokens, getMusdOutputChainId } =
-    useMusdConversionTokens();
+  const { tokens: conversionTokens } = useMusdConversionTokens();
 
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
@@ -132,7 +130,6 @@ export const useMusdConversionFlowData = (): MusdConversionFlowData => {
     conversionTokens,
     getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
-    getMusdOutputChainId,
     isMusdBuyableOnChain,
     isMusdBuyableOnAnyChain,
     isMusdBuyable,
