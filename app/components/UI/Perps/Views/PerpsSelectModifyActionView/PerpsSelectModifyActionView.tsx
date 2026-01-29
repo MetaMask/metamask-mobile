@@ -68,7 +68,7 @@ const PerpsSelectModifyActionView: React.FC<
           createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
             .addProperties({
               [PerpsEventProperties.INTERACTION_TYPE]: interactionType,
-              [PerpsEventProperties.ASSET]: position.coin,
+              [PerpsEventProperties.ASSET]: position.symbol,
               [PerpsEventProperties.SOURCE]:
                 PerpsEventValues.SOURCE.POSITION_SCREEN,
               [PerpsEventProperties.DIRECTION]:
@@ -88,7 +88,7 @@ const PerpsSelectModifyActionView: React.FC<
             const direction = parseFloat(position.size) > 0 ? 'long' : 'short';
             navigateToOrder({
               direction,
-              asset: position.coin,
+              asset: position.symbol,
               existingPosition: position, // Pass position to maintain leverage consistency
               hideTPSL: true, // Hide TP/SL when adding to existing position
             });
@@ -113,7 +113,7 @@ const PerpsSelectModifyActionView: React.FC<
 
             navigateToOrder({
               direction: oppositeDirection,
-              asset: position.coin,
+              asset: position.symbol,
               amount: positionSize.toString(),
               leverage: positionLeverage,
             });

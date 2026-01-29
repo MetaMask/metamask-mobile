@@ -2,7 +2,20 @@ import { NavigationContainerRef } from '@react-navigation/native';
 import Logger from '../../util/Logger';
 
 /**
- * Navigation service that manages the navigation object
+ * Navigation methods that should be deferred to the next frame.
+ * This prevents timing issues when called during React's render cycle.
+ *
+ * - navigate: Navigate to a screen
+ * - reset: Reset navigation state to a new state
+ */
+const DEFERRED_NAVIGATION_METHODS = ['navigate', 'reset'] as const;
+
+/**
+ * Navigation service that manages the navigation object.
+ *
+ * Navigation methods (navigate, reset) are
+ * automatically deferred via requestAnimationFrame to prevent timing issues
+ * when called during React's render cycle or navigation transitions.
  */
 class NavigationService {
   static #navigation: NavigationContainerRef;
@@ -32,12 +45,52 @@ class NavigationService {
   }
 
   /**
+   * Creates a wrapped navigation object that defers navigation methods
+   * to the next frame to avoid timing issues during React's rendering cycles.
+   */
+  static #createReactAwareNavigation(
+    navRef: NavigationContainerRef,
+  ): NavigationContainerRef {
+    return new Proxy(navRef, {
+      get(target, prop, receiver) {
+        const value = Reflect.get(target, prop, receiver);
+
+        // Check if this is a method that should be deferred
+        if (
+          typeof prop === 'string' &&
+          DEFERRED_NAVIGATION_METHODS.includes(
+            prop as (typeof DEFERRED_NAVIGATION_METHODS)[number],
+          )
+        ) {
+          // Return a wrapped version that defers to the next frame
+          return (...args: unknown[]) => {
+            requestAnimationFrame(() => {
+              (
+                target[prop as keyof typeof target] as (
+                  ...params: unknown[]
+                ) => void
+              )(...args);
+            });
+          };
+        }
+
+        // For all other properties/methods, return the original
+        // Bind functions to the original target to preserve `this` context
+        if (typeof value === 'function') {
+          return value.bind(target);
+        }
+        return value;
+      },
+    });
+  }
+
+  /**
    * Set the navigation object
    * @param navRef
    */
   static set navigation(navRef: NavigationContainerRef) {
     this.#assertNavigationRefType(navRef);
-    this.#navigation = navRef;
+    this.#navigation = this.#createReactAwareNavigation(navRef);
   }
 
   /**
@@ -46,6 +99,14 @@ class NavigationService {
   static get navigation() {
     this.#assertNavigationExists();
     return this.#navigation;
+  }
+
+  /**
+   * Resets the navigation reference. Only for testing purposes.
+   * @internal
+   */
+  static resetForTesting() {
+    this.#navigation = undefined as unknown as NavigationContainerRef;
   }
 }
 

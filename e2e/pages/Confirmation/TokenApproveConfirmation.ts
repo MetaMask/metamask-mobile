@@ -1,6 +1,6 @@
 import { ApproveComponentIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 // This components are used to check the approve confirmation specific components in the confirmation modal
 class TokenApproveConfirmation {

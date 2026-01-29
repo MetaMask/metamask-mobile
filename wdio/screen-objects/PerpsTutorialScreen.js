@@ -1,6 +1,6 @@
 import { expect } from 'appwright';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 
 class PerpsTutorialScreen {
 
@@ -36,7 +36,7 @@ class PerpsTutorialScreen {
 
   // Legacy alias for backward compatibility
   async tapAddFunds() {
-    await AppwrightGestures.tap(await this.addFundsButton); 
+    await AppwrightGestures.tap(await this.addFundsButton);
   }
 
   async tapSkip() {

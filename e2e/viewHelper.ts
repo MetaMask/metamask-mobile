@@ -17,19 +17,19 @@ import LoginView from './pages/wallet/LoginView';
 import {
   getGanachePortForFixture,
   getAnvilPortForFixture,
-} from './framework/fixtures/FixtureUtils';
-import Assertions from './framework/Assertions';
-import { CustomNetworks } from './resources/networks.e2e';
+} from '../tests/framework/fixtures/FixtureUtils';
+import Assertions from '../tests/framework/Assertions';
+import { CustomNetworks } from '../tests/resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
-import Matchers from './framework/Matchers';
+import Matchers from '../tests/framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../app/components/Views/BrowserTab/BrowserView.testIds';
-import { createLogger } from './framework/logger';
-import Utilities, { sleep } from './framework/Utilities';
-import { Gestures, PortManager, ResourceType } from './framework';
+import { createLogger } from '../tests/framework/logger';
+import Utilities, { sleep } from '../tests/framework/Utilities';
+import { Gestures, PortManager, ResourceType } from '../tests/framework';
 import TabBarComponent from './pages/wallet/TabBarComponent';
-import TrendingView from './pages/Trending/TrendingView';
+import TrendingView from '../tests/page-objects/Trending/TrendingView';
 import BrowserView from './pages/Browser/BrowserView';
 
 /**

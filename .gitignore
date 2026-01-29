@@ -82,6 +82,7 @@ buck-out/
 
 # environment variables instances
 # only version the example files
+.env
 .*.env
 
 # Sentry
@@ -140,6 +141,9 @@ appwright/reporters/reports/*
 # ccache
 ccache
 
+# eslint cache
+.eslintcache
+
 # open-rpc/test-coverage
 html-report/
 
@@ -171,3 +175,5 @@ temp/
 .reassure/
 
 tests/coverage-systems/
+
+runway-artifacts/

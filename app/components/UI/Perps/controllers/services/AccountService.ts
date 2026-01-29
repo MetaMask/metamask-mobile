@@ -4,10 +4,10 @@ import {
   PerpsAnalyticsEvent,
   PerpsTraceNames,
   PerpsTraceOperations,
-  type IPerpsProvider,
+  type PerpsProvider,
   type WithdrawParams,
   type WithdrawResult,
-  type IPerpsPlatformDependencies,
+  type PerpsPlatformDependencies,
 } from '../types';
 import type { TransactionStatus } from '../../types/transactionTypes';
 import { v4 as uuidv4 } from 'uuid';
@@ -28,13 +28,13 @@ import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
  * Instance-based service with constructor injection of platform dependencies.
  */
 export class AccountService {
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   /**
    * Create a new AccountService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  constructor(deps: IPerpsPlatformDependencies) {
+  constructor(deps: PerpsPlatformDependencies) {
     this.deps = deps;
   }
 
@@ -43,7 +43,7 @@ export class AccountService {
    * Handles tracing, state management, analytics, and account refresh
    */
   async withdraw(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: WithdrawParams;
     context: ServiceContext;
     refreshAccountState: () => Promise<void>;
@@ -68,9 +68,9 @@ export class AccountService {
 
     try {
       this.deps.tracer.trace({
-        name: PerpsTraceNames.WITHDRAW,
+        name: PerpsTraceNames.Withdraw,
         id: traceId,
-        op: PerpsTraceOperations.OPERATION,
+        op: PerpsTraceOperations.Operation,
         tags: {
           assetId: params.assetId || '',
           provider: context.tracingContext.provider,
@@ -194,7 +194,7 @@ export class AccountService {
         // Track withdrawal transaction executed
         const completionDuration = this.deps.performance.now() - startTime;
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
+          PerpsAnalyticsEvent.WithdrawalTransaction,
           {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
             [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
@@ -257,7 +257,7 @@ export class AccountService {
       // Track withdrawal transaction failed
       const completionDuration = this.deps.performance.now() - startTime;
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
+        PerpsAnalyticsEvent.WithdrawalTransaction,
         {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
           [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
@@ -315,7 +315,7 @@ export class AccountService {
       // Track withdrawal transaction failed (catch block)
       const completionDuration = this.deps.performance.now() - startTime;
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
+        PerpsAnalyticsEvent.WithdrawalTransaction,
         {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
           [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
@@ -332,7 +332,7 @@ export class AccountService {
       return { success: false, error: errorMessage };
     } finally {
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.WITHDRAW,
+        name: PerpsTraceNames.Withdraw,
         id: traceId,
         data: traceData,
       });
@@ -343,7 +343,7 @@ export class AccountService {
    * Validate withdrawal parameters
    */
   async validateWithdrawal(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: WithdrawParams;
   }): Promise<{ isValid: boolean; error?: string }> {
     const { provider, params } = options;

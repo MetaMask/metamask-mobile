@@ -12,14 +12,15 @@ type TokensResponse = NonNullable<RampsControllerState['tokens']>;
 
 /**
  * Selects the RampsController state from Redux.
+ * This is a simple selector (not memoized) since it only extracts
+ * state without transformation. Child selectors handle memoization.
  */
-export const selectRampsControllerState = createSelector(
-  (state: RootState) => state.engine.backgroundState.RampsController,
-  (rampsControllerState) => rampsControllerState,
-);
+export const selectRampsControllerState = (state: RootState) =>
+  state.engine.backgroundState.RampsController;
 
 /**
  * Selects the user's region from state.
+ * Returns UserRegion | null (UserRegion contains country, state, and regionCode).
  */
 export const selectUserRegion = createSelector(
   selectRampsControllerState,

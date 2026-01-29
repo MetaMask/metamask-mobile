@@ -26,7 +26,7 @@ export function usePerpsMarginAdjustment(
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleMarginUpdate = useCallback(
-    async (coin: string, amount: number, action: 'add' | 'remove') => {
+    async (symbol: string, amount: number, action: 'add' | 'remove') => {
       setIsAdjusting(true);
       DevLogger.log(
         `usePerpsMarginAdjustment: Setting isAdjusting to true (action: ${action})`,
@@ -38,7 +38,7 @@ export function usePerpsMarginAdjustment(
         const adjustmentAmount = action === 'remove' ? -amount : amount;
 
         const result = await updateMargin({
-          coin,
+          symbol,
           amount: adjustmentAmount.toString(),
         });
 
@@ -46,7 +46,7 @@ export function usePerpsMarginAdjustment(
           DevLogger.log('Margin adjusted successfully:', result);
 
           // Show success toast
-          const displaySymbol = getPerpsDisplaySymbol(coin);
+          const displaySymbol = getPerpsDisplaySymbol(symbol);
           showToast(
             action === 'add'
               ? PerpsToastOptions.positionManagement.margin.addSuccess(
@@ -89,7 +89,7 @@ export function usePerpsMarginAdjustment(
             },
             extra: {
               marginContext: {
-                coin,
+                symbol,
                 amount,
                 action,
                 adjustmentAmount: action === 'remove' ? -amount : amount,
@@ -125,13 +125,14 @@ export function usePerpsMarginAdjustment(
   );
 
   const handleAddMargin = useCallback(
-    (coin: string, amount: number) => handleMarginUpdate(coin, amount, 'add'),
+    (symbol: string, amount: number) =>
+      handleMarginUpdate(symbol, amount, 'add'),
     [handleMarginUpdate],
   );
 
   const handleRemoveMargin = useCallback(
-    (coin: string, amount: number) =>
-      handleMarginUpdate(coin, amount, 'remove'),
+    (symbol: string, amount: number) =>
+      handleMarginUpdate(symbol, amount, 'remove'),
     [handleMarginUpdate],
   );
 

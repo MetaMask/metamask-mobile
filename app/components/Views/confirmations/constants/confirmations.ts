@@ -4,7 +4,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 export const MMM_ORIGIN = 'metamask';
 export const MM_MOBILE_ORIGIN = 'Metamask Mobile';
 
-export const REDESIGNED_SIGNATURE_TYPES = [
+export const SIGNATURE_APPROVAL_TYPES = [
   ApprovalType.EthSignTypedData,
   ApprovalType.PersonalSign,
 ];
@@ -13,8 +13,6 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,
   TransactionType.deployContract,
-  TransactionType.lendingDeposit,
-  TransactionType.lendingWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.revokeDelegation,
@@ -28,31 +26,24 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
   TransactionType.tokenMethodSafeTransferFrom,
+  TransactionType.lendingDeposit,
+  TransactionType.lendingWithdraw,
 ];
 
-export const REDESIGNED_APPROVE_TYPES = [
+export const APPROVE_TRANSACTION_TYPES = [
   TransactionType.tokenMethodApprove,
   TransactionType.tokenMethodIncreaseAllowance,
   TransactionType.tokenMethodSetApprovalForAll,
 ];
 
-export const REDESIGNED_TRANSFER_TYPES = [
+export const TRANSFER_TRANSACTION_TYPES = [
   TransactionType.simpleSend,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
   TransactionType.tokenMethodSafeTransferFrom,
 ];
 
-export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
-  TransactionType.contractInteraction,
-  TransactionType.lendingDeposit,
-  TransactionType.lendingWithdraw,
-  TransactionType.musdConversion,
-  TransactionType.perpsDeposit,
-];
-
 export const FULL_SCREEN_CONFIRMATIONS = [
-  TransactionType.lendingDeposit,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,

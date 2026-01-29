@@ -2,7 +2,6 @@ import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
-import { InitializationState } from '../../components/UI/Perps/controllers';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   createMockAccountsControllerState,
@@ -214,83 +213,25 @@ describe('Engine', () => {
 
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
-    const engine = Engine.init(TEST_ANALYTICS_ID, {});
-    const initialBackgroundState = engine.datamodel.state;
+    Engine.init(TEST_ANALYTICS_ID, {});
+    const initialBackgroundState = Engine.state;
 
     // Get the current app version and migration version
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
 
-    // Create expected state by merging the static fixture with current AppMetadataController state
     const expectedState = {
       ...backgroundState,
-      AccountTrackerController: {
-        ...backgroundState.AccountTrackerController,
-        // This is just hotfix, because it should not be empty but it reflects current state of Engine code
-        // More info: https://github.com/MetaMask/metamask-mobile/pull/18949
-        accountsByChainId: {},
-      },
-      AnalyticsController: {
-        analyticsId: TEST_ANALYTICS_ID,
-        optedIn: false,
-      },
+      // Update application version here, so that we don't have to update
+      // `initial-background-state.json` every release
       AppMetadataController: {
         currentAppVersion,
-        previousAppVersion: '', // This will be managed by the controller
-        previousMigrationVersion: 0, // This will be managed by the controller
+        previousAppVersion: '',
+        previousMigrationVersion: 0,
         currentMigrationVersion,
       },
-      PredictController: {
-        eligibility: {},
-        lastError: null,
-        lastUpdateTimestamp: 0,
-        balances: {},
-        claimablePositions: {},
-        pendingDeposits: {},
-        withdrawTransaction: null,
-        accountMeta: {},
-      },
-      GatorPermissionsController: {
-        gatorPermissionsMapSerialized: JSON.stringify({
-          'native-token-stream': {},
-          'native-token-periodic': {},
-          'erc20-token-stream': {},
-          'erc20-token-periodic': {},
-          other: {},
-        }),
-        gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
-        isFetchingGatorPermissions: false,
-        isGatorPermissionsEnabled: false,
-      },
-      PerpsController: {
-        ...backgroundState.PerpsController,
-        depositRequests: [],
-        withdrawalRequests: [],
-        withdrawalProgress: {
-          progress: 0,
-          lastUpdated: 0,
-          activeWithdrawalId: null,
-        },
-        marketFilterPreferences: 'volume',
-        tradeConfigurations: {
-          mainnet: {},
-          testnet: {},
-        },
-        watchlistMarkets: {
-          mainnet: [],
-          testnet: [],
-        },
-        hip3ConfigVersion: 0,
-        initializationState: InitializationState.UNINITIALIZED,
-        initializationError: null,
-        initializationAttempts: 0,
-      },
-      RampsController: {
-        ...backgroundState.RampsController,
-        preferredProvider: null,
-        providers: [],
-        tokens: null,
-      },
+      // WARNING: Do not make further changes to expected state here.
+      // Update `initial-background-state.json` instead.
     };
 
     expect(initialBackgroundState).toStrictEqual(expectedState);
@@ -396,30 +337,6 @@ describe('Engine', () => {
     const result = await engine.getSnapKeyring();
     expect(getSnapKeyringSpy).toHaveBeenCalled();
     expect(result).toEqual(mockSnapKeyring);
-  });
-
-  it('normalizes CurrencyController state property conversionRate from null to 0', () => {
-    const ticker = 'ETH';
-    const state = {
-      CurrencyRateController: {
-        currentCurrency: 'usd' as const,
-        currencyRates: {
-          [ticker]: {
-            conversionRate: null,
-            conversionDate: 0,
-            usdConversionRate: null,
-          },
-        },
-      },
-    };
-    const engine = Engine.init(TEST_ANALYTICS_ID, state);
-    expect(
-      engine.datamodel.state.CurrencyRateController.currencyRates[ticker],
-    ).toStrictEqual({
-      conversionRate: 0,
-      conversionDate: 0,
-      usdConversionRate: null,
-    });
   });
 
   it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {
@@ -1054,6 +971,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       const findNetworkClientIdByChainIdSpy = jest
@@ -1100,6 +1018,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1130,6 +1049,7 @@ describe('Engine', () => {
           enabledNetworkMap: {
             [KnownCaipNamespace.Eip155]: {},
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1158,6 +1078,7 @@ describe('Engine', () => {
             string,
             Record<string, boolean>
           >,
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1183,6 +1104,7 @@ describe('Engine', () => {
         .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
         .mockReturnValue({
           enabledNetworkMap: {},
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1216,6 +1138,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1246,6 +1169,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1283,6 +1207,7 @@ describe('Engine', () => {
               '0xa': true,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
