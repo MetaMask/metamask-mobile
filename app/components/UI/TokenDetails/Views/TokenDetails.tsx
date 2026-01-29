@@ -70,13 +70,11 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
 
-  // Network configuration
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId),
   );
   const networkName = networkConfigurationByChainId?.name;
 
-  // Header options logic
   const isNativeToken = token.isNative ?? token.isETH;
   const isMainnet = isMainnetByChainId(token.chainId);
   const { getBlockExplorerUrl } = useBlockExplorer(token.chainId);
@@ -98,13 +96,11 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     });
   };
 
-  // Feature flags
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isMerklCampaignClaimingEnabled = useSelector(
     selectMerklCampaignClaimingEnabledFlag,
   );
 
-  // Price data hook
   const {
     currentPrice,
     priceDiff,
@@ -117,7 +113,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     currentCurrency,
   } = useTokenPrice({ token });
 
-  // Balance data hook
   const {
     balance,
     fiatBalance,
@@ -128,10 +123,8 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
 
-  // Buyability check
   const isTokenBuyable = useTokenBuyability(token);
 
-  // Use actions hook for all action handlers
   const { onBuy, onSend, onReceive, goToSwaps, networkModal } = useTokenActions(
     {
       token,
@@ -139,7 +132,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     },
   );
 
-  // Use transactions hook
   const {
     transactions,
     submittedTxs,
@@ -152,7 +144,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     isNonEvmAsset: txIsNonEvmAsset,
   } = useTokenTransactions(token);
 
-  // Display flags for buttons
   const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
     asset: {
       isETH: token.isETH ?? false,
@@ -163,7 +154,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   });
   const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
-  // Deposit/Ramp availability
   const rampNetworks = useSelector(getRampNetworks);
   const depositMinimumVersionFlag = useSelector(
     selectDepositMinimumVersionFlag,
@@ -186,7 +176,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
 
   const displayBuyButton = isDepositEnabled || isRampAvailable;
 
-  // Render the header content (AssetOverview + ActivityHeader)
   const renderHeader = () => (
     <>
       <AssetOverviewContent
@@ -226,7 +215,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     </>
   );
 
-  // Render loader while transactions are loading
   const renderLoader = () => (
     <View style={styles.loader}>
       <ActivityIndicator style={styles.loader} size="small" />
