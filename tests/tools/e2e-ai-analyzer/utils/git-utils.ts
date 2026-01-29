@@ -40,6 +40,21 @@ export function getAllChangedFiles(
  * Uses three-dot syntax (...) to compare against merge base
  */
 /**
+ * Checks if GitHub CLI (gh) is available
+ */
+function isGitHubCLIAvailable(): boolean {
+  try {
+    execSync('gh --version', {
+      encoding: 'utf-8',
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Escapes shell special characters to prevent command injection
  */
 function escapeShell(str: string): string {
@@ -90,6 +105,10 @@ export function getPRDiff(
   files?: string[],
   linesLimit = 2000,
 ): string {
+  if (!isGitHubCLIAvailable()) {
+    return `GitHub CLI (gh) is not installed. Install it with: brew install gh (macOS) or visit https://cli.github.com/`;
+  }
+
   try {
     const diff = execSync(`gh pr diff ${prNumber} --repo ${repo}`, {
       encoding: 'utf-8',
@@ -107,7 +126,12 @@ export function getPRDiff(
     }
 
     return `PR #${prNumber} diff:\n${diff}`;
-  } catch {
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('command not found')) {
+      return `GitHub CLI (gh) command not found. Install it with: brew install gh`;
+    }
     return `Could not fetch diff for PR #${prNumber}. Ensure gh CLI is authenticated.`;
   }
 }
@@ -122,6 +146,10 @@ export function getPRFileDiff(
   filePath: string,
   linesLimit = 1000,
 ): string {
+  if (!isGitHubCLIAvailable()) {
+    return `GitHub CLI (gh) is not installed. Install it with: brew install gh (macOS) or visit https://cli.github.com/`;
+  }
+
   try {
     const fullDiff = execSync(`gh pr diff ${prNumber} --repo ${repo}`, {
       encoding: 'utf-8',
@@ -145,30 +173,77 @@ export function getPRFileDiff(
     return `Diff for ${filePath} (from PR #${prNumber}):\n${fileDiff}`;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (message.includes('command not found')) {
+      return `GitHub CLI (gh) command not found. Install it with: brew install gh`;
+    }
     return `Could not fetch diff for ${filePath} from PR #${prNumber}: ${message}`;
   }
 }
 
 /**
- * Gets files changed in a PR using GitHub CLI
+ * Gets files changed in a PR using GitHub API (fallback when gh CLI is not available)
  */
-export function getPRFiles(prNumber: number, repo: string): string[] {
+function getPRFilesViaAPI(prNumber: number, repo: string): string[] {
   try {
-    const files = execSync(
-      `gh pr view ${prNumber} --repo ${repo} --json files --jq '.files[].path'`,
-      { encoding: 'utf-8' },
-    )
-      .trim()
-      .split('\n')
-      .filter((f) => f);
+    const [owner, repoName] = repo.split('/');
+    const url = `https://api.github.com/repos/${owner}/${repoName}/pulls/${prNumber}/files`;
+    
+    const response = execSync(`curl -s "${url}"`, {
+      encoding: 'utf-8',
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+    });
 
-    return files;
+    const files = JSON.parse(response);
+    if (Array.isArray(files)) {
+      return files.map((file: { filename: string }) => file.filename);
+    }
+    return [];
   } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
     console.error(
-      `❌ Failed to fetch files for PR #${prNumber}. Ensure gh CLI is authenticated.`,
+      `⚠️  Failed to fetch PR files via GitHub API: ${errorMessage}`,
     );
     return [];
   }
+}
+
+/**
+ * Gets files changed in a PR using GitHub CLI or API fallback
+ */
+export function getPRFiles(prNumber: number, repo: string): string[] {
+  // Try GitHub CLI first
+  if (isGitHubCLIAvailable()) {
+    try {
+      const files = execSync(
+        `gh pr view ${prNumber} --repo ${repo} --json files --jq '.files[].path'`,
+        { encoding: 'utf-8' },
+      )
+        .trim()
+        .split('\n')
+        .filter((f) => f);
+
+      if (files.length > 0) {
+        return files;
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (!errorMessage.includes('command not found')) {
+        // If it's not a "command not found" error, try API fallback
+        console.warn(
+          `⚠️  GitHub CLI failed, trying API fallback: ${errorMessage}`,
+        );
+        return getPRFilesViaAPI(prNumber, repo);
+      }
+    }
+  }
+
+  // Fallback to GitHub API
+  console.log(
+    `ℹ️  GitHub CLI not available, using GitHub API to fetch PR files...`,
+  );
+  return getPRFilesViaAPI(prNumber, repo);
 }
 
 /**

@@ -5,6 +5,8 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
+import { readFileSync, existsSync } from 'node:fs';
+import { join, parse } from 'node:path';
 import { ParsedArgs } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
@@ -25,6 +27,83 @@ import {
   ProviderType,
 } from './providers';
 import { getSkillsMetadata } from './utils/skill-loader';
+
+/**
+ * Find project root by looking for .git or package.json
+ */
+function findProjectRoot(startPath: string): string {
+  let current = startPath;
+  const root = parse(current).root;
+
+  while (current !== root) {
+    if (
+      existsSync(join(current, '.git')) ||
+      existsSync(join(current, 'package.json'))
+    ) {
+      return current;
+    }
+    current = join(current, '..');
+  }
+
+  return startPath; // Fallback to start path
+}
+
+/**
+ * Load environment variables from .e2e.env file if it exists
+ * This allows users to store API keys in .e2e.env without manually sourcing it
+ */
+function loadEnvFile(): void {
+  // Find project root and look for .e2e.env there
+  const projectRoot = findProjectRoot(process.cwd());
+  const envPath = join(projectRoot, '.e2e.env');
+
+  if (!existsSync(envPath)) {
+    // Silently fail - env file loading is optional
+    return;
+  }
+
+  try {
+    const envContent = readFileSync(envPath, 'utf-8');
+    const lines = envContent.split('\n');
+    
+    for (const line of lines) {
+      // Skip comments and empty lines
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) {
+        continue;
+      }
+      
+      // Parse export KEY="value" or KEY="value" format
+      const exportMatch = trimmed.match(/^export\s+(.+)$/);
+      const keyValueMatch = (exportMatch ? exportMatch[1] : trimmed).match(
+        /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/,
+      );
+      
+      if (keyValueMatch) {
+        const key = keyValueMatch[1];
+        let value = keyValueMatch[2];
+        
+        // Remove quotes if present
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
+          value = value.slice(1, -1);
+        }
+        
+        // Only set if not already set (allow command-line overrides)
+        if (!process.env[key]) {
+          process.env[key] = value;
+        }
+      }
+    }
+    
+    // Silently load environment variables - no logging to avoid exposing API key info
+  } catch (error) {
+    // Log error but don't fail - env file loading is optional
+    console.warn(`⚠️  Failed to load .e2e.env: ${error}`);
+  }
+}
 
 /**
  * Validates provided files against actual git changes
@@ -203,6 +282,9 @@ function getProviderOrder(forcedProvider?: ProviderType): ProviderType[] {
 }
 
 async function main() {
+  // Load environment variables from .e2e.env if it exists
+  loadEnvFile();
+  
   console.log('🤖 Starting E2E AI analysis...');
 
   const args = process.argv.slice(2);
