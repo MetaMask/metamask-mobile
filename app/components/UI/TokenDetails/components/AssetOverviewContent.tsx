@@ -34,6 +34,8 @@ import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.co
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
 import MerklRewards from '../../Earn/components/MerklRewards';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
+import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
+import { useScrollToMerklRewards } from '../../AssetOverview/hooks/useScrollToMerklRewards';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
@@ -166,11 +168,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const merklRewardsRef = useRef<View>(null);
+  const merklRewardsYInHeaderRef = useRef<number | null>(null);
   const chainId = token.chainId;
+
+  useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
   const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
     isPerpsEnabled ? token.symbol : null,
   );
+
+  const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -289,25 +296,37 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             ///: END:ONLY_INCLUDE_IF
           }
           {isMerklCampaignClaimingEnabled && (
-            <View ref={merklRewardsRef} testID="merkl-rewards-section">
+            <View
+              ref={merklRewardsRef}
+              testID="merkl-rewards-section"
+              onLayout={(event) => {
+                // Store Y position relative to header (which is the scroll offset)
+                // This is more reliable than measureInWindow for FlatList scrolling
+                const { y } = event.nativeEvent.layout;
+                merklRewardsYInHeaderRef.current = y;
+              }}
+            >
               <MerklRewards asset={token} />
             </View>
           )}
-          {isPerpsEnabled && hasPerpsMarket && marketData && (
-            <>
-              <View style={styles.perpsPositionHeader}>
-                <DSText variant={TextVariant.HeadingMD}>
-                  {strings('asset_overview.perps_position')}
-                </DSText>
-              </View>
-              <PerpsDiscoveryBanner
-                symbol={marketData.symbol}
-                maxLeverage={marketData.maxLeverage}
-                onPress={handlePerpsDiscoveryPress}
-                testID="perps-discovery-banner"
-              />
-            </>
-          )}
+          {isPerpsEnabled &&
+            hasPerpsMarket &&
+            marketData &&
+            isTokenTrustworthy && (
+              <>
+                <View style={styles.perpsPositionHeader}>
+                  <DSText variant={TextVariant.HeadingMD}>
+                    {strings('asset_overview.perps_position')}
+                  </DSText>
+                </View>
+                <PerpsDiscoveryBanner
+                  symbol={marketData.symbol}
+                  maxLeverage={marketData.maxLeverage}
+                  onPress={handlePerpsDiscoveryPress}
+                  testID="perps-discovery-banner"
+                />
+              </>
+            )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
           </View>
