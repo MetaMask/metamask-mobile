@@ -231,12 +231,20 @@ export function transformMarketData(
     const { dex } = parseAssetName(symbol);
     const marketSource = dex || undefined;
 
-    // Determine market type:
-    // 1. Check explicit mapping (e.g., 'xyz:GOLD' → 'commodity')
-    // 2. Default HIP-3 DEX markets to 'equity' (stocks) if not mapped
-    // 3. Main DEX markets remain undefined (crypto)
-    const marketType: MarketType | undefined =
-      assetMarketTypes?.[symbol] || (dex ? 'equity' : undefined);
+    // HIP-3 markets have a DEX prefix (e.g., xyz:TSLA, flx:GOLD)
+    // Crypto markets (HIP-2) don't have a prefix (e.g., BTC, ETH)
+    const isHip3 = Boolean(dex);
+
+    // Determine market type from explicit mapping only
+    // Only explicitly mapped HIP-3 markets get a marketType (e.g., 'xyz:GOLD' → 'commodity')
+    // Unmapped HIP-3 markets (e.g., 'hyna:BTC') have no marketType - they go to "New" tab
+    // Main DEX crypto also has no marketType
+    const explicitMarketType = assetMarketTypes?.[symbol];
+    const marketType: MarketType | undefined = explicitMarketType;
+
+    // Mark as "new" if it's a HIP-3 market but not explicitly categorized
+    // New markets are always HIP-3 (non-crypto) that haven't been assigned a category yet
+    const isNewMarket = isHip3 && !explicitMarketType;
 
     return {
       symbol,
@@ -262,6 +270,8 @@ export function transformMarketData(
       fundingRate,
       marketSource,
       marketType,
+      isHip3,
+      isNewMarket,
     };
   });
 }

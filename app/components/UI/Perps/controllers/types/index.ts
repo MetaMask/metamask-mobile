@@ -67,8 +67,15 @@ export type OrderType = 'market' | 'limit';
 // Market asset type classification (reusable across components)
 export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
 
-// Market type filter including 'all' option and combined 'stocks_and_commodities' for UI filtering
-export type MarketTypeFilter = MarketType | 'all' | 'stocks_and_commodities';
+// Market type filter for UI category badges
+// Note: 'stocks' maps to 'equity' and 'commodities' maps to 'commodity' in the data model
+export type MarketTypeFilter =
+  | 'all'
+  | 'crypto'
+  | 'stocks'
+  | 'commodities'
+  | 'forex'
+  | 'new';
 
 // Input method for amount entry tracking
 export type InputMethod =
@@ -359,6 +366,16 @@ export interface PerpsMarketData {
    */
   marketType?: MarketType;
   /**
+   * Whether this is a HIP-3 market (has DEX prefix like xyz:, flx:)
+   * Used to distinguish between crypto (isHip3=false) and non-crypto markets
+   */
+  isHip3?: boolean;
+  /**
+   * Whether this is a new/uncategorized market (HIP-3 markets not yet in explicit mapping)
+   * Used for the "New" filter tab
+   */
+  isNewMarket?: boolean;
+  /**
    * Multi-provider: which provider this market data comes from (injected by aggregator)
    */
   providerId?: PerpsProviderType;
@@ -605,6 +622,15 @@ export interface GetOrderFillsParams {
   aggregateByTime?: boolean; // Optional: aggregate by time
 }
 
+/**
+ * Parameters for getOrFetchFills - optimized cache-first fill retrieval.
+ * Subset of GetOrderFillsParams for cache filtering.
+ */
+export interface GetOrFetchFillsParams {
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  symbol?: string; // Optional: filter by symbol
+}
+
 export interface GetOrdersParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
@@ -785,6 +811,12 @@ export interface UpdatePositionTPSLParams {
   // Optional tracking data for MetaMetrics events
   trackingData?: TPSLTrackingData;
   providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
+  /**
+   * Optional live position data from WebSocket.
+   * If provided, skips the REST API position fetch (avoids rate limiting issues).
+   * If not provided, falls back to fetching positions via REST API.
+   */
+  position?: Position;
 }
 
 export interface Order {
@@ -862,6 +894,14 @@ export interface PerpsProvider {
    * Example: Market long 1 ETH @ $50,000 → OrderFill with exact execution price and fees
    */
   getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
+
+  /**
+   * Get fills using WebSocket cache first, falling back to REST API.
+   * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss.
+   * Purpose: Prevent 429 errors during rapid market switching by reusing cached fills.
+   * @param params - Optional filter parameters (startTime, symbol)
+   */
+  getOrFetchFills(params?: GetOrFetchFillsParams): Promise<OrderFill[]>;
 
   /**
    * Get historical portfolio data

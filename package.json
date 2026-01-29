@@ -492,8 +492,7 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "viem": "^2.28.0",
-    "vm-browserify": "1.1.2",
-    "zxcvbn": "4.4.2"
+    "vm-browserify": "1.1.2"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.71.0",
