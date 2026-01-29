@@ -639,10 +639,6 @@ class WalletView {
     return Matchers.getElementByText('Get Started');
   }
 
-  get convertToMusdButton(): DetoxElement {
-    return Matchers.getElementByText('Convert to mUSD');
-  }
-
   /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
   get tokenListItemConvertToMusdCta(): DetoxElement {
     return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
@@ -705,12 +701,6 @@ class WalletView {
   async tapGetStartedButton(): Promise<void> {
     await Gestures.waitAndTap(this.getStartedButton, {
       elemDescription: 'Get Started button on education screen',
-    });
-  }
-
-  async tapConvertToMusdButton(): Promise<void> {
-    await Gestures.waitAndTap(this.convertToMusdButton, {
-      elemDescription: 'Convert to mUSD button',
     });
   }
 

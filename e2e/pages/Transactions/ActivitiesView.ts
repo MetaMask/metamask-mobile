@@ -59,12 +59,6 @@ class ActivitiesView {
     );
   }
 
-  get musdConversion(): DetoxElement {
-    return Matchers.getElementByText(
-      ActivitiesViewSelectorsText.MUSD_CONVERSION,
-    );
-  }
-
   transactionStatus(row: number): DetoxElement {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
