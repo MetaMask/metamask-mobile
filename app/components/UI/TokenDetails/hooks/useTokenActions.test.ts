@@ -18,7 +18,6 @@ import Routes from '../../../../constants/navigation/Routes';
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
-  useDispatch: () => jest.fn(),
 }));
 
 const mockNavigate = jest.fn();
@@ -126,14 +125,6 @@ jest.mock('../../../../core/Engine', () => ({
       setActiveNetwork: jest.fn(),
     },
   },
-}));
-
-const mockNewAssetTransaction = jest.fn((token) => ({
-  type: 'NEW_ASSET_TRANSACTION',
-  payload: token,
-}));
-jest.mock('../../../../actions/transaction', () => ({
-  newAssetTransaction: (token: unknown) => mockNewAssetTransaction(token),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -263,7 +254,7 @@ describe('useTokenActions', () => {
   });
 
   describe('onSend', () => {
-    it('dispatches transaction and navigates to send page', async () => {
+    it('navigates to send page and tracks analytics', async () => {
       const { result } = renderHook(() =>
         useTokenActions({
           token: defaultToken,
@@ -283,8 +274,6 @@ describe('useTokenActions', () => {
           location: ActionLocation.ASSET_DETAILS,
         }),
       );
-
-      expect(mockNewAssetTransaction).toHaveBeenCalledWith(defaultToken);
 
       expect(mockNavigateToSendPage).toHaveBeenCalledWith({
         location: 'asset_overview',

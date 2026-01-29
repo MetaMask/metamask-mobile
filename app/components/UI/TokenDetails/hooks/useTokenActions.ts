@@ -1,14 +1,12 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
-import { newAssetTransaction } from '../../../../actions/transaction';
 import Engine from '../../../../core/Engine';
 import { selectEvmChainId } from '../../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import Logger from '../../../../util/Logger';
-import { getEther } from '../../../../util/transactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
@@ -45,7 +43,6 @@ import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
-import { RootState } from '../../../../reducers';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -110,19 +107,12 @@ export const useTokenActions = ({
   networkName,
 }: UseTokenActionsParams): UseTokenActionsResult => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
 
   // Determine if token is EVM or non-EVM
   const resultChainId = formatChainIdToCaip(token.chainId as Hex);
   const isNonEvmToken = resultChainId === token.chainId;
 
   const chainId = token.chainId as Hex;
-  const nativeCurrency = useSelector(
-    (state: RootState) =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (state as any).engine?.backgroundState?.NetworkController?.providerConfig
-        ?.ticker,
-  );
 
   // Selectors
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
@@ -245,12 +235,6 @@ export const useTokenActions = ({
       );
     }
 
-    if ((token.isETH || token.isNative) && nativeCurrency) {
-      dispatch(newAssetTransaction(getEther(nativeCurrency)));
-    } else {
-      dispatch(newAssetTransaction(token));
-    }
-
     navigateToSendPage({
       location: InitSendLocation.AssetOverview,
       asset: token,
@@ -262,8 +246,6 @@ export const useTokenActions = ({
     navigation,
     token,
     selectedChainId,
-    nativeCurrency,
-    dispatch,
     navigateToSendPage,
   ]);
 
