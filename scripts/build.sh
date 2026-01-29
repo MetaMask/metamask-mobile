@@ -244,18 +244,26 @@ createEnvFile() {
         # to be written to .env, which is semantically different from undefined variables
         if [ -n "${!var+x}" ]; then
             value="${!var}"
-            # Use double quotes with proper escaping (consistent with .js.env format)
+            # Use double quotes with proper escaping for sourcing
             # Escape special characters to prevent shell interpretation when sourcing
             escaped_value="${value//\\/\\\\}"  # Escape backslashes first
             escaped_value="${escaped_value//\"/\\\"}"  # Escape double quotes
             escaped_value="${escaped_value//\$/\\\$}"  # Escape dollar signs to prevent variable expansion
             
-            echo "${var}=\"${escaped_value}\"" >> .env
+            # Use printf instead of echo to avoid escape sequence interpretation
+            printf '%s="%s"\n' "$var" "$escaped_value" >> .env
+            
+            # Log exported variable (show empty strings explicitly)
+            if [ -z "$value" ]; then
+                echo "✅ Exported: ${var} (empty string)"
+            else
+                echo "✅ Exported: ${var} (value hidden)"
+            fi
             
             # Export to GITHUB_ENV if in GitHub Actions
             # Note: GITHUB_ENV expects NAME=value format without quotes
             if [ -n "$GITHUB_ENV" ]; then
-                echo "${var}=${value}" >> "$GITHUB_ENV"
+                printf '%s=%s\n' "$var" "$value" >> "$GITHUB_ENV"
             fi
             
             ((exported_count++))
