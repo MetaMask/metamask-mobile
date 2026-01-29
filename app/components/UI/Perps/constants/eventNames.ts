@@ -227,6 +227,8 @@ export const PerpsEventValues = {
     ADJUST_MARGIN_ACTION: 'adjust_margin_action',
     STOP_LOSS_PROMPT_ADD_MARGIN: 'stop_loss_prompt_add_margin',
     STOP_LOSS_PROMPT_SET_SL: 'stop_loss_prompt_set_sl',
+    // Geo-block sources for bulk actions
+    CLOSE_ALL_POSITIONS_BUTTON: 'close_all_positions_button',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
