@@ -26,8 +26,6 @@ import {
 import { TokenI } from '../../Tokens/types';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import { PerpsEventValues } from '../../Perps/constants/eventNames';
-
-// Import existing components directly from AssetOverview
 import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
@@ -123,7 +121,7 @@ export interface AssetOverviewContentProps {
   onReceive: () => void;
   goToSwaps: () => void;
 
-  // Tron-specific (optional)
+  // Tron-specific
   isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
 }
@@ -170,7 +168,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const merklRewardsRef = useRef<View>(null);
   const chainId = token.chainId;
 
-  // Perps Discovery Banner hooks
   const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
     isPerpsEnabled ? token.symbol : null,
   );
@@ -182,7 +179,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     navigation.navigate(screen, params as Record<string, unknown>);
   };
 
-  // Perps Discovery Banner press handler
   const handlePerpsDiscoveryPress = useCallback(() => {
     if (marketData) {
       navigation.navigate(Routes.PERPS.ROOT, {
