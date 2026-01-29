@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect } from 'react';
-import { Image, Dimensions, View, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { Image, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,33 +22,10 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { colors as importedColors } from '../../../../../styles/common';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
 // Threshold for small screen adjustments
-const IS_SMALL_SCREEN = screenHeight < 700;
+const SMALL_SCREEN_THRESHOLD = 700;
 
-// Image position from top (percentage of screen)
-const IMAGE_TOP = IS_SMALL_SCREEN ? '28%' : '25%';
-
-// Responsive image dimensions
-const IMAGE_WIDTH = IS_SMALL_SCREEN ? screenWidth * 1.5 : screenWidth * 1.2;
-const IMAGE_HEIGHT = IS_SMALL_SCREEN ? screenHeight * 0.8 : screenHeight * 0.75;
-
-const styles = StyleSheet.create({
-  imageContainer: {
-    position: 'absolute',
-    top: IMAGE_TOP,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    zIndex: 1,
-  },
-  image: {
-    width: IMAGE_WIDTH,
-    height: IMAGE_HEIGHT,
-  },
+const staticStyles = StyleSheet.create({
   headerContainer: {
     zIndex: 2,
   },
@@ -66,6 +43,34 @@ const KYCFailed = () => {
   const dispatch = useDispatch();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+
+  // Responsive styles based on current window dimensions
+  const dynamicStyles = useMemo(() => {
+    const isSmallScreen = screenHeight < SMALL_SCREEN_THRESHOLD;
+    const imageTop = isSmallScreen ? '28%' : '25%';
+    const imageWidth = isSmallScreen ? screenWidth * 1.5 : screenWidth * 1.2;
+    const imageHeight = isSmallScreen
+      ? screenHeight * 0.8
+      : screenHeight * 0.75;
+
+    return StyleSheet.create({
+      imageContainer: {
+        position: 'absolute',
+        top: imageTop,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        zIndex: 1,
+      },
+      image: {
+        width: imageWidth,
+        height: imageHeight,
+      },
+    });
+  }, [screenWidth, screenHeight]);
 
   useEffect(() => {
     dispatch(resetOnboardingState());
@@ -88,7 +93,7 @@ const KYCFailed = () => {
   return (
     <Box twClassName="flex-1" style={tw.style('bg-[#330745]')}>
       {/* Header with back button */}
-      <SafeAreaView edges={['top']} style={styles.headerContainer}>
+      <SafeAreaView edges={['top']} style={staticStyles.headerContainer}>
         <Box twClassName="px-4 py-2 items-start">
           <ButtonIcon
             iconName={IconName.ArrowLeft}
@@ -119,11 +124,11 @@ const KYCFailed = () => {
       </SafeAreaView>
 
       {/* Image - positioned absolutely to extend behind footer */}
-      <View style={styles.imageContainer}>
+      <View style={dynamicStyles.imageContainer}>
         <Image
           source={MM_CARD_ONBOARDING_FAILED}
           resizeMode="contain"
-          style={styles.image}
+          style={dynamicStyles.image}
           testID="kyc-failed-image"
         />
       </View>
@@ -132,7 +137,7 @@ const KYCFailed = () => {
       <SafeAreaView
         edges={['bottom']}
         style={[
-          styles.footerContainer,
+          staticStyles.footerContainer,
           tw.style('absolute bottom-0 left-0 right-0 px-4'),
         ]}
       >

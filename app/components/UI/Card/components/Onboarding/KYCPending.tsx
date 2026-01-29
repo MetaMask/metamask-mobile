@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect } from 'react';
-import { Image, Dimensions } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { Image, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -20,16 +20,8 @@ import WaitingKYCImage from '../../../../../images/waiting-kyc-card.png';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { colors as importedColors } from '../../../../../styles/common';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
 // Threshold for small screen adjustments
-const IS_SMALL_SCREEN = screenHeight < 700;
-
-// Responsive image dimensions
-const IMAGE_WIDTH = IS_SMALL_SCREEN ? screenWidth * 1.2 : screenWidth * 1.3;
-const IMAGE_HEIGHT = IS_SMALL_SCREEN
-  ? screenHeight * 0.48
-  : screenHeight * 0.55;
+const SMALL_SCREEN_THRESHOLD = 700;
 
 /**
  * Screen shown when KYC verification is still pending after the polling timeout.
@@ -39,6 +31,16 @@ const KYCPending = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+
+  // Responsive image dimensions based on current window dimensions
+  const imageDimensions = useMemo(() => {
+    const isSmallScreen = screenHeight < SMALL_SCREEN_THRESHOLD;
+    return {
+      width: isSmallScreen ? screenWidth * 1.2 : screenWidth * 1.3,
+      height: isSmallScreen ? screenHeight * 0.48 : screenHeight * 0.55,
+    };
+  }, [screenWidth, screenHeight]);
 
   useEffect(() => {
     trackEvent(
@@ -94,7 +96,10 @@ const KYCPending = () => {
           <Image
             source={WaitingKYCImage}
             resizeMode="contain"
-            style={tw.style(`w-[${IMAGE_WIDTH}px] h-[${IMAGE_HEIGHT}px]`)}
+            style={{
+              width: imageDimensions.width,
+              height: imageDimensions.height,
+            }}
             testID="kyc-pending-image"
           />
         </Box>

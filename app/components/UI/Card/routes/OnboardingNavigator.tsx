@@ -97,7 +97,9 @@ export const KYCStatusNavigationOptions = ({
   gestureEnabled: false,
 });
 
-export const KYCPendingNavigationOptions: StackNavigationOptions = {
+// Navigation options for screens that manage their own header (KYC_FAILED, KYC_PENDING)
+// These screens have custom back buttons and don't need the stack navigator header
+export const HeaderlessNavigationOptions: StackNavigationOptions = {
   headerShown: false,
   gestureEnabled: false,
 };
@@ -293,12 +295,12 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
         component={KYCFailed}
-        options={KYCPendingNavigationOptions}
+        options={HeaderlessNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_PENDING}
         component={KYCPending}
-        options={KYCPendingNavigationOptions}
+        options={HeaderlessNavigationOptions}
       />
     </Stack.Navigator>
   );
