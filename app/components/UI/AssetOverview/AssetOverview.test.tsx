@@ -753,12 +753,6 @@ describe('AssetOverview', () => {
   });
 
   it('should handle receive button press for EVM asset with EVM address', async () => {
-    // Arrange - Mock the selectors directly to ensure conditions are met
-    mockSelectSelectedInternalAccount.mockReturnValue({
-      address: MOCK_ADDRESS_2,
-      type: 'eip155:eoa',
-    });
-
     mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
 
     mockSelectSelectedInternalAccountByScope.mockReturnValue({
@@ -840,11 +834,6 @@ describe('AssetOverview', () => {
   it('should handle receive button press for Solana asset with Solana address', async () => {
     const SOLANA_ADDRESS = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
     const SOLANA_CHAIN_ID = SolScope.Mainnet;
-
-    mockSelectSelectedInternalAccount.mockReturnValue({
-      address: MOCK_ADDRESS_2,
-      type: 'eip155:eoa',
-    });
 
     mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
 
@@ -1583,13 +1572,6 @@ describe('AssetOverview', () => {
   });
 
   it('should not render Balance component when balance is undefined', () => {
-    // Mock an EVM account that doesn't have balance in AccountTrackerController
-    // and create asset with undefined balance on a chain without account data
-    mockSelectSelectedInternalAccount.mockReturnValue({
-      address: MOCK_ADDRESS_2,
-      type: 'eip155:eoa',
-    });
-
     // Asset on a chain (0x999) that has no account data in AccountTrackerController
     const assetOnUnknownChain = {
       ...asset,
