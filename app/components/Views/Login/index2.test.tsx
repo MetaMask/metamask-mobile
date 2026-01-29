@@ -9,6 +9,8 @@ import { parseVaultValue } from '../../../util/validators';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
+import Logger from '../../../util/Logger';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 
 // Mock dependencies
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -24,6 +26,9 @@ import { ReduxStore } from '../../../core/redux/types';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 
 const mockEngine = jest.mocked(Engine);
+
+jest.mock('../../../util/Logger');
+const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 const mockGetAuthType = jest.fn();
 const mockComponentAuthenticationType = jest.fn();
@@ -451,6 +456,60 @@ describe('Login test suite 2', () => {
         },
         { timeout: 4000 },
       );
+    });
+  });
+
+  describe('biometric cancellation', () => {
+    it('does not log error when Android biometric auth is cancelled', async () => {
+      // Arrange
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+      mockUnlockWallet.mockRejectedValue(new Error('Cancel'));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      expect(mockLogger.error).not.toHaveBeenCalled();
+    });
+
+    it('does not log error when iOS biometric auth is cancelled', async () => {
+      // Arrange
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+      mockUnlockWallet.mockRejectedValue(
+        new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      expect(mockLogger.error).not.toHaveBeenCalled();
     });
   });
 });

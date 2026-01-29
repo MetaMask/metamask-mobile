@@ -7,7 +7,7 @@ import { SmokeConfirmationsRedesigned } from '../../tags';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 

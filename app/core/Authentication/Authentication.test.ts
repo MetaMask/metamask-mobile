@@ -4002,7 +4002,6 @@ describe('Authentication', () => {
         username: 'metamask-user',
       } as unknown as import('react-native-keychain').UserCredentials);
 
-      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue(undefined);
       jest
         .spyOn(SecureKeychain, 'setGenericPassword')
         .mockResolvedValue(undefined);
@@ -4021,7 +4020,6 @@ describe('Authentication', () => {
         authType: AUTHENTICATION_TYPE.BIOMETRIC,
       });
 
-      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.KeyringController.verifyPassword,
       ).toHaveBeenCalledWith(mockPassword);
@@ -4044,7 +4042,6 @@ describe('Authentication', () => {
       });
 
       expect(Authentication.getPassword).not.toHaveBeenCalled();
-      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.KeyringController.verifyPassword,
       ).toHaveBeenCalledWith(mockPassword);
@@ -4065,7 +4062,6 @@ describe('Authentication', () => {
         authType: AUTHENTICATION_TYPE.PASSCODE,
       });
 
-      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.KeyringController.verifyPassword,
       ).toHaveBeenCalledWith(mockPassword);
@@ -4085,7 +4081,6 @@ describe('Authentication', () => {
         authType: AUTHENTICATION_TYPE.PASSWORD,
       });
 
-      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.KeyringController.verifyPassword,
       ).toHaveBeenCalledWith(mockPassword);
@@ -4208,7 +4203,6 @@ describe('Authentication', () => {
         password: mockPassword,
       });
 
-      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(verifyPasswordSpy).toHaveBeenCalledWith(mockPassword);
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
@@ -4512,6 +4506,30 @@ describe('Authentication', () => {
         service: 'test-service',
         storage: Keychain.STORAGE_TYPE.AES_GCM,
       });
+    });
+
+    it('skips deriving password from keychain when an empty password is provided', async () => {
+      // Call unlockWallet with an empty password.
+      await Authentication.unlockWallet({ password: '' });
+
+      // Verify that SecureKeychain.getGenericPassword is not called.
+      expect(SecureKeychain.getGenericPassword).not.toHaveBeenCalled();
+    });
+
+    it('skips deriving password from keychain when a non-empty password is provided', async () => {
+      // Call unlockWallet with a non-empty password.
+      await Authentication.unlockWallet({ password: 'test-password' });
+
+      // Verify that SecureKeychain.getGenericPassword is not called.
+      expect(SecureKeychain.getGenericPassword).not.toHaveBeenCalled();
+    });
+
+    it('derives password from keychain when no password is provided', async () => {
+      // Call unlockWallet without a password.
+      await Authentication.unlockWallet();
+
+      // Verify that SecureKeychain.getGenericPassword is called.
+      expect(SecureKeychain.getGenericPassword).toHaveBeenCalled();
     });
 
     it('navigates to the onboarding flow when user does not exist', async () => {

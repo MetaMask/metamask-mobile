@@ -1,28 +1,48 @@
 import React, { useRef } from 'react';
+import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import { selectEnabledChainRanking } from '../../../../../core/redux/slices/bridge';
+import {
+  selectSourceChainRanking,
+  selectDestChainRanking,
+} from '../../../../../core/redux/slices/bridge';
 import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
+import { TokenSelectorType } from '../../types';
 
 const PILL_WIDTH = 90; // Average pill width including gap
+
+const styles = StyleSheet.create({
+  pill: {
+    borderRadius: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 12,
+    paddingRight: 12,
+  },
+});
 
 interface NetworkPillsProps {
   selectedChainId?: CaipChainId;
   onChainSelect: (chainId?: CaipChainId) => void;
+  type: TokenSelectorType;
 }
 
 export const NetworkPills: React.FC<NetworkPillsProps> = ({
   selectedChainId,
   onChainSelect,
+  type,
 }) => {
   const tw = useTailwind();
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledRef = useRef(false);
-  const chainRanking = useSelector(selectEnabledChainRanking);
+  const sourceChainRanking = useSelector(selectSourceChainRanking);
+  const destChainRanking = useSelector(selectDestChainRanking);
+  const chainRanking =
+    type === TokenSelectorType.Source ? sourceChainRanking : destChainRanking;
 
   // Auto-scroll to selected network on initial layout
   const handleContentSizeChange = () => {
@@ -62,7 +82,8 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
           label={chain.name}
           isActive={isSelected}
           onPress={() => handleChainPress(chain.chainId)}
-          size={ButtonSize.Sm}
+          size={ButtonSize.Md}
+          style={styles.pill}
         />
       );
     });
@@ -81,7 +102,8 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
         label={strings('bridge.all')}
         isActive={!selectedChainId}
         onPress={handleAllPress}
-        size={ButtonSize.Sm}
+        style={styles.pill}
+        size={ButtonSize.Md}
       />
       {renderChainPills()}
     </ScrollView>

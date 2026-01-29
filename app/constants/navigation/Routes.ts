@@ -18,6 +18,7 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    AMOUNT_INPUT: 'RampAmountInput',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -28,6 +29,7 @@ const Routes = {
       UNSUPPORTED_TOKEN: 'RampUnsupportedTokenModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
       SETTINGS: 'RampSettingsModal',
+      BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
     },
   },
   DEPOSIT: {
@@ -69,6 +71,7 @@ const Routes = {
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
+  QR_SIGNING_TRANSACTION_MODAL: 'QRSigningTransactionModal',
   QR_TAB_SWITCHER: 'QRTabSwitcher',
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
@@ -111,7 +114,6 @@ const Routes = {
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
-    REWARDS_INTRO_MODAL: 'RewardsIntroModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
@@ -334,6 +336,7 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+      CONVERSION_TRANSACTION_DETAILS: 'MusdConversionTransactionDetails',
     },
     MODALS: {
       ROOT: 'EarnModals',

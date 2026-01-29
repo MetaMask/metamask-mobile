@@ -3,7 +3,7 @@ import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import { startExportForKeyring, completeSrpQuiz } from './utils';
-import { defaultOptions } from '../../seeder/anvil-manager';
+import { defaultOptions } from '../../../tests/seeder/anvil-manager';
 
 const SRP_1 = {
   index: 1,

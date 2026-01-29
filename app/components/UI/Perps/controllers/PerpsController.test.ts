@@ -18,17 +18,13 @@ import {
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
 import type {
-  IPerpsProvider,
-  IPerpsPlatformDependencies,
+  PerpsProvider,
+  PerpsPlatformDependencies,
   PerpsProviderType,
 } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
 import { createMockInfrastructure } from '../__mocks__/serviceMocks';
-import {
-  ARBITRUM_MAINNET_CHAIN_ID_HEX,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-} from '../constants/hyperLiquidConfig';
 import Engine from '../../../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
@@ -277,7 +273,7 @@ class TestablePerpsController extends PerpsController {
   public testMarkInitialized() {
     this.isInitialized = true;
     this.update((state) => {
-      state.initializationState = InitializationState.INITIALIZED;
+      state.initializationState = InitializationState.Initialized;
     });
   }
 
@@ -286,7 +282,7 @@ class TestablePerpsController extends PerpsController {
    * Used in most tests to inject mock providers.
    * Also sets activeProviderInstance to the first provider (default provider).
    */
-  public testSetProviders(providers: Map<PerpsProviderType, IPerpsProvider>) {
+  public testSetProviders(providers: Map<PerpsProviderType, PerpsProvider>) {
     this.providers = providers;
     // Set activeProviderInstance to the first provider (typically 'hyperliquid')
     const firstProvider = providers.values().next().value;
@@ -301,16 +297,16 @@ class TestablePerpsController extends PerpsController {
    * Type cast is intentional and necessary for testing graceful degradation.
    */
   public testSetPartialProviders(
-    providers: Map<PerpsProviderType, Partial<IPerpsProvider>>,
+    providers: Map<PerpsProviderType, Partial<PerpsProvider>>,
   ) {
-    this.providers = providers as Map<PerpsProviderType, IPerpsProvider>;
+    this.providers = providers as Map<PerpsProviderType, PerpsProvider>;
   }
 
   /**
    * Test-only method to get the providers map.
    * Used to verify provider state in tests.
    */
-  public testGetProviders(): Map<PerpsProviderType, IPerpsProvider> {
+  public testGetProviders(): Map<PerpsProviderType, PerpsProvider> {
     return this.providers;
   }
 
@@ -391,7 +387,7 @@ function createMockMessenger(
 describe('PerpsController', () => {
   let controller: TestablePerpsController;
   let mockProvider: jest.Mocked<HyperLiquidProvider>;
-  let mockInfrastructure: jest.Mocked<IPerpsPlatformDependencies>;
+  let mockInfrastructure: jest.Mocked<PerpsPlatformDependencies>;
 
   // Helper to mark controller as initialized for tests
   const markControllerAsInitialized = () => {
@@ -711,6 +707,37 @@ describe('PerpsController', () => {
 
       const provider = controller.getActiveProvider();
       expect(provider).toBe(mockProvider);
+    });
+  });
+
+  describe('getActiveProviderOrNull', () => {
+    it('returns null during reinitialization', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      (
+        controller as unknown as { isReinitializing: boolean }
+      ).isReinitializing = true;
+
+      const result = controller.getActiveProviderOrNull();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when not initialized', () => {
+      controller.testSetInitialized(false);
+
+      const result = controller.getActiveProviderOrNull();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns provider when initialized and not reinitializing', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+
+      const result = controller.getActiveProviderOrNull();
+
+      expect(result).toBe(mockProvider);
     });
   });
 
@@ -2391,50 +2418,7 @@ describe('PerpsController', () => {
         origin: 'metamask',
         type: 'perpsDeposit',
         skipInitialGasEstimate: true,
-        gasFeeToken: undefined,
       });
-    });
-
-    it('adds gasFeeToken for Arbitrum USDC deposits', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-
-      Engine.context.AccountTrackerController.state.accountsByChainId = {
-        [ARBITRUM_MAINNET_CHAIN_ID_HEX]: {
-          [mockTransaction.from.toLowerCase()]: {
-            balance: '0x0',
-          },
-        },
-      };
-
-      jest
-        .spyOn(mockDepositServiceInstance, 'prepareTransaction')
-        .mockResolvedValueOnce({
-          transaction: {
-            ...mockTransaction,
-            to: USDC_ARBITRUM_MAINNET_ADDRESS,
-          },
-          assetChainId: ARBITRUM_MAINNET_CHAIN_ID_HEX,
-          currentDepositId: mockDepositId,
-        });
-
-      await controller.depositWithConfirmation('100');
-
-      expect(
-        mockInfrastructure.controllers.transaction.submit,
-      ).toHaveBeenCalledWith(
-        {
-          ...mockTransaction,
-          to: USDC_ARBITRUM_MAINNET_ADDRESS,
-        },
-        {
-          networkClientId: mockNetworkClientId,
-          origin: 'metamask',
-          type: 'perpsDeposit',
-          skipInitialGasEstimate: true,
-          gasFeeToken: USDC_ARBITRUM_MAINNET_ADDRESS,
-        },
-      );
     });
 
     it('throws error when controller not initialized', async () => {
@@ -3269,6 +3253,141 @@ describe('PerpsController', () => {
       // Pending config should also be available
       const pending = controller.getPendingTradeConfiguration('BTC');
       expect(pending).toEqual(pendingConfig);
+    });
+  });
+
+  describe('WebSocket connection state', () => {
+    // Import actual enum to ensure type compatibility
+    const { WebSocketConnectionState } = jest.requireActual(
+      '../services/HyperLiquidClientService',
+    );
+
+    it('getWebSocketConnectionState returns state from active provider', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      mockProvider.getWebSocketConnectionState.mockReturnValue(
+        WebSocketConnectionState.Connected,
+      );
+
+      // Act
+      const result = controller.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.Connected);
+      expect(mockProvider.getWebSocketConnectionState).toHaveBeenCalled();
+    });
+
+    it('getWebSocketConnectionState returns DISCONNECTED when provider does not support method', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      // Remove the method to simulate provider without support
+      mockProvider.getWebSocketConnectionState = undefined as never;
+
+      // Act
+      const result = controller.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.Disconnected);
+    });
+
+    it('getWebSocketConnectionState returns DISCONNECTED when no provider is active', () => {
+      // Arrange - don't set up any provider
+
+      // Act
+      const result = controller.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.Disconnected);
+    });
+
+    it('subscribeToConnectionState delegates to active provider', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      const mockUnsubscribe = jest.fn();
+      mockProvider.subscribeToConnectionState.mockReturnValue(mockUnsubscribe);
+      const listener = jest.fn();
+
+      // Act
+      const unsubscribe = controller.subscribeToConnectionState(listener);
+
+      // Assert
+      expect(mockProvider.subscribeToConnectionState).toHaveBeenCalledWith(
+        listener,
+      );
+      expect(unsubscribe).toBe(mockUnsubscribe);
+    });
+
+    it('subscribeToConnectionState calls listener immediately when provider does not support method', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      // Keep getWebSocketConnectionState but remove subscribeToConnectionState
+      mockProvider.getWebSocketConnectionState.mockReturnValue(
+        WebSocketConnectionState.Disconnected,
+      );
+      mockProvider.subscribeToConnectionState = undefined as never;
+      const listener = jest.fn();
+
+      // Act
+      const unsubscribe = controller.subscribeToConnectionState(listener);
+
+      // Assert - listener is called with result of getWebSocketConnectionState()
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.Disconnected,
+        0,
+      );
+      expect(typeof unsubscribe).toBe('function');
+    });
+
+    it('subscribeToConnectionState returns no-op when no provider is active', () => {
+      // Arrange - don't set up any provider
+      const listener = jest.fn();
+
+      // Act
+      const unsubscribe = controller.subscribeToConnectionState(listener);
+
+      // Assert
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.Disconnected,
+        0,
+      );
+      expect(typeof unsubscribe).toBe('function');
+      // Verify unsubscribe doesn't throw
+      expect(() => unsubscribe()).not.toThrow();
+    });
+
+    it('reconnect delegates to active provider', async () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      mockProvider.reconnect.mockResolvedValue(undefined);
+
+      // Act
+      await controller.reconnect();
+
+      // Assert
+      expect(mockProvider.reconnect).toHaveBeenCalled();
+    });
+
+    it('reconnect does nothing when provider does not support method', async () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      // Remove the method to simulate provider without support
+      mockProvider.reconnect = undefined as never;
+
+      // Act & Assert - should not throw
+      await expect(controller.reconnect()).resolves.toBeUndefined();
+    });
+
+    it('reconnect does nothing when no provider is active', async () => {
+      // Arrange - don't set up any provider
+
+      // Act & Assert - should not throw
+      await expect(controller.reconnect()).resolves.toBeUndefined();
     });
   });
 

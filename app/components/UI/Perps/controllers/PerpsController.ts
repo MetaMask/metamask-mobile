@@ -13,12 +13,7 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
-import {
-  ARBITRUM_MAINNET_CHAIN_ID_HEX,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-  USDC_SYMBOL,
-} from '../constants/hyperLiquidConfig';
+import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
@@ -49,6 +44,7 @@ import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigura
 import { RewardsIntegrationService } from './services/RewardsIntegrationService';
 import type { ServiceContext } from './services/ServiceContext';
 import { type PerpsStreamChannelKey } from '../providers/PerpsStreamManager';
+import { WebSocketConnectionState } from '../services/HyperLiquidClientService';
 import {
   PerpsAnalyticsEvent,
   type AccountState,
@@ -72,7 +68,7 @@ import {
   type GetOrderFillsParams,
   type GetOrdersParams,
   type GetPositionsParams,
-  type IPerpsProvider,
+  type PerpsProvider,
   type LiquidationPriceParams,
   type LiveDataConfig,
   type MaintenanceMarginParams,
@@ -102,14 +98,14 @@ import {
   type HistoricalPortfolioResult,
   type OrderType,
   // Platform dependencies interface for core migration (bundles all platform-specific deps)
-  type IPerpsPlatformDependencies,
-  type IPerpsLogger,
+  type PerpsPlatformDependencies,
+  type PerpsLogger,
   type PerpsActiveProviderMode,
   type PerpsProviderType,
 } from './types';
 
-/** Derived type for logger options from IPerpsLogger interface */
-type PerpsLoggerOptions = Parameters<IPerpsLogger['error']>[1];
+/** Derived type for logger options from PerpsLogger interface */
+type PerpsLoggerOptions = Parameters<PerpsLogger['error']>[1];
 import type {
   RemoteFeatureFlagControllerState,
   RemoteFeatureFlagControllerStateChangeEvent,
@@ -124,10 +120,10 @@ export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
  * Initialization state enum for state machine tracking
  */
 export enum InitializationState {
-  UNINITIALIZED = 'uninitialized',
-  INITIALIZING = 'initializing',
-  INITIALIZED = 'initialized',
-  FAILED = 'failed',
+  Uninitialized = 'uninitialized',
+  Initializing = 'initializing',
+  Initialized = 'initialized',
+  Failed = 'failed',
 }
 
 /**
@@ -292,7 +288,7 @@ export type PerpsControllerState = {
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false, // Default to mainnet
-  initializationState: InitializationState.UNINITIALIZED,
+  initializationState: InitializationState.Uninitialized,
   initializationError: null,
   initializationAttempts: 0,
   accountState: null,
@@ -329,8 +325,8 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     mainnet: {},
   },
   marketFilterPreferences: {
-    optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
-    direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+    optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
+    direction: MARKET_SORTING_CONFIG.DefaultDirection,
   },
   hip3ConfigVersion: 0,
 });
@@ -665,7 +661,7 @@ export interface PerpsControllerOptions {
    * Provides logging, metrics, tracing, stream management, and account utilities.
    * Must be provided by the platform (mobile/extension) at instantiation time.
    */
-  infrastructure: IPerpsPlatformDependencies;
+  infrastructure: PerpsPlatformDependencies;
 }
 
 interface BlockedRegionList {
@@ -686,7 +682,7 @@ export class PerpsController extends BaseController<
   PerpsControllerState,
   PerpsControllerMessenger
 > {
-  protected providers: Map<PerpsProviderType, IPerpsProvider>;
+  protected providers: Map<PerpsProviderType, PerpsProvider>;
   protected isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
@@ -715,7 +711,7 @@ export class PerpsController extends BaseController<
    * When activeProvider is 'hyperliquid' or 'myx': points to specific provider directly
    * When activeProvider is 'aggregated': points to AggregatedPerpsProvider wrapper
    */
-  protected activeProviderInstance: IPerpsProvider | null = null;
+  protected activeProviderInstance: PerpsProvider | null = null;
 
   // Store options for dependency injection (allows core package to inject platform-specific services)
   private readonly options: PerpsControllerOptions;
@@ -841,7 +837,7 @@ export class PerpsController extends BaseController<
   /**
    * Get metrics instance from platform dependencies
    */
-  private getMetrics(): IPerpsPlatformDependencies['metrics'] {
+  private getMetrics(): PerpsPlatformDependencies['metrics'] {
     return this.options.infrastructure.metrics;
   }
 
@@ -1041,7 +1037,7 @@ export class PerpsController extends BaseController<
     const baseDelay = 1000;
 
     this.update((state) => {
-      state.initializationState = InitializationState.INITIALIZING;
+      state.initializationState = InitializationState.Initializing;
       state.initializationError = null;
       state.initializationAttempts = 0;
     });
@@ -1130,11 +1126,11 @@ export class PerpsController extends BaseController<
         // - Some might not need auth at all: new DydxProvider()
 
         // Wait for WebSocket transport to be ready before marking as initialized
-        await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+        await wait(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
 
         this.isInitialized = true;
         this.update((state) => {
-          state.initializationState = InitializationState.INITIALIZED;
+          state.initializationState = InitializationState.Initialized;
           state.initializationError = null;
         });
 
@@ -1175,7 +1171,7 @@ export class PerpsController extends BaseController<
 
     this.isInitialized = false;
     this.update((state) => {
-      state.initializationState = InitializationState.FAILED;
+      state.initializationState = InitializationState.Failed;
       state.initializationError = lastError?.message ?? 'Unknown error';
     });
     this.initializationPromise = null; // Clear promise to allow retry
@@ -1207,7 +1203,7 @@ export class PerpsController extends BaseController<
   ): PerpsLoggerOptions {
     return {
       tags: {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         provider: this.state.activeProvider,
         network: this.state.isTestnet ? 'testnet' : 'mainnet',
       },
@@ -1271,7 +1267,7 @@ export class PerpsController extends BaseController<
    * @returns The active provider (aggregated wrapper or direct provider based on mode)
    * @throws Error if provider is not initialized or reinitializing
    */
-  getActiveProvider(): IPerpsProvider {
+  getActiveProvider(): PerpsProvider {
     // Check if we're in the middle of reinitializing
     if (this.isReinitializing) {
       this.update((state) => {
@@ -1283,11 +1279,11 @@ export class PerpsController extends BaseController<
 
     // Check if not initialized
     if (
-      this.state.initializationState !== InitializationState.INITIALIZED ||
+      this.state.initializationState !== InitializationState.Initialized ||
       !this.isInitialized
     ) {
       const errorMessage =
-        this.state.initializationState === InitializationState.FAILED
+        this.state.initializationState === InitializationState.Failed
           ? `${PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED}: ${this.state.initializationError || 'Initialization failed'}`
           : PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
 
@@ -1308,6 +1304,30 @@ export class PerpsController extends BaseController<
     }
 
     return this.activeProviderInstance;
+  }
+
+  /**
+   * Get the currently active provider, returning null if not available
+   * Use this method when the caller can gracefully handle a missing provider
+   * (e.g., UI components during initialization or reconnection)
+   * @returns The active provider, or null if not initialized/reinitializing
+   */
+  getActiveProviderOrNull(): PerpsProvider | null {
+    // Return null during reinitialization
+    if (this.isReinitializing) {
+      return null;
+    }
+
+    // Return null if not initialized
+    if (
+      this.state.initializationState !== InitializationState.Initialized ||
+      !this.isInitialized
+    ) {
+      return null;
+    }
+
+    // Return the active provider instance or null if not found
+    return this.activeProviderInstance || null;
   }
 
   /**
@@ -1509,14 +1529,6 @@ export class PerpsController extends BaseController<
         );
       }
 
-      const gasFeeToken =
-        transaction.to &&
-        assetChainId.toLowerCase() === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
-        transaction.to.toLowerCase() ===
-          USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()
-          ? (transaction.to as Hex)
-          : undefined;
-
       // submit shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
       const { result, transactionMeta } = await controllers.transaction.submit(
@@ -1526,7 +1538,6 @@ export class PerpsController extends BaseController<
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
           skipInitialGasEstimate: true,
-          gasFeeToken,
         },
       );
 
@@ -2134,6 +2145,85 @@ export class PerpsController extends BaseController<
     return this.state.isTestnet ? 'testnet' : 'mainnet';
   }
 
+  /**
+   * Get the current WebSocket connection state from the active provider.
+   * Used by the UI to monitor connection health and show notifications.
+   *
+   * @returns The current WebSocket connection state, or DISCONNECTED if not supported
+   */
+  getWebSocketConnectionState(): WebSocketConnectionState {
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.getWebSocketConnectionState) {
+        return provider.getWebSocketConnectionState();
+      }
+      // Fallback for providers that don't support this method
+      return WebSocketConnectionState.Disconnected;
+    } catch {
+      // If no provider is active, return disconnected
+      return WebSocketConnectionState.Disconnected;
+    }
+  }
+
+  /**
+   * Subscribe to WebSocket connection state changes from the active provider.
+   * The listener will be called immediately with the current state and whenever the state changes.
+   *
+   * @param listener - Callback function that receives the new connection state and reconnection attempt
+   * @returns Unsubscribe function to remove the listener, or no-op if not supported
+   */
+  subscribeToConnectionState(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.subscribeToConnectionState) {
+        return provider.subscribeToConnectionState(listener);
+      }
+      // Fallback: immediately call with current state and return no-op unsubscribe
+      listener(this.getWebSocketConnectionState(), 0);
+      return () => {
+        // No-op
+      };
+    } catch {
+      // If no provider is active, call with disconnected and return no-op
+      listener(WebSocketConnectionState.Disconnected, 0);
+      return () => {
+        // No-op
+      };
+    }
+  }
+
+  /**
+   * Manually trigger a WebSocket reconnection attempt.
+   * Used by the UI retry button when connection is lost.
+   */
+  async reconnect(): Promise<void> {
+    this.debugLog('[PerpsController] reconnect() called');
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.reconnect) {
+        this.debugLog('[PerpsController] Delegating to provider.reconnect()');
+        await provider.reconnect();
+        this.debugLog('[PerpsController] provider.reconnect() completed');
+      } else {
+        this.debugLog(
+          '[PerpsController] Provider does not support reconnect()',
+        );
+      }
+    } catch (error) {
+      this.logError(
+        ensureError(error),
+        this.getErrorContext('reconnect', {
+          operation: 'websocket_reconnect',
+        }),
+      );
+    }
+  }
+
   // Live data delegation (NO Redux) - delegates to active provider
 
   /**
@@ -2716,15 +2806,15 @@ export class PerpsController extends BaseController<
       // Handle other simple legacy strings (e.g., 'volume', 'openInterest', etc.)
       return {
         optionId: pref as SortOptionId,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       };
     }
 
     // Return new object format or default
     return (
       pref ?? {
-        optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       }
     );
   }
