@@ -34899,7 +34899,7 @@ __metadata:
     react-dom: "npm:18.2.0"
     react-native: "patch:react-native@npm%3A0.76.9#~/.yarn/patches/react-native-npm-0.76.9-1c25352097.patch"
     react-native-aes-crypto: "npm:3.0.3"
-    react-native-aes-crypto-forked: "MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
+    react-native-aes-crypto-forked: "MetaMask/react-native-aes-crypto-forked#397d5db5250e8e7408294807965b5b9fd4ca6a25"
     react-native-animatable: "npm:^1.3.3"
     react-native-background-timer: "npm:2.1.1"
     react-native-ble-plx: "npm:3.4.0"
@@ -39084,10 +39084,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-aes-crypto-forked@MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25":
+"react-native-aes-crypto-forked@MetaMask/react-native-aes-crypto-forked#397d5db5250e8e7408294807965b5b9fd4ca6a25":
   version: 1.2.1
-  resolution: "react-native-aes-crypto-forked@https://github.com/MetaMask/react-native-aes-crypto-forked.git#commit=397d5db5250e8e7408294807965b5b9fd4ca6a25"
-  checksum: 10/07fbd9484bfd1b4da221bec9fd5fc3c46c8b69f6f911049d2829af83d1881f991da39a7a9a59357e6bd6a7593690648b6ada9af234dc5217872c1c6586f650ff
+  resolution: "react-native-aes-crypto-forked@https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
+  checksum: 10/e3b24ed8a550e84ea12a60c9711760eb3601e69f1a836a191baeb78377c3a1340cdb9cf3fdd86e2245bc2a577da653b740de883c605dc065e703e22dd68e1206
   languageName: node
   linkType: hard
 
