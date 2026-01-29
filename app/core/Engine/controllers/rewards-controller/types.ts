@@ -184,18 +184,23 @@ export type PointsEventEarnType =
   | 'REFERRAL'
   | 'SIGN_UP_BONUS'
   | 'LOYALTY_BONUS'
-  | 'ONE_TIME_BONUS';
+  | 'ONE_TIME_BONUS'
+  | 'CARD'
+  | 'MUSD_DEPOSIT'
+  | 'SHIELD';
 
 export interface GetPointsEventsDto {
   seasonId: string;
   subscriptionId: string;
   cursor: string | null;
   forceFresh?: boolean;
+  type?: PointsEventEarnType;
 }
 
 export interface GetPointsEventsLastUpdatedDto {
   seasonId: string;
   subscriptionId: string;
+  type?: PointsEventEarnType;
 }
 
 /**

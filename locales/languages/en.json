@@ -7070,6 +7070,8 @@
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
     "activity_empty_link": "See ways to earn",
+    "filter_title": "Filter by activity type",
+    "filter_all": "All",
     "events": {
       "to": "to",
       "musd_deposit_for": "For {{date}}",
