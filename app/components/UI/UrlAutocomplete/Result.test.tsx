@@ -165,7 +165,7 @@ describe('Result', () => {
         category: UrlAutocompleteCategory.Favorites,
         name: 'MetaMask',
         url: 'https://metamask.io',
-      };
+      } as const;
 
       // Act
       renderWithProvider(
@@ -187,7 +187,7 @@ describe('Result', () => {
         category: UrlAutocompleteCategory.Favorites,
         name: 'MetaMask',
         url: 'https://metamask.io',
-      };
+      } as const;
 
       // Act
       renderWithProvider(
@@ -210,7 +210,7 @@ describe('Result', () => {
         category: UrlAutocompleteCategory.Favorites,
         name: 'MetaMask',
         url: 'https://metamask.io',
-      };
+      } as const;
       renderWithProvider(
         <Result
           result={favoriteResult}
@@ -235,7 +235,7 @@ describe('Result', () => {
         category: UrlAutocompleteCategory.Favorites,
         name: 'MetaMask',
         url: 'https://metamask.io',
-      };
+      } as const;
 
       // Act
       renderWithProvider(
@@ -252,12 +252,13 @@ describe('Result', () => {
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
 
-    it('displays host name when name is undefined', () => {
+    it('displays url when name is provided', () => {
       // Arrange
       const favoriteResult = {
         category: UrlAutocompleteCategory.Favorites,
+        name: 'Uniswap App',
         url: 'https://app.uniswap.org/swap',
-      };
+      } as const;
 
       // Act
       renderWithProvider(
@@ -268,8 +269,10 @@ describe('Result', () => {
         />,
       );
 
-      // Assert - host is extracted from URL (appears in both name display and icon)
-      expect(screen.getAllByText('app.uniswap.org').length).toBeGreaterThan(0);
+      // Assert - url is shown as subtitle
+      expect(
+        screen.getByText('https://app.uniswap.org/swap'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -280,7 +283,7 @@ describe('Result', () => {
         category: UrlAutocompleteCategory.Recents,
         name: 'Google',
         url: 'https://google.com',
-      };
+      } as const;
 
       // Act
       renderWithProvider(
@@ -302,7 +305,7 @@ describe('Result', () => {
         category: UrlAutocompleteCategory.Recents,
         name: 'Google',
         url: 'https://google.com',
-      };
+      } as const;
 
       // Act
       renderWithProvider(
@@ -327,7 +330,7 @@ describe('Result', () => {
         category: UrlAutocompleteCategory.Sites,
         name: 'Uniswap',
         url: 'https://uniswap.org',
-      };
+      } as const;
 
       // Act
       renderWithProvider(
@@ -358,8 +361,8 @@ describe('Result', () => {
         price: 2500.5,
         percentChange: 2.5,
         assetId: 'eip155:1/slip44:60',
-        isFromSearch: true,
-      };
+        isFromSearch: true as const,
+      } as const;
 
       // Act
       renderWithProvider(
@@ -388,8 +391,8 @@ describe('Result', () => {
         price: 2500.5,
         percentChange: 2.5,
         assetId: 'eip155:1/slip44:60',
-        isFromSearch: true,
-      };
+        isFromSearch: true as const,
+      } as const;
 
       // Act
       renderWithProvider(
@@ -417,8 +420,8 @@ describe('Result', () => {
         price: 2500.5,
         percentChange: 2.5,
         assetId: 'eip155:1/slip44:60',
-        isFromSearch: true,
-      };
+        isFromSearch: true as const,
+      } as const;
 
       // Act
       renderWithProvider(
@@ -448,8 +451,8 @@ describe('Result', () => {
         price: 2500.5,
         percentChange: 2.5,
         assetId: 'eip155:1/slip44:60',
-        isFromSearch: true,
-      };
+        isFromSearch: true as const,
+      } as const;
 
       // Act
       renderWithProvider(
@@ -476,10 +479,10 @@ describe('Result', () => {
         chainId: '0x1' as const,
         logoUrl: 'https://example.com/eth.png',
         price: 2500.5,
-        percentChange: null,
+        percentChange: 0,
         assetId: 'eip155:1/slip44:60',
-        isFromSearch: true,
-      };
+        isFromSearch: true as const,
+      } as const;
 
       // Act
       renderWithProvider(
@@ -508,9 +511,9 @@ describe('Result', () => {
         change24hPercent: '+1.12%',
         volume: '$1B',
         openInterest: '$500M',
-        marketType: 'perpetual' as const,
-        marketSource: 'hyperliquid' as const,
-      };
+        marketType: 'crypto' as const,
+        marketSource: 'hyperliquid',
+      } as const;
 
       // Act
       renderWithProvider(
@@ -538,9 +541,9 @@ describe('Result', () => {
         change24hPercent: '-1.96%',
         volume: '$500M',
         openInterest: '$200M',
-        marketType: 'perpetual' as const,
-        marketSource: 'hyperliquid' as const,
-      };
+        marketType: 'crypto' as const,
+        marketSource: 'hyperliquid',
+      } as const;
 
       // Act
       renderWithProvider(
@@ -567,9 +570,9 @@ describe('Result', () => {
         change24hPercent: '+1.12%',
         volume: '$1B',
         openInterest: '$500M',
-        marketType: 'perpetual' as const,
-        marketSource: 'hyperliquid' as const,
-      };
+        marketType: 'crypto' as const,
+        marketSource: 'hyperliquid',
+      } as const;
 
       // Act
       renderWithProvider(
@@ -599,9 +602,9 @@ describe('Result', () => {
         endDate: '2025-12-31',
         image: 'https://example.com/btc.png',
         status: 'open' as const,
-        liquidity: '$1M',
-        volume: '$5M',
-      };
+        liquidity: 1000000,
+        volume: 5000000,
+      } as const;
 
       // Act
       renderWithProvider(
@@ -627,11 +630,11 @@ describe('Result', () => {
         title: 'ETH Merge Success',
         description: 'Prediction about ETH merge',
         endDate: '2024-01-01',
-        image: null,
+        image: '',
         status: 'resolved' as const,
-        liquidity: '$500K',
-        volume: '$2M',
-      };
+        liquidity: 500000,
+        volume: 2000000,
+      } as const;
 
       // Act
       renderWithProvider(
@@ -656,11 +659,11 @@ describe('Result', () => {
         title: 'No Image Prediction',
         description: 'Test prediction without image',
         endDate: '2025-06-01',
-        image: null,
+        image: '',
         status: 'open' as const,
-        liquidity: '$100K',
-        volume: '$500K',
-      };
+        liquidity: 100000,
+        volume: 500000,
+      } as const;
 
       // Act
       renderWithProvider(
