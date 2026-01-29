@@ -6,6 +6,7 @@ import {
 import { hasMinimumRequiredVersion } from '../utils/hasMinimumRequiredVersion';
 
 export default function useRampsUnifiedV2Enabled() {
+  return false;
   const rampsUnifiedBuyV2MinimumVersionFlag = useSelector(
     selectRampsUnifiedBuyV2MinimumVersionFlag,
   );
