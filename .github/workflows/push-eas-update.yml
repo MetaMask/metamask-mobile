@@ -413,10 +413,10 @@ jobs:
               if [ -z "$value" ]; then
                 echo "✅ Exported: ${var} (empty string)"
               else
-                echo "✅ Exported: ${var} (value hidden)"
+                echo "✅ Exported: ${var} (${value:0:3}...)"
               fi
               
-              ((exported_count++))
+              exported_count=$((exported_count + 1))
             fi
           done
 
