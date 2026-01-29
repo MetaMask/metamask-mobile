@@ -593,38 +593,40 @@ yarn start:android
 
 ## Appendix: Estimated Effort
 
-| Phase                                           | Effort         | Files/Errors              | Status         |
-| ----------------------------------------------- | -------------- | ------------------------- | -------------- |
-| Phase 1: Package Updates                        | ✅ Done        | 5 source, 9 test          | ✅ Complete    |
-| Phase 2: Stack Navigator (`mode`, `headerMode`) | ✅ Done        | ~19 files                 | ✅ Complete    |
-| Phase 3: Bottom Tabs                            | ✅ None needed | 0 files                   | ✅ Complete    |
-| Phase 3.5: Method Renames (`dangerouslyGet*`)   | ✅ Done        | 10 source, 20+ test       | ✅ Complete    |
-| Phase 4: TypeScript Types                       | ~4 hours       | **~410 errors** remaining | 🔄 In Progress |
-| Phase 5: Other Changes                          | ~1 hour        | TBD                       | ⏳ Pending     |
-| Phase 6: File Migration                         | ~2 hours       | Mostly done               | ⏳ Pending     |
-| Phase 7: Testing                                | ~3 hours       | -                         | ⏳ Pending     |
+| Phase                                           | Effort         | Files/Errors                    | Status        |
+| ----------------------------------------------- | -------------- | ------------------------------- | ------------- |
+| Phase 1: Package Updates                        | ✅ Done        | 5 source, 9 test                | ✅ Complete   |
+| Phase 2: Stack Navigator (`mode`, `headerMode`) | ✅ Done        | ~19 files                       | ✅ Complete   |
+| Phase 3: Bottom Tabs                            | ✅ None needed | 0 files                         | ✅ Complete   |
+| Phase 3.5: Method Renames (`dangerouslyGet*`)   | ✅ Done        | 10 source, 20+ test             | ✅ Complete   |
+| Phase 4: TypeScript Types                       | ✅ Done        | 632 → ~37 (only `App.tsx` left) | 🔄 Final file |
+| Phase 5: Other Changes                          | ✅ Done        | -                               | ✅ Complete   |
+| Phase 6: File Migration                         | ✅ Done        | -                               | ✅ Complete   |
+| Phase 7: Testing                                | ~3 hours       | -                               | ⏳ Pending    |
 
-**Remaining Effort:** ~10 hours (1-2 days)
+**Remaining Effort:** Only `App.tsx` component prop type errors (~37 TS2322 errors)
 
 ### TypeScript Errors Progress
 
-| Error Category                   | Original | Current       | Status               |
-| -------------------------------- | -------- | ------------- | -------------------- |
-| `navigate()` untyped             | ~200+    | ~282 (TS2345) | 🔄 Needs param fixes |
-| `NavigationContainerRef` generic | ~39      | 39 (TS2314)   | ⏳ Pending           |
-| `mode` / `headerMode` props      | ~19      | 0             | ✅ Fixed             |
-| No overload matches              | ~118     | 2 (TS2769)    | ✅ 98% Fixed         |
-| `dangerouslyGet*` methods        | ~11      | 0             | ✅ Fixed             |
-| Type assignment (TS2322)         | ~50+     | 69            | 🔄 In Progress       |
-| Other errors                     | ~10      | ~15           | ⏳ Pending           |
+| Error Category                   | Original | Current                 | Status         |
+| -------------------------------- | -------- | ----------------------- | -------------- |
+| `navigate()` untyped             | ~200+    | 0                       | ✅ Fixed       |
+| `NavigationContainerRef` generic | ~39      | 0                       | ✅ Fixed       |
+| `mode` / `headerMode` props      | ~19      | 0                       | ✅ Fixed       |
+| No overload matches (TS2769)     | ~118     | 0                       | ✅ Fixed       |
+| `dangerouslyGet*` methods        | ~11      | 0                       | ✅ Fixed       |
+| Type assignment (TS2322)         | ~50+     | ~37 (only in `App.tsx`) | 🔄 Final phase |
+| Other errors                     | ~10      | 0                       | ✅ Fixed       |
 
 ### Key Improvements Made
 
 1. ✅ Added `as const` to `Routes.ts` for literal type inference
-2. ✅ Created `RootParamList` with 150+ screen definitions
+2. ✅ Created `RootParamList` with 390+ screen definitions
 3. ✅ Declared global `ReactNavigation` namespace types
-4. ✅ Reduced TS2769 errors from 102 → 2 (98% reduction)
-5. ✅ Total errors reduced from 632 → ~410 (35% reduction)
+4. ✅ Created `RootNavigationProp` type alias for `useNavigation()` return
+5. ✅ Implemented `useRoute()` pattern for screen components accessing route params
+6. ✅ Created function overloads for `createNavigationDetails` (nested vs single-level)
+7. ✅ Total errors reduced from 632 → ~37 (94% reduction)
 
 ### Child Navigator ParamLists Created (Jan 2026)
 
@@ -637,13 +639,43 @@ Created typed param lists for child navigators following best practices:
 | Bridge    | `app/components/UI/Bridge/types.ts`       | `BridgeScreenParamList`, `BridgeModalParamList`                       |
 | Card      | `app/components/UI/Card/routes/types.ts`  | `CardMainParamList`, `CardModalsParamList`, `CardOnboardingParamList` |
 | Ramp      | `app/components/UI/Ramp/types.ts`         | `RampMainParamList`, `RampModalsParamList`                            |
+| App       | `app/components/Nav/App/types.ts`         | `RootModalFlowParamList`, `WalletTabHomeParamList`, etc.              |
 
 **Benefits:**
 
-- Each navigator now uses `createStackNavigator<ParamList>()` for type-safe screen definitions
-- Child param lists are re-exported from main `types.ts`
 - Main `RootParamList` uses `NavigatorScreenParams<ChildParamList>` for nested navigators
 - Exported route param interfaces from component files (e.g., `StakeConfirmationViewRouteParams`)
+
+### useRoute() Pattern for Screen Components (Jan 2026)
+
+Screen components that need access to route params now use the `useRoute()` hook pattern:
+
+```tsx
+import { useRoute, RouteProp } from '@react-navigation/native';
+import type { RootParamList } from '../util/navigation/types';
+
+type MyScreenRouteProp = RouteProp<RootParamList, 'MyScreen'>;
+
+const MyScreen = () => {
+  const route = useRoute<MyScreenRouteProp>();
+  // route.params is now properly typed
+};
+```
+
+**Components migrated to useRoute():**
+
+- `StakeConfirmationView`
+- `UnstakeConfirmationView`
+- `GasImpactModal`
+- `BlockExplorersModal`
+- `Deposit/MainRoutes`
+
+**Benefits:**
+
+- Avoids ESLint `type`/`interface` conflicts with `ParamListBase` constraint
+- Follows React Navigation's officially documented pattern
+- Eliminates need for non-null assertions on route
+- Tests use `renderScreen` with `initialParams` instead of passing props
 
 ---
 
@@ -653,66 +685,53 @@ Created typed param lists for child navigators following best practices:
 - [x] Phase 2: Stack Navigator Breaking Changes (`mode`, `headerMode`) - ✅ Fixed
 - [x] Phase 3: Bottom Tabs (No changes needed)
 - [x] Phase 3.5: Navigation Method Renames (`dangerouslyGetState`, `dangerouslyGetParent`) - ✅ Fixed
-- [x] Phase 4.4: Global Navigation Types - ✅ Created `RootParamList` with 150+ screens
-- [ ] Phase 4: Remaining TypeScript Breaking Changes - **~410 errors** ⚠️
-- [ ] Phase 5: Other Breaking Changes
-- [ ] Phase 6: File-by-File Migration
-- [ ] Phase 7: Testing
+- [x] Phase 4.4: Global Navigation Types - ✅ Created `RootParamList` with 390+ screens
+- [x] Phase 4: TypeScript Breaking Changes - ✅ 94% fixed (632 → ~37 errors)
+- [x] Phase 5: Other Breaking Changes - ✅ Complete
+- [x] Phase 6: File-by-File Migration - ✅ Complete
+- [ ] Phase 7: Testing - ⏳ Pending
+
+### Remaining Work
+
+Only `app/components/Nav/App/App.tsx` has remaining TS2322 errors (~37). These are component prop type mismatches where `Stack.Screen` expects components with no required props but components have required `route` props.
 
 ---
 
-## Current TypeScript Errors (Updated: Jan 2026)
+## Current TypeScript Errors (Updated: Jan 29, 2026)
 
-After adding `as const` to `Routes.ts` and creating `RootParamList`, errors reduced from **632 → ~410**.
+After comprehensive migration work, errors reduced from **632 → ~37** (94% reduction).
 
 ### Error Breakdown
 
-| Error Code | Count | Description                                                 | Fix Approach                                       |
-| ---------- | ----- | ----------------------------------------------------------- | -------------------------------------------------- |
-| **TS2345** | 282   | Argument type mismatch - params don't match `RootParamList` | Update params in `RootParamList` or fix call sites |
-| **TS2322** | 69    | Type assignment issues (component props, return types)      | Case-by-case fixes                                 |
-| **TS2314** | 39    | `NavigationContainerRef` requires 1 type argument           | Add `<RootParamList>` generic                      |
-| TS2353     | 3     | Object literal property errors                              | Fix object shapes                                  |
-| TS18046    | 3     | Variable is of type 'unknown'                               | Add type annotations                               |
-| TS2769     | 2     | No overload matches - dynamic route variables               | Refactor to use typed routes                       |
-| TS2578     | 2     | Unused `@ts-expect-error` comments                          | Remove obsolete comments                           |
-| TS1117     | 2     | Duplicate object properties                                 | Remove duplicates                                  |
-| TS7053     | 2     | Element implicitly has 'any' type                           | Add index signatures                               |
-| TS2724     | 1     | Module export issue                                         | Fix export statement                               |
-| TS2532     | 1     | Object is possibly undefined                                | Add null check                                     |
-| TS2352     | 1     | Conversion may be mistake                                   | Fix type assertion                                 |
-| TS2315     | 1     | Type is not generic                                         | Remove generic args                                |
+| Error Code | Original | Current | Description                                | Status     |
+| ---------- | -------- | ------- | ------------------------------------------ | ---------- |
+| **TS2345** | 282      | 0       | Argument type mismatch                     | ✅ Fixed   |
+| **TS2322** | 69       | ~37     | Type assignment issues (only in `App.tsx`) | 🔄 Pending |
+| **TS2314** | 39       | 0       | `NavigationContainerRef` generic           | ✅ Fixed   |
+| TS2353     | 3        | 0       | Object literal property errors             | ✅ Fixed   |
+| TS18046    | 3        | 0       | Variable is of type 'unknown'              | ✅ Fixed   |
+| TS2769     | 2        | 0       | No overload matches - dynamic routes       | ✅ Fixed   |
+| TS2578     | 2        | 0       | Unused `@ts-expect-error` comments         | ✅ Fixed   |
+| TS7053     | 2        | 0       | Element implicitly has 'any' type          | ✅ Fixed   |
+| Other      | 10       | 0       | Various other errors                       | ✅ Fixed   |
 
-### Priority Fix Order
+### Remaining TS2322 Errors in App.tsx
 
-1. **TS2314 (39 errors)** - Add `<RootParamList>` to `NavigationContainerRef` usages
-2. **TS2345 (282 errors)** - Most require adding `| undefined` to route params in `RootParamList`
-3. **TS2322 (69 errors)** - Component prop type fixes
+The remaining ~37 errors are all in `app/components/Nav/App/App.tsx`. These are component prop type mismatches where:
 
-### Files with Most Errors
+- `Stack.Screen` expects `ScreenComponentType<ParamListBase, 'RouteName'> | undefined`
+- But components have required props (e.g., `route`, `navigation`)
 
-Run this command to identify files with most errors:
+**Fix Options:**
 
-```bash
-yarn lint:tsc 2>&1 | grep "error TS" | sed 's/(.*//' | sort | uniq -c | sort -rn | head -20
-```
-
-### Remaining TS2769 Errors (Dynamic Routes)
-
-These 2 errors require refactoring to fix properly:
-
-| File                                               | Issue                                                              |
-| -------------------------------------------------- | ------------------------------------------------------------------ |
-| `app/components/UI/Carousel/index.tsx:427`         | `navigate(navigation.route)` where `route: string`                 |
-| `app/components/UI/Rewards/hooks/useOptout.ts:119` | `navigate(dismissRoute)` where `dismissRoute` is a string variable |
-
-**Fix:** Update `RouteNavigationAction.route` type from `string` to `keyof RootParamList`.
+1. **Use `useRoute()` hook** in components (recommended, already done for Stake/Bridge/Deposit)
+2. **Use `component` prop** instead of render function when component accepts no props
+3. **Add type assertions** for components with required props that can't be easily refactored
 
 ---
 
 ## Next Steps
 
-1. **Fix TS2314** - Add generic to `NavigationContainerRef` usages
-2. **Fix TS2345** - Update `RootParamList` params to be more permissive
-3. **Fix TS2322** - Component prop type fixes
-4. **Run tests** - Ensure no regressions
+1. **Fix remaining TS2322 in App.tsx** - Update screen components to use `useRoute()` hook
+2. **Run full test suite** - Ensure no regressions
+3. **Manual testing** - Verify navigation flows work correctly
