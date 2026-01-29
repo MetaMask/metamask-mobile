@@ -63,6 +63,7 @@ import SDKLoadingModal from '../../Views/SDK/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
+import QRSigningTransactionModal from '../../UI/QRHardware/QRSigningTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
@@ -1023,6 +1024,19 @@ const AppFlow = () => {
           }}
           name={Routes.LEDGER_TRANSACTION_MODAL}
           component={LedgerTransactionModal}
+        />
+        <Stack.Screen
+          options={{
+            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+            cardStyle: { backgroundColor: importedColors.transparent },
+            cardStyleInterpolator: () => ({
+              overlayStyle: {
+                opacity: 0,
+              },
+            }),
+          }}
+          name={Routes.QR_SIGNING_TRANSACTION_MODAL}
+          component={QRSigningTransactionModal}
         />
         <Stack.Screen
           options={{

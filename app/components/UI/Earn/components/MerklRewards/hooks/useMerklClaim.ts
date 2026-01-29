@@ -13,48 +13,26 @@ import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
 import { fetchMerklRewardsForAsset, getClaimChainId } from '../merkl-client';
-import { DISTRIBUTOR_CLAIM_ABI, MERKL_DISTRIBUTOR_ADDRESS } from '../constants';
-import Engine from '../../../../../../core/Engine';
+import {
+  DISTRIBUTOR_CLAIM_ABI,
+  MERKL_CLAIM_ORIGIN,
+  MERKL_DISTRIBUTOR_ADDRESS,
+} from '../constants';
 
-// Event types for transaction controller events we subscribe to
-type TransactionEventType =
-  | 'TransactionController:transactionConfirmed'
-  | 'TransactionController:transactionFailed'
-  | 'TransactionController:transactionDropped';
-
-// Structure to store event type and handler for proper cleanup
-interface SubscriptionRef {
-  eventType: TransactionEventType;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handler: (...args: any[]) => void;
-}
-
-interface UseMerklClaimOptions {
-  asset: TokenI;
-  onTransactionConfirmed?: () => void;
-}
-
-export const useMerklClaim = ({
-  asset,
-  onTransactionConfirmed,
-}: UseMerklClaimOptions) => {
+/**
+ * Hook to handle claiming Merkl rewards
+ * After successful submission, user is navigated to home page.
+ * Toast notifications and balance refresh are handled globally by useMerklClaimStatus.
+ */
+export const useMerklClaim = (asset: TokenI) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const onTransactionConfirmedRef = useRef(onTransactionConfirmed);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const subscriptionRefs = useRef<SubscriptionRef[]>([]);
 
-  // Keep the callback ref updated
-  onTransactionConfirmedRef.current = onTransactionConfirmed;
-
-  // Cleanup: abort any pending fetch and unsubscribe from transaction events on unmount
+  // Cleanup: abort any pending fetch on unmount
   useEffect(
     () => () => {
       abortControllerRef.current?.abort();
-      subscriptionRefs.current.forEach(({ eventType, handler }) => {
-        Engine.controllerMessenger.tryUnsubscribe(eventType, handler);
-      });
-      subscriptionRefs.current = [];
     },
     [],
   );
@@ -101,15 +79,13 @@ export const useMerklClaim = ({
 
       // Prepare claim parameters
       const users = [selectedAddress];
-      const tokens = [rewardData.token.address]; // Use token.address not token object
+      const tokens = [rewardData.token.address];
       const amounts = [rewardData.amount];
-      const proofs = [rewardData.proofs]; // Note: proofs is plural!
+      const proofs = [rewardData.proofs];
 
       // Encode the claim transaction data using ethers Interface
       const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-
       const claimData = [users, tokens, amounts, proofs];
-
       const encodedData = contractInterface.encodeFunctionData(
         'claim',
         claimData,
@@ -130,11 +106,11 @@ export const useMerklClaim = ({
       };
 
       // Submit transaction - resolves after user approves in the wallet UI
-      // Use stakingClaim type to get proper toast notifications
+      // Use MERKL_CLAIM_ORIGIN for transaction monitoring by useMerklClaimStatus
       const { result, transactionMeta } = await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
-        origin: 'merkl-claim',
+        origin: MERKL_CLAIM_ORIGIN,
         type: TransactionType.contractInteraction,
       });
 
@@ -144,73 +120,11 @@ export const useMerklClaim = ({
         return undefined;
       }
 
-      const { id: transactionId } = transactionMeta;
-
-      // Clean up any previous subscriptions before setting up new ones
-      // This prevents listener leaks when claimRewards is called multiple times
-      subscriptionRefs.current.forEach(({ eventType, handler }) => {
-        Engine.controllerMessenger.tryUnsubscribe(eventType, handler);
-      });
-      subscriptionRefs.current = [];
-
-      // Set up listeners BEFORE awaiting result to avoid race condition
-      // where transaction confirms before listeners are set up
-      // Store unsubscribe functions for cleanup on unmount
-      const unsubConfirmed = Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionConfirmed',
-        () => {
-          setIsClaiming(false);
-          onTransactionConfirmedRef.current?.();
-        },
-        (txMeta) => txMeta?.id === transactionId,
-      );
-
-      const unsubFailed = Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionFailed',
-        (payload) => {
-          setIsClaiming(false);
-          setError(
-            payload?.transactionMeta?.error?.message ?? 'Transaction failed',
-          );
-        },
-        (payload) => payload?.transactionMeta?.id === transactionId,
-      );
-
-      // Also listen for dropped transactions - on some networks/RPC providers,
-      // a successful transaction might be marked as "dropped" instead of "confirmed"
-      const unsubDropped = Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionDropped',
-        () => {
-          // Transaction was dropped but might still be successful on-chain
-          // Trigger refetch to check the actual contract state
-          setIsClaiming(false);
-          onTransactionConfirmedRef.current?.();
-        },
-        (payload) => payload?.transactionMeta?.id === transactionId,
-      );
-
-      // Store event types and handlers for proper cleanup via tryUnsubscribe
-      subscriptionRefs.current = [
-        {
-          eventType: 'TransactionController:transactionConfirmed',
-          handler: unsubConfirmed,
-        },
-        {
-          eventType: 'TransactionController:transactionFailed',
-          handler: unsubFailed,
-        },
-        {
-          eventType: 'TransactionController:transactionDropped',
-          handler: unsubDropped,
-        },
-      ];
-
       // Wait for transaction hash (indicates tx is submitted to network)
       const txHash = await result;
 
-      // NOTE: We don't set isClaiming to false here!
-      // The loading state should persist until the transaction reaches
-      // a terminal status (confirmed/dropped/failed) via the listeners above.
+      // Don't reset isClaiming here - component will unmount after navigation
+      // and useMerklClaimStatus will handle the rest globally
 
       return { txHash, transactionMeta };
     } catch (e) {
@@ -220,7 +134,6 @@ export const useMerklClaim = ({
       }
       const errorMessage = (e as Error).message;
       setError(errorMessage);
-      // Only set isClaiming false on error (user rejected, etc)
       setIsClaiming(false);
       throw e;
     }
