@@ -279,7 +279,15 @@ class TrendingView {
     identifier: string,
     itemType: string,
   ): Promise<void> {
-    await Assertions.expectElementToBeVisible(getElement(), {
+    const targetElement = getElement();
+
+    // Scroll to element to ensure it's fully visible
+    await this.scrollToElementInFeed(
+      targetElement,
+      `Scroll to ${identifier} ${itemType} row for verification`,
+    );
+
+    await Assertions.expectElementToBeVisible(targetElement, {
       description: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} row for ${identifier} should be visible`,
     });
   }
