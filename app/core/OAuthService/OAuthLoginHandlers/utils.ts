@@ -82,7 +82,7 @@ export function isRetryableError(error: unknown): boolean {
     const status = String(error.data.status);
     // Check for HTTP 4xx client errors in the message
     // These are not retryable as the request itself is invalid
-    const clientErrorPattern = /status:\s*\[4\d{2}\]/i;
+    const clientErrorPattern = /\[4\d{2}\]/i;
     if (clientErrorPattern.test(status)) {
       return false;
     }

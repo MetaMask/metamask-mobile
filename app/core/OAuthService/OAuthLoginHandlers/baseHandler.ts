@@ -55,7 +55,6 @@ export async function getAuthTokens(
     OAuthErrorType.AuthServerError,
     {
       status: res.status,
-      error: await res.text(),
     },
   );
 }
