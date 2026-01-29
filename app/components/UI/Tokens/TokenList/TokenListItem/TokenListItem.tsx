@@ -39,11 +39,13 @@ import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
+import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
@@ -82,6 +84,12 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       alignContent: 'center',
     },
+    centered: {
+      textAlign: 'center',
+    },
+    stockBadgeWrapper: {
+      marginLeft: 4,
+    },
   });
 
 interface TokenListItemProps {
@@ -115,6 +123,8 @@ export const TokenListItem = React.memo(
       }),
     );
 
+    const { isStockToken } = useRWAToken();
+
     const chainId = asset?.chainId as Hex;
 
     const networkName = useNetworkName(chainId);
@@ -127,7 +137,6 @@ export const TokenListItem = React.memo(
     );
 
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
-    const { getMusdOutputChainId } = useMusdConversionTokens();
     const { initiateConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
@@ -200,7 +209,6 @@ export const TokenListItem = React.memo(
         const assetChainId = toHex(asset.chainId);
 
         await initiateConversion({
-          outputChainId: getMusdOutputChainId(assetChainId),
           preferredPaymentToken: {
             address: toHex(asset.address),
             chainId: assetChainId,
@@ -219,7 +227,6 @@ export const TokenListItem = React.memo(
       asset?.symbol,
       chainId,
       createEventBuilder,
-      getMusdOutputChainId,
       hasSeenConversionEducationScreen,
       initiateConversion,
       networkName,
@@ -397,6 +404,9 @@ export const TokenListItem = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
+            {isStockToken(asset as BridgeToken) && (
+              <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+            )}
             {renderEarnCta()}
           </View>
         </View>
