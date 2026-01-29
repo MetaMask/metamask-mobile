@@ -97,7 +97,6 @@ const styleSheet = (params: { theme: Theme }) => {
     watchlistSectionStyle: {
       marginBottom: 0,
     },
-    // Header style for watchlist - matches Figma: 24px 16px 4px
     watchlistHeaderStyle: {
       paddingTop: 24,
       paddingHorizontal: 16,
@@ -114,7 +113,6 @@ const styleSheet = (params: { theme: Theme }) => {
     exploreMarketsSectionWithWatchlist: {
       marginBottom: 0,
     },
-    // Header style for explore markets - matches Figma: 20px 16px 8px
     exploreMarketsHeaderStyle: {
       paddingTop: 20,
       paddingHorizontal: 16,
