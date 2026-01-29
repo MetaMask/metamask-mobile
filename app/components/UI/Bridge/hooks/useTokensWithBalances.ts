@@ -39,12 +39,14 @@ const convertAPITokensToBridgeTokens = (
     // For non-EVM chains, keep CAIP format
     const formattedChainId = isNonEvm ? chainId : formatChainIdToHex(chainId);
 
+    // Destructure to exclude iconUrl from spread, prevents navigation issues
+    const { iconUrl, ...tokenWithoutIconUrl } = token;
+
     return {
-      ...token,
-      assetId: token.assetId,
+      ...tokenWithoutIconUrl,
       address,
       chainId: formattedChainId,
-      image: token.iconUrl,
+      image: iconUrl, // Map API's iconUrl to BridgeToken's image
     };
   });
 
