@@ -40,16 +40,8 @@ interface TransactionDetailsSheetParams {
     txChainId?: string;
     [key: string]: unknown;
   };
-  onSpeedUpAction?: (
-    visible: boolean,
-    existingGas?: Record<string, unknown>,
-    tx?: Record<string, unknown>,
-  ) => void;
-  onCancelAction?: (
-    visible: boolean,
-    existingGas?: Record<string, unknown>,
-    tx?: Record<string, unknown>,
-  ) => void;
+  showSpeedUpModal: () => void;
+  showCancelModal: () => void;
 }
 
 type TransactionDetailsSheetRouteProp = RouteProp<
@@ -67,17 +59,17 @@ const TransactionDetailsSheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const showSpeedUpModal = useCallback(() => {
+  const handleSpeedUp = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      route.params.onSpeedUpAction?.(true, undefined, tx);
+      route.params.showSpeedUpModal();
     });
-  }, [route.params, tx]);
+  }, [route.params]);
 
-  const showCancelModal = useCallback(() => {
+  const handleCancel = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      route.params.onCancelAction?.(true, undefined, tx);
+      route.params.showCancelModal();
     });
-  }, [route.params, tx]);
+  }, [route.params]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
@@ -93,8 +85,8 @@ const TransactionDetailsSheet: React.FC = () => {
       <TransactionDetails
         transactionObject={tx}
         transactionDetails={transactionDetails}
-        showSpeedUpModal={showSpeedUpModal}
-        showCancelModal={showCancelModal}
+        showSpeedUpModal={handleSpeedUp}
+        showCancelModal={handleCancel}
         close={handleClose}
       />
     </BottomSheet>

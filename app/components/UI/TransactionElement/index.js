@@ -323,8 +323,8 @@ class TransactionElement extends PureComponent {
           tx,
           transactionElement,
           transactionDetails,
-          onSpeedUpAction: this.props.onSpeedUpAction,
-          onCancelAction: this.props.onCancelAction,
+          showSpeedUpModal: this.showSpeedUpModal,
+          showCancelModal: this.showCancelModal,
         },
       });
     }
