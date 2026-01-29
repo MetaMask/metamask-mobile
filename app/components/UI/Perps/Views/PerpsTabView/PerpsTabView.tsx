@@ -114,6 +114,13 @@ const PerpsTabView = () => {
   // Check if watchlist is visible (for conditional rendering)
   const isWatchlistVisible = watchlistMarkets.length > 0;
 
+  // Explore header: depends on position and balance
+  const exploreSectionHeaderStyle = isWatchlistVisible
+    ? styles.exploreSectionHeaderBelowWatchlist // 20px/8px
+    : shouldShowBalance
+      ? styles.exploreSectionHeaderWithBalance // 24px/4px
+      : styles.exploreSectionHeaderNoBalance; // 16px/4px
+
   // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -349,8 +356,8 @@ const PerpsTabView = () => {
     if (isExploreLoading) {
       return (
         <View style={styles.exploreSection}>
-          <View style={styles.exploreSectionHeader}>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <View style={exploreSectionHeaderStyle}>
+            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
               {strings('perps.home.explore_markets')}
             </Text>
           </View>
@@ -365,12 +372,12 @@ const PerpsTabView = () => {
 
     return (
       <View style={styles.exploreSection}>
-        <View style={styles.exploreSectionHeader}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+        <View style={exploreSectionHeaderStyle}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
             {strings('perps.home.explore_markets')}
           </Text>
         </View>
-        <View>{exploreMarkets.map(renderExploreMarketRow)}</View>
+        {exploreMarkets.map(renderExploreMarketRow)}
         <TouchableOpacity
           style={styles.seeAllButton}
           onPress={handleSeeAllPerps}
@@ -385,6 +392,7 @@ const PerpsTabView = () => {
     isExploreLoading,
     exploreMarkets,
     styles,
+    exploreSectionHeaderStyle,
     renderExploreMarketRow,
     handleSeeAllPerps,
   ]);

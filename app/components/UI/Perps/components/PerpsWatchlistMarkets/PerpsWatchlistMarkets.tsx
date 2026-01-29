@@ -108,7 +108,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
         onPress={handleViewAll}
       >
         <View style={styles.titleRow}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
             {strings('perps.home.watchlist')}
           </Text>
           <Icon

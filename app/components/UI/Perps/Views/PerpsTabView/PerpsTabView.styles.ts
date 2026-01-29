@@ -99,13 +99,11 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     watchlistHeaderStyleNoBalance: {
       paddingTop: 16,
-      paddingHorizontal: 16,
       paddingBottom: 4,
       marginBottom: 0,
     },
     watchlistHeaderStyleWithBalance: {
       paddingTop: 24,
-      paddingHorizontal: 16,
       paddingBottom: 4,
       marginBottom: 0,
     },
@@ -122,8 +120,21 @@ const styleSheet = (params: { theme: Theme }) => {
     exploreSection: {
       marginBottom: 0,
     },
-    exploreSectionHeader: {
-      paddingTop: 8,
+    // Explore header: at top, no balance - 16px/4px
+    exploreSectionHeaderNoBalance: {
+      paddingTop: 16,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    // Explore header: at top, with balance - 24px/4px
+    exploreSectionHeaderWithBalance: {
+      paddingTop: 24,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    // Explore header: below watchlist - 20px/8px
+    exploreSectionHeaderBelowWatchlist: {
+      paddingTop: 20,
       paddingBottom: 8,
       marginBottom: 0,
     },
@@ -131,7 +142,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 6,
+      paddingVertical: 16,
     },
     exploreMarketLeft: {
       flexDirection: 'row',
@@ -175,6 +186,7 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       marginTop: 12,
       marginBottom: 12,
+      marginHorizontal: 16,
     },
   });
 };
