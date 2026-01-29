@@ -18,6 +18,8 @@ interface UsePerpsTabExploreDataResult {
   watchlistMarkets: PerpsMarketData[];
   /** Loading state for markets data */
   isLoading: boolean;
+  /** Whether user has any watchlist symbols (available before markets load) */
+  hasWatchlistSymbols: boolean;
 }
 
 /**
@@ -59,5 +61,6 @@ export const usePerpsTabExploreData = ({
     exploreMarkets,
     watchlistMarkets,
     isLoading,
+    hasWatchlistSymbols: watchlistSymbols.length > 0,
   };
 };

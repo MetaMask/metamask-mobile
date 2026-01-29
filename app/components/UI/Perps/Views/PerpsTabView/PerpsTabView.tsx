@@ -88,6 +88,7 @@ const PerpsTabView = () => {
     exploreMarkets,
     watchlistMarkets,
     isLoading: isExploreLoading,
+    hasWatchlistSymbols,
   } = usePerpsTabExploreData({ enabled: hasNoPositionsOrOrders });
 
   // Determine balance visibility for conditional header styling
@@ -95,10 +96,20 @@ const PerpsTabView = () => {
   const isBalanceEmpty = BigNumber(totalBalance).isZero();
   const shouldShowBalance = !isBalanceEmpty;
 
-  // Header style varies based on balance: no balance = 16px/4px, with balance = 20px/8px
-  const exploreMarketsHeaderStyle = shouldShowBalance
-    ? styles.exploreMarketsHeaderStyleWithBalance
-    : styles.exploreMarketsHeaderStyleNoBalance;
+  // Watchlist header: at top, varies by balance
+  const watchlistHeaderStyle = shouldShowBalance
+    ? styles.watchlistHeaderStyleWithBalance // 24px/4px
+    : styles.watchlistHeaderStyleNoBalance; // 16px/4px
+
+  // Explore header: depends on position and balance
+  // - Below watchlist: 20px/8px (visual separation between sections)
+  // - At top with balance: 24px/4px
+  // - At top without balance: 16px/4px
+  const exploreMarketsHeaderStyle = hasWatchlistSymbols
+    ? styles.exploreMarketsHeaderStyleBelowWatchlist // 20px/8px
+    : shouldShowBalance
+      ? styles.exploreMarketsHeaderStyleWithBalance // 24px/4px
+      : styles.exploreMarketsHeaderStyleNoBalance; // 16px/4px
 
   // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
@@ -273,16 +284,18 @@ const PerpsTabView = () => {
       >
         {!isInitialLoading && hasNoPositionsOrOrders ? (
           <View style={styles.emptyStateContainer}>
-            {/* Watchlist section - reused, hides when empty */}
-            <PerpsWatchlistMarkets
-              markets={watchlistMarkets}
-              isLoading={isExploreLoading}
-              positions={[]}
-              orders={[]}
-              sectionStyle={styles.watchlistSectionStyle}
-              headerStyle={styles.watchlistHeaderStyle}
-              contentContainerStyle={styles.flatContentContainerStyle}
-            />
+            {/* Watchlist section - only render if user has watchlist symbols */}
+            {hasWatchlistSymbols && (
+              <PerpsWatchlistMarkets
+                markets={watchlistMarkets}
+                isLoading={isExploreLoading}
+                positions={[]}
+                orders={[]}
+                sectionStyle={styles.watchlistSectionStyle}
+                headerStyle={watchlistHeaderStyle}
+                contentContainerStyle={styles.flatContentContainerStyle}
+              />
+            )}
 
             {/* Explore markets section - top 8 by volume */}
             <PerpsMarketTypeSection

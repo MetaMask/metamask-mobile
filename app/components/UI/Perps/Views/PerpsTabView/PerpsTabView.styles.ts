@@ -97,7 +97,13 @@ const styleSheet = (params: { theme: Theme }) => {
     watchlistSectionStyle: {
       marginBottom: 0,
     },
-    watchlistHeaderStyle: {
+    watchlistHeaderStyleNoBalance: {
+      paddingTop: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    watchlistHeaderStyleWithBalance: {
       paddingTop: 24,
       paddingHorizontal: 16,
       paddingBottom: 4,
@@ -113,6 +119,12 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 0,
     },
     exploreMarketsHeaderStyleWithBalance: {
+      paddingTop: 24,
+      paddingHorizontal: 16,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    exploreMarketsHeaderStyleBelowWatchlist: {
       paddingTop: 20,
       paddingHorizontal: 16,
       paddingBottom: 8,
