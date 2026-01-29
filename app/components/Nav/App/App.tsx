@@ -63,6 +63,7 @@ import SDKLoadingModal from '../../Views/SDK/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
+import QRSigningTransactionModal from '../../UI/QRHardware/QRSigningTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
@@ -844,21 +845,6 @@ const MultichainPrivateKeyList = () => {
   );
 };
 
-const ModalConfirmationRequest = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-    mode={'modal'}
-  >
-    <Stack.Screen
-      name={Routes.CONFIRMATION_REQUEST_MODAL}
-      component={Confirm}
-    />
-  </Stack.Navigator>
-);
-
 const ModalSwitchAccountType = () => (
   <Stack.Navigator
     screenOptions={{
@@ -1034,6 +1020,19 @@ const AppFlow = () => {
               },
             }),
           }}
+          name={Routes.QR_SIGNING_TRANSACTION_MODAL}
+          component={QRSigningTransactionModal}
+        />
+        <Stack.Screen
+          options={{
+            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+            cardStyle: { backgroundColor: importedColors.transparent },
+            cardStyleInterpolator: () => ({
+              overlayStyle: {
+                opacity: 0,
+              },
+            }),
+          }}
           name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
           component={LedgerMessageSignModal}
         />
@@ -1063,7 +1062,7 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.CONFIRMATION_REQUEST_MODAL}
           options={emptyNavHeaderOptions}
-          component={ModalConfirmationRequest}
+          component={Confirm}
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}

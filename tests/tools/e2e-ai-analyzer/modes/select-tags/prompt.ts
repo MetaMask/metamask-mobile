@@ -2,7 +2,7 @@
  * Mode-specific prompt for E2E tag selection
  */
 
-import { SELECT_TAGS_CONFIG } from './handlers';
+import { SELECT_TAGS_CONFIG, PERFORMANCE_TAGS_CONFIG } from './handlers';
 import {
   buildCriticalPatternsSection,
   buildToolsSection,
@@ -20,7 +20,7 @@ import { SkillMetadata } from '../../types';
  */
 export function buildSystemPrompt(availableSkills: SkillMetadata[]): string {
   const role = `You are an expert in E2E testing for MetaMask Mobile, responsible for analyzing code changes in pull requests to determine which tests are necessary for adequate validation.`;
-  const goal = `GOAL: Implement a risk-based testing strategy by identifying and running only the tests relevant to the specific changes introduced in the PR, while safely skipping unrelated tests.`;
+  const goal = `GOAL: Implement a risk-based testing strategy by identifying and running only the tests relevant to the specific changes introduced in the PR, while safely skipping unrelated tests. Additionally, determine if performance tests should run based on changes that could impact app performance.`;
 
   // Build available skills section
   const skillsSection =
@@ -44,6 +44,15 @@ Balance thoroughness with efficiency, and be conservative in your risk assessmen
 Do not exceed the maximum number of analysis iterations which is ${LLM_CONFIG.maxIterations}, i.e. try to decide before the maximum number of iterations is reached.
 FlaskBuildTests is for MetaMask Snaps functionality. Select this tag when changes affect e2e/specs/snaps/ directory, snap-related app code (snap permissions, snap state, snap UI, browser), or Flask build configuration.`;
 
+  const performanceGuidanceSection = `PERFORMANCE TEST GUIDANCE:
+Performance tests measure app responsiveness and render times. Select performance tests when changes could impact:
+- UI rendering performance (component changes, list rendering, animations)
+- Data loading and state management (Redux, controllers, API calls)
+- Account/network list components (AccountSelector, NetworkSelector, related hooks)
+- Critical user flows (login, balance loading, swap flows, send flows)
+- App startup and initialization (Engine, background services, navigation)
+- Changes to the appwright/ directory (performance test infrastructure)`;
+
   const prompt = [
     role,
     goal,
@@ -54,6 +63,7 @@ FlaskBuildTests is for MetaMask Snaps functionality. Select this tag when change
     buildCriticalPatternsSection(),
     buildRiskAssessmentSection(),
     guidanceSection,
+    performanceGuidanceSection,
   ]
     .filter((section) => section) // Remove empty sections
     .join('\n\n');
@@ -68,8 +78,13 @@ export function buildTaskPrompt(
   allFiles: string[],
   criticalFiles: string[],
 ): string {
-  // Build tag coverage list
+  // Build E2E tag coverage list
   const tagCoverageList = SELECT_TAGS_CONFIG.map(
+    (config) => `- ${config.tag}: ${config.description}`,
+  ).join('\n');
+
+  // Build performance tag coverage list
+  const performanceTagList = PERFORMANCE_TAGS_CONFIG.map(
     (config) => `- ${config.tag}: ${config.description}`,
   ).join('\n');
 
@@ -88,13 +103,22 @@ export function buildTaskPrompt(
     otherFiles.forEach((f) => fileList.push(`  ${f}`));
   }
 
-  const instruction = `Analyze the changed files and the impacted codebase to select the E2E test tags to run so the changes can be verified safely with minimal risk.`;
-  const tagsSection = `AVAILABLE TEST TAGS (these are the ONLY valid tags - do NOT search for tags.ts or any tags file, they are already provided here):\n${tagCoverageList}`;
+  const instruction = `Analyze the changed files and the impacted codebase to:
+1. Select E2E test tags to run so the changes can be verified safely with minimal risk
+2. Determine if performance tests should run based on potential performance impact`;
+  const tagsSection = `AVAILABLE E2E TEST TAGS (these are the ONLY valid E2E tags - do NOT search for tags.ts or any tags file, they are already provided here):\n${tagCoverageList}`;
+  const performanceTagsSection = `AVAILABLE PERFORMANCE TEST TAGS (select when changes could impact app performance):\n${performanceTagList}`;
   const filesSection = `CHANGED FILES (${
     allFiles.length
   } total):\n${fileList.join('\n')}`;
-  const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection when ready`;
-  const prompt = [instruction, tagsSection, filesSection, closing].join('\n\n');
+  const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection when ready. Include performance_tests in your final selection with selected_tags (empty array if no performance tests needed) and reasoning.`;
+  const prompt = [
+    instruction,
+    tagsSection,
+    performanceTagsSection,
+    filesSection,
+    closing,
+  ].join('\n\n');
 
   return prompt;
 }

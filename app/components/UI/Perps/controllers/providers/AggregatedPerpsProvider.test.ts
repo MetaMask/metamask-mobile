@@ -24,6 +24,7 @@ const createMockProvider = (providerId: string): jest.Mocked<PerpsProvider> => {
     getMarkets: jest.fn().mockResolvedValue([]),
     getMarketDataWithPrices: jest.fn().mockResolvedValue([]),
     getOrderFills: jest.fn().mockResolvedValue([]),
+    getOrFetchFills: jest.fn().mockResolvedValue([]),
     getOrders: jest.fn().mockResolvedValue([]),
     getOpenOrders: jest.fn().mockResolvedValue([]),
     getFunding: jest.fn().mockResolvedValue([]),
