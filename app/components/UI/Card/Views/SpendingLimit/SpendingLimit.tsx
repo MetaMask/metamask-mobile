@@ -119,7 +119,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     cancel,
     skip,
     isValid,
-    isSolanaSelected,
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
@@ -324,26 +323,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
 
         {/* Footer Buttons */}
         <Box twClassName="gap-3 mt-6">
-          {/* Solana Warning */}
-          {isSolanaSelected && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="p-3 bg-warning-muted rounded-lg items-center"
-            >
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.WarningDefault}
-              />
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="flex-1 ml-2 text-warning-default"
-              >
-                {strings('card.card_spending_limit.solana_not_supported')}
-              </Text>
-            </Box>
-          )}
-
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
             <Box twClassName="flex-1">
               <Button
