@@ -156,9 +156,7 @@ const ManualBackupStep1 = () => {
 
   const showWhatIsSeedphrase = useCallback(() => {
     showSeedphraseDefinition({
-      navigation: navigation as unknown as Parameters<
-        typeof showSeedphraseDefinition
-      >[0]['navigation'],
+      navigation,
       track,
       location: 'manual_backup_step_1',
     });
@@ -243,9 +241,7 @@ const ManualBackupStep1 = () => {
 
   const skip = useCallback(async () => {
     await handleSkipBackup({
-      navigation: navigation as unknown as Parameters<
-        typeof handleSkipBackup
-      >[0]['navigation'],
+      navigation,
       routeParams: route.params,
       isMetricsEnabled,
       track,
@@ -285,14 +281,10 @@ const ManualBackupStep1 = () => {
       setReady(true);
     } catch (e) {
       if (!isMountedRef.current) return;
-      const errorMessage = e instanceof Error ? e.message : String(e);
-      const wrongPasswordMessage = WRONG_PASSWORD_ERROR.replace('Error: ', '');
-
-      const msg =
-        errorMessage.toLowerCase() === wrongPasswordMessage.toLowerCase()
-          ? strings('reveal_credential.warning_incorrect_password')
-          : strings('reveal_credential.unknown_error');
-
+      let msg = strings('reveal_credential.warning_incorrect_password');
+      if (String(e).toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
+        msg = strings('reveal_credential.unknown_error');
+      }
       setWarningIncorrectPassword(msg);
       setReady(true);
     }
