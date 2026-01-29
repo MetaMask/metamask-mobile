@@ -131,6 +131,7 @@ import {
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
+import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -174,7 +175,7 @@ const AssetStackFlow = (props) => (
   >
     <Stack.Screen
       name={'Asset'}
-      component={Asset}
+      component={TokenDetails}
       initialParams={props.route.params}
     />
     <Stack.Screen
@@ -356,7 +357,7 @@ const SettingsFlow = () => (
     <Stack.Screen
       name="Settings"
       component={Settings}
-      options={Settings.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="GeneralSettings"
