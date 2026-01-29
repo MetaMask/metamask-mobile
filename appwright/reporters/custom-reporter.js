@@ -3,6 +3,7 @@ import { PerformanceTracker } from './PerformanceTracker';
 import { AppProfilingDataHandler } from './AppProfilingDataHandler';
 import QualityGatesValidator from '../utils/QualityGatesValidator';
 import { getTeamInfoFromTags } from '../config/teams-config.js';
+import { clearQualityGateFailures } from '../utils/QualityGateError.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -16,6 +17,17 @@ class CustomReporter {
   }
 
   // We'll skip the onStdOut and onStdErr methods since the list reporter will handle those
+
+  /**
+   * Called once before running tests.
+   * Clears quality gate failures from previous test runs.
+   */
+  onBegin() {
+    console.log(
+      '🚀 Test suite starting: Clearing quality gate failures from previous runs...',
+    );
+    clearQualityGateFailures();
+  }
 
   onTestEnd(test, result) {
     // Create a unique test identifier to avoid duplicate processing

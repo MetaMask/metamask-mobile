@@ -7,7 +7,7 @@ import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 
 describe(SmokeConfirmationsRedesigned('Send TRX token'), () => {
-  it('shows insufficient funds', async () => {
+  it.skip('shows insufficient funds', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),

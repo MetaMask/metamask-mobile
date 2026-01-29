@@ -2,11 +2,31 @@ import { test as base } from 'appwright';
 import { PerformanceTracker } from '../reporters/PerformanceTracker.js';
 import QualityGatesValidator from '../utils/QualityGatesValidator.js';
 import { getTeamInfoFromTags } from '../config/teams-config.js';
+import {
+  markQualityGateFailure,
+  hasQualityGateFailure,
+  getTestId,
+} from '../utils/QualityGateError.js';
 
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend({
   // eslint-disable-next-line no-empty-pattern
   performanceTracker: async ({}, use, testInfo) => {
+    const testId = getTestId(testInfo);
+
+    // Skip retry if previous attempt failed due to quality gates
+    // Quality gate failures should NOT be retried - the measurement was valid, only threshold exceeded
+    if (testInfo.retry > 0 && hasQualityGateFailure(testId)) {
+      console.log(
+        `⏭️ Skipping retry for "${testInfo.title}" - previous attempt failed due to Quality Gates (threshold exceeded, not a test execution error)`,
+      );
+      testInfo.skip(
+        true,
+        'Skipped retry: Quality Gates failed in previous attempt. Performance threshold was exceeded but test execution was successful.',
+      );
+      return;
+    }
+
     const performanceTracker = new PerformanceTracker();
 
     // Get team info from test tags (e.g., { tag: '@swap-bridge-dev-team' })
@@ -49,11 +69,22 @@ export const test = base.extend({
     );
     if (hasThresholds) {
       console.log('🔍 Validating quality gates...');
-      QualityGatesValidator.assertThresholds(
-        testInfo.title,
-        performanceTracker.timers,
-      );
-      console.log('✅ Quality gates PASSED');
+      try {
+        QualityGatesValidator.assertThresholds(
+          testInfo.title,
+          performanceTracker.timers,
+        );
+        console.log('✅ Quality gates PASSED');
+      } catch (error) {
+        // Mark this test as failed due to quality gates so retries are skipped
+        if (error.isQualityGateError) {
+          markQualityGateFailure(testId);
+          console.log(
+            '🚫 Quality gates FAILED - retries will be skipped for this test',
+          );
+        }
+        throw error;
+      }
     }
 
     console.log('🔍 Looking for session ID...');

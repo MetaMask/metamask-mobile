@@ -158,7 +158,7 @@ class ImportFromSeedScreen {
     } else if (!this._device)
         await Gestures.waitAndTap(this.screenTitle);
     else {
-        await AppwrightGestures.hideKeyboard(this.device);
+      await AppwrightGestures.hideKeyboard(this.device);
     }
   }
 }
