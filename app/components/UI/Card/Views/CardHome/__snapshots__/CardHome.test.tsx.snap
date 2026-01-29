@@ -360,6 +360,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                               {
                                 "paddingLeft": 16,
                                 "paddingRight": 16,
+                                "paddingTop": 16,
                               },
                             ]
                           }
@@ -390,6 +391,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                               [
                                 {
                                   "display": "flex",
+                                  "position": "relative",
                                   "width": "100%",
                                 },
                                 undefined,
@@ -1702,6 +1704,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                               {
                                 "paddingLeft": 16,
                                 "paddingRight": 16,
+                                "paddingTop": 16,
                               },
                             ]
                           }
@@ -1732,6 +1735,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                               [
                                 {
                                   "display": "flex",
+                                  "position": "relative",
                                   "width": "100%",
                                 },
                                 undefined,

@@ -7,6 +7,7 @@ import {
   selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
   selectCardExperimentalSwitch,
+  selectMetalCardCheckoutFeatureFlag,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -648,6 +649,140 @@ describe('selectCardExperimentalSwitch', () => {
     } as any;
 
     const result = selectCardExperimentalSwitch(stateWithMalformedFlag);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMetalCardCheckoutFeatureFlag', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns false when feature flag state is empty', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const result = selectMetalCardCheckoutFeatureFlag(mockedEmptyFlagsState);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when RemoteFeatureFlagController state is undefined', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const result = selectMetalCardCheckoutFeatureFlag(
+      mockedUndefinedFlagsState,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when feature flag is enabled and version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    const stateWithMetalCardCheckout = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              metalCardCheckoutEnabled: {
+                enabled: true,
+                minimumVersion: '7.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectMetalCardCheckoutFeatureFlag(
+      stateWithMetalCardCheckout,
+    );
+
+    expect(result).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
+  });
+
+  it('returns false when feature flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const stateWithDisabledFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              metalCardCheckoutEnabled: {
+                enabled: false,
+                minimumVersion: '7.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectMetalCardCheckoutFeatureFlag(stateWithDisabledFlag);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when version requirement is not met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const stateWithVersionGate = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              metalCardCheckoutEnabled: {
+                enabled: true,
+                minimumVersion: '99.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectMetalCardCheckoutFeatureFlag(stateWithVersionGate);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when validatedVersionGatedFeatureFlag returns undefined', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const stateWithMalformedFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              metalCardCheckoutEnabled: {
+                enabled: 'true', // Invalid type
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectMetalCardCheckoutFeatureFlag(stateWithMalformedFlag);
 
     expect(result).toBe(false);
   });

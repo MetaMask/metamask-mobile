@@ -21,12 +21,21 @@ export enum CardStateWarning {
 }
 
 /**
- * Card warning box types - used for UI display in CardWarningBox component
- * These are user-facing warnings that render as visual warning boxes
+ * Card message box variants - determines the visual style of the message box
  */
-export enum CardWarningBoxType {
+export enum CardMessageBoxVariant {
+  Warning = 'warning',
+  Info = 'info',
+}
+
+/**
+ * Card message box types - used for UI display in CardMessageBox component
+ * These are user-facing messages that render as visual message boxes
+ */
+export enum CardMessageBoxType {
   CloseSpendingLimit = 'close_spending_limit',
   KYCPending = 'kyc_pending',
+  CardProvisioning = 'card_provisioning',
 }
 
 export type CardUserPhase =
@@ -191,6 +200,7 @@ export enum CardErrorType {
   SERVER_ERROR = 'SERVER_ERROR',
   NO_CARD = 'NO_CARD',
   CONFLICT_ERROR = 'CONFLICT_ERROR',
+  NOT_FOUND = 'NOT_FOUND',
 }
 
 export class CardError extends Error {
@@ -222,6 +232,7 @@ export interface EmailVerificationVerifyRequest {
   countryOfResidence: string;
   allowMarketing: boolean;
   allowSms: boolean;
+  userExternalId?: string;
 }
 
 export interface EmailVerificationVerifyResponse {
@@ -430,4 +441,90 @@ export interface DelegationSettingsResponse {
   _links: {
     self: string;
   };
+}
+
+/**
+ * Request body for generating card details token
+ * Used to customize the visual appearance of the card details image
+ */
+export interface CardDetailsTokenRequest {
+  customCss?: {
+    cardBackgroundColor?: string;
+    cardTextColor?: string;
+    panBackgroundColor?: string;
+    panTextColor?: string;
+  };
+}
+
+/**
+ * Response from generating card details token
+ */
+export interface CardDetailsTokenResponse {
+  token: string;
+  imageUrl: string;
+}
+
+/**
+ * Payment methods supported for orders
+ */
+export type OrderPaymentMethod = 'CRYPTO_EXTERNAL_DAIMO';
+
+/**
+ * Request body for creating a new order
+ * POST /v1/order
+ */
+export interface CreateOrderRequest {
+  productId: string;
+  paymentMethod: OrderPaymentMethod;
+}
+
+/**
+ * Payment configuration returned when creating an order
+ */
+export interface OrderPaymentConfig {
+  paymentAmount: number;
+  paymentCurrency: string;
+  destinationAddress: string;
+  destinationChainId: string;
+  destinationTokenSymbol: string;
+  destinationTokenAddress: string;
+}
+
+/**
+ * Response from creating a new order
+ * POST /v1/order
+ */
+export interface CreateOrderResponse {
+  orderId: string;
+  paymentConfig: OrderPaymentConfig;
+}
+
+/**
+ * Status of an order
+ */
+export type OrderStatus =
+  | 'PENDING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'EXPIRED'
+  | 'REFUNDED';
+
+/**
+ * Metadata returned with order status
+ */
+export interface OrderStatusMetadata {
+  paymentId?: string;
+  txHash?: string;
+  note?: string;
+}
+
+/**
+ * Response from fetching order status
+ * GET /v1/order/:orderId
+ */
+export interface GetOrderStatusResponse {
+  orderId: string;
+  paidAt?: string;
+  status: OrderStatus;
+  metadata?: OrderStatusMetadata;
 }

@@ -15,8 +15,8 @@ describe('CandleStreamChannel', () => {
   let mockFetchHistoricalCandles: jest.Mock;
 
   const mockCandleData: CandleData = {
-    coin: 'BTC',
-    interval: CandlePeriod.ONE_HOUR,
+    symbol: 'BTC',
+    interval: CandlePeriod.OneHour,
     candles: [
       {
         time: 1700000000000,
@@ -51,22 +51,22 @@ describe('CandleStreamChannel', () => {
 
   describe('Cache Management', () => {
     it('should generate correct cache key', () => {
-      // Test via subscription - cache key format is coin-interval
+      // Test via subscription - cache key format is symbol-interval
       const callback = jest.fn();
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
       });
 
       // Verify subscription was called (implies cache key was used internally)
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: 'BTC',
-          interval: CandlePeriod.ONE_HOUR,
+          symbol: 'BTC',
+          interval: CandlePeriod.OneHour,
         }),
       );
     });
@@ -83,20 +83,20 @@ describe('CandleStreamChannel', () => {
 
       // First subscription
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: callback1,
       });
 
       // Simulate WebSocket data
       capturedCallback?.(mockCandleData);
 
-      // Second subscription to same coin+interval should get cached data
+      // Second subscription to same symbol+interval should get cached data
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: callback2,
       });
 
@@ -105,27 +105,27 @@ describe('CandleStreamChannel', () => {
       expect(callback2).toHaveBeenCalledWith(mockCandleData);
     });
 
-    it('should maintain separate cache for different coin+interval combinations', () => {
+    it('should maintain separate cache for different symbol+interval combinations', () => {
       const btcCallback = jest.fn();
       const ethCallback = jest.fn();
 
       const mockBtcData: CandleData = {
         ...mockCandleData,
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       const mockEthData: CandleData = {
         ...mockCandleData,
-        coin: 'ETH',
+        symbol: 'ETH',
       };
 
       let btcCapturedCallback: ((data: CandleData) => void) | undefined;
       let ethCapturedCallback: ((data: CandleData) => void) | undefined;
 
-      mockSubscribeToCandles.mockImplementation(({ coin, callback }) => {
-        if (coin === 'BTC') {
+      mockSubscribeToCandles.mockImplementation(({ symbol, callback }) => {
+        if (symbol === 'BTC') {
           btcCapturedCallback = callback;
-        } else if (coin === 'ETH') {
+        } else if (symbol === 'ETH') {
           ethCapturedCallback = callback;
         }
         return jest.fn();
@@ -133,17 +133,17 @@ describe('CandleStreamChannel', () => {
 
       // Subscribe to BTC
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: btcCallback,
       });
 
       // Subscribe to ETH
       channel.subscribe({
-        coin: 'ETH',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'ETH',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: ethCallback,
       });
 
@@ -171,9 +171,9 @@ describe('CandleStreamChannel', () => {
 
       // Subscribe and populate cache
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
       });
 
@@ -185,15 +185,15 @@ describe('CandleStreamChannel', () => {
       // Should notify subscribers with cleared data
       expect(callback).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: '',
-          interval: CandlePeriod.ONE_HOUR,
+          symbol: '',
+          interval: CandlePeriod.OneHour,
           candles: [],
         }),
       );
     });
 
     it('should return null when no cached data available', () => {
-      const result = channel.getCachedData('BTC', CandlePeriod.ONE_HOUR);
+      const result = channel.getCachedData('BTC', CandlePeriod.OneHour);
       expect(result).toBeNull();
     });
 
@@ -205,15 +205,15 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       capturedCallback?.(mockCandleData);
 
-      const result = channel.getCachedData('BTC', CandlePeriod.ONE_HOUR);
+      const result = channel.getCachedData('BTC', CandlePeriod.OneHour);
       expect(result).toEqual(mockCandleData);
     });
   });
@@ -223,30 +223,30 @@ describe('CandleStreamChannel', () => {
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
       const unsubscribe = channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should share WebSocket connection for same coin+interval', () => {
+    it('should share WebSocket connection for same symbol+interval', () => {
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
-      // Subscribe twice to same coin+interval
+      // Subscribe twice to same symbol+interval
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -254,28 +254,28 @@ describe('CandleStreamChannel', () => {
       expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
     });
 
-    it('should create separate WebSocket connections for different coin+interval', () => {
+    it('should create separate WebSocket connections for different symbol+interval', () => {
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
       // Subscribe to different combinations
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.FIVE_MINUTES,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.FiveMinutes,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       channel.subscribe({
-        coin: 'ETH',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'ETH',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -288,8 +288,8 @@ describe('CandleStreamChannel', () => {
       const ethCallback = jest.fn();
 
       let btcCapturedCallback: ((data: CandleData) => void) | undefined;
-      mockSubscribeToCandles.mockImplementation(({ coin, callback }) => {
-        if (coin === 'BTC') {
+      mockSubscribeToCandles.mockImplementation(({ symbol, callback }) => {
+        if (symbol === 'BTC') {
           btcCapturedCallback = callback;
         }
         return jest.fn();
@@ -297,17 +297,17 @@ describe('CandleStreamChannel', () => {
 
       // Subscribe to BTC
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: btcCallback,
       });
 
       // Subscribe to ETH
       channel.subscribe({
-        coin: 'ETH',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'ETH',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: ethCallback,
       });
 
@@ -324,16 +324,16 @@ describe('CandleStreamChannel', () => {
       mockSubscribeToCandles.mockReturnValue(mockUnsubscribe);
 
       const unsubscribe1 = channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       const unsubscribe2 = channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -350,21 +350,22 @@ describe('CandleStreamChannel', () => {
       const mockBtcUnsubscribe = jest.fn();
       const mockEthUnsubscribe = jest.fn();
 
-      mockSubscribeToCandles.mockImplementation(({ coin }) =>
-        coin === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
+      // Note:
+      mockSubscribeToCandles.mockImplementation(({ symbol }) =>
+        symbol === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
       );
 
       const btcUnsubscribe = channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       channel.subscribe({
-        coin: 'ETH',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'ETH',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -382,9 +383,9 @@ describe('CandleStreamChannel', () => {
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -398,9 +399,9 @@ describe('CandleStreamChannel', () => {
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -420,9 +421,9 @@ describe('CandleStreamChannel', () => {
       mockSubscribeToCandles.mockReturnValue(mockUnsubscribe);
 
       const unsubscribe = channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -443,9 +444,9 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
         throttleMs: 1000,
       });
@@ -467,9 +468,9 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
         throttleMs: 1000,
       });
@@ -516,9 +517,9 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
         throttleMs: 1000,
       });
@@ -562,9 +563,9 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
         // No throttleMs
       });
@@ -590,9 +591,9 @@ describe('CandleStreamChannel', () => {
       });
 
       const unsubscribe = channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
         throttleMs: 1000,
       });
@@ -625,9 +626,9 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
       });
 
@@ -651,9 +652,9 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
       });
 
@@ -676,21 +677,22 @@ describe('CandleStreamChannel', () => {
       const mockBtcUnsubscribe = jest.fn();
       const mockEthUnsubscribe = jest.fn();
 
-      mockSubscribeToCandles.mockImplementation(({ coin }) =>
-        coin === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
+      // Note:
+      mockSubscribeToCandles.mockImplementation(({ symbol }) =>
+        symbol === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
       );
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       channel.subscribe({
-        coin: 'ETH',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'ETH',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -712,9 +714,9 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
         throttleMs: 1000,
       });
@@ -742,9 +744,9 @@ describe('CandleStreamChannel', () => {
       mockSubscribeToCandles.mockReturnValue(mockUnsubscribe);
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -763,9 +765,9 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback,
         throttleMs: 1000,
       });
@@ -794,8 +796,8 @@ describe('CandleStreamChannel', () => {
     it('returns early when no cached data exists', async () => {
       await channel.fetchHistoricalCandles(
         'BTC',
-        CandlePeriod.ONE_HOUR,
-        TimeDuration.ONE_DAY,
+        CandlePeriod.OneHour,
+        TimeDuration.OneDay,
       );
 
       expect(mockFetchHistoricalCandles).not.toHaveBeenCalled();
@@ -809,23 +811,23 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       const emptyData: CandleData = {
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
         candles: [],
       };
       capturedCallback?.(emptyData);
 
       await channel.fetchHistoricalCandles(
         'BTC',
-        CandlePeriod.ONE_HOUR,
-        TimeDuration.ONE_DAY,
+        CandlePeriod.OneHour,
+        TimeDuration.OneDay,
       );
 
       expect(mockFetchHistoricalCandles).not.toHaveBeenCalled();
@@ -840,17 +842,17 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: subscriber,
       });
 
       capturedCallback?.(mockCandleData);
 
       const olderCandles: CandleData = {
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
         candles: [
           {
             time: 1699996400000,
@@ -867,20 +869,20 @@ describe('CandleStreamChannel', () => {
 
       await channel.fetchHistoricalCandles(
         'BTC',
-        CandlePeriod.ONE_HOUR,
-        TimeDuration.ONE_DAY,
+        CandlePeriod.OneHour,
+        TimeDuration.OneDay,
       );
 
       expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
         'BTC',
-        CandlePeriod.ONE_HOUR,
+        CandlePeriod.OneHour,
         50,
         expect.any(Number),
       );
 
       expect(subscriber).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           candles: expect.arrayContaining([
             expect.objectContaining({ time: 1699996400000 }),
             expect.objectContaining({ time: 1700000000000 }),
@@ -898,17 +900,17 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: subscriber,
       });
 
       capturedCallback?.(mockCandleData);
 
       const duplicateCandles: CandleData = {
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
         candles: [mockCandleData.candles[0]],
       };
 
@@ -916,8 +918,8 @@ describe('CandleStreamChannel', () => {
 
       await channel.fetchHistoricalCandles(
         'BTC',
-        CandlePeriod.ONE_HOUR,
-        TimeDuration.ONE_DAY,
+        CandlePeriod.OneHour,
+        TimeDuration.OneDay,
       );
 
       const lastCall = subscriber.mock.calls[subscriber.mock.calls.length - 1];
@@ -932,9 +934,9 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -946,8 +948,8 @@ describe('CandleStreamChannel', () => {
       await expect(
         channel.fetchHistoricalCandles(
           'BTC',
-          CandlePeriod.ONE_HOUR,
-          TimeDuration.ONE_DAY,
+          CandlePeriod.OneHour,
+          TimeDuration.OneDay,
         ),
       ).rejects.toThrow('Network error');
     });
@@ -961,9 +963,9 @@ describe('CandleStreamChannel', () => {
       });
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: subscriber,
       });
 
@@ -974,8 +976,8 @@ describe('CandleStreamChannel', () => {
 
       await channel.fetchHistoricalCandles(
         'BTC',
-        CandlePeriod.ONE_HOUR,
-        TimeDuration.ONE_DAY,
+        CandlePeriod.OneHour,
+        TimeDuration.OneDay,
       );
 
       expect(subscriber).not.toHaveBeenCalled();
@@ -986,37 +988,37 @@ describe('CandleStreamChannel', () => {
     it('always uses YEAR_TO_DATE duration when subscribing regardless of requested duration', () => {
       mockSubscribeToCandles.mockImplementation(({ duration }) => {
         // Verify YEAR_TO_DATE is always used
-        expect(duration).toBe(TimeDuration.YEAR_TO_DATE);
+        expect(duration).toBe(TimeDuration.YearToDate);
         return jest.fn();
       });
 
       // Subscribe with ONE_DAY - should still use YEAR_TO_DATE internally
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
     });
 
-    it('shares WebSocket connection when subscribers use different durations for same coin+interval', () => {
+    it('shares WebSocket connection when subscribers use different durations for same symbol+interval', () => {
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
       // First subscriber with ONE_DAY
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
-      // Second subscriber with YEAR_TO_DATE (different duration, same coin+interval)
+      // Second subscriber with YEAR_TO_DATE (different duration, same symbol+interval)
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.YEAR_TO_DATE,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.YearToDate,
         callback: jest.fn(),
       });
 
@@ -1036,9 +1038,9 @@ describe('CandleStreamChannel', () => {
 
       // First subscriber
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.YEAR_TO_DATE,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.YearToDate,
         callback: firstCallback,
       });
 
@@ -1047,9 +1049,9 @@ describe('CandleStreamChannel', () => {
 
       // Second subscriber
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: secondCallback,
       });
 
@@ -1069,16 +1071,16 @@ describe('CandleStreamChannel', () => {
         .mockReturnValueOnce(mockEthUnsubscribe);
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
       channel.subscribe({
-        coin: 'ETH',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'ETH',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -1096,9 +1098,9 @@ describe('CandleStreamChannel', () => {
       mockSubscribeToCandles.mockReturnValueOnce(mockBtcUnsubscribe);
 
       channel.subscribe({
-        coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
 
@@ -1107,6 +1109,119 @@ describe('CandleStreamChannel', () => {
 
       // Assert - unsubscribe function should be called (via disconnectAll)
       expect(mockBtcUnsubscribe).toHaveBeenCalled();
+    });
+  });
+
+  describe('reconnect', () => {
+    it('should correctly parse cache keys with coin symbols containing hyphens', () => {
+      const mockEthUsdUnsubscribe = jest.fn();
+      const mockBtcUnsubscribe = jest.fn();
+
+      // Setup subscriptions with coins that contain hyphens
+      mockSubscribeToCandles
+        .mockReturnValueOnce(mockEthUsdUnsubscribe)
+        .mockReturnValueOnce(mockBtcUnsubscribe);
+
+      // Subscribe to ETH-USD (coin with hyphen)
+      channel.subscribe({
+        symbol: 'ETH-USD',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+
+      // Subscribe to BTC (coin without hyphen)
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneDay,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+
+      // Clear previous calls
+      mockSubscribeToCandles.mockClear();
+
+      // Act - reconnect all channels
+      channel.reconnect();
+
+      // Assert - both subscriptions should be re-established with correct coin and interval
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(2);
+
+      // Verify ETH-USD subscription was reconnected correctly
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH-USD',
+          interval: CandlePeriod.OneHour,
+        }),
+      );
+
+      // Verify BTC subscription was reconnected correctly
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC',
+          interval: CandlePeriod.OneDay,
+        }),
+      );
+    });
+
+    it('should handle multiple coins with hyphens correctly', () => {
+      const mockUnsubscribe1 = jest.fn();
+      const mockUnsubscribe2 = jest.fn();
+      const mockUnsubscribe3 = jest.fn();
+
+      mockSubscribeToCandles
+        .mockReturnValueOnce(mockUnsubscribe1)
+        .mockReturnValueOnce(mockUnsubscribe2)
+        .mockReturnValueOnce(mockUnsubscribe3);
+
+      // Subscribe to multiple coins with hyphens
+      channel.subscribe({
+        symbol: 'ETH-USD',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+
+      channel.subscribe({
+        symbol: 'BTC-USD',
+        interval: CandlePeriod.TwoHours,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+
+      channel.subscribe({
+        symbol: 'SOL-USD',
+        interval: CandlePeriod.FourHours,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+
+      // Clear previous calls
+      mockSubscribeToCandles.mockClear();
+
+      // Act - reconnect
+      channel.reconnect();
+
+      // Assert - all three subscriptions should be re-established correctly
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(3);
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH-USD',
+          interval: CandlePeriod.OneHour,
+        }),
+      );
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC-USD',
+          interval: CandlePeriod.TwoHours,
+        }),
+      );
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'SOL-USD',
+          interval: CandlePeriod.FourHours,
+        }),
+      );
     });
   });
 });

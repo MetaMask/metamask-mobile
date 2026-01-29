@@ -17,14 +17,14 @@ import {
   GasFeeEstimateLevel,
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
-import type { IPerpsProvider, IPerpsPlatformDependencies } from './types';
+import type {
+  PerpsProvider,
+  PerpsPlatformDependencies,
+  PerpsProviderType,
+} from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
 import { createMockInfrastructure } from '../__mocks__/serviceMocks';
-import {
-  ARBITRUM_MAINNET_CHAIN_ID_HEX,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-} from '../constants/hyperLiquidConfig';
 import Engine from '../../../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
@@ -273,16 +273,22 @@ class TestablePerpsController extends PerpsController {
   public testMarkInitialized() {
     this.isInitialized = true;
     this.update((state) => {
-      state.initializationState = InitializationState.INITIALIZED;
+      state.initializationState = InitializationState.Initialized;
     });
   }
 
   /**
    * Test-only method to set the providers map with complete providers.
    * Used in most tests to inject mock providers.
+   * Also sets activeProviderInstance to the first provider (default provider).
    */
-  public testSetProviders(providers: Map<string, IPerpsProvider>) {
+  public testSetProviders(providers: Map<PerpsProviderType, PerpsProvider>) {
     this.providers = providers;
+    // Set activeProviderInstance to the first provider (typically 'hyperliquid')
+    const firstProvider = providers.values().next().value;
+    if (firstProvider) {
+      this.activeProviderInstance = firstProvider;
+    }
   }
 
   /**
@@ -291,16 +297,16 @@ class TestablePerpsController extends PerpsController {
    * Type cast is intentional and necessary for testing graceful degradation.
    */
   public testSetPartialProviders(
-    providers: Map<string, Partial<IPerpsProvider>>,
+    providers: Map<PerpsProviderType, Partial<PerpsProvider>>,
   ) {
-    this.providers = providers as Map<string, IPerpsProvider>;
+    this.providers = providers as Map<PerpsProviderType, PerpsProvider>;
   }
 
   /**
    * Test-only method to get the providers map.
    * Used to verify provider state in tests.
    */
-  public testGetProviders(): Map<string, IPerpsProvider> {
+  public testGetProviders(): Map<PerpsProviderType, PerpsProvider> {
     return this.providers;
   }
 
@@ -381,7 +387,7 @@ function createMockMessenger(
 describe('PerpsController', () => {
   let controller: TestablePerpsController;
   let mockProvider: jest.Mocked<HyperLiquidProvider>;
-  let mockInfrastructure: jest.Mocked<IPerpsPlatformDependencies>;
+  let mockInfrastructure: jest.Mocked<PerpsPlatformDependencies>;
 
   // Helper to mark controller as initialized for tests
   const markControllerAsInitialized = () => {
@@ -704,6 +710,37 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('getActiveProviderOrNull', () => {
+    it('returns null during reinitialization', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      (
+        controller as unknown as { isReinitializing: boolean }
+      ).isReinitializing = true;
+
+      const result = controller.getActiveProviderOrNull();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when not initialized', () => {
+      controller.testSetInitialized(false);
+
+      const result = controller.getActiveProviderOrNull();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns provider when initialized and not reinitializing', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+
+      const result = controller.getActiveProviderOrNull();
+
+      expect(result).toBe(mockProvider);
+    });
+  });
+
   describe('init', () => {
     it('initializes providers successfully', async () => {
       await controller.init();
@@ -783,7 +820,7 @@ describe('PerpsController', () => {
     it('gets positions successfully', async () => {
       const mockPositions = [
         {
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '2.5',
           entryPrice: '2000',
           positionValue: '5000',
@@ -865,7 +902,7 @@ describe('PerpsController', () => {
   describe('placeOrder', () => {
     it('places order successfully', async () => {
       const orderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market' as const,
@@ -898,7 +935,7 @@ describe('PerpsController', () => {
 
     it('handles placeOrder error', async () => {
       const orderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market' as const,
@@ -957,7 +994,7 @@ describe('PerpsController', () => {
     it('cancels order successfully', async () => {
       const cancelParams = {
         orderId: 'order-123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       const mockCancelResult = {
@@ -996,7 +1033,7 @@ describe('PerpsController', () => {
             success: true,
             successCount: 1,
             failureCount: 0,
-            results: [{ coin: 'BTC', orderId: 'order-1', success: true }],
+            results: [{ symbol: 'BTC', orderId: 'order-1', success: true }],
           }),
           ['orders'],
         );
@@ -1005,7 +1042,7 @@ describe('PerpsController', () => {
           success: true,
           successCount: 1,
           failureCount: 0,
-          results: [{ coin: 'BTC', orderId: 'order-1', success: true }],
+          results: [{ symbol: 'BTC', orderId: 'order-1', success: true }],
         };
       });
 
@@ -1062,7 +1099,7 @@ describe('PerpsController', () => {
   describe('closePosition', () => {
     it('closes position successfully', async () => {
       const closeParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market' as const,
         size: '0.5',
       };
@@ -1104,7 +1141,7 @@ describe('PerpsController', () => {
           success: true,
           successCount: 1,
           failureCount: 0,
-          results: [{ coin: 'BTC', success: true }],
+          results: [{ symbol: 'BTC', success: true }],
         });
 
       const result = await controller.closePositions({ closeAll: true });
@@ -1124,7 +1161,7 @@ describe('PerpsController', () => {
   describe('validateOrder', () => {
     it('validates order successfully', async () => {
       const orderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market' as const,
@@ -1441,7 +1478,7 @@ describe('PerpsController', () => {
     it('returns positions without updating state', async () => {
       const mockPositions = [
         {
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '2.5',
           entryPrice: '2000',
           positionValue: '5000',
@@ -1566,7 +1603,7 @@ describe('PerpsController', () => {
       const editParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           orderType: 'limit' as const,
           price: '51000',
@@ -1602,7 +1639,7 @@ describe('PerpsController', () => {
       const editParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           orderType: 'limit' as const,
           price: '51000',
@@ -1855,7 +1892,7 @@ describe('PerpsController', () => {
   describe('validation methods', () => {
     it('validates close position', async () => {
       const closeParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market' as const,
         size: '0.5',
       };
@@ -1916,7 +1953,7 @@ describe('PerpsController', () => {
   describe('position management', () => {
     it('updates position TP/SL', async () => {
       const updateParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         takeProfitPrice: '55000',
         stopLossPrice: '45000',
       };
@@ -1948,7 +1985,7 @@ describe('PerpsController', () => {
 
     it('calculates maintenance margin', async () => {
       const marginParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '1.0',
         entryPrice: '50000',
         asset: 'BTC',
@@ -1976,7 +2013,7 @@ describe('PerpsController', () => {
 
     it('updates margin successfully', async () => {
       const updateMarginParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
       };
 
@@ -1996,7 +2033,7 @@ describe('PerpsController', () => {
       expect(mockTradingServiceInstance.updateMargin).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
-          coin: updateMarginParams.coin,
+          symbol: updateMarginParams.symbol,
           amount: '100',
           context: expect.any(Object),
         }),
@@ -2005,7 +2042,7 @@ describe('PerpsController', () => {
 
     it('handles updateMargin error', async () => {
       const updateMarginParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
       };
 
@@ -2025,7 +2062,7 @@ describe('PerpsController', () => {
 
     it('flips position successfully', async () => {
       const mockPosition = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
         entryPrice: '50000',
         positionValue: '25000',
@@ -2041,7 +2078,7 @@ describe('PerpsController', () => {
       };
 
       const flipPositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         position: mockPosition,
       };
 
@@ -2072,7 +2109,7 @@ describe('PerpsController', () => {
 
     it('handles flipPosition error', async () => {
       const mockPosition = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
         entryPrice: '50000',
         positionValue: '25000',
@@ -2088,7 +2125,7 @@ describe('PerpsController', () => {
       };
 
       const flipPositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         position: mockPosition,
       };
 
@@ -2113,7 +2150,7 @@ describe('PerpsController', () => {
         orderType: 'market' as const,
         isMaker: false,
         amount: '100000',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       const mockFees = {
@@ -2162,7 +2199,7 @@ describe('PerpsController', () => {
 
       const orderParams = {
         action: 'open' as const,
-        coin: 'BTC',
+        symbol: 'BTC',
         sl_price: 45000,
         tp_price: 55000,
       };
@@ -2172,7 +2209,7 @@ describe('PerpsController', () => {
       expect(result).toEqual(mockReportResult);
       expect(mockDataLakeServiceInstance.reportOrder).toHaveBeenCalledWith({
         action: orderParams.action,
-        coin: orderParams.coin,
+        symbol: orderParams.symbol,
         sl_price: orderParams.sl_price,
         tp_price: orderParams.tp_price,
         isTestnet: controller.state.isTestnet,
@@ -2381,50 +2418,7 @@ describe('PerpsController', () => {
         origin: 'metamask',
         type: 'perpsDeposit',
         skipInitialGasEstimate: true,
-        gasFeeToken: undefined,
       });
-    });
-
-    it('adds gasFeeToken for Arbitrum USDC deposits', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-
-      Engine.context.AccountTrackerController.state.accountsByChainId = {
-        [ARBITRUM_MAINNET_CHAIN_ID_HEX]: {
-          [mockTransaction.from.toLowerCase()]: {
-            balance: '0x0',
-          },
-        },
-      };
-
-      jest
-        .spyOn(mockDepositServiceInstance, 'prepareTransaction')
-        .mockResolvedValueOnce({
-          transaction: {
-            ...mockTransaction,
-            to: USDC_ARBITRUM_MAINNET_ADDRESS,
-          },
-          assetChainId: ARBITRUM_MAINNET_CHAIN_ID_HEX,
-          currentDepositId: mockDepositId,
-        });
-
-      await controller.depositWithConfirmation('100');
-
-      expect(
-        mockInfrastructure.controllers.transaction.submit,
-      ).toHaveBeenCalledWith(
-        {
-          ...mockTransaction,
-          to: USDC_ARBITRUM_MAINNET_ADDRESS,
-        },
-        {
-          networkClientId: mockNetworkClientId,
-          origin: 'metamask',
-          type: 'perpsDeposit',
-          skipInitialGasEstimate: true,
-          gasFeeToken: USDC_ARBITRUM_MAINNET_ADDRESS,
-        },
-      );
     });
 
     it('throws error when controller not initialized', async () => {
@@ -2910,11 +2904,25 @@ describe('PerpsController', () => {
 
   describe('market filter preferences', () => {
     it('saves and retrieves filter preference', () => {
-      controller.saveMarketFilterPreferences('openInterest');
+      controller.saveMarketFilterPreferences('openInterest', 'desc');
 
       const result = controller.getMarketFilterPreferences();
 
-      expect(result).toBe('openInterest');
+      expect(result).toEqual({
+        optionId: 'openInterest',
+        direction: 'desc',
+      });
+    });
+
+    it('saves and retrieves price change with ascending direction', () => {
+      controller.saveMarketFilterPreferences('priceChange', 'asc');
+
+      const result = controller.getMarketFilterPreferences();
+
+      expect(result).toEqual({
+        optionId: 'priceChange',
+        direction: 'asc',
+      });
     });
   });
 
@@ -3245,6 +3253,141 @@ describe('PerpsController', () => {
       // Pending config should also be available
       const pending = controller.getPendingTradeConfiguration('BTC');
       expect(pending).toEqual(pendingConfig);
+    });
+  });
+
+  describe('WebSocket connection state', () => {
+    // Import actual enum to ensure type compatibility
+    const { WebSocketConnectionState } = jest.requireActual(
+      '../services/HyperLiquidClientService',
+    );
+
+    it('getWebSocketConnectionState returns state from active provider', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      mockProvider.getWebSocketConnectionState.mockReturnValue(
+        WebSocketConnectionState.Connected,
+      );
+
+      // Act
+      const result = controller.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.Connected);
+      expect(mockProvider.getWebSocketConnectionState).toHaveBeenCalled();
+    });
+
+    it('getWebSocketConnectionState returns DISCONNECTED when provider does not support method', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      // Remove the method to simulate provider without support
+      mockProvider.getWebSocketConnectionState = undefined as never;
+
+      // Act
+      const result = controller.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.Disconnected);
+    });
+
+    it('getWebSocketConnectionState returns DISCONNECTED when no provider is active', () => {
+      // Arrange - don't set up any provider
+
+      // Act
+      const result = controller.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.Disconnected);
+    });
+
+    it('subscribeToConnectionState delegates to active provider', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      const mockUnsubscribe = jest.fn();
+      mockProvider.subscribeToConnectionState.mockReturnValue(mockUnsubscribe);
+      const listener = jest.fn();
+
+      // Act
+      const unsubscribe = controller.subscribeToConnectionState(listener);
+
+      // Assert
+      expect(mockProvider.subscribeToConnectionState).toHaveBeenCalledWith(
+        listener,
+      );
+      expect(unsubscribe).toBe(mockUnsubscribe);
+    });
+
+    it('subscribeToConnectionState calls listener immediately when provider does not support method', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      // Keep getWebSocketConnectionState but remove subscribeToConnectionState
+      mockProvider.getWebSocketConnectionState.mockReturnValue(
+        WebSocketConnectionState.Disconnected,
+      );
+      mockProvider.subscribeToConnectionState = undefined as never;
+      const listener = jest.fn();
+
+      // Act
+      const unsubscribe = controller.subscribeToConnectionState(listener);
+
+      // Assert - listener is called with result of getWebSocketConnectionState()
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.Disconnected,
+        0,
+      );
+      expect(typeof unsubscribe).toBe('function');
+    });
+
+    it('subscribeToConnectionState returns no-op when no provider is active', () => {
+      // Arrange - don't set up any provider
+      const listener = jest.fn();
+
+      // Act
+      const unsubscribe = controller.subscribeToConnectionState(listener);
+
+      // Assert
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.Disconnected,
+        0,
+      );
+      expect(typeof unsubscribe).toBe('function');
+      // Verify unsubscribe doesn't throw
+      expect(() => unsubscribe()).not.toThrow();
+    });
+
+    it('reconnect delegates to active provider', async () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      mockProvider.reconnect.mockResolvedValue(undefined);
+
+      // Act
+      await controller.reconnect();
+
+      // Assert
+      expect(mockProvider.reconnect).toHaveBeenCalled();
+    });
+
+    it('reconnect does nothing when provider does not support method', async () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      // Remove the method to simulate provider without support
+      mockProvider.reconnect = undefined as never;
+
+      // Act & Assert - should not throw
+      await expect(controller.reconnect()).resolves.toBeUndefined();
+    });
+
+    it('reconnect does nothing when no provider is active', async () => {
+      // Arrange - don't set up any provider
+
+      // Act & Assert - should not throw
+      await expect(controller.reconnect()).resolves.toBeUndefined();
     });
   });
 

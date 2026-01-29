@@ -1,4 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
 import React, { useCallback, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,28 +26,40 @@ import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import { useSelector } from 'react-redux';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import type {
+  PerpsNavigationParamList,
+  PerpsMarketData,
+} from '../../controllers/types';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
+  usePerpsTabExploreData,
 } from '../../hooks';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
+import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
+import PerpsTokenLogo from '../../components/PerpsTokenLogo';
+import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
+import PerpsBadge from '../../components/PerpsBadge';
+import {
+  getPerpsDisplaySymbol,
+  getMarketBadgeType,
+} from '../../utils/marketUtils';
+import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { PerpsEmptyState } from '../PerpsEmptyState';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 
-interface PerpsTabViewProps {}
-
-const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
+const PerpsTabView = () => {
   const { styles } = useStyles(styleSheet, {});
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -56,6 +69,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+  const isEligible = useSelector(selectPerpsEligibility);
+  const { track } = usePerpsEventTracking();
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
@@ -81,6 +96,26 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
+
+  // Business hook for explore data when no positions/orders
+  const {
+    exploreMarkets,
+    watchlistMarkets,
+    isLoading: isExploreLoading,
+  } = usePerpsTabExploreData({ enabled: hasNoPositionsOrOrders });
+
+  // Determine balance visibility for conditional header styling
+  const totalBalance = account?.totalBalance ?? '0';
+  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  const shouldShowBalance = !isBalanceEmpty;
+
+  // Watchlist header: at top, varies by balance
+  const watchlistHeaderStyle = shouldShowBalance
+    ? styles.watchlistHeaderStyleWithBalance // 24px/4px
+    : styles.watchlistHeaderStyleNoBalance; // 16px/4px
+
+  // Check if watchlist is visible (for conditional rendering)
+  const isWatchlistVisible = watchlistMarkets.length > 0;
 
   // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
@@ -117,12 +152,23 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
-  // Modal handlers - now using navigation to modal stack
+  // Modal handlers - now using navigation to modal stack with geo-restriction check
   const handleCloseAllPress = useCallback(() => {
+    // Geo-restriction check for close all positions
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
       screen: Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS,
     });
-  }, [navigation]);
+  }, [isEligible, navigation, track]);
 
   const handleCancelAllPress = useCallback(() => {
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
@@ -216,11 +262,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             const directionSegment = getPositionDirection(position.size);
             return (
               <View
-                key={`${position.coin}-${index}`}
-                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+                key={`${position.symbol}-${index}`}
+                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.symbol}-${position.leverage.value}x-${directionSegment}-${index}`}
               >
                 <PerpsCard
-                  key={`${position.coin}-${index}`}
+                  key={`${position.symbol}-${index}`}
                   position={position}
                   source={PerpsEventValues.SOURCE.POSITION_TAB}
                 />
@@ -233,6 +279,130 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     );
   };
 
+  // Custom explore market row - isolated styling for PerpsTabView only
+  const handleExploreMarketPress = useCallback(
+    (market: PerpsMarketData) => {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: { market },
+      });
+    },
+    [navigation],
+  );
+
+  const handleSeeAllPerps = useCallback(() => {
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
+    });
+  }, [navigation]);
+
+  const renderExploreMarketRow = useCallback(
+    (market: PerpsMarketData) => {
+      const badgeType = getMarketBadgeType(market);
+      const isPositiveChange = !market.change24h.startsWith('-');
+
+      return (
+        <TouchableOpacity
+          key={market.symbol}
+          style={styles.exploreMarketRow}
+          onPress={() => handleExploreMarketPress(market)}
+        >
+          <View style={styles.exploreMarketLeft}>
+            <View style={styles.exploreMarketIcon}>
+              <PerpsTokenLogo
+                symbol={market.symbol}
+                size={HOME_SCREEN_CONFIG.DefaultIconSize}
+              />
+            </View>
+            <View style={styles.exploreMarketInfo}>
+              <View style={styles.exploreMarketHeader}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                >
+                  {getPerpsDisplaySymbol(market.symbol)}
+                </Text>
+                <PerpsLeverage maxLeverage={market.maxLeverage} />
+              </View>
+              <View style={styles.exploreMarketSecondRow}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  numberOfLines={1}
+                >
+                  {market.volume} {strings('perps.sort.volume_short')}
+                </Text>
+                {badgeType && <PerpsBadge type={badgeType} />}
+              </View>
+            </View>
+          </View>
+          <View style={styles.exploreMarketRight}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              style={styles.exploreMarketPrice}
+            >
+              {market.price}
+            </Text>
+            <Text
+              variant={TextVariant.BodySM}
+              color={isPositiveChange ? TextColor.Success : TextColor.Error}
+              style={styles.exploreMarketChange}
+            >
+              {market.change24hPercent}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [styles, handleExploreMarketPress],
+  );
+
+  const renderExploreSection = useCallback(() => {
+    if (isExploreLoading) {
+      return (
+        <View style={styles.exploreSection}>
+          <View style={styles.exploreSectionHeader}>
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {strings('perps.home.explore_markets')}
+            </Text>
+          </View>
+          <PerpsRowSkeleton count={5} />
+        </View>
+      );
+    }
+
+    if (exploreMarkets.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.exploreSection}>
+        <View style={styles.exploreSectionHeader}>
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {strings('perps.home.explore_markets')}
+          </Text>
+        </View>
+        <View>{exploreMarkets.map(renderExploreMarketRow)}</View>
+        <TouchableOpacity
+          style={styles.seeAllButton}
+          onPress={handleSeeAllPerps}
+        >
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {strings('perps.home.see_all_perps')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }, [
+    isExploreLoading,
+    exploreMarkets,
+    styles,
+    renderExploreMarketRow,
+    handleSeeAllPerps,
+  ]);
+
   return (
     <SafeAreaView
       style={[
@@ -241,53 +411,56 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       ]}
       edges={['left', 'right']}
     >
-      <>
-        <PerpsTabControlBar
-          onManageBalancePress={handleManageBalancePress}
-          hasPositions={hasPositions}
-          hasOrders={hasOrders}
-        />
-        <ConditionalScrollView
-          isScrollEnabled={!isHomepageRedesignV1Enabled}
-          scrollViewProps={{
-            style: styles.content,
-            testID: PerpsTabViewSelectorsIDs.SCROLL_VIEW,
-          }}
-        >
-          {!isInitialLoading && hasNoPositionsOrOrders ? (
-            <View style={styles.emptyStateContainer}>
-              <PerpsEmptyState
-                onAction={handleNewTrade}
-                testID="perps-empty-state"
-                twClassName="mx-auto"
+      <PerpsTabControlBar
+        onManageBalancePress={handleManageBalancePress}
+        hasPositions={hasPositions}
+        hasOrders={hasOrders}
+      />
+      <ConditionalScrollView
+        isScrollEnabled={!isHomepageRedesignV1Enabled}
+        scrollViewProps={{
+          style: styles.content,
+          testID: PerpsTabViewSelectorsIDs.SCROLL_VIEW,
+        }}
+      >
+        {!isInitialLoading && hasNoPositionsOrOrders ? (
+          <View style={styles.emptyStateContainer}>
+            {/* Watchlist section - only render if user has watchlist markets */}
+            {isWatchlistVisible && (
+              <PerpsWatchlistMarkets
+                markets={watchlistMarkets}
+                isLoading={isExploreLoading}
+                positions={[]}
+                orders={[]}
+                sectionStyle={styles.watchlistSectionStyle}
+                headerStyle={watchlistHeaderStyle}
+                contentContainerStyle={styles.flatContentContainerStyle}
               />
-            </View>
-          ) : (
-            <View style={styles.tradeInfoContainer}>
-              <View>{renderPositionsSection()}</View>
-              <View>{renderOrdersSection()}</View>
-            </View>
-          )}
-        </ConditionalScrollView>
-        {isEligibilityModalVisible && (
-          // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
-          <View>
-            <Modal
-              visible
-              transparent
-              animationType="none"
-              statusBarTranslucent
-            >
-              <PerpsBottomSheetTooltip
-                isVisible
-                onClose={() => setIsEligibilityModalVisible(false)}
-                contentKey={'geo_block'}
-                testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
-              />
-            </Modal>
+            )}
+
+            {/* Explore markets section - custom render for PerpsTabView styling */}
+            {renderExploreSection()}
+          </View>
+        ) : (
+          <View style={styles.tradeInfoContainer}>
+            <View>{renderPositionsSection()}</View>
+            <View>{renderOrdersSection()}</View>
           </View>
         )}
-      </>
+      </ConditionalScrollView>
+      {isEligibilityModalVisible && (
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsEligibilityModalVisible(false)}
+              contentKey={'geo_block'}
+              testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
+            />
+          </Modal>
+        </View>
+      )}
     </SafeAreaView>
   );
 };

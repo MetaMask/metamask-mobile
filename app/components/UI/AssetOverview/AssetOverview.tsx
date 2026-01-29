@@ -1,7 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -13,7 +19,6 @@ import {
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
-import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
@@ -40,7 +45,6 @@ import {
   addCurrencySymbol,
   balanceToFiatNumber,
 } from '../../../util/number';
-import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
@@ -55,6 +59,7 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useScrollToMerklRewards } from './hooks/useScrollToMerklRewards';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -107,6 +112,7 @@ import { selectPerpsEnabledFlag } from '../Perps';
 import { usePerpsMarketForAsset } from '../Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../Perps/components/PerpsDiscoveryBanner';
 import { PerpsEventValues } from '../Perps/constants/eventNames';
+import { isTokenTrustworthyForPerps } from '../Perps/constants/perpsConfig';
 import DSText, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -223,6 +229,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     selectMerklCampaignClaimingEnabledFlag,
   );
   const { navigateToSendPage } = useSendNavigation();
+  const merklRewardsRef = useRef<View>(null);
+  const merklRewardsYInHeaderRef = useRef<number | null>(null);
+
+  // Scroll to MerklRewards section when navigating from "Claim bonus" CTA
+  useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -234,7 +245,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const chainId = asset.chainId as Hex;
-  const ticker = nativeCurrency;
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
@@ -300,8 +310,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     isPerpsEnabled ? asset.symbol : null,
   );
 
+  // Check if token is trustworthy for showing Perps banner
+  const isTokenTrustworthy = isTokenTrustworthyForPerps(asset);
+
   const { styles } = useStyles(styleSheet, {});
-  const dispatch = useDispatch();
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -409,12 +421,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       await MultichainNetworkController.setActiveNetwork(
         networkClientId as string,
       );
-    }
-
-    if ((asset.isETH || asset.isNative) && ticker) {
-      dispatch(newAssetTransaction(getEther(ticker)));
-    } else {
-      dispatch(newAssetTransaction(asset));
     }
 
     navigateToSendPage({ location: InitSendLocation.AssetOverview, asset });
@@ -831,22 +837,38 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isMerklCampaignClaimingEnabled && <MerklRewards asset={asset} />}
-          {isPerpsEnabled && hasPerpsMarket && marketData && (
-            <>
-              <View style={styles.perpsPositionHeader}>
-                <DSText variant={TextVariant.HeadingMD}>
-                  {strings('asset_overview.perps_position')}
-                </DSText>
-              </View>
-              <PerpsDiscoveryBanner
-                symbol={marketData.symbol}
-                maxLeverage={marketData.maxLeverage}
-                onPress={handlePerpsDiscoveryPress}
-                testID="perps-discovery-banner"
-              />
-            </>
+          {isMerklCampaignClaimingEnabled && (
+            <View
+              ref={merklRewardsRef}
+              testID="merkl-rewards-section"
+              onLayout={(event) => {
+                // Store Y position relative to header (which is the scroll offset)
+                // This is more reliable than measureInWindow for FlatList scrolling
+                const { y } = event.nativeEvent.layout;
+                merklRewardsYInHeaderRef.current = y;
+              }}
+            >
+              <MerklRewards asset={asset} />
+            </View>
           )}
+          {isPerpsEnabled &&
+            hasPerpsMarket &&
+            marketData &&
+            isTokenTrustworthy && (
+              <>
+                <View style={styles.perpsPositionHeader}>
+                  <DSText variant={TextVariant.HeadingMD}>
+                    {strings('asset_overview.perps_position')}
+                  </DSText>
+                </View>
+                <PerpsDiscoveryBanner
+                  symbol={marketData.symbol}
+                  maxLeverage={marketData.maxLeverage}
+                  onPress={handlePerpsDiscoveryPress}
+                  testID="perps-discovery-banner"
+                />
+              </>
+            )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
