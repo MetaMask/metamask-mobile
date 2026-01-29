@@ -76,8 +76,9 @@ interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
 }
 
-export const createBuildQuoteNavDetails =
-  createNavigationDetails<BuildQuoteParams>(Routes.DEPOSIT.BUILD_QUOTE);
+export const createBuildQuoteNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.BUILD_QUOTE,
+);
 
 const BuildQuote = () => {
   const { shouldRouteImmediately } = useParams<BuildQuoteParams>();

@@ -92,7 +92,7 @@ interface AssetSelectionModalNavigationDetails {
 }
 
 export const createAssetSelectionModalNavigationDetails =
-  createNavigationDetails<AssetSelectionModalNavigationDetails>(
+  createNavigationDetails(
     Routes.CARD.MODALS.ID,
     Routes.CARD.MODALS.ASSET_SELECTION,
   );

@@ -48,7 +48,7 @@ interface CheckoutParams {
   provider: Provider;
 }
 
-export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
+export const createCheckoutNavDetails = createNavigationDetails(
   Routes.RAMP.CHECKOUT,
 );
 

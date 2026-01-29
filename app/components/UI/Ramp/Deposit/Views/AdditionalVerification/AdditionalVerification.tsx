@@ -29,10 +29,9 @@ interface AdditionalVerificationParams {
   workFlowRunId: string;
 }
 
-export const createAdditionalVerificationNavDetails =
-  createNavigationDetails<AdditionalVerificationParams>(
-    Routes.DEPOSIT.ADDITIONAL_VERIFICATION,
-  );
+export const createAdditionalVerificationNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.ADDITIONAL_VERIFICATION,
+);
 
 const AdditionalVerification = () => {
   const navigation = useNavigation();

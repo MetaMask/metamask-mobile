@@ -281,18 +281,30 @@ export type RootParamList = {
   OrderDetails: { orderId?: string } | undefined;
   SendTransaction: { orderId?: string } | undefined;
   RampTokenSelection: undefined;
-  RampModals: undefined;
+  RampModals:
+    | {
+        screen?: string;
+        params?: { regions?: object[]; region?: object } | object;
+      }
+    | undefined;
   RampTokenSelectorModal: undefined;
   RampFiatSelectorModal: undefined;
-  RampRegionSelectorModal: object | undefined;
-  RampUnsupportedRegionModal: undefined;
+  RampRegionSelectorModal: { regions?: object[] } | undefined;
+  RampUnsupportedRegionModal:
+    | { region?: object; regions?: object[] }
+    | undefined;
   RampUnsupportedTokenModal: undefined;
   RampPaymentMethodSelectorModal: undefined;
   RampSettingsModal: undefined;
   RampIncompatibleAccountTokenModal: undefined;
 
   // Deposit Flow
-  Deposit: undefined;
+  Deposit:
+    | {
+        screen?: string;
+        params?: object;
+      }
+    | undefined;
   DepositRoot: undefined;
   EnterEmail: undefined;
   OtpCode: undefined;
@@ -308,7 +320,12 @@ export type RootParamList = {
     animationEnabled?: boolean;
   };
   AdditionalVerification: object | undefined;
-  DepositModals: undefined;
+  DepositModals:
+    | {
+        screen?: string;
+        params?: object;
+      }
+    | undefined;
   DepositTokenSelectorModal: {
     selectedAssetId?: string;
     handleSelectAssetId?: (assetId: string) => void;
@@ -447,12 +464,27 @@ export type RootParamList = {
   CardModals:
     | {
         screen?: string;
-        params?: object;
+        params?: { priorityToken?: object } | object;
       }
     | undefined;
-  CardAddFundsModal: undefined;
-  CardAssetSelectionModal: undefined;
-  CardRegionSelectionModal: undefined;
+  CardAddFundsModal: { priorityToken?: object } | undefined;
+  CardAssetSelectionModal:
+    | {
+        tokensWithAllowances?: object[];
+        delegationSettings?: object | null;
+        cardExternalWalletDetails?: object | null;
+        selectionOnly?: boolean;
+        hideSolanaAssets?: boolean;
+        callerRoute?: string;
+        callerParams?: Record<string, unknown>;
+      }
+    | undefined;
+  CardRegionSelectionModal:
+    | {
+        regions?: object[];
+        renderAreaCode?: boolean;
+      }
+    | undefined;
   CardConfirmModal: undefined;
 
   // Perps Flow
@@ -794,7 +826,13 @@ export type RootParamList = {
     | undefined;
 
   // Vault Recovery
-  RestoreWallet: object | undefined;
+  RestoreWallet:
+    | {
+        screen?: string;
+        params?: { previousScreen?: string } | object;
+      }
+    | { previousScreen?: string }
+    | undefined;
   WalletRestored: undefined;
   WalletRestoredError: undefined;
   WalletResetNeeded: undefined;
@@ -868,7 +906,9 @@ export type RootParamList = {
   AssetsSettings: undefined;
   WalletTabStackFlow: undefined;
   NftFullView: undefined;
-  MultichainAddressList: undefined;
+  MultichainAddressList:
+    | { groupId?: string; title?: string; onLoad?: () => void }
+    | undefined;
   MultichainAccountDetails: { account?: object } | undefined;
   MultichainAccountGroupDetails:
     | {

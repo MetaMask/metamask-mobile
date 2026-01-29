@@ -31,7 +31,7 @@ interface PaymentMethodSelectorModalParams {
 }
 
 export const createPaymentMethodSelectorModalNavigationDetails =
-  createNavigationDetails<PaymentMethodSelectorModalParams>(
+  createNavigationDetails(
     Routes.RAMP.MODALS.ID,
     Routes.RAMP.MODALS.PAYMENT_METHOD_SELECTOR,
   );

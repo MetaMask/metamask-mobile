@@ -24,10 +24,9 @@ import getHeaderCenterNavbarOptions from '../../../../component-library/componen
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 
-export const createAddressListNavigationDetails =
-  createNavigationDetails<AddressListProps>(
-    Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
-  );
+export const createAddressListNavigationDetails = createNavigationDetails(
+  Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+);
 
 /**
  * AddressList component displays a list of addresses spread by scopes.

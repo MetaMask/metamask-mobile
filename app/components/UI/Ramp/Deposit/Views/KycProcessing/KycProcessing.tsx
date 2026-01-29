@@ -39,8 +39,9 @@ export interface KycProcessingParams {
   kycUrl?: string;
 }
 
-export const createKycProcessingNavDetails =
-  createNavigationDetails<KycProcessingParams>(Routes.DEPOSIT.KYC_PROCESSING);
+export const createKycProcessingNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.KYC_PROCESSING,
+);
 
 const KycProcessing = () => {
   const navigation = useNavigation();

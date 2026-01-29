@@ -42,8 +42,9 @@ export interface EnterAddressParams {
   quote: BuyQuote;
 }
 
-export const createEnterAddressNavDetails =
-  createNavigationDetails<EnterAddressParams>(Routes.DEPOSIT.ENTER_ADDRESS);
+export const createEnterAddressNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.ENTER_ADDRESS,
+);
 
 export interface AddressFormData {
   addressLine1: string;

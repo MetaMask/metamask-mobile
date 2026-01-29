@@ -36,7 +36,7 @@ export interface UnsupportedStateModalParams {
 }
 
 export const createUnsupportedStateModalNavigationDetails =
-  createNavigationDetails<UnsupportedStateModalParams>(
+  createNavigationDetails(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.UNSUPPORTED_STATE,
   );

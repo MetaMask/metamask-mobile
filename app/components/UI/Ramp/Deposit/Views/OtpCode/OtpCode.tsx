@@ -45,7 +45,7 @@ export interface OtpCodeParams {
   redirectToRootAfterAuth?: boolean;
 }
 
-export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
+export const createOtpCodeNavDetails = createNavigationDetails(
   Routes.DEPOSIT.OTP_CODE,
 );
 

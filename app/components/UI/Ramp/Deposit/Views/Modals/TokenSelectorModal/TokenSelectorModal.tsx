@@ -40,7 +40,7 @@ interface TokenSelectorModalParams {
 }
 
 export const createTokenSelectorModalNavigationDetails =
-  createNavigationDetails<TokenSelectorModalParams>(
+  createNavigationDetails(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.TOKEN_SELECTOR,
   );

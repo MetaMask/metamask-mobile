@@ -35,10 +35,9 @@ interface ActivationKeyFormParams {
   label: string;
 }
 
-export const createActivationKeyFormNavDetails =
-  createNavigationDetails<ActivationKeyFormParams>(
-    Routes.RAMP.ACTIVATION_KEY_FORM,
-  );
+export const createActivationKeyFormNavDetails = createNavigationDetails(
+  Routes.RAMP.ACTIVATION_KEY_FORM,
+);
 
 function ActivationKeyForm() {
   const navigation = useNavigation();

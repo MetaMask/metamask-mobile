@@ -27,10 +27,9 @@ export interface OrderProcessingParams {
   orderId: string;
 }
 
-export const createOrderProcessingNavDetails =
-  createNavigationDetails<OrderProcessingParams>(
-    Routes.DEPOSIT.ORDER_PROCESSING,
-  );
+export const createOrderProcessingNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.ORDER_PROCESSING,
+);
 
 const OrderProcessing = () => {
   const navigation = useNavigation();

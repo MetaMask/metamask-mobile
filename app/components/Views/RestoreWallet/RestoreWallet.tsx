@@ -37,11 +37,10 @@ export const createRestoreWalletNavDetails =
 
 // Needed for passing the proper params from outside this stack navigator
 // This occurs from the Login screen
-export const createRestoreWalletNavDetailsNested =
-  createNavigationDetails<RestoreWalletParams>(
-    Routes.VAULT_RECOVERY.RESTORE_WALLET,
-    Routes.VAULT_RECOVERY.RESTORE_WALLET,
-  );
+export const createRestoreWalletNavDetailsNested = createNavigationDetails(
+  Routes.VAULT_RECOVERY.RESTORE_WALLET,
+  Routes.VAULT_RECOVERY.RESTORE_WALLET,
+);
 
 const RestoreWallet = () => {
   const { trackEvent, createEventBuilder } = useMetrics();

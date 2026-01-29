@@ -53,8 +53,9 @@ export interface BankDetailsParams {
   shouldUpdate?: boolean;
 }
 
-export const createBankDetailsNavDetails =
-  createNavigationDetails<BankDetailsParams>(Routes.DEPOSIT.BANK_DETAILS);
+export const createBankDetailsNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.BANK_DETAILS,
+);
 
 const BankDetails = () => {
   const navigation = useNavigation();

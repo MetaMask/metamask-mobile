@@ -52,11 +52,10 @@ interface TokenSelectModalNavigationDetails {
   tokens: CryptoCurrency[];
 }
 
-export const createTokenSelectModalNavigationDetails =
-  createNavigationDetails<TokenSelectModalNavigationDetails>(
-    Routes.RAMP.MODALS.ID,
-    Routes.RAMP.MODALS.TOKEN_SELECTOR,
-  );
+export const createTokenSelectModalNavigationDetails = createNavigationDetails(
+  Routes.RAMP.MODALS.ID,
+  Routes.RAMP.MODALS.TOKEN_SELECTOR,
+);
 
 function TokenSelectModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
