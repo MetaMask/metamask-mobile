@@ -109,27 +109,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 4,
       marginBottom: 0,
     },
-    exploreMarketsSectionStyle: {
-      marginBottom: 0,
-    },
-    exploreMarketsHeaderStyleNoBalance: {
-      paddingTop: 16,
-      paddingHorizontal: 16,
-      paddingBottom: 4,
-      marginBottom: 0,
-    },
-    exploreMarketsHeaderStyleWithBalance: {
-      paddingTop: 24,
-      paddingHorizontal: 16,
-      paddingBottom: 4,
-      marginBottom: 0,
-    },
-    exploreMarketsHeaderStyleBelowWatchlist: {
-      paddingTop: 20,
-      paddingHorizontal: 16,
-      paddingBottom: 8,
-      marginBottom: 0,
-    },
     // Flat content container - no card styling
     // Note: horizontal padding comes from internal listContent/PerpsMarketList styles
     flatContentContainerStyle: {
@@ -138,6 +117,53 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 0,
       paddingBottom: 0,
       backgroundColor: colors.background.default,
+    },
+    // Custom explore section styles - isolated from shared components
+    exploreSection: {
+      marginBottom: 0,
+    },
+    exploreSectionHeader: {
+      paddingTop: 8,
+      paddingBottom: 8,
+      marginBottom: 0,
+    },
+    exploreMarketRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 6,
+    },
+    exploreMarketLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    exploreMarketIcon: {
+      marginRight: 12,
+    },
+    exploreMarketInfo: {
+      flex: 1,
+    },
+    exploreMarketHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    exploreMarketSecondRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 2,
+    },
+    exploreMarketRight: {
+      alignItems: 'flex-end',
+      flex: 1,
+    },
+    exploreMarketPrice: {
+      marginBottom: 2,
+    },
+    exploreMarketChange: {
+      marginTop: 2,
     },
   });
 };

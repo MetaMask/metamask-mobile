@@ -30,7 +30,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import type { PerpsNavigationParamList , PerpsMarketData } from '../../controllers/types';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
@@ -39,10 +39,18 @@ import {
 } from '../../hooks';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
-import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
+import PerpsTokenLogo from '../../components/PerpsTokenLogo';
+import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
+import PerpsBadge from '../../components/PerpsBadge';
+import {
+  getPerpsDisplaySymbol,
+  getMarketBadgeType,
+} from '../../utils/marketUtils';
+import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
@@ -100,16 +108,8 @@ const PerpsTabView = () => {
     ? styles.watchlistHeaderStyleWithBalance // 24px/4px
     : styles.watchlistHeaderStyleNoBalance; // 16px/4px
 
-  // Explore header: depends on position and balance
-  // - Below watchlist: 20px/8px (visual separation between sections)
-  // - At top with balance: 24px/4px
-  // - At top without balance: 16px/4px
+  // Check if watchlist is visible (for conditional rendering)
   const isWatchlistVisible = watchlistMarkets.length > 0;
-  const exploreMarketsHeaderStyle = isWatchlistVisible
-    ? styles.exploreMarketsHeaderStyleBelowWatchlist // 20px/8px
-    : shouldShowBalance
-      ? styles.exploreMarketsHeaderStyleWithBalance // 24px/4px
-      : styles.exploreMarketsHeaderStyleNoBalance; // 16px/4px
 
   // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
@@ -262,6 +262,109 @@ const PerpsTabView = () => {
     );
   };
 
+  // Custom explore market row - isolated styling for PerpsTabView only
+  const handleExploreMarketPress = useCallback(
+    (market: PerpsMarketData) => {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: { market },
+      });
+    },
+    [navigation],
+  );
+
+  const renderExploreMarketRow = useCallback(
+    (market: PerpsMarketData) => {
+      const badgeType = getMarketBadgeType(market);
+      const isPositiveChange = !market.change24h.startsWith('-');
+
+      return (
+        <TouchableOpacity
+          key={market.symbol}
+          style={styles.exploreMarketRow}
+          onPress={() => handleExploreMarketPress(market)}
+        >
+          <View style={styles.exploreMarketLeft}>
+            <View style={styles.exploreMarketIcon}>
+              <PerpsTokenLogo
+                symbol={market.symbol}
+                size={HOME_SCREEN_CONFIG.DefaultIconSize}
+              />
+            </View>
+            <View style={styles.exploreMarketInfo}>
+              <View style={styles.exploreMarketHeader}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                >
+                  {getPerpsDisplaySymbol(market.symbol)}
+                </Text>
+                <PerpsLeverage maxLeverage={market.maxLeverage} />
+              </View>
+              <View style={styles.exploreMarketSecondRow}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  numberOfLines={1}
+                >
+                  {market.volume} {strings('perps.sort.volume_short')}
+                </Text>
+                {badgeType && <PerpsBadge type={badgeType} />}
+              </View>
+            </View>
+          </View>
+          <View style={styles.exploreMarketRight}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              style={styles.exploreMarketPrice}
+            >
+              {market.price}
+            </Text>
+            <Text
+              variant={TextVariant.BodySM}
+              color={isPositiveChange ? TextColor.Success : TextColor.Error}
+              style={styles.exploreMarketChange}
+            >
+              {market.change24hPercent}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [styles, handleExploreMarketPress],
+  );
+
+  const renderExploreSection = useCallback(() => {
+    if (isExploreLoading) {
+      return (
+        <View style={styles.exploreSection}>
+          <View style={styles.exploreSectionHeader}>
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {strings('perps.home.explore_markets')}
+            </Text>
+          </View>
+          <PerpsRowSkeleton count={5} />
+        </View>
+      );
+    }
+
+    if (exploreMarkets.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.exploreSection}>
+        <View style={styles.exploreSectionHeader}>
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {strings('perps.home.explore_markets')}
+          </Text>
+        </View>
+        <View>{exploreMarkets.map(renderExploreMarketRow)}</View>
+      </View>
+    );
+  }, [isExploreLoading, exploreMarkets, styles, renderExploreMarketRow]);
+
   return (
     <SafeAreaView
       style={[
@@ -297,17 +400,8 @@ const PerpsTabView = () => {
               />
             )}
 
-            {/* Explore markets section - top 8 by volume */}
-            <PerpsMarketTypeSection
-              title={strings('perps.home.explore_markets')}
-              markets={exploreMarkets}
-              marketType="all"
-              sortBy="volume"
-              isLoading={isExploreLoading}
-              style={styles.exploreMarketsSectionStyle}
-              headerStyle={exploreMarketsHeaderStyle}
-              contentContainerStyle={styles.flatContentContainerStyle}
-            />
+            {/* Explore markets section - custom render for PerpsTabView styling */}
+            {renderExploreSection()}
           </View>
         ) : (
           <View style={styles.tradeInfoContainer}>
