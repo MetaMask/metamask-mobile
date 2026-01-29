@@ -64,7 +64,7 @@ export interface SearchProperties {
 /**
  * Filter types for filter change tracking
  */
-export type FilterType = 'time' | 'sort' | 'network';
+type FilterType = 'time' | 'sort' | 'network';
 
 /**
  * Properties for filter change tracking
