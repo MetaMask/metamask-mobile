@@ -1,9 +1,17 @@
 import migrate, { migrationVersion } from './115';
 import { captureException } from '@sentry/react-native';
+import { hasProperty } from '@metamask/utils';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
+
+jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
+  hasProperty: jest.fn(),
+}));
+
+const mockHasProperty = hasProperty as jest.MockedFunction<typeof hasProperty>;
 
 const mockCaptureException = captureException as jest.MockedFunction<
   typeof captureException
@@ -12,6 +20,10 @@ const mockCaptureException = captureException as jest.MockedFunction<
 describe(`Migration ${migrationVersion}`, () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default implementation: use the actual hasProperty function
+    mockHasProperty.mockImplementation(
+      jest.requireActual('@metamask/utils').hasProperty,
+    );
   });
 
   it('returns state unchanged if state is invalid', () => {
@@ -113,15 +125,26 @@ describe(`Migration ${migrationVersion}`, () => {
       },
     };
 
-    // Mock hasProperty to throw
-    jest.spyOn(Object, 'defineProperty').mockImplementationOnce(() => {
-      throw new Error('Test error');
-    });
+    const actualHasProperty = jest.requireActual('@metamask/utils').hasProperty;
 
-    // The migration should handle errors gracefully
+    // Allow the first two calls (in ensureValidState) to succeed,
+    // then throw on the third call (first call in the try block)
+    mockHasProperty
+      .mockImplementationOnce(actualHasProperty) // ensureValidState: check for 'engine'
+      .mockImplementationOnce(actualHasProperty) // ensureValidState: check for 'backgroundState'
+      .mockImplementationOnce(() => {
+        throw new Error('Test error');
+      });
+
     const result = migrate(state);
 
-    // State should be returned (migration doesn't throw)
-    expect(result).toBeDefined();
+    // State should be returned unchanged (migration catches the error)
+    expect(result).toStrictEqual(state);
+    // Verify the error was captured
+    expect(mockCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('Migration 115 failed'),
+      }),
+    );
   });
 });
