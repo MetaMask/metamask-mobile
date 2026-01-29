@@ -300,7 +300,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const fills = await provider.getOrFetchFills(params, logContext);
-        return fills.map((f) => ({ ...f, providerId: id }));
+        return fills.map((fill) => ({ ...fill, providerId: id }));
       }),
     );
 

@@ -393,11 +393,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Only zoom when:
     // 1. The interval has changed (user pressed button)
     // 2. New data exists and matches the selected period
-    if (
-      hasIntervalChanged &&
-      candleData &&
-      candleData.interval === selectedCandlePeriod
-    ) {
+    if (hasIntervalChanged && candleData?.interval === selectedCandlePeriod) {
       chartRef.current?.zoomToLatestCandle(visibleCandleCount);
       // Update the ref to track this interval change
       previousIntervalRef.current = selectedCandlePeriod;
