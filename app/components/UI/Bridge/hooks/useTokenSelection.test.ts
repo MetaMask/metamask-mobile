@@ -294,7 +294,11 @@ describe('useTokenSelection', () => {
     beforeEach(() => {
       mockUseSelector
         .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(mockDestToken);
+        .mockReturnValueOnce(mockDestToken)
+        .mockReturnValueOnce(mockDestAmount);
+    });
+    afterEach(() => {
+      mockUseSelector.mockReset();
     });
 
     it('proceeds with selection when stock token trading is open', async () => {
@@ -359,10 +363,6 @@ describe('useTokenSelection', () => {
     });
 
     it('navigates to market closed modal for dest token when trading is closed', async () => {
-      mockUseSelector.mockReset();
-      mockUseSelector
-        .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(mockDestToken);
       mockIsStockToken.mockReturnValue(true);
       mockIsTokenTradingOpen.mockResolvedValue(false);
 
@@ -382,7 +382,6 @@ describe('useTokenSelection', () => {
     });
 
     it('swaps tokens when selecting other token as stock token with open market', async () => {
-      mockUseSelector.mockReset();
       const stockDestToken = createMockToken({
         address: '0xdest',
         symbol: 'DST',
@@ -397,7 +396,8 @@ describe('useTokenSelection', () => {
       });
       mockUseSelector
         .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(stockDestToken);
+        .mockReturnValueOnce(stockDestToken)
+        .mockReturnValueOnce(mockDestAmount);
       mockIsStockToken.mockReturnValue(true);
       mockIsTokenTradingOpen.mockResolvedValue(true);
 
@@ -411,7 +411,8 @@ describe('useTokenSelection', () => {
 
       expect(mockIsStockToken).toHaveBeenCalledWith(stockDestToken);
       expect(mockIsTokenTradingOpen).toHaveBeenCalledWith(stockDestToken);
-      expect(mockHandleSwitchTokens).toHaveBeenCalled();
+      expect(mockHandleSwitchTokens).toHaveBeenCalledWith(mockDestAmount);
+      expect(mockHandleSwitchTokensInner).toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalled();
     });
   });
