@@ -188,6 +188,7 @@ const TraderDetailSheet: React.FC<TraderDetailSheetProps> = ({
         const following = await LeaderboardService.isFollowing(
           userAddress,
           trader.id,
+          trader.addresses,
         );
         setIsFollowing(following);
       } catch (error) {
@@ -204,7 +205,7 @@ const TraderDetailSheet: React.FC<TraderDetailSheetProps> = ({
       setIsFollowing(false);
       setIsFollowLoading(false);
     }
-  }, [trader?.id, userAddress, isVisible]);
+  }, [trader?.id, trader?.addresses, userAddress, isVisible]);
 
   // Fetch recent trades when trader changes or sheet becomes visible
   useEffect(() => {
@@ -243,7 +244,9 @@ const TraderDetailSheet: React.FC<TraderDetailSheetProps> = ({
   }, []);
 
   const handleFollowToggle = useCallback(async () => {
-    if (!userAddress || !trader?.addresses.length) return;
+    if (!userAddress || !trader?.addresses.length) {
+      return;
+    }
 
     setIsFollowLoading(true);
     try {
@@ -258,9 +261,8 @@ const TraderDetailSheet: React.FC<TraderDetailSheetProps> = ({
         ]);
         setIsFollowing(true);
       }
-    } catch (error) {
+    } catch {
       // Silently handle error - could add toast notification here
-      console.warn('Follow/unfollow failed:', error);
     } finally {
       setIsFollowLoading(false);
     }

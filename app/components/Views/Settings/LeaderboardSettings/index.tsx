@@ -137,9 +137,11 @@ const LeaderboardSettings: React.FC = () => {
 
     try {
       const profiles = await LeaderboardService.getFollowingProfiles(userAddress);
-      setFollowingProfiles(profiles);
+      // Ensure we always set an array, even if API returns unexpected data
+      setFollowingProfiles(Array.isArray(profiles) ? profiles : []);
     } catch (error) {
       console.warn('Failed to fetch following profiles:', error);
+      setFollowingProfiles([]);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -277,7 +279,7 @@ const LeaderboardSettings: React.FC = () => {
             <Text variant={TextVariant.HeadingSm}>
               {strings('leaderboard.following')}
             </Text>
-            {followingProfiles.length > 0 && (
+            {followingProfiles && followingProfiles.length > 0 && (
               <Text variant={TextVariant.BodySm} style={{ color: colors.text.muted }}>
                 {followingProfiles.length}
               </Text>
@@ -288,7 +290,7 @@ const LeaderboardSettings: React.FC = () => {
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" />
             </View>
-          ) : followingProfiles.length === 0 ? (
+          ) : !followingProfiles || followingProfiles.length === 0 ? (
             renderEmptyState()
           ) : (
             followingProfiles.map(renderFollowingItem)

@@ -182,33 +182,6 @@ class LeaderboardService {
   }
 
   /**
-   * Get the list of profiles that the given address follows
-   * @see https://docs.clicker.xyz/api-reference/profile-follows
-   * @param userAddress - The address to get follows for
-   * @returns Promise resolving to array of followed profile IDs
-   */
-  async getFollows(userAddress: string): Promise<string[]> {
-    const url = `${CLICKER_API_BASE_URL}${PROFILE_ENDPOINT}/${userAddress}/follows`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: this.getHeaders(),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.error || `Failed to fetch follows: ${response.status}`,
-      );
-    }
-
-    const data = await response.json();
-    // Extract profile IDs or addresses from the response
-    // The API returns profiles, we extract their IDs for easy lookup
-    return data.profiles?.map((profile: TraderProfile) => profile.id) ?? [];
-  }
-
-  /**
    * Get the full profiles of traders that the given address follows
    * @see https://docs.clicker.xyz/api-reference/profile-follows
    * @param userAddress - The address to get follows for
@@ -230,22 +203,48 @@ class LeaderboardService {
     }
 
     const data = await response.json();
-    return data.profiles ?? [];
+    // The API returns data in "items" array, not "profiles"
+    return data.items ?? data.profiles ?? [];
   }
 
   /**
    * Check if the user is following a specific trader
+   * Checks both profile ID and wallet addresses for a match
    * @param userAddress - The user's address
-   * @param traderIdOrAddress - The trader's ID or address to check
+   * @param traderId - The trader's profile ID
+   * @param traderAddresses - Optional array of trader's wallet addresses
    * @returns Promise resolving to boolean indicating if following
    */
   async isFollowing(
     userAddress: string,
-    traderIdOrAddress: string,
+    traderId: string,
+    traderAddresses?: string[],
   ): Promise<boolean> {
     try {
-      const follows = await this.getFollows(userAddress);
-      return follows.includes(traderIdOrAddress);
+      const followedProfiles = await this.getFollowingProfiles(userAddress);
+
+      // Check if any followed profile matches by ID
+      const matchById = followedProfiles.some(
+        (profile) => profile.id === traderId,
+      );
+      if (matchById) {
+        return true;
+      }
+
+      // Check if any followed profile has a matching address
+      if (traderAddresses && traderAddresses.length > 0) {
+        const lowerTraderAddresses = traderAddresses.map((a) => a.toLowerCase());
+        const matchByAddress = followedProfiles.some((profile) =>
+          profile.addresses?.some((addr) =>
+            lowerTraderAddresses.includes(addr.toLowerCase()),
+          ),
+        );
+        if (matchByAddress) {
+          return true;
+        }
+      }
+
+      return false;
     } catch {
       // If we can't fetch follows, assume not following
       return false;
