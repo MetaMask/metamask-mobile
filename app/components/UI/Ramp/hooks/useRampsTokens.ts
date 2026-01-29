@@ -1,15 +1,12 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectTokens,
-  selectTokensRequest,
+  selectTokensLoading,
+  selectTokensError,
   selectSelectedToken,
-  selectUserRegion,
 } from '../../../../selectors/rampsController';
-import {
-  RequestSelectorResult,
-  type RampsControllerState,
-} from '@metamask/ramps-controller';
+import { type RampsControllerState } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
 type TokensResponse = NonNullable<RampsControllerState['tokens']>;
@@ -46,31 +43,13 @@ export interface UseRampsTokensResult {
  * Hook to get tokens state from RampsController.
  * This hook assumes Engine is already initialized.
  *
- * @param region - Optional region code to use for request state. If not provided, uses userRegion from state.
- * @param action - Optional action type ('buy' or 'sell'). Defaults to 'buy'.
  * @returns Tokens state.
  */
-export function useRampsTokens(
-  region?: string,
-  action: 'buy' | 'sell' = 'buy',
-): UseRampsTokensResult {
+export function useRampsTokens(): UseRampsTokensResult {
   const tokens = useSelector(selectTokens);
   const selectedToken = useSelector(selectSelectedToken);
-  const userRegion = useSelector(selectUserRegion);
-
-  const regionCode = useMemo(
-    () => region ?? userRegion?.regionCode ?? '',
-    [region, userRegion?.regionCode],
-  );
-
-  const requestSelector = useMemo(
-    () => selectTokensRequest(regionCode, action),
-    [regionCode, action],
-  );
-
-  const { isFetching, error } = useSelector(
-    requestSelector,
-  ) as RequestSelectorResult<TokensResponse>;
+  const isLoading = useSelector(selectTokensLoading);
+  const error = useSelector(selectTokensError);
 
   const setSelectedToken = useCallback(
     (assetId?: string) =>
@@ -82,7 +61,7 @@ export function useRampsTokens(
     tokens,
     selectedToken,
     setSelectedToken,
-    isLoading: isFetching,
+    isLoading,
     error,
   };
 }

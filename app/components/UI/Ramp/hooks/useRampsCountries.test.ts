@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsCountries } from './useRampsCountries';
-import { RequestStatus, type Country } from '@metamask/ramps-controller';
+import { type Country } from '@metamask/ramps-controller';
 
 const mockCountries: Country[] = [
   {
@@ -38,12 +38,9 @@ const createMockStore = (rampsControllerState = {}) =>
       engine: () => ({
         backgroundState: {
           RampsController: {
-            userRegion: null,
-            selectedProvider: null,
-            providers: [],
-            tokens: null,
             countries: [],
-            requests: {},
+            countriesLoading: false,
+            countriesError: null,
             ...rampsControllerState,
           },
         },
@@ -94,17 +91,9 @@ describe('useRampsCountries', () => {
   });
 
   describe('loading state', () => {
-    it('returns isLoading true when request is loading', () => {
+    it('returns isLoading true when countriesLoading is true', () => {
       const store = createMockStore({
-        requests: {
-          'getCountries:[]': {
-            status: RequestStatus.LOADING,
-            data: null,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
+        countriesLoading: true,
       });
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
@@ -112,7 +101,7 @@ describe('useRampsCountries', () => {
       expect(result.current.isLoading).toBe(true);
     });
 
-    it('returns isLoading false when request is not loading', () => {
+    it('returns isLoading false when countriesLoading is false', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
@@ -122,17 +111,9 @@ describe('useRampsCountries', () => {
   });
 
   describe('error state', () => {
-    it('returns error from request state', () => {
+    it('returns error from countriesError state', () => {
       const store = createMockStore({
-        requests: {
-          'getCountries:[]': {
-            status: RequestStatus.ERROR,
-            data: null,
-            error: 'Network error',
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
+        countriesError: 'Network error',
       });
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),

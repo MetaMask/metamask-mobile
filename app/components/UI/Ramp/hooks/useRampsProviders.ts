@@ -1,15 +1,12 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectProviders,
-  selectProvidersRequest,
+  selectProvidersLoading,
+  selectProvidersError,
   selectSelectedProvider,
-  selectUserRegion,
 } from '../../../../selectors/rampsController';
-import {
-  RequestSelectorResult,
-  type Provider,
-} from '@metamask/ramps-controller';
+import { type Provider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
 /**
@@ -43,50 +40,23 @@ export interface UseRampsProvidersResult {
  * Hook to get providers state from RampsController.
  * This hook assumes Engine is already initialized.
  *
- * @param region - Optional region code to use for request state. If not provided, uses userRegion from state.
- * @param filterOptions - Optional filter options for the request cache key.
  * @returns Providers state.
  */
-export function useRampsProviders(
-  region?: string,
-  filterOptions?: {
-    provider?: string | string[];
-    crypto?: string | string[];
-    fiat?: string | string[];
-    payments?: string | string[];
-  },
-): UseRampsProvidersResult {
+export function useRampsProviders(): UseRampsProvidersResult {
   const providers = useSelector(selectProviders);
   const selectedProvider = useSelector(selectSelectedProvider);
-  const userRegion = useSelector(selectUserRegion);
-
-  const regionCode = useMemo(
-    () => region ?? userRegion?.regionCode ?? '',
-    [region, userRegion?.regionCode],
-  );
-
-  const requestSelector = useMemo(
-    () => selectProvidersRequest(regionCode, filterOptions),
-    [regionCode, filterOptions],
-  );
-
-  const { isFetching, error } = useSelector(
-    requestSelector,
-  ) as RequestSelectorResult<{ providers: Provider[] }>;
+  const isLoading = useSelector(selectProvidersLoading);
+  const error = useSelector(selectProvidersError);
 
   const setSelectedProvider = useCallback((provider: Provider | null) => {
-    (
-      Engine.context.RampsController.setSelectedProvider as (
-        providerId: string | null,
-      ) => void
-    )(provider?.id ?? null);
+    Engine.context.RampsController.setSelectedProvider(provider?.id ?? null);
   }, []);
 
   return {
     providers,
     selectedProvider,
     setSelectedProvider,
-    isLoading: isFetching,
+    isLoading,
     error,
   };
 }

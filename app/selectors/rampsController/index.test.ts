@@ -22,6 +22,16 @@ import {
   selectSelectedPaymentMethod,
   selectPaymentMethodsRequest,
   selectRampsControllerState,
+  selectUserRegionLoading,
+  selectUserRegionError,
+  selectCountriesLoading,
+  selectCountriesError,
+  selectProvidersLoading,
+  selectProvidersError,
+  selectTokensLoading,
+  selectTokensError,
+  selectPaymentMethodsLoading,
+  selectPaymentMethodsError,
 } from './index';
 
 const createMockState = (
@@ -694,6 +704,146 @@ describe('RampsController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectRampsControllerState(state)).toBeUndefined();
+    });
+  });
+
+  describe('selectUserRegionLoading', () => {
+    it('returns userRegionLoading from state', () => {
+      const state = createMockState({ userRegionLoading: true });
+
+      expect(selectUserRegionLoading(state)).toBe(true);
+    });
+
+    it('returns false when userRegionLoading is not set', () => {
+      const state = createMockState();
+
+      expect(selectUserRegionLoading(state)).toBe(false);
+    });
+  });
+
+  describe('selectUserRegionError', () => {
+    it('returns userRegionError from state', () => {
+      const state = createMockState({ userRegionError: 'Network error' });
+
+      expect(selectUserRegionError(state)).toBe('Network error');
+    });
+
+    it('returns null when userRegionError is not set', () => {
+      const state = createMockState();
+
+      expect(selectUserRegionError(state)).toBeNull();
+    });
+  });
+
+  describe('selectCountriesLoading', () => {
+    it('returns countriesLoading from state', () => {
+      const state = createMockState({ countriesLoading: true });
+
+      expect(selectCountriesLoading(state)).toBe(true);
+    });
+
+    it('returns false when countriesLoading is not set', () => {
+      const state = createMockState();
+
+      expect(selectCountriesLoading(state)).toBe(false);
+    });
+  });
+
+  describe('selectCountriesError', () => {
+    it('returns countriesError from state', () => {
+      const state = createMockState({ countriesError: 'Network error' });
+
+      expect(selectCountriesError(state)).toBe('Network error');
+    });
+
+    it('returns null when countriesError is not set', () => {
+      const state = createMockState();
+
+      expect(selectCountriesError(state)).toBeNull();
+    });
+  });
+
+  describe('selectProvidersLoading', () => {
+    it('returns providersLoading from state', () => {
+      const state = createMockState({ providersLoading: true });
+
+      expect(selectProvidersLoading(state)).toBe(true);
+    });
+
+    it('returns false when providersLoading is not set', () => {
+      const state = createMockState();
+
+      expect(selectProvidersLoading(state)).toBe(false);
+    });
+  });
+
+  describe('selectProvidersError', () => {
+    it('returns providersError from state', () => {
+      const state = createMockState({ providersError: 'Network error' });
+
+      expect(selectProvidersError(state)).toBe('Network error');
+    });
+
+    it('returns null when providersError is not set', () => {
+      const state = createMockState();
+
+      expect(selectProvidersError(state)).toBeNull();
+    });
+  });
+
+  describe('selectTokensLoading', () => {
+    it('returns tokensLoading from state', () => {
+      const state = createMockState({ tokensLoading: true });
+
+      expect(selectTokensLoading(state)).toBe(true);
+    });
+
+    it('returns false when tokensLoading is not set', () => {
+      const state = createMockState();
+
+      expect(selectTokensLoading(state)).toBe(false);
+    });
+  });
+
+  describe('selectTokensError', () => {
+    it('returns tokensError from state', () => {
+      const state = createMockState({ tokensError: 'Network error' });
+
+      expect(selectTokensError(state)).toBe('Network error');
+    });
+
+    it('returns null when tokensError is not set', () => {
+      const state = createMockState();
+
+      expect(selectTokensError(state)).toBeNull();
+    });
+  });
+
+  describe('selectPaymentMethodsLoading', () => {
+    it('returns paymentMethodsLoading from state', () => {
+      const state = createMockState({ paymentMethodsLoading: true });
+
+      expect(selectPaymentMethodsLoading(state)).toBe(true);
+    });
+
+    it('returns false when paymentMethodsLoading is not set', () => {
+      const state = createMockState();
+
+      expect(selectPaymentMethodsLoading(state)).toBe(false);
+    });
+  });
+
+  describe('selectPaymentMethodsError', () => {
+    it('returns paymentMethodsError from state', () => {
+      const state = createMockState({ paymentMethodsError: 'Network error' });
+
+      expect(selectPaymentMethodsError(state)).toBe('Network error');
+    });
+
+    it('returns null when paymentMethodsError is not set', () => {
+      const state = createMockState();
+
+      expect(selectPaymentMethodsError(state)).toBeNull();
     });
   });
 });

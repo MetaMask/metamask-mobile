@@ -1,18 +1,12 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectPaymentMethods,
-  selectPaymentMethodsRequest,
+  selectPaymentMethodsLoading,
+  selectPaymentMethodsError,
   selectSelectedPaymentMethod,
-  selectSelectedProvider,
-  selectSelectedToken,
-  selectUserRegion,
 } from '../../../../selectors/rampsController';
-import {
-  RequestSelectorResult,
-  type PaymentMethod,
-  type PaymentMethodsResponse,
-} from '@metamask/ramps-controller';
+import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
 /**
@@ -51,39 +45,8 @@ export interface UseRampsPaymentMethodsResult {
 export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const paymentMethods = useSelector(selectPaymentMethods);
   const selectedPaymentMethod = useSelector(selectSelectedPaymentMethod);
-
-  const userRegion = useSelector(selectUserRegion);
-  const selectedToken = useSelector(selectSelectedToken);
-  const selectedProvider = useSelector(selectSelectedProvider);
-
-  const regionCode = useMemo(
-    () => userRegion?.regionCode ?? '',
-    [userRegion?.regionCode],
-  );
-
-  const fiat = useMemo(
-    () => userRegion?.country?.currency ?? '',
-    [userRegion?.country?.currency],
-  );
-
-  const assetId = useMemo(
-    () => selectedToken?.assetId ?? '',
-    [selectedToken?.assetId],
-  );
-
-  const providerId = useMemo(
-    () => selectedProvider?.id ?? '',
-    [selectedProvider?.id],
-  );
-
-  const requestSelector = useMemo(
-    () => selectPaymentMethodsRequest(regionCode, fiat, assetId, providerId),
-    [regionCode, fiat, assetId, providerId],
-  );
-
-  const { isFetching, error } = useSelector(
-    requestSelector,
-  ) as RequestSelectorResult<PaymentMethodsResponse>;
+  const isLoading = useSelector(selectPaymentMethodsLoading);
+  const error = useSelector(selectPaymentMethodsError);
 
   const setSelectedPaymentMethod = useCallback(
     (paymentMethod: PaymentMethod | null) =>
@@ -97,7 +60,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     paymentMethods,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
-    isLoading: isFetching,
+    isLoading,
     error,
   };
 }

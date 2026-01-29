@@ -3,7 +3,6 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsTokens } from './useRampsTokens';
-import { RequestStatus, type UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -13,23 +12,6 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
-
-const mockUserRegion: UserRegion = {
-  country: {
-    isoCode: 'US',
-    name: 'United States',
-    flag: '🇺🇸',
-    phone: {
-      prefix: '+1',
-      placeholder: '(XXX) XXX-XXXX',
-      template: 'XXX-XXX-XXXX',
-    },
-    currency: 'USD',
-    supported: { buy: true, sell: true },
-  },
-  state: { stateId: 'CA', name: 'California' },
-  regionCode: 'us-ca',
-};
 
 const mockSelectedToken = {
   assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
@@ -59,10 +41,10 @@ const createMockStore = (rampsControllerState = {}) =>
       engine: () => ({
         backgroundState: {
           RampsController: {
-            userRegion: null,
             tokens: null,
             selectedToken: null,
-            requests: {},
+            tokensLoading: false,
+            tokensError: null,
             ...rampsControllerState,
           },
         },
@@ -96,109 +78,6 @@ describe('useRampsTokens', () => {
     });
   });
 
-  describe('region parameter', () => {
-    it('uses provided region when specified', () => {
-      const store = createMockStore({
-        requests: {
-          'getTokens:["us-ny","buy"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockTokens,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(() => useRampsTokens('us-ny', 'buy'), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it('uses userRegion from state when region not provided', () => {
-      const store = createMockStore({
-        userRegion: mockUserRegion,
-        requests: {
-          'getTokens:["us-ca","buy"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockTokens,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(() => useRampsTokens(undefined, 'buy'), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it('uses empty string when region and userRegion are not available', () => {
-      const store = createMockStore({
-        requests: {
-          'getTokens:["","buy"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockTokens,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(() => useRampsTokens(), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.isLoading).toBe(false);
-    });
-  });
-
-  describe('action parameter', () => {
-    it('defaults to buy when not provided', () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsTokens(), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current).toBeDefined();
-    });
-
-    it('uses buy action when provided', () => {
-      const store = createMockStore({
-        requests: {
-          'getTokens:["us-ca","buy"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockTokens,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(() => useRampsTokens('us-ca', 'buy'), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it('uses sell action when provided', () => {
-      const store = createMockStore({
-        requests: {
-          'getTokens:["us-ca","sell"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockTokens,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(() => useRampsTokens('us-ca', 'sell'), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.isLoading).toBe(false);
-    });
-  });
-
   describe('tokens state', () => {
     it('returns tokens from state', () => {
       const store = createMockStore({ tokens: mockTokens });
@@ -218,19 +97,11 @@ describe('useRampsTokens', () => {
   });
 
   describe('loading state', () => {
-    it('returns isLoading true when request is loading', () => {
+    it('returns isLoading true when tokensLoading is true', () => {
       const store = createMockStore({
-        requests: {
-          'getTokens:["us-ca","buy"]': {
-            status: RequestStatus.LOADING,
-            data: null,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
+        tokensLoading: true,
       });
-      const { result } = renderHook(() => useRampsTokens('us-ca', 'buy'), {
+      const { result } = renderHook(() => useRampsTokens(), {
         wrapper: wrapper(store),
       });
       expect(result.current.isLoading).toBe(true);
@@ -238,19 +109,11 @@ describe('useRampsTokens', () => {
   });
 
   describe('error state', () => {
-    it('returns error from request state', () => {
+    it('returns error from tokensError state', () => {
       const store = createMockStore({
-        requests: {
-          'getTokens:["us-ca","buy"]': {
-            status: RequestStatus.ERROR,
-            data: null,
-            error: 'Network error',
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
+        tokensError: 'Network error',
       });
-      const { result } = renderHook(() => useRampsTokens('us-ca', 'buy'), {
+      const { result } = renderHook(() => useRampsTokens(), {
         wrapper: wrapper(store),
       });
       expect(result.current.error).toBe('Network error');

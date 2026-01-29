@@ -85,6 +85,87 @@ export const selectSelectedPaymentMethod = createSelector(
 );
 
 /**
+ * Selects whether user region is currently loading.
+ */
+export const selectUserRegionLoading = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.userRegionLoading ?? false,
+);
+
+/**
+ * Selects the user region loading error, if any.
+ */
+export const selectUserRegionError = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.userRegionError ?? null,
+);
+
+/**
+ * Selects whether countries are currently loading.
+ */
+export const selectCountriesLoading = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.countriesLoading ?? false,
+);
+
+/**
+ * Selects the countries loading error, if any.
+ */
+export const selectCountriesError = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.countriesError ?? null,
+);
+
+/**
+ * Selects whether providers are currently loading.
+ */
+export const selectProvidersLoading = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.providersLoading ?? false,
+);
+
+/**
+ * Selects the providers loading error, if any.
+ */
+export const selectProvidersError = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.providersError ?? null,
+);
+
+/**
+ * Selects whether tokens are currently loading.
+ */
+export const selectTokensLoading = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.tokensLoading ?? false,
+);
+
+/**
+ * Selects the tokens loading error, if any.
+ */
+export const selectTokensError = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.tokensError ?? null,
+);
+
+/**
+ * Selects whether payment methods are currently loading.
+ */
+export const selectPaymentMethodsLoading = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) =>
+    rampsControllerState?.paymentMethodsLoading ?? false,
+);
+
+/**
+ * Selects the payment methods loading error, if any.
+ */
+export const selectPaymentMethodsError = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.paymentMethodsError ?? null,
+);
+
+/**
  * Selects the user region request state.
  */
 export const selectUserRegionRequest = createRequestSelector<

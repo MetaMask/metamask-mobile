@@ -1,13 +1,13 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
   selectUserRegion,
-  selectUserRegionRequest,
+  selectUserRegionLoading,
+  selectUserRegionError,
 } from '../../../../selectors/rampsController';
 import {
   ExecuteRequestOptions,
-  RequestSelectorResult,
   type UserRegion,
 } from '@metamask/ramps-controller';
 
@@ -28,10 +28,6 @@ export interface UseRampsUserRegionResult {
    */
   error: string | null;
   /**
-   * Manually fetch the user region from geolocation.
-   */
-  fetchUserRegion: (options?: ExecuteRequestOptions) => Promise<void>;
-  /**
    * Set the user region manually (without fetching geolocation).
    */
   setUserRegion: (
@@ -48,15 +44,8 @@ export interface UseRampsUserRegionResult {
  */
 export function useRampsUserRegion(): UseRampsUserRegionResult {
   const userRegion = useSelector(selectUserRegion);
-  const { isFetching, error } = useSelector(
-    selectUserRegionRequest,
-  ) as RequestSelectorResult<UserRegion | null>;
-
-  const fetchUserRegion = useCallback(
-    async (options?: ExecuteRequestOptions) =>
-      await Engine.context.RampsController.init(options),
-    [],
-  );
+  const isLoading = useSelector(selectUserRegionLoading);
+  const error = useSelector(selectUserRegionError);
 
   const setUserRegion = useCallback(
     (region: string, options?: ExecuteRequestOptions) =>
@@ -64,17 +53,10 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
     [],
   );
 
-  useEffect(() => {
-    fetchUserRegion().catch(() => {
-      // Error is stored in state
-    });
-  }, [fetchUserRegion]);
-
   return {
     userRegion,
-    isLoading: isFetching,
+    isLoading,
     error,
-    fetchUserRegion,
     setUserRegion,
   };
 }
