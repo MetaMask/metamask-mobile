@@ -46,42 +46,6 @@ export async function getSafeChainsListFromCacheOnly(): Promise<SafeChain[]> {
 }
 
 /**
- * Check if a hostname is localhost or an IP address.
- * Public RPC providers use domain names, not raw IP addresses.
- * These should never be considered "public" endpoints even if they appear in chainlist.
- *
- * @param hostname - The hostname to check.
- * @returns True if the hostname is localhost or an IP address (v4 or v6).
- */
-function isLocalhostOrIPAddress(hostname: string): boolean {
-  if (!hostname) {
-    return false;
-  }
-
-  const lowerHostname = hostname.toLowerCase();
-
-  // Check for localhost
-  if (lowerHostname === 'localhost') {
-    return true;
-  }
-
-  // Check for IPv4 address (e.g., 192.168.1.1, 127.0.0.1, 8.8.8.8)
-  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/u;
-  if (ipv4Regex.test(lowerHostname)) {
-    return true;
-  }
-
-  // Check for IPv6 address (with or without brackets)
-  // Matches: ::1, [::1], 2001:db8::1, [2001:db8::1]
-  const ipv6Regex = /^(\[)?([0-9a-f:]+)(\])?$/u;
-  if (ipv6Regex.test(lowerHostname) && lowerHostname.includes(':')) {
-    return true;
-  }
-
-  return false;
-}
-
-/**
  * Initialize the set of known domains from the chains list
  */
 export async function initializeRpcProviderDomains(): Promise<void> {
@@ -97,10 +61,11 @@ export async function initializeRpcProviderDomains(): Promise<void> {
       for (const chain of chainsList) {
         if (chain.rpc && Array.isArray(chain.rpc)) {
           for (const rpcUrl of chain.rpc) {
-            const hostname = parseDomain(rpcUrl);
-            // Filter out localhost and IP addresses - public providers use domain names
-            if (hostname && !isLocalhostOrIPAddress(hostname)) {
-              newKnownDomainsSet.add(hostname);
+            try {
+              const url = new URL(rpcUrl);
+              newKnownDomainsSet.add(url.hostname.toLowerCase());
+            } catch (e) {
+              continue; // Skip invalid URLs
             }
           }
         }

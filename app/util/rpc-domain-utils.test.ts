@@ -135,8 +135,7 @@ describe('rpc-domain-utils', () => {
             chainId: 1,
             name: 'Ethereum',
             nativeCurrency: { symbol: 'ETH' },
-            // Use truly unparseable URL that fails even with protocol prefix
-            rpc: [':::invalid-url', 'https://mainnet.infura.io'],
+            rpc: ['invalid-url', 'https://mainnet.infura.io'],
           },
         ];
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
@@ -163,111 +162,6 @@ describe('rpc-domain-utils', () => {
         // Verify
         const knownDomains = getKnownDomains();
         expect(knownDomains).toBeInstanceOf(Set);
-        expect(knownDomains?.size).toBe(0);
-      });
-    });
-    describe('when chains list contains localhost or IP addresses', () => {
-      it('filters out localhost URLs from known domains', async () => {
-        // Setup
-        setupTestEnvironment();
-        const mockChains: SafeChain[] = [
-          {
-            chainId: 1,
-            name: 'Test Chain',
-            nativeCurrency: { symbol: 'TEST' },
-            rpc: ['http://localhost:8545', 'https://mainnet.infura.io'],
-          },
-        ];
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify(mockChains),
-        );
-        // Exercise
-        await initializeRpcProviderDomains();
-        // Verify
-        const knownDomains = getKnownDomains();
-        expect(knownDomains?.has('localhost')).toBe(false);
-        expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
-        expect(knownDomains?.size).toBe(1);
-      });
-
-      it('filters out IPv4 addresses from known domains', async () => {
-        // Setup
-        setupTestEnvironment();
-        const mockChains: SafeChain[] = [
-          {
-            chainId: 1,
-            name: 'Test Chain',
-            nativeCurrency: { symbol: 'TEST' },
-            rpc: [
-              'http://127.0.0.1:8545',
-              'http://192.168.1.1:8545',
-              'http://10.0.0.1:8545',
-              'https://mainnet.infura.io',
-            ],
-          },
-        ];
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify(mockChains),
-        );
-        // Exercise
-        await initializeRpcProviderDomains();
-        // Verify
-        const knownDomains = getKnownDomains();
-        expect(knownDomains?.has('127.0.0.1')).toBe(false);
-        expect(knownDomains?.has('192.168.1.1')).toBe(false);
-        expect(knownDomains?.has('10.0.0.1')).toBe(false);
-        expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
-        expect(knownDomains?.size).toBe(1);
-      });
-
-      it('filters out IPv6 addresses from known domains', async () => {
-        // Setup
-        setupTestEnvironment();
-        const mockChains: SafeChain[] = [
-          {
-            chainId: 1,
-            name: 'Test Chain',
-            nativeCurrency: { symbol: 'TEST' },
-            rpc: [
-              'http://[::1]:8545',
-              'http://[2001:db8::1]:8545',
-              'https://mainnet.infura.io',
-            ],
-          },
-        ];
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify(mockChains),
-        );
-        // Exercise
-        await initializeRpcProviderDomains();
-        // Verify
-        const knownDomains = getKnownDomains();
-        expect(knownDomains?.has('[::1]')).toBe(false);
-        expect(knownDomains?.has('::1')).toBe(false);
-        expect(knownDomains?.has('[2001:db8::1]')).toBe(false);
-        expect(knownDomains?.has('2001:db8::1')).toBe(false);
-        expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
-        expect(knownDomains?.size).toBe(1);
-      });
-
-      it('handles chains with only localhost/IP URLs', async () => {
-        // Setup
-        setupTestEnvironment();
-        const mockChains: SafeChain[] = [
-          {
-            chainId: 1337,
-            name: 'Local Chain',
-            nativeCurrency: { symbol: 'ETH' },
-            rpc: ['http://localhost:8545', 'http://127.0.0.1:8545'],
-          },
-        ];
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify(mockChains),
-        );
-        // Exercise
-        await initializeRpcProviderDomains();
-        // Verify
-        const knownDomains = getKnownDomains();
         expect(knownDomains?.size).toBe(0);
       });
     });
