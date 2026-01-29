@@ -33,7 +33,7 @@ import {
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import {
-  DexAbstractionCache,
+  TradingReadinessCache,
   PerpsSigningCache,
 } from '../../services/TradingReadinessCache';
 import {
@@ -461,7 +461,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Check global cache first to avoid repeated signing requests
     // This is CRITICAL for hardware wallets to prevent QR popup spam
-    const cachedStatus = DexAbstractionCache.get(network, userAddress);
+    const cachedStatus = TradingReadinessCache.get(network, userAddress);
     if (cachedStatus?.attempted) {
       this.deps.debugLogger.log(
         'HyperLiquidProvider: DEX abstraction already attempted (from global cache)',
@@ -500,7 +500,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     try {
       // Re-check cache after acquiring lock (another provider might have finished)
-      const recheckCache = DexAbstractionCache.get(network, userAddress);
+      const recheckCache = TradingReadinessCache.get(network, userAddress);
       if (recheckCache?.attempted) {
         this.deps.debugLogger.log(
           'HyperLiquidProvider: DEX abstraction completed by another provider',
@@ -523,7 +523,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           { user: userAddress, network },
         );
         // Cache the enabled status to skip future checks
-        DexAbstractionCache.set(network, userAddress, {
+        TradingReadinessCache.set(network, userAddress, {
           attempted: true,
           enabled: true,
         });
@@ -549,7 +549,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
 
       // Cache success to prevent re-attempts on reconnection
-      DexAbstractionCache.set(network, userAddress, {
+      TradingReadinessCache.set(network, userAddress, {
         attempted: true,
         enabled: true,
       });
@@ -557,7 +557,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     } catch (error) {
       // Cache the attempt (even on failure) to prevent repeated signing requests
       // This is CRITICAL for hardware wallets - if user rejects, don't ask again
-      DexAbstractionCache.set(network, userAddress, {
+      TradingReadinessCache.set(network, userAddress, {
         attempted: true,
         enabled: false,
       });
