@@ -424,6 +424,9 @@ const Routes = {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  DEBUG: {
+    PERPS_CORE_TESTER: 'PerpsCoreTester',
+  },
 };
 
 export default Routes;

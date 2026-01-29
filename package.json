@@ -259,6 +259,7 @@
     "@metamask/network-enablement-controller": "^4.1.0",
     "@metamask/notification-services-controller": "^21.0.0",
     "@metamask/permission-controller": "^12.1.0",
+    "@metamask/perps-controller": "file:.yalc/@metamask/perps-controller",
     "@metamask/phishing-controller": "^16.1.0",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^21.0.0",
