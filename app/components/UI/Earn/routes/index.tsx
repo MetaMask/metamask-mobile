@@ -8,10 +8,8 @@ import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
-import type { EarnScreenParamList, EarnModalParamList } from './types';
-
-const Stack = createStackNavigator<EarnScreenParamList>();
-const ModalStack = createStackNavigator<EarnModalParamList>();
+const Stack = createStackNavigator();
+const ModalStack = createStackNavigator();
 
 const clearStackNavigatorOptions = {
   headerShown: false,

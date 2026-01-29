@@ -27,10 +27,8 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import type { CardMainParamList, CardModalsParamList } from './types';
-
-const Stack = createStackNavigator<CardMainParamList>();
-const ModalsStack = createStackNavigator<CardModalsParamList>();
+const Stack = createStackNavigator();
+const ModalsStack = createStackNavigator();
 
 const clearStackNavigatorOptions = {
   headerShown: false,
