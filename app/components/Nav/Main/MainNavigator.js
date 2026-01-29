@@ -14,6 +14,7 @@ import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSe
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import LeaderboardSettings from '../../Views/Settings/LeaderboardSettings';
 import RegionSelector from '../../Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
@@ -384,6 +385,10 @@ const SettingsFlow = () => (
     <Stack.Screen
       name={Routes.RAMP.ACTIVATION_KEY_FORM}
       component={RampActivationKeyForm}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.LEADERBOARD}
+      component={LeaderboardSettings}
     />
     {
       /**

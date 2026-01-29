@@ -113,8 +113,6 @@ class LeaderboardService {
       sections: section,
     });
 
-    console.log('response', JSON.stringify(response.sections, null, 2));
-
     // Return traders from the first section (overall leaderboard)
     if (response.sections.length > 0) {
       // Combine commenters and others, prioritizing commenters
@@ -208,6 +206,31 @@ class LeaderboardService {
     // Extract profile IDs or addresses from the response
     // The API returns profiles, we extract their IDs for easy lookup
     return data.profiles?.map((profile: TraderProfile) => profile.id) ?? [];
+  }
+
+  /**
+   * Get the full profiles of traders that the given address follows
+   * @see https://docs.clicker.xyz/api-reference/profile-follows
+   * @param userAddress - The address to get follows for
+   * @returns Promise resolving to array of followed trader profiles
+   */
+  async getFollowingProfiles(userAddress: string): Promise<TraderProfile[]> {
+    const url = `${CLICKER_API_BASE_URL}${PROFILE_ENDPOINT}/${userAddress}/follows`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to fetch following profiles: ${response.status}`,
+      );
+    }
+
+    const data = await response.json();
+    return data.profiles ?? [];
   }
 
   /**
