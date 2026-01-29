@@ -13,7 +13,8 @@ import React, {
   useState,
 } from 'react';
 import { Linking, RefreshControl, ScrollView, View } from 'react-native';
-import type { Position ,
+import type {
+  Position,
   PerpsMarketData,
   PerpsNavigationParamList,
   TPSLTrackingData,
