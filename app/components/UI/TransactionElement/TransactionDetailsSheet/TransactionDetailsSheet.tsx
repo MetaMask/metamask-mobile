@@ -59,16 +59,14 @@ const TransactionDetailsSheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  // Note: TransactionDetails internally calls close() before invoking these,
+  // so we don't need to close the sheet here - it's already handled
   const handleSpeedUp = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      route.params.showSpeedUpModal();
-    });
+    route.params.showSpeedUpModal();
   }, [route.params]);
 
   const handleCancel = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      route.params.showCancelModal();
-    });
+    route.params.showCancelModal();
   }, [route.params]);
 
   return (
