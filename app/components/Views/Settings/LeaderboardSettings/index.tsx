@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
-import { getSettingsNavigationOptions } from '../../../UI/Navbar';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import {
   Box,
@@ -120,10 +120,11 @@ const LeaderboardSettings: React.FC = () => {
   // Setup navigation header
   useEffect(() => {
     navigation.setOptions(
-      getSettingsNavigationOptions(
+      getNavigationOptionsTitle(
         strings('leaderboard.settings_title'),
-        colors,
         navigation,
+        false,
+        colors,
       ),
     );
   }, [navigation, colors]);
