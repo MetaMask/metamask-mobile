@@ -6,6 +6,7 @@ import {
   selectPerpsButtonColorTestVariant,
   selectHip3ConfigVersion,
   selectPerpsFeedbackEnabledFlag,
+  selectPerpsRewardsReferralCodeEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
@@ -882,6 +883,133 @@ describe('Perps Feature Flag Selectors', () => {
         };
 
         const result = selectPerpsFeedbackEnabledFlag(
+          stateWithUndefinedController,
+        );
+        expect(result).toBe(false);
+      });
+    });
+  });
+
+  describe('selectPerpsRewardsReferralCodeEnabledFlag', () => {
+    const createStateWithFlag = (flagValue: unknown) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              rewardsReferralCodeEnabled: flagValue,
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    describe('default behavior', () => {
+      it('returns false when flag is undefined', () => {
+        const stateWithUndefinedFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsRewardsReferralCodeEnabledFlag(
+          stateWithUndefinedFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when flag is null', () => {
+        const result = selectPerpsRewardsReferralCodeEnabledFlag(
+          createStateWithFlag(null),
+        );
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('boolean flag support', () => {
+      it('returns true when flag is boolean true', () => {
+        const result = selectPerpsRewardsReferralCodeEnabledFlag(
+          createStateWithFlag(true),
+        );
+        expect(result).toBe(true);
+      });
+
+      it('returns false when flag is boolean false', () => {
+        const result = selectPerpsRewardsReferralCodeEnabledFlag(
+          createStateWithFlag(false),
+        );
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('version-gated JSON flag support', () => {
+      it('returns true when valid and enabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+        const result = selectPerpsRewardsReferralCodeEnabledFlag(
+          createStateWithFlag({
+            enabled: true,
+            minimumVersion: '1.0.0',
+          }),
+        );
+        expect(result).toBe(true);
+      });
+
+      it('returns false when valid but disabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+        const result = selectPerpsRewardsReferralCodeEnabledFlag(
+          createStateWithFlag({
+            enabled: false,
+            minimumVersion: '1.0.0',
+          }),
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when enabled but version check fails', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+        const result = selectPerpsRewardsReferralCodeEnabledFlag(
+          createStateWithFlag({
+            enabled: true,
+            minimumVersion: '99.0.0',
+          }),
+        );
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('edge cases', () => {
+      it('returns false when flag is invalid type (string)', () => {
+        const result = selectPerpsRewardsReferralCodeEnabledFlag(
+          createStateWithFlag('invalid'),
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when flag is invalid type (number)', () => {
+        const result = selectPerpsRewardsReferralCodeEnabledFlag(
+          createStateWithFlag(123),
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when RemoteFeatureFlagController is undefined', () => {
+        const stateWithUndefinedController = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: undefined,
+            },
+          },
+        };
+
+        const result = selectPerpsRewardsReferralCodeEnabledFlag(
           stateWithUndefinedController,
         );
         expect(result).toBe(false);
