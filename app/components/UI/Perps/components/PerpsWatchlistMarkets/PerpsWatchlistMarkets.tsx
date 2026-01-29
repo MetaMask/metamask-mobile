@@ -1,11 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  FlatList,
-  TouchableOpacity,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { FlatList, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextVariant,
@@ -88,26 +82,16 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     [handleMarketPress],
   );
 
-  const handleViewAll = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_LIST,
-      params: {},
-    });
-  }, [navigation]);
-
-  // Header component - full row is pressable
+  // Header component
   const SectionHeader = useCallback(
     () => (
-      <TouchableOpacity
-        style={[styles.header, headerStyle]}
-        onPress={handleViewAll}
-      >
+      <View style={[styles.header, headerStyle]}>
         <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
           {strings('perps.home.watchlist')}
         </Text>
-      </TouchableOpacity>
+      </View>
     ),
-    [styles.header, handleViewAll, headerStyle],
+    [styles.header, headerStyle],
   );
 
   // Show skeleton during initial load
