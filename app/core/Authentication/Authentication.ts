@@ -772,8 +772,9 @@ class AuthenticationService {
     try {
       const existingUser = selectExistingUser(ReduxService.store.getState());
 
-      if (existingUser) {
+      if (existingUser || authPreference?.oauth2Login) {
         // User exists. Attempt to unlock wallet.
+        // existing user is always false when user try to rehydrate
 
         if (password !== undefined) {
           // Explicitly provided password.
@@ -1659,9 +1660,6 @@ class AuthenticationService {
     // Password found or provided. Validate and update the auth preference.
     try {
       const passwordToUse = await this.reauthenticate(password);
-
-      // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
-      await this.resetPassword();
 
       // storePassword handles all storage flag management internally
       await this.storePassword(passwordToUse.password, authType);

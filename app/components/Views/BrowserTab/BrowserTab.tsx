@@ -1300,7 +1300,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             break;
         }
       },
-      [onSubmitEditing, navigation],
+      [onSubmitEditing],
     );
 
     /**

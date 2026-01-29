@@ -1175,7 +1175,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
-                                          keyboardType="number-pad"
+                                          keyboardType="numbers-and-punctuation"
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -2654,7 +2654,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
-                                          keyboardType="number-pad"
+                                          keyboardType="numbers-and-punctuation"
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -4126,7 +4126,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
-                                          keyboardType="number-pad"
+                                          keyboardType="numbers-and-punctuation"
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -5618,7 +5618,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
-                                          keyboardType="number-pad"
+                                          keyboardType="numbers-and-punctuation"
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}

@@ -25,7 +25,6 @@ export const EMPTY_STATE_CATEGORIES = [
 export const ORDERED_CATEGORIES = [
   UrlAutocompleteCategory.Recents,
   UrlAutocompleteCategory.Favorites,
-  UrlAutocompleteCategory.Tokens,
   UrlAutocompleteCategory.Sites,
 ];
 

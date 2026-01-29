@@ -2,8 +2,6 @@
  * Props for the UrlAutocomplete component
  */
 
-import { Hex } from '@metamask/utils';
-
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UrlAutocompleteComponentProps = {
   /**

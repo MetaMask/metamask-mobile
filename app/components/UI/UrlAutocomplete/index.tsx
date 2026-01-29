@@ -11,7 +11,6 @@ import {
   View,
   Text,
   SectionList,
-  ActivityIndicator,
   SectionListRenderItem,
   KeyboardAvoidingView,
   Platform,
@@ -571,10 +570,9 @@ const UrlAutocomplete = forwardRef<
             hide();
             onSelect(item);
           }}
-          onSwapPress={goToSwaps}
         />
       ),
-      [hide, onSelect, goToSwaps],
+      [hide, onSelect],
     );
 
   const keyExtractor = useCallback(
@@ -638,7 +636,6 @@ const UrlAutocomplete = forwardRef<
           />
         )}
       </KeyboardAvoidingView>
-      {networkModal}
     </View>
   );
 });
