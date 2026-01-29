@@ -255,13 +255,6 @@ class TrendingFeedSessionManager {
       entry_point: this.entryPoint,
     };
 
-    // TODO: Remove before merging - temporary debug log
-    // eslint-disable-next-line no-console
-    console.log(
-      `${isSessionEnd ? '🛑' : '🚀'} TRENDING_FEED_VIEWED [${interactionType}]`,
-      analyticsProperties,
-    );
-
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,
@@ -294,10 +287,6 @@ class TrendingFeedSessionManager {
       token_symbol: properties.token_symbol,
       position: properties.position,
     });
-
-    // TODO: Remove before merging - temporary debug log
-    // eslint-disable-next-line no-console
-    console.log('🔥 TRENDING_FEED_VIEWED [token_click]', analyticsProperties);
 
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder(
@@ -332,10 +321,6 @@ class TrendingFeedSessionManager {
       results_count: properties.results_count,
     });
 
-    // TODO: Remove before merging - temporary debug log
-    // eslint-disable-next-line no-console
-    console.log('🔍 TRENDING_FEED_VIEWED [search]', analyticsProperties);
-
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,
@@ -369,10 +354,6 @@ class TrendingFeedSessionManager {
       previous_value: properties.previous_value,
       new_value: properties.new_value,
     });
-
-    // TODO: Remove before merging - temporary debug log
-    // eslint-disable-next-line no-console
-    console.log('⚙️ TRENDING_FEED_VIEWED [filter_change]', analyticsProperties);
 
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder(
