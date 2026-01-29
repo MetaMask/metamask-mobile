@@ -57,7 +57,7 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
 import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
-import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/swaps';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 
 export * from './types';
 
@@ -110,7 +110,7 @@ const transformTokenResult = (asset: TrendingAsset): TokenSearchResult => {
   const isNativeToken = assetIdentifier?.startsWith('slip44:');
   const address = isNativeToken
     ? NATIVE_SWAPS_TOKEN_ADDRESS
-    : assetIdentifier?.split(':')[1] ?? '';
+    : (assetIdentifier?.split(':')[1] ?? '');
   const hexChainId = caipChainIdToHex(caipChainId);
   const priceChange = asset.priceChangePct?.h24
     ? parseFloat(asset.priceChangePct.h24)
@@ -238,11 +238,13 @@ const SearchContent: React.FC<SearchContentProps> = ({
             sectionData as { name: string; url: string }[]
           )
             .filter((site) => site?.name && site?.url)
-            .map((site) => ({
-              category: UrlAutocompleteCategory.Sites,
-              name: site.name,
-              url: site.url,
-            }));
+            .map(
+              (site): FuseSearchResult => ({
+                category: UrlAutocompleteCategory.Sites,
+                name: site.name,
+                url: site.url,
+              }),
+            );
 
           results.push({
             category,
