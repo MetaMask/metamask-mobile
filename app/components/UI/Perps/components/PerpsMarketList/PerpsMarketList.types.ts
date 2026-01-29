@@ -47,6 +47,11 @@ export interface PerpsMarketListProps {
    */
   contentContainerStyle?: StyleProp<ViewStyle>;
   /**
+   * Optional key to force FlashList re-mount when filters change.
+   * This fixes rendering issues when data changes rapidly.
+   */
+  filterKey?: string;
+  /**
    * Test ID for E2E testing
    */
   testID?: string;

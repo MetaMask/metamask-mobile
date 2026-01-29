@@ -14,6 +14,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
+  MarketTypeFilter,
 } from '../../controllers/types';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { SortField } from '../../utils/sortMarkets';
@@ -27,13 +28,7 @@ export interface PerpsMarketTypeSectionProps {
   /** Markets to display */
   markets: PerpsMarketData[];
   /** Market type for filtering when "See All" is pressed */
-  marketType:
-    | 'crypto'
-    | 'equity'
-    | 'commodity'
-    | 'forex'
-    | 'all'
-    | 'stocks_and_commodities';
+  marketType: MarketTypeFilter;
   /** Sort field for market list */
   sortBy?: SortField;
   /** Whether markets are loading */

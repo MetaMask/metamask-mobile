@@ -404,6 +404,9 @@ export const PerpsEventValues = {
     MAGNIFYING_GLASS: 'magnifying_glass',
     CRYPTO: 'crypto',
     STOCKS: 'stocks',
+    COMMODITIES: 'commodities',
+    FOREX: 'forex',
+    NEW: 'new',
     GIVE_FEEDBACK: 'give_feedback',
   },
   BUTTON_LOCATION: {
