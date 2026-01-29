@@ -1,0 +1,556 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`useSlippageConfig Solana-specific configuration has "auto" as first slippage option for Solana 1`] = `
+{
+  "default_slippage_options": [
+    "auto",
+    "0.5",
+    "2",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig Solana-specific configuration preserves all other config values for Solana 1`] = `
+{
+  "default_slippage_options": [
+    "auto",
+    "0.5",
+    "2",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig config structure validation returns config with all required fields and correct types 1`] = `
+{
+  "default_slippage_options": [
+    "0.5",
+    "2",
+    "3",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig deep merge behavior deep merges nested threshold objects 1`] = `
+{
+  "default_slippage_options": [
+    "0.5",
+    "2",
+    "3",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 50,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig deep merge behavior handles complete threshold object replacement 1`] = `
+{
+  "default_slippage_options": [
+    "0.5",
+    "2",
+    "3",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "custom.message",
+    "value": 75,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig deep merge behavior handles multiple property overrides with deep merge 1`] = `
+{
+  "default_slippage_options": [
+    "0.5",
+    "2",
+    "3",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.5,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 2,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 200,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "custom.upper.warning",
+    "value": 10,
+  },
+}
+`;
+
+exports[`useSlippageConfig deep merge behavior handles null threshold override 1`] = `
+{
+  "default_slippage_options": [
+    "0.5",
+    "2",
+    "3",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": null,
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig deep merge behavior replaces arrays rather than merging them 1`] = `
+{
+  "default_slippage_options": [
+    "10",
+    "20",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig merge behavior merges network-specific config with default config 1`] = `
+{
+  "default_slippage_options": [
+    "auto",
+    "0.5",
+    "2",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig returns default config if network does not exist on config object 1`] = `
+{
+  "default_slippage_options": [
+    "0.5",
+    "2",
+    "3",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig returns default config if network is not defined 1`] = `
+{
+  "default_slippage_options": [
+    "0.5",
+    "2",
+    "3",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig should replace custom fields for network if defined 1`] = `
+{
+  "default_slippage_options": [
+    "auto",
+    "0.5",
+    "2",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig snapshots matches snapshot for Solana network 1`] = `
+{
+  "default_slippage_options": [
+    "auto",
+    "0.5",
+    "2",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig snapshots matches snapshot for default network 1`] = `
+{
+  "default_slippage_options": [
+    "0.5",
+    "2",
+    "3",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig snapshots matches snapshot for non-existent network 1`] = `
+{
+  "default_slippage_options": [
+    "0.5",
+    "2",
+    "3",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;
+
+exports[`useSlippageConfig snapshots matches snapshot for undefined network 1`] = `
+{
+  "default_slippage_options": [
+    "0.5",
+    "2",
+    "3",
+  ],
+  "has_custom_slippage_option": true,
+  "input_max_decimals": 2,
+  "input_step": 0.1,
+  "lower_allowed_slippage_threshold": {
+    "inclusive": true,
+    "messageId": "bridge.exceeding_lower_slippage_error",
+    "value": 0.1,
+  },
+  "lower_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_lower_slippage_warning",
+    "value": 0.5,
+  },
+  "max_amount": 100,
+  "min_amount": 0,
+  "upper_allowed_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_error",
+    "value": 100,
+  },
+  "upper_suggested_slippage_threshold": {
+    "inclusive": false,
+    "messageId": "bridge.exceeding_upper_slippage_warning",
+    "value": 5,
+  },
+}
+`;

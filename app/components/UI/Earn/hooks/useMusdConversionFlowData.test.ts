@@ -41,6 +41,16 @@ const mockUseNetworksByCustomNamespace =
   >;
 
 describe('useMusdConversionFlowData', () => {
+  const createMockUseMusdConversionTokensReturnValue = (
+    tokens: AssetType[],
+  ): ReturnType<typeof useMusdConversionTokens> =>
+    ({
+      tokens,
+      filterAllowedTokens: jest.fn((inputTokens: AssetType[]) => inputTokens),
+      isConversionToken: jest.fn(() => true),
+      isMusdSupportedOnChain: jest.fn(() => true),
+    }) as unknown as ReturnType<typeof useMusdConversionTokens>;
+
   const mockUsdcMainnet: AssetType = {
     address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     chainId: '0x1',
@@ -95,10 +105,6 @@ describe('useMusdConversionFlowData', () => {
     image: 'https://example.com/usdc.png',
   };
 
-  const mockGetMusdOutputChainId = jest.fn((chainId?: string) =>
-    chainId ? (chainId as Hex) : MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  );
-
   const mockGetIsMusdBuyable = jest.fn(
     (selectedChainId: Hex | null, isPopularNetworksFilterActive: boolean) => {
       if (isPopularNetworksFilterActive) return true;
@@ -127,13 +133,9 @@ describe('useMusdConversionFlowData', () => {
       return undefined;
     });
 
-    mockUseMusdConversionTokens.mockReturnValue({
-      tokens: [mockUsdcMainnet],
-      getMusdOutputChainId: mockGetMusdOutputChainId,
-      filterAllowedTokens: jest.fn(),
-      isConversionToken: jest.fn(),
-      isMusdSupportedOnChain: jest.fn(),
-    });
+    mockUseMusdConversionTokens.mockReturnValue(
+      createMockUseMusdConversionTokensReturnValue([mockUsdcMainnet]),
+    );
 
     mockUseMusdConversionEligibility.mockReturnValue({
       isEligible: true,
@@ -175,7 +177,6 @@ describe('useMusdConversionFlowData', () => {
         'getPaymentTokenForSelectedNetwork',
       );
       expect(result.current).toHaveProperty('getChainIdForBuyFlow');
-      expect(result.current).toHaveProperty('getMusdOutputChainId');
       expect(result.current).toHaveProperty('isMusdBuyableOnChain');
       expect(result.current).toHaveProperty('isMusdBuyableOnAnyChain');
       expect(result.current).toHaveProperty('isMusdBuyable');
@@ -188,7 +189,6 @@ describe('useMusdConversionFlowData', () => {
         'function',
       );
       expect(typeof result.current.getChainIdForBuyFlow).toBe('function');
-      expect(typeof result.current.getMusdOutputChainId).toBe('function');
     });
   });
 
@@ -316,13 +316,12 @@ describe('useMusdConversionFlowData', () => {
 
   describe('token availability', () => {
     it('detects convertible tokens correctly', () => {
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [mockUsdcMainnet, mockUsdtMainnet],
-        getMusdOutputChainId: mockGetMusdOutputChainId,
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-      });
+      mockUseMusdConversionTokens.mockReturnValue(
+        createMockUseMusdConversionTokensReturnValue([
+          mockUsdcMainnet,
+          mockUsdtMainnet,
+        ]),
+      );
 
       const { result } = renderHook(() => useMusdConversionFlowData());
 
@@ -331,13 +330,9 @@ describe('useMusdConversionFlowData', () => {
     });
 
     it('detects no convertible tokens correctly', () => {
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [],
-        getMusdOutputChainId: mockGetMusdOutputChainId,
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-      });
+      mockUseMusdConversionTokens.mockReturnValue(
+        createMockUseMusdConversionTokensReturnValue([]),
+      );
 
       const { result } = renderHook(() => useMusdConversionFlowData());
 
@@ -348,13 +343,12 @@ describe('useMusdConversionFlowData', () => {
 
   describe('getPaymentTokenForSelectedNetwork', () => {
     it('returns first token when all networks selected', () => {
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [mockUsdcMainnet, mockUsdtMainnet],
-        getMusdOutputChainId: mockGetMusdOutputChainId,
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-      });
+      mockUseMusdConversionTokens.mockReturnValue(
+        createMockUseMusdConversionTokensReturnValue([
+          mockUsdcMainnet,
+          mockUsdtMainnet,
+        ]),
+      );
       mockUseNetworksByCustomNamespace.mockReturnValue({
         areAllNetworksSelected: true,
       } as unknown as ReturnType<typeof useNetworksByCustomNamespace>);
@@ -369,13 +363,12 @@ describe('useMusdConversionFlowData', () => {
     });
 
     it('returns token on selected chain when specific chain selected', () => {
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [mockUsdcMainnet, mockUsdcLinea],
-        getMusdOutputChainId: mockGetMusdOutputChainId,
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-      });
+      mockUseMusdConversionTokens.mockReturnValue(
+        createMockUseMusdConversionTokensReturnValue([
+          mockUsdcMainnet,
+          mockUsdcLinea,
+        ]),
+      );
       mockUseCurrentNetworkInfo.mockReturnValue({
         enabledNetworks: [{ chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true }],
       } as ReturnType<typeof useCurrentNetworkInfo>);
@@ -393,13 +386,9 @@ describe('useMusdConversionFlowData', () => {
     });
 
     it('returns null when selected chain has no tokens', () => {
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [mockUsdcMainnet],
-        getMusdOutputChainId: mockGetMusdOutputChainId,
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-      });
+      mockUseMusdConversionTokens.mockReturnValue(
+        createMockUseMusdConversionTokensReturnValue([mockUsdcMainnet]),
+      );
       mockUseCurrentNetworkInfo.mockReturnValue({
         enabledNetworks: [{ chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true }],
       } as ReturnType<typeof useCurrentNetworkInfo>);
@@ -414,13 +403,9 @@ describe('useMusdConversionFlowData', () => {
     });
 
     it('returns null when no tokens available', () => {
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [],
-        getMusdOutputChainId: mockGetMusdOutputChainId,
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-      });
+      mockUseMusdConversionTokens.mockReturnValue(
+        createMockUseMusdConversionTokensReturnValue([]),
+      );
 
       const { result } = renderHook(() => useMusdConversionFlowData());
       const paymentToken = result.current.getPaymentTokenForSelectedNetwork();
@@ -434,13 +419,9 @@ describe('useMusdConversionFlowData', () => {
         chainId: undefined,
       } as unknown as AssetType;
 
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [tokenWithoutChainId],
-        getMusdOutputChainId: mockGetMusdOutputChainId,
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-      });
+      mockUseMusdConversionTokens.mockReturnValue(
+        createMockUseMusdConversionTokensReturnValue([tokenWithoutChainId]),
+      );
 
       const { result } = renderHook(() => useMusdConversionFlowData());
       const paymentToken = result.current.getPaymentTokenForSelectedNetwork();
@@ -454,13 +435,9 @@ describe('useMusdConversionFlowData', () => {
         address: undefined,
       } as unknown as AssetType;
 
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [tokenWithoutAddress],
-        getMusdOutputChainId: mockGetMusdOutputChainId,
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-      });
+      mockUseMusdConversionTokens.mockReturnValue(
+        createMockUseMusdConversionTokensReturnValue([tokenWithoutAddress]),
+      );
 
       const { result } = renderHook(() => useMusdConversionFlowData());
       const paymentToken = result.current.getPaymentTokenForSelectedNetwork();
@@ -510,15 +487,6 @@ describe('useMusdConversionFlowData', () => {
       const chainId = result.current.getChainIdForBuyFlow();
 
       expect(chainId).toBe(MUSD_CONVERSION_DEFAULT_CHAIN_ID);
-    });
-  });
-
-  describe('getMusdOutputChainId', () => {
-    it('delegates to useMusdConversionTokens helper', () => {
-      const { result } = renderHook(() => useMusdConversionFlowData());
-      result.current.getMusdOutputChainId(CHAIN_IDS.MAINNET);
-
-      expect(mockGetMusdOutputChainId).toHaveBeenCalledWith(CHAIN_IDS.MAINNET);
     });
   });
 
