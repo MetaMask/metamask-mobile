@@ -21,9 +21,11 @@ import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
+import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
+jest.mock('./useGasSponsorshipWarningAlert');
 jest.mock('./useDomainMismatchAlerts');
 jest.mock('./useInsufficientBalanceAlert');
 jest.mock('./useAccountTypeUpgrade');
@@ -171,6 +173,7 @@ describe('useConfirmationAlerts', () => {
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
     (useDomainMismatchAlerts as jest.Mock).mockReturnValue([]);
     (useGasEstimateFailedAlert as jest.Mock).mockReturnValue([]);
+    (useGasSponsorshipWarningAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientBalanceAlert as jest.Mock).mockReturnValue([]);
     (useAccountTypeUpgrade as jest.Mock).mockReturnValue([]);
     (useSignedOrSubmittedAlert as jest.Mock).mockReturnValue([]);

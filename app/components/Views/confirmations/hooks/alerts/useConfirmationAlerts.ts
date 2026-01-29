@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import useBlockaidAlerts from './useBlockaidAlerts';
 import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
+import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
 import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
@@ -24,6 +25,7 @@ function useSignatureAlerts(): Alert[] {
 
 function useTransactionAlerts(): Alert[] {
   const gasEstimateFailedAlert = useGasEstimateFailedAlert();
+  const gasSponsorshipWarningAlert = useGasSponsorshipWarningAlert();
   const insufficientBalanceAlert = useInsufficientBalanceAlert();
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
   const pendingTransactionAlert = usePendingTransactionAlert();
@@ -38,6 +40,7 @@ function useTransactionAlerts(): Alert[] {
   return useMemo(
     () => [
       ...gasEstimateFailedAlert,
+      ...gasSponsorshipWarningAlert,
       ...insufficientBalanceAlert,
       ...batchedUnusedApprovalsAlert,
       ...pendingTransactionAlert,
@@ -50,6 +53,7 @@ function useTransactionAlerts(): Alert[] {
     ],
     [
       gasEstimateFailedAlert,
+      gasSponsorshipWarningAlert,
       insufficientBalanceAlert,
       batchedUnusedApprovalsAlert,
       pendingTransactionAlert,
