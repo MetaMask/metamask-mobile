@@ -66,6 +66,14 @@ export interface MobileOptinDto {
   referralCode?: string;
 }
 
+export interface ApplyReferralDto {
+  /**
+   * The referral code to apply
+   * @example 'ABC123'
+   */
+  referralCode: string;
+}
+
 export interface EstimateAssetDto {
   /**
    * Asset identifier in CAIP-19 format
@@ -498,6 +506,7 @@ export interface SeasonStatusDto {
 export interface SubscriptionSeasonReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
+  referredByCode: string;
   referralPoints: number;
 }
 
@@ -573,6 +582,7 @@ export interface ClaimRewardDto {
 export type SubscriptionSeasonReferralDetailState = {
   referralCode: string;
   totalReferees: number;
+  referredByCode: string;
   referralPoints: number;
   lastFetched?: number;
 };
@@ -1056,6 +1066,14 @@ export interface RewardsControllerResetAllAction {
 }
 
 /**
+ * Action for applying a referral code to an existing subscription
+ */
+export interface RewardsControllerApplyReferralCodeAction {
+  type: 'RewardsController:applyReferralCode';
+  handler: (referralCode: string, subscriptionId: string) => Promise<void>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1085,7 +1103,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
-  | RewardsControllerResetAllAction;
+  | RewardsControllerResetAllAction
+  | RewardsControllerApplyReferralCodeAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

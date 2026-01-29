@@ -7029,7 +7029,10 @@
       "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
       "request_rejected": "You rejected the request.",
       "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
-      "service_not_available": "Service is not available at the moment. Please try again shortly."
+      "service_not_available": "Service is not available at the moment. Please try again shortly.",
+      "invalid_referral_code": "Invalid referral code. Please check and try again.",
+      "already_referred": "You have already been referred by another user.",
+      "cannot_use_own_referral_code": "You cannot use your own referral code."
     },
     "claim_reward_error": {
       "title": "Failed to claim reward"
@@ -7086,6 +7089,7 @@
         "stop_loss": "TP/SL",
         "predict": "Prediction",
         "musd_deposit": "mUSD deposit",
+        "apply_referral_bonus": "Referral code bonus",
         "uncategorized_event": "Uncategorized event"
       },
       "date": "Date",
@@ -7179,6 +7183,14 @@
       "link_account_button": "Add",
       "link_account_failed_error": "Failed to add account",
       "link_account_unknown_error": "Unknown error occurred"
+    },
+    "referred_by_code": {
+      "title": "Referral Code",
+      "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
+      "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
+      "input_placeholder": "Enter referral code",
+      "invalid_code": "Invalid referral code",
+      "apply_button": "Apply referral code"
     },
     "optout": {
       "title": "Opt out of Rewards",

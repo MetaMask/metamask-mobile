@@ -538,6 +538,10 @@ export class RewardsController extends BaseController<
       'RewardsController:getSeasonOneLineaRewardTokens',
       this.getSeasonOneLineaRewardTokens.bind(this),
     );
+    this.messenger.registerActionHandler(
+      'RewardsController:applyReferralCode',
+      this.applyReferralCode.bind(this),
+    );
   }
 
   /**
@@ -2004,6 +2008,7 @@ export class RewardsController extends BaseController<
             referralCode: referralDetails.referralCode,
             totalReferees: referralDetails.totalReferees,
             referralPoints: referralDetails.referralPoints,
+            referredByCode: referralDetails.referredByCode,
             lastFetched: Date.now(),
           };
         } catch (error) {
@@ -3024,6 +3029,64 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Apply a referral code to an existing subscription.
+   * @param referralCode - The referral code to apply.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Promise that resolves when the referral code is applied successfully.
+   * @throws Error with the error message from the API response.
+   */
+  async applyReferralCode(
+    referralCode: string,
+    subscriptionId: string,
+  ): Promise<void> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+
+    try {
+      await this.messenger.call(
+        'RewardsDataService:applyReferralCode',
+        { referralCode },
+        subscriptionId,
+      );
+
+      // Invalidate referral details cache for this subscription
+      this.invalidateReferralDetailsCache(subscriptionId);
+
+      Logger.log(
+        'RewardsController: Successfully applied referral code',
+        subscriptionId,
+      );
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to apply referral code:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Invalidate referral details cache for a subscription
+   * @param subscriptionId - The subscription ID to invalidate cache for
+   */
+  invalidateReferralDetailsCache(subscriptionId: string): void {
+    this.update((state: RewardsControllerState) => {
+      Object.keys(state.subscriptionReferralDetails).forEach((key) => {
+        if (key.includes(subscriptionId)) {
+          delete state.subscriptionReferralDetails[key];
+        }
+      });
+    });
+
+    Logger.log(
+      'RewardsController: Invalidated referral details cache for subscription',
+      subscriptionId,
+    );
+  }
+
+  /**
    * Invalidate cached data for a subscription
    * @param subscriptionId - The subscription ID to invalidate cache for
    * @param seasonId - The season ID (defaults to current season)
@@ -3040,6 +3103,7 @@ export class RewardsController extends BaseController<
         delete state.unlockedRewards[compositeKey];
         delete state.activeBoosts[compositeKey];
         delete state.pointsEvents[compositeKey];
+        delete state.subscriptionReferralDetails[compositeKey];
       });
     } else {
       // Invalidate all seasons for this subscription
@@ -3062,6 +3126,11 @@ export class RewardsController extends BaseController<
         Object.keys(state.pointsEvents).forEach((key) => {
           if (key.includes(subscriptionId)) {
             delete state.pointsEvents[key];
+          }
+        });
+        Object.keys(state.subscriptionReferralDetails).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.subscriptionReferralDetails[key];
           }
         });
       });
