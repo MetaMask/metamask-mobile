@@ -1,91 +1,198 @@
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import { useTokenPrice } from './useTokenPrice';
 import { TokenI } from '../../Tokens/types';
+import { selectSelectedNetworkClientId } from '../../../../selectors/networkController';
+import {
+  selectCurrentCurrency,
+  selectCurrencyRates,
+} from '../../../../selectors/currencyRateController';
+import { isAssetFromSearch } from '../../../../selectors/tokenSearchDiscoveryDataController';
+import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
+import useTokenHistoricalPrices from '../../../hooks/useTokenHistoricalPrices';
+import Engine from '../../../../core/Engine';
 
-// Due to complex selector and Engine dependencies, we test the hook's
-// interface, logic patterns, and type definitions.
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/networkController', () => ({
+  selectNativeCurrencyByChainId: jest.fn(),
+  selectSelectedNetworkClientId: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(),
+  selectCurrencyRates: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/tokenSearchDiscoveryDataController', () => ({
+  isAssetFromSearch: jest.fn(),
+  selectTokenDisplayData: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/tokenRatesController', () => ({
+  selectTokenMarketData: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useTokenHistoricalPrices', () => jest.fn());
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    SwapsController: {
+      fetchTokenWithCache: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../Bridge/utils/exchange-rates', () => ({
+  getTokenExchangeRate: jest.fn().mockResolvedValue(undefined),
+}));
+
+const mockUseSelector = jest.mocked(useSelector);
+const mockIsAssetFromSearch = jest.mocked(isAssetFromSearch);
+const mockUseTokenHistoricalPrices = jest.mocked(useTokenHistoricalPrices);
 
 describe('useTokenPrice', () => {
-  const mockToken: TokenI = {
-    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-    symbol: 'DAI',
-    name: 'Dai Stablecoin',
-    decimals: 18,
-    chainId: '0x1',
-    balance: '100',
-    balanceFiat: '$100',
-    image: '',
-    logo: '',
-    aggregators: [],
-    isETH: false,
-    isNative: false,
+  const defaultCurrencyRates = {
+    ETH: { conversionRate: 2000, conversionDate: Date.now() },
   };
 
-  describe('type definitions', () => {
-    it('UseTokenPriceResult interface defines expected properties', () => {
-      type TimePeriod = '1d' | '1w' | '1m' | '3m' | '1y' | '3y' | 'all';
-
-      interface UseTokenPriceResult {
-        currentPrice: number;
-        priceDiff: number;
-        comparePrice: number;
-        prices: { timestamp: number; value: number }[];
-        isLoading: boolean;
-        timePeriod: TimePeriod;
-        setTimePeriod: (period: TimePeriod) => void;
-        chartNavigationButtons: TimePeriod[];
-        exchangeRate: number | undefined;
-        marketDataRate: number | undefined;
-        nativeCurrency: string;
-        currentCurrency: string;
+  const setupDefaultMocks = (overrides?: {
+    tokenMarketData?: Record<string, Record<string, { price: number }>>;
+    currencyRates?: typeof defaultCurrencyRates;
+    tokenDisplayData?: { found: boolean; price?: { price: number } };
+  }) => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectCurrencyRates) {
+        return overrides?.currencyRates ?? defaultCurrencyRates;
       }
+      if (selector === selectCurrentCurrency) {
+        return 'usd';
+      }
+      if (selector === selectTokenMarketData) {
+        return overrides?.tokenMarketData ?? {};
+      }
+      if (selector === selectSelectedNetworkClientId) {
+        return 'mainnet';
+      }
+      if (typeof selector === 'function') {
+        if (overrides?.tokenDisplayData) {
+          return overrides.tokenDisplayData;
+        }
+        return 'ETH';
+      }
+      return undefined;
+    });
+  };
 
-      const mockResult: UseTokenPriceResult = {
-        currentPrice: 1.0,
-        priceDiff: 0.5,
-        comparePrice: 0.995,
-        prices: [
-          { timestamp: 1000, value: 0.99 },
-          { timestamp: 2000, value: 1.0 },
-        ],
-        isLoading: false,
-        timePeriod: '1d',
-        setTimePeriod: jest.fn(),
-        chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
-        exchangeRate: 1.0,
-        marketDataRate: 1.0,
-        nativeCurrency: 'ETH',
-        currentCurrency: 'usd',
-      };
+  beforeEach(() => {
+    jest.clearAllMocks();
 
-      expect(mockResult.currentPrice).toBe(1.0);
-      expect(mockResult.timePeriod).toBe('1d');
-      expect(mockResult.chartNavigationButtons).toHaveLength(6);
+    mockIsAssetFromSearch.mockReturnValue(false);
+    mockUseTokenHistoricalPrices.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: undefined,
+    });
+    setupDefaultMocks();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('returns loading state from historical prices hook', async () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+    } as TokenI;
+
+    mockUseTokenHistoricalPrices.mockReturnValue({
+      isLoading: true,
+      data: undefined,
+      error: undefined,
+    });
+
+    const { result } = renderHook(() => useTokenPrice({ token }));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(true);
+    });
+    expect(result.current.prices).toEqual([]);
+  });
+
+  it('returns price data for EVM token with market data rate', async () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+      symbol: 'DAI',
+    } as TokenI;
+
+    setupDefaultMocks({
+      tokenMarketData: {
+        '0x1': {
+          '0x6B175474E89094C44Da98b954EedeAC495271d0F': { price: 0.0005 },
+        },
+      },
+    });
+
+    mockUseTokenHistoricalPrices.mockReturnValue({
+      data: [
+        ['1700000000', 0.99],
+        ['1700001000', 1.0],
+      ],
+      isLoading: false,
+      error: undefined,
+    });
+
+    const { result } = renderHook(() => useTokenPrice({ token }));
+
+    await waitFor(() => {
+      expect(result.current.currentPrice).toBe(1);
+    });
+    expect(result.current.comparePrice).toBe(0.99);
+    expect(result.current.currentCurrency).toBe('usd');
+    expect(result.current.chartNavigationButtons).toEqual([
+      '1d',
+      '1w',
+      '1m',
+      '3m',
+      '1y',
+      '3y',
+    ]);
+  });
+
+  it('returns price from search result when token is from search', async () => {
+    const token = {
+      address: '0xabc123',
+      chainId: '0x1',
+      isFromSearch: true,
+    } as unknown as TokenI;
+
+    mockIsAssetFromSearch.mockReturnValue(true);
+
+    setupDefaultMocks({
+      tokenDisplayData: { found: true, price: { price: 123.45 } },
+    });
+
+    const { result } = renderHook(() => useTokenPrice({ token }));
+
+    await waitFor(() => {
+      expect(result.current.currentPrice).toBe(123.45);
     });
   });
 
-  describe('chart navigation buttons', () => {
-    it('returns EVM buttons for EVM chains', () => {
-      const getChartNavigationButtons = (isNonEvmAsset: boolean): string[] =>
-        !isNonEvmAsset
-          ? ['1d', '1w', '1m', '3m', '1y', '3y']
-          : ['1d', '1w', '1m', '3m', '1y', 'all'];
+  it('returns different chart navigation buttons for non-EVM tokens', async () => {
+    const token = {
+      address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:abc123',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    } as TokenI;
 
-      expect(getChartNavigationButtons(false)).toEqual([
-        '1d',
-        '1w',
-        '1m',
-        '3m',
-        '1y',
-        '3y',
-      ]);
-    });
+    const { result } = renderHook(() => useTokenPrice({ token }));
 
-    it('returns non-EVM buttons for non-EVM chains with "all" option', () => {
-      const getChartNavigationButtons = (isNonEvmAsset: boolean): string[] =>
-        !isNonEvmAsset
-          ? ['1d', '1w', '1m', '3m', '1y', '3y']
-          : ['1d', '1w', '1m', '3m', '1y', 'all'];
-
-      expect(getChartNavigationButtons(true)).toEqual([
+    await waitFor(() => {
+      expect(result.current.chartNavigationButtons).toEqual([
         '1d',
         '1w',
         '1m',
@@ -96,57 +203,48 @@ describe('useTokenPrice', () => {
     });
   });
 
-  describe('chain type detection', () => {
-    it('identifies EVM chains by hex prefix', () => {
-      const isEvmChain = (chainId: string): boolean => chainId.startsWith('0x');
+  it('uses multichain asset rates for non-EVM tokens', async () => {
+    const token = {
+      address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:abc123',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    } as TokenI;
 
-      expect(isEvmChain(mockToken.chainId as string)).toBe(true);
-      expect(isEvmChain('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp')).toBe(false);
+    const multichainAssetRates = {
+      rate: 150.5,
+      marketData: undefined,
+    };
+
+    mockUseTokenHistoricalPrices.mockReturnValue({
+      data: [['1700000000', 145.0]],
+      isLoading: false,
+      error: undefined,
     });
+
+    const { result } = renderHook(() =>
+      useTokenPrice({ token, multichainAssetRates }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.currentPrice).toBe(150.5);
+    });
+    expect(result.current.comparePrice).toBe(145.0);
+    expect(result.current.priceDiff).toBe(5.5);
   });
 
-  describe('price calculation fallback', () => {
-    it('uses exchange rate when available', () => {
-      const getEffectiveRate = (
-        marketDataRate: number | undefined,
-        fetchedRate: number | undefined,
-      ): number | undefined => marketDataRate ?? fetchedRate;
+  it('calls SwapsController.fetchTokenWithCache on mount', async () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+    } as TokenI;
 
-      expect(getEffectiveRate(1.5, 1.0)).toBe(1.5);
-      expect(getEffectiveRate(undefined, 1.0)).toBe(1.0);
-      expect(getEffectiveRate(undefined, undefined)).toBeUndefined();
-    });
-  });
+    renderHook(() => useTokenPrice({ token }));
 
-  describe('time period state', () => {
-    it('defaults to 1d time period', () => {
-      const defaultTimePeriod = '1d';
-
-      expect(defaultTimePeriod).toBe('1d');
-    });
-
-    it('validates time period values', () => {
-      const validTimePeriods = ['1d', '1w', '1m', '3m', '1y', '3y', 'all'];
-      const isValidTimePeriod = (period: string): boolean =>
-        validTimePeriods.includes(period);
-
-      expect(isValidTimePeriod('1d')).toBe(true);
-      expect(isValidTimePeriod('1w')).toBe(true);
-      expect(isValidTimePeriod('invalid')).toBe(false);
-    });
-  });
-
-  describe('address handling', () => {
-    it('uses original address for non-EVM tokens', () => {
-      const getItemAddress = (
-        address: string,
-        isNonEvmAsset: boolean,
-      ): string => {
-        if (isNonEvmAsset) return address;
-        return address; // Would checksum for EVM
-      };
-
-      expect(getItemAddress(mockToken.address, false)).toBe(mockToken.address);
+    await waitFor(() => {
+      expect(
+        Engine.context.SwapsController.fetchTokenWithCache,
+      ).toHaveBeenCalledWith({
+        networkClientId: 'mainnet',
+      });
     });
   });
 });

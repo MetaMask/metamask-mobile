@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { CurrencyRateState } from '@metamask/assets-controllers';
 import {
   selectNativeCurrencyByChainId,
   selectSelectedNetworkClientId,
@@ -38,12 +37,7 @@ export interface UseTokenPriceResult {
   timePeriod: TimePeriod;
   setTimePeriod: (period: TimePeriod) => void;
   chartNavigationButtons: TimePeriod[];
-  exchangeRate: number | undefined;
-  marketDataRate: number | undefined;
-  nativeCurrency: string;
   currentCurrency: string;
-  conversionRateByTicker: CurrencyRateState['currencyRates'] | undefined;
-  itemAddress: string | undefined;
 }
 
 export interface UseTokenPriceParams {
@@ -63,15 +57,10 @@ export const useTokenPrice = ({
   multichainAssetRates,
 }: UseTokenPriceParams): UseTokenPriceResult => {
   const chainId = token.chainId as Hex;
+  const isNonEvmToken = formatChainIdToCaip(chainId) === token.chainId;
 
-  // Determine if asset is EVM or non-EVM
-  const resultChainId = formatChainIdToCaip(chainId);
-  const isNonEvmToken = resultChainId === token.chainId;
-
-  // Time period state
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('1d');
 
-  // Selectors
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const allTokenMarketData = useSelector(selectTokenMarketData);
@@ -85,23 +74,18 @@ export const useTokenPrice = ({
     selectTokenDisplayData(state, chainId, token.address as Hex),
   );
 
-  // Calculate item address
   const itemAddress = !isNonEvmToken
     ? safeToChecksumAddress(token.address)
     : token.address;
 
-  const currentAddress = token.address as Hex;
-
-  // Historical prices
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset: token,
-    address: currentAddress,
+    address: token.address as Hex,
     chainId,
     timePeriod,
     vsCurrency: currentCurrency,
   });
 
-  // Fetch swaps tokens on mount
   useEffect(() => {
     const { SwapsController } = Engine.context;
     const fetchTokenWithCache = async () => {
@@ -119,7 +103,6 @@ export const useTokenPrice = ({
     fetchTokenWithCache();
   }, [selectedNetworkClientId]);
 
-  // Chart navigation buttons based on asset type
   const chartNavigationButtons: TimePeriod[] = useMemo(
     () =>
       !isNonEvmToken
@@ -128,11 +111,9 @@ export const useTokenPrice = ({
     [isNonEvmToken],
   );
 
-  const currentChainId = chainId as Hex;
   const marketDataRate =
-    allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
+    allTokenMarketData?.[chainId]?.[itemAddress as Hex]?.price;
 
-  // Fetch exchange rate if not available in cache
   const [fetchedRate, setFetchedRate] = useState<number | undefined>();
 
   useEffect(() => {
@@ -140,7 +121,7 @@ export const useTokenPrice = ({
       return;
     }
 
-    const isNonEvm = isNonEvmChainId(currentChainId);
+    const isNonEvm = isNonEvmChainId(chainId);
     const nativeTokenConversionRate =
       nativeCurrency &&
       conversionRateByTicker?.[nativeCurrency]?.conversionRate;
@@ -152,7 +133,7 @@ export const useTokenPrice = ({
     const fetchRate = async () => {
       try {
         const tokenFiatPrice = await getTokenExchangeRate({
-          chainId: currentChainId,
+          chainId,
           tokenAddress: itemAddress,
           currency: currentCurrency,
         });
@@ -175,7 +156,7 @@ export const useTokenPrice = ({
 
     fetchRate();
   }, [
-    currentChainId,
+    chainId,
     itemAddress,
     currentCurrency,
     marketDataRate,
@@ -185,7 +166,6 @@ export const useTokenPrice = ({
 
   const exchangeRate = marketDataRate ?? fetchedRate;
 
-  // Calculate price data
   let currentPrice = 0;
   let priceDiff = 0;
   let comparePrice = 0;
@@ -221,12 +201,7 @@ export const useTokenPrice = ({
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
-    exchangeRate,
-    marketDataRate,
-    nativeCurrency,
     currentCurrency,
-    conversionRateByTicker,
-    itemAddress,
   };
 };
 
