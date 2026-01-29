@@ -419,8 +419,7 @@ const CardHome = () => {
     );
   }, [logoutFromProvider, navigation]);
 
-  const onCardDetailsImageError = useCallback(() => {
-    clearCardDetailsImageUrl();
+  const showCardDetailsErrorToast = useCallback(() => {
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
       labelOptions: [
@@ -429,7 +428,12 @@ const CardHome = () => {
       hasNoTimeout: false,
       iconName: IconName.Warning,
     });
-  }, [clearCardDetailsImageUrl, toastRef]);
+  }, [toastRef]);
+
+  const onCardDetailsImageError = useCallback(() => {
+    clearCardDetailsImageUrl();
+    showCardDetailsErrorToast();
+  }, [clearCardDetailsImageUrl, showCardDetailsErrorToast]);
 
   const fetchAndShowCardDetails = useCallback(async () => {
     trackEvent(
@@ -444,18 +448,11 @@ const CardHome = () => {
     try {
       await fetchCardDetailsToken(cardDetails?.type);
     } catch {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('card.card_home.view_card_details_error') },
-        ],
-        hasNoTimeout: false,
-        iconName: IconName.Warning,
-      });
+      showCardDetailsErrorToast();
     }
   }, [
     fetchCardDetailsToken,
-    toastRef,
+    showCardDetailsErrorToast,
     cardDetails?.type,
     trackEvent,
     createEventBuilder,

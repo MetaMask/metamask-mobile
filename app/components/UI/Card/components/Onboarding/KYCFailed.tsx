@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { Image, View, StyleSheet, useWindowDimensions } from 'react-native';
+import {
+  Image,
+  View,
+  StyleSheet,
+  useWindowDimensions,
+  ViewStyle,
+  ImageStyle,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -45,8 +52,10 @@ const KYCFailed = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
-  // Responsive styles based on current window dimensions
-  const dynamicStyles = useMemo(() => {
+  const dynamicStyles = useMemo<{
+    imageContainer: ViewStyle;
+    image: ImageStyle;
+  }>(() => {
     const isSmallScreen = screenHeight < SMALL_SCREEN_THRESHOLD;
     const imageTop = isSmallScreen ? '28%' : '25%';
     const imageWidth = isSmallScreen ? screenWidth * 1.5 : screenWidth * 1.2;
@@ -54,7 +63,7 @@ const KYCFailed = () => {
       ? screenHeight * 0.8
       : screenHeight * 0.75;
 
-    return StyleSheet.create({
+    return {
       imageContainer: {
         position: 'absolute',
         top: imageTop,
@@ -69,7 +78,7 @@ const KYCFailed = () => {
         width: imageWidth,
         height: imageHeight,
       },
-    });
+    };
   }, [screenWidth, screenHeight]);
 
   useEffect(() => {
