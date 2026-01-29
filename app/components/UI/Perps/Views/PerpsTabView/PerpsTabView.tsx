@@ -88,7 +88,6 @@ const PerpsTabView = () => {
     exploreMarkets,
     watchlistMarkets,
     isLoading: isExploreLoading,
-    hasWatchlistSymbols,
   } = usePerpsTabExploreData({ enabled: hasNoPositionsOrOrders });
 
   // Determine balance visibility for conditional header styling
@@ -105,7 +104,8 @@ const PerpsTabView = () => {
   // - Below watchlist: 20px/8px (visual separation between sections)
   // - At top with balance: 24px/4px
   // - At top without balance: 16px/4px
-  const exploreMarketsHeaderStyle = hasWatchlistSymbols
+  const isWatchlistVisible = watchlistMarkets.length > 0;
+  const exploreMarketsHeaderStyle = isWatchlistVisible
     ? styles.exploreMarketsHeaderStyleBelowWatchlist // 20px/8px
     : shouldShowBalance
       ? styles.exploreMarketsHeaderStyleWithBalance // 24px/4px
@@ -284,8 +284,8 @@ const PerpsTabView = () => {
       >
         {!isInitialLoading && hasNoPositionsOrOrders ? (
           <View style={styles.emptyStateContainer}>
-            {/* Watchlist section - only render if user has watchlist symbols */}
-            {hasWatchlistSymbols && (
+            {/* Watchlist section - only render if user has watchlist markets */}
+            {isWatchlistVisible && (
               <PerpsWatchlistMarkets
                 markets={watchlistMarkets}
                 isLoading={isExploreLoading}
