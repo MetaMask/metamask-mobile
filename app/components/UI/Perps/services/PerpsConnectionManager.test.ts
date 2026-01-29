@@ -3,6 +3,17 @@ jest.mock('../utils/wait', () => ({
   wait: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Mock TradingReadinessCache for cache clearing tests
+// The mock must be defined inside the factory function because jest.mock is hoisted
+jest.mock('./TradingReadinessCache', () => ({
+  TradingReadinessCache: {
+    clear: jest.fn(),
+    clearAll: jest.fn(),
+    get: jest.fn(),
+    set: jest.fn(),
+  },
+}));
+
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -83,10 +94,16 @@ import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
+import { TradingReadinessCache } from './TradingReadinessCache';
 
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
 import { PerpsConnectionManager } from './PerpsConnectionManager';
+
+// Get reference to the mocked TradingReadinessCache
+const mockTradingReadinessCache = TradingReadinessCache as jest.Mocked<
+  typeof TradingReadinessCache
+>;
 
 // Helper to reset private properties for testing
 const resetManager = (manager: unknown) => {
@@ -748,6 +765,61 @@ describe('PerpsConnectionManager', () => {
         expect.stringContaining('Reconnection with new context failed'),
         error,
       );
+    });
+  });
+
+  describe('DEX Abstraction Cache Clearing (PR #25334)', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('clearDexAbstractionCache', () => {
+      it('clears cache for specific network and user address', () => {
+        // Arrange
+        const network = 'mainnet' as const;
+        const userAddress = '0x1234567890123456789012345678901234567890';
+
+        // Act
+        PerpsConnectionManager.clearDexAbstractionCache(network, userAddress);
+
+        // Assert
+        expect(mockTradingReadinessCache.clear).toHaveBeenCalledWith(
+          network,
+          userAddress,
+        );
+        expect(mockDevLogger.log).toHaveBeenCalledWith(
+          'PerpsConnectionManager: DEX abstraction cache cleared',
+          { network, userAddress },
+        );
+      });
+
+      it('handles testnet network', () => {
+        // Arrange
+        const network = 'testnet' as const;
+        const userAddress = '0xTestnetUser12345678901234567890123456';
+
+        // Act
+        PerpsConnectionManager.clearDexAbstractionCache(network, userAddress);
+
+        // Assert
+        expect(mockTradingReadinessCache.clear).toHaveBeenCalledWith(
+          network,
+          userAddress,
+        );
+      });
+    });
+
+    describe('clearAllDexAbstractionCache', () => {
+      it('clears all cache entries', () => {
+        // Act
+        PerpsConnectionManager.clearAllDexAbstractionCache();
+
+        // Assert
+        expect(mockTradingReadinessCache.clearAll).toHaveBeenCalled();
+        expect(mockDevLogger.log).toHaveBeenCalledWith(
+          'PerpsConnectionManager: All DEX abstraction cache cleared',
+        );
+      });
     });
   });
 });
