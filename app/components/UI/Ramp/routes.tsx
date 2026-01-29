@@ -4,7 +4,6 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './components/TokenSelection';
 import BuildQuote from './components/BuildQuote';
 import UnsupportedTokenModal from './components/UnsupportedTokenModal';
-import SettingsModal from './components/Modals/SettingsModal';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
@@ -39,10 +38,6 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_TOKEN}
       component={UnsupportedTokenModal}
-    />
-    <ModalsStack.Screen
-      name={Routes.RAMP.MODALS.BUILD_QUOTE_SETTINGS}
-      component={SettingsModal}
     />
   </ModalsStack.Navigator>
 );

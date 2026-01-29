@@ -1,7 +1,7 @@
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { ETH_ACTIONS } from '../../../../constants/deeplinks';
-
+import { selectConfirmationRedesignFlagsFromRemoteFeatureFlags } from '../../../../selectors/featureFlagController/confirmations';
 import Engine from '../../../../core/Engine';
 import { generateTransferData } from '../../../../util/transactions';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
@@ -47,10 +47,9 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/confirmations',
-  () => ({}),
-);
+jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
+  selectConfirmationRedesignFlagsFromRemoteFeatureFlags: jest.fn(),
+}));
 
 jest.mock('../../../../util/transactions', () => ({
   generateTransferData: jest.fn(),
@@ -65,13 +64,66 @@ jest.mock('uuid', () => ({
 }));
 
 describe('isDeeplinkRedesignedConfirmationCompatible', () => {
-  it('returns false for approve and true for transfer', () => {
-    expect(
-      isDeeplinkRedesignedConfirmationCompatible(ETH_ACTIONS.TRANSFER),
-    ).toBe(true);
-    expect(
-      isDeeplinkRedesignedConfirmationCompatible(ETH_ACTIONS.APPROVE),
-    ).toBe(false);
+  const enabledTransferFlags = {
+    approve: false,
+    transfer: true,
+    signatures: true,
+    contract_deployment: false,
+    staking_confirmations: false,
+    contract_interaction: false,
+  };
+
+  const disabledTransferFlags = {
+    ...enabledTransferFlags,
+    transfer: false,
+  };
+
+  const mockSelectConfirmationRedesignFlagsFromRemoteFeatureFlags = jest.mocked(
+    selectConfirmationRedesignFlagsFromRemoteFeatureFlags,
+  );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelectConfirmationRedesignFlagsFromRemoteFeatureFlags.mockReturnValue(
+      enabledTransferFlags,
+    );
+  });
+
+  it('returns feature flag value for ETH_ACTIONS.TRANSFER', () => {
+    const result = isDeeplinkRedesignedConfirmationCompatible(
+      ETH_ACTIONS.TRANSFER,
+    );
+    expect(result).toBe(true);
+
+    mockSelectConfirmationRedesignFlagsFromRemoteFeatureFlags.mockReturnValue(
+      disabledTransferFlags,
+    );
+
+    const disabledResult = isDeeplinkRedesignedConfirmationCompatible(
+      ETH_ACTIONS.TRANSFER,
+    );
+
+    expect(disabledResult).toBe(false);
+  });
+
+  it('returns false for ETH_ACTIONS.APPROVE', () => {
+    const result = isDeeplinkRedesignedConfirmationCompatible(
+      ETH_ACTIONS.APPROVE,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('defaults to true if function name is not provided', () => {
+    const result = isDeeplinkRedesignedConfirmationCompatible();
+    expect(result).toBe(true);
+
+    mockSelectConfirmationRedesignFlagsFromRemoteFeatureFlags.mockReturnValue(
+      disabledTransferFlags,
+    );
+
+    const disabledResult = isDeeplinkRedesignedConfirmationCompatible();
+
+    expect(disabledResult).toBe(false);
   });
 });
 

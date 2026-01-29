@@ -923,6 +923,13 @@ export function addAccountTimeFlagFilter(
   );
 }
 
+//Leaving here a comment to re-visit this function since it's probably be possible to deprecate
+export function getNormalizedTxState(state) {
+  return state.transaction
+    ? { ...state.transaction, ...state.transaction.transaction }
+    : undefined;
+}
+
 export const getActiveTabUrl = ({ browser = {} }) =>
   browser.tabs &&
   browser.activeTab &&

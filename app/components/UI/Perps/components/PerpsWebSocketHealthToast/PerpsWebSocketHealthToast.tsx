@@ -60,7 +60,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
   // Get toast configuration based on connection state
   const toastConfig = useMemo(() => {
     switch (connectionState) {
-      case WebSocketConnectionState.Disconnected:
+      case WebSocketConnectionState.DISCONNECTED:
         return {
           title: strings('perps.connection.websocket_disconnected'),
           description: strings(
@@ -70,7 +70,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
           showSpinner: false,
         };
 
-      case WebSocketConnectionState.Connecting:
+      case WebSocketConnectionState.CONNECTING:
         return {
           title: strings('perps.connection.websocket_connecting'),
           description: strings(
@@ -83,7 +83,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
           showSpinner: false,
         };
 
-      case WebSocketConnectionState.Connected:
+      case WebSocketConnectionState.CONNECTED:
         return {
           title: strings('perps.connection.websocket_connected'),
           description: strings('perps.connection.websocket_connected_message'),
@@ -147,7 +147,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
     }
 
     // Set timeout to auto-hide on success
-    if (isVisible && connectionState === WebSocketConnectionState.Connected) {
+    if (isVisible && connectionState === WebSocketConnectionState.CONNECTED) {
       hideTimeoutRef.current = setTimeout(() => {
         hide();
       }, SUCCESS_TOAST_DURATION_MS);
@@ -207,7 +207,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
           </View>
 
           {/* Retry Button - only shown when disconnected */}
-          {connectionState === WebSocketConnectionState.Disconnected &&
+          {connectionState === WebSocketConnectionState.DISCONNECTED &&
             onRetry && (
               <TouchableOpacity
                 style={styles.retryButton}

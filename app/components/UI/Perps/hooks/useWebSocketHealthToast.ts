@@ -79,9 +79,9 @@ export function useWebSocketHealthToast(): void {
         (newState: WebSocketConnectionState, attempt: number) => {
           const previousWsState = previousWsStateRef.current;
           const wasWsConnected =
-            previousWsState === WebSocketConnectionState.Connected;
+            previousWsState === WebSocketConnectionState.CONNECTED;
           const isNowConnected =
-            newState === WebSocketConnectionState.Connected;
+            newState === WebSocketConnectionState.CONNECTED;
 
           // Handle first callback after mount/remount
           if (previousWsState === null) {
@@ -90,14 +90,14 @@ export function useWebSocketHealthToast(): void {
             // If we mount/remount and the connection is already in a problematic state,
             // show the toast immediately. This handles the case where a user navigates
             // away from Perps and returns while the WebSocket is disconnected or reconnecting.
-            if (newState === WebSocketConnectionState.Disconnected) {
+            if (newState === WebSocketConnectionState.DISCONNECTED) {
               hasExperiencedDisconnectionRef.current = true;
-              show(WebSocketConnectionState.Disconnected, attempt);
+              show(WebSocketConnectionState.DISCONNECTED, attempt);
               // Schedule auto-retry for disconnected state
               scheduleAutoRetry();
-            } else if (newState === WebSocketConnectionState.Connecting) {
+            } else if (newState === WebSocketConnectionState.CONNECTING) {
               hasExperiencedDisconnectionRef.current = true;
-              show(WebSocketConnectionState.Connecting, attempt);
+              show(WebSocketConnectionState.CONNECTING, attempt);
               // Clear auto-retry when reconnecting (connection attempt in progress)
               clearAutoRetryTimer();
             }
@@ -112,32 +112,32 @@ export function useWebSocketHealthToast(): void {
 
           // Handle state transitions
           switch (newState) {
-            case WebSocketConnectionState.Disconnected:
+            case WebSocketConnectionState.DISCONNECTED:
               // Show disconnected toast if:
               // 1. We were previously connected (direct disconnect), OR
               // 2. We've been trying to reconnect and gave up (max attempts reached)
               if (wasWsConnected || hasExperiencedDisconnectionRef.current) {
-                show(WebSocketConnectionState.Disconnected, attempt);
+                show(WebSocketConnectionState.DISCONNECTED, attempt);
                 // Schedule auto-retry for disconnected state
                 scheduleAutoRetry();
               }
               break;
 
-            case WebSocketConnectionState.Connecting:
+            case WebSocketConnectionState.CONNECTING:
               // Clear auto-retry when reconnecting (connection attempt in progress)
               clearAutoRetryTimer();
               // Show connecting toast when reconnecting (after a disconnection)
               if (hasExperiencedDisconnectionRef.current) {
-                show(WebSocketConnectionState.Connecting, attempt);
+                show(WebSocketConnectionState.CONNECTING, attempt);
               }
               break;
 
-            case WebSocketConnectionState.Connected:
+            case WebSocketConnectionState.CONNECTED:
               // Clear auto-retry when connected
               clearAutoRetryTimer();
               // Show connected toast only if we've experienced a disconnection before
               if (hasExperiencedDisconnectionRef.current) {
-                show(WebSocketConnectionState.Connected, attempt);
+                show(WebSocketConnectionState.CONNECTED, attempt);
                 // Reset the flag after successful reconnection
                 hasExperiencedDisconnectionRef.current = false;
               }

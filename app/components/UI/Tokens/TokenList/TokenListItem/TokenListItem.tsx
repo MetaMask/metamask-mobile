@@ -43,10 +43,7 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
-import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
-import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
@@ -85,12 +82,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       alignContent: 'center',
     },
-    centered: {
-      textAlign: 'center',
-    },
-    stockBadgeWrapper: {
-      marginLeft: 4,
-    },
   });
 
 interface TokenListItemProps {
@@ -123,8 +114,6 @@ export const TokenListItem = React.memo(
         isStaked: assetKey.isStaked,
       }),
     );
-
-    const { isStockToken } = useRWAToken();
 
     const chainId = asset?.chainId as Hex;
 
@@ -408,9 +397,6 @@ export const TokenListItem = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
-            {isStockToken(asset as BridgeToken) && (
-              <StockBadge style={styles.stockBadgeWrapper} token={asset} />
-            )}
             {renderEarnCta()}
           </View>
         </View>

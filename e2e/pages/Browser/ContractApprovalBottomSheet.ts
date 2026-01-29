@@ -1,30 +1,9 @@
-// TODO: This file references legacy confirmation UI that was removed.
-// The ContractApprovalBottomSheet.testIds file no longer exists.
-// This e2e page object needs to be updated to use redesigned confirmation testIds
-// or deleted if the functionality is no longer tested.
-
-// import {
-//   ContractApprovalBottomSheetSelectorsIDs,
-//   ContractApprovalBottomSheetSelectorsText,
-// } from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
+import {
+  ContractApprovalBottomSheetSelectorsIDs,
+  ContractApprovalBottomSheetSelectorsText,
+} from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
-
-// Temporary placeholders to prevent TypeScript errors
-const ContractApprovalBottomSheetSelectorsIDs = {
-  CONTAINER: 'contract-approval-bottom-sheet-container',
-  CONTRACT_ADDRESS: 'contract-approval-contract-address',
-  APPROVE_TOKEN_AMOUNT: 'contract-approval-token-amount',
-};
-
-const ContractApprovalBottomSheetSelectorsText = {
-  ADD_NICKNAME: 'Add Nickname',
-  EDIT_NICKNAME: 'Edit Nickname',
-  REJECT: 'Reject',
-  APPROVE: 'Approve',
-  NEXT: 'Next',
-  CONFIRM: 'Confirm',
-};
 
 class ContractApprovalBottomSheet {
   get container(): DetoxElement {

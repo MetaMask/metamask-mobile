@@ -17,7 +17,6 @@ import {
   useTransactionPayIsMaxAmount,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
-import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import Engine from '../../../../../core/Engine';
 
@@ -33,7 +32,6 @@ export function useTransactionCustomAmount({
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
   const totals = useTransactionPayTotals();
-  const hasSourceAmount = useTransactionPayHasSourceAmount();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const debounceSetAmountDelayed = useMemo(
@@ -154,20 +152,7 @@ export function useTransactionCustomAmount({
 
   const updateTokenAmount = useCallback(() => {
     updateTokenAmountCallback(amountHuman);
-
-    if (hasSourceAmount) {
-      setConfirmationMetric({
-        properties: {
-          mm_pay_quote_requested: true,
-        },
-      });
-    }
-  }, [
-    amountHuman,
-    hasSourceAmount,
-    setConfirmationMetric,
-    updateTokenAmountCallback,
-  ]);
+  }, [amountHuman, updateTokenAmountCallback]);
 
   return {
     amountFiat,

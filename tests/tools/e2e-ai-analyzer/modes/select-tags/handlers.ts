@@ -3,9 +3,8 @@
  */
 
 import { writeFileSync } from 'node:fs';
-import { SelectTagsAnalysis, PerformanceTestSelection } from '../../types';
+import { SelectTagsAnalysis } from '../../types';
 import { smokeTags, flaskTags } from '../../../../../e2e/tags';
-import { performanceTags } from '../../../../../appwright/tags';
 
 /**
  * Tags to exclude from AI selection (broken/disabled tests)
@@ -36,27 +35,6 @@ export const SELECT_TAGS_CONFIG = Object.values(allTags)
   .filter((config) => !EXCLUDED_TAGS.includes(config.tag));
 
 /**
- * Derive AI config from performanceTags
- * Converts tags objects to array format for AI
- */
-export const PERFORMANCE_TAGS_CONFIG = Object.values(performanceTags).map(
-  (config) => ({
-    tag: config.tag.replace(':', ''), // Remove trailing colon for AI
-    description: config.description,
-  }),
-);
-
-/**
- * Creates an empty performance test selection result
- */
-function createEmptyPerformanceResult(): PerformanceTestSelection {
-  return {
-    selectedTags: [],
-    reasoning: 'No files changed - no performance tests needed',
-  };
-}
-
-/**
  * Safe minimum: When no work needed, return empty result
  */
 export function createEmptyResult(): SelectTagsAnalysis {
@@ -65,7 +43,6 @@ export function createEmptyResult(): SelectTagsAnalysis {
     confidence: 100,
     riskLevel: 'low',
     reasoning: 'No files changed - no analysis needed',
-    performanceTests: createEmptyPerformanceResult(),
   };
 }
 
@@ -95,25 +72,11 @@ export async function processAnalysis(
       return null;
     }
 
-    // Parse performance tests (optional, empty array means no performance tests)
-    const performanceTests: PerformanceTestSelection = parsed.performance_tests
-      ? {
-          selectedTags: Array.isArray(parsed.performance_tests.selected_tags)
-            ? parsed.performance_tests.selected_tags
-            : [],
-          reasoning: parsed.performance_tests.reasoning || '',
-        }
-      : {
-          selectedTags: [],
-          reasoning: 'No performance impact detected',
-        };
-
     return {
       selectedTags: parsed.selected_tags,
       riskLevel: parsed.risk_level,
       confidence: Math.min(100, Math.max(0, parsed.confidence || 0)),
       reasoning: parsed.reasoning,
-      performanceTests,
     };
   } catch {
     return null;
@@ -125,20 +88,12 @@ export async function processAnalysis(
  */
 export function createConservativeResult(): SelectTagsAnalysis {
   const availableTags = SELECT_TAGS_CONFIG.map((config) => config.tag);
-  const availablePerformanceTags = PERFORMANCE_TAGS_CONFIG.map(
-    (config) => config.tag,
-  );
   return {
     selectedTags: availableTags,
     riskLevel: 'high',
     confidence: 0,
     reasoning:
       'Fallback: AI analysis did not complete successfully. Running all tests.',
-    performanceTests: {
-      selectedTags: availablePerformanceTags,
-      reasoning:
-        'Fallback: AI analysis did not complete successfully. Running all performance tests.',
-    },
   };
 }
 
@@ -150,20 +105,10 @@ export function outputAnalysis(analysis: SelectTagsAnalysis): void {
 
   console.log('\n🤖 AI E2E Tag Selector');
   console.log('===================================');
-  console.log(
-    `✅ Selected E2E tags: ${analysis.selectedTags.join(', ') || 'None'}`,
-  );
+  console.log(`✅ Selected E2E tags: ${analysis.selectedTags.join(', ')}`);
   console.log(`🎯 Risk level: ${analysis.riskLevel}`);
   console.log(`📊 Confidence: ${analysis.confidence}%`);
   console.log(`💭 Reasoning: ${analysis.reasoning}`);
-
-  // Performance test results
-  console.log('\n⚡ Performance Tests');
-  console.log('-----------------------------------');
-  console.log(
-    `📋 Selected tags: ${analysis.performanceTests.selectedTags.join(', ') || 'None'}`,
-  );
-  console.log(`💭 Reasoning: ${analysis.performanceTests.reasoning}`);
 
   // If running in CI, write the results to a JSON file
   if (process.env.CI === 'true') {
@@ -172,10 +117,6 @@ export function outputAnalysis(analysis: SelectTagsAnalysis): void {
       riskLevel: analysis.riskLevel,
       confidence: analysis.confidence,
       reasoning: analysis.reasoning,
-      performanceTests: {
-        selectedTags: analysis.performanceTests.selectedTags,
-        reasoning: analysis.performanceTests.reasoning,
-      },
     };
     writeFileSync(outputFile, JSON.stringify(jsonOutput, null, 2));
   }

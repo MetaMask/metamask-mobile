@@ -1,33 +1,24 @@
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { TransactionType } from '@metamask/transaction-controller';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { useSelector } from 'react-redux';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useCallback } from 'react';
+import { RootState } from '../../../../../reducers';
+import Engine from '../../../../../core/Engine';
+import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
-import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
-import { RootState } from '../../../../../reducers';
-import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
-import { updateTransaction } from '../../../../../util/transaction-controller';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export function useTransactionPayToken(): {
   isNative?: boolean;
   payToken: TransactionPaymentToken | undefined;
   setPayToken: (newPayToken: { address: Hex; chainId: Hex }) => void;
 } {
-  const transactionMeta = useTransactionMetadataRequest();
-  const { id: transactionId } = transactionMeta || { id: '' };
+  const { id: transactionId } = useTransactionMetadataRequest() || { id: '' };
 
   const payToken = useSelector((state: RootState) =>
     selectTransactionPaymentTokenByTransactionId(state, transactionId),
-  );
-
-  const requiredTokens = useTransactionPayRequiredTokens();
-  const primaryRequiredToken = (requiredTokens ?? []).find(
-    (token) => !token.skipIfBalance,
   );
 
   const isNative =
@@ -52,41 +43,13 @@ export function useTransactionPayToken(): {
           tokenAddress: newPayToken.address,
           chainId: newPayToken.chainId,
         });
+
+        EngineService.flushState();
       } catch (e) {
         console.error('Error updating payment token', e);
       }
-
-      // perps deposits only use relay, so doesn't need gasFeeToken update
-      const isPredictDepositTransaction =
-        transactionMeta?.type === TransactionType.predictDeposit;
-
-      if (isPredictDepositTransaction) {
-        const isNewPayTokenRequiredToken =
-          newPayToken.chainId === primaryRequiredToken?.chainId &&
-          newPayToken.address.toLowerCase() ===
-            primaryRequiredToken?.address.toLowerCase();
-
-        const updatedTx = {
-          ...transactionMeta,
-          selectedGasFeeToken: isNewPayTokenRequiredToken
-            ? newPayToken.address
-            : undefined,
-          isGasFeeTokenIgnoredIfBalance: isNewPayTokenRequiredToken
-            ? true
-            : undefined,
-        };
-
-        updateTransaction(updatedTx, transactionMeta.id);
-      }
-
-      EngineService.flushState();
     },
-    [
-      transactionId,
-      transactionMeta,
-      primaryRequiredToken?.chainId,
-      primaryRequiredToken?.address,
-    ],
+    [transactionId],
   );
 
   return {

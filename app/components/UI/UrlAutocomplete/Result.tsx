@@ -38,6 +38,7 @@ import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
 interface ResultProps {
   result: AutocompleteSearchResult;
   onPress: () => void;
+  onSwapPress: (result: TokenSearchResult) => void;
 }
 
 /**
@@ -75,9 +76,9 @@ export const Result: React.FC<ResultProps> = memo(
 
     const dispatch = useDispatch();
 
-  const onPressRemove = useCallback(() => {
-    dispatch(removeBookmark(result));
-  }, [dispatch, result]);
+    const onPressRemove = useCallback(() => {
+      dispatch(removeBookmark(result));
+    }, [dispatch, result]);
 
     const swapsEnabled =
       result.category === UrlAutocompleteCategory.Tokens &&
@@ -214,7 +215,8 @@ export const Result: React.FC<ResultProps> = memo(
               testID="autocomplete-result-swap-button"
             />
           )}
-      </View>
-    </TouchableOpacity>
-  );
-});
+        </View>
+      </TouchableOpacity>
+    );
+  },
+);

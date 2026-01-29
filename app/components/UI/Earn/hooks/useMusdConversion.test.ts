@@ -11,9 +11,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
-import { trace, TraceName, TraceOperation } from '../../../../util/trace';
-
-const mockTrace = trace as jest.MockedFunction<typeof trace>;
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
@@ -21,15 +18,6 @@ jest.mock('../../../../util/Logger');
 jest.mock('../../../../util/transactions');
 jest.mock('@react-navigation/native');
 jest.mock('react-redux');
-jest.mock('../../../../util/trace', () => ({
-  trace: jest.fn(),
-  TraceName: {
-    MusdConversionNavigation: 'mUSD Conversion Navigation',
-  },
-  TraceOperation: {
-    MusdConversionOperation: 'musd.conversion.operation',
-  },
-}));
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
@@ -391,56 +379,6 @@ describe('useMusdConversion', () => {
       const transactionId = await result.current.initiateConversion(mockConfig);
 
       expect(transactionId).toBe('tx-123');
-    });
-
-    it('starts navigation trace when navigating to conversion screen', async () => {
-      setupUseSelectorMock();
-
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
-        'mainnet',
-      );
-      mockTransactionController.addTransaction.mockResolvedValue({
-        transactionMeta: { id: 'tx-123' },
-      });
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      await result.current.initiateConversion(mockConfig);
-
-      expect(mockTrace).toHaveBeenCalledWith({
-        name: TraceName.MusdConversionNavigation,
-        op: TraceOperation.MusdConversionOperation,
-        tags: {
-          outputChainId: '0x1',
-          paymentTokenChainId: '0x1',
-        },
-      });
-    });
-
-    it('starts navigation trace before navigation occurs', async () => {
-      setupUseSelectorMock();
-
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
-        'mainnet',
-      );
-      mockTransactionController.addTransaction.mockResolvedValue({
-        transactionMeta: { id: 'tx-123' },
-      });
-
-      const callOrder: string[] = [];
-      mockTrace.mockImplementation(() => {
-        callOrder.push('trace');
-        return undefined as ReturnType<typeof mockTrace>;
-      });
-      mockNavigation.navigate.mockImplementation(() => {
-        callOrder.push('navigate');
-      });
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      await result.current.initiateConversion(mockConfig);
-
-      expect(callOrder).toEqual(['trace', 'navigate']);
     });
   });
 

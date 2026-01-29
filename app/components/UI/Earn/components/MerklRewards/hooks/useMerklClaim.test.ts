@@ -7,28 +7,6 @@ import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RootState } from '../../../../../../reducers';
 
-// Mock @metamask/transaction-controller to avoid import issues
-jest.mock('@metamask/transaction-controller', () => ({
-  CHAIN_IDS: {
-    MAINNET: '0x1',
-    LINEA_MAINNET: '0xe708',
-  },
-  TransactionType: {
-    contractInteraction: 'contractInteraction',
-  },
-  WalletDevice: {
-    MM_MOBILE: 'metamask_mobile',
-  },
-}));
-
-// Mock musd constants
-jest.mock('../../../constants/musd', () => ({
-  MUSD_TOKEN_ADDRESS_BY_CHAIN: {
-    '0x1': '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-    '0xe708': '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-  },
-}));
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -40,6 +18,31 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
 jest.mock('../../../../../../util/Logger', () => ({
   log: jest.fn(),
   error: jest.fn(),
+}));
+
+// Store captured callbacks for simulating events
+const capturedCallbacks: Record<
+  string,
+  {
+    callback: (...args: unknown[]) => void;
+    predicate: (...args: unknown[]) => boolean;
+  }
+> = {};
+
+jest.mock('../../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(
+      (
+        eventName: string,
+        callback: (...args: unknown[]) => void,
+        predicate: (...args: unknown[]) => boolean,
+      ) => {
+        capturedCallbacks[eventName] = { callback, predicate };
+        return callback; // Return the handler (not an unsubscribe function)
+      },
+    ),
+    tryUnsubscribe: jest.fn(),
+  },
 }));
 
 // Mock fetch globally
@@ -140,7 +143,7 @@ describe('useMerklClaim', () => {
   });
 
   it('initializes with correct default values', () => {
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     expect(result.current.isClaiming).toBe(false);
     expect(result.current.error).toBe(null);
@@ -155,7 +158,7 @@ describe('useMerklClaim', () => {
       return undefined;
     });
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     await act(async () => {
       await expect(result.current.claimRewards()).rejects.toThrow(
@@ -182,7 +185,7 @@ describe('useMerklClaim', () => {
       return undefined;
     });
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     await act(async () => {
       await expect(result.current.claimRewards()).rejects.toThrow(
@@ -205,17 +208,25 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: 'tx-123' },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
-    let claimResult: { txHash: string } | undefined;
     await act(async () => {
-      claimResult = await result.current.claimRewards();
+      await result.current.claimRewards();
     });
 
-    // Transaction submitted successfully
-    expect(claimResult?.txHash).toBe('0xabc123');
-    // isClaiming stays true - component will unmount and useMerklClaimStatus handles the rest
+    // isClaiming stays true until transaction confirms
     expect(result.current.isClaiming).toBe(true);
+
+    // Simulate confirmation
+    act(() => {
+      const confirmedCallback =
+        capturedCallbacks['TransactionController:transactionConfirmed'];
+      if (confirmedCallback) {
+        confirmedCallback.callback({ id: 'tx-123', status: 'confirmed' });
+      }
+    });
+
+    expect(result.current.isClaiming).toBe(false);
     expect(result.current.error).toBe(null);
     expect(global.fetch).toHaveBeenCalled();
     const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
@@ -233,7 +244,7 @@ describe('useMerklClaim', () => {
       status: 500,
     });
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     await act(async () => {
       try {
@@ -257,7 +268,7 @@ describe('useMerklClaim', () => {
       json: async () => [{ rewards: [] }],
     });
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     await act(async () => {
       try {
@@ -282,7 +293,7 @@ describe('useMerklClaim', () => {
         }),
     });
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     await act(async () => {
       try {
@@ -314,14 +325,25 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: 'tx-123' },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     await act(async () => {
       await result.current.claimRewards();
     });
 
-    // isClaiming stays true - component will unmount and useMerklClaimStatus handles the rest
+    // isClaiming stays true until transaction confirms
     expect(result.current.isClaiming).toBe(true);
+
+    // Simulate confirmation
+    act(() => {
+      const confirmedCallback =
+        capturedCallbacks['TransactionController:transactionConfirmed'];
+      if (confirmedCallback) {
+        confirmedCallback.callback({ id: 'tx-123', status: 'confirmed' });
+      }
+    });
+
+    expect(result.current.isClaiming).toBe(false);
     expect(mockAddTransaction.mock.calls[0][0].to).toBe(
       '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae',
     );
@@ -331,7 +353,7 @@ describe('useMerklClaim', () => {
     const error = new Error('Network error');
     (global.fetch as jest.Mock).mockRejectedValueOnce(error);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     await act(async () => {
       try {
@@ -350,7 +372,7 @@ describe('useMerklClaim', () => {
     expect(result.current.isClaiming).toBe(false);
   });
 
-  it('sets isClaiming to true during claim process', async () => {
+  it('sets isClaiming to true during claim process and stays true until transaction confirms', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => createMockRewardData(),
@@ -361,12 +383,12 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: 'tx-123' },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     // Start claim and capture promise - isClaiming becomes true synchronously
-    let claimPromise: Promise<{ txHash: string } | undefined> | undefined;
+    let claimPromise: Promise<void> | undefined;
     act(() => {
-      claimPromise = result.current.claimRewards();
+      claimPromise = result.current.claimRewards() as unknown as Promise<void>;
     });
 
     // isClaiming should be true immediately after starting
@@ -377,8 +399,20 @@ describe('useMerklClaim', () => {
       await claimPromise;
     });
 
-    // isClaiming stays true - component will unmount and useMerklClaimStatus handles the rest
+    // isClaiming should STILL be true - waiting for transaction confirmation
     expect(result.current.isClaiming).toBe(true);
+
+    // Simulate transaction confirmation event
+    act(() => {
+      const confirmedCallback =
+        capturedCallbacks['TransactionController:transactionConfirmed'];
+      if (confirmedCallback) {
+        confirmedCallback.callback({ id: 'tx-123', status: 'confirmed' });
+      }
+    });
+
+    // Now isClaiming should be false
+    expect(result.current.isClaiming).toBe(false);
   });
 
   it('uses asset chainId for API fetch and transaction', async () => {
@@ -403,7 +437,7 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: 'tx-123' },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(lineaAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: lineaAsset }));
 
     await act(async () => {
       await result.current.claimRewards();
@@ -455,7 +489,7 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: 'tx-123' },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     await act(async () => {
       await result.current.claimRewards();
@@ -467,7 +501,8 @@ describe('useMerklClaim', () => {
     );
   });
 
-  it('returns transaction hash after successful submission', async () => {
+  it('returns transaction hash after submission and keeps loading until confirmation', async () => {
+    const txId = 'tx-456';
     const expectedTxHash = '0xabc123';
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -477,10 +512,10 @@ describe('useMerklClaim', () => {
 
     mockAddTransaction.mockResolvedValueOnce({
       result: Promise.resolve(expectedTxHash),
-      transactionMeta: { id: 'tx-456' },
+      transactionMeta: { id: txId },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     let claimResult: { txHash: string } | undefined;
     await act(async () => {
@@ -489,7 +524,18 @@ describe('useMerklClaim', () => {
 
     // Verify transaction was submitted and hash returned
     expect(claimResult?.txHash).toBe(expectedTxHash);
-    // isClaiming stays true - component will unmount and useMerklClaimStatus handles the rest
+    // Loading stays true until transaction reaches terminal status
     expect(result.current.isClaiming).toBe(true);
+
+    // Simulate confirmation
+    act(() => {
+      const confirmedCallback =
+        capturedCallbacks['TransactionController:transactionConfirmed'];
+      if (confirmedCallback) {
+        confirmedCallback.callback({ id: txId, status: 'confirmed' });
+      }
+    });
+
+    expect(result.current.isClaiming).toBe(false);
   });
 });

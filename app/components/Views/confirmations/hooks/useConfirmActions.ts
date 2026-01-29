@@ -44,9 +44,9 @@ export const useConfirmActions = () => {
           },
         });
       }
-      if (isSignatureReq && approvalRequest?.id) {
+      if (isSignatureReq) {
         captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
-        PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
+        PPOMUtil.clearSignatureSecurityAlertResponse();
       }
     },
     [
@@ -55,7 +55,6 @@ export const useConfirmActions = () => {
       navigation,
       onRequestReject,
       isSignatureReq,
-      approvalRequest?.id,
     ],
   );
 
@@ -90,9 +89,9 @@ export const useConfirmActions = () => {
 
     navigation.goBack();
 
-    if (isSignatureReq && approvalRequest?.id) {
+    if (isSignatureReq) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
-      PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
+      PPOMUtil.clearSignatureSecurityAlertResponse();
     }
   }, [
     ledgerSigningInProgress,
@@ -106,7 +105,6 @@ export const useConfirmActions = () => {
     onTransactionConfirm,
     captureSignatureMetrics,
     approvalType,
-    approvalRequest?.id,
   ]);
 
   return { onConfirm, onReject };

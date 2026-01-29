@@ -15,7 +15,7 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../../../../util/errorUtils';
 import type {
   SubscribeCandlesParams,
-  PerpsPlatformDependencies,
+  IPerpsPlatformDependencies,
 } from '../controllers/types';
 import { Hex } from '@metamask/utils';
 
@@ -29,10 +29,10 @@ export type ValidCandleInterval = CandlePeriod;
  * Connection states for WebSocket management
  */
 export enum WebSocketConnectionState {
-  Disconnected = 'disconnected',
-  Connecting = 'connecting',
-  Connected = 'connected',
-  Disconnecting = 'disconnecting',
+  DISCONNECTED = 'disconnected',
+  CONNECTING = 'connecting',
+  CONNECTED = 'connected',
+  DISCONNECTING = 'disconnecting',
 }
 
 /**
@@ -50,7 +50,7 @@ export class HyperLiquidClientService {
   private httpTransport?: HttpTransport;
   private isTestnet: boolean;
   private connectionState: WebSocketConnectionState =
-    WebSocketConnectionState.Disconnected;
+    WebSocketConnectionState.DISCONNECTED;
   private disconnectionPromise: Promise<void> | null = null;
   // Callback for SDK terminate event (fired when all reconnection attempts exhausted)
   private onTerminateCallback: ((error: Error) => void) | null = null;
@@ -65,10 +65,10 @@ export class HyperLiquidClientService {
   private reconnectionRetryTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Platform dependencies for logging
-  private readonly deps: PerpsPlatformDependencies;
+  private readonly deps: IPerpsPlatformDependencies;
 
   constructor(
-    deps: PerpsPlatformDependencies,
+    deps: IPerpsPlatformDependencies,
     options: { isTestnet?: boolean } = {},
   ) {
     this.deps = deps;
@@ -100,7 +100,7 @@ export class HyperLiquidClientService {
     getChainId?: () => Promise<number>;
   }): Promise<void> {
     try {
-      this.updateConnectionState(WebSocketConnectionState.Connecting);
+      this.updateConnectionState(WebSocketConnectionState.CONNECTING);
       this.createTransports();
 
       // Ensure transports are created
@@ -130,7 +130,7 @@ export class HyperLiquidClientService {
       // This ensures we have a real connection, not just client objects
       await this.wsTransport.ready();
 
-      this.updateConnectionState(WebSocketConnectionState.Connected);
+      this.updateConnectionState(WebSocketConnectionState.CONNECTED);
 
       this.deps.debugLogger.log('HyperLiquid SDK clients initialized', {
         testnet: this.isTestnet,
@@ -158,12 +158,12 @@ export class HyperLiquidClientService {
       this.httpTransport = undefined;
 
       const errorInstance = ensureError(error);
-      this.updateConnectionState(WebSocketConnectionState.Disconnected);
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
 
       // Log to Sentry: initialization failure blocks all Perps functionality
       this.deps.logger.error(errorInstance, {
         tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
           service: 'HyperLiquidClientService',
           network: this.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -230,7 +230,7 @@ export class HyperLiquidClientService {
         timestamp: new Date().toISOString(),
       });
 
-      this.updateConnectionState(WebSocketConnectionState.Disconnected);
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
 
       if (this.onTerminateCallback) {
         const error =
@@ -480,7 +480,7 @@ export class HyperLiquidClientService {
       // Log to Sentry: prevents initial chart data load
       this.deps.logger.error(errorInstance, {
         tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
           service: 'HyperLiquidClientService',
           network: this.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -614,7 +614,7 @@ export class HyperLiquidClientService {
             // Log to Sentry: WebSocket subscription failure prevents live updates
             this.deps.logger.error(errorInstance, {
               tags: {
-                feature: PERPS_CONSTANTS.FeatureName,
+                feature: PERPS_CONSTANTS.FEATURE_NAME,
                 service: 'HyperLiquidClientService',
                 network: this.isTestnet ? 'testnet' : 'mainnet',
               },
@@ -639,7 +639,7 @@ export class HyperLiquidClientService {
         // Log to Sentry: initial fetch failure blocks chart completely
         this.deps.logger.error(errorInstance, {
           tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
             service: 'HyperLiquidClientService',
             network: this.isTestnet ? 'testnet' : 'mainnet',
           },
@@ -674,20 +674,20 @@ export class HyperLiquidClientService {
    */
   private getIntervalMilliseconds(interval: CandlePeriod): number {
     const intervalMap: Record<CandlePeriod, number> = {
-      [CandlePeriod.OneMinute]: 1 * 60 * 1000,
-      [CandlePeriod.ThreeMinutes]: 3 * 60 * 1000,
-      [CandlePeriod.FiveMinutes]: 5 * 60 * 1000,
-      [CandlePeriod.FifteenMinutes]: 15 * 60 * 1000,
-      [CandlePeriod.ThirtyMinutes]: 30 * 60 * 1000,
-      [CandlePeriod.OneHour]: 60 * 60 * 1000,
-      [CandlePeriod.TwoHours]: 2 * 60 * 60 * 1000,
-      [CandlePeriod.FourHours]: 4 * 60 * 60 * 1000,
-      [CandlePeriod.EightHours]: 8 * 60 * 60 * 1000,
-      [CandlePeriod.TwelveHours]: 12 * 60 * 60 * 1000,
-      [CandlePeriod.OneDay]: 24 * 60 * 60 * 1000,
-      [CandlePeriod.ThreeDays]: 3 * 24 * 60 * 60 * 1000,
-      [CandlePeriod.OneWeek]: 7 * 24 * 60 * 60 * 1000,
-      [CandlePeriod.OneMonth]: 30 * 24 * 60 * 60 * 1000, // Approximate
+      [CandlePeriod.ONE_MINUTE]: 1 * 60 * 1000,
+      [CandlePeriod.THREE_MINUTES]: 3 * 60 * 1000,
+      [CandlePeriod.FIVE_MINUTES]: 5 * 60 * 1000,
+      [CandlePeriod.FIFTEEN_MINUTES]: 15 * 60 * 1000,
+      [CandlePeriod.THIRTY_MINUTES]: 30 * 60 * 1000,
+      [CandlePeriod.ONE_HOUR]: 60 * 60 * 1000,
+      [CandlePeriod.TWO_HOURS]: 2 * 60 * 60 * 1000,
+      [CandlePeriod.FOUR_HOURS]: 4 * 60 * 60 * 1000,
+      [CandlePeriod.EIGHT_HOURS]: 8 * 60 * 60 * 1000,
+      [CandlePeriod.TWELVE_HOURS]: 12 * 60 * 60 * 1000,
+      [CandlePeriod.ONE_DAY]: 24 * 60 * 60 * 1000,
+      [CandlePeriod.THREE_DAYS]: 3 * 24 * 60 * 60 * 1000,
+      [CandlePeriod.ONE_WEEK]: 7 * 24 * 60 * 60 * 1000,
+      [CandlePeriod.ONE_MONTH]: 30 * 24 * 60 * 60 * 1000, // Approximate
     };
 
     return intervalMap[interval];
@@ -703,7 +703,7 @@ export class HyperLiquidClientService {
     }
 
     // If already disconnected, return immediately
-    if (this.connectionState === WebSocketConnectionState.Disconnected) {
+    if (this.connectionState === WebSocketConnectionState.DISCONNECTED) {
       return;
     }
 
@@ -719,7 +719,7 @@ export class HyperLiquidClientService {
 
   private async performDisconnection(): Promise<void> {
     try {
-      this.updateConnectionState(WebSocketConnectionState.Disconnecting);
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTING);
 
       this.deps.debugLogger.log('HyperLiquid: Disconnecting SDK clients', {
         isTestnet: this.isTestnet,
@@ -770,14 +770,14 @@ export class HyperLiquidClientService {
       this.wsTransport = undefined;
       this.httpTransport = undefined;
 
-      this.updateConnectionState(WebSocketConnectionState.Disconnected);
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
 
       this.deps.debugLogger.log('HyperLiquid: SDK clients fully disconnected', {
         timestamp: new Date().toISOString(),
         connectionState: this.connectionState,
       });
     } catch (error) {
-      this.updateConnectionState(WebSocketConnectionState.Disconnected);
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
       this.deps.logger.error(ensureError(error), {
         context: {
           name: 'HyperLiquidClientService.performDisconnection',
@@ -799,7 +799,7 @@ export class HyperLiquidClientService {
    * Check if WebSocket is fully disconnected
    */
   public isDisconnected(): boolean {
-    return this.connectionState === WebSocketConnectionState.Disconnected;
+    return this.connectionState === WebSocketConnectionState.DISCONNECTED;
   }
 
   /**
@@ -860,13 +860,13 @@ export class HyperLiquidClientService {
     const previousState = this.connectionState;
     const stateChanged = previousState !== newState;
     const isReconnectionAttempt =
-      newState === WebSocketConnectionState.Connecting &&
+      newState === WebSocketConnectionState.CONNECTING &&
       this.reconnectionAttempt > 0;
 
     this.connectionState = newState;
 
     // Reset reconnection attempt counter when successfully connected
-    if (newState === WebSocketConnectionState.Connected) {
+    if (newState === WebSocketConnectionState.CONNECTED) {
       this.reconnectionAttempt = 0;
     }
 
@@ -938,12 +938,12 @@ export class HyperLiquidClientService {
       HyperLiquidClientService.MAX_RECONNECTION_ATTEMPTS
     ) {
       this.isReconnecting = false;
-      this.updateConnectionState(WebSocketConnectionState.Disconnected);
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
       return;
     }
 
     try {
-      this.updateConnectionState(WebSocketConnectionState.Connecting);
+      this.updateConnectionState(WebSocketConnectionState.CONNECTING);
 
       // Close existing WebSocket transport and clear references
       // so createTransports() will create fresh ones
@@ -984,7 +984,7 @@ export class HyperLiquidClientService {
         this.reconnectionRetryTimeout = null;
       }
 
-      this.updateConnectionState(WebSocketConnectionState.Connected);
+      this.updateConnectionState(WebSocketConnectionState.CONNECTED);
       this.isReconnecting = false;
     } catch {
       // Reset flag before scheduling retry so the next attempt can proceed
@@ -995,7 +995,7 @@ export class HyperLiquidClientService {
         this.reconnectionAttempt >=
         HyperLiquidClientService.MAX_RECONNECTION_ATTEMPTS
       ) {
-        this.updateConnectionState(WebSocketConnectionState.Disconnected);
+        this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
         return;
       }
 
@@ -1007,14 +1007,14 @@ export class HyperLiquidClientService {
         // and no manual reconnect() is already in progress
         // Note: State may be CONNECTING or DISCONNECTED (if terminate event fired during reconnect)
         if (
-          (this.connectionState === WebSocketConnectionState.Connecting ||
-            this.connectionState === WebSocketConnectionState.Disconnected) &&
+          (this.connectionState === WebSocketConnectionState.CONNECTING ||
+            this.connectionState === WebSocketConnectionState.DISCONNECTED) &&
           !this.disconnectionPromise &&
           !this.isReconnecting
         ) {
           this.handleConnectionDrop();
         }
-      }, PERPS_CONSTANTS.ReconnectionRetryDelayMs);
+      }, PERPS_CONSTANTS.RECONNECTION_RETRY_DELAY_MS);
     }
   }
 }

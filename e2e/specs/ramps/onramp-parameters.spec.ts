@@ -12,10 +12,7 @@ import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import {
-  EventPayload,
-  getEventsPayloads,
-} from '../../../tests/helpers/analytics/helpers';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../../tests/framework/SoftAssert';
 import {
   RampsRegions,

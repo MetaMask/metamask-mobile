@@ -9,6 +9,7 @@ import UrlAutocomplete, {
 import { screen, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigation = {
   navigate: jest.fn(),

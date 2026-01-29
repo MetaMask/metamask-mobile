@@ -1,5 +1,3 @@
-export const TEST_ANALYTICS_ID = 'a5f3c2e1-7b4d-4e9a-8c6f-1d2e3f4a5b6c';
-
 export const MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER = {
   internalAccounts: {
     accounts: {

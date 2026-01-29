@@ -21,6 +21,7 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import {
+  useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
@@ -36,13 +37,9 @@ jest.mock('../pay/useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('../send/useAccountTokens');
 
-const mockSelectConfirmationMetricsById = jest.fn();
-
 jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/confirmationMetrics'),
   updateConfirmationMetric: jest.fn(),
-  selectConfirmationMetricsById: (...args: unknown[]) =>
-    mockSelectConfirmationMetricsById(...args),
 }));
 
 const CHAIN_ID_MOCK = '0x1';
@@ -92,6 +89,10 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayAvailableTokens,
   );
 
+  const useIsTransactionPayQuoteLoadingMock = jest.mocked(
+    useIsTransactionPayQuoteLoading,
+  );
+
   const useAccountTokensMock = jest.mocked(useAccountTokens);
 
   beforeEach(() => {
@@ -113,8 +114,8 @@ describe('useTransactionPayMetrics', () => {
     } as never);
 
     useTransactionPayQuotesMock.mockReturnValue([]);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
     useAccountTokensMock.mockReturnValue([]);
-    mockSelectConfirmationMetricsById.mockReturnValue(undefined);
 
     useTransactionPayAvailableTokensMock.mockReturnValue([
       {},
@@ -342,14 +343,12 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
-    it('is true when stored in metrics', async () => {
+    it('is true when loading starts', async () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
       } as ReturnType<typeof useTransactionPayToken>);
-      mockSelectConfirmationMetricsById.mockReturnValue({
-        properties: { mm_pay_quote_requested: true },
-      });
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
 
       runHook();
 
@@ -373,6 +372,29 @@ describe('useTransactionPayMetrics', () => {
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
       } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_quote_loaded: true,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is true when has quotes even while loading new quotes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
       useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
 
       runHook();

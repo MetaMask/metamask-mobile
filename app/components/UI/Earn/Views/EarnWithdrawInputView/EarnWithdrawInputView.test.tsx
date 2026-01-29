@@ -4,7 +4,10 @@ import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
-
+import {
+  ConfirmationRedesignRemoteFlags,
+  selectConfirmationRedesignFlags,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -423,6 +426,9 @@ jest.mock('react-native-fade-in-image', () => {
 });
 
 describe('EarnWithdrawInputView', () => {
+  const selectConfirmationRedesignFlagsMock = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
   const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
   const mockTrackEvent = jest.fn();
   const useMetricsMock = jest.mocked(useMetrics);
@@ -440,6 +446,10 @@ describe('EarnWithdrawInputView', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useMetrics>);
+
+    selectConfirmationRedesignFlagsMock.mockReturnValue({
+      staking_confirmations: false,
+    } as unknown as ConfirmationRedesignRemoteFlags);
   });
 
   it('render matches snapshot', async () => {
@@ -541,15 +551,36 @@ describe('EarnWithdrawInputView', () => {
     });
   });
 
-  describe('unstake transaction flow', () => {
+  describe('when staking_confirmations feature flag is enabled', () => {
+    let originalMock: jest.Mock;
     let mockAttemptUnstakeTransaction: jest.Mock;
 
     beforeEach(() => {
+      originalMock = jest.requireMock(
+        '../../../../../selectors/featureFlagController',
+      ).selectConfirmationRedesignFlags as jest.Mock;
+
+      jest.requireMock(
+        '../../../../../selectors/featureFlagController',
+      ).selectConfirmationRedesignFlags = jest.fn(() => ({
+        staking_confirmations: true,
+      }));
+
       mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue(undefined);
       jest.requireMock('../../../Stake/hooks/usePoolStakedUnstake').default =
         () => ({
           attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
         });
+
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as unknown as ConfirmationRedesignRemoteFlags);
+    });
+
+    afterEach(() => {
+      jest.requireMock(
+        '../../../../../selectors/featureFlagController',
+      ).selectConfirmationRedesignFlags = originalMock;
     });
 
     it('calls attemptUnstakeTransaction when Review button is pressed', async () => {
@@ -878,7 +909,7 @@ describe('EarnWithdrawInputView', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
         params: {
           amountWei: '1000000000000000000',
           amountFiat: '2000',
@@ -1326,6 +1357,10 @@ describe('EarnWithdrawInputView', () => {
   describe('Tracing', () => {
     describe('Pooled Staking flow tracing', () => {
       it('calls trace with EarnWithdrawConfirmationScreen when redesigned confirmations are enabled', async () => {
+        selectConfirmationRedesignFlagsMock.mockReturnValue({
+          staking_confirmations: true,
+        } as unknown as ConfirmationRedesignRemoteFlags);
+
         const mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue({});
         jest.requireMock('../../../Stake/hooks/usePoolStakedUnstake').default =
           () => ({

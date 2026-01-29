@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
 import {
@@ -12,8 +12,7 @@ import { PayWithRow } from '../../rows/pay-with-row';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
-import { useMusdConversionQuoteTrace } from '../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace';
-import { endTrace, TraceName } from '../../../../../../util/trace';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface MusdOverrideContentProps {
   amountHuman: string;
@@ -58,18 +57,6 @@ export const MusdConversionInfo = () => {
 
   useMusdConversionNavbar();
 
-  const { startQuoteTrace } = useMusdConversionQuoteTrace();
-
-  // End navigation trace on first paint
-  useEffect(() => {
-    endTrace({
-      name: TraceName.MusdConversionNavigation,
-      data: {
-        outputChainId,
-      },
-    });
-  }, [outputChainId]);
-
   useAddToken({
     chainId: outputChainId,
     decimals,
@@ -87,8 +74,8 @@ export const MusdConversionInfo = () => {
     <CustomAmountInfo
       preferredToken={preferredPaymentToken}
       overrideContent={renderOverrideContent}
+      footerText={strings('earn.musd_conversion.powered_by_relay')}
       hasMax
-      onAmountSubmit={startQuoteTrace}
     />
   );
 };

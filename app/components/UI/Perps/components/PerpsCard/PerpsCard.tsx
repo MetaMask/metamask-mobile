@@ -40,7 +40,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   onPress,
   testID,
   source,
-  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
+  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
 }) => {
   const { styles } = useStyles(styleSheet, { iconSize });
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();

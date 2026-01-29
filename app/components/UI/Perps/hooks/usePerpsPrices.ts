@@ -66,7 +66,8 @@ export function usePerpsPrices(
   }, []);
 
   // Use provided debounce or fall back to default
-  const debounceDelay = throttleMs ?? PERFORMANCE_CONFIG.PriceUpdateDebounceMs;
+  const debounceDelay =
+    throttleMs ?? PERFORMANCE_CONFIG.PRICE_UPDATE_DEBOUNCE_MS;
 
   // Track if we've received the first update for each symbol
   // This only resets when symbols change, not debounce settings

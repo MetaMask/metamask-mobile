@@ -122,55 +122,6 @@ npx appwright test appwright/tests/performance/login/asset-balances.spec.js --pr
 npx appwright test appwright/tests/performance/login/*.spec.js --project android --config appwright/appwright.config.ts
 ```
 
-### Running Tests by Tag
-
-Tests are tagged by area for selective execution. Use the `--grep` option to filter tests by tag:
-
-```bash
-# Run all login performance tests
-npx appwright test --grep "@PerformanceLogin" --project android --config appwright/appwright.config.ts
-
-# Run all onboarding performance tests
-npx appwright test --grep "@PerformanceOnboarding" --project android --config appwright/appwright.config.ts
-
-# Run all swap-related performance tests
-npx appwright test --grep "@PerformanceSwaps" --project android --config appwright/appwright.config.ts
-
-# Run multiple tags (OR logic)
-npx appwright test --grep "@PerformanceLogin|@PerformanceOnboarding" --project android --config appwright/appwright.config.ts
-
-# Run tests with specific tag combination
-npx appwright test --grep "@PerformanceLogin.*@PerformanceLaunch" --project android --config appwright/appwright.config.ts
-```
-
-## Test Tags
-
-Tests are tagged with area-specific, tool-agnostic tags that match the tags in `e2e/tags.js`. These tags allow for selective test execution based on which areas of the app are affected by code changes.
-
-| Tag                        | Description                                                   |
-| -------------------------- | ------------------------------------------------------------- |
-| `@PerformanceAccountList`  | Account list rendering and dismissal performance              |
-| `@PerformanceNetworkList`  | Network list rendering and dismissal performance              |
-| `@PerformanceOnboarding`   | Onboarding flow performance (wallet creation, SRP import)     |
-| `@PerformanceLogin`        | Login and unlock performance                                  |
-| `@PerformanceSwaps`        | Swap flow performance                                         |
-| `@PerformanceLaunch`       | App launch performance (cold/warm start)                      |
-| `@PerformanceAssetLoading` | Asset and balance loading performance                         |
-| `@PerformancePredict`      | Predict market performance (market list, details, deposits)   |
-| `@PerformancePreps`        | Perpetuals trading performance (positions, add funds, orders) |
-
-Tags are defined in `appwright/tags.js` and imported into test files:
-
-```javascript
-import { PerformanceLogin, PerformanceSwaps } from '../../../tags.js';
-
-test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
-  test('Swap flow performance', async ({ device, performanceTracker }) => {
-    // test implementation
-  });
-});
-```
-
 ## Test Categories
 
 ### Login Tests (`tests/performance/login/`)

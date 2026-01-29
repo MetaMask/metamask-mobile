@@ -17,7 +17,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { getHeaderCenterNavbarOptions } from '../../../../../component-library/components-temp/HeaderCenter';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
-import { CaipChainId } from '@metamask/utils';
+import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
@@ -26,6 +26,7 @@ import {
   setIsSelectingToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
+  formatAddressToAssetId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
@@ -54,7 +55,7 @@ import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
-import { tokenToIncludeAsset } from '../../utils/tokenUtils';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -180,33 +181,28 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [tokensWithBalance, searchString]);
 
   // Create includeAssets array from tokens with balance to be sent to API
-  // Selected token is prepended to pin it to the top of the list
   // Stringified to avoid triggering the useEffect when only balances change
   const includeAssets = useMemo(() => {
-    // Only include selected token if its network matches the current filter
-    const isSelectedTokenOnFilteredNetwork =
-      selectedToken &&
-      chainIdsToFetch.includes(formatChainIdToCaip(selectedToken.chainId));
-
-    // Convert selected token first (will be pinned to top of list)
-    const selectedAsset = isSelectedTokenOnFilteredNetwork
-      ? tokenToIncludeAsset(selectedToken)
-      : null;
-
-    // Convert balance tokens, excluding selected to avoid duplicates
-    const balanceAssets = filteredTokensWithBalance
-      .map(tokenToIncludeAsset)
-      .filter(
-        (asset): asset is IncludeAsset =>
-          asset !== null && asset.assetId !== selectedAsset?.assetId,
-      );
-
-    const assets = selectedAsset
-      ? [selectedAsset, ...balanceAssets]
-      : balanceAssets;
-
+    const assets = filteredTokensWithBalance.reduce<IncludeAsset[]>(
+      (acc, token) => {
+        const assetId = formatAddressToAssetId(token.address, token.chainId);
+        if (assetId) {
+          const normalizedAssetId = isNonEvmChainId(token.chainId)
+            ? assetId
+            : (assetId?.toLowerCase() as CaipAssetType);
+          acc.push({
+            assetId: normalizedAssetId,
+            name: token.name ?? '',
+            symbol: token.symbol,
+            decimals: token.decimals,
+          });
+        }
+        return acc;
+      },
+      [],
+    );
     return JSON.stringify(assets);
-  }, [filteredTokensWithBalance, selectedToken, chainIdsToFetch]);
+  }, [filteredTokensWithBalance]);
 
   // Fetch popular tokens
   const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(

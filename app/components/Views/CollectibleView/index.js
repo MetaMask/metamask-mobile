@@ -2,12 +2,15 @@ import React, { PureComponent } from 'react';
 import { ScrollView, View, StyleSheet, Text, SafeAreaView } from 'react-native';
 import PropTypes from 'prop-types';
 
+import Routes from '../../../constants/navigation/Routes';
 import CollectibleOverview from '../../UI/CollectibleOverview';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
+import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
+import { newAssetTransaction } from '../../../actions/transaction';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { handleSendPageNavigation } from '../confirmations/utils/send';
 import { InitSendLocation } from '../confirmations/constants/send';
@@ -49,6 +52,10 @@ class CollectibleView extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
+     * Start transaction with asset
+     */
+    newAssetTransaction: PropTypes.func,
+    /**
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
@@ -77,6 +84,7 @@ class CollectibleView extends PureComponent {
     const {
       route: { params },
     } = this.props;
+    this.props.newAssetTransaction(params);
     handleSendPageNavigation(this.props.navigation.navigate, {
       location: InitSendLocation.CollectibleView,
       asset: params,
@@ -130,4 +138,9 @@ class CollectibleView extends PureComponent {
 
 CollectibleView.contextType = ThemeContext;
 
-export default CollectibleView;
+const mapDispatchToProps = (dispatch) => ({
+  newAssetTransaction: (selectedAsset) =>
+    dispatch(newAssetTransaction(selectedAsset)),
+});
+
+export default connect(null, mapDispatchToProps)(CollectibleView);

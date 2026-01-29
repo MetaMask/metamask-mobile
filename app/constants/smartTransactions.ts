@@ -1,14 +1,8 @@
+/* eslint-disable import/prefer-default-export */
+
 import { isProduction } from '../util/environment';
 import { NETWORKS_CHAIN_ID } from './network';
 import { Hex } from '@metamask/utils';
-import Device from '../util/device';
-
-// Client identifiers for smart transaction metadata
-const CLIENT_ID_IOS = 'mobileIOS';
-const CLIENT_ID_ANDROID = 'mobileAndroid';
-
-export const getClientForTransactionMetadata = (): string =>
-  Device.isIos() ? CLIENT_ID_IOS : CLIENT_ID_ANDROID;
 
 // TODO: deprecate this and use the feature flags instead
 const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS_DEVELOPMENT: Hex[] = [

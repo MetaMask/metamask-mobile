@@ -40,8 +40,6 @@ import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format'
 import { TimeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
-import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
-import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 
 /**
@@ -176,7 +174,6 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
     isFromTrending: true,
-    rwaData: token.rwaData,
   };
 };
 
@@ -190,7 +187,6 @@ const TrendingTokenRowItem = ({
     selectNetworkConfigurationsByCaipChainId,
   );
   const { addPopularNetwork } = useAddPopularNetwork();
-  const { isStockToken } = useRWAToken();
 
   // Memoize derived values
   const caipChainId = useMemo(
@@ -296,9 +292,6 @@ const TrendingTokenRowItem = ({
             token.aggregatedUsdVolume ?? 0,
           )}
         </Text>
-        {isStockToken(token) && (
-          <StockBadge style={styles.stockBadgeWrapper} token={token} />
-        )}
       </View>
       <View style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>

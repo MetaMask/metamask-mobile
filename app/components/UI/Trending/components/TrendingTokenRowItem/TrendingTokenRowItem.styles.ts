@@ -31,9 +31,6 @@ const styleSheet = (_params: { theme: Theme }) =>
       gap: 2,
       alignSelf: 'stretch',
     },
-    stockBadgeWrapper: {
-      marginTop: 4,
-    },
   });
 
 export default styleSheet;

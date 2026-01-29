@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
+import { resetTransaction } from '../../../../../actions/transaction';
 import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
@@ -27,6 +29,7 @@ export const GO_BACK_TYPES = [
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
@@ -145,9 +148,12 @@ export function useTransactionConfirm() {
       navigation.goBack();
     }
 
+    // Replace/remove this once we have redesigned send flow
+    dispatch(resetTransaction());
     tryEnableEvmNetwork(chainId);
   }, [
     chainId,
+    dispatch,
     handleGasless7702,
     handleSmartTransaction,
     isFullScreenConfirmation,

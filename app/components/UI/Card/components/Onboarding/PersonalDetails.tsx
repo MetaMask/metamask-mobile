@@ -97,11 +97,7 @@ const PersonalDetails = () => {
       } else {
         setDateOfBirth('');
       }
-
-      // Use countryOfResidence as fallback since countryOfNationality is not populated
-      setNationalityKey(
-        userData.countryOfNationality || userData.countryOfResidence || '',
-      );
+      setNationalityKey(userData.countryOfNationality || '');
       setSSN(userData.ssn || '');
     }
   }, [userData]);
@@ -322,7 +318,6 @@ const PersonalDetails = () => {
           onChangeText={setFirstName}
           numberOfLines={1}
           size={TextFieldSize.Lg}
-          autoComplete="one-time-code"
           value={firstName}
           keyboardType="default"
           maxLength={255}
@@ -343,7 +338,6 @@ const PersonalDetails = () => {
           onChangeText={setLastName}
           numberOfLines={1}
           size={TextFieldSize.Lg}
-          autoComplete="one-time-code"
           value={lastName}
           keyboardType="default"
           maxLength={255}
@@ -396,7 +390,6 @@ const PersonalDetails = () => {
             size={TextFieldSize.Lg}
             value={SSN}
             keyboardType="number-pad"
-            autoComplete="one-time-code"
             secureTextEntry
             maxLength={9}
             accessibilityLabel={strings(

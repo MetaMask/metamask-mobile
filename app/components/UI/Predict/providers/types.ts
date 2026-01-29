@@ -187,6 +187,7 @@ export interface PrepareDepositResponse {
     };
     type?: TransactionType;
   }[];
+  gasFeeToken?: Hex;
 }
 
 export interface GetPredictWalletParams {

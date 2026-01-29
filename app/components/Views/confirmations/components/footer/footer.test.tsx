@@ -19,7 +19,6 @@ import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmation
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
-import { emptySignatureControllerMock } from '../../__mocks__/controllers/signature-controller-mock';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 
 const mockConfirmSpy = jest.fn();
@@ -224,8 +223,6 @@ describe('Footer', () => {
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
-      emptySignatureControllerMock,
-      { securityAlerts: { alerts: {} } },
     );
 
     const { getByTestId } = renderWithProvider(<Footer />, {
@@ -384,8 +381,6 @@ describe('Footer', () => {
           {},
           simpleSendTransactionControllerMock,
           transactionApprovalControllerMock,
-          emptySignatureControllerMock,
-          { securityAlerts: { alerts: {} } },
         ),
       });
 

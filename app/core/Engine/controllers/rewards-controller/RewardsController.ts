@@ -47,14 +47,8 @@ import {
   toCaipAccountId,
 } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
-import {
-  isNonEvmAddress,
-  isBtcAccount,
-  isTronAccount,
-} from '../../../Multichain/utils';
+import { isNonEvmAddress } from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
-import { signBitcoinRewardsMessage } from './utils/bitcoin-snap';
-import { signTronRewardsMessage } from './utils/tron-snap';
 import {
   AuthorizationFailedError,
   InvalidTimestampError,
@@ -259,8 +253,6 @@ export class RewardsController extends BaseController<
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
   #isDisabled: () => boolean;
-  #isBitcoinOptinEnabled: () => boolean;
-  #isTronOptinEnabled: () => boolean;
 
   /**
    * Calculate tier status and next tier information
@@ -403,14 +395,10 @@ export class RewardsController extends BaseController<
     messenger,
     state,
     isDisabled,
-    isBitcoinOptinEnabled,
-    isTronOptinEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
-    isBitcoinOptinEnabled?: () => boolean;
-    isTronOptinEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -423,8 +411,6 @@ export class RewardsController extends BaseController<
     });
 
     this.#isDisabled = isDisabled ?? (() => false);
-    this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
-    this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -627,7 +613,7 @@ export class RewardsController extends BaseController<
   /**
    * Sign a message for rewards authentication
    */
-  async signRewardsMessage(
+  async #signRewardsMessage(
     account: InternalAccount,
     timestamp: number,
   ): Promise<string> {
@@ -641,24 +627,6 @@ export class RewardsController extends BaseController<
       return `0x${Buffer.from(base58.decode(result.signature)).toString(
         'hex',
       )}`;
-    } else if (isBtcAccount(account)) {
-      const result = await signBitcoinRewardsMessage(
-        account.id,
-        Buffer.from(message, 'utf8').toString('base64'),
-      );
-      // Bitcoin signatures are already in hex format, just ensure 0x prefix
-      return result.signature.startsWith('0x')
-        ? result.signature
-        : `0x${result.signature}`;
-    } else if (isTronAccount(account)) {
-      const result = await signTronRewardsMessage(
-        account.id,
-        Buffer.from(message, 'utf8').toString('base64'),
-      );
-      // Tron signatures are already in hex format, just ensure 0x prefix
-      return result.signature.startsWith('0x')
-        ? result.signature
-        : `0x${result.signature}`;
     } else if (!isNonEvmAddress(account.address)) {
       const result = await this.#signEvmMessage(account, message);
       return result;
@@ -830,17 +798,7 @@ export class RewardsController extends BaseController<
         return true;
       }
 
-      // Check if it's a Bitcoin account (gated by feature flag)
-      if (isBtcAccount(account)) {
-        return this.#isBitcoinOptinEnabled();
-      }
-
-      // Check if it's a Tron account (gated by feature flag)
-      if (isTronAccount(account)) {
-        return this.#isTronOptinEnabled();
-      }
-
-      // If it's neither Solana, Bitcoin, Tron, nor EVM, opt-in is not supported
+      // If it's neither Solana nor EVM, opt-in is not supported
       return false;
     } catch (error) {
       // If there's an exception (e.g., checking hardware wallet status fails),
@@ -974,7 +932,7 @@ export class RewardsController extends BaseController<
       const MAX_RETRY_ATTEMPTS = 1;
 
       try {
-        signature = await this.signRewardsMessage(internalAccount, timestamp);
+        signature = await this.#signRewardsMessage(internalAccount, timestamp);
       } catch (signError) {
         Logger.log(
           'RewardsController: Failed to generate signature:',
@@ -1023,7 +981,7 @@ export class RewardsController extends BaseController<
             );
             // Use the timestamp from the error for retry
             timestamp = error.timestamp;
-            signature = await this.signRewardsMessage(
+            signature = await this.#signRewardsMessage(
               internalAccount,
               timestamp,
             );
@@ -2135,7 +2093,7 @@ export class RewardsController extends BaseController<
     });
     // Generate timestamp and sign the message for mobile optin
     let timestamp = Math.floor(Date.now() / 1000);
-    let signature = await this.signRewardsMessage(account, timestamp);
+    let signature = await this.#signRewardsMessage(account, timestamp);
     let retryAttempt = 0;
     const MAX_RETRY_ATTEMPTS = 1;
     const executeMobileOptin = async (
@@ -2162,7 +2120,7 @@ export class RewardsController extends BaseController<
           });
           // Use the timestamp from the error for retry
           timestamp = error.timestamp;
-          signature = await this.signRewardsMessage(account, timestamp);
+          signature = await this.#signRewardsMessage(account, timestamp);
           return await executeMobileOptin(timestamp, signature);
         }
 
@@ -2594,7 +2552,7 @@ export class RewardsController extends BaseController<
     try {
       // Generate timestamp and sign the message for mobile join
       let timestamp = Math.floor(Date.now() / 1000);
-      let signature = await this.signRewardsMessage(account, timestamp);
+      let signature = await this.#signRewardsMessage(account, timestamp);
       let retryAttempt = 0;
       const MAX_RETRY_ATTEMPTS = 1;
 
@@ -2626,7 +2584,7 @@ export class RewardsController extends BaseController<
             });
             // Use the timestamp from the error for retry
             timestamp = error.timestamp;
-            signature = await this.signRewardsMessage(account, timestamp);
+            signature = await this.#signRewardsMessage(account, timestamp);
             return await executeMobileJoin(timestamp, signature);
           }
 

@@ -306,7 +306,7 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    { rewards: true },
+    { rewards: true, confirmation_redesign: { signatures: true } },
     'main', // distribution (optional, defaults to 'main')
   );
 };
@@ -317,9 +317,20 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 Common feature flag configurations are available in `tests/api-mocking/mock-responses/feature-flags-mocks.ts`:
 
 ```typescript
-import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  oldConfirmationsRemoteFeatureFlags,
+  confirmationsRedesignedFeatureFlags,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 
-// For redesigned confirmations UI
+// For legacy confirmations (old UI)
+const testSpecificMock = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+  );
+};
+
+// For new confirmations UI
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
@@ -341,6 +352,10 @@ await setupRemoteFeatureFlagsMock(mockServer, {
 
 // Nested object flags (deep merge support)
 await setupRemoteFeatureFlagsMock(mockServer, {
+  confirmation_redesign: {
+    signatures: true,
+    transfer: false,
+  },
   bridgeConfig: {
     support: true,
     refreshRate: 5000,
@@ -349,7 +364,7 @@ await setupRemoteFeatureFlagsMock(mockServer, {
 
 // Combining predefined configs with overrides
 await setupRemoteFeatureFlagsMock(mockServer, {
-  ...Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+  ...Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
   rewards: true, // Override specific flags
 });
 ```
@@ -371,17 +386,17 @@ await setupRemoteFeatureFlagsMock(mockServer, { perpsEnabled: true }, 'flask');
 
 ```typescript
 // Correct - properly merges flag objects
-Object.assign({}, ...confirmationsRedesignedFeatureFlags)
+Object.assign({}, ...oldConfirmationsRemoteFeatureFlags)
 
 // Incorrect - spreads array items directly
-...confirmationsRedesignedFeatureFlags
+...oldConfirmationsRemoteFeatureFlags
 ```
 
 2. **Prefer predefined configurations**: Use existing configurations from `feature-flags-mocks.ts` when possible rather than defining flags inline.
 
 3. **Test both flag states**: Create tests for both enabled and disabled feature flag states when the feature behavior differs significantly.
 
-4. **Use descriptive test names**: Include feature flag state in test descriptions when relevant.
+4. **Use descriptive test names**: Include feature flag state in test descriptions when relevant (e.g., "should show new UI with confirmation_redesign enabled").
 
 ## Debugging Mocks
 

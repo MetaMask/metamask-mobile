@@ -33,7 +33,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
   MMM_ORIGIN,
-  TRANSFER_TRANSACTION_TYPES,
+  REDESIGNED_TRANSFER_TYPES,
 } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
@@ -65,7 +65,7 @@ export const Footer = () => {
   const transactionType = transactionMetadata?.type as TransactionType;
   const isStakingConfirmationBool = isStakingConfirmation(transactionType);
   const isMMSendReq =
-    TRANSFER_TRANSACTION_TYPES.includes(transactionType) &&
+    REDESIGNED_TRANSFER_TYPES.includes(transactionType) &&
     transactionMetadata?.origin === MMM_ORIGIN;
   const isPayLoading = useIsTransactionPayLoading();
 

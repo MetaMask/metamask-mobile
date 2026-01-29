@@ -383,7 +383,6 @@ export const TokenInputArea = forwardRef<
                     ? navigateToSourceTokenSelector
                     : navigateToDestTokenSelector
                 }
-                testID={testID}
               />
             )}
           </Box>
@@ -411,8 +410,7 @@ export const TokenInputArea = forwardRef<
                 >
                   <Text
                     color={
-                      isInsufficientBalance &&
-                      tokenType === TokenInputAreaType.Source
+                      isInsufficientBalance
                         ? TextColor.Error
                         : TextColor.Alternative
                     }

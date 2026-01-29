@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
-import { TokenRwaData } from '@metamask/assets-controllers';
 
 export interface PopularToken {
   assetId: CaipAssetType;
@@ -21,7 +20,6 @@ export interface IncludeAsset {
   name: string;
   symbol: string;
   decimals: number;
-  rwaData?: TokenRwaData;
 }
 
 interface UsePopularTokensParams {

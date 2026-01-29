@@ -121,32 +121,15 @@ export function getToolDefinitions(): LLMTool[] {
       },
     },
     {
-      name: 'load_skill',
-      description:
-        'Load a domain expertise skill to assist with analysis. Use this when you need specialized knowledge for specific areas.',
-      input_schema: {
-        type: 'object',
-        properties: {
-          skill_name: {
-            type: 'string',
-            description:
-              'Name of the skill to load (see AVAILABLE SKILLS in system prompt)',
-          },
-        },
-        required: ['skill_name'],
-      },
-    },
-    {
       name: 'finalize_tag_selection',
-      description:
-        'Submit final tag selection decision for both E2E tests and performance tests',
+      description: 'Submit final tag selection decision',
       input_schema: {
         type: 'object',
         properties: {
           selected_tags: {
             type: 'array',
             items: { type: 'string' },
-            description: 'E2E test tags to run',
+            description: 'Tags to run',
           },
           risk_level: {
             type: 'string',
@@ -158,30 +141,12 @@ export function getToolDefinitions(): LLMTool[] {
           },
           reasoning: {
             type: 'string',
-            description: 'Detailed reasoning for E2E test selection',
+            description: 'Detailed reasoning',
           },
           areas: {
             type: 'array',
             items: { type: 'string' },
             description: 'Impacted areas',
-          },
-          performance_tests: {
-            type: 'object',
-            description:
-              'Performance test selection based on performance impact (empty selected_tags means no performance tests)',
-            properties: {
-              selected_tags: {
-                type: 'array',
-                items: { type: 'string' },
-                description:
-                  'Performance test tags to run (empty array if no performance tests needed)',
-              },
-              reasoning: {
-                type: 'string',
-                description: 'Reasoning for performance test selection',
-              },
-            },
-            required: ['selected_tags', 'reasoning'],
           },
         },
         required: [
@@ -190,7 +155,6 @@ export function getToolDefinitions(): LLMTool[] {
           'confidence',
           'reasoning',
           'areas',
-          'performance_tests',
         ],
       },
     },

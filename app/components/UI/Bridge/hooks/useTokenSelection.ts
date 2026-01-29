@@ -6,12 +6,8 @@ import {
   setDestToken,
   selectSourceToken,
   selectDestToken,
-  selectDestAmount,
-  setIsDestTokenManuallySet,
 } from '../../../../core/redux/slices/bridge';
 import { BridgeToken, TokenSelectorType } from '../types';
-import { useSwitchTokens } from './useSwitchTokens';
-import { useIsNetworkEnabled } from './useIsNetworkEnabled';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
@@ -23,12 +19,9 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const navigation = useNavigation();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-  const destAmount = useSelector(selectDestAmount);
-  const { handleSwitchTokens } = useSwitchTokens();
-  const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
 
   const handleTokenPress = useCallback(
-    async (token: BridgeToken) => {
+    (token: BridgeToken) => {
       const isSourcePicker = type === TokenSelectorType.Source;
       const otherToken = isSourcePicker ? destToken : sourceToken;
 
@@ -39,41 +32,17 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         token.chainId === otherToken.chainId;
 
       if (isSelectingOtherToken && sourceToken && destToken) {
-        // Only allow swap if the destination network (which would become source) is enabled
-        if (!isDestNetworkEnabled) {
-          // Cannot swap - dest network is disabled, just go back
-          navigation.goBack();
-          return;
-        }
-
         // Swap the tokens: old source becomes dest, old dest becomes source
-        // Pass destAmount so it becomes the new sourceAmount after swap
-        try {
-          await handleSwitchTokens(destAmount)();
-        } catch {
-          // Network switch failed - still navigate back but state may be inconsistent
-          // The user can retry from the main view
-        }
+        dispatch(setSourceToken(destToken));
+        dispatch(setDestToken(sourceToken));
       } else {
         // Normal selection: just update the current token
         dispatch(isSourcePicker ? setSourceToken(token) : setDestToken(token));
-        if (!isSourcePicker) {
-          dispatch(setIsDestTokenManuallySet(true));
-        }
       }
 
       navigation.goBack();
     },
-    [
-      type,
-      sourceToken,
-      destToken,
-      destAmount,
-      dispatch,
-      navigation,
-      handleSwitchTokens,
-      isDestNetworkEnabled,
-    ],
+    [type, sourceToken, destToken, dispatch, navigation],
   );
 
   const selectedToken =

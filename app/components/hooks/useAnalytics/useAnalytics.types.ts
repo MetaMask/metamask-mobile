@@ -13,18 +13,6 @@ type AnalyticsEventBuilderType = ReturnType<
   typeof AnalyticsEventBuilder.createEventBuilder
 >;
 
-/**
- * Source type constants for analytics tracking
- */
-export const SourceType = {
-  SDK: 'sdk',
-  SDK_CONNECT_V2: 'sdk_connect_v2',
-  WALLET_CONNECT: 'walletconnect',
-  IN_APP_BROWSER: 'in-app browser',
-  PERMISSION_SYSTEM: 'permission system',
-  DAPP_DEEPLINK_URL: 'dapp-deeplink-url',
-} as const;
-
 export interface UseAnalyticsHook {
   isEnabled(): boolean;
   enable(enable?: boolean): Promise<void>;

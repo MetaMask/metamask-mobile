@@ -26,7 +26,8 @@ export interface StandaloneInfoClientOptions {
 export const createStandaloneInfoClient = (
   options: StandaloneInfoClientOptions,
 ): InfoClient => {
-  const { isTestnet, timeout = PERPS_CONSTANTS.ConnectionTimeoutMs } = options;
+  const { isTestnet, timeout = PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS } =
+    options;
 
   const httpTransport = new HttpTransport({
     isTestnet,

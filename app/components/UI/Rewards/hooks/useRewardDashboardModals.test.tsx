@@ -43,15 +43,15 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
       'rewards.dashboard_modal_info.multiple_unlinked_accounts.title':
-        "Don't miss out",
+        'Start earning rewards',
       'rewards.dashboard_modal_info.multiple_unlinked_accounts.description':
-        'Add your accounts to Rewards.',
+        'Link your accounts to start earning',
       'rewards.dashboard_modal_info.multiple_unlinked_accounts.confirm':
-        'Add accounts',
+        'Go to Settings',
       'rewards.dashboard_modal_info.active_account.title': "Don't miss out",
       'rewards.dashboard_modal_info.active_account.description':
-        'Add your account to Rewards.',
-      'rewards.dashboard_modal_info.active_account.confirm': 'Add account',
+        'Link this account to earn rewards',
+      'rewards.dashboard_modal_info.active_account.confirm': 'Link Account',
       'rewards.dashboard_modal_info.account_not_supported.title':
         'Account not supported',
       'rewards.dashboard_modal_info.account_not_supported.description_hardware':
@@ -144,11 +144,11 @@ describe('useRewardDashboardModals', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         {
-          title: "Don't miss out",
-          description: 'Add your accounts to Rewards.',
+          title: 'Start earning rewards',
+          description: 'Link your accounts to start earning',
           customIcon: expect.any(Object),
           confirmAction: {
-            label: 'Add accounts',
+            label: 'Go to Settings',
             onPress: expect.any(Function),
             variant: 'Primary',
           },
@@ -284,10 +284,10 @@ describe('useRewardDashboardModals', () => {
         Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         {
           title: "Don't miss out",
-          description: 'Add your account to Rewards.',
+          description: 'Link this account to earn rewards',
           customIcon: expect.any(Object),
           confirmAction: {
-            label: 'Add account',
+            label: 'Link Account',
             loadOnPress: true,
             onPress: expect.any(Function),
             variant: 'Primary',

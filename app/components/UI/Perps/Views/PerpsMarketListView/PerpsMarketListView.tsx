@@ -7,12 +7,10 @@ import React, {
 } from 'react';
 import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import { IconName as DSIconName } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -24,6 +22,7 @@ import PerpsMarketTypeBottomSheet from '../../components/PerpsMarketTypeBottomSh
 import PerpsStocksCommoditiesBottomSheet from '../../components/PerpsStocksCommoditiesBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
+import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
 import {
   usePerpsMarketListView,
   usePerpsMeasurement,
@@ -48,7 +47,6 @@ import {
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
-import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -370,35 +368,17 @@ const PerpsMarketListView = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      {isSearchVisible ? (
-        <PerpsMarketListHeader
-          title={title}
-          isSearchVisible
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          onSearchClear={() => setSearchQuery('')}
-          onBack={handleBackPressed}
-          onSearchToggle={handleSearchToggle}
-          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
-        />
-      ) : (
-        <HeaderCenter
-          title={title || strings('perps.home.markets')}
-          onBack={handleBackPressed}
-          backButtonProps={{
-            testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
-          }}
-          endButtonIconProps={[
-            {
-              iconName: DSIconName.Search,
-              onPress: handleSearchToggle,
-              testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-            },
-          ]}
-          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
-        />
-      )}
+      {/* Header - Using extracted component */}
+      <PerpsMarketListHeader
+        title={title}
+        isSearchVisible={isSearchVisible}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        onSearchClear={() => setSearchQuery('')}
+        onBack={handleBackPressed}
+        onSearchToggle={handleSearchToggle}
+        testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+      />
 
       {/* Balance Actions Component - Only show in full variant when search not visible */}
       {!isSearchVisible && showBalanceActions && variant === 'full' && (

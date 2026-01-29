@@ -44,8 +44,8 @@ export const usePerpsMarketStats = (
   // Get candlestick data for 24h high/low calculation via WebSocket streaming
   const { candleData } = usePerpsLiveCandles({
     symbol,
-    interval: CandlePeriod.OneHour, // Use 1h candles for 24h calculation
-    duration: TimeDuration.OneDay,
+    interval: CandlePeriod.ONE_HOUR, // Use 1h candles for 24h calculation
+    duration: TimeDuration.ONE_DAY,
     throttleMs: 1000,
   });
 

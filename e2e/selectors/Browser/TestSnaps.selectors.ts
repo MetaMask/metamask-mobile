@@ -20,7 +20,6 @@ export const TestSnapViewSelectorWebIDS = {
   connectImageButton: 'connectimages',
   connectInteractiveButton: 'connectinteractive-ui',
   connectManageStateButton: 'connectmanage-state',
-  connectMultichainProviderButton: 'connectmultichain-provider',
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
   connectStateButton: 'connectstate',
@@ -42,13 +41,10 @@ export const TestSnapViewSelectorWebIDS = {
   signMessageBip32ed25519Button: 'sendBip32-ed25519',
   signMessageBip32ed25519Bip32Button: 'sendBip32-ed25519Bip32',
   signMessageBip44Button: 'signBip44Message',
-  signMessageMultichainButton: 'signMessageMultichainButton',
-  signTypedDataMultichainButton: 'signTypedDataMultichainButton',
   sendAlertButton: 'sendAlertButton',
   sendClientStatusButton: 'sendClientStatusTest',
   sendConfirmationButton: 'sendConfirmationButton',
   sendCustomButton: 'sendCustomButton',
-  sendCreateSessionButton: 'sendCreateSession',
   sendErrorButton: 'sendError',
   sendGetFileTextButton: 'sendGetFileTextButton',
   sendGetFileBase64Button: 'sendGetFileBase64Button',
@@ -56,9 +52,6 @@ export const TestSnapViewSelectorWebIDS = {
   sendGetStateButton: 'sendGetState',
   sendGetUnencryptedStateButton: 'sendGetUnencryptedState',
   sendManageStateButton: 'sendManageState',
-  sendMultichainAccountsButton: 'sendMultichainAccounts',
-  sendMultichainGetGenesisHashButton: 'sendMultichainGetGenesisHash',
-  sendMultichainChainIdButton: 'sendMultichainChainId',
   sendNetworkAccessTestButton: 'sendNetworkAccessTest',
   sendRpcButton: 'sendRpc',
   sendStateButton: 'sendState',
@@ -100,9 +93,7 @@ export const TestSnapInputSelectorWebIDS = {
   setStateKeyUnencryptedInput: 'setStateKeyUnencrypted',
   webSocketUrlInput: 'webSocketUrl',
   personalSignMessageInput: 'personalSignMessage',
-  signMessageMultichainMessageInput: 'signMessageMultichain',
   signTypedDataMessageInput: 'signTypedData',
-  signTypedDataMultichainMessageInput: 'signTypedDataMultichain',
   wasmInput: 'wasmInput',
 };
 
@@ -111,7 +102,6 @@ export const EntropyDropDownSelectorWebIDS = {
   bip44EntropyDropDown: 'bip44-entropy-selector',
   getEntropyDropDown: 'get-entropy-entropy-selector',
   networkDropDown: 'select-chain',
-  multichainNetworkDropdown: 'select-multichain-chain',
 };
 
 export const NativeDropdownSelectorWebIDS = {
@@ -140,7 +130,6 @@ export const TestSnapResultSelectorWebIDS = {
   installedSnapResultSpan: 'installedSnapsResult',
   networkAccessResultSpan: 'networkAccessResult',
   ethereumProviderResultSpan: 'ethproviderResult',
-  multichainProviderResultSpan: 'multichainProviderResult',
   personalSignResultSpan: 'personalSignResult',
   preferencesResultSpan: 'preferencesResult',
   retrieveManageStateResultSpan: 'retrieveManageStateResult',
@@ -150,9 +139,7 @@ export const TestSnapResultSelectorWebIDS = {
   scheduleBackgroundEventResultSpan: 'scheduleBackgroundEventResult',
   sendManageStateResultSpan: 'sendManageStateResult',
   sendUnencryptedManageStateResultSpan: 'sendUnencryptedManageStateResult',
-  signMessageMultichainResultSpan: 'signMessageMultichainResult',
   signTypedDataResultSpan: 'signTypedDataResult',
-  signTypedDataMultichainResultSpan: 'signTypedDataMultichainResult',
   unencryptedStateResultSpan: 'unencryptedStateResult',
   wasmResultSpan: 'wasmResult',
 };

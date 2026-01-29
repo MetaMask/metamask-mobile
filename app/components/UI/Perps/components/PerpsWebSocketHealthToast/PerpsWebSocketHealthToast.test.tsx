@@ -75,7 +75,7 @@ const mockHide = jest.fn();
 const mockOnRetry = jest.fn();
 const mockState = {
   isVisible: true,
-  connectionState: WebSocketConnectionState.Disconnected,
+  connectionState: WebSocketConnectionState.DISCONNECTED,
   reconnectionAttempt: 1,
 };
 
@@ -93,7 +93,7 @@ describe('PerpsWebSocketHealthToast', () => {
     jest.useFakeTimers();
     // Reset mock state
     mockState.isVisible = true;
-    mockState.connectionState = WebSocketConnectionState.Disconnected;
+    mockState.connectionState = WebSocketConnectionState.DISCONNECTED;
     mockState.reconnectionAttempt = 1;
   });
 
@@ -114,7 +114,7 @@ describe('PerpsWebSocketHealthToast', () => {
 
     it('renders when isVisible is true and state becomes visible', async () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Disconnected;
+      mockState.connectionState = WebSocketConnectionState.DISCONNECTED;
 
       const { findByTestId } = render(<PerpsWebSocketHealthToast />);
 
@@ -134,7 +134,7 @@ describe('PerpsWebSocketHealthToast', () => {
   describe('DISCONNECTED state', () => {
     it('displays disconnected message', async () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Disconnected;
+      mockState.connectionState = WebSocketConnectionState.DISCONNECTED;
 
       const { findByText } = render(<PerpsWebSocketHealthToast />);
 
@@ -148,7 +148,7 @@ describe('PerpsWebSocketHealthToast', () => {
 
     it('shows retry button when disconnected', async () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Disconnected;
+      mockState.connectionState = WebSocketConnectionState.DISCONNECTED;
 
       const { findByTestId } = render(<PerpsWebSocketHealthToast />);
 
@@ -162,7 +162,7 @@ describe('PerpsWebSocketHealthToast', () => {
 
     it('calls onRetry when retry button is pressed', async () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Disconnected;
+      mockState.connectionState = WebSocketConnectionState.DISCONNECTED;
 
       const { findByTestId } = render(<PerpsWebSocketHealthToast />);
 
@@ -179,7 +179,7 @@ describe('PerpsWebSocketHealthToast', () => {
   describe('CONNECTING state', () => {
     it('displays connecting message with attempt number', async () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Connecting;
+      mockState.connectionState = WebSocketConnectionState.CONNECTING;
       mockState.reconnectionAttempt = 3;
 
       const { findByText } = render(<PerpsWebSocketHealthToast />);
@@ -192,7 +192,7 @@ describe('PerpsWebSocketHealthToast', () => {
 
     it('does not show retry button when connecting', async () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Connecting;
+      mockState.connectionState = WebSocketConnectionState.CONNECTING;
 
       const { queryByTestId, findByTestId } = render(
         <PerpsWebSocketHealthToast />,
@@ -212,7 +212,7 @@ describe('PerpsWebSocketHealthToast', () => {
   describe('CONNECTED state', () => {
     it('displays connected message', async () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Connected;
+      mockState.connectionState = WebSocketConnectionState.CONNECTED;
 
       const { findByText } = render(<PerpsWebSocketHealthToast />);
 
@@ -226,7 +226,7 @@ describe('PerpsWebSocketHealthToast', () => {
 
     it('does not show retry button when connected', async () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Connected;
+      mockState.connectionState = WebSocketConnectionState.CONNECTED;
 
       const { queryByTestId, findByTestId } = render(
         <PerpsWebSocketHealthToast />,
@@ -244,7 +244,7 @@ describe('PerpsWebSocketHealthToast', () => {
 
     it('auto-hides after 3 seconds when connected', async () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Connected;
+      mockState.connectionState = WebSocketConnectionState.CONNECTED;
 
       render(<PerpsWebSocketHealthToast />);
 
@@ -258,7 +258,7 @@ describe('PerpsWebSocketHealthToast', () => {
   describe('DISCONNECTING state', () => {
     it('does not render for DISCONNECTING state', () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Disconnecting;
+      mockState.connectionState = WebSocketConnectionState.DISCONNECTING;
 
       const { queryByTestId } = render(<PerpsWebSocketHealthToast />);
 
@@ -271,7 +271,7 @@ describe('PerpsWebSocketHealthToast', () => {
   describe('Cleanup', () => {
     it('clears timeout on unmount', () => {
       mockState.isVisible = true;
-      mockState.connectionState = WebSocketConnectionState.Connected;
+      mockState.connectionState = WebSocketConnectionState.CONNECTED;
 
       const { unmount } = render(<PerpsWebSocketHealthToast />);
 

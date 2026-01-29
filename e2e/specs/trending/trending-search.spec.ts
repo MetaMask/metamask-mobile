@@ -5,7 +5,7 @@ import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
 import { Assertions } from '../../../tests/framework';
-import TrendingView from '../../../tests/page-objects/Trending/TrendingView';
+import TrendingView from '../../pages/Trending/TrendingView';
 import { TRENDING_API_MOCKS } from '../../../tests/api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../../tests/api-mocking/helpers/mockHelpers';
 import { remoteFeatureFlagTrendingTokensEnabled } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';

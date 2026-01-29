@@ -31,7 +31,6 @@ import { handleEnableCardButton } from './handleEnableCardButton';
 import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleTrendingUrl } from './handleTrendingUrl';
-import { handleEarnMusd } from './handleEarnMusd';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import {
@@ -81,7 +80,6 @@ const SUPPORTED_ACTIONS = {
   CARD_HOME: ACTIONS.CARD_HOME,
   TRENDING: ACTIONS.TRENDING,
   SHIELD: ACTIONS.SHIELD,
-  EARN_MUSD: ACTIONS.EARN_MUSD,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -591,10 +589,6 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.TRENDING: {
       handleTrendingUrl();
-      break;
-    }
-    case SUPPORTED_ACTIONS.EARN_MUSD: {
-      handleEarnMusd();
       break;
     }
   }

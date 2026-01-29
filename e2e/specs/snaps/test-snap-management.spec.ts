@@ -45,7 +45,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
 
         await SnapSettingsView.tapBackButton();
         await SnapSettingsView.tapBackButton();
-        await SettingsView.tapBackButton();
+        await SettingsView.tapCloseButton();
 
         await navigateToBrowserView();
 
@@ -75,7 +75,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
 
         await SnapSettingsView.tapBackButton();
         await SnapSettingsView.tapBackButton();
-        await SettingsView.tapBackButton();
+        await SettingsView.tapCloseButton();
 
         await navigateToBrowserView();
 

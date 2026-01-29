@@ -24,7 +24,6 @@ import {
   getSupportedProviders,
   ProviderType,
 } from './providers';
-import { getSkillsMetadata } from './utils/skill-loader';
 
 /**
  * Validates provided files against actual git changes
@@ -96,9 +95,6 @@ function parseArgs(args: string[]): ParsedArgs {
       case '-p':
         options.provider = args[++i];
         break;
-      case '--list-skills':
-        options.listSkills = true;
-        break;
     }
   }
 
@@ -145,10 +141,7 @@ Options:
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
   -p, --provider <provider>     Force specific provider (anthropic, openai, google)
-  --list-skills                 List all available skills
   -h, --help                    Show this help message
-
-Note: Skills are loaded on-demand by the AI agent during analysis.
 
 Output:
   - each mode defines its own output format
@@ -212,27 +205,6 @@ async function main() {
   }
 
   const options = parseArgs(args);
-
-  // Handle --list-skills
-  if (options.listSkills) {
-    const skillsMetadata = await getSkillsMetadata();
-    console.log('\n📚 Available Skills:\n');
-    if (skillsMetadata.length === 0) {
-      console.log('  No skills found in skills/ directory');
-    } else {
-      skillsMetadata.forEach((skill) => {
-        console.log(`  - ${skill.name}: ${skill.description}`);
-        if (skill.tools) {
-          console.log(`    Tools: ${skill.tools}`);
-        }
-      });
-    }
-    console.log(
-      '\nSkills are loaded on-demand by the AI agent during analysis.\n',
-    );
-    process.exit(0);
-  }
-
   const mode = validateMode(options.mode);
   const forcedProvider = validateProvider(options.provider);
   const baseBranch = options.baseBranch;
@@ -270,13 +242,6 @@ async function main() {
   if (criticalFiles.length > 0) {
     console.log(`⚠️  ${criticalFiles.length} critical files detected`);
   }
-
-  // Load skill metadata (full content loaded on-demand by agent)
-  console.log('📋 Loading available skills...');
-  const availableSkills = await getSkillsMetadata();
-  console.log(
-    `   Found ${availableSkills.length} skills available for on-demand loading\n`,
-  );
 
   // Build analysis context
   const analysisContext: AnalysisContext = {
@@ -342,7 +307,6 @@ async function main() {
         criticalFiles,
         mode,
         analysisContext,
-        availableSkills,
       );
 
       // Success - output results and exit

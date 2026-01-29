@@ -3,13 +3,13 @@ import {
   PERPS_ERROR_CODES,
   type PerpsErrorCode,
 } from '../controllers/perpsErrorCodes';
-import type { PerpsDebugLogger } from '../controllers/types';
+import type { IPerpsDebugLogger } from '../controllers/types';
 
 /**
  * Optional debug logger for error handling functions.
  * When provided, enables detailed logging for debugging.
  */
-export type ErrorHandlerDebugLogger = PerpsDebugLogger | undefined;
+export type ErrorHandlerDebugLogger = IPerpsDebugLogger | undefined;
 
 /**
  * Maps error codes to i18n keys

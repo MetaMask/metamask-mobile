@@ -36,7 +36,6 @@ import {
   hideWCLoadingState,
   parseWalletConnectUri,
   showWCLoadingState,
-  isValidUrl,
 } from './wc-utils';
 
 import {
@@ -445,16 +444,6 @@ export class WC2Manager {
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
 
-    // Validate new session proposal URL without normalizing - reject if invalid.
-    if (!isValidUrl(url)) {
-      console.warn(`WC2::session_proposal rejected - invalid dApp URL: ${url}`);
-      await this.web3Wallet.rejectSession({
-        id: proposal.id,
-        reason: getSdkError('USER_REJECTED_METHODS'),
-      });
-      return;
-    }
-
     if (url === ORIGIN_METAMASK) {
       console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
       await this.web3Wallet.rejectSession({
@@ -470,7 +459,7 @@ export class WC2Manager {
     const origin = url;
 
     DevLogger.log(
-      `WC2::session_proposal metadata url=${origin} hostname=${hostname}`,
+      `WC2::session_proposal metadata url=${origin} normalized to hostname=${hostname}`,
     );
 
     // Save Connection info to redux store to be retrieved in ui.

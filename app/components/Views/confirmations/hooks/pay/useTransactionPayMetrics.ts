@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectConfirmationMetricsById,
-  updateConfirmationMetric,
-} from '../../../../../core/redux/slices/confirmationMetrics';
-import { RootState } from '../../../../../reducers';
+import { useDispatch } from 'react-redux';
+import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json, isCaipChainId, isHexString } from '@metamask/utils';
@@ -14,6 +10,7 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { hasTransactionType } from '../../utils/transaction';
 import {
+  useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
@@ -31,26 +28,22 @@ export function useTransactionPayMetrics() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const highestBalanceChainId = useHighestBalanceCaipChainId();
   const automaticPayToken = useRef<BridgeToken>();
-  const hasLoadedQuoteRef = useRef(false);
+  const hasRequestedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
+  const isQuotesLoading = useIsTransactionPayQuoteLoading();
   const totals = useTransactionPayTotals();
   const tokens = useTransactionPayAvailableTokens();
 
-  const transactionId = transactionMeta?.id ?? '';
-  const storedMetrics = useSelector((state: RootState) =>
-    selectConfirmationMetricsById(state, transactionId),
-  );
-
-  const hasQuotes = (quotes?.length ?? 0) > 0;
-
-  if (hasQuotes && !hasLoadedQuoteRef.current) {
-    hasLoadedQuoteRef.current = true;
+  if (isQuotesLoading && !hasRequestedQuoteRef.current) {
+    hasRequestedQuoteRef.current = true;
   }
 
   const availableTokens = useMemo(
     () => tokens.filter((t) => !t.disabled),
     [tokens],
   );
+
+  const transactionId = transactionMeta?.id ?? '';
   const { chainId, type } = transactionMeta ?? {};
   const primaryRequiredToken = requiredTokens.find((t) => !t.skipIfBalance);
   const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
@@ -61,6 +54,8 @@ export function useTransactionPayMetrics() {
 
   const properties: Json = {};
   const sensitiveProperties: Json = {};
+
+  const hasQuotes = (quotes?.length ?? 0) > 0;
 
   if (payToken) {
     properties.mm_pay = true;
@@ -79,9 +74,8 @@ export function useTransactionPayMetrics() {
 
     properties.mm_pay_payment_token_list_size = availableTokens.length;
 
-    properties.mm_pay_quote_requested =
-      (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
-    properties.mm_pay_quote_loaded = hasLoadedQuoteRef.current;
+    properties.mm_pay_quote_requested = hasRequestedQuoteRef.current;
+    properties.mm_pay_quote_loaded = hasQuotes;
     properties.mm_pay_chain_highest_balance_caip =
       highestBalanceChainId ?? null;
   }

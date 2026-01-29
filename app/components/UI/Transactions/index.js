@@ -58,7 +58,6 @@ import {
 } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
-import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
 import PriceChartContext, {
   PriceChartProvider,
@@ -606,18 +605,9 @@ class Transactions extends PureComponent {
     }
   };
 
-  signQRTransaction = async (transactionMeta) => {
-    const { TransactionController } = Engine.context;
-    this.props.navigation.navigate(
-      ...createQRSigningTransactionModalNavDetails({
-        transactionId: transactionMeta.id,
-        onConfirmationComplete: (confirmed) => {
-          if (!confirmed) {
-            TransactionController.cancelTransaction(transactionMeta.id);
-          }
-        },
-      }),
-    );
+  signQRTransaction = async (tx) => {
+    const { ApprovalController } = Engine.context;
+    await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
   };
 
   signLedgerTransaction = async (transaction) => {

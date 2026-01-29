@@ -29,7 +29,7 @@ import { createLogger } from '../tests/framework/logger';
 import Utilities, { sleep } from '../tests/framework/Utilities';
 import { Gestures, PortManager, ResourceType } from '../tests/framework';
 import TabBarComponent from './pages/wallet/TabBarComponent';
-import TrendingView from '../tests/page-objects/Trending/TrendingView';
+import TrendingView from './pages/Trending/TrendingView';
 import BrowserView from './pages/Browser/BrowserView';
 
 /**

@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { processUrlForBrowser } from '../../../util/browser';
 import Device from '../../../util/device';
 import ErrorBoundary from '../ErrorBoundary';
+import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
@@ -84,7 +85,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
         onSubmitEditing(item.url);
       }
     },
-    [onSubmitEditing],
+    [onSubmitEditing, navigation],
   );
 
   /**

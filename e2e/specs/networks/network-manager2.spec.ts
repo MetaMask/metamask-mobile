@@ -29,6 +29,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
+            .withSolanaFixture()
             .withTokensForAllPopularNetworks([
               {
                 address: '0x0000000000000000000000000000000000000000',

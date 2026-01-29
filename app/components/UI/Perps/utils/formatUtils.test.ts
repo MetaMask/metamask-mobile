@@ -60,7 +60,7 @@ describe('formatUtils', () => {
       const result = formatFundingRate(value);
 
       // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
     });
 
     it('displays zero display value when input is null', () => {
@@ -71,7 +71,7 @@ describe('formatUtils', () => {
       const result = formatFundingRate(value);
 
       // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
     });
 
     it('formats positive funding rate correctly', () => {
@@ -104,7 +104,7 @@ describe('formatUtils', () => {
       const result = formatFundingRate(value);
 
       // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
     });
 
     it('formats very small positive funding rate correctly', () => {
@@ -183,7 +183,7 @@ describe('formatUtils', () => {
       const result = formatFundingRate(value);
 
       // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
     });
 
     it('handles number precision edge cases correctly', () => {

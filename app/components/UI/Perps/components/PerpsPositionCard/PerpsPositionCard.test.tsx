@@ -382,7 +382,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Displays standardized price fallback
       expect(
-        screen.getByText(PERPS_CONSTANTS.FallbackPriceDisplay),
+        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
       ).toBeOnTheScreen();
     });
   });
@@ -431,7 +431,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Empty string gets parsed as NaN and displays fallback
       expect(
-        screen.getByText(PERPS_CONSTANTS.FallbackPriceDisplay),
+        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
       ).toBeOnTheScreen();
     });
   });

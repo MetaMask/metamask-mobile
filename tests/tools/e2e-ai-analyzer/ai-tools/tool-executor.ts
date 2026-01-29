@@ -10,7 +10,6 @@ import { handleGitDiff } from './handlers/git-diff';
 import { handleRelatedFiles } from './handlers/related-files';
 import { handleListDirectory } from './handlers/list-directory';
 import { handleGrepCodebase } from './handlers/grep-codebase';
-import { handleLoadSkill } from './handlers/load-skill';
 import { handleFinalizeTagSelection } from './handlers/finalize-tag-selection';
 
 /**
@@ -47,12 +46,6 @@ export async function executeTool(
 
       case 'grep_codebase':
         return handleGrepCodebase(input, context.baseDir);
-
-      case 'load_skill':
-        if (!input.skill_name) {
-          return 'Error: skill_name parameter is required';
-        }
-        return handleLoadSkill(input.skill_name);
 
       case 'finalize_tag_selection':
         return handleFinalizeTagSelection(input);

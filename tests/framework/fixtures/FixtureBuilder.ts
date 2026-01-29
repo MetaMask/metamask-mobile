@@ -27,10 +27,7 @@ import {
   PopularNetworksList,
 } from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types.ts';
-import {
-  MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
-  TEST_ANALYTICS_ID,
-} from './constants.ts';
+import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants.ts';
 import {
   MOCK_ENTROPY_SOURCE,
   MOCK_ENTROPY_SOURCE_2,
@@ -1854,8 +1851,31 @@ class FixtureBuilder {
     // Also set up AnalyticsController state so analytics.isEnabled() returns true
     this.fixture.state.engine.backgroundState.AnalyticsController = {
       optedIn: true,
-      analyticsId: TEST_ANALYTICS_ID,
+      analyticsId: 'a5f3c2e1-7b4d-4e9a-8c6f-1d2e3f4a5b6c',
     };
+    return this;
+  }
+
+  /**
+   * Sets up a minimal Solana fixture with mainnet configuration
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+   */
+  withSolanaFixture() {
+    const SOLANA_TOKEN = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
+      selectedMultichainNetworkChainId: SolScope.Mainnet,
+      multichainNetworkConfigurationsByChainId: {
+        [SolScope.Mainnet]: {
+          chainId: SolScope.Mainnet,
+          name: 'Solana Mainnet',
+          nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
+          isEvm: false,
+        },
+      },
+      isEvmSelected: false,
+    };
+
     return this;
   }
 
@@ -2174,7 +2194,6 @@ class FixtureBuilder {
   ) {
     const stateToMerge: NetworkEnablementControllerState = {
       enabledNetworkMap: data,
-      nativeAssetIdentifiers: {},
     };
 
     merge(

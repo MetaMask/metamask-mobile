@@ -4002,6 +4002,7 @@ describe('Authentication', () => {
         username: 'metamask-user',
       } as unknown as import('react-native-keychain').UserCredentials);
 
+      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue(undefined);
       jest
         .spyOn(SecureKeychain, 'setGenericPassword')
         .mockResolvedValue(undefined);
@@ -4020,6 +4021,7 @@ describe('Authentication', () => {
         authType: AUTHENTICATION_TYPE.BIOMETRIC,
       });
 
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.KeyringController.verifyPassword,
       ).toHaveBeenCalledWith(mockPassword);
@@ -4042,6 +4044,7 @@ describe('Authentication', () => {
       });
 
       expect(Authentication.getPassword).not.toHaveBeenCalled();
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.KeyringController.verifyPassword,
       ).toHaveBeenCalledWith(mockPassword);
@@ -4062,6 +4065,7 @@ describe('Authentication', () => {
         authType: AUTHENTICATION_TYPE.PASSCODE,
       });
 
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.KeyringController.verifyPassword,
       ).toHaveBeenCalledWith(mockPassword);
@@ -4081,6 +4085,7 @@ describe('Authentication', () => {
         authType: AUTHENTICATION_TYPE.PASSWORD,
       });
 
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.KeyringController.verifyPassword,
       ).toHaveBeenCalledWith(mockPassword);
@@ -4203,6 +4208,7 @@ describe('Authentication', () => {
         password: mockPassword,
       });
 
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(verifyPasswordSpy).toHaveBeenCalledWith(mockPassword);
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,

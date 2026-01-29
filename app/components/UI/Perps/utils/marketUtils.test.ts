@@ -228,7 +228,7 @@ describe('marketUtils', () => {
 
     const mockCandleData: CandleData = {
       symbol: 'BTC',
-      interval: CandlePeriod.OneHour,
+      interval: CandlePeriod.ONE_HOUR,
       candles: [
         {
           time: fortyEightHoursAgo,
@@ -281,7 +281,7 @@ describe('marketUtils', () => {
     it('should handle empty candles array', () => {
       const emptyData: CandleData = {
         symbol: 'BTC',
-        interval: CandlePeriod.OneHour,
+        interval: CandlePeriod.ONE_HOUR,
         candles: [],
       };
       const result = calculate24hHighLow(emptyData);
@@ -291,7 +291,7 @@ describe('marketUtils', () => {
     it('should use all candles if none are within 24h', () => {
       const oldCandleData: CandleData = {
         symbol: 'BTC',
-        interval: CandlePeriod.OneHour,
+        interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
             time: fortyEightHoursAgo,
@@ -310,7 +310,7 @@ describe('marketUtils', () => {
     it('should handle candles with string values', () => {
       const stringCandleData: CandleData = {
         symbol: 'BTC',
-        interval: CandlePeriod.OneHour,
+        interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
             time: oneHourAgo,
@@ -329,7 +329,7 @@ describe('marketUtils', () => {
     it('should handle single candle within 24h', () => {
       const singleCandleData: CandleData = {
         symbol: 'BTC',
-        interval: CandlePeriod.OneHour,
+        interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
             time: oneHourAgo,

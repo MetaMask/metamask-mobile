@@ -21,7 +21,7 @@ import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTa
 import { DappVariants } from '../../framework/Constants';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 // API spec tests use a mock RPC server instead of Ganache (disableLocalNodes: true)
 // Fixed port is fine since tests don't run in parallel
@@ -158,6 +158,13 @@ const main = async () => {
   const server = mockServer(port, openrpcDocument);
   server.start();
 
+  const testSpecificMock = async (mockServer) => {
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+    );
+  };
+
   await withFixtures(
     {
       dapps: [
@@ -168,6 +175,7 @@ const main = async () => {
       fixture: new FixtureBuilder().withGanacheNetwork().build(),
       disableLocalNodes: true,
       restartDevice: true,
+      testSpecificMock,
     },
     async () => {
       await loginToApp();

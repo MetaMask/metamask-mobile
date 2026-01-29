@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { CaipChainId } from '@metamask/utils';
-import { searchTokens, TrendingAsset } from '@metamask/assets-controllers';
+import { searchTokens } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
@@ -13,7 +13,6 @@ interface SearchResult {
   aggregatedUsdVolume: number;
   price: string;
   pricePercentChange1d: string;
-  rwaData?: TrendingAsset['rwaData'];
 }
 
 /**

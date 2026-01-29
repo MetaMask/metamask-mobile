@@ -16,13 +16,6 @@ const styleSheet = (params: {
     wrapper: {
       paddingHorizontal: 16,
     },
-    assetWrapper: {
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-    },
-    stockBadge: {
-      marginLeft: 8,
-    },
     priceDiff: {
       color:
         priceDiff > 0

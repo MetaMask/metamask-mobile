@@ -12,13 +12,13 @@ jest.mock('./hooks/useGeoRewardsMetadata');
 
 // Mock UnmountOnBlur
 jest.mock('../../Views/UnmountOnBlur', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   return function MockUnmountOnBlur({
     children,
   }: {
     children: React.ReactNode;
   }) {
-    return ReactActual.createElement(
+    return React.createElement(
       'div',
       { 'data-testid': 'unmount-on-blur' },
       children,
@@ -28,61 +28,74 @@ jest.mock('../../Views/UnmountOnBlur', () => {
 
 // Mock onboarding step components
 jest.mock('./components/Onboarding/OnboardingIntroStep', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockOnboardingIntroStep() {
-    return ReactActual.createElement(
+    return React.createElement(
       View,
       { testID: 'rewards-onboarding-intro-step' },
-      ReactActual.createElement(Text, null, 'Onboarding Intro Step'),
+      React.createElement(Text, null, 'Onboarding Intro Step'),
     );
   };
 });
 
 jest.mock('./components/Onboarding/OnboardingStep1', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockOnboardingStep1() {
-    return ReactActual.createElement(
+    return React.createElement(
       View,
       { testID: 'rewards-onboarding-step-1' },
-      ReactActual.createElement(Text, null, 'Onboarding Step 1'),
+      React.createElement(Text, null, 'Onboarding Step 1'),
     );
   };
 });
 
 jest.mock('./components/Onboarding/OnboardingStep2', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockOnboardingStep2() {
-    return ReactActual.createElement(
+    return React.createElement(
       View,
       { testID: 'rewards-onboarding-step-2' },
-      ReactActual.createElement(Text, null, 'Onboarding Step 2'),
+      React.createElement(Text, null, 'Onboarding Step 2'),
     );
   };
 });
 
 jest.mock('./components/Onboarding/OnboardingStep3', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockOnboardingStep3() {
-    return ReactActual.createElement(
+    return React.createElement(
       View,
       { testID: 'rewards-onboarding-step-3' },
-      ReactActual.createElement(Text, null, 'Onboarding Step 3'),
+      React.createElement(Text, null, 'Onboarding Step 3'),
     );
   };
 });
 
 jest.mock('./components/Onboarding/OnboardingStep4', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockOnboardingStep4() {
-    return ReactActual.createElement(
+    return React.createElement(
       View,
       { testID: 'rewards-onboarding-step-4' },
-      ReactActual.createElement(Text, null, 'Onboarding Step 4'),
+      React.createElement(Text, null, 'Onboarding Step 4'),
+    );
+  };
+});
+
+// Mock RewardsIntroModal
+jest.mock('./components/Onboarding/RewardsIntroModal', () => {
+  const React = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockRewardsIntroModal() {
+    return React.createElement(
+      View,
+      { testID: 'rewards-intro-modal' },
+      React.createElement(Text, null, 'Rewards Intro Modal'),
     );
   };
 });
@@ -204,6 +217,21 @@ describe('OnboardingNavigator', () => {
     );
 
   describe('Initial route determination', () => {
+    it('renders intro modal when activeStep is INTRO_MODAL', async () => {
+      // Arrange
+      mockSelectOnboardingActiveStep.mockReturnValue(
+        OnboardingStep.INTRO_MODAL,
+      );
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      // Assert
+      await waitFor(() => {
+        expect(getByTestId('rewards-intro-modal')).toBeOnTheScreen();
+      });
+    });
+
     it('renders intro step when activeStep is INTRO', async () => {
       // Arrange
       mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.INTRO);

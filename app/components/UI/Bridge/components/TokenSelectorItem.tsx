@@ -6,22 +6,14 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { useSelector } from 'react-redux';
-import { strings } from '../../../../../locales/i18n';
-import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import TagBase, {
-  TagSeverity,
-  TagShape,
-} from '../../../../component-library/base-components/TagBase';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import Text, {
   TextVariant,
   TextColor,
@@ -29,23 +21,29 @@ import Text, {
 import { Box } from '../../Box/Box';
 import { ethers } from 'ethers';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
-import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken } from '../types';
-import { RootState } from '../../../../reducers';
 import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { useSelector } from 'react-redux';
 import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
+import { strings } from '../../../../../locales/i18n';
+import TagBase, {
+  TagShape,
+  TagSeverity,
+} from '../../../../component-library/base-components/TagBase';
 import Tag from '../../../../component-library/components/Tags/Tag';
+import { RootState } from '../../../../reducers';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import parseAmount from '../../../../util/parseAmount';
 import { getTokenImageSource } from '../utils';
-import { useRWAToken } from '../hooks/useRWAToken';
 
 const createStyles = ({
   theme,
@@ -181,9 +179,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
   const isNative = token.address === ethers.constants.AddressZero;
 
-  // to check if the token is a stock by checking if the name includes 'ondo' or 'stock'
-  const { isStockToken } = useRWAToken();
-
   const balance = shouldShowBalance ? fiatValue : undefined;
   const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
 
@@ -269,7 +264,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             >
               {token.name}
             </Text>
-            {isStockToken(token) && <StockBadge token={token} />}
           </Box>
 
           {/* Token balance and fiat value */}

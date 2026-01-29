@@ -10,10 +10,7 @@ import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import QuotesView from '../../pages/Ramps/QuotesView';
 import SoftAssert from '../../../tests/framework/SoftAssert';
-import {
-  EventPayload,
-  getEventsPayloads,
-} from '../../../tests/helpers/analytics/helpers';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import {
   RampsRegions,
   RampsRegionsEnum,

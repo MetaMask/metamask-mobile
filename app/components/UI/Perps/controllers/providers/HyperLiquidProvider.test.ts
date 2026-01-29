@@ -15,7 +15,7 @@ import {
 import type {
   ClosePositionParams,
   DepositParams,
-  PerpsPlatformDependencies,
+  IPerpsPlatformDependencies,
   LiveDataConfig,
   OrderParams,
 } from '../types';
@@ -278,7 +278,7 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
 });
 
 // Create shared mock platform dependencies for provider tests
-const mockPlatformDependencies: PerpsPlatformDependencies =
+const mockPlatformDependencies: IPerpsPlatformDependencies =
   createMockInfrastructure();
 
 /**
@@ -4509,7 +4509,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'ready',
-            data: { code: REFERRAL_CONFIG.MainnetCode },
+            data: { code: REFERRAL_CONFIG.mainnetCode },
           },
           referredBy: null, // User has no referral set
         }),
@@ -4612,7 +4612,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'ready',
-            data: { code: REFERRAL_CONFIG.MainnetCode },
+            data: { code: REFERRAL_CONFIG.mainnetCode },
           },
           referredBy: null, // User has no referral set
         }),
@@ -6612,7 +6612,7 @@ describe('HyperLiquidProvider', () => {
       // Add WebSocket methods to mock client service
       mockClientService.getConnectionState = jest
         .fn()
-        .mockReturnValue(WebSocketConnectionState.Connected);
+        .mockReturnValue(WebSocketConnectionState.CONNECTED);
       mockClientService.subscribeToConnectionState = jest
         .fn()
         .mockReturnValue(jest.fn());
@@ -6622,14 +6622,14 @@ describe('HyperLiquidProvider', () => {
     it('getWebSocketConnectionState delegates to clientService', () => {
       // Arrange
       mockClientService.getConnectionState.mockReturnValue(
-        WebSocketConnectionState.Connected,
+        WebSocketConnectionState.CONNECTED,
       );
 
       // Act
       const result = provider.getWebSocketConnectionState();
 
       // Assert
-      expect(result).toBe(WebSocketConnectionState.Connected);
+      expect(result).toBe(WebSocketConnectionState.CONNECTED);
       expect(mockClientService.getConnectionState).toHaveBeenCalled();
     });
 

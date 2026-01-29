@@ -275,12 +275,9 @@ interface FundingCountdownParams {
 }
 
 /**
- * Calculate the time until the next funding period.
- * Supports market-specific funding times when provided.
- * Falls back to default HyperLiquid 1-hour periods (funding paid every hour).
- *
- * @param params - Optional funding countdown parameters
- * @returns Formatted countdown string in HH:MM:SS format
+ * Calculate the time until the next funding period
+ * Supports market-specific funding times when provided
+ * Falls back to default HyperLiquid 1-hour periods (funding paid every hour)
  */
 export const calculateFundingCountdown = (
   params?: FundingCountdownParams,
@@ -342,10 +339,7 @@ export const calculateFundingCountdown = (
 };
 
 /**
- * Calculate 24h high and low from candlestick data.
- *
- * @param candleData - Candlestick data containing price candles
- * @returns Object with high and low prices for the last 24 hours
+ * Calculate 24h high and low from candlestick data
  */
 export const calculate24hHighLow = (
   candleData: CandleData | null,

@@ -458,37 +458,43 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-// Mock design system - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
-  const {
-    View,
-    TouchableOpacity,
-    Text: RNText,
-  } = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
+  const { View, Text: RNText } = jest.requireActual('react-native');
   return {
-    ...jest.requireActual('@metamask/design-system-react-native'),
     Box: ({
       children,
       testID,
+      ...props
     }: {
       children: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(View, { testID }, children),
-    ButtonIcon: ({
-      testID,
-      onPress,
-    }: {
-      testID?: string;
-      onPress?: () => void;
-    }) => React.createElement(TouchableOpacity, { testID, onPress }),
-    Text: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(RNText, { testID }, children),
+      testID: string;
+      [key: string]: unknown;
+    }) => (
+      <View testID={testID} {...props}>
+        {children}
+      </View>
+    ),
+    Text: RNText,
+    TextVariant: {
+      BodySm: 'sBodySM',
+      BodyMD: 'sBodyMD',
+      BodyMDMedium: 'sBodyMDMedium',
+      HeadingSM: 'sHeadingSM',
+      HeadingLG: 'sHeadingLG',
+      HeadingMD: 'HeadingMD',
+    },
+    FontWeight: {
+      Bold: 'bold',
+      Medium: 'medium',
+      Regular: 'regular',
+    },
+    BoxFlexDirection: {
+      Row: 'row',
+    },
+    BoxAlignItems: {
+      Center: 'center',
+      End: 'flex-end',
+    },
   };
 });
 
@@ -870,7 +876,7 @@ describe('PerpsMarketListView', () => {
     it('renders the component with header and search button', async () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      expect(screen.getByText('Markets')).toBeOnTheScreen();
+      expect(screen.getByText('Perps')).toBeOnTheScreen();
       expect(
         screen.getByTestId(
           `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
@@ -1169,7 +1175,7 @@ describe('PerpsMarketListView', () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // During loading, sort dropdowns are hidden, so don't check for them
-      expect(screen.getByText('Markets')).toBeOnTheScreen();
+      expect(screen.getByText('Perps')).toBeOnTheScreen();
     });
   });
 

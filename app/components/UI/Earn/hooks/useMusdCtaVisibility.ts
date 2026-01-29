@@ -1,7 +1,17 @@
 import { useCallback, useMemo } from 'react';
-import { add0x } from '@metamask/utils';
+import { Hex, KnownCaipNamespace, add0x } from '@metamask/utils';
 import { useSelector } from 'react-redux';
+import {
+  MUSD_BUYABLE_CHAIN_IDS,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+} from '../constants/musd';
 import { useMusdBalance } from './useMusdBalance';
+import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
+import {
+  NetworkType,
+  useNetworksByCustomNamespace,
+} from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
 import {
   selectIsMusdConversionAssetOverviewEnabledFlag,
   selectIsMusdConversionTokenListItemCtaEnabledFlag,
@@ -9,13 +19,15 @@ import {
   selectMusdConversionCTATokens,
 } from '../selectors/featureFlags';
 import { selectMusdConversionAssetDetailCtasSeen } from '../../../../reducers/user/selectors';
+import { toLowerCaseEquals } from '../../../../util/general';
 import { TokenI } from '../../Tokens/types';
 import { toHexadecimal } from '../../../../util/number';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { isTokenInWildcardList } from '../utils/wildcardTokenList';
+import { useMusdConversionEligibility } from './useMusdConversionEligibility';
+import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
-import { useMusdConversionFlowData } from './useMusdConversionFlowData';
 
 /**
  * Hook exposing helpers that decide whether to show various mUSD-related CTAs.
@@ -43,23 +55,34 @@ export const useMusdCtaVisibility = () => {
   const isMusdConversionAssetOverviewEnabled = useSelector(
     selectIsMusdConversionAssetOverviewEnabledFlag,
   );
+  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
   const musdConversionAssetDetailCtasSeen = useSelector(
     selectMusdConversionAssetDetailCtasSeen,
   );
 
-  const {
-    isGeoEligible,
-    isEmptyWallet,
-    selectedChainId,
-    isPopularNetworksFilterActive,
-    hasConvertibleTokens,
-    isMusdBuyableOnChain,
-    isMusdBuyableOnAnyChain,
-  } = useMusdConversionFlowData();
+  // Wallet balance state for empty wallet detection
+  const accountBalance = useSelector(selectAccountGroupBalanceForEmptyState);
+  const isEmptyWallet = accountBalance?.totalBalanceInUserCurrency === 0;
 
+  const { enabledNetworks } = useCurrentNetworkInfo();
+  const { areAllNetworksSelected } = useNetworksByCustomNamespace({
+    networkType: NetworkType.Popular,
+    namespace: KnownCaipNamespace.Eip155,
+  });
   const { hasMusdBalanceOnAnyChain, hasMusdBalanceOnChain } = useMusdBalance();
+  const { allTokens } = useRampTokens();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
+
+  // Check if user has tokens available for conversion
+  const canConvert = useMemo(
+    () =>
+      Boolean(
+        conversionTokens.length > 0 &&
+          conversionTokens?.[0]?.chainId !== undefined,
+      ),
+    [conversionTokens],
+  );
 
   const getConversionTokensWithCtas = useCallback(
     (tokens: AssetType[]) =>
@@ -91,6 +114,53 @@ export const useMusdCtaVisibility = () => {
     [tokensWithCTAs],
   );
 
+  // Check if mUSD is buyable on a specific chain based on ramp availability
+  const isMusdBuyableOnChain = useMemo(() => {
+    if (!allTokens) {
+      return {};
+    }
+
+    const buyableByChain: Record<Hex, boolean> = {};
+
+    MUSD_BUYABLE_CHAIN_IDS.forEach((chainId) => {
+      const musdAssetId = MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId];
+      if (!musdAssetId) {
+        buyableByChain[chainId] = false;
+        return;
+      }
+
+      const musdToken = allTokens.find(
+        (token) =>
+          toLowerCaseEquals(token.assetId, musdAssetId) &&
+          token.tokenSupported === true,
+      );
+
+      buyableByChain[chainId] = Boolean(musdToken);
+    });
+
+    return buyableByChain;
+  }, [allTokens]);
+
+  // Check if mUSD is buyable on any chain (for "all networks" view)
+  const isMusdBuyableOnAnyChain = useMemo(
+    () => Object.values(isMusdBuyableOnChain).some(Boolean),
+    [isMusdBuyableOnChain],
+  );
+
+  // Get selected chains from enabled networks
+  const selectedChains = useMemo(
+    () =>
+      enabledNetworks
+        .filter((network) => network.enabled)
+        .map((network) => network.chainId as Hex),
+    [enabledNetworks],
+  );
+
+  const isPopularNetworksFilterSelected = useMemo(
+    () => areAllNetworksSelected || selectedChains.length > 1,
+    [areAllNetworksSelected, selectedChains.length],
+  );
+
   /**
    * Buy/Get mUSD CTA visibility logic.
    *
@@ -116,17 +186,21 @@ export const useMusdCtaVisibility = () => {
 
     // Don't show CTA if user has tokens but none are convertible
     // (only show when wallet is empty OR has convertible tokens)
-    if (!isEmptyWallet && !hasConvertibleTokens) {
+    if (!isEmptyWallet && !canConvert) {
       return hiddenResult;
     }
 
     // If user is geo-blocked, don't show the CTA
     if (!isGeoEligible) {
-      return hiddenResult;
+      return {
+        shouldShowCta: false,
+        showNetworkIcon: false,
+        selectedChainId: null,
+      };
     }
 
     // If all networks are selected
-    if (isPopularNetworksFilterActive) {
+    if (isPopularNetworksFilterSelected) {
       // Show the buy/get mUSD CTA without network icon if:
       // - User doesn't have MUSD on any chain
       // - AND mUSD is buyable on at least one chain in user's region
@@ -139,18 +213,19 @@ export const useMusdCtaVisibility = () => {
     }
 
     // If exactly one chain is selected
-    if (!selectedChainId) {
+    const chainId = selectedChains[0];
+    const isBuyableChain = MUSD_BUYABLE_CHAIN_IDS.includes(chainId);
+
+    if (!isBuyableChain) {
+      // Chain doesn't have buy routes available (e.g., BSC) - hide the buy/get mUSD CTA
       return hiddenResult;
     }
 
-    const chainId = selectedChainId;
-
     // Check if mUSD is buyable on this chain in user's region
-    // isMusdBuyableOnChain will be undefined/false for chains that don't support buying or aren't buyable in the region
     const isMusdBuyableInRegion = isMusdBuyableOnChain[chainId] ?? false;
 
     if (!isMusdBuyableInRegion) {
-      // Chain doesn't have buy routes available OR mUSD not buyable in user's region - hide the buy/get mUSD CTA
+      // mUSD not buyable in user's region for this chain - hide the buy/get mUSD CTA
       return hiddenResult;
     }
 
@@ -164,7 +239,7 @@ export const useMusdCtaVisibility = () => {
       isEmptyWallet,
     };
   }, [
-    hasConvertibleTokens,
+    canConvert,
     hasMusdBalanceOnAnyChain,
     hasMusdBalanceOnChain,
     isGeoEligible,
@@ -172,8 +247,8 @@ export const useMusdCtaVisibility = () => {
     isMusdBuyableOnAnyChain,
     isMusdBuyableOnChain,
     isMusdGetBuyCtaEnabled,
-    isPopularNetworksFilterActive,
-    selectedChainId,
+    isPopularNetworksFilterSelected,
+    selectedChains,
   ]);
 
   const shouldShowTokenListItemCta = useCallback(
@@ -192,7 +267,7 @@ export const useMusdCtaVisibility = () => {
         return false;
       }
 
-      if (isPopularNetworksFilterActive) {
+      if (isPopularNetworksFilterSelected) {
         return hasMusdBalanceOnAnyChain && isTokenWithCta(asset);
       }
 
@@ -207,7 +282,7 @@ export const useMusdCtaVisibility = () => {
       hasMusdBalanceOnChain,
       isGeoEligible,
       isMusdConversionTokenListItemCtaEnabled,
-      isPopularNetworksFilterActive,
+      isPopularNetworksFilterSelected,
       isTokenWithCta,
     ],
   );
