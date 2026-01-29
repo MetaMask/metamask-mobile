@@ -95,6 +95,7 @@ import type {
   GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
+  GetOrFetchFillsParams,
   GetPositionsParams,
   GetSupportedPathsParams,
   HistoricalPortfolioResult,
@@ -194,6 +195,11 @@ interface HandleOrderErrorParams {
   symbol: string;
   orderType: 'market' | 'limit';
   isBuy: boolean;
+}
+
+interface GetOrFetchPriceParams {
+  symbol: string;
+  dexName: string | null;
 }
 
 /**
@@ -567,17 +573,17 @@ export class HyperLiquidProvider implements PerpsProvider {
   /**
    * Get current price for a symbol using WebSocket cache first, REST API fallback
    * Centralizes the price fetching pattern used across multiple methods
-   * @param symbol - The symbol to get price for
-   * @param dexName - Optional DEX name for REST API fallback
-   * @param logContext - Context string for debug logging
+   * @param params - Parameters for fetching price
+   * @param params.symbol - The symbol to get price for
+   * @param params.dexName - Optional DEX name for REST API fallback
    * @returns The current price as a number
    * @throws Error if no price is available
    */
   private async getOrFetchPrice(
-    symbol: string,
-    dexName: string | null,
-    logContext: string,
+    params: GetOrFetchPriceParams,
   ): Promise<number> {
+    const { symbol, dexName } = params;
+
     // OPTIMIZATION: Use WebSocket price cache first (0 weight), fall back to REST (2 weight)
     const cachedPrice = this.subscriptionService.getCachedPrice(symbol);
 
@@ -587,25 +593,25 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Covers zero, negative, NaN, and Infinity in one check
       if (price <= 0 || !isFinite(price)) {
         this.deps.debugLogger.log(
-          `WebSocket cached price invalid for ${logContext}, falling back to REST`,
+          'WebSocket cached price invalid for getOrFetchPrice, falling back to REST',
           { symbol, cachedPrice, parsedPrice: price },
         );
         // Fall through to REST API fallback
       } else {
-        this.deps.debugLogger.log(
-          `Using WebSocket cached price for ${logContext}`,
-          { symbol, price },
-        );
+        this.deps.debugLogger.log('Using WebSocket cached price', {
+          symbol,
+          price,
+        });
         return price;
       }
     }
 
     // Fallback to REST API if cache miss
     this.deps.debugLogger.log(
-      `Price cache miss for ${logContext}, falling back to REST allMids`,
+      'Price cache miss for getOrFetchPrice, falling back to REST allMids',
       { symbol },
     );
-    const infoClient = await this.clientService.getInfoClient();
+    const infoClient = this.clientService.getInfoClient();
     const mids = await infoClient.allMids(
       dexName ? { dex: dexName } : undefined,
     );
@@ -627,27 +633,25 @@ export class HyperLiquidProvider implements PerpsProvider {
    * For historical data (e.g., position-opening fills from months ago), use getOrderFills directly.
    *
    * @param params - Optional filter parameters (startTime, symbol)
-   * @param logContext - Context string for debug logging
    * @returns Array of order fills
    */
   public async getOrFetchFills(
-    params?: { startTime?: number; symbol?: string },
-    logContext: string = 'getOrFetchFills',
+    params?: GetOrFetchFillsParams,
   ): Promise<OrderFill[]> {
     // Check WebSocket cache first (0 API weight)
     const cachedFills = this.subscriptionService.getFillsCacheIfInitialized();
 
     if (cachedFills !== null) {
-      this.deps.debugLogger.log(
-        `Using WebSocket cached fills for ${logContext}`,
-        { count: cachedFills.length, params },
-      );
+      this.deps.debugLogger.log('Using WebSocket cached fills', {
+        count: cachedFills.length,
+        params,
+      });
       return this.filterFills(cachedFills, params);
     }
 
     // Fallback to REST API when cache not initialized
     this.deps.debugLogger.log(
-      `Fills cache miss for ${logContext}, falling back to REST`,
+      'Fills cache miss for getOrFetchFills, falling back to REST',
       { params },
     );
     const restFills = await this.getOrderFills(params);
@@ -2543,11 +2547,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
     }
 
-    const currentPrice = await this.getOrFetchPrice(
+    const currentPrice = await this.getOrFetchPrice({
       symbol,
-      dexName ?? null,
-      'getAssetInfoAndPrice',
-    );
+      dexName: dexName ?? null,
+    });
 
     return { assetInfo, currentPrice, meta };
   }
@@ -3041,11 +3044,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         );
       }
 
-      const currentPrice = await this.getOrFetchPrice(
-        params.newOrder.symbol,
-        dexName ?? null,
-        'editOrder',
-      );
+      const currentPrice = await this.getOrFetchPrice({
+        symbol: params.newOrder.symbol,
+        dexName: dexName ?? null,
+      });
 
       // Calculate order parameters using the same logic as placeOrder
       let orderPrice: number;
@@ -3379,11 +3381,10 @@ export class HyperLiquidProvider implements PerpsProvider {
           });
         }
 
-        const currentPrice = await this.getOrFetchPrice(
-          position.symbol,
-          dexName ?? null,
-          'closePosition',
-        );
+        const currentPrice = await this.getOrFetchPrice({
+          symbol: position.symbol,
+          dexName: dexName ?? null,
+        });
 
         // Calculate order price with slippage
         const slippage = ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000;

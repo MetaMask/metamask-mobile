@@ -40,6 +40,7 @@ import type {
   GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
+  GetOrFetchFillsParams,
   GetPositionsParams,
   GetSupportedPathsParams,
   HistoricalPortfolioResult,
@@ -293,13 +294,10 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     return this.extractSuccessfulResults(results, 'getOrderFills').flat();
   }
 
-  async getOrFetchFills(
-    params?: { startTime?: number; symbol?: string },
-    logContext?: string,
-  ): Promise<OrderFill[]> {
+  async getOrFetchFills(params?: GetOrFetchFillsParams): Promise<OrderFill[]> {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
-        const fills = await provider.getOrFetchFills(params, logContext);
+        const fills = await provider.getOrFetchFills(params);
         return fills.map((fill) => ({ ...fill, providerId: id }));
       }),
     );

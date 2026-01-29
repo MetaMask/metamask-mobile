@@ -6952,7 +6952,7 @@ describe('HyperLiquidProvider', () => {
         .mockReturnValue(mockFills);
 
       // Act
-      const result = await provider.getOrFetchFills({}, 'test-context');
+      const result = await provider.getOrFetchFills({});
 
       // Assert
       expect(result).toEqual(mockFills);
@@ -6987,7 +6987,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       // Act
-      const result = await provider.getOrFetchFills({}, 'test-context');
+      const result = await provider.getOrFetchFills({});
 
       // Assert
       expect(
@@ -7010,10 +7010,7 @@ describe('HyperLiquidProvider', () => {
         .mockReturnValue(fillsWithDifferentTimes);
 
       // Act - filter to only include recent fills
-      const result = await provider.getOrFetchFills(
-        { startTime: now - 50000 },
-        'test-context',
-      );
+      const result = await provider.getOrFetchFills({ startTime: now - 50000 });
 
       // Assert - should only include the more recent fill
       expect(result.length).toBe(1);
@@ -7027,10 +7024,7 @@ describe('HyperLiquidProvider', () => {
         .mockReturnValue(mockFills);
 
       // Act - filter to only BTC fills
-      const result = await provider.getOrFetchFills(
-        { symbol: 'BTC' },
-        'test-context',
-      );
+      const result = await provider.getOrFetchFills({ symbol: 'BTC' });
 
       // Assert - should only include BTC fill
       expect(result.length).toBe(1);
@@ -7050,10 +7044,10 @@ describe('HyperLiquidProvider', () => {
         .mockReturnValue(fillsWithDifferentTimesAndSymbols);
 
       // Act - filter to recent BTC fills only
-      const result = await provider.getOrFetchFills(
-        { startTime: now - 50000, symbol: 'BTC' },
-        'test-context',
-      );
+      const result = await provider.getOrFetchFills({
+        startTime: now - 50000,
+        symbol: 'BTC',
+      });
 
       // Assert - should only include recent BTC fill
       expect(result.length).toBe(1);
@@ -7081,7 +7075,7 @@ describe('HyperLiquidProvider', () => {
         .mockReturnValue([]);
 
       // Act
-      const result = await provider.getOrFetchFills({}, 'test-context');
+      const result = await provider.getOrFetchFills({});
 
       // Assert
       expect(result).toEqual([]);

@@ -605,6 +605,15 @@ export interface GetOrderFillsParams {
   aggregateByTime?: boolean; // Optional: aggregate by time
 }
 
+/**
+ * Parameters for getOrFetchFills - optimized cache-first fill retrieval.
+ * Subset of GetOrderFillsParams for cache filtering.
+ */
+export interface GetOrFetchFillsParams {
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  symbol?: string; // Optional: filter by symbol
+}
+
 export interface GetOrdersParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
@@ -874,12 +883,8 @@ export interface PerpsProvider {
    * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss.
    * Purpose: Prevent 429 errors during rapid market switching by reusing cached fills.
    * @param params - Optional filter parameters (startTime, symbol)
-   * @param logContext - Context string for debug logging
    */
-  getOrFetchFills(
-    params?: { startTime?: number; symbol?: string },
-    logContext?: string,
-  ): Promise<OrderFill[]>;
+  getOrFetchFills(params?: GetOrFetchFillsParams): Promise<OrderFill[]>;
 
   /**
    * Get historical portfolio data
