@@ -1,13 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  Hex,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  CaipChainId,
-  isCaipAssetType,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/utils';
+import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { newAssetTransaction } from '../../../../actions/transaction';
 import Engine from '../../../../core/Engine';
@@ -39,9 +33,7 @@ import {
   getNativeSourceToken,
   getDefaultDestToken,
 } from '../../Bridge/utils/tokenUtils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../../hooks/useSendNonEvmAsset';
-///: END:ONLY_INCLUDE_IF
 import {
   formatChainIdToCaip,
   isNativeAddress,
@@ -222,14 +214,12 @@ export const useTokenActions = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const wasHandledAsNonEvm = await sendNonEvmAsset(
       InitSendLocation.AssetOverview,
     );
     if (wasHandledAsNonEvm) {
       return;
     }
-    ///: END:ONLY_INCLUDE_IF
 
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
@@ -268,9 +258,7 @@ export const useTokenActions = ({
   }, [
     trackEvent,
     createEventBuilder,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     sendNonEvmAsset,
-    ///: END:ONLY_INCLUDE_IF
     navigation,
     token,
     selectedChainId,
@@ -290,18 +278,14 @@ export const useTokenActions = ({
     });
 
     try {
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       if (isCaipAssetType(token.address)) {
         assetId = token.address;
       } else {
-        ///: END:ONLY_INCLUDE_IF
         assetId = parseRampIntent({
           chainId: getDecimalChainId(chainId),
           address: token.address,
         })?.assetId;
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       }
-      ///: END:ONLY_INCLUDE_IF
     } catch {
       assetId = undefined;
     }

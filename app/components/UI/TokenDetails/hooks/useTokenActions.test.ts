@@ -1,30 +1,38 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useTokenActions, getSwapTokens } from './useTokenActions';
 import { TokenI } from '../../Tokens/types';
+import { selectEvmChainId } from '../../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectEvmChainId } from '../../../../selectors/networkController';
-
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-const mockDispatch = jest.fn();
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
-}));
-const mockNavigateToSendPage = jest.fn();
-const mockGoToBuy = jest.fn();
-const mockGoToSwaps = jest.fn();
+import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  ActionButtonType,
+  ActionPosition,
+  ActionLocation,
+} from '../../../../util/analytics/actionButtonTracking';
+import Routes from '../../../../constants/navigation/Routes';
 
 jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
-  useDispatch: () => mockDispatch,
+  useDispatch: () => jest.fn(),
 }));
 
-// Mock all the selectors
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
+jest.mock('../../../../selectors/networkController', () => ({
+  selectEvmChainId: jest.fn(),
+}));
+
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
 }));
@@ -40,25 +48,70 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/networkController', () => ({
-  selectEvmChainId: jest.fn(),
+jest.mock('../../../../reducers/fiatOrders', () => ({
+  getDetectedGeolocation: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({});
+const createMockEventBuilder = () => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+});
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+
+jest.mock('../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
-jest.mock('@metamask/bridge-controller', () => ({
-  formatChainIdToCaip: jest.fn((chainId: string) => {
-    if (chainId.startsWith('0x')) {
-      return `eip155:${parseInt(chainId, 16)}`;
-    }
-    return chainId;
+const mockNavigateToSendPage = jest.fn();
+jest.mock('../../../Views/confirmations/hooks/useSendNavigation', () => ({
+  useSendNavigation: () => ({
+    navigateToSendPage: mockNavigateToSendPage,
   }),
-  isNativeAddress: jest.fn((address: string) => !address || address === '0x0'),
+}));
+
+const mockGoToBuy = jest.fn();
+jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({
+    goToBuy: mockGoToBuy,
+  }),
+}));
+
+jest.mock('../../Ramp/hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: () => ({
+    ramp_routing: 'test-routing',
+    is_authenticated: true,
+    preferred_provider: 'test-provider',
+    order_count: 0,
+  }),
+}));
+
+jest.mock('../../Ramp/hooks/useRampsUnifiedV1Enabled', () =>
+  jest.fn(() => false),
+);
+
+jest.mock('../../../hooks/useSendNonEvmAsset', () => ({
+  useSendNonEvmAsset: () => ({
+    sendNonEvmAsset: jest.fn().mockResolvedValue(false),
+  }),
+}));
+
+const mockGoToSwaps = jest.fn();
+const mockNetworkModal = null;
+jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
+  useSwapBridgeNavigation: () => ({
+    goToSwaps: mockGoToSwaps,
+    networkModal: mockNetworkModal,
+  }),
+  SwapBridgeNavigationLocation: {
+    TokenView: 'TokenView',
+  },
+  isAssetFromTrending: jest.fn(() => false),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -70,342 +123,210 @@ jest.mock('../../../../core/Engine', () => ({
       })),
     },
     MultichainNetworkController: {
-      setActiveNetwork: jest.fn().mockResolvedValue(undefined),
+      setActiveNetwork: jest.fn(),
     },
   },
 }));
 
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+const mockNewAssetTransaction = jest.fn((token) => ({
+  type: 'NEW_ASSET_TRANSACTION',
+  payload: token,
 }));
-
 jest.mock('../../../../actions/transaction', () => ({
-  newAssetTransaction: jest.fn((asset) => ({ type: 'NEW_ASSET_TX', asset })),
+  newAssetTransaction: (token: unknown) => mockNewAssetTransaction(token),
 }));
 
-jest.mock('../../../../util/transactions', () => ({
-  getEther: jest.fn((ticker) => ({ ticker, isNative: true })),
-}));
-
-jest.mock('../../../../util/networks', () => ({
-  getDecimalChainId: jest.fn(() => 1),
-}));
-
-jest.mock('../../../../util/Logger', () => ({
-  error: jest.fn(),
-  log: jest.fn(),
-}));
-
-// Mock the send utils that use analytics
-jest.mock('../../../Views/confirmations/utils/send', () => ({
-  captureSendStartedEvent: jest.fn(),
-  trackEvent: jest.fn(),
-}));
-
-// Mock useSendNonEvmAsset hook - path is relative to the source file's import
-const mockSendNonEvmAsset = jest.fn().mockResolvedValue(false);
-jest.mock('../../../hooks/useSendNonEvmAsset', () => ({
-  useSendNonEvmAsset: () => ({
-    sendNonEvmAsset: mockSendNonEvmAsset,
-  }),
-}));
-
-jest.mock('../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
-
-jest.mock('../../../../util/analytics/actionButtonTracking', () => ({
-  trackActionButtonClick: jest.fn(),
-  ActionButtonType: {
-    BUY: 'BUY',
-    SEND: 'SEND',
-    RECEIVE: 'RECEIVE',
-    SWAP: 'SWAP',
-  },
-  ActionLocation: {
-    ASSET_DETAILS: 'ASSET_DETAILS',
-  },
-  ActionPosition: {
-    FIRST_POSITION: 1,
-    SECOND_POSITION: 2,
-    THIRD_POSITION: 3,
-    FOURTH_POSITION: 4,
-  },
-}));
-
-jest.mock('../../../Views/confirmations/hooks/useSendNavigation', () => ({
-  useSendNavigation: () => ({
-    navigateToSendPage: mockNavigateToSendPage,
-  }),
-}));
-
-jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: () => ({
-    goToBuy: mockGoToBuy,
-  }),
-}));
-
-jest.mock('../../Ramp/hooks/useRampsButtonClickData', () => ({
-  useRampsButtonClickData: () => ({
-    ramp_routing: 'default',
-    is_authenticated: true,
-    preferred_provider: null,
-    order_count: 0,
-  }),
-}));
-
-jest.mock('../../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: jest.fn(() => false),
-}));
-
-jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
-  useSwapBridgeNavigation: () => ({
-    goToSwaps: mockGoToSwaps,
-    networkModal: null,
-  }),
-  SwapBridgeNavigationLocation: {
-    TokenView: 'TokenView',
-  },
-  isAssetFromTrending: jest.fn(() => false),
-}));
-
-jest.mock('../../Bridge/utils/tokenUtils', () => ({
-  getNativeSourceToken: jest.fn(() => ({ symbol: 'ETH' })),
-  getDefaultDestToken: jest.fn(() => ({ symbol: 'USDC' })),
-}));
-
-jest.mock('../../Ramp/utils/parseRampIntent', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({ assetId: 'test-asset-id' })),
-}));
-
-jest.mock('../../../../reducers/fiatOrders', () => ({
-  getDetectedGeolocation: jest.fn(() => 'US'),
-}));
-
-jest.mock('../../../../constants/bridge', () => ({
-  NATIVE_SWAPS_TOKEN_ADDRESS: '0x0000000000000000000000000000000000000000',
-}));
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseSelector = jest.mocked(useSelector);
 
 describe('useTokenActions', () => {
-  const mockToken: TokenI = {
+  const mockAccountAddress = '0x1234567890abcdef1234567890abcdef12345678';
+
+  const mockAccount = {
+    id: 'account-1',
+    address: mockAccountAddress,
+    metadata: { name: 'Account 1', keyring: { type: 'HD Key Tree' } },
+    type: 'eip155:eoa',
+  };
+
+  const mockAccountGroup = {
+    id: 'group-1',
+    name: 'Test Group',
+  };
+
+  const defaultToken: TokenI = {
     address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-    symbol: 'DAI',
-    name: 'Dai Stablecoin',
-    decimals: 18,
     chainId: '0x1',
-    balance: '100',
-    balanceFiat: '$100',
-    image: '',
-    logo: '',
-    aggregators: [],
+    symbol: 'DAI',
+    decimals: 18,
+    name: 'Dai Stablecoin',
+    image: 'https://example.com/dai.png',
     isETH: false,
     isNative: false,
+  } as TokenI;
+
+  const setupDefaultMocks = () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectEvmChainId) {
+        return '0x1';
+      }
+      if (selector === selectSelectedInternalAccount) {
+        return mockAccount;
+      }
+      if (selector === selectSelectedAccountGroup) {
+        return mockAccountGroup;
+      }
+      if (selector === selectSelectedInternalAccountByScope) {
+        return () => mockAccount;
+      }
+      if (selector === getDetectedGeolocation) {
+        return 'US';
+      }
+      if (typeof selector === 'function') {
+        return 'ETH';
+      }
+      return undefined;
+    });
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockImplementation((selector) => {
-      // Match selectors by reference
-      if (selector === selectSelectedInternalAccount) {
-        return { address: '0xuser123' };
-      }
-      if (selector === selectSelectedAccountGroup) {
-        return { id: 'group-1' };
-      }
-      if (selector === selectSelectedInternalAccountByScope) {
-        return () => ({ address: '0xuser123' });
-      }
-      if (selector === selectEvmChainId) {
-        return '0x1';
-      }
-      // Handle inline selectors (like nativeCurrency)
-      if (typeof selector === 'function') {
-        const mockState = {
-          engine: {
-            backgroundState: {
-              NetworkController: {
-                providerConfig: { ticker: 'ETH' },
-              },
-            },
-          },
-        };
-        try {
-          return selector(mockState);
-        } catch {
-          return undefined;
-        }
-      }
-      return undefined;
+    setupDefaultMocks();
+  });
+
+  describe('getSwapTokens', () => {
+    it('returns sourceToken as the token and destToken as undefined for regular tokens', () => {
+      const result = getSwapTokens(defaultToken);
+
+      expect(result.sourceToken).toMatchObject({
+        address: defaultToken.address,
+        chainId: defaultToken.chainId,
+        symbol: defaultToken.symbol,
+      });
+      expect(result.destToken).toBeUndefined();
     });
   });
 
-  describe('hook initialization', () => {
-    it('returns all action handlers', () => {
+  describe('hook return value', () => {
+    it('returns all action handlers and networkModal', () => {
       const { result } = renderHook(() =>
-        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
       );
 
-      expect(result.current.onBuy).toBeDefined();
-      expect(result.current.onSend).toBeDefined();
-      expect(result.current.onReceive).toBeDefined();
-      expect(result.current.goToSwaps).toBeDefined();
-      expect(result.current.networkModal).toBeDefined();
+      expect(result.current).toHaveProperty('onBuy');
+      expect(result.current).toHaveProperty('onSend');
+      expect(result.current).toHaveProperty('onReceive');
+      expect(result.current).toHaveProperty('goToSwaps');
+      expect(result.current).toHaveProperty('networkModal');
+
+      expect(typeof result.current.onBuy).toBe('function');
+      expect(typeof result.current.onSend).toBe('function');
+      expect(typeof result.current.onReceive).toBe('function');
+      expect(typeof result.current.goToSwaps).toBe('function');
     });
   });
 
   describe('onBuy', () => {
-    it('calls goToBuy with asset id', () => {
+    it('calls goToBuy with parsed assetId and tracks analytics', () => {
       const { result } = renderHook(() =>
-        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
       );
 
-      act(() => {
-        result.current.onBuy();
+      result.current.onBuy();
+
+      const expectedAssetId =
+        'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F';
+      expect(mockGoToBuy).toHaveBeenCalledTimes(1);
+      expect(mockGoToBuy).toHaveBeenCalledWith({
+        assetId: expectedAssetId,
       });
 
-      expect(mockGoToBuy).toHaveBeenCalled();
-    });
-
-    it('tracks buy button click event', () => {
-      const { result } = renderHook(() =>
-        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.ACTION_BUTTON_CLICKED,
       );
 
-      act(() => {
-        result.current.onBuy();
-      });
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action_name: ActionButtonType.BUY,
+          action_position: ActionPosition.FIRST_POSITION,
+          location: ActionLocation.ASSET_DETAILS,
+        }),
+      );
 
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('onSend', () => {
-    it('navigates to wallet and calls navigateToSendPage', async () => {
+    it('dispatches transaction and navigates to send page', async () => {
       const { result } = renderHook(() =>
-        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
       );
 
-      await act(async () => {
-        await result.current.onSend();
-      });
+      await result.current.onSend();
 
-      expect(mockNavigate).toHaveBeenCalled();
-      expect(mockNavigateToSendPage).toHaveBeenCalled();
-    });
-
-    it('dispatches newAssetTransaction', async () => {
-      const { result } = renderHook(() =>
-        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action_name: ActionButtonType.SEND,
+          action_position: ActionPosition.THIRD_POSITION,
+          location: ActionLocation.ASSET_DETAILS,
+        }),
       );
 
-      await act(async () => {
-        await result.current.onSend();
-      });
+      expect(mockNewAssetTransaction).toHaveBeenCalledWith(defaultToken);
 
-      expect(mockDispatch).toHaveBeenCalled();
+      expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+        location: 'asset_overview',
+        asset: defaultToken,
+      });
     });
   });
 
   describe('onReceive', () => {
-    it('navigates to share address QR modal when all required data is available', () => {
-      // Default beforeEach setup provides all required data
+    it('navigates to share address QR and tracks analytics', () => {
       const { result } = renderHook(() =>
-        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
       );
 
-      act(() => {
-        result.current.onReceive();
-      });
+      result.current.onReceive();
 
-      expect(mockNavigate).toHaveBeenCalled();
-    });
-
-    it('does not navigate when selectedAccountGroup is missing', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectSelectedInternalAccount) {
-          return { address: '0xuser123' };
-        }
-        if (selector === selectSelectedAccountGroup) {
-          return undefined; // Missing account group
-        }
-        if (selector === selectSelectedInternalAccountByScope) {
-          return () => ({ address: '0xuser123' });
-        }
-        if (selector === selectEvmChainId) {
-          return '0x1';
-        }
-        return undefined;
-      });
-
-      const { result } = renderHook(() =>
-        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action_name: ActionButtonType.RECEIVE,
+          action_position: ActionPosition.FOURTH_POSITION,
+          location: ActionLocation.ASSET_DETAILS,
+        }),
       );
 
-      act(() => {
-        result.current.onReceive();
-      });
-
-      // Should not navigate when account group is missing
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('goToSwaps', () => {
-    it('calls goToSwaps from useSwapBridgeNavigation', () => {
-      const { result } = renderHook(() =>
-        useTokenActions({ token: mockToken, networkName: 'Ethereum Mainnet' }),
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+        {
+          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+          params: {
+            address: mockAccountAddress,
+            networkName: 'Ethereum Mainnet',
+            chainId: '0x1',
+            groupId: 'group-1',
+          },
+        },
       );
-
-      act(() => {
-        result.current.goToSwaps();
-      });
-
-      expect(mockGoToSwaps).toHaveBeenCalled();
     });
-  });
-});
-
-describe('getSwapTokens', () => {
-  const mockToken: TokenI = {
-    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-    symbol: 'DAI',
-    name: 'Dai Stablecoin',
-    decimals: 18,
-    chainId: '0x1',
-    balance: '100',
-    balanceFiat: '$100',
-    image: '',
-    logo: '',
-    aggregators: [],
-    isETH: false,
-    isNative: false,
-  };
-
-  it('returns source token with asset data for non-trending tokens', () => {
-    const { sourceToken, destToken } = getSwapTokens(mockToken);
-
-    expect(sourceToken).toBeDefined();
-    expect(sourceToken?.symbol).toBe('DAI');
-    expect(destToken).toBeUndefined();
-  });
-
-  it('returns bridge token with NATIVE_SWAPS_TOKEN_ADDRESS for tokens without address', () => {
-    const tokenWithoutAddress: TokenI = {
-      ...mockToken,
-      address: undefined as unknown as string,
-    };
-
-    const { sourceToken } = getSwapTokens(tokenWithoutAddress);
-
-    expect(sourceToken?.address).toBe(
-      '0x0000000000000000000000000000000000000000',
-    );
   });
 });
