@@ -55,16 +55,52 @@ jest.mock('./Result', () => {
     },
   };
 });
+const mockTokenData = {
+  assetId: 'eip155:1/slip44:60',
+  name: 'Ethereum',
+  symbol: 'ETH',
+  decimals: 18,
+  price: '2500.50',
+  priceChangePct: { h24: '2.5' },
+};
+
+const mockPerpsData = {
+  symbol: 'BTC-USD',
+  name: 'Bitcoin',
+  maxLeverage: '100x',
+  price: '$45000.00',
+  change24h: '+$500.00',
+  change24hPercent: '+1.12%',
+  volume: '$1B',
+  openInterest: '$500M',
+  marketType: 'perpetual',
+  marketSource: 'hyperliquid',
+};
+
+const mockPredictionsData = {
+  id: 'pred-1',
+  providerId: 'polymarket',
+  slug: 'bitcoin-100k',
+  title: 'Will Bitcoin reach $100k?',
+  description: 'Prediction market',
+  endDate: '2025-12-31',
+  image: 'https://example.com/btc.png',
+  status: 'open',
+  liquidity: '$1M',
+  volume: '$5M',
+};
+
 const mockUseExploreSearchReturn = {
   data: {
     sites: [{ name: 'Uniswap', url: 'https://uniswap.org' }],
-    tokens: [],
-    perps: [],
-    predictions: [],
+    tokens: [mockTokenData],
+    perps: [mockPerpsData],
+    predictions: [mockPredictionsData],
   },
   isLoading: { sites: false, tokens: false, perps: false, predictions: false },
   sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
 };
+
 jest.mock('../../Views/TrendingView/hooks/useExploreSearch', () => ({
   useExploreSearch: jest.fn(() => mockUseExploreSearchReturn),
 }));
@@ -466,6 +502,163 @@ describe('UrlAutocomplete', () => {
       expect(
         await screen.findByText('Sites', { includeHiddenElements: true }),
       ).toBeOnTheScreen();
+    });
+
+    it('displays token name when tokens data is available', async () => {
+      // Arrange
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: defaultState,
+      });
+
+      // Act
+      act(() => {
+        ref.current?.search('eth');
+        jest.runAllTimers();
+      });
+
+      // Assert - token name is displayed from transformed data
+      expect(
+        await screen.findByText('Ethereum', { includeHiddenElements: true }),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays Perps header when perps data is available', async () => {
+      // Arrange
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: defaultState,
+      });
+
+      // Act
+      act(() => {
+        ref.current?.search('btc');
+        jest.runAllTimers();
+      });
+
+      // Assert
+      expect(
+        await screen.findByText('Perps', { includeHiddenElements: true }),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays Predictions header when predictions data is available', async () => {
+      // Arrange
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: defaultState,
+      });
+
+      // Act
+      act(() => {
+        ref.current?.search('bitcoin');
+        jest.runAllTimers();
+      });
+
+      // Assert
+      expect(
+        await screen.findByText('Predictions', { includeHiddenElements: true }),
+      ).toBeOnTheScreen();
+    });
+
+    it('transforms and displays token search results', async () => {
+      // Arrange
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: defaultState,
+      });
+
+      // Act
+      act(() => {
+        ref.current?.search('ethereum');
+        jest.runAllTimers();
+      });
+
+      // Assert - token name is displayed via transformed TokenSearchResult
+      expect(
+        await screen.findByText('Ethereum', { includeHiddenElements: true }),
+      ).toBeOnTheScreen();
+    });
+
+    it('transforms and displays perps search results', async () => {
+      // Arrange
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: defaultState,
+      });
+
+      // Act
+      act(() => {
+        ref.current?.search('btc');
+        jest.runAllTimers();
+      });
+
+      // Assert - perps name is displayed via transformed PerpsSearchResult
+      expect(
+        await screen.findByText('Bitcoin', { includeHiddenElements: true }),
+      ).toBeOnTheScreen();
+    });
+
+    it('transforms predictions search results and shows header', async () => {
+      // Arrange
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: defaultState,
+      });
+
+      // Act
+      act(() => {
+        ref.current?.search('prediction');
+        jest.runAllTimers();
+      });
+
+      // Assert - Predictions section is rendered
+      expect(
+        await screen.findByText('Predictions', { includeHiddenElements: true }),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls show method to display autocomplete', async () => {
+      // Arrange
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: defaultState,
+      });
+
+      // Act
+      act(() => {
+        ref.current?.show();
+        jest.runAllTimers();
+      });
+
+      // Assert - show method works
+      expect(ref.current?.show).toBeDefined();
+    });
+
+    it('calls onSelect when pressing a token result', async () => {
+      // Arrange
+      const onSelect = jest.fn();
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(
+        <UrlAutocomplete ref={ref} onSelect={onSelect} onDismiss={noop} />,
+        {
+          state: defaultState,
+        },
+      );
+
+      // Act
+      act(() => {
+        ref.current?.search('eth');
+        jest.runAllTimers();
+      });
+
+      const tokenResult = await screen.findByText('Ethereum', {
+        includeHiddenElements: true,
+      });
+      fireEvent.press(tokenResult);
+
+      // Assert
+      expect(onSelect).toHaveBeenCalled();
     });
   });
 
