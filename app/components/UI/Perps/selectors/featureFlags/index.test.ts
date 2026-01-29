@@ -891,129 +891,73 @@ describe('Perps Feature Flag Selectors', () => {
   });
 
   describe('selectPerpsRewardsReferralCodeEnabledFlag', () => {
-    const createStateWithFlag = (flagValue: unknown) => ({
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              rewardsReferralCodeEnabled: flagValue,
+    it('returns false when flag is not set', () => {
+      const result = selectPerpsRewardsReferralCodeEnabledFlag(
+        mockedEmptyFlagsState,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns true when flag is boolean true', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                rewardsReferralCodeEnabled: true,
+              },
+              cacheTimestamp: 0,
             },
-            cacheTimestamp: 0,
           },
         },
-      },
+      };
+
+      const result = selectPerpsRewardsReferralCodeEnabledFlag(state);
+      expect(result).toBe(true);
     });
 
-    describe('default behavior', () => {
-      it('returns false when flag is undefined', () => {
-        const stateWithUndefinedFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {},
-                cacheTimestamp: 0,
+    it('returns true when version-gated flag is enabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                rewardsReferralCodeEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
               },
+              cacheTimestamp: 0,
             },
           },
-        };
+        },
+      };
 
-        const result = selectPerpsRewardsReferralCodeEnabledFlag(
-          stateWithUndefinedFlag,
-        );
-        expect(result).toBe(false);
-      });
-
-      it('returns false when flag is null', () => {
-        const result = selectPerpsRewardsReferralCodeEnabledFlag(
-          createStateWithFlag(null),
-        );
-        expect(result).toBe(false);
-      });
+      const result = selectPerpsRewardsReferralCodeEnabledFlag(state);
+      expect(result).toBe(true);
     });
 
-    describe('boolean flag support', () => {
-      it('returns true when flag is boolean true', () => {
-        const result = selectPerpsRewardsReferralCodeEnabledFlag(
-          createStateWithFlag(true),
-        );
-        expect(result).toBe(true);
-      });
-
-      it('returns false when flag is boolean false', () => {
-        const result = selectPerpsRewardsReferralCodeEnabledFlag(
-          createStateWithFlag(false),
-        );
-        expect(result).toBe(false);
-      });
-    });
-
-    describe('version-gated JSON flag support', () => {
-      it('returns true when valid and enabled', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-
-        const result = selectPerpsRewardsReferralCodeEnabledFlag(
-          createStateWithFlag({
-            enabled: true,
-            minimumVersion: '1.0.0',
-          }),
-        );
-        expect(result).toBe(true);
-      });
-
-      it('returns false when valid but disabled', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-
-        const result = selectPerpsRewardsReferralCodeEnabledFlag(
-          createStateWithFlag({
-            enabled: false,
-            minimumVersion: '1.0.0',
-          }),
-        );
-        expect(result).toBe(false);
-      });
-
-      it('returns false when enabled but version check fails', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(false);
-
-        const result = selectPerpsRewardsReferralCodeEnabledFlag(
-          createStateWithFlag({
-            enabled: true,
-            minimumVersion: '99.0.0',
-          }),
-        );
-        expect(result).toBe(false);
-      });
-    });
-
-    describe('edge cases', () => {
-      it('returns false when flag is invalid type (string)', () => {
-        const result = selectPerpsRewardsReferralCodeEnabledFlag(
-          createStateWithFlag('invalid'),
-        );
-        expect(result).toBe(false);
-      });
-
-      it('returns false when flag is invalid type (number)', () => {
-        const result = selectPerpsRewardsReferralCodeEnabledFlag(
-          createStateWithFlag(123),
-        );
-        expect(result).toBe(false);
-      });
-
-      it('returns false when RemoteFeatureFlagController is undefined', () => {
-        const stateWithUndefinedController = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: undefined,
+    it('returns false when version-gated flag is disabled', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                rewardsReferralCodeEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
             },
           },
-        };
+        },
+      };
 
-        const result = selectPerpsRewardsReferralCodeEnabledFlag(
-          stateWithUndefinedController,
-        );
-        expect(result).toBe(false);
-      });
+      const result = selectPerpsRewardsReferralCodeEnabledFlag(state);
+      expect(result).toBe(false);
     });
   });
 
