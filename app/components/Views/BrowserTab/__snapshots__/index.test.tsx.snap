@@ -422,6 +422,7 @@ exports[`BrowserTab render Browser 1`] = `
         }
       >
         <View
+          allowFileDownloads={true}
           allowsInlineMediaPlayback={true}
           applicationNameForUserAgent="WebView MetaMaskMobile"
           decelerationRate={0.998}
@@ -499,6 +500,7 @@ exports[`BrowserTab render Browser 1`] = `
               "flex": 1,
             }
           }
+          suppressJavaScriptDialogs={false}
           testID="browser-webview"
           webviewDebuggingEnabled={true}
         />
