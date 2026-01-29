@@ -220,19 +220,45 @@ const SearchContent: React.FC<SearchContentProps> = ({
 
   // Transform omni-search results to AutocompleteSearchResult format
   const searchResults: ResultsWithCategory[] = useMemo(() => {
-    if (!searchQuery.trim() || !isBasicFunctionalityEnabled) return [];
+    if (!searchQuery.trim()) return [];
 
     const results: ResultsWithCategory[] = [];
 
-    // Process sections in order: Sites first, then Recents/Favorites, then rest
+    // Always add filtered Recents (local data, not API-dependent)
+    const filteredRecents = filteredLocalResults
+      .filter((r) => r?.category === UrlAutocompleteCategory.Recents)
+      .slice(0, MAX_RECENTS);
+    if (filteredRecents.length > 0) {
+      results.push({
+        category: UrlAutocompleteCategory.Recents,
+        data: filteredRecents,
+      });
+    }
+
+    // Always add filtered Favorites (local data, not API-dependent)
+    const filteredFavorites = filteredLocalResults.filter(
+      (r) => r?.category === UrlAutocompleteCategory.Favorites,
+    );
+    if (filteredFavorites.length > 0) {
+      results.push({
+        category: UrlAutocompleteCategory.Favorites,
+        data: filteredFavorites,
+      });
+    }
+
+    // Skip API-dependent sections if basic functionality is disabled
+    if (!isBasicFunctionalityEnabled) {
+      return results;
+    }
+
+    // Process API-dependent sections in order
     sectionsOrder.forEach((sectionId) => {
       const sectionData = omniSearchData[sectionId] ?? [];
       const sectionIsLoading = omniSearchLoading[sectionId] ?? false;
       const category = sectionIdToCategory(sectionId);
 
-      // After Sites, insert filtered Recents and Favorites
       if (sectionId === 'sites') {
-        // Add Sites section
+        // Add Sites section (API-dependent)
         if (sectionData.length > 0 || sectionIsLoading) {
           const transformedSites = (
             sectionData as { name: string; url: string }[]
@@ -250,28 +276,6 @@ const SearchContent: React.FC<SearchContentProps> = ({
             category,
             data: transformedSites,
             isLoading: sectionIsLoading,
-          });
-        }
-
-        // Add filtered Recents
-        const filteredRecents = filteredLocalResults
-          .filter((r) => r?.category === UrlAutocompleteCategory.Recents)
-          .slice(0, MAX_RECENTS);
-        if (filteredRecents.length > 0) {
-          results.push({
-            category: UrlAutocompleteCategory.Recents,
-            data: filteredRecents,
-          });
-        }
-
-        // Add filtered Favorites
-        const filteredFavorites = filteredLocalResults.filter(
-          (r) => r?.category === UrlAutocompleteCategory.Favorites,
-        );
-        if (filteredFavorites.length > 0) {
-          results.push({
-            category: UrlAutocompleteCategory.Favorites,
-            data: filteredFavorites,
           });
         }
       } else {
