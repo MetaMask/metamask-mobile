@@ -14,7 +14,6 @@ BUNDLE_ID="io.metamask.MetaMask"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly RUNWAY_DIR="$REPO_ROOT/runway-artifacts"
-readonly BUILD_DIR="$REPO_ROOT/build"
 RUNWAY_API_URL="https://app.runway.team/api/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=/builds"
 
 # Ensure script is run from the repo root
@@ -27,26 +26,25 @@ if [[ "$(pwd)" != "$REPO_ROOT" ]]; then
 fi
 UNINSTALL=false
 SKIP_DOWNLOAD=false
-E2E_MODE=false
 
 # Track files for cleanup
 ZIP_PATH=""
 DOWNLOAD_SUCCESS=false
 
-# Safe delete: only removes files inside RUNWAY_DIR or build
+# Safe delete: only removes files inside RUNWAY_DIR
 safe_rm() {
   local file="$1"
-  # Only delete if file exists and path starts with RUNWAY_DIR or build
-  if [[ -n "$file" && -f "$file" && ( "$file" == "$RUNWAY_DIR"/* || "$file" == "$BUILD_DIR"/* ) ]]; then
+  # Only delete if file exists and path starts with RUNWAY_DIR
+  if [[ -n "$file" && -f "$file" && "$file" == "$RUNWAY_DIR"/* ]]; then
     rm -f "$file"
   fi
 }
 
-# Safe delete directory: only removes directories inside RUNWAY_DIR or build
+# Safe delete directory: only removes directories inside RUNWAY_DIR
 safe_rm_dir() {
   local dir="$1"
-  # Only delete if directory exists and path starts with RUNWAY_DIR or build
-  if [[ -n "$dir" && -d "$dir" && ( "$dir" == "$RUNWAY_DIR"/* || "$dir" == "$BUILD_DIR"/* ) ]]; then
+  # Only delete if directory exists and path starts with RUNWAY_DIR
+  if [[ -n "$dir" && -d "$dir" && "$dir" == "$RUNWAY_DIR"/* ]]; then
     rm -rf "$dir"
   fi
 }
@@ -57,7 +55,6 @@ cleanup() {
   # Only delete debug JSON on success (keep it for debugging on failure)
   if [[ "$DOWNLOAD_SUCCESS" == true ]]; then
     safe_rm "$RUNWAY_DIR/runway-builds-debug.json"
-    safe_rm "$BUILD_DIR/runway-builds-debug.json"
   fi
 }
 trap cleanup EXIT
@@ -73,13 +70,9 @@ while [[ $# -gt 0 ]]; do
       SKIP_DOWNLOAD=true
       shift
       ;;
-    --e2e)
-      E2E_MODE=true
-      shift
-      ;;
     *)
       echo -e "${RED}Unknown option: $1${NC}"
-      echo "Usage: $0 [--skip-download] [--uninstall] [--e2e]"
+      echo "Usage: $0 [--skip-download] [--uninstall]"
       exit 1
       ;;
   esac
@@ -89,11 +82,8 @@ done
 download_latest_app() {
   echo -e "${BLUE}📥 Downloading latest app from Runway...${NC}"
   
-  local DOWNLOAD_DIR="$RUNWAY_DIR"
-  [ "$E2E_MODE" = true ] && DOWNLOAD_DIR="$BUILD_DIR"
-  
   # Create directory if it doesn't exist
-  mkdir -p "$DOWNLOAD_DIR"
+  mkdir -p "$RUNWAY_DIR"
   
   echo -e "${BLUE}Fetching builds from Runway API...${NC}"
   BUILDS_JSON=$(curl -s --connect-timeout 10 --max-time 30 "$RUNWAY_API_URL")
@@ -104,8 +94,8 @@ download_latest_app() {
   fi
   
   # Save JSON for debugging
-  echo "$BUILDS_JSON" > "$DOWNLOAD_DIR/runway-builds-debug.json"
-  echo -e "${YELLOW}Saved builds data to $DOWNLOAD_DIR/runway-builds-debug.json${NC}"
+  echo "$BUILDS_JSON" > "$RUNWAY_DIR/runway-builds-debug.json"
+  echo -e "${YELLOW}Saved builds data to $RUNWAY_DIR/runway-builds-debug.json${NC}"
   
   echo -e "${BLUE}Looking for latest successful build with artifacts...${NC}"
   
@@ -130,7 +120,7 @@ download_latest_app() {
   
   if [[ -z "$BUILD_INFO" ]]; then
     echo -e "${RED}❌ No successful builds with zip artifacts found${NC}"
-    echo -e "${YELLOW}Check $DOWNLOAD_DIR/runway-builds-debug.json for details${NC}"
+    echo -e "${YELLOW}Check $RUNWAY_DIR/runway-builds-debug.json for details${NC}"
     exit 1
   fi
   
@@ -157,7 +147,7 @@ download_latest_app() {
   DOWNLOAD_URL="https://app.runway.team/api/build/$BUILD_ID/download?artifactFileName=$ARTIFACT_NAME"
   
   # Download the zip
-  ZIP_PATH="$DOWNLOAD_DIR/$ARTIFACT_NAME"
+  ZIP_PATH="$RUNWAY_DIR/$ARTIFACT_NAME"
   
   echo -e "${BLUE}Downloading $ARTIFACT_NAME...${NC}"
   HTTP_CODE=$(curl -L --connect-timeout 10 --max-time 600 -w "%{http_code}" -o "$ZIP_PATH" "$DOWNLOAD_URL")
@@ -180,12 +170,7 @@ download_latest_app() {
     exit 1
   fi
   
-  # In E2E mode, always use "Metamask.app" as the app name
-  if [ "$E2E_MODE" = true ]; then
-    APP_NAME="Metamask.app"
-  fi
-  
-  EXTRACTED_APP_PATH="$DOWNLOAD_DIR/$APP_NAME"
+  EXTRACTED_APP_PATH="$RUNWAY_DIR/$APP_NAME"
   
   # Remove old .app bundles (keep only the new one)
   echo -e "${BLUE}Removing old app bundles...${NC}"
@@ -194,7 +179,7 @@ download_latest_app() {
       echo -e "${YELLOW}  Removing: $(basename "$old_app")${NC}"
       safe_rm_dir "$old_app"
     fi
-  done < <(find "$DOWNLOAD_DIR" -name "*.app" -type d -maxdepth 1 2>/dev/null)
+  done < <(find "$RUNWAY_DIR" -name "*.app" -type d -maxdepth 1 2>/dev/null)
   
   # Remove existing app with same name (will be overwritten)
   if [[ -d "$EXTRACTED_APP_PATH" ]]; then
@@ -215,20 +200,10 @@ download_latest_app() {
   DOWNLOAD_SUCCESS=true
 }
 
-# In E2E mode, check if Metamask.app already exists and prompt user
-if [ "$E2E_MODE" = true ] && [ "$SKIP_DOWNLOAD" = false ] && [[ -d "$BUILD_DIR/Metamask.app" ]]; then
-  echo -e "${YELLOW}Found existing app. Use it or download new? [1] Use existing [2] Download new${NC}"
-  read -p "Choice [1-2]: " choice
-  [[ "$choice" != "2" ]] && SKIP_DOWNLOAD=true
-fi
-
 # Run download unless explicitly skipped
 if [ "$SKIP_DOWNLOAD" = false ]; then
   download_latest_app
 fi
-
-# If in E2E mode, exit after download (don't install on simulator)
-[ "$E2E_MODE" = true ] && echo -e "${GREEN}✓ E2E mode: Ready for testing.${NC}" && exit 0
 
 echo -e "${GREEN}Checking for running iOS simulator...${NC}"
 

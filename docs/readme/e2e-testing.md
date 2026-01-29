@@ -130,44 +130,6 @@ You can use prebuilt app files instead of building the app locally.
    open -a Simulator # to open the simulator app GUI
    ```
 
-## Quick Start: Running E2E Tests with Runway Builds
-
-This is the fastest way to run E2E tests using prebuilt artifacts from Runway.
-
-### Prerequisites
-
-1. **Configure environment variables** in your `.js.env` file:
-
-   ```bash
-   export METAMASK_ENVIRONMENT='e2e'
-   export METAMASK_BUILD_TYPE='main'
-   ```
-
-2. **Make a copy of the example .e2e.env file**
-   ```bash
-   cp .e2e.env.example .e2e.env
-   ```
-
-### Running the Tests
-
-1. **Terminal 1: Start Metro bundler**
-
-   ```bash
-   yarn
-   yarn setup:expo
-   yarn watch:clean
-   ```
-
-2. **Terminal 2: Install app and run tests**
-
-   ```bash
-   source .e2e.env && yarn test:e2e:ios:debug:run:runway
-   ```
-
-### Troubleshooting
-
-- **Simulator model mismatch**: If you see errors like `iPhone X Pro not found`, update the device type in `.detoxrc.js` to match your installed simulator
-
 ### Run the E2E Tests
 
 ```bash
