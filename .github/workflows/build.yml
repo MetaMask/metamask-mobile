@@ -72,6 +72,9 @@ jobs:
     # Android uses Cirrus runner with SDK pre-installed; iOS uses GitHub-hosted macOS
     runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
+    env:
+      # So bundle exec (in yarn pod:install) finds ios/Gemfile when running from repo root
+      BUNDLE_GEMFILE: ios/Gemfile
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
