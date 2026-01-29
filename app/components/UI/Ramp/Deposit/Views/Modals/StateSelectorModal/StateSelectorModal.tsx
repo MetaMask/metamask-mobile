@@ -159,6 +159,7 @@ function StateSelectorModal() {
       <HeaderCenter
         title={strings('deposit.state_modal.select_a_state')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
+        closeButtonProps={{ testID: 'state-selector-close-button' }}
       />
       <View style={styles.searchContainer}>
         <TextFieldSearch
