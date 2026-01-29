@@ -217,6 +217,7 @@ function RegionSelectorModal() {
       <HeaderCenter
         title={strings('card.card_onboarding.region_selector.title')}
         onClose={handleClose}
+        closeButtonProps={{ testID: 'region-selector-close-button' }}
       />
       <Box twClassName="px-4 pb-4">
         <TextFieldSearch
