@@ -3558,7 +3558,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           );
           throw error;
         }
-        position = positions.find((p) => p.symbol === symbol);
+        position = positions.find((pos) => pos.symbol === symbol);
       } else {
         this.deps.debugLogger.log('Using live position from WebSocket', {
           symbol: position.symbol,
