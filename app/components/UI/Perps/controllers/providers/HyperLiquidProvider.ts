@@ -6691,6 +6691,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // setting clientsInitialized = true after disconnect completes
       const pendingInit = this.initializationPromise;
       const pendingReady = this.ensureReadyPromise;
+      const pendingTradingSetup = this.tradingSetupPromise;
 
       // Clear references first to prevent new callers from reusing
       this.initializationPromise = null;
@@ -6700,6 +6701,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.pendingBuilderFeeApprovals.clear();
 
       // Wait for pending operations to complete (ignore errors)
+      // This prevents IIFEs from setting state after disconnect completes
       if (pendingInit) {
         try {
           await pendingInit;
@@ -6710,6 +6712,14 @@ export class HyperLiquidProvider implements PerpsProvider {
       if (pendingReady) {
         try {
           await pendingReady;
+        } catch {
+          // Ignore - we're disconnecting anyway
+        }
+      }
+
+      if (pendingTradingSetup) {
+        try {
+          await pendingTradingSetup;
         } catch {
           // Ignore - we're disconnecting anyway
         }
