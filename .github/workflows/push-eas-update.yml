@@ -416,7 +416,7 @@ jobs:
                 echo "✅ Exported: ${var} (value hidden)"
               fi
               
-              ((exported_count++))
+              exported_count=$((exported_count + 1))
             fi
           done
 
