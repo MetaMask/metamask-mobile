@@ -1330,6 +1330,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                             </View>
                           </View>
                         </TouchableOpacity>
+                        <View />
                       </View>
                     </RCTScrollView>
                   </View>
@@ -2674,6 +2675,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                             </View>
                           </View>
                         </TouchableOpacity>
+                        <View />
                       </View>
                     </RCTScrollView>
                   </View>

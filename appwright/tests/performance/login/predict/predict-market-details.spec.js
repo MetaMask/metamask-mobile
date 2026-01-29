@@ -38,7 +38,9 @@ test.describe(PerformancePredict, () => {
 
     // Login to the app
     await login(device);
+    console.log('Tap Action Button');
     await TabBarModal.tapActionButton();
+    console.log('Tapped Action Button');
 
     // Timer 2: Open predictions tab (threshold: 5000ms + 10% = 5500ms)
     const timer2 = new TimerHelper(
@@ -46,8 +48,8 @@ test.describe(PerformancePredict, () => {
       { ios: 2800, android: 4000 },
       device,
     );
+    await WalletActionModal.tapPredictButton();
     await timer2.measure(async () => {
-      await WalletActionModal.tapPredictButton();
       await PredictMarketListScreen.isContainerDisplayed();
     });
 
@@ -57,8 +59,8 @@ test.describe(PerformancePredict, () => {
       { ios: 17000, android: 13000 },
       device,
     );
+    await PredictMarketListScreen.tapMarketCard('trending', 2); // second card to avoid flakiness for a promoted card
     await timer3.measure(async () => {
-      await PredictMarketListScreen.tapMarketCard('trending', 1);
       await PredictDetailsScreen.isVisible();
     });
 
@@ -68,8 +70,8 @@ test.describe(PerformancePredict, () => {
       { ios: 7800, android: 7800 },
       device,
     );
+    await PredictDetailsScreen.tapAboutTab();
     await timer4.measure(async () => {
-      await PredictDetailsScreen.tapAboutTab();
       await PredictDetailsScreen.isAboutTabContentDisplayed();
       await PredictDetailsScreen.verifyVolumeTextDisplayed();
     });

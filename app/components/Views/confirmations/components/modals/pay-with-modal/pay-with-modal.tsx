@@ -14,12 +14,17 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
+import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 
 export function PayWithModal() {
+  const transactionMeta = useTransactionMetadataRequest();
+  const hideNetworkFilter = hasTransactionType(
+    transactionMeta,
+    HIDE_NETWORK_FILTER_TYPES,
+  );
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
@@ -85,6 +90,7 @@ export function PayWithModal() {
         hideNfts
         tokenFilter={tokenFilter}
         onTokenSelect={handleTokenSelect}
+        hideNetworkFilter={hideNetworkFilter}
       />
     </BottomSheet>
   );
