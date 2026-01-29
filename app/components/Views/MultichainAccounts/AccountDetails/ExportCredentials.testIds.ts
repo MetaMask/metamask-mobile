@@ -6,4 +6,7 @@ export const ExportCredentialsIds = {
   EXPORT_SRP_BUTTON: 'export-credentials-export-srp-button',
   NEXT_BUTTON: 'export-credentials-next-button',
   LEARN_MORE_BUTTON: 'export-credentials-learn-more-button',
+  ANSWER_BUTTON: 'export-credentials-answer-button',
+  CONTINUE_BUTTON: 'export-credentials-continue-button',
+  TRY_AGAIN_BUTTON: 'export-credentials-try-again-button',
 };

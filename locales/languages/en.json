@@ -3224,11 +3224,10 @@
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-    "seed_phrase_warning_explanation": [
-      "Make sure nobody is looking at your screen. ",
-      "MetaMask Support will never request this."
-    ],
+    "seed_phrase_warning_explanation": 
+      "Make sure nobody is looking at your screen. MetaMask Support will never ask for this.",
     "private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
+    "reveal_srp_description": "Your Secret Recovery Phrase gives full access to your wallet. Do not share it with anyone.",
     "reveal_credential_modal": [
       "Your {{credentialName}} provides ",
       "full access to your account and funds.\n\nDo not share this with anyone.\n",
@@ -3260,7 +3259,8 @@
     "srp_text": "Secret Recovery Phrase",
     "private_key_text": "Private key",
     "got_it": "Got it",
-    "learn_more": "Learn more"
+    "learn_more": "Learn more",
+    "copied_to_clipboard": "Copied to clipboard"
   },
   "screenshot_deterrent": {
     "title": "Safety alert",
@@ -5495,12 +5495,15 @@
     "new_wallet_needed_description_part_three": "To keep this from happening again, be sure to always keep your MetaMask app and OS updated to the latest version."
   },
   "srp_security_quiz": {
+    "question_step": "Question {{step}} of {{total}}",
     "title": "Security quiz",
     "introduction": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
     "get_started": "Get started",
     "learn_more": "Learn more",
     "try_again": "Try again",
     "continue": "Continue",
+    "correct": "Correct!",
+    "incorrect": "Incorrect!",
     "of": "of",
     "question_one": {
       "question": "If you lose your Secret Recovery Phrase, MetaMask...",

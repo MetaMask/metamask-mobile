@@ -49,8 +49,8 @@ const ProtectYourWallet = ({
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
 
   const openSRPQuiz = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      shouldUpdateNav: true,
     });
   };
 
