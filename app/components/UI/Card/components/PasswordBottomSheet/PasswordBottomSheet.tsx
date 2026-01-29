@@ -38,7 +38,6 @@ export const createPasswordBottomSheetNavigationDetails =
 
 const PasswordBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const passwordInputRef = useRef<TextInput>(null);
   const { onSuccess } = useParams<PasswordBottomSheetParams>();
   const { reauthenticate } = useAuthentication();
   const theme = useTheme();
@@ -92,7 +91,6 @@ const PasswordBottomSheet: React.FC = () => {
         </Text>
 
         <TextInput
-          ref={passwordInputRef}
           style={tw.style(
             'border border-border-default rounded-lg px-4 py-3 text-text-default bg-background-default',
             error && 'border-error-default',

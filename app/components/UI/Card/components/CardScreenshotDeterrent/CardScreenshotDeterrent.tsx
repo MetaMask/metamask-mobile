@@ -57,9 +57,13 @@ const CardScreenshotDeterrent = ({ enabled }: CardScreenshotDeterrentProps) => {
       }
 
       return () => {
-        InteractionManager.runAfterInteractions(() => {
-          PreventScreenshot.allow();
-        });
+        // Only call allow() if forbid() was called (when enabled was true)
+        // This prevents incorrectly re-enabling screenshots if another component blocked them
+        if (enabled) {
+          InteractionManager.runAfterInteractions(() => {
+            PreventScreenshot.allow();
+          });
+        }
         alertShownRef.current = false;
       };
     }, [enabled]),

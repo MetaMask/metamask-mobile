@@ -147,7 +147,7 @@ describe('CardScreenshotDeterrent', () => {
       expect(PreventScreenshot.forbid).not.toHaveBeenCalled();
     });
 
-    it('calls PreventScreenshot.allow on cleanup', () => {
+    it('calls PreventScreenshot.allow on cleanup when enabled', () => {
       render(<CardScreenshotDeterrent enabled />);
 
       // Execute the cleanup function stored from useFocusEffect
@@ -155,6 +155,18 @@ describe('CardScreenshotDeterrent', () => {
       focusEffectCleanup?.();
 
       expect(PreventScreenshot.allow).toHaveBeenCalled();
+    });
+
+    it('does not call PreventScreenshot.allow on cleanup when disabled', () => {
+      render(<CardScreenshotDeterrent enabled={false} />);
+
+      // Execute the cleanup function stored from useFocusEffect
+      expect(focusEffectCleanup).toBeDefined();
+      focusEffectCleanup?.();
+
+      // Should not call allow() since forbid() was never called
+      // This prevents incorrectly re-enabling screenshots if another component blocked them
+      expect(PreventScreenshot.allow).not.toHaveBeenCalled();
     });
   });
 
