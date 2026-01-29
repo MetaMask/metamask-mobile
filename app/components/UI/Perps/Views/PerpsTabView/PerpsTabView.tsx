@@ -45,15 +45,8 @@ import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
-import PerpsTokenLogo from '../../components/PerpsTokenLogo';
-import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
-import PerpsBadge from '../../components/PerpsBadge';
-import {
-  getPerpsDisplaySymbol,
-  getMarketBadgeType,
-} from '../../utils/marketUtils';
-import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
+import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
@@ -303,68 +296,6 @@ const PerpsTabView = () => {
     });
   }, [navigation]);
 
-  const renderExploreMarketRow = useCallback(
-    (market: PerpsMarketData) => {
-      const badgeType = getMarketBadgeType(market);
-      const isPositiveChange = !market.change24h.startsWith('-');
-
-      return (
-        <TouchableOpacity
-          key={market.symbol}
-          style={styles.exploreMarketRow}
-          onPress={() => handleExploreMarketPress(market)}
-        >
-          <View style={styles.exploreMarketLeft}>
-            <View style={styles.exploreMarketIcon}>
-              <PerpsTokenLogo
-                symbol={market.symbol}
-                size={HOME_SCREEN_CONFIG.DefaultIconSize}
-              />
-            </View>
-            <View style={styles.exploreMarketInfo}>
-              <View style={styles.exploreMarketHeader}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {getPerpsDisplaySymbol(market.symbol)}
-                </Text>
-                <PerpsLeverage maxLeverage={market.maxLeverage} />
-              </View>
-              <View style={styles.exploreMarketSecondRow}>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  numberOfLines={1}
-                >
-                  {market.volume} {strings('perps.sort.volume_short')}
-                </Text>
-                {badgeType && <PerpsBadge type={badgeType} />}
-              </View>
-            </View>
-          </View>
-          <View style={styles.exploreMarketRight}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Default}
-              style={styles.exploreMarketPrice}
-            >
-              {market.price}
-            </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              color={isPositiveChange ? TextColor.Success : TextColor.Error}
-              style={styles.exploreMarketChange}
-            >
-              {market.change24hPercent}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      );
-    },
-    [styles, handleExploreMarketPress],
-  );
-
   const renderWatchlistSection = useCallback(() => {
     if (isExploreLoading) {
       return (
@@ -390,7 +321,14 @@ const PerpsTabView = () => {
             {strings('perps.home.watchlist')}
           </Text>
         </View>
-        {watchlistMarkets.map(renderExploreMarketRow)}
+        {watchlistMarkets.map((market) => (
+          <PerpsMarketRowItem
+            key={market.symbol}
+            market={market}
+            showBadge={false}
+            onPress={() => handleExploreMarketPress(market)}
+          />
+        ))}
       </View>
     );
   }, [
@@ -398,7 +336,7 @@ const PerpsTabView = () => {
     watchlistMarkets,
     styles,
     watchlistHeaderStyle,
-    renderExploreMarketRow,
+    handleExploreMarketPress,
   ]);
 
   const renderExploreSection = useCallback(() => {
@@ -426,7 +364,13 @@ const PerpsTabView = () => {
             {strings('perps.home.explore_markets')}
           </Text>
         </View>
-        {exploreMarkets.map(renderExploreMarketRow)}
+        {exploreMarkets.map((market) => (
+          <PerpsMarketRowItem
+            key={market.symbol}
+            market={market}
+            onPress={() => handleExploreMarketPress(market)}
+          />
+        ))}
         <TouchableOpacity
           style={styles.seeAllButton}
           onPress={handleSeeAllPerps}
@@ -442,7 +386,7 @@ const PerpsTabView = () => {
     exploreMarkets,
     styles,
     exploreSectionHeaderStyle,
-    renderExploreMarketRow,
+    handleExploreMarketPress,
     handleSeeAllPerps,
   ]);
 
