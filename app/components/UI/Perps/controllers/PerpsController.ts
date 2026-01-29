@@ -13,18 +13,13 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
-import Engine from '../../../../core/Engine';
-import {
-  ARBITRUM_MAINNET_CHAIN_ID_HEX,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-  USDC_SYMBOL,
-} from '../constants/hyperLiquidConfig';
+import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
 } from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Engine from '../../../../core/Engine';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
@@ -1390,15 +1385,13 @@ export class PerpsController extends BaseController<
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(assetChainId);
 
-      const gasFeeToken =
-        transaction.to &&
-        assetChainId.toLowerCase() === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
-        transaction.to.toLowerCase() ===
-          USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()
-          ? (transaction.to as Hex)
-          : undefined;
-
+      if (!networkClientId) {
+        throw new Error(
+          `No network client found for chain ${assetChainId}. Please add the network first.`,
+        );
+      }
       // addTransaction shows the confirmation screen and returns a promise
+      // submit shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
       const { result, transactionMeta } =
         await TransactionController.addTransaction(transaction, {
@@ -1406,7 +1399,6 @@ export class PerpsController extends BaseController<
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
           skipInitialGasEstimate: true,
-          gasFeeToken,
         });
 
       // Store the transaction ID and try to get amount from transaction
