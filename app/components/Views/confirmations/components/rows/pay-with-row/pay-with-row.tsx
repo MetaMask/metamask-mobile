@@ -33,11 +33,7 @@ import {
 } from '../../../ConfirmationView.testIds';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 
-interface PayWithRowProps {
-  hideNetworkFilter?: boolean;
-}
-
-export function PayWithRow({ hideNetworkFilter }: PayWithRowProps = {}) {
+export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -57,10 +53,8 @@ export function PayWithRow({ hideNetworkFilter }: PayWithRowProps = {}) {
         mm_pay_token_list_opened: true,
       },
     });
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      hideNetworkFilter,
-    });
-  }, [canEdit, navigation, setConfirmationMetric, hideNetworkFilter]);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+  }, [canEdit, navigation, setConfirmationMetric]);
 
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),

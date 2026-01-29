@@ -73,3 +73,12 @@ export const EARN_CONTRACT_INTERACTION_TYPES = [
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
 ];
+
+/**
+ * Transaction types for which the Pay With modal hides the network filter.
+ * Used when pay token selection is constrained to a single network (e.g. Perps).
+ */
+export const HIDE_NETWORK_FILTER_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+];

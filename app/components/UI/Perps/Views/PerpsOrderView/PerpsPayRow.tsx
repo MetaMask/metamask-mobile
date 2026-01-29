@@ -139,9 +139,7 @@ export const PerpsPayRow = ({
         mm_pay_token_list_opened: true,
       },
     });
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      hideNetworkFilter: true,
-    });
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [canEdit, navigation, setConfirmationMetric, onCustomTokenSelected]);
 
   // Determine Arbitrum chain ID for token lookup (USDC is stored under Arbitrum chain ID)

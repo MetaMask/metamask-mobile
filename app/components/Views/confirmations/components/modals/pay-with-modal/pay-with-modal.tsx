@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { useRoute, type RouteProp } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { strings } from '../../../../../../../locales/i18n';
@@ -15,18 +14,16 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
-
-interface PayWithModalRouteParams {
-  hideNetworkFilter?: boolean;
-}
+import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 
 export function PayWithModal() {
-  const route =
-    useRoute<RouteProp<{ params: PayWithModalRouteParams }, 'params'>>();
-  const hideNetworkFilter = route.params?.hideNetworkFilter ?? false;
+  const transactionMeta = useTransactionMetadataRequest();
+  const hideNetworkFilter = hasTransactionType(
+    transactionMeta,
+    HIDE_NETWORK_FILTER_TYPES,
+  );
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
 
