@@ -1008,6 +1008,7 @@
       "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
       "set_button": "Set"
     },
+    "confirm": "Confirm",
     "deposit": {
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
@@ -1081,6 +1082,8 @@
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
       "in_progress": "Adding funds to Perps",
+      "depositing_your_funds": "Depositing your funds",
+      "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
       "your_funds_are_available_to_trade": "Your funds are available to trade",
@@ -1247,6 +1250,16 @@
           "description": "Execute only at your specified price or better"
         }
       },
+      "payment_token": "Payment token",
+      "select_payment_token": "Select payment token",
+      "select_token": "Select token",
+      "no_payment_tokens": "No payment tokens available",
+      "swap": "SWAP",
+      "swap_submitted": "Swap Submitted",
+      "transaction_id": "Transaction ID: {{txId}}",
+      "swap_failed": "Swap Failed",
+      "swap_error_message": "Failed to submit swap transaction: {{error}}",
+      "swap_converting": "Converting balance to USDC on ARBITRUM",
       "success": {
         "title": "Order placed successfully",
         "subtitle": "Your {{direction}} position for {{asset}} has been created",
@@ -1275,7 +1288,10 @@
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Order failed",
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
-      "order_cancelled_success": "{{detailedOrderType}} order cancelled"
+      "order_cancelled_success": "{{detailedOrderType}} order cancelled",
+      "pay_with_token_required": "Token selection required",
+      "select_token_to_pay_with": "Please select a token to pay with before placing your order",
+      "initializing": "Initializing order..."
     },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
