@@ -88,7 +88,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const setSelectedPaymentMethod = useCallback(
     (paymentMethod: PaymentMethod | null) =>
       Engine.context.RampsController.setSelectedPaymentMethod(
-        paymentMethod?.id ?? null,
+        paymentMethod?.id,
       ),
     [],
   );
