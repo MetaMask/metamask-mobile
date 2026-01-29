@@ -903,6 +903,20 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                           </View>
                         </View>
                       </RCTScrollView>
+                      <View
+                        cancelButtonIndex={1}
+                        destructiveButtonIndex={0}
+                        onPress={[Function]}
+                        options={
+                          [
+                            "End",
+                            "Cancel",
+                          ]
+                        }
+                        testID="action-sheet"
+                        theme="light"
+                        title="End session"
+                      />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1592,6 +1606,20 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                           </TouchableOpacity>
                         </View>
                       </RCTScrollView>
+                      <View
+                        cancelButtonIndex={1}
+                        destructiveButtonIndex={0}
+                        onPress={[Function]}
+                        options={
+                          [
+                            "End",
+                            "Cancel",
+                          ]
+                        }
+                        testID="action-sheet"
+                        theme="light"
+                        title="End session"
+                      />
                     </RCTSafeAreaView>
                   </View>
                 </View>

@@ -20,14 +20,47 @@ jest.mock('../../../core/WalletConnect/WalletConnectV2', () => ({
 }));
 
 jest.mock('../../../util/Logger', () => ({
+  log: jest.fn(),
   error: jest.fn(),
 }));
 
-jest.spyOn(Alert, 'alert');
+// Mock useFavicon to avoid favicon fetching in tests
+jest.mock('../../../components/hooks/useFavicon', () => ({
+  __esModule: true,
+  default: () => ({
+    faviconURI: {},
+    isLoading: false,
+    isLoaded: true,
+  }),
+}));
+
+// Mock ActionSheet to avoid native module issues
+jest.mock('@metamask/react-native-actionsheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const ReactNative = jest.requireActual('react-native');
+
+  return ReactActual.forwardRef(
+    (
+      props: { onPress: (index: number) => void; testID?: string },
+      ref: unknown,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        show: jest.fn(),
+      }));
+      return ReactActual.createElement(ReactNative.View, {
+        testID: props.testID || 'action-sheet',
+        ...props,
+      });
+    },
+  );
+});
+
+const mockAlert = jest.fn();
 
 describe('WalletConnectSessions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
     mockGetSessions.mockReturnValue([]);
     mockRemoveSession.mockResolvedValue(undefined);
     (WC2Manager.getInstance as jest.Mock).mockResolvedValue({
@@ -175,7 +208,7 @@ describe('WalletConnectSessions', () => {
 
     await waitFor(() => {
       expect(mockRemoveSession).toHaveBeenCalledWith(sessions[0]);
-      expect(Alert.alert).toHaveBeenCalledWith(
+      expect(mockAlert).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(String),
       );
