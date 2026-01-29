@@ -485,7 +485,7 @@ describe('TrendingFeedSessionManager', () => {
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
       expect(DevLogger.log).toHaveBeenCalledWith(
-        'TrendingFeedSessionManager: Cannot track token click - no active session',
+        'TrendingFeedSessionManager: Cannot track token_click - no active session',
       );
     });
 
@@ -659,7 +659,7 @@ describe('TrendingFeedSessionManager', () => {
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
       expect(DevLogger.log).toHaveBeenCalledWith(
-        'TrendingFeedSessionManager: Cannot track filter change - no active session',
+        'TrendingFeedSessionManager: Cannot track filter_change - no active session',
       );
     });
 

@@ -265,27 +265,39 @@ class TrendingFeedSessionManager {
   }
 
   /**
-   * Track token click event
-   * @param properties - Token click properties including position, filters, etc.
+   * Private helper to track interaction events with shared logic
+   * Encapsulates session validation, analytics properties building, logging, and event tracking
+   *
+   * @param interactionType - The type of interaction being tracked
+   * @param properties - Additional properties to include in the event
+   * @param logMessage - Message for DevLogger
+   * @param logContext - Additional context for DevLogger (merged with sessionId)
    */
-  public trackTokenClick(properties: TokenClickProperties): void {
+  private trackInteraction(
+    interactionType: TrendingInteractionType,
+    properties:
+      | TokenClickProperties
+      | SearchProperties
+      | FilterChangeProperties,
+    logMessage: string,
+    logContext: Record<string, string | number | boolean>,
+  ): void {
     if (!this.sessionId) {
       DevLogger.log(
-        'TrendingFeedSessionManager: Cannot track token click - no active session',
+        `TrendingFeedSessionManager: Cannot track ${interactionType} - no active session`,
       );
       return;
     }
 
     const analyticsProperties = {
       session_id: this.sessionId,
-      interaction_type: TrendingInteractionType.TokenClick,
+      interaction_type: interactionType,
       ...properties,
     };
 
-    DevLogger.log('TrendingFeedSessionManager: Token click tracked', {
+    DevLogger.log(logMessage, {
       sessionId: this.sessionId,
-      token_symbol: properties.token_symbol,
-      position: properties.position,
+      ...logContext,
     });
 
     MetaMetrics.getInstance().trackEvent(
@@ -294,6 +306,22 @@ class TrendingFeedSessionManager {
       )
         .addProperties(analyticsProperties)
         .build(),
+    );
+  }
+
+  /**
+   * Track token click event
+   * @param properties - Token click properties including position, filters, etc.
+   */
+  public trackTokenClick(properties: TokenClickProperties): void {
+    this.trackInteraction(
+      TrendingInteractionType.TokenClick,
+      properties,
+      'TrendingFeedSessionManager: Token click tracked',
+      {
+        token_symbol: properties.token_symbol,
+        position: properties.position,
+      },
     );
   }
 
@@ -302,31 +330,14 @@ class TrendingFeedSessionManager {
    * @param properties - Search properties including query, results count, etc.
    */
   public trackSearch(properties: SearchProperties): void {
-    if (!this.sessionId) {
-      DevLogger.log(
-        'TrendingFeedSessionManager: Cannot track search - no active session',
-      );
-      return;
-    }
-
-    const analyticsProperties = {
-      session_id: this.sessionId,
-      interaction_type: TrendingInteractionType.Search,
-      ...properties,
-    };
-
-    DevLogger.log('TrendingFeedSessionManager: Search tracked', {
-      sessionId: this.sessionId,
-      search_query: properties.search_query,
-      results_count: properties.results_count,
-    });
-
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.TRENDING_FEED_VIEWED,
-      )
-        .addProperties(analyticsProperties)
-        .build(),
+    this.trackInteraction(
+      TrendingInteractionType.Search,
+      properties,
+      'TrendingFeedSessionManager: Search tracked',
+      {
+        search_query: properties.search_query,
+        results_count: properties.results_count,
+      },
     );
   }
 
@@ -335,32 +346,15 @@ class TrendingFeedSessionManager {
    * @param properties - Filter change properties including type, previous/new values
    */
   public trackFilterChange(properties: FilterChangeProperties): void {
-    if (!this.sessionId) {
-      DevLogger.log(
-        'TrendingFeedSessionManager: Cannot track filter change - no active session',
-      );
-      return;
-    }
-
-    const analyticsProperties = {
-      session_id: this.sessionId,
-      interaction_type: TrendingInteractionType.FilterChange,
-      ...properties,
-    };
-
-    DevLogger.log('TrendingFeedSessionManager: Filter change tracked', {
-      sessionId: this.sessionId,
-      filter_type: properties.filter_type,
-      previous_value: properties.previous_value,
-      new_value: properties.new_value,
-    });
-
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.TRENDING_FEED_VIEWED,
-      )
-        .addProperties(analyticsProperties)
-        .build(),
+    this.trackInteraction(
+      TrendingInteractionType.FilterChange,
+      properties,
+      'TrendingFeedSessionManager: Filter change tracked',
+      {
+        filter_type: properties.filter_type,
+        previous_value: properties.previous_value,
+        new_value: properties.new_value,
+      },
     );
   }
 
