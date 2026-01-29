@@ -73,7 +73,7 @@ const mockPerpsData = {
   change24hPercent: '+1.12%',
   volume: '$1B',
   openInterest: '$500M',
-  marketType: 'perpetual',
+  marketType: 'crypto' as const,
   marketSource: 'hyperliquid',
 };
 

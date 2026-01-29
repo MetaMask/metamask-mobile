@@ -163,7 +163,11 @@ describe('ExploreSearchResults', () => {
   });
 
   describe('Footer', () => {
-    it('renders component with search query for footer', () => {
+    // Note: FlashList's ListFooterComponent doesn't render in test environment,
+    // so we verify the list renders correctly with the search query prop.
+    // The actual footer rendering is tested via the SitesSearchFooter unit tests.
+
+    it('renders list with search query that would trigger footer', () => {
       // Arrange
       mockUseExploreSearch.mockReturnValue({
         data: {
@@ -182,15 +186,17 @@ describe('ExploreSearchResults', () => {
       });
 
       // Act
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <ExploreSearchResults searchQuery="bitcoin" />,
       );
 
-      // Assert - FlashList renders with data
+      // Assert - FlashList renders with data and search query is passed to hook
       expect(getByTestId('trending-search-results-list')).toBeDefined();
+      expect(getByText('Trending tokens')).toBeDefined();
+      expect(mockUseExploreSearch).toHaveBeenCalledWith('bitcoin');
     });
 
-    it('renders component with empty search query', () => {
+    it('renders list with empty search query (no footer expected)', () => {
       // Arrange
       mockUseExploreSearch.mockReturnValue({
         data: {
@@ -211,8 +217,9 @@ describe('ExploreSearchResults', () => {
       // Act
       const { getByTestId } = render(<ExploreSearchResults searchQuery="" />);
 
-      // Assert
+      // Assert - list renders, empty query means footer won't render
       expect(getByTestId('trending-search-results-list')).toBeDefined();
+      expect(mockUseExploreSearch).toHaveBeenCalledWith('');
     });
   });
 
@@ -326,10 +333,9 @@ describe('ExploreSearchResults', () => {
           predictions: false,
           sites: false,
         },
-        // Include an unknown section ID
         sectionsOrder: [
           'tokens',
-          'unknown' as 'tokens',
+          'unknown' as 'tokens', // Intentionally invalid ID to test graceful handling
           'perps',
           'predictions',
           'sites',
