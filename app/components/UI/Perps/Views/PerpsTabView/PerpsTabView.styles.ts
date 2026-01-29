@@ -93,20 +93,42 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 12,
       flex: 1,
     },
-    // Section style overrides for PerpsTabView - consistent spacing
+    // Section style overrides for PerpsTabView - flat list without card styling
     watchlistSectionStyle: {
-      marginTop: 8, // Space between balance card and watchlist section
+      marginBottom: 0,
     },
-    exploreSectionStyle: {
-      marginTop: 8,
-      marginBottom: 16,
+    // Header style for watchlist - matches Figma: 24px 16px 4px
+    watchlistHeaderStyle: {
+      paddingTop: 24,
+      paddingHorizontal: 16,
+      paddingBottom: 4,
+      marginBottom: 0,
     },
-    // Explore markets section overrides - no horizontal padding to align with control bar
-    exploreHeaderStyle: {
-      paddingHorizontal: 0,
+    // Explore markets section style variants based on what's above
+    exploreMarketsSectionNoBalance: {
+      marginBottom: 0,
     },
-    exploreContentContainerStyle: {
+    exploreMarketsSectionWithBalance: {
+      marginBottom: 0,
+    },
+    exploreMarketsSectionWithWatchlist: {
+      marginBottom: 0,
+    },
+    // Header style for explore markets - matches Figma: 20px 16px 8px
+    exploreMarketsHeaderStyle: {
+      paddingTop: 20,
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+      marginBottom: 0,
+    },
+    // Flat content container - no card styling
+    // Note: horizontal padding comes from internal listContent/PerpsMarketList styles
+    flatContentContainerStyle: {
       marginHorizontal: 0,
+      borderRadius: 0,
+      paddingTop: 0,
+      paddingBottom: 0,
+      backgroundColor: colors.background.default,
     },
   });
 };

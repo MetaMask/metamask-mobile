@@ -1,4 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
 import React, { useCallback, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -90,6 +91,19 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     watchlistMarkets,
     isLoading: isExploreLoading,
   } = usePerpsTabExploreData({ enabled: hasNoPositionsOrOrders });
+
+  // Determine balance visibility (same logic as PerpsTabControlBar)
+  const totalBalance = account?.totalBalance ?? '0';
+  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  const shouldShowBalance = !isBalanceEmpty;
+  const hasWatchlist = watchlistMarkets.length > 0;
+
+  // Compute explore markets section style based on what's above
+  const exploreMarketsSectionStyle = hasWatchlist
+    ? styles.exploreMarketsSectionWithWatchlist
+    : shouldShowBalance
+      ? styles.exploreMarketsSectionWithBalance
+      : styles.exploreMarketsSectionNoBalance;
 
   // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
@@ -272,8 +286,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 positions={[]}
                 orders={[]}
                 sectionStyle={styles.watchlistSectionStyle}
-                headerStyle={styles.exploreHeaderStyle}
-                contentContainerStyle={styles.exploreContentContainerStyle}
+                headerStyle={styles.watchlistHeaderStyle}
+                contentContainerStyle={styles.flatContentContainerStyle}
               />
 
               {/* Explore markets section - top 8 by volume */}
@@ -283,9 +297,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 marketType="all"
                 sortBy="volume"
                 isLoading={isExploreLoading}
-                style={styles.exploreSectionStyle}
-                headerStyle={styles.exploreHeaderStyle}
-                contentContainerStyle={styles.exploreContentContainerStyle}
+                style={exploreMarketsSectionStyle}
+                headerStyle={styles.exploreMarketsHeaderStyle}
+                contentContainerStyle={styles.flatContentContainerStyle}
               />
             </View>
           ) : (
