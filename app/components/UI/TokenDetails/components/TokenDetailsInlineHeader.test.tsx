@@ -2,12 +2,10 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { TokenDetailsInlineHeader } from './TokenDetailsInlineHeader';
 
-// Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
 }));
 
-// Mock useStyles hook
 jest.mock('../../../hooks/useStyles', () => ({
   useStyles: () => ({
     styles: {
@@ -73,7 +71,6 @@ describe('TokenDetailsInlineHeader', () => {
         <TokenDetailsInlineHeader {...defaultProps} />,
       );
 
-      // Both buttons are rendered - back button and options button (button-icon)
       expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
       expect(getByTestId('button-icon')).toBeOnTheScreen();
     });
@@ -88,7 +85,6 @@ describe('TokenDetailsInlineHeader', () => {
         <TokenDetailsInlineHeader {...props} />,
       );
 
-      // Only back button is rendered, options button should not be present
       expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
       expect(queryByTestId('button-icon')).toBeNull();
     });
