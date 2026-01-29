@@ -98,12 +98,14 @@ jest.mock(
 
 const mockIsEnabled = jest.fn().mockReturnValue(true);
 
-jest.mock('../../hooks/useMetrics', () => {
-  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
+  const actualUseAnalytics = jest.requireActual(
+    '../../hooks/useAnalytics/useAnalytics',
+  );
   return {
-    ...actualUseMetrics,
-    useMetrics: jest.fn().mockReturnValue({
-      ...actualUseMetrics.useMetrics,
+    ...actualUseAnalytics,
+    useAnalytics: jest.fn().mockReturnValue({
+      ...actualUseAnalytics.useAnalytics,
       isEnabled: () => mockIsEnabled(),
     }),
   };
