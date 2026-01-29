@@ -366,7 +366,7 @@ const SettingsFlow = () => (
     <Stack.Screen
       name="GeneralSettings"
       component={GeneralSettings}
-      options={GeneralSettings.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AdvancedSettings"
@@ -1285,10 +1285,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="GeneralSettings"
         component={GeneralSettings}
-        options={{
-          headerShown: true,
-          ...GeneralSettings.navigationOptions,
-        }}
+        options={{ headerShown: false }}
       />
       {process.env.METAMASK_ENVIRONMENT !== 'production' && (
         <Stack.Screen
