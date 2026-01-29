@@ -11,12 +11,9 @@ export const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'flex-start',
     },
     dropdownButton: {
-      paddingHorizontal: 12,
       paddingVertical: 8,
-      borderRadius: 8,
-      backgroundColor: theme.colors.background.muted,
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       flexDirection: 'row',
       gap: 4,
     },

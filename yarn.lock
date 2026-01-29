@@ -34966,7 +34966,6 @@ __metadata:
     webpack-cli: "npm:^5.1.4"
     xhr2: "npm:^0.2.1"
     xml2js: "npm:^0.5.0"
-    zxcvbn: "npm:4.4.2"
   dependenciesMeta:
     "@img/sharp-darwin-arm64":
       optional: true
@@ -46579,12 +46578,5 @@ __metadata:
   version: 0.1.5
   resolution: "zstd-codec@npm:0.1.5"
   checksum: 10/deee384c29129e3ed86b4f2ac4dc415fd8dad8b62b12ad07cc092c89481bee362477478c6179f2beb252bec67b57120fad8fd84f0a7f7b5914a77e24b3608094
-  languageName: node
-  linkType: hard
-
-"zxcvbn@npm:4.4.2":
-  version: 4.4.2
-  resolution: "zxcvbn@npm:4.4.2"
-  checksum: 10/00c4636f10556174858bddd67758ef1e3046d005e9890a208fa5dd9296ec69a3e93ce8300a54d84cf72deea188503d8c5aa67c515daf79da40de378786832807
   languageName: node
   linkType: hard

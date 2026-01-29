@@ -845,21 +845,6 @@ const MultichainPrivateKeyList = () => {
   );
 };
 
-const ModalConfirmationRequest = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-    mode={'modal'}
-  >
-    <Stack.Screen
-      name={Routes.CONFIRMATION_REQUEST_MODAL}
-      component={Confirm}
-    />
-  </Stack.Navigator>
-);
-
 const ModalSwitchAccountType = () => (
   <Stack.Navigator
     screenOptions={{
@@ -1077,7 +1062,7 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.CONFIRMATION_REQUEST_MODAL}
           options={emptyNavHeaderOptions}
-          component={ModalConfirmationRequest}
+          component={Confirm}
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}

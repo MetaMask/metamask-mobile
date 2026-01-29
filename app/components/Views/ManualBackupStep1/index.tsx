@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   View,
   ActivityIndicator,
@@ -8,8 +14,8 @@ import {
   ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Icon, {
   IconName,
@@ -36,6 +42,7 @@ import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
 import Button, {
@@ -54,24 +61,38 @@ import {
   handleSkipBackup,
   showSeedphraseDefinition,
 } from '../../../util/onboarding/backupUtils';
+import type {
+  ManualBackupStep1NavigationProp,
+  ManualBackupStep1RouteProp,
+} from './ManualBackupStep1.types';
+
+import darkBlurImage from '../../../images/dark-blur.png';
+import lightBlurImage from '../../../images/blur.png';
 
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
  */
-const ManualBackupStep1 = ({
-  route,
-  navigation,
-  appTheme,
-  saveOnboardingEvent,
-}) => {
+const ManualBackupStep1 = () => {
+  const navigation = useNavigation<ManualBackupStep1NavigationProp>();
+  const route = useRoute<ManualBackupStep1RouteProp>();
+  const dispatch = useDispatch();
+
+  const saveOnboardingEvent = useCallback(
+    (event: ITrackingEvent) => {
+      dispatch(saveEvent([event]));
+    },
+    [dispatch],
+  );
+
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
-  const [password, setPassword] = useState(undefined);
-  const [warningIncorrectPassword, setWarningIncorrectPassword] =
-    useState(undefined);
+  const [password, setPassword] = useState<string | undefined>(undefined);
+  const [warningIncorrectPassword, setWarningIncorrectPassword] = useState<
+    string | undefined
+  >(undefined);
   const [ready, setReady] = useState(false);
   const [view, setView] = useState(SEED_PHRASE);
-  const [words, setWords] = useState([]);
+  const [words, setWords] = useState<string[]>([]);
   const [hasFunds, setHasFunds] = useState(false);
   const { colors, themeAppearance } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -111,9 +132,12 @@ const ManualBackupStep1 = ({
           route,
           {
             headerLeft,
+            // Explicitly set headerRight to undefined to prevent any default
+            // header right component from appearing in backup flows
+            headerRight: undefined,
           },
           colors,
-          false, // showLogo = false to hide title
+          false,
         ),
       );
     } else {
@@ -124,10 +148,9 @@ const ManualBackupStep1 = ({
     }
   }, [navigation, settingsBackup, backupFlow, colors, route, headerLeft]);
 
-  const tryExportSeedPhrase = async (password) => {
+  const tryExportSeedPhrase = async (pwd: string): Promise<string[]> => {
     const { KeyringController } = Engine.context;
-    const uint8ArrayMnemonic =
-      await KeyringController.exportSeedPhrase(password);
+    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(pwd);
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
@@ -140,33 +163,57 @@ const ManualBackupStep1 = ({
   }, [navigation, track]);
 
   useEffect(() => {
-    const getSeedphrase = async () => {
-      if (!words.length) {
-        try {
-          const credentials = await Authentication.getPassword();
-          if (credentials) {
-            setWords(await tryExportSeedPhrase(credentials.password));
-          } else {
-            setView(CONFIRM_PASSWORD);
+    let cancelled = false;
+
+    const initializeSeedPhrase = async () => {
+      if (seedPhrase) {
+        if (!cancelled) {
+          setWords(seedPhrase);
+          setReady(true);
+        }
+        return;
+      }
+
+      const wordsFromParams = route.params?.words;
+      if (wordsFromParams && wordsFromParams.length > 0) {
+        if (!cancelled) {
+          setWords(wordsFromParams);
+          setReady(true);
+        }
+        return;
+      }
+
+      try {
+        const credentials = await Authentication.getPassword();
+        if (cancelled) return;
+
+        if (credentials && !cancelled) {
+          const exportedWords = await tryExportSeedPhrase(credentials.password);
+          if (!cancelled) {
+            setWords(exportedWords);
+            setReady(true);
           }
-        } catch (e) {
-          const srpRecoveryError = new Error(
-            'Error trying to recover SRP from keyring-controller',
-          );
-          Logger.error(srpRecoveryError);
+        } else if (!cancelled) {
           setView(CONFIRM_PASSWORD);
+          setReady(true);
+        }
+      } catch (e) {
+        const srpRecoveryError = new Error(
+          'Error trying to recover SRP from keyring-controller',
+        );
+        Logger.error(srpRecoveryError);
+        if (!cancelled) {
+          setView(CONFIRM_PASSWORD);
+          setReady(true);
         }
       }
     };
 
-    if (seedPhrase) {
-      setWords(seedPhrase);
-    } else {
-      getSeedphrase();
-      setWords(route.params?.words ?? []);
-    }
+    initializeSeedPhrase();
 
-    setReady(true);
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -179,8 +226,8 @@ const ManualBackupStep1 = ({
     if (Engine.hasFunds()) setHasFunds(true);
   }, []);
 
-  const onPasswordChange = (password) => {
-    setPassword(password);
+  const onPasswordChange = (pwd: string) => {
+    setPassword(pwd);
   };
 
   const goNext = () => {
@@ -215,16 +262,27 @@ const ManualBackupStep1 = ({
     track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED, {});
   };
 
-  const tryUnlockWithPassword = async (password) => {
+  const isMountedRef = useRef(true);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
+
+  const tryUnlockWithPassword = async (pwd: string) => {
     setReady(false);
     try {
-      const seedPhrase = await tryExportSeedPhrase(password);
-      setWords(seedPhrase);
+      const exportedSeedPhrase = await tryExportSeedPhrase(pwd);
+      if (!isMountedRef.current) return;
+      setWords(exportedSeedPhrase);
       setView(SEED_PHRASE);
       setReady(true);
     } catch (e) {
+      if (!isMountedRef.current) return;
       let msg = strings('reveal_credential.warning_incorrect_password');
-      if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
+      if (String(e).toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
         msg = strings('reveal_credential.unknown_error');
       }
       setWarningIncorrectPassword(msg);
@@ -233,7 +291,9 @@ const ManualBackupStep1 = ({
   };
 
   const tryUnlock = () => {
-    tryUnlockWithPassword(password);
+    if (password) {
+      tryUnlockWithPassword(password);
+    }
   };
 
   const renderSeedPhraseConcealer = () => (
@@ -246,8 +306,8 @@ const ManualBackupStep1 = ({
         <ImageBackground
           source={
             themeAppearance === AppThemeKey.dark
-              ? require('../../../images/dark-blur.png')
-              : require('../../../images/blur.png')
+              ? darkBlurImage
+              : lightBlurImage
           }
           style={styles.blurView}
           resizeMode="cover"
@@ -435,31 +495,4 @@ const ManualBackupStep1 = ({
   );
 };
 
-ManualBackupStep1.propTypes = {
-  /**
-  /* navigation object required to push and pop other views
-  */
-  navigation: PropTypes.object,
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
-  /**
-   * Theme that app is set to
-   */
-  appTheme: PropTypes.string,
-  /**
-   * Action to save onboarding event
-   */
-  saveOnboardingEvent: PropTypes.func,
-};
-
-const mapStateToProps = (state) => ({
-  appTheme: state.user.appTheme,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(ManualBackupStep1);
+export default ManualBackupStep1;
