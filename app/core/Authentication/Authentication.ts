@@ -19,6 +19,7 @@ import {
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
   AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
@@ -1682,7 +1683,9 @@ class AuthenticationService {
 
       if (
         errorWithMessage.message === 'Invalid password' ||
-        errorWithMessage.message.includes('error in DoCipher, status: 2')
+        errorWithMessage.message.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_WRONG_PASSWORD_2,
+        )
       ) {
         Alert.alert(
           strings('app_settings.invalid_password'),
