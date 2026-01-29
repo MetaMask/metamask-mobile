@@ -27,4 +27,5 @@ export const CardHomeSelectors = {
   PASSWORD_ERROR: 'password-error',
   PASSWORD_CANCEL_BUTTON: 'password-cancel-button',
   PASSWORD_CONFIRM_BUTTON: 'password-confirm-button',
+  ORDER_METAL_CARD_ITEM: 'order-metal-card-item',
 };
