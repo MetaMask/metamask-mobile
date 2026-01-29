@@ -14,10 +14,29 @@ import {
 import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 
-// Mock privacy mode selector
+// Mock preferencesController selectors to avoid import chain issues
 const mockSelectPrivacyMode = jest.fn(() => false);
 jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: mockSelectPrivacyMode,
+  selectSmartTransactionsOptInStatus: jest.fn(() => false),
+  selectIpfsGateway: jest.fn(() => ''),
+  selectUseNftDetection: jest.fn(() => false),
+  selectShowMultiRpcModal: jest.fn(() => false),
+  selectUseTokenDetection: jest.fn(() => true),
+  selectDisplayNftMedia: jest.fn(() => true),
+  selectUseSafeChainsListValidation: jest.fn(() => true),
+  selectTokenSortConfig: jest.fn(() => ({})),
+  selectTokenNetworkFilter: jest.fn(() => ({})),
+  selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
+  selectIsMultiAccountBalancesEnabled: jest.fn(() => true),
+  selectShowTestNetworks: jest.fn(() => false),
+  selectIsIpfsGatewayEnabled: jest.fn(() => true),
+  selectIsSecurityAlertsEnabled: jest.fn(() => false),
+  selectUseTransactionSimulations: jest.fn(() => true),
+  selectSmartTransactionsMigrationApplied: jest.fn(() => false),
+  selectSmartTransactionsBannerDismissed: jest.fn(() => false),
+  selectDismissSmartAccountSuggestionEnabled: jest.fn(() => false),
+  selectSmartAccountOptIn: jest.fn(() => false),
 }));
 
 // Mock react-redux
