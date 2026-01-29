@@ -6,7 +6,7 @@ import { TokenRwaData } from '@metamask/assets-controllers';
 export interface PopularToken {
   assetId: CaipAssetType;
   decimals: number;
-  image: string;
+  iconUrl: string;
   name: string;
   symbol: string;
   noFee?: {

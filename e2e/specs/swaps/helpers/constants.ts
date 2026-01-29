@@ -392,7 +392,7 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
   {
     assetId: 'eip155:1/slip44:60',
     decimals: 18,
-    image:
+    iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
     name: 'Ethereum',
     symbol: 'ETH',
@@ -400,7 +400,7 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
   {
     assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
     decimals: 18,
-    image:
+    iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x6b175474e89094c44da98b954eedeac495271d0f.png',
     name: 'Dai Stablecoin',
     symbol: 'DAI',
@@ -408,7 +408,7 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
   {
     assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     decimals: 6,
-    image:
+    iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
     name: 'USDC',
     symbol: 'USDC',
@@ -416,7 +416,7 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
   {
     assetId: 'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7',
     decimals: 6,
-    image:
+    iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
     name: 'Tether USD',
     symbol: 'USDT',
@@ -424,7 +424,7 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
   {
     assetId: 'eip155:1/erc20:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     decimals: 18,
-    image:
+    iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png',
     name: 'Wrapped Ether',
     symbol: 'WETH',
@@ -763,7 +763,7 @@ export const GET_POPULAR_TOKENS_BASE_RESPONSE = [
   {
     assetId: 'eip155:8453/slip44:8453',
     decimals: 18,
-    image:
+    iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/slip44/8453.png',
     name: 'Ether',
     symbol: 'ETH',
@@ -771,7 +771,7 @@ export const GET_POPULAR_TOKENS_BASE_RESPONSE = [
   {
     assetId: 'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
     decimals: 6,
-    image:
+    iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
     name: 'USDC',
     symbol: 'USDC',

@@ -44,6 +44,7 @@ const convertAPITokensToBridgeTokens = (
       assetId: token.assetId,
       address,
       chainId: formattedChainId,
+      image: token.iconUrl,
     };
   });
 
