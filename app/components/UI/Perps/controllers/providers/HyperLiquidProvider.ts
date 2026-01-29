@@ -35,7 +35,7 @@ import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletServic
 import {
   DexAbstractionCache,
   PerpsSigningCache,
-} from '../../services/DexAbstractionCache';
+} from '../../services/TradingReadinessCache';
 import {
   adaptAccountStateFromSDK,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,

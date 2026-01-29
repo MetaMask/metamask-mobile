@@ -35,7 +35,7 @@ interface PerpsSigningCacheEntry {
 }
 
 // Legacy interface for backward compatibility
-interface DexAbstractionCacheEntry {
+interface TradingReadinessCacheEntry {
   attempted: boolean;
   enabled: boolean;
   timestamp: number;
@@ -128,7 +128,7 @@ class PerpsSigningCacheManager {
   public get(
     network: 'mainnet' | 'testnet',
     userAddress: string,
-  ): DexAbstractionCacheEntry | undefined {
+  ): TradingReadinessCacheEntry | undefined {
     const key = this.getCacheKey(network, userAddress);
     const entry = this.cache.get(key);
     if (!entry) return undefined;
@@ -254,7 +254,7 @@ class PerpsSigningCacheManager {
 }
 
 // Export singleton instance with backward-compatible name
-export const DexAbstractionCache = PerpsSigningCacheManager.getInstance();
+export const TradingReadinessCache = PerpsSigningCacheManager.getInstance();
 
 // Export with new name for clarity
 export const PerpsSigningCache = PerpsSigningCacheManager.getInstance();

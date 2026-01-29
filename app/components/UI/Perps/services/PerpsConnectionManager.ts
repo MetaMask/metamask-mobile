@@ -26,7 +26,7 @@ import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ensureError } from '../../../../util/errorUtils';
 import { wait } from '../utils/wait';
-import { DexAbstractionCache } from './DexAbstractionCache';
+import { TradingReadinessCache } from './TradingReadinessCache';
 
 /**
  * Singleton manager for Perps connection state
@@ -991,7 +991,7 @@ class PerpsConnectionManagerClass {
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): void {
-    DexAbstractionCache.clear(network, userAddress);
+    TradingReadinessCache.clear(network, userAddress);
     DevLogger.log('PerpsConnectionManager: DEX abstraction cache cleared', {
       network,
       userAddress,
@@ -1003,7 +1003,7 @@ class PerpsConnectionManagerClass {
    * Useful for debugging or app-level cache resets
    */
   clearAllDexAbstractionCache(): void {
-    DexAbstractionCache.clearAll();
+    TradingReadinessCache.clearAll();
     DevLogger.log('PerpsConnectionManager: All DEX abstraction cache cleared');
   }
 }
