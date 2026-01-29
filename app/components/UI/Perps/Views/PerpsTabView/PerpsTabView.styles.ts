@@ -103,17 +103,16 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 4,
       marginBottom: 0,
     },
-    // Explore markets section style variants based on what's above
-    exploreMarketsSectionNoBalance: {
+    exploreMarketsSectionStyle: {
       marginBottom: 0,
     },
-    exploreMarketsSectionWithBalance: {
+    exploreMarketsHeaderStyleNoBalance: {
+      paddingTop: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 4,
       marginBottom: 0,
     },
-    exploreMarketsSectionWithWatchlist: {
-      marginBottom: 0,
-    },
-    exploreMarketsHeaderStyle: {
+    exploreMarketsHeaderStyleWithBalance: {
       paddingTop: 20,
       paddingHorizontal: 16,
       paddingBottom: 8,

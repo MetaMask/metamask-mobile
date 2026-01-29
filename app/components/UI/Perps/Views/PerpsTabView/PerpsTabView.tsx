@@ -47,9 +47,7 @@ import styleSheet from './PerpsTabView.styles';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 
-interface PerpsTabViewProps {}
-
-const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
+const PerpsTabView = () => {
   const { styles } = useStyles(styleSheet, {});
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -92,18 +90,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     isLoading: isExploreLoading,
   } = usePerpsTabExploreData({ enabled: hasNoPositionsOrOrders });
 
-  // Determine balance visibility (same logic as PerpsTabControlBar)
+  // Determine balance visibility for conditional header styling
   const totalBalance = account?.totalBalance ?? '0';
   const isBalanceEmpty = BigNumber(totalBalance).isZero();
   const shouldShowBalance = !isBalanceEmpty;
-  const hasWatchlist = watchlistMarkets.length > 0;
 
-  // Compute explore markets section style based on what's above
-  const exploreMarketsSectionStyle = hasWatchlist
-    ? styles.exploreMarketsSectionWithWatchlist
-    : shouldShowBalance
-      ? styles.exploreMarketsSectionWithBalance
-      : styles.exploreMarketsSectionNoBalance;
+  // Header style varies based on balance: no balance = 16px/4px, with balance = 20px/8px
+  const exploreMarketsHeaderStyle = shouldShowBalance
+    ? styles.exploreMarketsHeaderStyleWithBalance
+    : styles.exploreMarketsHeaderStyleNoBalance;
 
   // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
@@ -264,70 +259,63 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       ]}
       edges={['left', 'right']}
     >
-      <>
-        <PerpsTabControlBar
-          onManageBalancePress={handleManageBalancePress}
-          hasPositions={hasPositions}
-          hasOrders={hasOrders}
-        />
-        <ConditionalScrollView
-          isScrollEnabled={!isHomepageRedesignV1Enabled}
-          scrollViewProps={{
-            style: styles.content,
-            testID: PerpsTabViewSelectorsIDs.SCROLL_VIEW,
-          }}
-        >
-          {!isInitialLoading && hasNoPositionsOrOrders ? (
-            <View style={styles.emptyStateContainer}>
-              {/* Watchlist section - reused, hides when empty */}
-              <PerpsWatchlistMarkets
-                markets={watchlistMarkets}
-                isLoading={isExploreLoading}
-                positions={[]}
-                orders={[]}
-                sectionStyle={styles.watchlistSectionStyle}
-                headerStyle={styles.watchlistHeaderStyle}
-                contentContainerStyle={styles.flatContentContainerStyle}
-              />
+      <PerpsTabControlBar
+        onManageBalancePress={handleManageBalancePress}
+        hasPositions={hasPositions}
+        hasOrders={hasOrders}
+      />
+      <ConditionalScrollView
+        isScrollEnabled={!isHomepageRedesignV1Enabled}
+        scrollViewProps={{
+          style: styles.content,
+          testID: PerpsTabViewSelectorsIDs.SCROLL_VIEW,
+        }}
+      >
+        {!isInitialLoading && hasNoPositionsOrOrders ? (
+          <View style={styles.emptyStateContainer}>
+            {/* Watchlist section - reused, hides when empty */}
+            <PerpsWatchlistMarkets
+              markets={watchlistMarkets}
+              isLoading={isExploreLoading}
+              positions={[]}
+              orders={[]}
+              sectionStyle={styles.watchlistSectionStyle}
+              headerStyle={styles.watchlistHeaderStyle}
+              contentContainerStyle={styles.flatContentContainerStyle}
+            />
 
-              {/* Explore markets section - top 8 by volume */}
-              <PerpsMarketTypeSection
-                title={strings('perps.home.explore_markets')}
-                markets={exploreMarkets}
-                marketType="all"
-                sortBy="volume"
-                isLoading={isExploreLoading}
-                style={exploreMarketsSectionStyle}
-                headerStyle={styles.exploreMarketsHeaderStyle}
-                contentContainerStyle={styles.flatContentContainerStyle}
-              />
-            </View>
-          ) : (
-            <View style={styles.tradeInfoContainer}>
-              <View>{renderPositionsSection()}</View>
-              <View>{renderOrdersSection()}</View>
-            </View>
-          )}
-        </ConditionalScrollView>
-        {isEligibilityModalVisible && (
-          // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
-          <View>
-            <Modal
-              visible
-              transparent
-              animationType="none"
-              statusBarTranslucent
-            >
-              <PerpsBottomSheetTooltip
-                isVisible
-                onClose={() => setIsEligibilityModalVisible(false)}
-                contentKey={'geo_block'}
-                testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
-              />
-            </Modal>
+            {/* Explore markets section - top 8 by volume */}
+            <PerpsMarketTypeSection
+              title={strings('perps.home.explore_markets')}
+              markets={exploreMarkets}
+              marketType="all"
+              sortBy="volume"
+              isLoading={isExploreLoading}
+              style={styles.exploreMarketsSectionStyle}
+              headerStyle={exploreMarketsHeaderStyle}
+              contentContainerStyle={styles.flatContentContainerStyle}
+            />
+          </View>
+        ) : (
+          <View style={styles.tradeInfoContainer}>
+            <View>{renderPositionsSection()}</View>
+            <View>{renderOrdersSection()}</View>
           </View>
         )}
-      </>
+      </ConditionalScrollView>
+      {isEligibilityModalVisible && (
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsEligibilityModalVisible(false)}
+              contentKey={'geo_block'}
+              testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
+            />
+          </Modal>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
