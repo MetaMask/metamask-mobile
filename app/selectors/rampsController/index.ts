@@ -5,11 +5,41 @@ import {
   type Provider,
   type Country,
   type PaymentMethodsResponse,
-  type RampsControllerState,
+  type PaymentMethod,
+  type QuotesResponse,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
-type TokensResponse = NonNullable<RampsControllerState['tokens']>;
+/**
+ * Generic type for resource state that bundles data with loading/error states.
+ */
+interface ResourceState<TData, TSelected = null> {
+  data: TData;
+  selected: TSelected;
+  isLoading: boolean;
+  error: string | null;
+}
+
+/**
+ * Token type from the ramps controller.
+ */
+interface RampsToken {
+  assetId: string;
+  chainId: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  iconUrl?: string;
+  tokenSupported: boolean;
+}
+
+/**
+ * Tokens response type from the ramps controller.
+ */
+interface TokensResponse {
+  topTokens: RampsToken[];
+  allTokens: RampsToken[];
+}
 
 /**
  * Selects the RampsController state from Redux.
@@ -20,68 +50,92 @@ export const selectRampsControllerState = (state: RootState) =>
   state.engine.backgroundState.RampsController;
 
 /**
- * Selects the user's region from state.
- * Returns UserRegion | null (UserRegion contains country, state, and regionCode).
+ * Default resource state for when the controller state is unavailable.
+ */
+const createDefaultResourceState = <TData, TSelected = null>(
+  data: TData,
+  selected: TSelected = null as TSelected,
+): ResourceState<TData, TSelected> => ({
+  data,
+  selected,
+  isLoading: false,
+  error: null,
+});
+
+/**
+ * Selects the user region resource state (data, isLoading, error).
+ * Note: Type assertions needed until core package is rebuilt in monorepo.
  */
 export const selectUserRegion = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.userRegion ?? null,
+  (rampsControllerState): ResourceState<UserRegion | null> =>
+    (rampsControllerState?.userRegion as unknown as ResourceState<UserRegion | null>) ??
+    createDefaultResourceState<UserRegion | null>(null),
 );
 
 /**
- * Selects the user's selected provider from state.
- */
-export const selectSelectedProvider = createSelector(
-  selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.selectedProvider ?? null,
-);
-
-/**
- * Selects the list of providers available for the current region.
- */
-export const selectProviders = createSelector(
-  selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.providers ?? [],
-);
-
-/**
- * Selects the tokens fetched for the current region and action.
- */
-export const selectTokens = createSelector(
-  selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.tokens ?? null,
-);
-
-/**
- * Selects the user's selected token from state.
- */
-export const selectSelectedToken = createSelector(
-  selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.selectedToken ?? null,
-);
-
-/**
- * Selects the list of countries available for ramp actions.
+ * Selects the countries resource state (data, isLoading, error).
  */
 export const selectCountries = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.countries ?? [],
+  (rampsControllerState): ResourceState<Country[]> =>
+    (rampsControllerState?.countries as unknown as ResourceState<Country[]>) ??
+    createDefaultResourceState<Country[]>([]),
 );
 
 /**
- * Selects the payment methods available for the current context.
+ * Selects the providers resource state (data, selected, isLoading, error).
+ */
+export const selectProviders = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): ResourceState<Provider[], Provider | null> =>
+    (rampsControllerState?.providers as unknown as ResourceState<
+      Provider[],
+      Provider | null
+    >) ?? createDefaultResourceState<Provider[], Provider | null>([], null),
+);
+
+/**
+ * Selects the tokens resource state (data, selected, isLoading, error).
+ */
+export const selectTokens = createSelector(
+  selectRampsControllerState,
+  (
+    rampsControllerState,
+  ): ResourceState<TokensResponse | null, RampsToken | null> =>
+    (rampsControllerState?.tokens as unknown as ResourceState<
+      TokensResponse | null,
+      RampsToken | null
+    >) ??
+    createDefaultResourceState<TokensResponse | null, RampsToken | null>(
+      null,
+      null,
+    ),
+);
+
+/**
+ * Selects the payment methods resource state (data, selected, isLoading, error).
  */
 export const selectPaymentMethods = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.paymentMethods ?? [],
+  (
+    rampsControllerState,
+  ): ResourceState<PaymentMethod[], PaymentMethod | null> =>
+    (rampsControllerState?.paymentMethods as unknown as ResourceState<
+      PaymentMethod[],
+      PaymentMethod | null
+    >) ??
+    createDefaultResourceState<PaymentMethod[], PaymentMethod | null>([], null),
 );
 
 /**
- * Selects the user's selected payment method from state.
+ * Selects the quotes resource state (data, isLoading, error).
  */
-export const selectSelectedPaymentMethod = createSelector(
+export const selectQuotes = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.selectedPaymentMethod ?? null,
+  (rampsControllerState): ResourceState<QuotesResponse | null> =>
+    (rampsControllerState?.quotes as unknown as ResourceState<QuotesResponse | null>) ??
+    createDefaultResourceState<QuotesResponse | null>(null),
 );
 
 /**
