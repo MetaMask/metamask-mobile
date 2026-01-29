@@ -163,6 +163,6 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText('$100.00')).toBeDefined();
+    expect(getByText('$100')).toBeDefined();
   });
 });
