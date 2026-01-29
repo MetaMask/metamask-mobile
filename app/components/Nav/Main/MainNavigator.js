@@ -1098,7 +1098,25 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
+      <Stack.Screen
+        name={Routes.EARN.ROOT}
+        component={EarnScreenStack}
+        options={{
+          headerShown: false,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
