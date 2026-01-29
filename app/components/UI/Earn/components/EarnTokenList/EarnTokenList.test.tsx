@@ -958,7 +958,7 @@ describe('EarnTokenList', () => {
         { state: initialState },
       );
 
-      const closeButton = getByTestId('button-icon');
+      const closeButton = getByTestId('earn-token-list-close-button');
 
       // Press the close button - this invokes handleClose which calls onCloseBottomSheet
       await act(async () => {
