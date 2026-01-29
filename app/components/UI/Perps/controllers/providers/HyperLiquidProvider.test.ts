@@ -4906,7 +4906,7 @@ describe('HyperLiquidProvider', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('handles builder fee approval failure', async () => {
+    it('handles builder fee approval failure (non-blocking)', async () => {
       // Mock builder fee not approved to trigger approval call
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -4933,8 +4933,11 @@ describe('HyperLiquidProvider', () => {
 
       const result = await provider.placeOrder(orderParams);
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Builder fee approval failed');
+      // PR #25334: Builder fee approval is now non-blocking (fire-and-forget)
+      // to prevent QR popup spam for hardware wallets.
+      // Order should proceed even if builder fee approval fails.
+      expect(result.success).toBe(true);
+      expect(result.orderId).toBeDefined();
     });
 
     it('handles referral code setup failure (non-blocking)', async () => {
