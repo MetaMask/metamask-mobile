@@ -28,7 +28,7 @@ function getTestElement(
 }
 
 /**
- * Class to interact with the Multichain Test DApp via the WebView
+ * Class to interact with the Tron Test DApp via the WebView
  */
 class TronTestDApp {
   get connectButtonSelector(): WebElement {
@@ -62,12 +62,6 @@ class TronTestDApp {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TronTestDappSelectorsWebIDs.WALLET_BUTTON,
       2,
-    );
-  }
-
-  get confirmTransactionButtonSelector(): WebElement {
-    return Matchers.getElementByID(
-      TronTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON,
     );
   }
 
@@ -148,41 +142,6 @@ class TronTestDApp {
           })
         ).getText(),
     };
-  }
-
-  getSendTrxTest() {
-    return {
-      signTransaction: async () => {
-        await this.tapButton(
-          getTestElement(dataTestIds.testPage.sendTRX.signTransaction, {
-            tag: 'button',
-          }),
-        );
-      },
-      sendTransaction: async () => {
-        await this.tapButton(
-          getTestElement(dataTestIds.testPage.sendTRX.sendTransaction, {
-            tag: 'button',
-          }),
-        );
-      },
-      getSignedTransaction: async () =>
-        (
-          await getTestElement(dataTestIds.testPage.sendTRX.signedTransaction, {
-            tag: 'pre',
-          })
-        ).getText(),
-      getTransactionHash: async () =>
-        (
-          await getTestElement(dataTestIds.testPage.sendTRX.transactionHash, {
-            tag: 'pre',
-          })
-        ).getText(),
-    };
-  }
-
-  async confirmTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmTransactionButtonSelector);
   }
 
   async confirmSignMessage(): Promise<void> {
