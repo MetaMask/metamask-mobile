@@ -26,6 +26,16 @@ import {
   createEmptyResult as createSelectTagsEmptyResult,
   outputAnalysis as outputSelectTagsAnalysis,
 } from '../modes/select-tags/handlers';
+import {
+  buildSystemPrompt as buildMissingTestSystemPrompt,
+  buildTaskPrompt as buildMissingTestTaskPrompt,
+} from '../modes/missing-test/prompt';
+import {
+  processAnalysis as processMissingTestAnalysis,
+  createConservativeResult as createMissingTestConservativeResult,
+  createEmptyResult as createMissingTestEmptyResult,
+  outputAnalysis as outputMissingTestAnalysis,
+} from '../modes/missing-test/handlers';
 
 /**
  * Mode Registry
@@ -44,16 +54,17 @@ export const MODES = {
     createEmptyResult: createSelectTagsEmptyResult,
     outputAnalysis: outputSelectTagsAnalysis,
   },
-  // Future modes (add imports and register here):
-  // 'suggest-migration': {
-  //   description: 'Identify E2E tests that could be unit/integration tests',
-  //   finalizeToolName: 'finalize_migration_suggestions',
-  //   taskPromptBuilder: buildMigrationTaskPrompt,
-  //   processAnalysis: migrationHandlers.processAnalysis,
-  //   createConservativeResult: migrationHandlers.createConservativeResult,
-  //   createEmptyResult: migrationHandlers.createEmptyResult,
-  //   outputAnalysis: migrationHandlers.outputAnalysis,
-  // },
+  'missing-test': {
+    description:
+      'Find missing E2E tests in the PR and suggest new tests to write',
+    finalizeToolName: 'finalize_missing_e2e_tests',
+    systemPromptBuilder: buildMissingTestSystemPrompt,
+    taskPromptBuilder: buildMissingTestTaskPrompt,
+    processAnalysis: processMissingTestAnalysis,
+    createConservativeResult: createMissingTestConservativeResult,
+    createEmptyResult: createMissingTestEmptyResult,
+    outputAnalysis: outputMissingTestAnalysis,
+  },
 };
 
 // Type aliases for mode keys and analysis results
@@ -185,7 +196,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
               return analysis as ModeAnalysisResult<M>;
             }
 
-            console.log('⚠️ Failed to parse finalize_tag_selection');
+            console.log(`⚠️ Failed to parse ${modeConfig.finalizeToolName}`);
             return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
           }
 

@@ -194,5 +194,22 @@ export function getToolDefinitions(): LLMTool[] {
         ],
       },
     },
+    {
+      name: 'finalize_missing_e2e_tests',
+      description:
+        'Submit suggested new E2E tests to write based on PR changes (file path, test name, brief scenario per suggestion)',
+      input_schema: {
+        type: 'object',
+        properties: {
+          test_suggestions: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'List of suggested new test cases (each: path, test name, brief scenario)',
+          },
+        },
+        required: ['test_suggestions'],
+      },
+    },
   ];
 }

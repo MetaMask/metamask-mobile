@@ -12,6 +12,7 @@ import { handleListDirectory } from './handlers/list-directory';
 import { handleGrepCodebase } from './handlers/grep-codebase';
 import { handleLoadSkill } from './handlers/load-skill';
 import { handleFinalizeTagSelection } from './handlers/finalize-tag-selection';
+import { handleFinalizeMissingE2eTests } from './handlers/finalize-missing-e2e-tests';
 
 /**
  * Tool execution context
@@ -56,6 +57,9 @@ export async function executeTool(
 
       case 'finalize_tag_selection':
         return handleFinalizeTagSelection(input);
+
+      case 'finalize_missing_e2e_tests':
+        return handleFinalizeMissingE2eTests(input);
 
       default:
         return `Unknown tool: ${toolName}`;

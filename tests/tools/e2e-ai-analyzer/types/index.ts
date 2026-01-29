@@ -27,8 +27,13 @@ export interface SelectTagsAnalysis {
   performanceTests: PerformanceTestSelection;
 }
 
+export interface MissingTestAnalysis {
+  test_suggestions: string[];
+}
+
 export interface ModeAnalysisTypes {
   'select-tags': SelectTagsAnalysis;
+  'missing-test': MissingTestAnalysis;
 }
 
 export interface ParsedArgs {
@@ -72,4 +77,7 @@ export interface ToolInput {
     selected_tags: string[];
     reasoning: string;
   };
+
+  // finalize_missing_e2e_tests (missing-test mode)
+  test_suggestions?: string[];
 }
