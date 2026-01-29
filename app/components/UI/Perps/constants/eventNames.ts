@@ -121,9 +121,6 @@ export const PerpsEventProperties = {
   // Balance properties
   HAS_PERP_BALANCE: 'has_perp_balance',
 
-  // Geo-blocking properties (TAT-2337: track geo-blocked withdrawals for monitoring)
-  IS_GEO_BLOCKED: 'is_geo_blocked',
-
   // TP/SL differentiation properties
   HAS_TAKE_PROFIT: 'has_take_profit',
   HAS_STOP_LOSS: 'has_stop_loss',
@@ -416,9 +413,6 @@ export const PerpsEventValues = {
     MAGNIFYING_GLASS: 'magnifying_glass',
     CRYPTO: 'crypto',
     STOCKS: 'stocks',
-    COMMODITIES: 'commodities',
-    FOREX: 'forex',
-    NEW: 'new',
     GIVE_FEEDBACK: 'give_feedback',
   },
   BUTTON_LOCATION: {

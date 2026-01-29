@@ -23,7 +23,6 @@ import type {
   SeasonMetadataDto,
   SeasonStateDto,
   LineaTokenRewardDto,
-  ApplyReferralDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -185,11 +184,6 @@ export interface RewardsDataServiceGetSeasonOneLineaRewardTokensAction {
   handler: RewardsDataService['getSeasonOneLineaRewardTokens'];
 }
 
-export interface RewardsDataServiceApplyReferralCodeAction {
-  type: `${typeof SERVICE_NAME}:applyReferralCode`;
-  handler: RewardsDataService['applyReferralCode'];
-}
-
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -210,8 +204,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceClaimRewardAction
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction
-  | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
-  | RewardsDataServiceApplyReferralCodeAction;
+  | RewardsDataServiceGetSeasonOneLineaRewardTokensAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -333,10 +326,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonOneLineaRewardTokens`,
       this.getSeasonOneLineaRewardTokens.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:applyReferralCode`,
-      this.applyReferralCode.bind(this),
     );
   }
 
@@ -492,14 +481,10 @@ export class RewardsDataService {
   async getPointsEvents(
     params: GetPointsEventsDto,
   ): Promise<PaginatedPointsEventsDto> {
-    const { seasonId, subscriptionId, cursor, type } = params;
-
-    const queryParams: string[] = [];
-    if (cursor) queryParams.push(`cursor=${encodeURIComponent(cursor)}`);
-    if (type) queryParams.push(`type=${encodeURIComponent(type)}`);
+    const { seasonId, subscriptionId, cursor } = params;
 
     let url = `/seasons/${seasonId}/points-events`;
-    if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
+    if (cursor) url += `?cursor=${encodeURIComponent(cursor)}`;
 
     const response = await this.makeRequest(
       url,
@@ -721,8 +706,8 @@ export class RewardsDataService {
     if (!response.ok) {
       throw new Error(`Get referral details failed: ${response.status}`);
     }
-    const data = await response.json();
-    return data as SubscriptionSeasonReferralDetailsDto;
+
+    return (await response.json()) as SubscriptionSeasonReferralDetailsDto;
   }
 
   /**
@@ -1059,39 +1044,5 @@ export class RewardsDataService {
       subscriptionId: data.subscriptionId,
       amount: String(data.amount),
     } as LineaTokenRewardDto;
-  }
-
-  /**
-   * Apply a referral code to an existing subscription.
-   * @param dto - The apply referral request body containing the referral code.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns Promise that resolves when the referral code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyReferralCode(
-    dto: ApplyReferralDto,
-    subscriptionId: string,
-  ): Promise<void> {
-    const response = await this.makeRequest(
-      '/wr/subscriptions/apply-referral',
-      {
-        method: 'POST',
-        body: JSON.stringify(dto),
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      // Handle 204 No Content as success (already handled by response.ok)
-      if (response.status === 204) {
-        return;
-      }
-
-      const errorData = await response.json();
-      const errorMessage =
-        errorData?.message || `Apply referral code failed: ${response.status}`;
-
-      throw new Error(errorMessage);
-    }
   }
 }

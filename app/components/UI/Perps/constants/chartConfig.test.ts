@@ -11,12 +11,12 @@ describe('chartConfig', () => {
   describe('getCandlePeriodsForDuration', () => {
     it('returns correct periods for one hour duration', () => {
       // Act
-      const periods = getCandlePeriodsForDuration(TimeDuration.OneHour);
+      const periods = getCandlePeriodsForDuration(TimeDuration.ONE_HOUR);
 
       // Assert
       expect(periods).toHaveLength(4);
-      expect(periods[0]?.value).toBe(CandlePeriod.OneMinute);
-      expect(periods[1]?.value).toBe(CandlePeriod.ThreeMinutes);
+      expect(periods[0]?.value).toBe(CandlePeriod.ONE_MINUTE);
+      expect(periods[1]?.value).toBe(CandlePeriod.THREE_MINUTES);
     });
 
     it('returns empty array for unknown duration', () => {
@@ -32,11 +32,11 @@ describe('chartConfig', () => {
     it('returns correct default for one day duration', () => {
       // Act
       const defaultPeriod = getDefaultCandlePeriodForDuration(
-        TimeDuration.OneDay,
+        TimeDuration.ONE_DAY,
       );
 
       // Assert
-      expect(defaultPeriod).toBe(CandlePeriod.OneHour);
+      expect(defaultPeriod).toBe(CandlePeriod.ONE_HOUR);
     });
 
     it('returns fallback for unknown duration', () => {
@@ -44,7 +44,7 @@ describe('chartConfig', () => {
       const defaultPeriod = getDefaultCandlePeriodForDuration('unknown');
 
       // Assert
-      expect(defaultPeriod).toBe(CandlePeriod.OneHour);
+      expect(defaultPeriod).toBe(CandlePeriod.ONE_HOUR);
     });
   });
 
@@ -52,8 +52,8 @@ describe('chartConfig', () => {
     it('calculates correct count for one hour with one minute periods', () => {
       // Act
       const count = calculateCandleCount(
-        TimeDuration.OneHour,
-        CandlePeriod.OneMinute,
+        TimeDuration.ONE_HOUR,
+        CandlePeriod.ONE_MINUTE,
       );
 
       // Assert
@@ -63,8 +63,8 @@ describe('chartConfig', () => {
     it('calculates correct count for one day with one hour periods', () => {
       // Act
       const count = calculateCandleCount(
-        TimeDuration.OneDay,
-        CandlePeriod.OneHour,
+        TimeDuration.ONE_DAY,
+        CandlePeriod.ONE_HOUR,
       );
 
       // Assert
@@ -74,8 +74,8 @@ describe('chartConfig', () => {
     it('caps at maximum candle count', () => {
       // Act
       const count = calculateCandleCount(
-        TimeDuration.Max,
-        CandlePeriod.OneMinute,
+        TimeDuration.MAX,
+        CandlePeriod.ONE_MINUTE,
       );
 
       // Assert
@@ -85,8 +85,8 @@ describe('chartConfig', () => {
     it('enforces minimum candle count', () => {
       // Act
       const count = calculateCandleCount(
-        TimeDuration.OneHour,
-        CandlePeriod.OneMonth,
+        TimeDuration.ONE_HOUR,
+        CandlePeriod.ONE_MONTH,
       );
 
       // Assert

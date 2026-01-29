@@ -66,14 +66,6 @@ export interface MobileOptinDto {
   referralCode?: string;
 }
 
-export interface ApplyReferralDto {
-  /**
-   * The referral code to apply
-   * @example 'ABC123'
-   */
-  referralCode: string;
-}
-
 export interface EstimateAssetDto {
   /**
    * Asset identifier in CAIP-19 format
@@ -184,23 +176,18 @@ export type PointsEventEarnType =
   | 'REFERRAL'
   | 'SIGN_UP_BONUS'
   | 'LOYALTY_BONUS'
-  | 'ONE_TIME_BONUS'
-  | 'CARD'
-  | 'MUSD_DEPOSIT'
-  | 'SHIELD';
+  | 'ONE_TIME_BONUS';
 
 export interface GetPointsEventsDto {
   seasonId: string;
   subscriptionId: string;
   cursor: string | null;
   forceFresh?: boolean;
-  type?: PointsEventEarnType;
 }
 
 export interface GetPointsEventsLastUpdatedDto {
   seasonId: string;
   subscriptionId: string;
-  type?: PointsEventEarnType;
 }
 
 /**
@@ -511,7 +498,6 @@ export interface SeasonStatusDto {
 export interface SubscriptionSeasonReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
-  referredByCode: string;
   referralPoints: number;
 }
 
@@ -587,7 +573,6 @@ export interface ClaimRewardDto {
 export type SubscriptionSeasonReferralDetailState = {
   referralCode: string;
   totalReferees: number;
-  referredByCode: string;
   referralPoints: number;
   lastFetched?: number;
 };
@@ -1071,14 +1056,6 @@ export interface RewardsControllerResetAllAction {
 }
 
 /**
- * Action for applying a referral code to an existing subscription
- */
-export interface RewardsControllerApplyReferralCodeAction {
-  type: 'RewardsController:applyReferralCode';
-  handler: (referralCode: string, subscriptionId: string) => Promise<void>;
-}
-
-/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1108,8 +1085,7 @@ export type RewardsControllerActions =
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
-  | RewardsControllerResetAllAction
-  | RewardsControllerApplyReferralCodeAction;
+  | RewardsControllerResetAllAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

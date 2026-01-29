@@ -77,10 +77,6 @@ describe('useGetUserKYCStatus', () => {
     expect(result.current.kycStatus).toEqual({
       verificationState: 'VERIFIED',
       userId: 'user-123',
-      userDetails: {
-        id: 'user-123',
-        verificationState: 'VERIFIED',
-      },
     });
     expect(result.current.error).toBeNull();
   });
@@ -217,9 +213,6 @@ describe('useGetUserKYCStatus', () => {
     expect(result.current.kycStatus).toEqual({
       verificationState: null,
       userId: 'user-123',
-      userDetails: {
-        id: 'user-123',
-      },
     });
   });
 });

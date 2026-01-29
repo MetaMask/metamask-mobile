@@ -327,7 +327,7 @@ export function usePerpsTPSLForm(
       if (parts.length > 2) return;
       // Allow erasing but prevent adding when there are more than MAX_PRICE_DECIMALS decimal places
       if (
-        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MaxPriceDecimals &&
+        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
         sanitized.length >= takeProfitPrice.length
       )
         return;
@@ -382,7 +382,7 @@ export function usePerpsTPSLForm(
       const finalValue = sanitizePercentageInput(
         text,
         takeProfitPercentage,
-        DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
       );
       if (finalValue === null) return; // Invalid input, don't update state
 
@@ -434,7 +434,7 @@ export function usePerpsTPSLForm(
       if (parts.length > 2) return;
       // Allow erasing but prevent adding when there are more than MAX_PRICE_DECIMALS decimal places
       if (
-        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MaxPriceDecimals &&
+        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
         sanitized.length >= stopLossPrice.length
       )
         return;
@@ -490,7 +490,7 @@ export function usePerpsTPSLForm(
       const finalValue = sanitizePercentageInput(
         text,
         stopLossPercentage,
-        DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
       );
       if (finalValue === null) return; // Invalid input, don't update state
 

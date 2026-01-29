@@ -1,7 +1,10 @@
 import { type AppThemeKey } from '../../util/theme/models';
 import {
+  type InterruptBiometricsAction,
   type LockAppAction,
   type CheckForDeeplinkAction,
+  type AuthSuccessAction,
+  type AuthErrorAction,
   type PasswordSetAction,
   type PasswordUnsetAction,
   type SeedphraseBackedUpAction,
@@ -29,6 +32,12 @@ import {
 
 export * from './types';
 
+export function interruptBiometrics(): InterruptBiometricsAction {
+  return {
+    type: UserActionType.INTERRUPT_BIOMETRICS,
+  };
+}
+
 export function lockApp(): LockAppAction {
   return {
     type: UserActionType.LOCKED_APP,
@@ -38,6 +47,20 @@ export function lockApp(): LockAppAction {
 export function checkForDeeplink(): CheckForDeeplinkAction {
   return {
     type: UserActionType.CHECK_FOR_DEEPLINK,
+  };
+}
+
+export function authSuccess(bioStateMachineId?: string): AuthSuccessAction {
+  return {
+    type: UserActionType.AUTH_SUCCESS,
+    payload: { bioStateMachineId },
+  };
+}
+
+export function authError(bioStateMachineId?: string): AuthErrorAction {
+  return {
+    type: UserActionType.AUTH_ERROR,
+    payload: { bioStateMachineId },
   };
 }
 

@@ -3,19 +3,25 @@ import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { generateTransferData } from '../../../../util/transactions';
+import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { TransactionType } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
-import { trace, TraceName, TraceOperation } from '../../../../util/trace';
-import { createMusdConversionTransaction } from '../utils/musdConversionTransaction';
 
 /**
  * Configuration for mUSD conversion
  */
 export interface MusdConversionConfig {
+  /**
+   * The chain ID of the mUSD token to convert to.
+   */
+  outputChainId: Hex;
   /**
    * The payment token to prefill in the confirmation screen
    */
@@ -46,6 +52,7 @@ export interface MusdConversionConfig {
  * const { initiateConversion } = useMusdConversion();
  *
  * await initiateConversion({
+ *   outputChainId: CHAIN_IDS.MAINNET,
  *   preferredPaymentToken: {
  *     address: USDC_ADDRESS_MAINNET,
  *     chainId: CHAIN_IDS.MAINNET,
@@ -69,23 +76,16 @@ export const useMusdConversion = () => {
 
   const navigateToConversionScreen = useCallback(
     ({
+      outputChainId,
       preferredPaymentToken,
       navigationStack = Routes.EARN.ROOT,
     }: MusdConversionConfig) => {
-      // Start trace for navigation to conversion screen
-      trace({
-        name: TraceName.MusdConversionNavigation,
-        op: TraceOperation.MusdConversionOperation,
-        tags: {
-          paymentTokenChainId: preferredPaymentToken.chainId,
-        },
-      });
-
       navigation.navigate(navigationStack, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken,
+          outputChainId,
         },
       });
     },
@@ -102,13 +102,17 @@ export const useMusdConversion = () => {
         return false;
       }
 
-      const { preferredPaymentToken, navigationStack = Routes.EARN.ROOT } =
-        config;
+      const {
+        outputChainId,
+        preferredPaymentToken,
+        navigationStack = Routes.EARN.ROOT,
+      } = config;
 
       navigation.navigate(navigationStack, {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken,
+          outputChainId,
         },
       });
 
@@ -129,13 +133,15 @@ export const useMusdConversion = () => {
         return;
       }
 
-      const { preferredPaymentToken } = config;
+      const { outputChainId, preferredPaymentToken } = config;
 
       try {
         setError(null);
 
-        if (!preferredPaymentToken) {
-          throw new Error('Preferred payment token is required');
+        if (!outputChainId || !preferredPaymentToken) {
+          throw new Error(
+            'Output chain ID and preferred payment token are required',
+          );
         }
 
         if (!selectedAddress) {
@@ -143,13 +149,12 @@ export const useMusdConversion = () => {
         }
 
         const { NetworkController } = Engine.context;
-        const networkClientId = NetworkController.findNetworkClientIdByChainId(
-          preferredPaymentToken.chainId,
-        );
+        const networkClientId =
+          NetworkController.findNetworkClientIdByChainId(outputChainId);
 
         if (!networkClientId) {
           throw new Error(
-            `Network client not found for chain ID: ${preferredPaymentToken.chainId}`,
+            `Network client not found for chain ID: ${outputChainId}`,
           );
         }
 
@@ -163,17 +168,47 @@ export const useMusdConversion = () => {
         try {
           const ZERO_HEX_VALUE = '0x0';
 
-          const selectedAddressHex = selectedAddress as Hex;
-
-          const { transactionId } = await createMusdConversionTransaction({
-            chainId: preferredPaymentToken.chainId,
-            fromAddress: selectedAddressHex,
-            recipientAddress: selectedAddressHex,
-            amountHex: ZERO_HEX_VALUE,
-            networkClientId,
+          /**
+           * Create minimal transfer data with amount = 0
+           * The actual amount will be set by the user on the confirmation screen
+           */
+          const transferData = generateTransferData('transfer', {
+            toAddress: selectedAddress,
+            amount: ZERO_HEX_VALUE,
           });
 
-          return transactionId;
+          const { TransactionController } = Engine.context;
+
+          const mUSDTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[outputChainId];
+
+          if (!mUSDTokenAddress) {
+            throw new Error(
+              `mUSD token address not found for chain ID: ${outputChainId}`,
+            );
+          }
+
+          const { transactionMeta } =
+            await TransactionController.addTransaction(
+              {
+                to: mUSDTokenAddress,
+                from: selectedAddress,
+                data: transferData,
+                value: ZERO_HEX_VALUE,
+                chainId: outputChainId,
+              },
+              {
+                /**
+                 * Calculate gas estimate asynchronously.
+                 * Enabling this reduces our first paint time on the mUSD conversion screen by ~500ms.
+                 */
+                skipInitialGasEstimate: true,
+                networkClientId,
+                origin: MMM_ORIGIN,
+                type: TransactionType.musdConversion,
+              },
+            );
+
+          return transactionMeta.id;
         } catch (err) {
           // Prevent the user from being stuck on the confirmation screen without a transaction.
           navigation.goBack();

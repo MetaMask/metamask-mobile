@@ -3,7 +3,10 @@ import { StyleSheet, ScrollView } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -30,6 +33,15 @@ export interface TrendingTokenNetworkBottomSheetProps {
   onNetworkSelect?: (chainIds: CaipChainId[] | null) => void;
   selectedNetwork?: CaipChainId[] | null;
 }
+
+const closeButtonStyle = StyleSheet.create({
+  closeButton: {
+    width: 24,
+    height: 24,
+    flexShrink: 0,
+    marginTop: -12,
+  },
+});
 
 const TrendingTokenNetworkBottomSheet: React.FC<
   TrendingTokenNetworkBottomSheetProps
@@ -63,7 +75,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
 
   const optionStyles = StyleSheet.create({
     optionsList: {
-      paddingBottom: 16,
+      paddingBottom: 32,
     },
   });
 
@@ -117,11 +129,14 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       ref={sheetRef}
       onClose={handleSheetClose}
     >
-      <HeaderCenter
-        title={strings('trending.networks')}
+      <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: 'close-button' }}
-      />
+        closeButtonProps={{ style: closeButtonStyle.closeButton }}
+      >
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('trending.networks')}
+        </Text>
+      </BottomSheetHeader>
       <ScrollView style={optionStyles.optionsList}>
         <Cell
           variant={CellVariant.Select}

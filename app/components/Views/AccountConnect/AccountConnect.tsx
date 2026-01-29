@@ -79,7 +79,10 @@ import {
   getRequestedCaip25CaveatValue,
   getDefaultSelectedChainIds,
 } from './utils';
-import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
+import {
+  getPhishingTestResultAsync,
+  isProductSafetyDappScanningEnabled,
+} from '../../../util/phishingDetection';
 import {
   CaipAccountId,
   CaipChainId,
@@ -327,7 +330,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     let url = dappUrl || channelIdOrHostname || '';
 
     const checkOrigin = async () => {
-      if (!isSnapId(url)) {
+      if (isProductSafetyDappScanningEnabled() && !isSnapId(url)) {
         url = prefixUrlWithProtocol(url);
       }
       const scanResult = await getPhishingTestResultAsync(url);

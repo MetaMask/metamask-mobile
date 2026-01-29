@@ -54,11 +54,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       gap: 8,
     },
-    balanceRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
   });
 };
 

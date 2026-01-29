@@ -45,7 +45,7 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
     if (!showTimeout) {
       const timer = setTimeout(() => {
         setShowTimeout(true);
-      }, PERPS_CONSTANTS.ConnectionTimeoutMs);
+      }, PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS);
 
       return () => clearTimeout(timer);
     }

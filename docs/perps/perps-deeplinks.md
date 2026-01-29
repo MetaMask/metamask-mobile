@@ -42,26 +42,20 @@ Navigate directly to the PerpsHomeView (landing page with positions, orders, wat
 
 Navigate directly to the PerpsMarketListView with optional category filtering.
 
-| URL                                                                 | Description            |
-| ------------------------------------------------------------------- | ---------------------- |
-| `https://link.metamask.io/perps?screen=market-list`                 | All markets            |
-| `https://link.metamask.io/perps?screen=market-list&tab=all`         | All markets (explicit) |
-| `https://link.metamask.io/perps?screen=market-list&tab=crypto`      | Crypto markets only    |
-| `https://link.metamask.io/perps?screen=market-list&tab=stocks`      | Stocks/equities (HIP3) |
-| `https://link.metamask.io/perps?screen=market-list&tab=commodities` | Commodities (HIP3)     |
-| `https://link.metamask.io/perps?screen=market-list&tab=forex`       | Forex (HIP3)           |
-| `https://link.metamask.io/perps?screen=market-list&tab=new`         | Uncategorized HIP3     |
+| URL                                                            | Description                 |
+| -------------------------------------------------------------- | --------------------------- |
+| `https://link.metamask.io/perps?screen=market-list`            | All markets                 |
+| `https://link.metamask.io/perps?screen=market-list&tab=all`    | All markets (explicit)      |
+| `https://link.metamask.io/perps?screen=market-list&tab=crypto` | Crypto markets only         |
+| `https://link.metamask.io/perps?screen=market-list&tab=stocks` | Stocks & commodities (HIP3) |
 
 #### Tab Parameter Values
 
-| Value         | Description                                            | Internal Filter |
-| ------------- | ------------------------------------------------------ | --------------- |
-| `all`         | All markets (crypto + stocks + commodities + forex)    | `'all'`         |
-| `crypto`      | Crypto-only markets (non-HIP3)                         | `'crypto'`      |
-| `stocks`      | Stocks/equities (HIP3 markets)                         | `'stocks'`      |
-| `commodities` | Commodities (HIP3 markets)                             | `'commodities'` |
-| `forex`       | Forex pairs (HIP3 markets)                             | `'forex'`       |
-| `new`         | Uncategorized HIP3 markets (not yet assigned category) | `'new'`         |
+| Value    | Description                                 | Internal Filter            |
+| -------- | ------------------------------------------- | -------------------------- |
+| `all`    | All markets (crypto + stocks + commodities) | `'all'`                    |
+| `crypto` | Crypto-only markets                         | `'crypto'`                 |
+| `stocks` | Stocks and commodities (HIP3 markets)       | `'stocks_and_commodities'` |
 
 ### 4. Asset Details
 
@@ -156,9 +150,6 @@ xcrun simctl openurl booted "https://link.metamask.io/perps?screen=home"
 xcrun simctl openurl booted "https://link.metamask.io/perps?screen=market-list"
 xcrun simctl openurl booted "https://link.metamask.io/perps?screen=market-list&tab=crypto"
 xcrun simctl openurl booted "https://link.metamask.io/perps?screen=market-list&tab=stocks"
-xcrun simctl openurl booted "https://link.metamask.io/perps?screen=market-list&tab=commodities"
-xcrun simctl openurl booted "https://link.metamask.io/perps?screen=market-list&tab=forex"
-xcrun simctl openurl booted "https://link.metamask.io/perps?screen=market-list&tab=new"
 
 # Asset details (crypto)
 xcrun simctl openurl booted "https://link.metamask.io/perps?screen=asset&symbol=BTC"
@@ -180,9 +171,6 @@ adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io
 adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io/perps?screen=market-list"
 adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io/perps?screen=market-list&tab=crypto"
 adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io/perps?screen=market-list&tab=stocks"
-adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io/perps?screen=market-list&tab=commodities"
-adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io/perps?screen=market-list&tab=forex"
-adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io/perps?screen=market-list&tab=new"
 
 # Asset details (crypto)
 adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io/perps?screen=asset&symbol=BTC"

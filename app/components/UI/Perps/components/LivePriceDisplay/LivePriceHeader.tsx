@@ -72,7 +72,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   const formattedPrice = useMemo(() => {
     // Handle invalid or edge case values
     if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
 
     try {
@@ -81,24 +81,24 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
       });
     } catch {
       // Fallback if formatPrice throws
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
   }, [currentPrice]);
 
   const formattedChange = useMemo(() => {
     // If displayChange is null, we're still loading - show loading indicator
     if (displayChange === null) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
     }
 
     if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
     }
 
     try {
       return formatPercentage(displayChange.toString());
     } catch {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
     }
   }, [currentPrice, displayChange]);
 

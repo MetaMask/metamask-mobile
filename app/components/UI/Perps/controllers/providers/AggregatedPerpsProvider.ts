@@ -1,7 +1,7 @@
 /**
  * AggregatedPerpsProvider - Multi-provider aggregation wrapper
  *
- * Implements PerpsProvider interface to enable seamless multi-provider support.
+ * Implements IPerpsProvider interface to enable seamless multi-provider support.
  * Aggregates read operations from all providers, routes write operations to specific
  * providers based on params.providerId or default provider.
  *
@@ -40,13 +40,12 @@ import type {
   GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
-  GetOrFetchFillsParams,
   GetPositionsParams,
   GetSupportedPathsParams,
   HistoricalPortfolioResult,
   InitializeResult,
-  PerpsPlatformDependencies,
-  PerpsProvider,
+  IPerpsPlatformDependencies,
+  IPerpsProvider,
   LiquidationPriceParams,
   LiveDataConfig,
   MaintenanceMarginParams,
@@ -80,7 +79,7 @@ import { ProviderRouter } from '../routing/ProviderRouter';
 import { SubscriptionMultiplexer } from '../aggregation/SubscriptionMultiplexer';
 
 /**
- * AggregatedPerpsProvider implements PerpsProvider by coordinating
+ * AggregatedPerpsProvider implements IPerpsProvider by coordinating
  * multiple backend providers.
  *
  * Design principles:
@@ -107,13 +106,13 @@ import { SubscriptionMultiplexer } from '../aggregation/SubscriptionMultiplexer'
  * await aggregated.placeOrder({ symbol: 'BTC', providerId: 'myx', ... });
  * ```
  */
-export class AggregatedPerpsProvider implements PerpsProvider {
+export class AggregatedPerpsProvider implements IPerpsProvider {
   readonly protocolId = 'aggregated';
 
-  private readonly providers: Map<PerpsProviderType, PerpsProvider>;
+  private readonly providers: Map<PerpsProviderType, IPerpsProvider>;
   private readonly defaultProvider: PerpsProviderType;
   private readonly aggregationMode: AggregationMode;
-  private readonly deps: PerpsPlatformDependencies;
+  private readonly deps: IPerpsPlatformDependencies;
   private readonly router: ProviderRouter;
   private readonly subscriptionMux: SubscriptionMultiplexer;
 
@@ -148,7 +147,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
    * Get list of active providers as tuples for iteration.
    * Returns array of [providerId, provider] pairs.
    */
-  private getActiveProviders(): [PerpsProviderType, PerpsProvider][] {
+  private getActiveProviders(): [PerpsProviderType, IPerpsProvider][] {
     return Array.from(this.providers.entries());
   }
 
@@ -156,7 +155,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
    * Get the default provider instance.
    * Throws if default provider is not available.
    */
-  private getDefaultProvider(): PerpsProvider {
+  private getDefaultProvider(): IPerpsProvider {
     const provider = this.providers.get(this.defaultProvider);
     if (!provider) {
       throw new Error(
@@ -171,7 +170,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
    */
   private getProviderOrDefault(
     providerId?: PerpsProviderType,
-  ): [PerpsProviderType, PerpsProvider] {
+  ): [PerpsProviderType, IPerpsProvider] {
     const id = providerId ?? this.defaultProvider;
     const provider = this.providers.get(id);
     if (!provider) {
@@ -186,16 +185,12 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   /**
    * Extract successful results from Promise.allSettled.
    * Logs errors for failed promises.
-   *
-   * @param results - Results from Promise.allSettled
-   * @param context - Context string for logging
-   * @returns Array of successful values
    */
-  private extractSuccessfulResults<TResult>(
-    results: PromiseSettledResult<TResult>[],
+  private extractSuccessfulResults<T>(
+    results: PromiseSettledResult<T>[],
     context: string,
-  ): TResult[] {
-    const successful: TResult[] = [];
+  ): T[] {
+    const successful: T[] = [];
     results.forEach((result, index) => {
       if (result.status === 'fulfilled') {
         successful.push(result.value);
@@ -229,7 +224,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const positions = await provider.getPositions(params);
-        return positions.map((pos) => ({ ...pos, providerId: id }));
+        return positions.map((p) => ({ ...p, providerId: id }));
       }),
     );
 
@@ -247,7 +242,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const markets = await provider.getMarkets(params);
-        return markets.map((market) => ({ ...market, providerId: id }));
+        return markets.map((m) => ({ ...m, providerId: id }));
       }),
     );
 
@@ -273,7 +268,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const data = await provider.getMarketDataWithPrices();
-        return data.map((item) => ({ ...item, providerId: id }));
+        return data.map((d) => ({ ...d, providerId: id }));
       }),
     );
 
@@ -287,29 +282,18 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const fills = await provider.getOrderFills(params);
-        return fills.map((fill) => ({ ...fill, providerId: id }));
+        return fills.map((f) => ({ ...f, providerId: id }));
       }),
     );
 
     return this.extractSuccessfulResults(results, 'getOrderFills').flat();
   }
 
-  async getOrFetchFills(params?: GetOrFetchFillsParams): Promise<OrderFill[]> {
-    const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([id, provider]) => {
-        const fills = await provider.getOrFetchFills(params);
-        return fills.map((fill) => ({ ...fill, providerId: id }));
-      }),
-    );
-
-    return this.extractSuccessfulResults(results, 'getOrFetchFills').flat();
-  }
-
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const orders = await provider.getOrders(params);
-        return orders.map((order) => ({ ...order, providerId: id }));
+        return orders.map((o) => ({ ...o, providerId: id }));
       }),
     );
 
@@ -320,7 +304,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const orders = await provider.getOpenOrders(params);
-        return orders.map((order) => ({ ...order, providerId: id }));
+        return orders.map((o) => ({ ...o, providerId: id }));
       }),
     );
 
@@ -346,15 +330,6 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     return this.getDefaultProvider().getHistoricalPortfolio(params);
   }
 
-  /**
-   * Get user non-funding ledger updates from default provider.
-   *
-   * @param params - Optional parameters
-   * @param params.accountId - Account ID to filter by
-   * @param params.startTime - Start time filter
-   * @param params.endTime - End time filter
-   * @returns Raw ledger updates
-   */
   async getUserNonFundingLedgerUpdates(params?: {
     accountId?: string;
     startTime?: number;
@@ -364,15 +339,6 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     return this.getDefaultProvider().getUserNonFundingLedgerUpdates(params);
   }
 
-  /**
-   * Get user history from all providers.
-   *
-   * @param params - Optional parameters
-   * @param params.accountId - Account ID to filter by
-   * @param params.startTime - Start time filter
-   * @param params.endTime - End time filter
-   * @returns Aggregated user history with providerId
-   */
   async getUserHistory(params?: {
     accountId?: CaipAccountId;
     startTime?: number;
@@ -430,9 +396,9 @@ export class AggregatedPerpsProvider implements PerpsProvider {
         success: false,
         successCount: 0,
         failureCount: params.length,
-        results: params.map((param) => ({
-          orderId: param.orderId,
-          symbol: param.symbol,
+        results: params.map((p) => ({
+          orderId: p.orderId,
+          symbol: p.symbol,
           success: false,
           error: 'Batch cancel not supported',
         })),
@@ -645,7 +611,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
 
     // Return success if at least one succeeded
     const successCount = results.filter(
-      (res) => res.status === 'fulfilled' && res.value.success,
+      (r) => r.status === 'fulfilled' && r.value.success,
     ).length;
 
     return {
@@ -687,7 +653,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
    * @param providerId - Unique identifier for the provider
    * @param provider - Provider instance
    */
-  addProvider(providerId: PerpsProviderType, provider: PerpsProvider): void {
+  addProvider(providerId: PerpsProviderType, provider: IPerpsProvider): void {
     this.providers.set(providerId, provider);
     this.deps.debugLogger.log('[AggregatedPerpsProvider] Provider added', {
       providerId,

@@ -10,8 +10,8 @@
 
 import type {
   PerpsProviderType,
-  PerpsProvider,
-  PerpsLogger,
+  IPerpsProvider,
+  IPerpsLogger,
   PriceUpdate,
   Position,
   OrderFill,
@@ -31,7 +31,7 @@ import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
  */
 export interface SubscriptionMultiplexerOptions {
   /** Optional logger for error reporting (e.g., Sentry) */
-  logger?: PerpsLogger;
+  logger?: IPerpsLogger;
 }
 
 /**
@@ -46,7 +46,7 @@ export interface MultiplexedPricesParams {
   /** Symbols to subscribe to */
   symbols: string[];
   /** Provider instances to subscribe through */
-  providers: [PerpsProviderType, PerpsProvider][];
+  providers: [PerpsProviderType, IPerpsProvider][];
   /** Callback to receive aggregated price updates */
   callback: (prices: PriceUpdate[]) => void;
   /** Aggregation mode: 'merge' returns all prices, 'best_price' returns best per symbol */
@@ -64,7 +64,7 @@ export interface MultiplexedPricesParams {
  */
 export interface MultiplexedPositionsParams {
   /** Provider instances to subscribe through */
-  providers: [PerpsProviderType, PerpsProvider][];
+  providers: [PerpsProviderType, IPerpsProvider][];
   /** Callback to receive aggregated position updates */
   callback: (positions: Position[]) => void;
 }
@@ -74,7 +74,7 @@ export interface MultiplexedPositionsParams {
  */
 export interface MultiplexedOrderFillsParams {
   /** Provider instances to subscribe through */
-  providers: [PerpsProviderType, PerpsProvider][];
+  providers: [PerpsProviderType, IPerpsProvider][];
   /** Callback to receive aggregated order fill updates */
   callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
 }
@@ -84,7 +84,7 @@ export interface MultiplexedOrderFillsParams {
  */
 export interface MultiplexedOrdersParams {
   /** Provider instances to subscribe through */
-  providers: [PerpsProviderType, PerpsProvider][];
+  providers: [PerpsProviderType, IPerpsProvider][];
   /** Callback to receive aggregated order updates */
   callback: (orders: Order[]) => void;
 }
@@ -94,7 +94,7 @@ export interface MultiplexedOrdersParams {
  */
 export interface MultiplexedAccountParams {
   /** Provider instances to subscribe through */
-  providers: [PerpsProviderType, PerpsProvider][];
+  providers: [PerpsProviderType, IPerpsProvider][];
   /** Callback to receive account updates (one per provider) */
   callback: (accounts: AccountState[]) => void;
 }
@@ -134,7 +134,7 @@ export class SubscriptionMultiplexer {
   /**
    * Optional logger for error reporting
    */
-  private readonly logger?: PerpsLogger;
+  private readonly logger?: IPerpsLogger;
 
   /**
    * Cache of latest prices per symbol per provider
@@ -228,7 +228,7 @@ export class SubscriptionMultiplexer {
         // Log to Sentry before cleanup
         this.logger?.error(ensureError(error), {
           tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
             provider: providerId,
             method: 'subscribeToPrices',
           },
@@ -269,8 +269,8 @@ export class SubscriptionMultiplexer {
         const subscribeParams: SubscribePositionsParams = {
           callback: (positions) => {
             // Tag positions with providerId and cache
-            const taggedPositions = positions.map((pos) => ({
-              ...pos,
+            const taggedPositions = positions.map((p) => ({
+              ...p,
               providerId,
             }));
             this.positionCache.set(providerId, taggedPositions);
@@ -286,7 +286,7 @@ export class SubscriptionMultiplexer {
       } catch (error) {
         this.logger?.error(ensureError(error), {
           tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
             provider: providerId,
             method: 'subscribeToPositions',
           },
@@ -324,8 +324,8 @@ export class SubscriptionMultiplexer {
         const subscribeParams: SubscribeOrderFillsParams = {
           callback: (fills, isSnapshot) => {
             // Tag fills with providerId
-            const taggedFills = fills.map((fill) => ({
-              ...fill,
+            const taggedFills = fills.map((f) => ({
+              ...f,
               providerId,
             }));
 
@@ -339,7 +339,7 @@ export class SubscriptionMultiplexer {
       } catch (error) {
         this.logger?.error(ensureError(error), {
           tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
             provider: providerId,
             method: 'subscribeToOrderFills',
           },
@@ -373,8 +373,8 @@ export class SubscriptionMultiplexer {
         const subscribeParams: SubscribeOrdersParams = {
           callback: (orders) => {
             // Tag orders with providerId and cache
-            const taggedOrders = orders.map((order) => ({
-              ...order,
+            const taggedOrders = orders.map((o) => ({
+              ...o,
               providerId,
             }));
             this.orderCache.set(providerId, taggedOrders);
@@ -390,7 +390,7 @@ export class SubscriptionMultiplexer {
       } catch (error) {
         this.logger?.error(ensureError(error), {
           tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
             provider: providerId,
             method: 'subscribeToOrders',
           },
@@ -441,7 +441,7 @@ export class SubscriptionMultiplexer {
       } catch (error) {
         this.logger?.error(ensureError(error), {
           tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
             provider: providerId,
             method: 'subscribeToAccount',
           },

@@ -49,7 +49,7 @@ export const deriveBalanceFromAssetMarketDetails = (
 
   if (!conversionRate)
     return {
-      balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_RATE_UNDEFINED,
+      balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_BALANCE_LOADING,
       balanceValueFormatted,
     };
 

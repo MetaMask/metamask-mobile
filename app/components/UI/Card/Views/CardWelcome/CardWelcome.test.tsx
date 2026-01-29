@@ -53,7 +53,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../../../images/stacked-cards.png', () => 1);
+jest.mock('../../../../../images/mm-card-welcome.png', () => 1);
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({ colors: { background: { default: '#fff' } } }),
@@ -99,7 +99,7 @@ describe('CardWelcome', () => {
       expect(
         getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeTruthy();
-      expect(getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON)).toBeTruthy();
+      expect(getByTestId('predict-gtm-not-now-button')).toBeTruthy();
     });
 
     it('displays correct title and description', () => {
@@ -140,7 +140,7 @@ describe('CardWelcome', () => {
         </Provider>,
       );
 
-      fireEvent.press(getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON));
+      fireEvent.press(getByTestId('predict-gtm-not-now-button'));
 
       expect(mockGoBack).toHaveBeenCalled();
     });

@@ -241,7 +241,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     "dataCollectionForMarketing": null,
     "isNFTAutoDetectionModalViewed": false,
   },
-  "securityAlerts": "object",
   "settings": {
     "avatarAccountType": "Maskicon",
     "basicFunctionalityEnabled": true,
@@ -250,7 +249,9 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     "primaryCurrency": "ETH",
     "searchEngine": "Google",
   },
+  "signatureRequest": "object",
   "swaps": "object",
+  "transaction": "object",
   "user": {
     "ambiguousAddressEntries": "object",
     "backUpSeedphraseVisible": false,

@@ -258,7 +258,6 @@ export const selectAccountTokensAcrossChainsForAddress =
             isNative: false,
             balanceFiat: '',
             isStaked: false,
-            rwaData: token.rwaData,
           })) || [];
 
         // Add both native and non-native tokens

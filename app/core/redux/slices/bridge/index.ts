@@ -22,7 +22,6 @@ import {
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
   isNonEvmChainId,
-  formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -58,7 +57,6 @@ export interface BridgeState {
   bridgeViewMode: BridgeViewMode | undefined;
   isMaxSourceAmount?: boolean;
   isSelectingRecipient: boolean;
-  isSelectingToken: boolean;
   isGasIncludedSTXSendBundleSupported: boolean;
   isGasIncluded7702Supported: boolean;
   /**
@@ -82,7 +80,6 @@ export const initialState: BridgeState = {
   bridgeViewMode: undefined,
   isMaxSourceAmount: false,
   isSelectingRecipient: false,
-  isSelectingToken: false,
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
@@ -161,9 +158,6 @@ const slice = createSlice({
     },
     setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
       state.isSelectingRecipient = action.payload;
-    },
-    setIsSelectingToken: (state, action: PayloadAction<boolean>) => {
-      state.isSelectingToken = action.payload;
     },
     setIsGasIncludedSTXSendBundleSupported: (
       state,
@@ -275,49 +269,6 @@ export const selectBridgeFeatureFlags = createSelector(
         bridgeConfig: DEFAULT_FEATURE_FLAG_CONFIG,
       },
     });
-  },
-);
-
-/**
- * Selector that returns the chainRanking from feature flags filtered by user-configured networks.
- * Used by NetworkPills in SOURCE mode to show all networks the user has added.
- */
-export const selectSourceChainRanking = createSelector(
-  selectBridgeFeatureFlags,
-  selectNetworkConfigurations,
-  (bridgeFeatureFlags, networkConfigurations) => {
-    const { chainRanking } = bridgeFeatureFlags;
-
-    const configuredChainIds = new Set(Object.keys(networkConfigurations));
-
-    if (!chainRanking) {
-      return [];
-    }
-
-    return chainRanking.filter((chain) => {
-      const { chainId } = chain;
-
-      // For EVM chains (eip155:*), extract the hex chain ID and check if enabled
-      if (chainId.startsWith('eip155:')) {
-        const hexChainId = formatChainIdToHex(chainId);
-        return configuredChainIds.has(hexChainId);
-      }
-
-      // For non-EVM chains, check directly against the CAIP chain ID
-      return configuredChainIds.has(chainId);
-    });
-  },
-);
-
-/**
- * Selector that returns all chains from chainRanking (all bridge-supported networks).
- * Used by NetworkPills in DEST mode to show all available destination networks.
- */
-export const selectDestChainRanking = createSelector(
-  selectBridgeFeatureFlags,
-  (bridgeFeatureFlags) => {
-    const { chainRanking } = bridgeFeatureFlags;
-    return chainRanking ?? [];
   },
 );
 
@@ -599,11 +550,6 @@ export const selectIsSelectingRecipient = createSelector(
   (bridgeState) => bridgeState.isSelectingRecipient,
 );
 
-export const selectIsSelectingToken = createSelector(
-  selectBridgeState,
-  (bridgeState) => bridgeState.isSelectingToken,
-);
-
 export const selectIsDestTokenManuallySet = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isDestTokenManuallySet,
@@ -706,7 +652,6 @@ export const {
   setIsSubmittingTx,
   setBridgeViewMode,
   setIsSelectingRecipient,
-  setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
 } = actions;

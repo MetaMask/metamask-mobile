@@ -26,7 +26,6 @@ import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 import { MusdConversionInfo } from '../info/musd-conversion-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
-import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -64,8 +63,6 @@ const ConfirmationInfoComponentMap = {
         return Approve;
       case TransactionType.perpsDeposit:
         return PerpsDepositInfo;
-      case TransactionType.perpsDepositAndOrder:
-        return PerpsOrderView;
       // Default to contract interaction as generic transaction confirmation
       case TransactionType.lendingDeposit:
       case TransactionType.lendingWithdraw:

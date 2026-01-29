@@ -119,7 +119,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -187,7 +187,87 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
           <View>
             <View
               onLayout={[Function]}
-            />
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -1559,7 +1639,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1627,7 +1707,87 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
           <View>
             <View
               onLayout={[Function]}
-            />
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -2999,7 +3159,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -3067,7 +3227,87 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
           <View>
             <View
               onLayout={[Function]}
-            />
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -4439,7 +4679,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -4507,7 +4747,87 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
           <View>
             <View
               onLayout={[Function]}
-            />
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -5879,7 +6199,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -5947,7 +6267,87 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
           <View>
             <View
               onLayout={[Function]}
-            />
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -7379,7 +7779,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -7447,7 +7847,87 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
           <View>
             <View
               onLayout={[Function]}
-            />
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -8864,7 +9344,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -8932,7 +9412,87 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
           <View>
             <View
               onLayout={[Function]}
-            />
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      },
+                      undefined,
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 20,
+                          "width": 20,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
           </View>
         </View>
       </View>

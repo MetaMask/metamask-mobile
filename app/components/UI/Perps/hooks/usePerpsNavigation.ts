@@ -3,10 +3,6 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import type { PerpsMarketData, Position, Order } from '../controllers/types';
-import { usePerpsTrading } from './usePerpsTrading';
-import Logger from '../../../../util/Logger';
-import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 /**
  * Navigation handler result interface
@@ -128,26 +124,11 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
-  const { depositWithOrder } = usePerpsTrading();
-
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
-      depositWithOrder()
-        .then(() => {
-          navigation.navigate(
-            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-            params,
-          );
-        })
-        .catch((error: unknown) => {
-          Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FeatureName,
-            message:
-              'Failed to start one-click trade (deposit rejected or failed)',
-          });
-        });
+      navigation.navigate(Routes.PERPS.ORDER, params);
     },
-    [navigation, depositWithOrder],
+    [navigation],
   );
 
   const navigateToTutorial = useCallback(

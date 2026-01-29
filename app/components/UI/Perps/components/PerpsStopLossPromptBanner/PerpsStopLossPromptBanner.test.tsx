@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, act } from '@testing-library/react-native';
+import { Switch } from 'react-native';
 import PerpsStopLossPromptBanner from './PerpsStopLossPromptBanner';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -104,16 +105,14 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(
         getByTestId(PerpsStopLossPromptSelectorsIDs.CONTAINER),
       ).toBeTruthy();
-      expect(
-        getByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
-      ).toBeTruthy();
+      expect(getByTestId(PerpsStopLossPromptSelectorsIDs.TOGGLE)).toBeTruthy();
       expect(getByText(/\$47,500/)).toBeTruthy();
       expect(getByText(/-50%/)).toBeTruthy();
     });
 
-    it('calls onSetStopLoss when button pressed', () => {
+    it('calls onSetStopLoss when toggle switched on', () => {
       const onSetStopLoss = jest.fn();
-      const { getByTestId } = renderWithProvider(
+      const { UNSAFE_getByType } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
           liquidationDistance={15}
@@ -124,35 +123,31 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      fireEvent.press(
-        getByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
-      );
+      const toggle = UNSAFE_getByType(Switch);
+      fireEvent(toggle, 'onValueChange', true);
       expect(onSetStopLoss).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call onSetStopLoss when button is disabled (loading)', () => {
+    it('does not call onSetStopLoss when toggle switched off', () => {
       const onSetStopLoss = jest.fn();
-      const { getByTestId } = renderWithProvider(
+      const { UNSAFE_getByType } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
           liquidationDistance={15}
           suggestedStopLossPrice="47500"
           suggestedStopLossPercent={-50}
           onSetStopLoss={onSetStopLoss}
-          isLoading
         />,
         { state: initialState },
       );
 
-      // Button is disabled when loading, press should not trigger callback
-      fireEvent.press(
-        getByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
-      );
+      const toggle = UNSAFE_getByType(Switch);
+      fireEvent(toggle, 'onValueChange', false);
       expect(onSetStopLoss).not.toHaveBeenCalled();
     });
 
-    it('shows loading indicator instead of button text when loading', () => {
-      const { getByTestId } = renderWithProvider(
+    it('shows loading indicator instead of toggle when loading', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
           liquidationDistance={15}
@@ -165,10 +160,7 @@ describe('PerpsStopLossPromptBanner', () => {
       );
 
       expect(getByTestId(PerpsStopLossPromptSelectorsIDs.LOADING)).toBeTruthy();
-      // Button still exists but shows loading indicator
-      expect(
-        getByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
-      ).toBeTruthy();
+      expect(queryByTestId(PerpsStopLossPromptSelectorsIDs.TOGGLE)).toBeFalsy();
     });
 
     it('does not trigger action when loading', () => {
@@ -240,9 +232,9 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      // Fast-forward past SUCCESS_DISPLAY_DELAY_MS (2000ms) + FADE_OUT_DURATION_MS (300ms)
+      // Fast-forward past animation duration (300ms)
       await act(async () => {
-        jest.advanceTimersByTime(2500);
+        jest.advanceTimersByTime(400);
       });
 
       expect(onFadeOutComplete).toHaveBeenCalledTimes(1);
@@ -266,9 +258,8 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      // Even after waiting longer than the animation time, callback should not be called
       await act(async () => {
-        jest.advanceTimersByTime(2500);
+        jest.advanceTimersByTime(400);
       });
 
       expect(onFadeOutComplete).not.toHaveBeenCalled();
@@ -293,7 +284,7 @@ describe('PerpsStopLossPromptBanner', () => {
     });
 
     it('handles missing onSetStopLoss callback', () => {
-      const { getByTestId } = renderWithProvider(
+      const { UNSAFE_getByType } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
           liquidationDistance={15}
@@ -303,12 +294,9 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      // Button exists but is disabled without callback
-      const button = getByTestId(
-        PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON,
-      );
-      // Should not throw when button is pressed without callback
-      expect(() => fireEvent.press(button)).not.toThrow();
+      const toggle = UNSAFE_getByType(Switch);
+      // Should not throw when toggle is pressed without callback
+      expect(() => fireEvent(toggle, 'onValueChange', true)).not.toThrow();
     });
 
     it('handles missing onAddMargin callback', () => {

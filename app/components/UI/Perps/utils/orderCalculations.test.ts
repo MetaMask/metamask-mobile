@@ -392,7 +392,7 @@ describe('orderCalculations', () => {
 
         // Verify limit price is 10% BELOW trigger (85500)
         const expectedLimitPrice =
-          95000 * (1 - ORDER_SLIPPAGE_CONFIG.DefaultTpslSlippageBps / 10000);
+          95000 * (1 - ORDER_SLIPPAGE_CONFIG.DEFAULT_TPSL_SLIPPAGE_BPS / 10000);
         expect(parseFloat(String(slOrder.p))).toBe(expectedLimitPrice);
         expect(parseFloat(String(slOrder.p))).toBe(85500); // 95000 * 0.90
       });
@@ -435,7 +435,7 @@ describe('orderCalculations', () => {
 
         const slOrder = result.orders[1];
         const slippageValue =
-          ORDER_SLIPPAGE_CONFIG.DefaultTpslSlippageBps / 10000;
+          ORDER_SLIPPAGE_CONFIG.DEFAULT_TPSL_SLIPPAGE_BPS / 10000;
 
         expect(slippageValue).toBe(0.1); // 10%
         expect(parseFloat(String(slOrder.p))).toBe(100000 * 0.9); // 90000

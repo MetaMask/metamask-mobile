@@ -217,10 +217,18 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => mockMetrics,
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: () => mockMetrics,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withAnalyticsAwareness: (Component: any) => Component,
+  withMetricsAwareness: (Component: any) => Component,
+  MetaMetricsEvents: {
+    ERROR_SCREEN_VIEWED: 'Error Screen Viewed',
+    WALLET_SETUP_FAILURE: 'Wallet Setup Failure',
+    WALLET_CREATION_ATTEMPTED: 'Wallet Creation Attempted',
+    WALLET_CREATED: 'Wallet Created',
+    WALLET_SETUP_COMPLETED: 'Wallet Setup Completed',
+    EXTERNAL_LINK_CLICKED: 'External Link Clicked',
+  },
 }));
 
 const renderWithProviders = (ui: React.ReactElement) =>
@@ -494,107 +502,6 @@ describe('ChoosePassword', () => {
       strings('choose_password.password_error'),
     );
     expect(errorMessage).toBeOnTheScreen();
-  });
-
-  it('helper text remains visible after password meets minimum length requirement', async () => {
-    const component = renderWithProviders(<ChoosePassword />);
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    const passwordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
-
-    // Verify helper text is visible initially (empty password)
-    expect(
-      component.getByText(
-        strings('choose_password.must_be_at_least', { number: 8 }),
-      ),
-    ).toBeOnTheScreen();
-
-    // Enter a valid password that meets minimum length
-    await act(async () => {
-      fireEvent.changeText(passwordInput, 'ValidPassword123');
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    // Helper text should persist even after password meets requirement
-    expect(
-      component.getByText(
-        strings('choose_password.must_be_at_least', { number: 8 }),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows error state only after password field loses focus with invalid password', async () => {
-    const component = renderWithProviders(<ChoosePassword />);
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    const passwordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
-
-    // Enter a short password
-    await act(async () => {
-      fireEvent.changeText(passwordInput, 'short');
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    // Helper text should NOT be in error state yet (field not blurred)
-    const helperText = component.getByText(
-      strings('choose_password.must_be_at_least', { number: 8 }),
-    );
-    expect(helperText).toBeOnTheScreen();
-
-    // Blur the password field
-    await act(async () => {
-      fireEvent(passwordInput, 'blur');
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    // Helper text should still be visible after blur
-    expect(
-      component.getByText(
-        strings('choose_password.must_be_at_least', { number: 8 }),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides error state when user focuses back on password field', async () => {
-    const component = renderWithProviders(<ChoosePassword />);
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    const passwordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
-
-    // Enter a short password and blur to trigger error state
-    await act(async () => {
-      fireEvent.changeText(passwordInput, 'short');
-      fireEvent(passwordInput, 'blur');
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    // Focus back on the password field
-    await act(async () => {
-      fireEvent(passwordInput, 'focus');
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    // Helper text should still be visible but error state should be reset
-    expect(
-      component.getByText(
-        strings('choose_password.must_be_at_least', { number: 8 }),
-      ),
-    ).toBeOnTheScreen();
   });
 
   it('render header left button on press, navigates to previous screen', async () => {

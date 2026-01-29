@@ -13,7 +13,6 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  IconName as DSIconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
@@ -25,7 +24,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import { useTheme } from '../../../../util/theme';
 import type { ListHeaderWithSearchProps } from './ListHeaderWithSearch.types';
 import styleSheet from './ListHeaderWithSearch.styles';
@@ -40,7 +38,7 @@ import styleSheet from './ListHeaderWithSearch.styles';
  * - Back button with default or custom navigation handler
  * - Centered title with custom text support
  * - Search toggle button that changes icon based on visibility
- * - Keyboard dismiss on header press when search is visible
+ * - Keyboard dismiss on header press
  * - Configurable search placeholder and cancel text
  *
  * @example
@@ -95,14 +93,15 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
   // Use custom handler if provided, otherwise use default
   const handleBack = onBack || defaultHandleBack;
 
-  if (isSearchVisible) {
-    return (
-      <Pressable
-        style={styles.header}
-        onPress={() => Keyboard.dismiss()}
-        testID={testID}
-      >
+  return (
+    <Pressable
+      style={styles.header}
+      onPress={() => Keyboard.dismiss()}
+      testID={testID}
+    >
+      {isSearchVisible ? (
         <View style={styles.headerContainerWrapper}>
+          {/* Search Bar - Replaces back button and title */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -125,6 +124,7 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
               testID={testID ? `${testID}-search-bar` : undefined}
             />
           </Box>
+          {/* Cancel Button */}
           <TouchableOpacity
             style={styles.searchButton}
             onPress={onSearchToggle}
@@ -135,26 +135,41 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
             </Text>
           </TouchableOpacity>
         </View>
-      </Pressable>
-    );
-  }
+      ) : (
+        <View style={styles.headerContainerWrapper}>
+          {/* Back Button */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleBack}
+            testID={testID ? `${testID}-back-button` : undefined}
+          >
+            <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
+          </TouchableOpacity>
 
-  return (
-    <HeaderCenter
-      title={title || defaultTitle}
-      onBack={handleBack}
-      backButtonProps={{
-        testID: testID ? `${testID}-back-button` : undefined,
-      }}
-      endButtonIconProps={[
-        {
-          iconName: DSIconName.Search,
-          onPress: onSearchToggle,
-          testID: testID ? `${testID}-search-toggle` : undefined,
-        },
-      ]}
-      testID={testID}
-    />
+          {/* Title */}
+          <View style={styles.headerTitleContainer}>
+            <Text
+              variant={TextVariant.HeadingLG}
+              color={TextColor.Default}
+              style={styles.headerTitle}
+            >
+              {title || defaultTitle}
+            </Text>
+          </View>
+
+          {/* Search Toggle Button */}
+          <View style={styles.titleButtonsRightContainer}>
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={onSearchToggle}
+              testID={testID ? `${testID}-search-toggle` : undefined}
+            >
+              <Icon name={IconName.Search} size={IconSize.Lg} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </Pressable>
   );
 };
 

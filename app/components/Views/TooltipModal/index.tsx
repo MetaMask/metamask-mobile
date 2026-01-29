@@ -17,16 +17,15 @@ import {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 
-import { TooltipModalRouteParams } from './ToolTipModal.types';
+import { TooltipModalProps } from './ToolTipModal.types';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './ToolTipModal.styles';
-import { useParams } from '../../../util/navigation/navUtils';
 
-const TooltipModal = () => {
-  const { tooltip, title, footerText, buttonText, bottomPadding } =
-    useParams<TooltipModalRouteParams>();
+const TooltipModal = ({ route }: TooltipModalProps) => {
+  const tooltip = route.params.tooltip;
+  const title = route.params.title;
 
-  const { styles } = useStyles(styleSheet, { bottomPadding });
+  const { styles } = useStyles(styleSheet, {});
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -38,9 +37,9 @@ const TooltipModal = () => {
 
   const footerButtons = [
     {
-      label: buttonText ?? strings('browser.got_it'),
+      label: strings('browser.got_it'),
       onPress: handleGotItPress,
-      variant: ButtonVariants.Primary,
+      variant: ButtonVariants.Secondary,
       size: ButtonSize.Lg,
     },
   ];
@@ -62,13 +61,6 @@ const TooltipModal = () => {
         buttonPropsArray={footerButtons}
         style={styles.footerContainer}
       />
-      {footerText && (
-        <View style={styles.footerTextContainer}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {footerText}
-          </Text>
-        </View>
-      )}
     </BottomSheet>
   );
 };

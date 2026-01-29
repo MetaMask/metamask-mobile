@@ -21,7 +21,6 @@ import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { BigNumber } from 'bignumber.js';
 
 const SUPPORTED_TYPES = [
-  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,

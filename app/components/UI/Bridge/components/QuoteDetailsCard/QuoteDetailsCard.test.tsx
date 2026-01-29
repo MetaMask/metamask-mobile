@@ -324,10 +324,7 @@ describe('QuoteDetailsCard', () => {
 
     // Check if navigation was called with correct params
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        network: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      },
+      screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
     });
   });
 
@@ -495,13 +492,10 @@ describe('QuoteDetailsCard', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       params: {
-        bottomPadding: 64,
         title: strings('bridge.network_fee_info_title'),
         tooltip: strings('bridge.network_fee_info_content_sponsored', {
           nativeToken: 'ETH',
         }),
-        footerText: undefined,
-        buttonText: undefined,
       },
       screen: 'tooltipModal',
     });
@@ -584,11 +578,8 @@ describe('QuoteDetailsCard', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       params: {
-        bottomPadding: 64,
         title: strings('bridge.quote_info_title'),
         tooltip: strings('bridge.quote_info_content'),
-        footerText: undefined,
-        buttonText: undefined,
       },
       screen: 'tooltipModal',
     });

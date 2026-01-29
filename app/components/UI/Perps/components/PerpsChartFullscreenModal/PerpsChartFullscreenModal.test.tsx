@@ -162,14 +162,14 @@ describe('PerpsChartFullscreenModal', () => {
   const defaultProps = {
     isVisible: false,
     candleData: null,
-    selectedInterval: CandlePeriod.OneHour,
+    selectedInterval: CandlePeriod.ONE_HOUR,
     onClose: mockOnClose,
     onIntervalChange: mockOnIntervalChange,
   };
 
   const mockCandleData: CandleData = {
     symbol: 'BTC',
-    interval: CandlePeriod.OneHour,
+    interval: CandlePeriod.ONE_HOUR,
     candles: [
       {
         time: 1234567890,

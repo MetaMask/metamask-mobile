@@ -71,7 +71,7 @@ describe('handlePerpsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
 
       // Fast-forward timer to trigger setParams
-      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
 
       expect(mockSetParams).toHaveBeenCalledWith({
         initialTab: 'perps',
@@ -385,7 +385,7 @@ describe('handlePerpsUrl', () => {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
           source: 'deeplink',
-          defaultMarketTypeFilter: 'stocks',
+          defaultMarketTypeFilter: 'stocks_and_commodities',
         },
       });
     });

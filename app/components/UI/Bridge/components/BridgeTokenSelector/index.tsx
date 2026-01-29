@@ -1,1 +1,0 @@
-export { BridgeTokenSelector } from './BridgeTokenSelector';

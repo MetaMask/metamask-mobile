@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import type { CaipChainId } from '@metamask/utils';
-import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
+import { SortTrendingBy } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
@@ -100,9 +100,6 @@ export const useTrendingSearch = (opts?: {
           priceChangePct: {
             h24: asset.pricePercentChange1d,
           },
-          rwaData: asset.rwaData as unknown as
-            | TrendingAsset['rwaData']
-            | undefined,
         });
       }
     });

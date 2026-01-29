@@ -223,12 +223,6 @@ export const getEventDetails = (
         details: undefined,
         icon: IconName.UserCircleAdd,
       };
-    case 'APPLY_REFERRAL_BONUS':
-      return {
-        title: strings('rewards.events.type.apply_referral_bonus'),
-        details: undefined,
-        icon: IconName.UserCircleAdd,
-      };
     case 'SIGN_UP_BONUS':
       return {
         title: strings('rewards.events.type.sign_up_bonus'),

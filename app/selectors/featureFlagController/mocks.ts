@@ -13,6 +13,7 @@ export const mockedState = {
           ...mockedEarnFeatureFlagsEnabledState,
           ...mockedPerpsFeatureFlagsEnabledState,
           ...mockedPredictFeatureFlagsEnabledState,
+          productSafetyDappScanning: true,
         },
         cacheTimestamp: 0,
       },

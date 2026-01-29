@@ -6,7 +6,7 @@ import {
 } from '@metamask/utils';
 import { getChainId } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
-import type { PerpsPlatformDependencies } from '../controllers/types';
+import type { IPerpsPlatformDependencies } from '../controllers/types';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -16,10 +16,10 @@ export class HyperLiquidWalletService {
   private isTestnet: boolean;
 
   // Platform dependencies for account access and signing
-  private readonly deps: PerpsPlatformDependencies;
+  private readonly deps: IPerpsPlatformDependencies;
 
   constructor(
-    deps: PerpsPlatformDependencies,
+    deps: IPerpsPlatformDependencies,
     options: { isTestnet?: boolean } = {},
   ) {
     this.deps = deps;

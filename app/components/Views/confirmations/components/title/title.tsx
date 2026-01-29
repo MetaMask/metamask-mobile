@@ -17,8 +17,8 @@ import { useStyles } from '../../../../../component-library/hooks';
 import {
   EARN_CONTRACT_INTERACTION_TYPES,
   MMM_ORIGIN,
-  APPROVE_TRANSACTION_TYPES,
-  TRANSFER_TRANSACTION_TYPES,
+  REDESIGNED_APPROVE_TYPES,
+  REDESIGNED_TRANSFER_TYPES,
 } from '../../constants/confirmations';
 import { ApproveMethod } from '../../types/approve';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
@@ -152,12 +152,12 @@ const getTitleAndSubTitle = (
             : strings('confirm.sub_title.switch_to_smart_account'),
         };
       }
-      if (TRANSFER_TRANSACTION_TYPES.includes(transactionType)) {
+      if (REDESIGNED_TRANSFER_TYPES.includes(transactionType)) {
         return {
           title: strings('confirm.title.transfer'),
         };
       }
-      if (APPROVE_TRANSACTION_TYPES.includes(transactionType)) {
+      if (REDESIGNED_APPROVE_TYPES.includes(transactionType)) {
         const { title, subTitle } = getApproveTitle(approveTransactionData);
         return {
           title,

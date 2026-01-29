@@ -6,18 +6,12 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import { useSecurityAlertResponse } from './useSecurityAlertResponse';
 
-// Transaction ID used in transferConfirmationState
-const TRANSFER_CONFIRMATION_TRANSACTION_ID =
-  '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
-
 describe('useSecurityAlertResponse', () => {
-  it('returns security alert response for transaction request is present', () => {
+  it('returns security alert response for signature request is present', () => {
     const { result } = renderHookWithProvider(useSecurityAlertResponse, {
       state: merge({}, transferConfirmationState, {
-        securityAlerts: {
-          alerts: {
-            [TRANSFER_CONFIRMATION_TRANSACTION_ID]: mockSecurityAlertResponse,
-          },
+        signatureRequest: {
+          securityAlertResponse: mockSecurityAlertResponse,
         },
       }),
     });
@@ -26,19 +20,15 @@ describe('useSecurityAlertResponse', () => {
     });
   });
 
-  it('returns security alert response from transaction metadata when present', () => {
-    // When securityAlertResponse is in TransactionController state, it takes precedence
-    const transactionWithAlert = {
-      ...transferConfirmationState.engine.backgroundState.TransactionController
-        .transactions[0],
-      securityAlertResponse: mockSecurityAlertResponse,
-    };
+  it('returns security alert response for transaction request is present', () => {
     const { result } = renderHookWithProvider(useSecurityAlertResponse, {
       state: merge({}, transferConfirmationState, {
         engine: {
           backgroundState: {
             TransactionController: {
-              transactions: [transactionWithAlert],
+              transactions: [
+                { securityAlertResponse: mockSecurityAlertResponse },
+              ],
             },
           },
         },
@@ -49,7 +39,7 @@ describe('useSecurityAlertResponse', () => {
     });
   });
 
-  it('returns undefined when security alert response is not present', () => {
+  it('returns undefined is security alert response is not present for signature request', () => {
     const { result } = renderHookWithProvider(useSecurityAlertResponse, {
       state: transferConfirmationState,
     });

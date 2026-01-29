@@ -770,7 +770,7 @@ describe('PerpsController Selectors', () => {
       const result = selectPerpsInitializationState(mockState);
 
       // Assert
-      expect(result).toBe(InitializationState.Uninitialized);
+      expect(result).toBe(InitializationState.UNINITIALIZED);
     });
   });
 });

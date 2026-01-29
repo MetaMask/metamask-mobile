@@ -10,7 +10,7 @@ import { ensureError } from '../../../../../util/errorUtils';
 // Stable empty candle data reference to prevent re-renders
 const EMPTY_CANDLE_DATA: CandleData = {
   symbol: '',
-  interval: CandlePeriod.OneHour,
+  interval: CandlePeriod.ONE_HOUR,
   candles: [],
 };
 
@@ -53,8 +53,8 @@ export interface UsePerpsLiveCandlesReturn {
  * ```
  * const { candleData, isLoading } = usePerpsLiveCandles({
  *   symbol: 'BTC',
- *   interval: CandlePeriod.OneHour,
- *   duration: TimeDuration.OneDay,
+ *   interval: CandlePeriod.ONE_HOUR,
+ *   duration: TimeDuration.ONE_DAY,
  *   throttleMs: 1000
  * });
  * ```
@@ -129,7 +129,7 @@ export function usePerpsLiveCandles(
           // Log to Sentry: async subscription initialization failure
           Logger.error(errorInstance, {
             tags: {
-              feature: PERPS_CONSTANTS.FeatureName,
+              feature: PERPS_CONSTANTS.FEATURE_NAME,
               component: 'usePerpsLiveCandles',
             },
             context: {
@@ -156,7 +156,7 @@ export function usePerpsLiveCandles(
       // Log to Sentry: subscription setup failure prevents live updates
       Logger.error(ensureError(errorInstance), {
         tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
           component: 'usePerpsLiveCandles',
         },
         context: {

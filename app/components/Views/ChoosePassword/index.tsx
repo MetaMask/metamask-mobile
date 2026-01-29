@@ -75,7 +75,7 @@ import TextField from '../../../component-library/components/Form/TextField/Text
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../hooks/useMetrics';
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
 import ErrorBoundary from '../ErrorBoundary';
 import {
@@ -147,7 +147,7 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
-  const metrics = useAnalytics();
+  const metrics = useMetrics();
 
   const [isSelected, setIsSelected] = useState(false);
   const [password, setPassword] = useState('');
@@ -156,7 +156,6 @@ const ChoosePassword = () => {
   const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [biometryType, setBiometryType] = useState<string | null>(null);
-  const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
   const mounted = useRef(true);
   const passwordSetupAttemptTraceCtx = useRef<TraceContext | null>(null);
@@ -680,10 +679,6 @@ const ChoosePassword = () => {
 
   const renderContent = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const isPasswordTooShort =
-      !isPasswordFieldFocused &&
-      password !== '' &&
-      password.length < MIN_PASSWORD_LENGTH;
     let canSubmit;
     if (getOauth2LoginSuccess()) {
       canSubmit = passwordsMatch && password.length >= MIN_PASSWORD_LENGTH;
@@ -762,8 +757,6 @@ const ChoosePassword = () => {
                     secureTextEntry={showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={onPasswordChange}
-                    onFocus={() => setIsPasswordFieldFocused(true)}
-                    onBlur={() => setIsPasswordFieldFocused(false)}
                     placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={jumpToConfirmPassword}
@@ -773,8 +766,6 @@ const ChoosePassword = () => {
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     size={TextFieldSize.Lg}
-                    isError={isPasswordTooShort}
-                    style={isPasswordTooShort ? styles.errorBorder : undefined}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
                         <Icon
@@ -789,18 +780,16 @@ const ChoosePassword = () => {
                       </TouchableOpacity>
                     }
                   />
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={
-                      isPasswordTooShort
-                        ? TextColor.Error
-                        : TextColor.Alternative
-                    }
-                  >
-                    {strings('choose_password.must_be_at_least', {
-                      number: MIN_PASSWORD_LENGTH,
-                    })}
-                  </Text>
+                  {(!password || password.length < MIN_PASSWORD_LENGTH) && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('choose_password.must_be_at_least', {
+                        number: MIN_PASSWORD_LENGTH,
+                      })}
+                    </Text>
+                  )}
                 </View>
 
                 <View style={styles.field}>

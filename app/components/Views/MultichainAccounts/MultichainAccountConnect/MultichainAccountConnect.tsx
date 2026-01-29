@@ -68,7 +68,10 @@ import {
   getRequestedCaip25CaveatValue,
   mergeCaip25Values,
 } from '../../AccountConnect/utils.ts';
-import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.ts';
+import {
+  getPhishingTestResultAsync,
+  isProductSafetyDappScanningEnabled,
+} from '../../../../util/phishingDetection.ts';
 import {
   CaipAccountId,
   CaipChainId,
@@ -100,7 +103,6 @@ import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMult
 import { Box } from '@metamask/design-system-react-native';
 import { TESTNET_CAIP_IDS } from '../../../../constants/network.js';
 import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope.ts';
-import { isSnapId } from '@metamask/snaps-utils';
 
 interface ScreenContainerProps {
   isVisible: boolean;
@@ -296,15 +298,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       (caipChainId) => {
         const { namespace } = parseCaipChainId(caipChainId);
         return namespace !== KnownCaipNamespace.Tron;
-      },
-    );
-
-    // Filter out Bitcoin networks - they should only be included when explicitly requested
-    // This prevents errors when connecting to dApps that don't support Bitcoin
-    defaultSelectedNetworkList = defaultSelectedNetworkList.filter(
-      (caipChainId) => {
-        const { namespace } = parseCaipChainId(caipChainId);
-        return namespace !== KnownCaipNamespace.Bip122;
       },
     );
 
@@ -520,7 +513,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     let url = dappUrl || channelIdOrHostname || '';
 
     const checkOrigin = async () => {
-      if (!isSnapId(url)) {
+      if (isProductSafetyDappScanningEnabled()) {
         url = prefixUrlWithProtocol(url);
       }
       const scanResult = await getPhishingTestResultAsync(url);

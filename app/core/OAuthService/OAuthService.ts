@@ -1,7 +1,6 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
-import { whenEngineReady } from '../Analytics/whenEngineReady';
 
 import {
   HandleOAuthLoginResult,
@@ -29,8 +28,8 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
-import { analytics } from '../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetrics } from '../Analytics';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 
 export interface MarketingOptInRequest {
@@ -140,8 +139,6 @@ export class OAuthService {
         );
       }
 
-      await whenEngineReady();
-
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],
@@ -193,8 +190,8 @@ export class OAuthService {
         : 'false';
     }
 
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
       )
         .addProperties({

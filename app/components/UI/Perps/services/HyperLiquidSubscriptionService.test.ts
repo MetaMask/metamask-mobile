@@ -359,10 +359,9 @@ describe('HyperLiquidSubscriptionService', () => {
 
     // Mock client service
     mockClientService = {
-      ensureSubscriptionClient: jest.fn().mockResolvedValue(undefined),
+      ensureSubscriptionClient: jest.fn(),
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
       isTestnetMode: jest.fn(() => false),
-      ensureTransportReady: jest.fn().mockResolvedValue(undefined),
     } as any;
 
     // Mock wallet service
@@ -493,16 +492,12 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToPositions(params);
 
-      // Wait for async operations (individual subscription setup for HIP-3 mode)
-      // Need to flush both timers and microtask queue since subscription uses fire-and-forget promises
-      await jest.runAllTimersAsync();
-      // Flush microtask queue to allow promise chains to complete
-      await Promise.resolve();
-      await jest.runAllTimersAsync();
-
       expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
         params.accountId,
       );
+
+      // Wait for async operations (individual subscription setup for HIP-3 mode)
+      await jest.runAllTimersAsync();
 
       // HIP-3 mode uses individual subscriptions (clearinghouseState + openOrders)
       // and webData3 only for OI caps
@@ -3368,60 +3363,6 @@ describe('HyperLiquidSubscriptionService', () => {
       const result = service.getCachedOrders();
 
       expect(result).toBeNull();
-    });
-
-    it('getOrdersCacheIfInitialized returns null when cache not initialized', () => {
-      const result = service.getOrdersCacheIfInitialized();
-
-      expect(result).toBeNull();
-    });
-
-    it('getOrdersCacheIfInitialized returns empty array when initialized but no orders', async () => {
-      // First subscribe to trigger initialization
-      const callback = jest.fn();
-      service.subscribeToOrders({ callback });
-
-      // Manually set the cache as initialized with empty data
-      // We need to simulate WebSocket message to trigger initialization
-      // For unit test, we verify the method exists and returns correct type
-      const result = service.getOrdersCacheIfInitialized();
-
-      // Before any WebSocket data, should return null
-      expect(result).toBeNull();
-    });
-
-    it('getOrdersCacheIfInitialized returns defensive copy of orders', async () => {
-      // This test verifies the atomic getter returns a copy, not the original
-      // We test indirectly by verifying the method signature and behavior
-      const result1 = service.getOrdersCacheIfInitialized();
-      const result2 = service.getOrdersCacheIfInitialized();
-
-      // Both should be null before initialization
-      expect(result1).toBeNull();
-      expect(result2).toBeNull();
-    });
-
-    it('returns null for cached fills before initialization', () => {
-      const result = service.getCachedFills();
-
-      expect(result).toBeNull();
-    });
-
-    it('getFillsCacheIfInitialized returns null when cache not initialized', () => {
-      const result = service.getFillsCacheIfInitialized();
-
-      expect(result).toBeNull();
-    });
-
-    it('getFillsCacheIfInitialized returns defensive copy of fills', () => {
-      // This test verifies the atomic getter returns a copy, not the original
-      // We test indirectly by verifying the method signature and behavior
-      const result1 = service.getFillsCacheIfInitialized();
-      const result2 = service.getFillsCacheIfInitialized();
-
-      // Both should be null before initialization
-      expect(result1).toBeNull();
-      expect(result2).toBeNull();
     });
   });
 

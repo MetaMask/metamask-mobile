@@ -16,7 +16,7 @@ describe('PerpsCandlePeriodSelector', () => {
     // Arrange & Act
     const { getByText } = renderWithProvider(
       <PerpsCandlePeriodSelector
-        selectedPeriod={CandlePeriod.OneMinute}
+        selectedPeriod={CandlePeriod.ONE_MINUTE}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
       />,
@@ -34,7 +34,7 @@ describe('PerpsCandlePeriodSelector', () => {
     // Arrange
     const { getByText } = renderWithProvider(
       <PerpsCandlePeriodSelector
-        selectedPeriod={CandlePeriod.OneMinute}
+        selectedPeriod={CandlePeriod.ONE_MINUTE}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
       />,
@@ -45,7 +45,7 @@ describe('PerpsCandlePeriodSelector', () => {
     fireEvent.press(getByText('3min'));
 
     // Assert
-    expect(mockOnPeriodChange).toHaveBeenCalledWith(CandlePeriod.ThreeMinutes);
+    expect(mockOnPeriodChange).toHaveBeenCalledWith(CandlePeriod.THREE_MINUTES);
   });
 
   it('calls onMorePress when more button is pressed', () => {
@@ -53,7 +53,7 @@ describe('PerpsCandlePeriodSelector', () => {
     const testID = 'test-candle-selector';
     const { getByTestId } = renderWithProvider(
       <PerpsCandlePeriodSelector
-        selectedPeriod={CandlePeriod.OneMinute}
+        selectedPeriod={CandlePeriod.ONE_MINUTE}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
         testID={testID}
@@ -70,7 +70,7 @@ describe('PerpsCandlePeriodSelector', () => {
 
   it('displays selected period label in more button when non-default period is selected', () => {
     // Arrange
-    const customPeriod = CandlePeriod.OneHour;
+    const customPeriod = CandlePeriod.ONE_HOUR;
 
     // Act
     const { getByText } = renderWithProvider(

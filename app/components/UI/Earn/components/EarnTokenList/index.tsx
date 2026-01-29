@@ -22,8 +22,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
@@ -103,7 +102,7 @@ const EarnTokenList = () => {
 
   // Temp: Used as workaround for BadgeNetwork not properly anchoring to its parent BadgeWrapper.
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
-  const { createEventBuilder, trackEvent } = useAnalytics();
+  const { createEventBuilder, trackEvent } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { params } = useRoute<EarnTokenListProps['route']>();
@@ -210,7 +209,7 @@ const EarnTokenList = () => {
     }
 
     trackEvent(
-      createEventBuilder(EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED)
+      createEventBuilder(MetaMetricsEvents.EARN_TOKEN_LIST_ITEM_CLICKED)
         .addProperties({
           provider: EVENT_PROVIDERS.CONSENSYS,
           location: EVENT_LOCATIONS.WALLET_ACTIONS_BOTTOM_SHEET,
@@ -377,16 +376,9 @@ const EarnTokenList = () => {
     return <EarnTokenListSkeletonPlaceholder />;
   }, [earnTokens?.length]);
 
-  const handleClose = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
-  }, []);
-
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{ testID: 'earn-token-list-close-button' }}
-      >
+      <BottomSheetHeader>
         <Text variant={TextVariant.HeadingSM}>
           {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
             ? strings('stake.select_a_token_to_withdraw')

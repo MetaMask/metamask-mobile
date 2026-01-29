@@ -352,14 +352,11 @@ export function buildAssetMapping(params: {
 }
 
 /**
- * Format price according to HyperLiquid validation rules.
+ * Format price according to HyperLiquid validation rules
  * - Max 5 significant figures (uses MAX_SIGNIFICANT_FIGURES from config)
  * - Max (MAX_PRICE_DECIMALS - szDecimals) decimal places for perps
  * - Integer prices always allowed
- *
  * @param params - Price formatting parameters
- * @param params.price - The price value to format
- * @param params.szDecimals - The size decimals for the asset
  * @returns Properly formatted price string
  */
 export function formatHyperLiquidPrice(params: {
@@ -376,7 +373,7 @@ export function formatHyperLiquidPrice(params: {
 
   // Calculate max decimal places allowed
   const maxDecimalPlaces =
-    DECIMAL_PRECISION_CONFIG.MaxPriceDecimals - szDecimals;
+    DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS - szDecimals;
 
   // Format with proper decimal places
   let formattedPrice = priceNum.toFixed(maxDecimalPlaces);
@@ -387,7 +384,7 @@ export function formatHyperLiquidPrice(params: {
   // Check and enforce max significant figures using shared utility
   const significantDigits = countSignificantFigures(formattedPrice);
 
-  if (significantDigits > DECIMAL_PRECISION_CONFIG.MaxSignificantFigures) {
+  if (significantDigits > DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES) {
     // Use shared utility to round to max significant figures
     formattedPrice = roundToSignificantFigures(formattedPrice);
   }
@@ -396,11 +393,8 @@ export function formatHyperLiquidPrice(params: {
 }
 
 /**
- * Format order size with asset-specific decimal precision.
- *
+ * Format order size with asset-specific decimal precision
  * @param params - Size formatting parameters
- * @param params.size - The size value to format
- * @param params.szDecimals - The size decimals for the asset
  * @returns Properly formatted size string with trailing zeros removed
  */
 export function formatHyperLiquidSize(params: {
@@ -426,12 +420,8 @@ export function formatHyperLiquidSize(params: {
 }
 
 /**
- * Calculate position size for a given USD value and leverage.
- *
+ * Calculate position size for a given USD value and leverage
  * @param params - Position size calculation parameters
- * @param params.usdValue - The USD value to invest
- * @param params.leverage - The leverage multiplier
- * @param params.assetPrice - The current asset price
  * @returns Raw position size (before formatting)
  */
 export function calculatePositionSize(params: {
@@ -465,8 +455,8 @@ export function calculateHip3AssetId(
     return indexInMeta;
   }
   return (
-    HIP3_ASSET_ID_CONFIG.BaseAssetId +
-    perpDexIndex * HIP3_ASSET_ID_CONFIG.DexMultiplier +
+    HIP3_ASSET_ID_CONFIG.BASE_ASSET_ID +
+    perpDexIndex * HIP3_ASSET_ID_CONFIG.DEX_MULTIPLIER +
     indexInMeta
   );
 }

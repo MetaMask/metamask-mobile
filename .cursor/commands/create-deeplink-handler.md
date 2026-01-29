@@ -161,21 +161,21 @@ export const PREFIXES = {
 import { handle{PascalCaseName}Url } from './handle{PascalCaseName}Url';
 ```
 
-#### Step D: Add to SUPPORTED_ACTIONS object
+#### Step D: Add to SUPPORTED_ACTIONS enum
 
 **File:** `app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts`
 
 ```typescript
-const SUPPORTED_ACTIONS = {
+enum SUPPORTED_ACTIONS {
   // ... existing actions
-  {UPPER_SNAKE_CASE}: ACTIONS.{UPPER_SNAKE_CASE},
-} as const;
+  {UPPER_SNAKE_CASE} = ACTIONS.{UPPER_SNAKE_CASE},
+}
 ```
 
 #### Step E: Add switch case (CRITICAL - Most commonly forgotten!)
 
 **File:** `app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts`
-**Location:** Inside the switch (action) block (around line 358)
+**Location:** Inside the switch statement (around line 254+)
 
 ```typescript
 switch (action) {
@@ -202,32 +202,6 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.{UPPER_SNAKE_CASE},
 ];
 ```
-
-#### Step G: Add to SUPPORTED_ACTIONS array (for isSupportedAction)
-
-**File:** `app/core/DeeplinkManager/types/deepLink.types.ts`
-
-Add the new action to the `SUPPORTED_ACTIONS` array so `isSupportedAction(action)` returns true and analytics route is not INVALID.
-
-```typescript
-export const SUPPORTED_ACTIONS = [
-  // ... existing actions
-  ACTIONS.{UPPER_SNAKE_CASE},
-] as const satisfies readonly ACTIONS[];
-```
-
-#### Step H: Map action to route (for analytics)
-
-**File:** `app/core/DeeplinkManager/util/deeplinks/deepLinkAnalytics.ts`
-
-In `mapSupportedActionToRoute`, add a case for the new action returning the appropriate `DeepLinkRoute`. If the action needs its own route: add a new value to `DeepLinkRoute` in `app/core/DeeplinkManager/types/deepLinkAnalytics.types.ts` and optionally add an entry in `routeExtractors` in deepLinkAnalytics.ts.
-
-```typescript
-case ACTIONS.{UPPER_SNAKE_CASE}:
-  return DeepLinkRoute.{ROUTE_OR_EXISTING};  // e.g. DeepLinkRoute.REWARDS or new enum value
-```
-
-**Note:** Skipping Steps G and H still allows navigation to work, but analytics will record the route as INVALID.
 
 **After completing all integration steps (full mode only), verify the handler is fully connected by:**
 
@@ -265,7 +239,8 @@ adb shell am start -W -a android.intent.action.VIEW \
 
 Remind user to manually update:
 
-- `docs/readme/deeplinking.md` - Add to Supported Actions table and document test URLs (e.g. in a Test URLs section) if applicable
+- `docs/readme/deeplinking.md` - Add to Supported Actions table
+- `docs/deeplink-test-urls.md` - Add test URLs
 
 ## Naming Conventions
 
@@ -286,10 +261,10 @@ Remind user to manually update:
 - [ ] All user information collected interactively (including integration mode)
 - [ ] Handler file created with proper structure
 - [ ] Test file created with all test cases
-- [ ] **Full mode:** All integration steps (A–H) actually performed in code files
+- [ ] **Full mode:** All integration steps (A-F) actually performed in code files
 - [ ] **Full mode:** Handler verified to be hooked up and ready to use
 - [ ] **Snippets mode:** Integration snippets provided for all steps
-- [ ] **Snippets mode:** User reminded which files to modify (including Steps G and H)
+- [ ] **Snippets mode:** User reminded which files to modify
 - [ ] Test commands provided
 - [ ] Documentation reminders included
 - [ ] Switch case step emphasized as critical
@@ -303,5 +278,3 @@ Remind user to manually update:
 @app/core/DeeplinkManager/handlers/legacy/handlePerpsUrl.ts
 @app/core/DeeplinkManager/handlers/legacy/handleRewardsUrl.ts
 @app/core/DeeplinkManager/handlers/legacy/handlePredictUrl.ts
-@app/core/DeeplinkManager/types/deepLink.types.ts
-@app/core/DeeplinkManager/util/deeplinks/deepLinkAnalytics.ts

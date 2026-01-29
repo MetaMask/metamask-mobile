@@ -53,8 +53,7 @@ if [ -z "$ENVIRONMENT" ] || [ "$ENVIRONMENT" = "$PIPELINE_NAME" ]; then
   ENVIRONMENT="Unknown"
 fi
 
-TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
-CHANGELOG="Pipeline: ${PIPELINE_NAME} | Environment: ${ENVIRONMENT} | Branch: ${BRANCH} | Timestamp: ${TIMESTAMP}"
+CHANGELOG="Pipeline: ${PIPELINE_NAME} | Environment: ${ENVIRONMENT} | Branch: ${BRANCH}"
 
 echo "Pipeline: $PIPELINE_NAME"
 echo "Changelog: $CHANGELOG"

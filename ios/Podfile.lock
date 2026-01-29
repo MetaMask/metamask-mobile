@@ -1830,7 +1830,7 @@ PODS:
   - react-native-branch (5.6.2):
     - Branch (= 1.43.2)
     - React-Core
-  - react-native-compat (2.23.4):
+  - react-native-compat (2.19.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1851,7 +1851,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-    - YttriumWrapper (= 0.10.15)
   - react-native-cookies (6.2.1):
     - React-Core
   - react-native-fast-crypto (2.2.0):
@@ -1869,7 +1868,7 @@ PODS:
     - ReactCommon/turbomodule/core
   - react-native-in-app-review (4.3.3):
     - React-Core
-  - react-native-keyboard-controller (1.20.6):
+  - react-native-keyboard-controller (1.19.6):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1882,7 +1881,7 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-keyboard-controller/common (= 1.20.6)
+    - react-native-keyboard-controller/common (= 1.19.6)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1891,7 +1890,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller/common (1.20.6):
+  - react-native-keyboard-controller/common (1.19.6):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2959,7 +2958,6 @@ PODS:
   - VisionCamera/React (4.6.4):
     - React-Core
   - Yoga (0.0.0)
-  - YttriumWrapper (0.10.15)
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
@@ -3154,7 +3152,6 @@ SPEC REPOS:
     - SDWebImageSVGCoder
     - Sentry
     - SocketRocket
-    - YttriumWrapper
 
 EXTERNAL SOURCES:
   boost:
@@ -3565,13 +3562,13 @@ SPEC CHECKSUMS:
   react-native-ble-plx: d62fdd568ede8051369f8343f5bb9cf737b1c918
   react-native-blob-util: b968f30ac26f1330dd5bd6f62043e25eb4738582
   react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0
-  react-native-compat: 05ab1639d30d6fb15a8bea309c96c18f00256af2
+  react-native-compat: e3f7645274bc740117c68e35082d2d4082af6dc0
   react-native-cookies: d648ab7025833b977c0b19e142503034f5f29411
   react-native-fast-crypto: 6b448866f5310cf203714a21147ef67f735bea8e
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-gzip: 794e0e964a0d9e1dfd1773fee938adb4d4310e26
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
-  react-native-keyboard-controller: 1f5beefc11ec0f3fca822bc5daa9086812b63516
+  react-native-keyboard-controller: 7965cd8d2dc0363e5712cd8c75fe448b47be050b
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: ef0ad6b44a71c90c660234cae828bfb3c0e43a26
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
@@ -3651,7 +3648,6 @@ SPEC CHECKSUMS:
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
   VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
-  YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e
 
 PODFILE CHECKSUM: 3debf6fbed3b6fecab16001c02c028737e11786c
 

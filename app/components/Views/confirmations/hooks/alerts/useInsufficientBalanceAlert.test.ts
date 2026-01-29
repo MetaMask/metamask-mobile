@@ -57,6 +57,9 @@ jest.mock('../pay/useTransactionPayToken');
 jest.mock('../useAccountNativeBalance');
 jest.mock('../../../../../../locales/i18n');
 jest.mock('../../../../../selectors/networkController');
+jest.mock('../../../../../reducers/transaction', () => ({
+  selectTransactionState: jest.fn(),
+}));
 jest.mock('../../context/confirmation-context');
 jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),

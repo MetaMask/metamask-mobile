@@ -10,7 +10,7 @@ import {
 } from '../../__mocks__/providerMocks';
 import type { ServiceContext } from './ServiceContext';
 import type {
-  PerpsProvider,
+  IPerpsProvider,
   Position,
   AccountState,
   Order,
@@ -20,7 +20,7 @@ import type {
   FeeCalculationResult,
   FeeCalculationParams,
   AssetRoute,
-  PerpsPlatformDependencies,
+  IPerpsPlatformDependencies,
 } from '../types';
 import type { CandleData } from '../../types/perps-types';
 import type { CandlePeriod } from '../../constants/chartConfig';
@@ -28,14 +28,14 @@ import type { CandlePeriod } from '../../constants/chartConfig';
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 
 describe('MarketDataService', () => {
-  let mockProvider: jest.Mocked<PerpsProvider>;
+  let mockProvider: jest.Mocked<IPerpsProvider>;
   let mockContext: ServiceContext;
-  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
+  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
   let marketDataService: MarketDataService;
 
   beforeEach(() => {
     mockProvider =
-      createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
+      createMockHyperLiquidProvider() as unknown as jest.Mocked<IPerpsProvider>;
     mockDeps = createMockInfrastructure();
     marketDataService = new MarketDataService(mockDeps);
     mockContext = createMockServiceContext({

@@ -36,10 +36,7 @@ export const usePerpsDepositProgress = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (
-        transactionMeta.type !== TransactionType.perpsDepositAndOrder &&
-        transactionMeta.type !== TransactionType.perpsDeposit
-      ) {
+      if (transactionMeta.type !== TransactionType.perpsDeposit) {
         return;
       }
 

@@ -9,7 +9,6 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   wallet_watchAsset: true,
   wallet_addEthereumChain: true,
   wallet_switchEthereumChain: true,
-  wallet_sendCalls: true,
 };
 
 export default METHODS_TO_REDIRECT;

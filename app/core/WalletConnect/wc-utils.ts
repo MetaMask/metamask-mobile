@@ -59,58 +59,6 @@ export const getHostname = (uri: string): string => {
   }
 };
 
-/**
- * Validates a URL.
- *
- * @param url - The URL string to validate
- * @returns true if the URL is valid, false otherwise
- */
-export const isValidUrl = (url: string | undefined | null): boolean => {
-  if (!url || typeof url !== 'string' || url.trim() === '') {
-    return false;
-  }
-
-  // Validate the URL
-  try {
-    new URL(url.trim());
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-/**
- * Normalizes a dApp URL by ensuring it has a valid protocol.
- *
- * @param url - The URL string to normalize
- * @param defaultProtocol - The protocol to use if none is present (defaults to 'https://')
- * @returns The normalized URL with a valid protocol, or empty string if invalid
- */
-export const normalizeDappUrl = (
-  url: string | undefined | null,
-  defaultProtocol = 'https://',
-): string => {
-  if (!url || typeof url !== 'string' || url.trim() === '') {
-    return '';
-  }
-
-  const trimmedUrl = url.trim();
-
-  // Add protocol if missing
-  const normalizedUrl = trimmedUrl.includes('://')
-    ? trimmedUrl
-    : `${defaultProtocol}${trimmedUrl}`;
-
-  // Validate the URL
-  try {
-    new URL(normalizedUrl);
-    return normalizedUrl;
-  } catch {
-    DevLogger.log('Invalid URL format:', trimmedUrl);
-    return '';
-  }
-};
-
 export const parseWalletConnectUri = (uri: string): WCMultiVersionParams => {
   // Handle wc:{} and wc://{} format
   const str = uri.startsWith('wc://') ? uri.replace('wc://', 'wc:') : uri;
@@ -241,11 +189,6 @@ export const getApprovedSessionMethods = (): string[] => {
     'wallet_requestPermissions',
     'wallet_watchAsset',
     'wallet_scanQRCode',
-
-    // EIP-5792 methods
-    'wallet_sendCalls',
-    'wallet_getCallsStatus',
-    'wallet_getCapabilities',
   ];
 
   // TODO: extract from the permissions controller when implemented

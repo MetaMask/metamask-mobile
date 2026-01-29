@@ -8,10 +8,9 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-    },
-    contentContainer: {
       padding: 24,
-      paddingBottom: 56,
+      paddingBottom: 48,
+      marginBottom: 32,
     },
     heading: {
       marginTop: 16,

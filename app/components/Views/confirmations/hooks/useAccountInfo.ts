@@ -8,6 +8,7 @@ import {
   selectInternalAccounts,
   selectInternalAccountsById,
 } from '../../../../selectors/accountsController';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import {
   selectAccountToWalletMap,
   selectWalletsMap,
@@ -24,6 +25,9 @@ const useAccountInfo = (address: string, chainId: Hex) => {
   const accountToWalletMap = useSelector(selectAccountToWalletMap);
   const walletsMap = useSelector(selectWalletsMap);
   const accountGroups = useSelector(selectAccountGroups);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
   const activeAddress = toChecksumAddress(address as Hex);
   const { addressBalance: accountBalance } = useAddressBalance(
     undefined,
@@ -43,8 +47,6 @@ const useAccountInfo = (address: string, chainId: Hex) => {
     },
   )}`;
 
-  // This refers to the internal account name, not the account group name
-  // TODO: Deprecate this value to not be used in the app, use the accountGroupName instead
   const accountName = useMemo(
     () =>
       activeAddress ? renderAccountName(activeAddress, internalAccounts) : '',
@@ -52,7 +54,12 @@ const useAccountInfo = (address: string, chainId: Hex) => {
   );
 
   const walletName = useMemo(() => {
-    if (!walletsMap || !activeAddress || Object.keys(walletsMap).length <= 1) {
+    if (
+      !isMultichainAccountsState2Enabled ||
+      !walletsMap ||
+      !activeAddress ||
+      Object.keys(walletsMap).length <= 1
+    ) {
       return undefined;
     }
 
@@ -70,10 +77,16 @@ const useAccountInfo = (address: string, chainId: Hex) => {
     const wallet = walletsMap[walletId];
 
     return wallet?.metadata?.name;
-  }, [walletsMap, activeAddress, internalAccountsById, accountToWalletMap]);
+  }, [
+    isMultichainAccountsState2Enabled,
+    walletsMap,
+    activeAddress,
+    internalAccountsById,
+    accountToWalletMap,
+  ]);
 
   const accountGroupName = useMemo(() => {
-    if (!activeAddress) {
+    if (!isMultichainAccountsState2Enabled || !activeAddress) {
       return undefined;
     }
 
@@ -91,7 +104,12 @@ const useAccountInfo = (address: string, chainId: Hex) => {
     );
 
     return accountGroupNames[activeAddress.toLowerCase()];
-  }, [activeAddress, accountGroups, internalAccountsById]);
+  }, [
+    isMultichainAccountsState2Enabled,
+    activeAddress,
+    accountGroups,
+    internalAccountsById,
+  ]);
 
   return {
     accountName,

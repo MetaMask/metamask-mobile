@@ -33,7 +33,8 @@ export const usePerpsAssetMetadata = (assetSymbol: string | undefined) => {
 
     if (
       cached &&
-      now - cached.timestamp < PERFORMANCE_CONFIG.AssetMetadataCacheDurationMs
+      now - cached.timestamp <
+        PERFORMANCE_CONFIG.ASSET_METADATA_CACHE_DURATION_MS
     ) {
       if (cached.valid) {
         setAssetUrl(cached.url);

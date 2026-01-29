@@ -399,13 +399,13 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                       }
                     >
                       <RCTScrollView
+                        bottomOffset={180}
                         contentContainerStyle={
                           {
                             "flexGrow": 1,
                             "paddingHorizontal": 16,
                           }
                         }
-                        enabled={true}
                         keyboardDismissMode="none"
                         keyboardShouldPersistTaps="always"
                         showsVerticalScrollIndicator={false}
@@ -581,9 +581,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             autoComplete="off"
                                             autoCorrect={false}
                                             autoFocus={false}
-                                            blurOnSubmit={false}
                                             editable={true}
-                                            enablesReturnKeyAutomatically={false}
                                             importantForAutofill="no"
                                             keyboardType="visible-password"
                                             onBlur={[Function]}
@@ -594,7 +592,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             onSubmitEditing={[Function]}
                                             placeholder=""
                                             placeholderTextColor="#b7bbc8"
-                                            returnKeyType="done"
                                             showSoftInputOnFocus={true}
                                             spellCheck={false}
                                             style={
@@ -677,10 +674,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             autoCapitalize="none"
                                             autoComplete="off"
                                             autoCorrect={false}
-                                            autoFocus={false}
-                                            blurOnSubmit={false}
+                                            autoFocus={true}
                                             editable={true}
-                                            enablesReturnKeyAutomatically={false}
                                             importantForAutofill="no"
                                             keyboardType="visible-password"
                                             multiline={true}
@@ -689,10 +684,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             onFocus={[Function]}
                                             onKeyPress={[Function]}
                                             onSelectionChange={[Function]}
-                                            onSubmitEditing={[Function]}
                                             placeholder="Add a space between each word and make sure no one is watching."
                                             placeholderTextColor="#686e7d"
-                                            returnKeyType="done"
                                             showSoftInputOnFocus={true}
                                             spellCheck={false}
                                             style={
@@ -745,59 +738,59 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                   Paste
                                 </Text>
                               </View>
+                              <View
+                                style={
+                                  {
+                                    "flexDirection": "column",
+                                    "gap": 16,
+                                    "width": "100%",
+                                  }
+                                }
+                              >
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={true}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "opacity": 0.5,
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                  testID="import-from-seed-screen-continue-button-id"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Continue
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
                             </View>
                           </View>
                         </View>
                       </RCTScrollView>
-                      <View
-                        style={
-                          {
-                            "backgroundColor": "#ffffff",
-                            "paddingHorizontal": 16,
-                            "paddingVertical": 16,
-                          }
-                        }
-                      >
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          disabled={true}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "stretch",
-                              "backgroundColor": "#121314",
-                              "borderRadius": 12,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "opacity": 0.5,
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
-                            }
-                          }
-                          testID="import-from-seed-screen-continue-button-id"
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#ffffff",
-                                "fontFamily": "Geist-Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Continue
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
                       <View />
                     </RNCSafeAreaView>
                   </View>

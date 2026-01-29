@@ -11,7 +11,6 @@ import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
 import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import KYCFailed from '../components/Onboarding/KYCFailed';
-import KYCPending from '../components/Onboarding/KYCPending';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import { cardDefaultNavigationOptions, headerStyle } from '.';
@@ -97,13 +96,6 @@ export const KYCStatusNavigationOptions = ({
   gestureEnabled: false,
 });
 
-// Navigation options for screens that manage their own header (KYC_FAILED, KYC_PENDING)
-// These screens have custom back buttons and don't need the stack navigator header
-export const HeaderlessNavigationOptions: StackNavigationOptions = {
-  headerShown: false,
-  gestureEnabled: false,
-};
-
 const OnboardingNavigator: React.FC = () => {
   const { cardUserPhase } = useParams<{
     cardUserPhase?: CardUserPhase;
@@ -135,26 +127,9 @@ const OnboardingNavigator: React.FC = () => {
         return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
       }
       if (cardUserPhase === 'PERSONAL_INFORMATION') {
-        if (user?.verificationState === 'VERIFIED') {
-          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
-        }
-
-        if (user?.verificationState === 'REJECTED') {
-          return Routes.CARD.ONBOARDING.KYC_FAILED;
-        }
-
-        return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+        return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
       }
       if (cardUserPhase === 'PHYSICAL_ADDRESS') {
-        if (user?.verificationState !== 'VERIFIED') {
-          if (user?.verificationState === 'REJECTED') {
-            return Routes.CARD.ONBOARDING.KYC_FAILED;
-          }
-          return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
-        }
-        if (!user?.countryOfNationality) {
-          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
-        }
         return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
       }
     }
@@ -205,7 +180,6 @@ const OnboardingNavigator: React.FC = () => {
     if (
       isReturningSession &&
       initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
-      initialRouteName !== Routes.CARD.ONBOARDING.COMPLETE &&
       !hasShownKeepGoingModal.current &&
       user?.verificationState !== 'REJECTED'
     ) {
@@ -295,12 +269,7 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
         component={KYCFailed}
-        options={HeaderlessNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.KYC_PENDING}
-        component={KYCPending}
-        options={HeaderlessNavigationOptions}
+        options={KYCStatusNavigationOptions}
       />
     </Stack.Navigator>
   );

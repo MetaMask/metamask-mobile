@@ -19,7 +19,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
-import { MUSD_CONVERSION_APY } from '../../../constants/musd';
+import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
@@ -43,6 +43,8 @@ const MusdConversionAssetOverviewCta = ({
 
   const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
+
+  const { getMusdOutputChainId } = useMusdConversionTokens();
 
   const submitCtaPressedEvent = () => {
     const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
@@ -82,6 +84,7 @@ const MusdConversionAssetOverviewCta = ({
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
         },
+        outputChainId: getMusdOutputChainId(asset.chainId),
         navigationStack: Routes.EARN.ROOT,
       });
     } catch (error) {
@@ -102,14 +105,13 @@ const MusdConversionAssetOverviewCta = ({
       {/* Text content in the center */}
       <View style={styles.textContainer}>
         <Text variant={TextVariant.BodySMMedium} style={styles.title}>
-          {strings('earn.musd_conversion.boost_title', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
+          {strings('earn.musd_conversion.boost_title')}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {strings('earn.musd_conversion.boost_description', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
+          {strings('earn.musd_conversion.boost_description')}{' '}
+          <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
+            mUSD
+          </Text>
         </Text>
       </View>
 

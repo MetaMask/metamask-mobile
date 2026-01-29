@@ -1,9 +1,10 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextVariant,
   TextColor,
@@ -14,12 +15,7 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../../../component-library/components/Buttons/Button';
+import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 export enum PriceChangeOption {
   PriceChange = 'price_change',
@@ -42,6 +38,15 @@ export interface TrendingTokenPriceChangeBottomSheetProps {
   selectedOption?: PriceChangeOption;
   sortDirection?: SortDirection;
 }
+
+const closeButtonStyle = StyleSheet.create({
+  closeButton: {
+    width: 24,
+    height: 24,
+    flexShrink: 0,
+    marginTop: -12,
+  },
+});
 
 const TrendingTokenPriceChangeBottomSheet: React.FC<
   TrendingTokenPriceChangeBottomSheetProps
@@ -84,7 +89,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
 
   const optionStyles = StyleSheet.create({
     optionsList: {
-      paddingBottom: 24,
+      paddingBottom: 32,
     },
     optionRow: {
       flexDirection: 'row',
@@ -102,9 +107,27 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       alignItems: 'center',
       gap: 8,
     },
-    buttonContainer: {
+    applyButton: {
+      height: 48,
+      paddingVertical: 4,
       paddingHorizontal: 16,
-      paddingBottom: Platform.OS === 'android' ? 0 : 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexShrink: 0,
+      alignSelf: 'stretch',
+      borderRadius: 12,
+      backgroundColor: colors.icon.default,
+      marginHorizontal: 16,
+      marginTop: 16,
+      marginBottom: 32,
+    },
+    applyButtonText: {
+      color: colors.icon.inverse,
+      textAlign: 'center',
+      fontSize: 16,
+      fontStyle: 'normal',
+      fontWeight: '500',
+      lineHeight: undefined, // normal
     },
   });
 
@@ -155,11 +178,14 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       ref={sheetRef}
       onClose={handleSheetClose}
     >
-      <HeaderCenter
-        title={strings('trending.sort_by')}
+      <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: 'close-button' }}
-      />
+        closeButtonProps={{ style: closeButtonStyle.closeButton }}
+      >
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('trending.sort_by')}
+        </Text>
+      </BottomSheetHeader>
       <View style={optionStyles.optionsList}>
         <TouchableOpacity
           style={[
@@ -262,15 +288,15 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           )}
         </TouchableOpacity>
       </View>
-      <View style={optionStyles.buttonContainer}>
-        <Button
-          variant={ButtonVariants.Primary}
-          label={strings('trending.apply')}
-          onPress={handleApply}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-        />
-      </View>
+      <ButtonBase
+        label={
+          <Text style={optionStyles.applyButtonText}>
+            {strings('trending.apply')}
+          </Text>
+        }
+        onPress={handleApply}
+        style={optionStyles.applyButton}
+      />
     </BottomSheet>
   );
 };

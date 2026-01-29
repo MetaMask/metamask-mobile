@@ -61,13 +61,13 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 jest.mock('../constants/perpsConfig', () => ({
   HYPERLIQUID_ORDER_LIMITS: {
-    MarketOrderLimits: {
-      HighLeverage: 15_000_000,
-      MediumHighLeverage: 5_000_000,
-      MediumLeverage: 2_000_000,
-      LowLeverage: 500_000,
+    MARKET_ORDER_LIMITS: {
+      HIGH_LEVERAGE: 15_000_000,
+      MEDIUM_HIGH_LEVERAGE: 5_000_000,
+      MEDIUM_LEVERAGE: 2_000_000,
+      LOW_LEVERAGE: 500_000,
     },
-    LimitOrderMultiplier: 10,
+    LIMIT_ORDER_MULTIPLIER: 10,
   },
 }));
 

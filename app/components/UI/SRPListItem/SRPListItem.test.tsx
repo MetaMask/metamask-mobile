@@ -42,10 +42,7 @@ jest.mock('../../../core/Engine', () => {
 const mockKeyringId1 = '01JKZ55Y6KPCYH08M6B9VSZWKW';
 const mockKeyringId2 = '01JKZ56KRVYEEHC601HSNW28T2';
 
-const mockWalletId1 = `entropy:${mockKeyringId1}`;
-
 const mockKeyringName1 = 'Secret Recovery Phrase 1';
-
 const mockKeyring1 = {
   type: ExtendedKeyringTypes.hd,
   accounts: [internalAccount1.address],
@@ -95,8 +92,8 @@ const mockAccountTreeControllerState: DeepPartial<AccountTreeControllerState> =
   {
     accountTree: {
       wallets: {
-        [mockWalletId1]: {
-          id: mockWalletId1,
+        [`entropy:${mockKeyringId1}`]: {
+          id: `entropy:${mockKeyringId1}`,
           type: AccountWalletType.Entropy,
           metadata: {
             name: 'Wallet 1',
@@ -296,7 +293,7 @@ describe('SRPList', () => {
     fireEvent.press(toggle);
 
     // Account group names are displayed (multichain account names)
-    expect(getByText(mockAccountGroup1.metadata.name)).toBeOnTheScreen();
-    expect(getByText(mockAccountGroup2.metadata.name)).toBeOnTheScreen();
+    expect(getByText('Account 1')).toBeOnTheScreen();
+    expect(getByText('Account 2')).toBeOnTheScreen();
   });
 });

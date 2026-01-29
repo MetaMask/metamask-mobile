@@ -51,7 +51,7 @@ export const executionServiceInit: ControllerInitFunction<
           fromHomepage: { current: false },
           toggleUrlModal: () => null,
           tabId: false,
-          isWalletConnect: false,
+          isWalletConnect: true,
           isMMSDK: false,
           url: { current: '' },
           analytics: {},

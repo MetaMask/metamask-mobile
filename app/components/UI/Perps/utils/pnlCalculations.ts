@@ -33,10 +33,7 @@ export interface ExpectedPnLParams {
 }
 
 /**
- * Calculate P&L for a position.
- *
- * @param params - P&L calculation parameters
- * @returns The calculated profit or loss value
+ * Calculate P&L for a position
  */
 export function calculatePnL(params: PnLCalculationParams): number {
   const { entryPrice, currentPrice, size } = params;
@@ -44,11 +41,8 @@ export function calculatePnL(params: PnLCalculationParams): number {
 }
 
 /**
- * Calculate expected profit/loss for TP/SL trigger, accounting for closing fees.
- * Reuses calculatePnL for gross P&L, then subtracts fees.
- *
- * @param params - Expected P&L calculation parameters
- * @returns The expected net profit or loss after fees
+ * Calculate expected profit/loss for TP/SL trigger, accounting for closing fees
+ * Reuses calculatePnL for gross P&L, then subtracts fees
  */
 export function calculateExpectedPnL(params: ExpectedPnLParams): number {
   const { triggerPrice, entryPrice, size, closingFee } = params;
@@ -61,10 +55,7 @@ export function calculateExpectedPnL(params: ExpectedPnLParams): number {
 }
 
 /**
- * Calculate P&L percentage for a position.
- *
- * @param params - P&L calculation parameters
- * @returns The P&L as a percentage value
+ * Calculate P&L percentage for a position
  */
 export function calculatePnLPercentage(params: PnLCalculationParams): number {
   const { entryPrice, currentPrice, size } = params;
@@ -72,10 +63,7 @@ export function calculatePnLPercentage(params: PnLCalculationParams): number {
 }
 
 /**
- * Calculate both P&L and P&L percentage.
- *
- * @param params - P&L calculation parameters
- * @returns Object containing both P&L value and percentage
+ * Calculate both P&L and P&L percentage
  */
 export function calculatePnLWithPercentage(
   params: PnLCalculationParams,
@@ -87,11 +75,8 @@ export function calculatePnLWithPercentage(
 }
 
 /**
- * Calculate P&L percentage based on unrealized P&L and position value.
- * This is used when current price is not available.
- *
- * @param params - Parameters including unrealized P&L, entry price, and size
- * @returns The P&L as a percentage value
+ * Calculate P&L percentage based on unrealized P&L and position value
+ * This is used when current price is not available
  */
 export function calculatePnLPercentageFromUnrealized(
   params: PnLFromUnrealizedParams,
@@ -103,10 +88,7 @@ export function calculatePnLPercentageFromUnrealized(
 }
 
 /**
- * Calculate total P&L for multiple positions.
- *
- * @param params - Parameters containing array of positions
- * @returns The sum of unrealized P&L across all positions
+ * Calculate total P&L for multiple positions
  */
 export function calculateTotalPnL(params: TotalPnLParams): number {
   const { positions } = params;
@@ -117,10 +99,7 @@ export function calculateTotalPnL(params: TotalPnLParams): number {
 }
 
 /**
- * Calculate total P&L percentage for multiple positions.
- *
- * @param params - Parameters containing array of positions
- * @returns The weighted average P&L percentage across all positions
+ * Calculate total P&L percentage for multiple positions
  */
 export function calculateTotalPnLPercentage(params: TotalPnLParams): number {
   const { positions } = params;

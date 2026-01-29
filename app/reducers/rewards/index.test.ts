@@ -56,7 +56,6 @@ describe('rewardsReducer', () => {
     referralDetailsError: false,
     referralCode: null,
     refereeCount: 0,
-    referredByCode: null,
 
     currentTier: null,
     nextTier: null,
@@ -653,39 +652,39 @@ describe('rewardsReducer', () => {
       expect(state.referralDetailsLoading).toBe(false);
     });
 
-    it('updates referredByCode when provided', () => {
+    it('updates balanceRefereePortion when referralPoints is provided', () => {
       // Arrange
-      const action = setReferralDetails({ referredByCode: 'REFERRER500' });
+      const action = setReferralDetails({ referralPoints: 500 });
 
       // Act
       const state = rewardsReducer(initialState, action);
 
       // Assert
-      expect(state.referredByCode).toBe('REFERRER500');
+      expect(state.balanceRefereePortion).toBe(500);
       expect(state.referralDetailsLoading).toBe(false);
     });
 
-    it('updates referredByCode with empty string', () => {
+    it('updates balanceRefereePortion with zero value', () => {
       // Arrange
-      const stateWithCode = {
+      const stateWithPoints = {
         ...initialState,
-        referredByCode: 'PREVIOUS300',
+        balanceRefereePortion: 300,
       };
-      const action = setReferralDetails({ referredByCode: '' });
+      const action = setReferralDetails({ referralPoints: 0 });
 
       // Act
-      const state = rewardsReducer(stateWithCode, action);
+      const state = rewardsReducer(stateWithPoints, action);
 
       // Assert
-      expect(state.referredByCode).toBe('');
+      expect(state.balanceRefereePortion).toBe(0);
     });
 
-    it('updates all fields including referredByCode when provided together', () => {
+    it('updates all fields including referralPoints when provided together', () => {
       // Arrange
       const action = setReferralDetails({
         referralCode: 'COMBO123',
         refereeCount: 15,
-        referredByCode: 'REFERRER750',
+        referralPoints: 750,
       });
 
       // Act
@@ -694,24 +693,57 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.referralCode).toBe('COMBO123');
       expect(state.refereeCount).toBe(15);
-      expect(state.referredByCode).toBe('REFERRER750');
+      expect(state.balanceRefereePortion).toBe(750);
       expect(state.referralDetailsLoading).toBe(false);
     });
 
-    it('preserves referredByCode when not provided', () => {
+    it('preserves balanceRefereePortion when referralPoints is not provided', () => {
       // Arrange
-      const stateWithCode = {
+      const stateWithPoints = {
         ...initialState,
-        referredByCode: 'EXISTING200',
+        balanceRefereePortion: 200,
       };
       const action = setReferralDetails({ referralCode: 'TEST456' });
 
       // Act
-      const state = rewardsReducer(stateWithCode, action);
+      const state = rewardsReducer(stateWithPoints, action);
 
       // Assert
-      expect(state.referredByCode).toBe('EXISTING200');
+      expect(state.balanceRefereePortion).toBe(200);
       expect(state.referralCode).toBe('TEST456');
+    });
+
+    it('handles negative referralPoints value', () => {
+      // Arrange
+      const action = setReferralDetails({ referralPoints: -50 });
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.balanceRefereePortion).toBe(-50);
+    });
+
+    it('handles large referralPoints value', () => {
+      // Arrange
+      const action = setReferralDetails({ referralPoints: 999999 });
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.balanceRefereePortion).toBe(999999);
+    });
+
+    it('handles decimal referralPoints value', () => {
+      // Arrange
+      const action = setReferralDetails({ referralPoints: 125.75 });
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.balanceRefereePortion).toBe(125.75);
     });
   });
 
@@ -2012,7 +2044,6 @@ describe('rewardsReducer', () => {
         referralDetailsLoading: false,
         referralCode: 'TEST123',
         refereeCount: 10,
-        referredByCode: null,
         currentTier: {
           id: 'tier-platinum',
           name: 'Platinum',
@@ -2113,7 +2144,6 @@ describe('rewardsReducer', () => {
         referralDetailsLoading: false,
         referralCode: 'PERSISTED123',
         refereeCount: 15,
-        referredByCode: null,
         currentTier: {
           id: 'tier-diamond',
           name: 'Diamond',

@@ -109,6 +109,7 @@ function SendTransaction() {
           title: strings(
             'fiat_on_ramp_aggregator.send_transaction.sell_crypto',
           ),
+          showClose: false,
         },
         theme,
       ),

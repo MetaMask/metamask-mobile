@@ -26,6 +26,7 @@ import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
+import zxcvbn from 'zxcvbn';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   TRUE,
@@ -33,6 +34,7 @@ import {
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
+  getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
@@ -255,6 +257,15 @@ const createStyles = (colors) =>
       top: 0,
       right: 0,
     },
+    strength_weak: {
+      color: colors.error.default,
+    },
+    strength_good: {
+      color: colors.primary.default,
+    },
+    strength_strong: {
+      color: colors.success.default,
+    },
     showMatchingPasswords: {
       position: 'absolute',
       top: 50,
@@ -303,10 +314,6 @@ const createStyles = (colors) =>
     },
     warningButton: {
       flex: 1,
-    },
-    errorBorder: {
-      borderColor: colors.error.default,
-      borderWidth: 1,
     },
   });
 
@@ -363,7 +370,6 @@ class ResetPassword extends PureComponent {
     ready: true,
     showPasswordIndex: [0, 1],
     showPasswordChangeWarning: false,
-    isPasswordFieldFocused: false,
   };
 
   mounted = true;
@@ -549,7 +555,7 @@ class ResetPassword extends PureComponent {
       this.props.passwordSet();
 
       // Track password changed event
-      const { biometryChoice } = this.state;
+      const { biometryChoice, passwordStrength } = this.state;
       const eventBuilder = MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PASSWORD_CHANGED,
       ).addProperties({
@@ -679,18 +685,13 @@ class ResetPassword extends PureComponent {
   };
 
   onPasswordChange = (val) => {
+    const passInfo = zxcvbn(val);
+
     this.setState((prevState) => ({
       password: val,
+      passwordStrength: passInfo.score,
       confirmPassword: val === '' ? '' : prevState.confirmPassword,
     }));
-  };
-
-  handlePasswordFocus = () => {
-    this.setState({ isPasswordFieldFocused: true });
-  };
-
-  handlePasswordBlur = () => {
-    this.setState({ isPasswordFieldFocused: false });
   };
 
   learnMore = () => {
@@ -717,34 +718,35 @@ class ResetPassword extends PureComponent {
 
   setConfirmPassword = (val) => this.setState({ confirmPassword: val });
 
-  // Method to check if password field should show error state
-  isPasswordTooShort = () => {
-    const { isPasswordFieldFocused, password } = this.state;
-    return (
-      !isPasswordFieldFocused &&
-      !!password &&
-      password.length < MIN_PASSWORD_LENGTH
-    );
-  };
+  // Helper method to render password strength text
+  renderPasswordStrengthText = (password, passwordStrengthWord, styles) => {
+    if (!password) return null;
 
-  // Helper method to render password helper text
-  renderPasswordHelperText = () => {
-    // Only show helper text when password doesn't meet minimum length
-    const { password } = this.state;
-    if (password && password.length >= MIN_PASSWORD_LENGTH) {
-      return null;
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return (
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {strings('reset_password.must_be_at_least', {
+            number: MIN_PASSWORD_LENGTH,
+          })}
+        </Text>
+      );
     }
 
-    // Show error color only when field has been touched and password is too short
-    const showError = this.isPasswordTooShort();
     return (
       <Text
         variant={TextVariant.BodySM}
-        color={showError ? TextColor.Error : TextColor.Alternative}
+        color={TextColor.Alternative}
+        testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
       >
-        {strings('reset_password.must_be_at_least', {
-          number: MIN_PASSWORD_LENGTH,
-        })}
+        {strings('reset_password.password_strength')}
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          style={styles[`strength_${passwordStrengthWord}`]}
+        >
+          {' '}
+          {strings(`reset_password.strength_${passwordStrengthWord}`)}
+        </Text>
       </Text>
     );
   };
@@ -905,12 +907,14 @@ class ResetPassword extends PureComponent {
   };
 
   renderResetPassword() {
-    const { isSelected, password, confirmPassword, loading } = this.state;
+    const { isSelected, password, passwordStrength, confirmPassword, loading } =
+      this.state;
     const colors = this.getThemeColors();
     const themeAppearance = this.getThemeAppearance();
     const styles = this.getStyles();
     const passwordsMatch = password !== '' && password === confirmPassword;
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
+    const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
     const canSubmit =
       passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
@@ -955,8 +959,6 @@ class ResetPassword extends PureComponent {
                     size={TextFieldSize.Lg}
                     value={password}
                     onChangeText={this.onPasswordChange}
-                    onFocus={this.handlePasswordFocus}
-                    onBlur={this.handlePasswordBlur}
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     placeholder={strings(
                       'reset_password.new_password_placeholder',
@@ -968,10 +970,6 @@ class ResetPassword extends PureComponent {
                     autoComplete="new-password"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
-                    isError={this.isPasswordTooShort()}
-                    style={
-                      this.isPasswordTooShort() ? styles.errorBorder : undefined
-                    }
                     endAccessory={
                       <Icon
                         name={
@@ -988,7 +986,11 @@ class ResetPassword extends PureComponent {
                       />
                     }
                   />
-                  {this.renderPasswordHelperText()}
+                  {this.renderPasswordStrengthText(
+                    password,
+                    passwordStrengthWord,
+                    styles,
+                  )}
                 </View>
 
                 <View style={styles.field}>

@@ -50,7 +50,6 @@ const createStyles = (colors: Theme['colors']) =>
       width: '100%',
       flexDirection: 'column',
       rowGap: 18,
-      marginTop: 'auto',
       marginBottom: Platform.select({
         ios: 16,
         android: 24,
@@ -92,9 +91,6 @@ const createStyles = (colors: Theme['colors']) =>
     },
     checkbox: {
       alignItems: 'flex-start',
-    },
-    errorBorder: {
-      borderColor: colors.error.default,
     },
     passwordContainerTitle: {
       flexDirection: 'column',

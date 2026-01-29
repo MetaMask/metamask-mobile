@@ -10,7 +10,7 @@ import {
   ResultType,
   Reason,
   SecurityAlertSource,
-} from '../../../../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
+} from '../../../../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 
 const mockTypedSignV4SignatureRequest = typedSignV4SignatureRequest;
 jest.mock('./useSignatureRequest', () => ({
@@ -101,18 +101,10 @@ describe('useSignatureMetrics', () => {
   });
 
   it('should capture metrics events correctly', async () => {
-    // The key must match messageParams.requestId from typedSignV4SignatureRequest
-    // since useSecurityAlertResponse looks up by requestId first
-    const requestId =
-      typedSignV4SignatureRequest.messageParams.requestId?.toString();
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        securityAlerts: {
-          alerts: {
-            [requestId as string]: securityAlertResponse,
-          },
-        },
+        signatureRequest: { securityAlertResponse },
       },
     });
     // first call for 'SIGNATURE_REQUESTED' event
@@ -131,15 +123,11 @@ describe('useSignatureMetrics', () => {
   });
 
   it('captures metrics events correctly with loading security alert response', async () => {
-    const requestId =
-      typedSignV4SignatureRequest.messageParams.requestId?.toString();
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        securityAlerts: {
-          alerts: {
-            [requestId as string]: securityAlertResponseLoading,
-          },
+        signatureRequest: {
+          securityAlertResponse: securityAlertResponseLoading,
         },
       },
     });
@@ -159,15 +147,11 @@ describe('useSignatureMetrics', () => {
   });
 
   it('captures metrics events correctly with undefined security alert response', async () => {
-    const requestId =
-      typedSignV4SignatureRequest.messageParams.requestId?.toString();
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        securityAlerts: {
-          alerts: {
-            [requestId as string]: securityAlertResponseUndefined,
-          },
+        signatureRequest: {
+          securityAlertResponse: securityAlertResponseUndefined,
         },
       },
     });

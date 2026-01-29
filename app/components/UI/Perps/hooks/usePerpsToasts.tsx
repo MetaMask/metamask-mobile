@@ -816,13 +816,17 @@ const usePerpsToasts = (): {
               strings('perps.position.tpsl.update_success'),
             ),
           },
-          updateTPSLError: (error?: string) => ({
-            ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.position.tpsl.update_failed'),
-              error || strings('perps.errors.tpslUpdateFailed'),
-            ),
-          }),
+          updateTPSLError: (error?: string) => {
+            const errorMessage = error || strings('perps.errors.unknown');
+
+            return {
+              ...perpsBaseToastOptions.error,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.position.tpsl.update_failed'),
+                errorMessage,
+              ),
+            };
+          },
         },
         margin: {
           addSuccess: (assetSymbol: string, amount: string) => ({
@@ -843,13 +847,17 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          adjustmentFailed: (error?: string) => ({
-            ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.position.margin.adjustment_failed'),
-              error || strings('perps.errors.marginAdjustmentFailed'),
-            ),
-          }),
+          adjustmentFailed: (error?: string) => {
+            const errorMessage = error || strings('perps.errors.unknown');
+
+            return {
+              ...perpsBaseToastOptions.error,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.position.margin.adjustment_failed'),
+                errorMessage,
+              ),
+            };
+          },
         },
       },
       formValidation: {
@@ -858,7 +866,7 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.validation.failed'),
-              error, // Pass through directly - validation errors are already localized
+              error,
             ),
           }),
           limitPriceRequired: {

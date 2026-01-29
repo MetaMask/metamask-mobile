@@ -111,7 +111,7 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
     // to bubble up to parent row's navigation handler.
     if (fill.fillType === FillType.AutoDeleveraging) {
       const onTagPress = () => {
-        Linking.openURL(PERPS_SUPPORT_ARTICLES_URLS.AdlUrl).catch((error) => {
+        Linking.openURL(PERPS_SUPPORT_ARTICLES_URLS.ADL_URL).catch((error) => {
           console.error('Error opening ADL support article:', error);
         });
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {

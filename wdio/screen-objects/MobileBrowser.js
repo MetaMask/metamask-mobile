@@ -54,42 +54,12 @@ class MobileBrowserScreen {
         }
     }
 
-    get chromeMenuButton() {
+    async tapSelectDappUrl(dappName) {
         if (!this._device) {
             return;
         }
 
-        if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/menu_button');
-        }
-    }
-
-    get chromeRefreshButton() {
-        if (!this._device) {
-            return;
-        }
-
-        if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/button_five');
-        }
-    }
-
-    get chromeUrlEntry() {
-        if (!this._device) {
-            return;
-        }
-
-        if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/line_2');
-        }
-    }
-
-    async tapSelectDappUrl() {
-        if (!this._device) {
-            return;
-        }
-
-        const element = await this.chromeUrlEntry;
+        const element = await AppwrightSelectors.getElementByText(this._device, dappName);
         await AppwrightGestures.tap(element)
     }
 
@@ -128,24 +98,6 @@ class MobileBrowserScreen {
         const element = await this.chromeNoThanksButton;
         await AppwrightGestures.tap(element)
     }
-
-    async tapChromeMenuButton() {
-        if (!this._device) {
-            return;
-        }
-
-        const element = await this.chromeMenuButton;
-        await AppwrightGestures.tap(element)
-    }
-
-    async tapChromeRefreshButton() {
-        if (!this._device) {
-            return;
-        }
-
-        const element = await this.chromeRefreshButton;
-        await AppwrightGestures.tap(element)
-    }
 }
 
-export default new MobileBrowserScreen();
+  export default new MobileBrowserScreen();

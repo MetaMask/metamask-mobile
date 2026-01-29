@@ -5,7 +5,7 @@ import BlockaidAlertContent from './blockaid-alert-content';
 import {
   SecurityAlertResponse,
   Reason,
-} from '../../components/blockaid-banner/BlockaidBanner.types';
+} from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { deflate } from 'react-native-gzip';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';

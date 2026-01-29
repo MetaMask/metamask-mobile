@@ -51,20 +51,6 @@ export const handleRewardsErrorMessage = (error: unknown) => {
   ) {
     return strings('rewards.error_messages.service_not_available');
   }
-
-  // Referral code errors
-  if (message.toLowerCase().includes('invalid referral code')) {
-    return strings('rewards.error_messages.invalid_referral_code');
-  }
-
-  if (message.toLowerCase().includes('already referred')) {
-    return strings('rewards.error_messages.already_referred');
-  }
-
-  if (message.toLowerCase().includes('cannot use your own referral code')) {
-    return strings('rewards.error_messages.cannot_use_own_referral_code');
-  }
-
   return message;
 };
 

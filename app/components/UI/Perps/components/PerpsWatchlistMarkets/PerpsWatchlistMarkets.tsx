@@ -1,11 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  FlatList,
-  View,
-  TouchableOpacity,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { FlatList, View, TouchableOpacity } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextVariant,
@@ -36,12 +30,6 @@ interface PerpsWatchlistMarketsProps {
   positions?: Position[];
   /** Orders from parent - avoids duplicate WebSocket subscriptions */
   orders?: Order[];
-  /** Override section styles (e.g., to adjust margins) */
-  sectionStyle?: StyleProp<ViewStyle>;
-  /** Override header styles (e.g., to remove horizontal padding) */
-  headerStyle?: StyleProp<ViewStyle>;
-  /** Override content container styles (e.g., to remove horizontal margin) */
-  contentContainerStyle?: StyleProp<ViewStyle>;
 }
 
 const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
@@ -49,9 +37,6 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   isLoading,
   positions = [],
   orders = [],
-  sectionStyle,
-  headerStyle,
-  contentContainerStyle,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -103,10 +88,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   // Header component - full row is pressable with chevron icon next to title
   const SectionHeader = useCallback(
     () => (
-      <TouchableOpacity
-        style={[styles.header, headerStyle]}
-        onPress={handleViewAll}
-      >
+      <TouchableOpacity style={styles.header} onPress={handleViewAll}>
         <View style={styles.titleRow}>
           <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
             {strings('perps.home.watchlist')}
@@ -119,15 +101,15 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
         </View>
       </TouchableOpacity>
     ),
-    [styles.header, styles.titleRow, handleViewAll, headerStyle],
+    [styles.header, styles.titleRow, handleViewAll],
   );
 
   // Show skeleton during initial load
   if (isLoading) {
     return (
-      <View style={[styles.section, sectionStyle]}>
+      <View style={styles.section}>
         <SectionHeader />
-        <View style={[styles.contentContainer, contentContainerStyle]}>
+        <View style={styles.contentContainer}>
           <PerpsRowSkeleton count={3} />
         </View>
       </View>
@@ -141,9 +123,9 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
 
   // Render market list
   return (
-    <View style={[styles.section, sectionStyle]}>
+    <View style={styles.section}>
       <SectionHeader />
-      <View style={[styles.contentContainer, contentContainerStyle]}>
+      <View style={styles.contentContainer}>
         <FlatList
           data={markets}
           renderItem={renderMarket}

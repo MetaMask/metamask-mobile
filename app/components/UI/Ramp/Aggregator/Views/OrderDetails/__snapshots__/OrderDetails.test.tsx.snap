@@ -119,7 +119,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1551,7 +1551,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -3001,7 +3001,7 @@ exports[`OrderDetails renders a created order 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -4429,7 +4429,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -5861,7 +5861,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -7289,7 +7289,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -7701,7 +7701,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -8302,7 +8302,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -9795,7 +9795,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -11291,7 +11291,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -12719,7 +12719,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"

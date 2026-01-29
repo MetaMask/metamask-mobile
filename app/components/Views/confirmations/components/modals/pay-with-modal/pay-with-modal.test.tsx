@@ -22,6 +22,7 @@ import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controlle
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
+import { useRoute } from '@react-navigation/native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
@@ -33,6 +34,11 @@ jest.mock('../../../utils/transaction-pay');
 
 jest.mock('../../../hooks/send/useAccountTokens', () => ({
   useAccountTokens: () => [],
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useRoute: jest.fn(),
 }));
 
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
@@ -163,6 +169,7 @@ describe('PayWithModal', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
+  const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -177,6 +184,10 @@ describe('PayWithModal', () => {
       payToken: { address: NATIVE_TOKEN_ADDRESS, chainId: CHAIN_ID_1_MOCK },
       setPayToken: setPayTokenMock,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    mockUseRoute.mockReturnValue({
+      params: {},
+    } as unknown as ReturnType<typeof useRoute>);
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,

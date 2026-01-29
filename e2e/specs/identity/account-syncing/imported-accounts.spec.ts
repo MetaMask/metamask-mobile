@@ -19,6 +19,8 @@ import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeIdentity('Account syncing - Unsupported Account types'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -46,6 +48,12 @@ describe(SmokeIdentity('Account syncing - Unsupported Account types'), () => {
           USER_STORAGE_WALLETS_FEATURE_KEY,
         ],
         sharedUserStorageController,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
       },
       async ({ userStorageMockttpController }) => {
         await loginToApp();
@@ -117,6 +125,12 @@ describe(SmokeIdentity('Account syncing - Unsupported Account types'), () => {
           USER_STORAGE_WALLETS_FEATURE_KEY,
         ],
         sharedUserStorageController,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
       },
       async () => {
         await loginToApp();

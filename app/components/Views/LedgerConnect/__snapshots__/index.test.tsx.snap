@@ -511,51 +511,71 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             }
           }
         >
-          <TouchableOpacity
-            onPress={[Function]}
-            testID="select-drop-down"
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                }
+          <View
+            style={
+              {
+                "flex": 1,
               }
+            }
+          >
+            <TouchableOpacity
+              onPress={[Function]}
+              testID="select-drop-down"
             >
-              <Text
-                numberOfLines={1}
+              <View
                 style={
                   {
-                    "color": "#121314",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 14,
-                    "fontWeight": 600,
-                    "paddingBottom": 8,
-                    "paddingHorizontal": 10,
-                    "paddingTop": 8,
+                    "flexDirection": "row",
                   }
                 }
               >
-                Ledger device
-              </Text>
-              <SvgMock
-                fill="currentColor"
-                name="ArrowDown"
-                style={
-                  [
+                <Text
+                  numberOfLines={1}
+                  style={
                     {
-                      "color": "#686e7d",
-                      "height": 12,
-                      "marginRight": 8,
-                      "width": 12,
-                    },
-                    undefined,
-                  ]
-                }
-              />
-            </View>
-          </TouchableOpacity>
+                      "alignSelf": "flex-start",
+                      "color": "#121314",
+                      "flex": 1,
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 14,
+                      "paddingBottom": 10,
+                      "paddingHorizontal": 15,
+                      "paddingTop": 10,
+                    }
+                  }
+                >
+                  Ledger device
+                </Text>
+                <Text
+                  allowFontScaling={false}
+                  selectable={false}
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 24,
+                      },
+                      {
+                        "height": 25,
+                        "justifyContent": "flex-end",
+                        "marginRight": 10,
+                        "marginTop": 7,
+                        "textAlign": "right",
+                      },
+                      {
+                        "fontFamily": "Material Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
       <View

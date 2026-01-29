@@ -7,19 +7,23 @@ import {
   isEligibleForMerklRewards,
   useMerklRewards,
 } from './hooks/useMerklRewards';
-import { usePendingMerklClaim } from './hooks/usePendingMerklClaim';
 
 jest.mock('./hooks/useMerklRewards');
-jest.mock('./hooks/usePendingMerklClaim');
-
 jest.mock('./PendingMerklRewards', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ claimableReward }: { claimableReward: string | null }) =>
+    default: ({
+      asset,
+      claimableReward,
+    }: {
+      asset: TokenI;
+      claimableReward: string | null;
+    }) =>
       ReactActual.createElement(View, {
         testID: 'pending-merkl-rewards',
+        'data-asset': asset.symbol,
         'data-claimable': claimableReward,
       }),
   };
@@ -45,17 +49,6 @@ const mockIsEligibleForMerklRewards =
 const mockUseMerklRewards = useMerklRewards as jest.MockedFunction<
   typeof useMerklRewards
 >;
-const mockUsePendingMerklClaim = usePendingMerklClaim as jest.MockedFunction<
-  typeof usePendingMerklClaim
->;
-
-// Helper to create mock return value with all required properties
-const createMockUseMerklRewardsReturn = (
-  claimableReward: string | null,
-): ReturnType<typeof useMerklRewards> => ({
-  claimableReward,
-  refetch: jest.fn(),
-});
 
 const mockAsset: TokenI = {
   name: 'Angle Merkl',
@@ -75,32 +68,43 @@ const mockAsset: TokenI = {
 describe('MerklRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: false });
   });
 
   it('returns null when asset is not eligible', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(false);
-    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn(null));
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: null,
+    });
 
-    const { queryByTestId } = render(<MerklRewards asset={mockAsset} />);
+    const { queryByTestId } = render(
+      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
+    );
 
     expect(queryByTestId('pending-merkl-rewards')).toBeNull();
   });
 
   it('renders PendingMerklRewards when asset is eligible', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn(null));
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: null,
+    });
 
-    const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
+    const { getByTestId } = render(
+      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
+    );
 
     expect(getByTestId('pending-merkl-rewards')).toBeTruthy();
   });
 
   it('renders ClaimMerklRewards when claimableReward is present', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn('1.5'));
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '1.5',
+    });
 
-    const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
+    const { getByTestId } = render(
+      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
+    );
 
     expect(getByTestId('pending-merkl-rewards')).toBeTruthy();
     expect(getByTestId('claim-merkl-rewards')).toBeTruthy();
@@ -108,18 +112,24 @@ describe('MerklRewards', () => {
 
   it('does not render ClaimMerklRewards when claimableReward is null', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn(null));
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: null,
+    });
 
-    const { queryByTestId } = render(<MerklRewards asset={mockAsset} />);
+    const { queryByTestId } = render(
+      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
+    );
 
     expect(queryByTestId('claim-merkl-rewards')).toBeNull();
   });
 
   it('passes correct props to useMerklRewards hook', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn(null));
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: null,
+    });
 
-    render(<MerklRewards asset={mockAsset} />);
+    render(<MerklRewards asset={mockAsset} exchangeRate={2.5} />);
 
     expect(mockUseMerklRewards).toHaveBeenCalledWith({
       asset: mockAsset,
@@ -128,9 +138,13 @@ describe('MerklRewards', () => {
 
   it('passes claimableReward to PendingMerklRewards', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn('2.5'));
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '2.5',
+    });
 
-    const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
+    const { getByTestId } = render(
+      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
+    );
 
     const pendingRewards = getByTestId('pending-merkl-rewards');
     expect(pendingRewards.props['data-claimable']).toBe('2.5');
@@ -138,37 +152,15 @@ describe('MerklRewards', () => {
 
   it('passes asset to ClaimMerklRewards', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn('1.5'));
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '1.5',
+    });
 
-    const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
+    const { getByTestId } = render(
+      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
+    );
 
     const claimRewards = getByTestId('claim-merkl-rewards');
     expect(claimRewards.props['data-asset']).toBe(mockAsset.symbol);
-  });
-
-  it('calls refetch when onClaimConfirmed callback is triggered', () => {
-    const mockRefetch = jest.fn();
-    mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue({
-      claimableReward: '1.5',
-      refetch: mockRefetch,
-    });
-
-    // Capture the onClaimConfirmed callback passed to usePendingMerklClaim
-    let capturedOnClaimConfirmed: (() => void) | undefined;
-    mockUsePendingMerklClaim.mockImplementation((options) => {
-      capturedOnClaimConfirmed = options?.onClaimConfirmed;
-      return { hasPendingClaim: false };
-    });
-
-    render(<MerklRewards asset={mockAsset} />);
-
-    // Verify usePendingMerklClaim was called with onClaimConfirmed callback
-    expect(capturedOnClaimConfirmed).toBeDefined();
-
-    // Simulate claim being confirmed
-    capturedOnClaimConfirmed?.();
-
-    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 });

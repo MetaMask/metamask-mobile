@@ -10,6 +10,8 @@ import {
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController';
 import { createUserStorageController } from '../utils/mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
@@ -46,6 +48,12 @@ describe(
             USER_STORAGE_WALLETS_FEATURE_KEY,
           ],
           sharedUserStorageController,
+          testSpecificMock: async (mockServer) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureMultichainAccountsAccountDetailsV2(true),
+            );
+          },
         },
         async ({ userStorageMockttpController }) => {
           await loginToApp();
@@ -103,6 +111,12 @@ describe(
             USER_STORAGE_WALLETS_FEATURE_KEY,
           ],
           sharedUserStorageController,
+          testSpecificMock: async (mockServer) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureMultichainAccountsAccountDetailsV2(true),
+            );
+          },
         },
         async ({ mockServer: _mockServer, userStorageMockttpController }) => {
           const { prepareEventsEmittedCounter } = arrangeTestUtils(
@@ -181,6 +195,12 @@ describe(
             USER_STORAGE_WALLETS_FEATURE_KEY,
           ],
           sharedUserStorageController,
+          testSpecificMock: async (mockServer) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureMultichainAccountsAccountDetailsV2(true),
+            );
+          },
         },
         async () => {
           await loginToApp();

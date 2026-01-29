@@ -1,0 +1,150 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionBlockaidBanner should not render if securityAlertResponses.id is undefined 1`] = `null`;
+
+exports[`TransactionBlockaidBanner should not render if transactionId passed is undefined 1`] = `null`;
+
+exports[`TransactionBlockaidBanner should render correctly 1`] = `
+<View
+  securityAlertResponse={
+    {
+      "block": 123,
+      "chainId": "0x1",
+      "reason": "approval_farming",
+      "req": {},
+      "result_type": "Warning",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#9a63001a",
+      "borderColor": "#9a6300",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="security-alert-banner"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#9a6300"
+      fill="currentColor"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Medium",
+          "fontSize": 18,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a deceptive request
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      If you approve this request, a third party known for scams might take all your assets.
+    </Text>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+      testID="accordionheader"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        testID="accordionheader-title"
+      >
+        See details
+      </Text>
+      <View
+        style={
+          [
+            {
+              "marginLeft": 4,
+            },
+            {
+              "transform": [
+                {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#4459ff"
+          fill="currentColor"
+          height={16}
+          name="ArrowDown"
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
