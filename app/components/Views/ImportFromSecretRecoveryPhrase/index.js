@@ -128,6 +128,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
+  const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
   const srpInputGridRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -395,6 +396,14 @@ const ImportFromSecretRecoveryPhrase = ({
     [password, confirmPassword, learnMore],
   );
 
+  const isPasswordTooShort = useMemo(
+    () =>
+      !isPasswordFieldFocused &&
+      password !== '' &&
+      password.length < MIN_PASSWORD_LENGTH,
+    [isPasswordFieldFocused, password],
+  );
+
   const toggleShowPassword = (index) => {
     setShowPasswordIndex((prev) => {
       if (prev.includes(index)) {
@@ -655,6 +664,8 @@ const ImportFromSecretRecoveryPhrase = ({
                   size={TextFieldSize.Lg}
                   value={password}
                   onChangeText={onPasswordChange}
+                  onFocus={() => setIsPasswordFieldFocused(true)}
+                  onBlur={() => setIsPasswordFieldFocused(false)}
                   secureTextEntry={showPasswordIndex.includes(0)}
                   returnKeyType={'next'}
                   autoCapitalize="none"
@@ -662,6 +673,8 @@ const ImportFromSecretRecoveryPhrase = ({
                   keyboardAppearance={themeAppearance || 'light'}
                   placeholderTextColor={colors.text.muted}
                   onSubmitEditing={jumpToConfirmPassword}
+                  isError={isPasswordTooShort}
+                  style={isPasswordTooShort ? styles.errorBorder : undefined}
                   endAccessory={
                     <Icon
                       name={
@@ -679,16 +692,16 @@ const ImportFromSecretRecoveryPhrase = ({
                   }
                   testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 />
-                {(!password || password.length < MIN_PASSWORD_LENGTH) && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('choose_password.must_be_at_least', {
-                      number: MIN_PASSWORD_LENGTH,
-                    })}
-                  </Text>
-                )}
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={
+                    isPasswordTooShort ? TextColor.Error : TextColor.Alternative
+                  }
+                >
+                  {strings('choose_password.must_be_at_least', {
+                    number: MIN_PASSWORD_LENGTH,
+                  })}
+                </Text>
               </View>
 
               <View style={styles.field}>

@@ -93,6 +93,9 @@ const createStyles = (colors: Theme['colors']) =>
     checkbox: {
       alignItems: 'flex-start',
     },
+    errorBorder: {
+      borderColor: colors.error.default,
+    },
     passwordContainerTitle: {
       flexDirection: 'column',
       rowGap: 4,
