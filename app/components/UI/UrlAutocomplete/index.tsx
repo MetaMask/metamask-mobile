@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import Fuse from 'fuse.js';
+import Logger from '../../../util/Logger';
 import styleSheet from './styles';
 import { useStyles } from '../../../component-library/hooks';
 import {
@@ -100,19 +101,27 @@ interface ResultsWithCategory {
 }
 
 /**
- * Helper to map SectionId to UrlAutocompleteCategory for display
+ * Helper to map SectionId to UrlAutocompleteCategory for display.
+ * Sites is the default fallback for unknown section IDs.
  */
 const sectionIdToCategory = (sectionId: SectionId): UrlAutocompleteCategory => {
   switch (sectionId) {
-    case 'sites':
-      return UrlAutocompleteCategory.Sites;
     case 'tokens':
       return UrlAutocompleteCategory.Tokens;
     case 'perps':
       return UrlAutocompleteCategory.Perps;
     case 'predictions':
       return UrlAutocompleteCategory.Predictions;
+    case 'sites':
     default:
+      // Log warning for unexpected section IDs to catch potential bugs
+      if (sectionId !== 'sites') {
+        Logger.error(
+          new Error(
+            `Unhandled section ID in sectionIdToCategory: ${sectionId}`,
+          ),
+        );
+      }
       return UrlAutocompleteCategory.Sites;
   }
 };
