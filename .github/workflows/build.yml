@@ -179,6 +179,11 @@ jobs:
               yarn setup:github-ci --no-build-ios
             fi
 
+      # Android: use CI Gradle settings (8GB heap, OOM handling) to avoid daemon OOM
+      - name: Use CI Gradle properties (Android)
+        if: matrix.platform == 'android'
+        run: cp android/gradle.properties.github android/gradle.properties
+
       - name: Build ${{ matrix.platform }}
         run: |
           ./scripts/build.sh ${{ matrix.platform }} ${{ inputs.build_name }}
