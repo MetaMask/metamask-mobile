@@ -7,14 +7,10 @@ import {
   type MessengerEvents,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import {
-  GasFeeEstimateLevel,
-  GasFeeEstimateType,
-} from '@metamask/transaction-controller';
+
 import type { NetworkState } from '@metamask/network-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
-import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   addTransaction,
@@ -46,71 +42,33 @@ jest.mock('../../../../util/transaction-controller', () => ({
   addTransactionBatch: jest.fn(),
 }));
 
-// Mock Engine
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      signTypedMessage: jest.fn(),
+// Default mock values for messenger actions
+const DEFAULT_REMOTE_FEATURE_FLAG_STATE = {
+  remoteFeatureFlags: {
+    predictFeeCollection: {
+      enabled: true,
+      collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+      metamaskFee: 0.02,
+      providerFee: 0.02,
+      waiveList: [],
     },
-    AccountsController: {
-      getSelectedAccount: jest.fn().mockReturnValue({
-        id: 'mock-account-id',
-        address: '0x1234567890123456789012345678901234567890',
-        metadata: { name: 'Test Account' },
-      }),
+    predictLiveSports: {
+      enabled: false,
+      leagues: [],
     },
-    AccountTreeController: {
-      getAccountsFromSelectedAccountGroup: jest.fn(() => [
-        {
-          id: 'mock-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          type: 'eip155:eoa',
-          name: 'Test Account',
-          metadata: {
-            lastSelected: 0,
-          },
-        },
-      ]),
-    },
-    NetworkController: {
-      getState: jest.fn().mockReturnValue({
-        selectedNetworkClientId: 'mainnet',
-      }),
-      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
-      getNetworkClientById: jest.fn().mockReturnValue({
-        blockTracker: {
-          checkForLatestBlock: jest.fn().mockResolvedValue(undefined),
-        },
-      }),
-    },
-    TransactionController: {
-      estimateGas: jest.fn(),
-      estimateGasFee: jest.fn(),
-    },
-    AccountTrackerController: {
-      state: {
-        accountsByChainId: {},
-      },
-    },
-    RemoteFeatureFlagController: {
-      state: {
-        remoteFeatureFlags: {
-          predictFeeCollection: {
-            enabled: true,
-            collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
-            metamaskFee: 0.02,
-            providerFee: 0.02,
-            waiveList: [],
-          },
-          predictLiveSports: {
-            enabled: false,
-            leagues: [],
-          },
-        },
-      },
+    predictMarketHighlights: {
+      enabled: false,
+      marketIds: [],
     },
   },
-}));
+  cacheTimestamp: Date.now(),
+};
+
+const DEFAULT_NETWORK_CLIENT = {
+  blockTracker: {
+    checkForLatestBlock: jest.fn().mockResolvedValue(undefined),
+  },
+};
 
 // Mock DevLogger (default export)
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -266,6 +224,11 @@ describe('PredictController', () => {
       mocks?: {
         getSelectedAccount?: jest.MockedFunction<() => InternalAccount>;
         getNetworkState?: jest.MockedFunction<() => NetworkState>;
+        getRemoteFeatureFlagState?: jest.MockedFunction<() => any>;
+        findNetworkClientIdByChainId?: jest.MockedFunction<
+          (chainId: string) => string
+        >;
+        getNetworkClientById?: jest.MockedFunction<(clientId: string) => any>;
       };
     } = {},
   ): ReturnValue {
@@ -285,6 +248,19 @@ describe('PredictController', () => {
     );
 
     rootMessenger.registerActionHandler(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      jest.fn().mockReturnValue([
+        {
+          id: 'mock-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: { lastSelected: 0 },
+        },
+      ]),
+    );
+
+    rootMessenger.registerActionHandler(
       'NetworkController:getState',
       mocks.getNetworkState ??
         jest.fn().mockReturnValue({
@@ -297,6 +273,34 @@ describe('PredictController', () => {
       jest.fn().mockResolvedValue({
         gas: '0x5208',
       }),
+    );
+
+    rootMessenger.registerActionHandler(
+      'KeyringController:signTypedMessage',
+      jest.fn().mockResolvedValue('0xmocksignature'),
+    );
+
+    rootMessenger.registerActionHandler(
+      'KeyringController:signPersonalMessage',
+      jest.fn().mockResolvedValue('0xmocksignature'),
+    );
+
+    rootMessenger.registerActionHandler(
+      'NetworkController:findNetworkClientIdByChainId',
+      mocks.findNetworkClientIdByChainId ??
+        jest.fn().mockReturnValue('polygon-mainnet'),
+    );
+
+    rootMessenger.registerActionHandler(
+      'NetworkController:getNetworkClientById',
+      mocks.getNetworkClientById ??
+        jest.fn().mockReturnValue(DEFAULT_NETWORK_CLIENT),
+    );
+
+    rootMessenger.registerActionHandler(
+      'RemoteFeatureFlagController:getState',
+      mocks.getRemoteFeatureFlagState ??
+        jest.fn().mockReturnValue(DEFAULT_REMOTE_FEATURE_FLAG_STATE),
     );
 
     const messenger = new Messenger<
@@ -312,14 +316,21 @@ describe('PredictController', () => {
     rootMessenger.delegate({
       actions: [
         'AccountsController:getSelectedAccount',
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
         'NetworkController:getState',
+        'NetworkController:findNetworkClientIdByChainId',
+        'NetworkController:getNetworkClientById',
         'TransactionController:estimateGas',
+        'KeyringController:signTypedMessage',
+        'KeyringController:signPersonalMessage',
+        'RemoteFeatureFlagController:getState',
       ],
       events: [
         'TransactionController:transactionSubmitted',
         'TransactionController:transactionConfirmed',
         'TransactionController:transactionFailed',
         'TransactionController:transactionRejected',
+        'RemoteFeatureFlagController:stateChange',
       ],
       messenger,
     });
@@ -1794,32 +1805,28 @@ describe('PredictController', () => {
       outcomes: ['YES', 'NO'],
     });
 
-    const setMarketHighlightsFlag = (flag: {
+    const createFlagState = (flag: {
       enabled: boolean;
       highlights: { category: string; markets: string[] }[];
-    }) => {
-      (
-        Engine.context.RemoteFeatureFlagController as any
-      ).state.remoteFeatureFlags.predictMarketHighlights = flag;
-    };
-
-    const clearMarketHighlightsFlag = () => {
-      delete (Engine.context.RemoteFeatureFlagController as any).state
-        .remoteFeatureFlags.predictMarketHighlights;
-    };
-
-    afterEach(() => {
-      clearMarketHighlightsFlag();
+    }) => ({
+      remoteFeatureFlags: {
+        predictFeeCollection: {
+          enabled: true,
+          collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          waiveList: [],
+        },
+        predictLiveSports: {
+          enabled: false,
+          leagues: [],
+        },
+        predictMarketHighlights: flag,
+      },
+      cacheTimestamp: Date.now(),
     });
 
     it('prepends highlighted markets when flag is enabled and offset is 0', async () => {
-      setMarketHighlightsFlag({
-        enabled: true,
-        highlights: [
-          { category: 'trending', markets: ['highlight-1', 'highlight-2'] },
-        ],
-      });
-
       const regularMarkets = [
         createMockMarket('regular-1'),
         createMockMarket('regular-2'),
@@ -1829,134 +1836,180 @@ describe('PredictController', () => {
         createMockMarket('highlight-2'),
       ];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
-        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
-          highlightedMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+            highlightedMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 0,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
 
-        expect(result).toHaveLength(4);
-        expect(result[0].id).toBe('highlight-1');
-        expect(result[1].id).toBe('highlight-2');
-        expect(result[2].id).toBe('regular-1');
-        expect(result[3].id).toBe('regular-2');
-        expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalledWith(
-          ['highlight-1', 'highlight-2'],
-          [],
-        );
-      });
+          expect(result).toHaveLength(4);
+          expect(result[0].id).toBe('highlight-1');
+          expect(result[1].id).toBe('highlight-2');
+          expect(result[2].id).toBe('regular-1');
+          expect(result[3].id).toBe('regular-2');
+          expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalledWith(
+            ['highlight-1', 'highlight-2'],
+            [],
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'trending',
+                    markets: ['highlight-1', 'highlight-2'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
     });
 
     it('skips highlights when offset is greater than 0', async () => {
-      setMarketHighlightsFlag({
-        enabled: true,
-        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
-      });
-
       const regularMarkets = [createMockMarket('regular-1')];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 10,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 10,
+          });
 
-        expect(result).toHaveLength(1);
-        expect(result[0].id).toBe('regular-1');
-        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
-      });
+          expect(result).toHaveLength(1);
+          expect(result[0].id).toBe('regular-1');
+          expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  { category: 'trending', markets: ['highlight-1'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
     });
 
     it('skips highlights when flag is disabled', async () => {
-      setMarketHighlightsFlag({
-        enabled: false,
-        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
-      });
-
       const regularMarkets = [createMockMarket('regular-1')];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 0,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
 
-        expect(result).toHaveLength(1);
-        expect(result[0].id).toBe('regular-1');
-        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
-      });
+          expect(result).toHaveLength(1);
+          expect(result[0].id).toBe('regular-1');
+          expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: false,
+                highlights: [
+                  { category: 'trending', markets: ['highlight-1'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
     });
 
     it('skips highlights when category is not provided', async () => {
-      setMarketHighlightsFlag({
-        enabled: true,
-        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
-      });
-
       const regularMarkets = [createMockMarket('regular-1')];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+          });
 
-        expect(result).toHaveLength(1);
-        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
-      });
+          expect(result).toHaveLength(1);
+          expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  { category: 'trending', markets: ['highlight-1'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
     });
 
     it('skips highlights when category has no configured highlights', async () => {
-      setMarketHighlightsFlag({
-        enabled: true,
-        highlights: [{ category: 'crypto', markets: ['highlight-1'] }],
-      });
-
       const regularMarkets = [createMockMarket('regular-1')];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 0,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
 
-        expect(result).toHaveLength(1);
-        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
-      });
+          expect(result).toHaveLength(1);
+          expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', markets: ['highlight-1'] }],
+              }),
+            ),
+          },
+        },
+      );
     });
 
     it('filters duplicates from regular results when highlighted market appears in both', async () => {
-      setMarketHighlightsFlag({
-        enabled: true,
-        highlights: [{ category: 'trending', markets: ['duplicate-market'] }],
-      });
-
       const regularMarkets = [
         createMockMarket('regular-1'),
         createMockMarket('duplicate-market'),
@@ -1964,80 +2017,108 @@ describe('PredictController', () => {
       ];
       const highlightedMarkets = [createMockMarket('duplicate-market')];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
-        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
-          highlightedMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+            highlightedMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 0,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
 
-        expect(result).toHaveLength(3);
-        expect(result[0].id).toBe('duplicate-market');
-        expect(result[1].id).toBe('regular-1');
-        expect(result[2].id).toBe('regular-2');
-      });
+          expect(result).toHaveLength(3);
+          expect(result[0].id).toBe('duplicate-market');
+          expect(result[1].id).toBe('regular-1');
+          expect(result[2].id).toBe('regular-2');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  { category: 'trending', markets: ['duplicate-market'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
     });
 
     it('handles empty highlights array gracefully', async () => {
-      setMarketHighlightsFlag({
-        enabled: true,
-        highlights: [{ category: 'trending', markets: [] }],
-      });
-
       const regularMarkets = [createMockMarket('regular-1')];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 0,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
 
-        expect(result).toHaveLength(1);
-        expect(result[0].id).toBe('regular-1');
-        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
-      });
+          expect(result).toHaveLength(1);
+          expect(result[0].id).toBe('regular-1');
+          expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'trending', markets: [] }],
+              }),
+            ),
+          },
+        },
+      );
     });
 
     it('handles getMarketsByIds failure gracefully', async () => {
-      setMarketHighlightsFlag({
-        enabled: true,
-        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
-      });
-
       const regularMarkets = [createMockMarket('regular-1')];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
-        mockPolymarketProvider.getMarketsByIds.mockResolvedValue([]);
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue([]);
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 0,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
 
-        expect(result).toHaveLength(1);
-        expect(result[0].id).toBe('regular-1');
-      });
+          expect(result).toHaveLength(1);
+          expect(result[0].id).toBe('regular-1');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  { category: 'trending', markets: ['highlight-1'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
     });
 
     it('uses default flag when predictMarketHighlights is not in remote config', async () => {
-      clearMarketHighlightsFlag();
-
       const regularMarkets = [createMockMarket('regular-1')];
 
       await withController(async ({ controller }) => {
@@ -2057,42 +2138,44 @@ describe('PredictController', () => {
     });
 
     it('fetches highlights for first page when offset is undefined', async () => {
-      setMarketHighlightsFlag({
-        enabled: true,
-        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
-      });
-
       const regularMarkets = [createMockMarket('regular-1')];
       const highlightedMarkets = [createMockMarket('highlight-1')];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
-        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
-          highlightedMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+            highlightedMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+          });
 
-        expect(result).toHaveLength(2);
-        expect(result[0].id).toBe('highlight-1');
-        expect(result[1].id).toBe('regular-1');
-        expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalled();
-      });
+          expect(result).toHaveLength(2);
+          expect(result[0].id).toBe('highlight-1');
+          expect(result[1].id).toBe('regular-1');
+          expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  { category: 'trending', markets: ['highlight-1'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
     });
 
     it('preserves order of highlighted markets from config', async () => {
-      setMarketHighlightsFlag({
-        enabled: true,
-        highlights: [
-          { category: 'trending', markets: ['third', 'first', 'second'] },
-        ],
-      });
-
       const regularMarkets = [createMockMarket('regular-1')];
       const highlightedMarkets = [
         createMockMarket('third'),
@@ -2100,58 +2183,87 @@ describe('PredictController', () => {
         createMockMarket('second'),
       ];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
-        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
-          highlightedMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+            highlightedMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 0,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
 
-        expect(result[0].id).toBe('third');
-        expect(result[1].id).toBe('first');
-        expect(result[2].id).toBe('second');
-      });
+          expect(result[0].id).toBe('third');
+          expect(result[1].id).toBe('first');
+          expect(result[2].id).toBe('second');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'trending',
+                    markets: ['third', 'first', 'second'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
     });
 
     it('handles missing highlights array in flag gracefully', async () => {
-      (
-        Engine.context.RemoteFeatureFlagController as any
-      ).state.remoteFeatureFlags.predictMarketHighlights = { enabled: true };
-
       const regularMarkets = [createMockMarket('regular-1')];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 0,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
 
-        expect(result).toHaveLength(1);
-        expect(result[0].id).toBe('regular-1');
-        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
-      });
+          expect(result).toHaveLength(1);
+          expect(result[0].id).toBe('regular-1');
+          expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue({
+              remoteFeatureFlags: {
+                predictFeeCollection: {
+                  enabled: true,
+                  collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+                  metamaskFee: 0.02,
+                  providerFee: 0.02,
+                  waiveList: [],
+                },
+                predictLiveSports: {
+                  enabled: false,
+                  leagues: [],
+                },
+                predictMarketHighlights: { enabled: true },
+              },
+              cacheTimestamp: Date.now(),
+            }),
+          },
+        },
+      );
     });
 
     it('keeps market in regular results when highlight fetch fails for that market', async () => {
-      setMarketHighlightsFlag({
-        enabled: true,
-        highlights: [
-          { category: 'trending', markets: ['highlight-1', 'highlight-2'] },
-        ],
-      });
-
       const regularMarketsIncludingFailedHighlight = [
         createMockMarket('highlight-1'),
         createMockMarket('regular-1'),
@@ -2160,25 +2272,42 @@ describe('PredictController', () => {
         createMockMarket('highlight-2'),
       ];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarketsIncludingFailedHighlight as any,
-        );
-        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
-          onlySuccessfullyFetchedHighlights as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarketsIncludingFailedHighlight as any,
+          );
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+            onlySuccessfullyFetchedHighlights as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 0,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
 
-        expect(result).toHaveLength(3);
-        expect(result[0].id).toBe('highlight-2');
-        expect(result[1].id).toBe('highlight-1');
-        expect(result[2].id).toBe('regular-1');
-      });
+          expect(result).toHaveLength(3);
+          expect(result[0].id).toBe('highlight-2');
+          expect(result[1].id).toBe('highlight-1');
+          expect(result[2].id).toBe('regular-1');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'trending',
+                    markets: ['highlight-1', 'highlight-2'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
     });
   });
 
@@ -2546,64 +2675,71 @@ describe('PredictController', () => {
 
     it('throws error when network client not found', async () => {
       // Arrange
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
-          {
-            marketId: 'test-market',
-            providerId: 'polymarket',
-            outcomeId: 'test-outcome',
-            balance: '100',
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+            {
+              marketId: 'test-market',
+              providerId: 'polymarket',
+              outcomeId: 'test-outcome',
+              balance: '100',
+            },
+          ]);
+
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockResolvedValue(mockClaim);
+          await controller.getPositions({ claimable: true });
+
+          // Act & Assert
+          await expect(
+            controller.claimWithConfirmation({
+              providerId: 'polymarket',
+            }),
+          ).rejects.toThrow('Network client not found for chain ID');
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest.fn().mockReturnValue(undefined),
           },
-        ]);
-        const MockedEngine = jest.requireMock('../../../../core/Engine');
-        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
-          jest.fn().mockReturnValue(undefined);
-
-        mockPolymarketProvider.prepareClaim = jest
-          .fn()
-          .mockResolvedValue(mockClaim);
-        await controller.getPositions({ claimable: true });
-
-        // Act & Assert
-        await expect(
-          controller.claimWithConfirmation({
-            providerId: 'polymarket',
-          }),
-        ).rejects.toThrow('Network client not found for chain ID');
-      });
+        },
+      );
     });
 
     it('throws error when transaction batch returns no batchId', async () => {
       // Arrange
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
-          {
-            marketId: 'test-market',
-            providerId: 'polymarket',
-            outcomeId: 'test-outcome',
-            balance: '100',
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+            {
+              marketId: 'test-market',
+              providerId: 'polymarket',
+              outcomeId: 'test-outcome',
+              balance: '100',
+            },
+          ]);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockResolvedValue(mockClaim);
+
+          (addTransactionBatch as jest.Mock).mockResolvedValue({});
+          await controller.getPositions({ claimable: true });
+
+          // Act & Assert
+          await expect(
+            controller.claimWithConfirmation({
+              providerId: 'polymarket',
+            }),
+          ).rejects.toThrow(
+            'Failed to get batch ID from claim transaction submission',
+          );
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
           },
-        ]);
-        mockPolymarketProvider.prepareClaim = jest
-          .fn()
-          .mockResolvedValue(mockClaim);
-
-        const MockedEngine = jest.requireMock('../../../../core/Engine');
-        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
-          jest.fn().mockReturnValue('mainnet');
-
-        (addTransactionBatch as jest.Mock).mockResolvedValue({});
-        await controller.getPositions({ claimable: true });
-
-        // Act & Assert
-        await expect(
-          controller.claimWithConfirmation({
-            providerId: 'polymarket',
-          }),
-        ).rejects.toThrow(
-          'Failed to get batch ID from claim transaction submission',
-        );
-      });
+        },
+      );
     });
 
     it('throws error when prepareClaim returns no transactions', async () => {
@@ -2667,42 +2803,45 @@ describe('PredictController', () => {
     it('clears error state on successful claim', async () => {
       // Arrange
       const mockBatchId = 'claim-batch-1';
-      await withController(async ({ controller }) => {
-        controller.updateStateForTesting((state) => {
-          state.lastError = 'Previous error';
-        });
+      await withController(
+        async ({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.lastError = 'Previous error';
+          });
 
-        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
-          {
-            marketId: 'test-market',
+          mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+            {
+              marketId: 'test-market',
+              providerId: 'polymarket',
+              outcomeId: 'test-outcome',
+              balance: '100',
+            },
+          ]);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockResolvedValue(mockClaim);
+
+          (addTransactionBatch as jest.Mock).mockResolvedValue({
+            batchId: mockBatchId,
+          });
+          await controller.getPositions({ claimable: true });
+
+          // Act
+          const result = await controller.claimWithConfirmation({
             providerId: 'polymarket',
-            outcomeId: 'test-outcome',
-            balance: '100',
+          });
+
+          // Assert
+          expect(result.batchId).toBe(mockBatchId);
+          expect(controller.state.lastError).toBeNull();
+          expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
           },
-        ]);
-        mockPolymarketProvider.prepareClaim = jest
-          .fn()
-          .mockResolvedValue(mockClaim);
-
-        const MockedEngine = jest.requireMock('../../../../core/Engine');
-        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
-          jest.fn().mockReturnValue('mainnet');
-
-        (addTransactionBatch as jest.Mock).mockResolvedValue({
-          batchId: mockBatchId,
-        });
-        await controller.getPositions({ claimable: true });
-
-        // Act
-        const result = await controller.claimWithConfirmation({
-          providerId: 'polymarket',
-        });
-
-        // Assert
-        expect(result.batchId).toBe(mockBatchId);
-        expect(controller.state.lastError).toBeNull();
-        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
-      });
+        },
+      );
     });
   });
 
@@ -3009,37 +3148,6 @@ describe('PredictController', () => {
         batchId: mockBatchId,
       });
 
-      Engine.context.AccountTrackerController.state.accountsByChainId = {
-        [mockChainId]: {
-          '0x1234567890123456789012345678901234567890': {
-            balance: '0x0',
-          },
-        },
-      };
-
-      Engine.context.TransactionController.estimateGas = jest
-        .fn()
-        .mockResolvedValue({ gas: '0x5208' });
-      Engine.context.TransactionController.estimateGasFee = jest
-        .fn()
-        .mockResolvedValue({
-          estimates: {
-            type: GasFeeEstimateType.FeeMarket,
-            [GasFeeEstimateLevel.Low]: {
-              maxFeePerGas: '0x3b9aca00',
-              maxPriorityFeePerGas: '0x1',
-            },
-            [GasFeeEstimateLevel.Medium]: {
-              maxFeePerGas: '0x3b9aca00',
-              maxPriorityFeePerGas: '0x1',
-            },
-            [GasFeeEstimateLevel.High]: {
-              maxFeePerGas: '0x3b9aca00',
-              maxPriorityFeePerGas: '0x1',
-            },
-          },
-        });
-
       await withController(async ({ controller }) => {
         // When calling depositWithConfirmation
         const result = await controller.depositWithConfirmation({
@@ -3064,7 +3172,7 @@ describe('PredictController', () => {
         expect(addTransactionBatch).toHaveBeenCalledWith({
           from: '0x1234567890123456789012345678901234567890',
           origin: 'metamask',
-          networkClientId: 'mainnet',
+          networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,
           disableUpgrade: true,
@@ -3175,6 +3283,9 @@ describe('PredictController', () => {
             getNetworkState: jest.fn().mockReturnValue({
               selectedNetworkClientId: mockNetworkClientId,
             }),
+            findNetworkClientIdByChainId: jest
+              .fn()
+              .mockReturnValue(mockNetworkClientId),
           },
         },
       );
@@ -4826,108 +4937,156 @@ describe('PredictController', () => {
     });
 
     it('calls NetworkController.findNetworkClientIdByChainId with hex chain ID', async () => {
-      await withController(async ({ controller }) => {
-        // Arrange
-        const chainId = 137;
+      const mockFindNetworkClientIdByChainId = jest
+        .fn()
+        .mockReturnValue('polygon-mainnet');
+      await withController(
+        async ({ controller }) => {
+          // Arrange
+          const chainId = 137;
 
-        // Act
-        // eslint-disable-next-line dot-notation
-        await controller['invalidateQueryCache'](chainId);
+          // Act
+          // eslint-disable-next-line dot-notation
+          await controller['invalidateQueryCache'](chainId);
 
-        // Assert
-        expect(
-          Engine.context.NetworkController.findNetworkClientIdByChainId,
-        ).toHaveBeenCalledWith('0x89');
-      });
+          // Assert
+          expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith('0x89');
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: mockFindNetworkClientIdByChainId,
+          },
+        },
+      );
     });
 
     it('calls NetworkController.getNetworkClientById with network client ID', async () => {
-      await withController(async ({ controller }) => {
-        // Arrange
-        const chainId = 137;
+      const mockGetNetworkClientById = jest
+        .fn()
+        .mockReturnValue(DEFAULT_NETWORK_CLIENT);
+      await withController(
+        async ({ controller }) => {
+          // Arrange
+          const chainId = 137;
 
-        // Act
-        // eslint-disable-next-line dot-notation
-        await controller['invalidateQueryCache'](chainId);
+          // Act
+          // eslint-disable-next-line dot-notation
+          await controller['invalidateQueryCache'](chainId);
 
-        // Assert
-        expect(
-          Engine.context.NetworkController.getNetworkClientById,
-        ).toHaveBeenCalledWith('mainnet');
-      });
+          // Assert
+          expect(mockGetNetworkClientById).toHaveBeenCalledWith(
+            'polygon-mainnet',
+          );
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest
+              .fn()
+              .mockReturnValue('polygon-mainnet'),
+            getNetworkClientById: mockGetNetworkClientById,
+          },
+        },
+      );
     });
 
     it('calls blockTracker.checkForLatestBlock to invalidate cache', async () => {
       const mockCheckForLatestBlock = jest.fn().mockResolvedValue(undefined);
-      // @ts-expect-error - Mocking Engine for test
-      Engine.context.NetworkController.getNetworkClientById.mockReturnValue({
+      const mockGetNetworkClientById = jest.fn().mockReturnValue({
         blockTracker: {
           checkForLatestBlock: mockCheckForLatestBlock,
         },
       });
 
-      await withController(async ({ controller }) => {
-        // Arrange
-        const chainId = 137;
+      await withController(
+        async ({ controller }) => {
+          // Arrange
+          const chainId = 137;
 
-        // Act
-        // eslint-disable-next-line dot-notation
-        await controller['invalidateQueryCache'](chainId);
+          // Act
+          // eslint-disable-next-line dot-notation
+          await controller['invalidateQueryCache'](chainId);
 
-        // Assert
-        expect(mockCheckForLatestBlock).toHaveBeenCalledWith();
-      });
+          // Assert
+          expect(mockCheckForLatestBlock).toHaveBeenCalledWith();
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest
+              .fn()
+              .mockReturnValue('polygon-mainnet'),
+            getNetworkClientById: mockGetNetworkClientById,
+          },
+        },
+      );
     });
 
     it('logs error when blockTracker.checkForLatestBlock fails', async () => {
       const mockError = new Error('Block tracker error');
       const mockCheckForLatestBlock = jest.fn().mockRejectedValue(mockError);
-      // @ts-expect-error - Mocking Engine for test
-      Engine.context.NetworkController.getNetworkClientById.mockReturnValue({
+      const mockGetNetworkClientById = jest.fn().mockReturnValue({
         blockTracker: {
           checkForLatestBlock: mockCheckForLatestBlock,
         },
       });
 
-      await withController(async ({ controller }) => {
-        // Arrange
-        const chainId = 137;
+      await withController(
+        async ({ controller }) => {
+          // Arrange
+          const chainId = 137;
 
-        // Act
-        // eslint-disable-next-line dot-notation
-        await controller['invalidateQueryCache'](chainId);
+          // Act
+          // eslint-disable-next-line dot-notation
+          await controller['invalidateQueryCache'](chainId);
 
-        // Assert
-        expect(DevLogger.log).toHaveBeenCalledWith(
-          'PredictController: Error invalidating query cache',
-          expect.objectContaining({
-            error: 'Block tracker error',
-            timestamp: expect.any(String),
-          }),
-        );
-      });
+          // Assert
+          expect(DevLogger.log).toHaveBeenCalledWith(
+            'PredictController: Error invalidating query cache',
+            expect.objectContaining({
+              error: 'Block tracker error',
+              timestamp: expect.any(String),
+            }),
+          );
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest
+              .fn()
+              .mockReturnValue('polygon-mainnet'),
+            getNetworkClientById: mockGetNetworkClientById,
+          },
+        },
+      );
     });
 
     it('continues execution when invalidation fails', async () => {
       const mockError = new Error('Block tracker error');
       const mockCheckForLatestBlock = jest.fn().mockRejectedValue(mockError);
-      // @ts-expect-error - Mocking Engine for test
-      Engine.context.NetworkController.getNetworkClientById.mockReturnValue({
+      const mockGetNetworkClientById = jest.fn().mockReturnValue({
         blockTracker: {
           checkForLatestBlock: mockCheckForLatestBlock,
         },
       });
 
-      await withController(async ({ controller }) => {
-        // Arrange
-        const chainId = 137;
+      await withController(
+        async ({ controller }) => {
+          // Arrange
+          const chainId = 137;
 
-        // Act & Assert - should not throw
-        await expect(
-          // eslint-disable-next-line dot-notation
-          controller['invalidateQueryCache'](chainId),
-        ).resolves.not.toThrow();
-      });
+          // Act & Assert - should not throw
+          await expect(
+            // eslint-disable-next-line dot-notation
+            controller['invalidateQueryCache'](chainId),
+          ).resolves.not.toThrow();
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest
+              .fn()
+              .mockReturnValue('polygon-mainnet'),
+            getNetworkClientById: mockGetNetworkClientById,
+          },
+        },
+      );
     });
   });
 
@@ -5371,24 +5530,33 @@ describe('PredictController', () => {
 
     it('calls invalidateQueryCache before fetching fresh balance', async () => {
       const mockCheckForLatestBlock = jest.fn().mockResolvedValue(undefined);
-      // @ts-expect-error - Mocking Engine for test
-      Engine.context.NetworkController.getNetworkClientById.mockReturnValue({
+      const mockGetNetworkClientById = jest.fn().mockReturnValue({
         blockTracker: {
           checkForLatestBlock: mockCheckForLatestBlock,
         },
       });
       mockPolymarketProvider.getBalance.mockResolvedValue(1000);
 
-      await withController(async ({ controller }) => {
-        // Act
-        await controller.getBalance({
-          providerId: 'polymarket',
-        });
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.getBalance({
+            providerId: 'polymarket',
+          });
 
-        // Assert
-        expect(mockCheckForLatestBlock).toHaveBeenCalled();
-        expect(mockPolymarketProvider.getBalance).toHaveBeenCalled();
-      });
+          // Assert
+          expect(mockCheckForLatestBlock).toHaveBeenCalled();
+          expect(mockPolymarketProvider.getBalance).toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest
+              .fn()
+              .mockReturnValue('polygon-mainnet'),
+            getNetworkClientById: mockGetNetworkClientById,
+          },
+        },
+      );
     });
 
     it('fetches balance when validUntil equals current time', async () => {
