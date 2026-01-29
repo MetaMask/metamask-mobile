@@ -21,6 +21,7 @@ import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from '../pay/useTransactionPayData';
+import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import {
   TransactionPayRequiredToken,
   TransactionPaymentToken,
@@ -67,7 +68,7 @@ jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
 }));
 jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../pay/useTransactionPayData');
-jest.mock('../pay/useTransactionPayData');
+jest.mock('../pay/useTransactionPayHasSourceAmount');
 
 describe('useInsufficientBalanceAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -89,6 +90,9 @@ describe('useInsufficientBalanceAlert', () => {
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
+  );
+  const useTransactionPayHasSourceAmountMock = jest.mocked(
+    useTransactionPayHasSourceAmount,
   );
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useHasInsufficientBalanceMock = jest.mocked(useHasInsufficientBalance);
@@ -153,6 +157,7 @@ describe('useInsufficientBalanceAlert', () => {
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
     useTransactionPayQuotesMock.mockReturnValue([]);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
@@ -356,6 +361,7 @@ describe('useInsufficientBalanceAlert', () => {
         provider: 'mock-provider',
       },
     ] as unknown as ReturnType<typeof useTransactionPayQuotes>);
+    useTransactionPayHasSourceAmountMock.mockReturnValue(true);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 

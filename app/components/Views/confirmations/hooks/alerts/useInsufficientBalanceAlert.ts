@@ -17,6 +17,7 @@ import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from '../pay/useTransactionPayData';
+import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 
@@ -36,6 +37,7 @@ export const useInsufficientBalanceAlert = ({
   const { payToken } = useTransactionPayToken();
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
+  const isUsingPay = useTransactionPayHasSourceAmount();
   const requiredTokens = useTransactionPayRequiredTokens();
   const isSimulationEnabled = useSelector(selectUseTransactionSimulations);
   const { hasInsufficientBalance, nativeCurrency } =
@@ -53,13 +55,13 @@ export const useInsufficientBalanceAlert = ({
 
   const hasPayTokenQuotes = Boolean(quotes?.length);
   const shouldSkipInsufficientBalanceForPayToken =
-    isPayTokenTarget && (isQuotesLoading || hasPayTokenQuotes);
+    isUsingPay && (isQuotesLoading || hasPayTokenQuotes);
 
   return useMemo(() => {
     if (
       !transactionMetadata ||
       isTransactionValueUpdating ||
-      (payToken && !isPayTokenTarget)
+      (payToken && !isPayTokenTarget && !isUsingPay)
     ) {
       return [];
     }
@@ -136,6 +138,7 @@ export const useInsufficientBalanceAlert = ({
     isSimulationEnabled,
     ignoreGasFeeToken,
     shouldSkipInsufficientBalanceForPayToken,
+    isUsingPay,
     hasInsufficientBalance,
     nativeCurrency,
     goToBuy,
