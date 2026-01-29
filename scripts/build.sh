@@ -29,10 +29,34 @@ loadJSEnv(){
 # Load JS env variables
 loadJSEnv
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Support both argument formats:
+#   Old: ./scripts/build.sh ios main exp       (3 args: platform, mode, environment)
+#   New: ./scripts/build.sh ios main-exp       (2 args: platform, build-name)
+# ─────────────────────────────────────────────────────────────────────────────
 if [ "$PLATFORM" != "watcher" ]; then
-	# Use the values from the environment variables when platform is watcher
-	export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
-	export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
+	# Check if MODE contains a hyphen (new format: main-exp, flask-prod, etc.)
+	if [[ "$MODE" == *-* ]] && [ -z "$ENVIRONMENT" ]; then
+		# New format: split build-name into mode and environment
+		# e.g., "main-exp" -> MODE="main", ENVIRONMENT="exp"
+		BUILD_TYPE_PART="${MODE%%-*}"    # Everything before first hyphen
+		ENV_PART="${MODE#*-}"            # Everything after first hyphen
+		
+		# Normalize environment (prod -> production for validation)
+		case "$ENV_PART" in
+			prod) ENV_PART="production" ;;
+		esac
+		
+		export METAMASK_BUILD_TYPE="${BUILD_TYPE_PART}"
+		export METAMASK_ENVIRONMENT="${ENV_PART}"
+		
+		echo "📦 Detected new build format: ${MODE}"
+		echo "   Parsed as: BUILD_TYPE=${METAMASK_BUILD_TYPE}, ENVIRONMENT=${METAMASK_ENVIRONMENT}"
+	else
+		# Old format: use MODE and ENVIRONMENT directly
+		export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
+		export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
+	fi
 fi
 
 # Enable Sentry to auto upload source maps and debug symbols
@@ -159,207 +183,50 @@ checkParameters(){
 	#TODO: Add check for valid METAMASK_BUILD_TYPE once commands are fully refactored
 }
 
-remapEnvVariable() {
-    # Get the old and new variable names
-    old_var_name=$1
-    new_var_name=$2
+# ─────────────────────────────────────────────────────────────────────────────
+# Load build configuration from builds.yml
+# This replaces the old remapXxxEnvVariables() functions
+# ─────────────────────────────────────────────────────────────────────────────
+loadBuildConfig() {
+	local build_type="$1"
+	local environment="$2"
 
-    # Check if the old variable exists
-    if [ -z "${!old_var_name}" ]; then
-        echo "Error: $old_var_name does not exist in the environment."
-        return 1
-    fi
+	# Normalize environment name (production -> prod)
+	local normalized_env="$environment"
+	case "$environment" in
+		production) normalized_env="prod" ;;
+	esac
 
-    # Remap the variable
-    export $new_var_name="${!old_var_name}"
+	# Construct build name (e.g., main-prod, flask-dev)
+	local build_name="${build_type}-${normalized_env}"
 
-    unset $old_var_name
+	echo ""
+	echo "📦 Loading configuration from builds.yml for '${build_name}'..."
+	echo ""
 
-    echo "Successfully remapped $old_var_name to $new_var_name."
-}
+	# Load config using apply-build-config.js
+	local config_output
+	config_output=$(node "${__DIRNAME__}/apply-build-config.js" "${build_name}" --export 2>&1)
+	local exit_code=$?
 
-# Mapping for Main env variables in the dev environment
-remapMainDevEnvVariables() {
-  	echo "Remapping Main target environment variables for the dev environment"
-	remapEnvVariable "SEGMENT_WRITE_KEY_DEV" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_DEV" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	# Only dev environment uses the dev DSN, this is for the Sentry project test-metamask-mobile
-  	remapEnvVariable "MM_SENTRY_DSN_DEV" "MM_SENTRY_DSN"
+	if [ $exit_code -ne 0 ]; then
+		echo "❌ Failed to load build configuration"
+		echo ""
+		echo "Error: ${config_output}"
+		echo ""
+		echo "Available builds can be found in .github/builds.yml"
+		echo "Run 'node scripts/validate-build-config.js' to check config validity."
+		return 1
+	fi
 
-		remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_DEV" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
+	# Apply the configuration (exports environment variables)
+	eval "$config_output"
 
-remapEnvVariableQA() {
-  	echo "Remapping QA env variable names to match QA values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+	echo "✅ Configuration loaded from builds.yml"
+	echo "   Build: ${build_name}"
+	echo ""
 
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-
-}
-
-# Mapping for Main env variables in the e2e environment
-remapMainE2EEnvVariables() {
-  	echo "Remapping Main target environment variables for the e2e environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the test environment
-remapMainTestEnvVariables() {
-  	echo "Remapping Main target environment variables for the test environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the production environment
-remapMainProdEnvVariables() {
-  	echo "Remapping release env variable names to match production values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Flask env variables in the production environment
-remapFlaskProdEnvVariables() {
-  	echo "Remapping Flask target environment variables for the production environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_FLASK" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_FLASK" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_FLASK" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_FLASK" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "FLASK_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Flask env variables in the test environment
-remapFlaskTestEnvVariables() {
-  	echo "Remapping Flask target environment variables for the test environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "FLASK_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Flask env variables in the e2e environment
-remapFlaskE2EEnvVariables() {
-  	echo "Remapping Flask target environment variables for the e2e environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "FLASK_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the beta environment
-remapMainBetaEnvVariables() {
-  	echo "Remapping Main target environment variables for the beta environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_BETA" "SEGMENT_WRITE_KEY"
-    remapEnvVariable "SEGMENT_PROXY_URL_BETA" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the release candidate environment
-remapMainReleaseCandidateEnvVariables() {
-  	echo "Remapping Main target environment variables for the release candidate environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the experimental environment
-remapMainExperimentalEnvVariables() {
-  	echo "Remapping Main target environment variables for the experimental environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
+	return 0
 }
 
 prebuild_ios(){
@@ -808,40 +675,21 @@ checkParameters "$@"
 
 printTitle
 
-# Map environment variables based on mode.
-# TODO: MODE should be renamed to TARGET
-# Skip environment variable remapping for expo-update platform
+# ─────────────────────────────────────────────────────────────────────────────
+# Load build configuration from builds.yml
+# This replaces the old remapXxxEnvVariables() switch/case logic
+# ─────────────────────────────────────────────────────────────────────────────
 if [ "$PLATFORM" != "expo-update" ]; then
+	# Set flags for main builds
 	if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 		export GENERATE_BUNDLE=true # Used only for Android
 		export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-			remapMainProdEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
-			remapMainBetaEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
-			remapMainReleaseCandidateEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
-			remapMainExperimentalEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-			remapMainTestEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-			remapMainE2EEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
-			remapMainDevEnvVariables
-		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
-		# TODO: Map environment variables based on environment
-		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-			remapFlaskProdEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-			remapFlaskTestEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-			remapFlaskE2EEnvVariables
-		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
-		# TODO: Map environment variables based on environment
-		remapEnvVariableQA
+	fi
+
+	# Load configuration from builds.yml (replaces all remapXxxEnvVariables functions)
+	if ! loadBuildConfig "$METAMASK_BUILD_TYPE" "$METAMASK_ENVIRONMENT"; then
+		echo "❌ Build configuration failed. Exiting."
+		exit 1
 	fi
 fi
 

@@ -27,6 +27,7 @@
     "eas": "eas",
     "setup:flask": "export METAMASK_BUILD_TYPE='flask' && yarn setup",
     "setup:expo": "yarn clean && node scripts/setup.mjs --no-build-ios --no-build-android",
+    "build:workflow:update-secrets": "node scripts/generate-build-workflow-secrets-env.js",
     "start:ios": "./scripts/build.sh ios main dev --local",
     "start:ios:qa": "./scripts/build.sh ios qa dev --local",
     "start:ios:flask": "./scripts/build.sh ios flask dev --local",
