@@ -94,7 +94,6 @@ describe('useInsufficientBalanceAlert', () => {
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
   );
-  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useHasInsufficientBalanceMock = jest.mocked(useHasInsufficientBalance);
 
   const mockChainId = '0x1' as Hex;
@@ -159,7 +158,7 @@ describe('useInsufficientBalanceAlert', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionPayHasSourceAmountMock.mockReturnValue(false);
 
-    useTransactionPayTokenMock.mockReturnValue({
+    mockUseTransactionPayToken.mockReturnValue({
       payToken: undefined,
       setPayToken: jest.fn(),
     });
@@ -307,7 +306,7 @@ describe('useInsufficientBalanceAlert', () => {
   });
 
   it('returns no alert if pay token', () => {
-    useTransactionPayTokenMock.mockReturnValue({
+    mockUseTransactionPayToken.mockReturnValue({
       payToken: {
         address: '0x123' as Hex,
       } as TransactionPaymentToken,
@@ -320,7 +319,7 @@ describe('useInsufficientBalanceAlert', () => {
   });
 
   it('returns alert if pay token matches required token', () => {
-    useTransactionPayTokenMock.mockReturnValue({
+    mockUseTransactionPayToken.mockReturnValue({
       payToken: {
         address: '0x123' as Hex,
         chainId: mockChainId,
@@ -341,7 +340,7 @@ describe('useInsufficientBalanceAlert', () => {
   });
 
   it('returns no alert when pay token matches required token and quotes are available', () => {
-    useTransactionPayTokenMock.mockReturnValue({
+    mockUseTransactionPayToken.mockReturnValue({
       payToken: {
         address: '0x123' as Hex,
         chainId: mockChainId,
