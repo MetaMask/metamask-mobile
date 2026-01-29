@@ -2,6 +2,8 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
+import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import {
   PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
@@ -622,6 +624,36 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
   }
 
+  // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
+  get musdConversionCta(): DetoxElement {
+    return Matchers.getElementByID(
+      EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
+    );
+  }
+
+  get getMusdButton(): DetoxElement {
+    return Matchers.getElementByText('Get mUSD');
+  }
+
+  get getStartedButton(): DetoxElement {
+    return Matchers.getElementByText('Get Started');
+  }
+
+  get convertToMusdButton(): DetoxElement {
+    return Matchers.getElementByText('Convert to mUSD');
+  }
+
+  /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
+  get tokenListItemConvertToMusdCta(): DetoxElement {
+    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
+  }
+
+  get assetOverviewMusdCta(): DetoxElement {
+    return Matchers.getElementByID(
+      EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
+    );
+  }
+
   get walletReceiveButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
@@ -661,6 +693,66 @@ class WalletView {
   async tapWalletSendButton(): Promise<void> {
     await Gestures.waitAndTap(this.walletSendButton, {
       elemDescription: 'Wallet Send Button',
+    });
+  }
+
+  async tapGetMusdButton(): Promise<void> {
+    await Gestures.waitAndTap(this.getMusdButton, {
+      elemDescription: 'Get mUSD button',
+    });
+  }
+
+  async tapGetStartedButton(): Promise<void> {
+    await Gestures.waitAndTap(this.getStartedButton, {
+      elemDescription: 'Get Started button on education screen',
+    });
+  }
+
+  async tapConvertToMusdButton(): Promise<void> {
+    await Gestures.waitAndTap(this.convertToMusdButton, {
+      elemDescription: 'Convert to mUSD button',
+    });
+  }
+
+  /** Tap the "Get X% mUSD bonus" CTA on a token list row (visible when user has mUSD balance). Uses checkStability + delay so list is fully loaded before tap. */
+  async tapTokenListItemConvertToMusdCta(): Promise<void> {
+    await Gestures.waitAndTap(this.tokenListItemConvertToMusdCta, {
+      checkStability: true,
+      delay: 1000,
+      elemDescription: 'Token list item mUSD conversion CTA',
+    });
+  }
+
+  /**
+   * Scrolls down on the Asset Overview screen until the mUSD conversion CTA is visible,
+   * then asserts it is visible so the caller can safely tap. Uses the same scroll
+   * container as the Asset/Transactions screen (transactions-container).
+   */
+  async scrollDownToAssetOverviewMusdCta(): Promise<void> {
+    const assetOverviewScrollContainer = Matchers.getIdentifier(
+      'transactions-container',
+    );
+    await Gestures.scrollToElement(
+      this.assetOverviewMusdCta as unknown as DetoxElement,
+      assetOverviewScrollContainer,
+      {
+        direction: 'down',
+        scrollAmount: 200,
+        elemDescription: 'Asset Overview mUSD CTA',
+        timeout: 15000,
+      },
+    );
+    await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
+      timeout: 5000,
+      description: 'Asset Overview mUSD CTA should be visible after scroll',
+    });
+  }
+
+  async tapAssetOverviewMusdCta(): Promise<void> {
+    await Gestures.waitAndTap(this.assetOverviewMusdCta, {
+      checkStability: true,
+      delay: 800,
+      elemDescription: 'Asset Overview mUSD CTA',
     });
   }
 
