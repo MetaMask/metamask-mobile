@@ -19,6 +19,8 @@ import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
 import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
+import { usePredictBalance } from './usePredictBalance';
+import { usePredictDeposit } from './usePredictDeposit';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -53,6 +55,8 @@ export function usePredictPlaceOrder(
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
   const { toastRef } = useContext(ToastContext);
+  const { balance } = usePredictBalance({ loadOnMount: true });
+  const { deposit } = usePredictDeposit();
 
   const showCashedOutToast = useCallback(
     (amount: string) => {
@@ -125,8 +129,15 @@ export function usePredictPlaceOrder(
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams) => {
       const {
-        preview: { minAmountReceived, side },
+        preview: { minAmountReceived, side, maxAmountSpent },
       } = orderParams;
+
+      // Check if user has sufficient balance for the bet amount
+      // maxAmountSpent includes the bet amount plus all fees
+      if (balance < maxAmountSpent) {
+        await deposit();
+        return;
+      }
 
       try {
         setIsLoading(true);
@@ -186,10 +197,12 @@ export function usePredictPlaceOrder(
       }
     },
     [
+      balance,
+      deposit,
       controllerPlaceOrder,
       onComplete,
-      showCashedOutToast,
       showOrderPlacedToast,
+      showCashedOutToast,
       onError,
     ],
   );

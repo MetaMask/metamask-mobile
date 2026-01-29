@@ -8,12 +8,14 @@ import { Result, Side } from '../types';
 import { usePredictPlaceOrder } from './usePredictPlaceOrder';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictBalance } from './usePredictBalance';
+import { usePredictDeposit } from './usePredictDeposit';
 
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./usePredictTrading');
 jest.mock('./usePredictBalance');
+jest.mock('./usePredictDeposit');
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, options?: Record<string, unknown>) => {
     const translations: Record<string, string> = {
@@ -51,6 +53,9 @@ const mockUsePredictTrading = usePredictTrading as jest.MockedFunction<
 const mockUsePredictBalance = usePredictBalance as jest.MockedFunction<
   typeof usePredictBalance
 >;
+const mockUsePredictDeposit = usePredictDeposit as jest.MockedFunction<
+  typeof usePredictDeposit
+>;
 const mockDevLoggerLog = DevLogger.log as jest.MockedFunction<
   typeof DevLogger.log
 >;
@@ -67,6 +72,7 @@ describe('usePredictPlaceOrder', () => {
   const mockGetPositions = jest.fn();
   const mockClaim = jest.fn();
   const mockGetBalance = jest.fn();
+  const mockDeposit = jest.fn();
 
   function createMockOrderPreview(
     overrides?: Partial<OrderPreview>,
@@ -116,11 +122,15 @@ describe('usePredictPlaceOrder', () => {
     });
     mockUsePredictBalance.mockReturnValue({
       balance: 1000,
+      hasNoBalance: false,
       isLoading: false,
       isRefreshing: false,
       error: null,
-      hasNoBalance: false,
       loadBalance: jest.fn(),
+    });
+    mockUsePredictDeposit.mockReturnValue({
+      deposit: mockDeposit,
+      isDepositPending: false,
     });
     mockUseContext.mockReturnValue({ toastRef: mockToastRef });
   });
