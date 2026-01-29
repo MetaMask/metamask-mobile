@@ -640,7 +640,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -701,94 +701,14 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -1742,7 +1662,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1803,94 +1723,14 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -2870,7 +2710,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -2931,94 +2771,14 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -3365,7 +3125,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     ]
                                   }
                                 >
-                                  Select a Quote
+                                  Select a quote
                                 </Text>
                               </View>
                             </View>
@@ -4730,7 +4490,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -4791,94 +4551,14 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -5982,7 +5662,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -6043,94 +5723,14 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -6744,7 +6344,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -6805,94 +6405,14 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -7506,7 +7026,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -7567,94 +7087,14 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -8268,7 +7708,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -8329,94 +7769,14 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>

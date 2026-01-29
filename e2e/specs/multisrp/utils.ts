@@ -2,7 +2,7 @@ import ImportSrpView from '../../pages/importSrp/ImportSrpView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../framework/Assertions.ts';
+import Assertions from '../../../tests/framework/Assertions.ts';
 import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
 import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';

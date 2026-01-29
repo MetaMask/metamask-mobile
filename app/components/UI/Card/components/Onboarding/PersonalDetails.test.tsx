@@ -94,6 +94,7 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   const MockTextField = ({
     testID,
     onChangeText,
+    onBlur,
     value,
     placeholder,
     maxLength,
@@ -103,6 +104,7 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   }: {
     testID?: string;
     onChangeText?: (text: string) => void;
+    onBlur?: () => void;
     value?: string;
     placeholder?: string;
     maxLength?: number;
@@ -112,6 +114,7 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
     React.createElement(TextInput, {
       testID,
       onChangeText,
+      onBlur,
       value,
       placeholder,
       maxLength,
@@ -235,10 +238,6 @@ jest.mock('./RegionSelectorModal', () => ({
     mockSetOnValueChange(callback),
   clearOnValueChange: jest.fn(),
   createRegionSelectorModalNavigationDetails: jest.fn(() => ['MockRoute', {}]),
-}));
-
-jest.mock('../../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: (value: string) => value,
 }));
 
 jest.mock('../../hooks/useRegisterPersonalDetails', () => ({
@@ -543,6 +542,53 @@ describe('PersonalDetails Component', () => {
       const ssnInput = getByTestId('personal-details-ssn-input');
       expect(ssnInput.props.maxLength).toBe(9);
     });
+
+    it('does not show SSN error while typing (before blur)', () => {
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+      fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
+
+      // Error should not be shown while typing
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+    });
+
+    it('shows SSN error after blur when SSN is invalid', () => {
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+      fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
+      fireEvent(ssnInput, 'onBlur');
+
+      // Error should be shown after blur
+      expect(getByTestId('personal-details-ssn-error')).toBeTruthy();
+    });
+
+    it('does not show SSN error after blur when SSN is valid', () => {
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+      fireEvent.changeText(ssnInput, '123456789'); // Valid SSN (9 digits)
+      fireEvent(ssnInput, 'onBlur');
+
+      // Error should not be shown for valid SSN
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+    });
+
+    it('clears SSN error when user starts typing again', () => {
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+
+      // Type invalid SSN and blur to trigger error
+      fireEvent.changeText(ssnInput, '123');
+      fireEvent(ssnInput, 'onBlur');
+      expect(getByTestId('personal-details-ssn-error')).toBeTruthy();
+
+      // Type again - error should be cleared
+      fireEvent.changeText(ssnInput, '1234');
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+    });
   });
 
   describe('Component Integration', () => {
@@ -771,6 +817,175 @@ describe('PersonalDetails Component', () => {
 
       const ssnInput = getByTestId('personal-details-ssn-input');
       expect(ssnInput.props.value).toBe('123456789');
+    });
+  });
+
+  describe('Nationality Population from userData', () => {
+    beforeEach(() => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            onboarding: {
+              onboardingId: 'test-onboarding-id',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
+            },
+          },
+        };
+        return selector(mockState);
+      });
+    });
+
+    it('uses countryOfNationality when provided', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'CA',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByText, queryByText } = render(<PersonalDetails />);
+
+      // The nationality should show Canada (from countryOfNationality), not US (from countryOfResidence)
+      expect(getByText('Canada')).toBeTruthy();
+      expect(queryByText('United States')).toBeNull();
+    });
+
+    it('falls back to countryOfResidence when countryOfNationality is not provided', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: null,
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByText } = render(<PersonalDetails />);
+
+      // The nationality should show United States (from countryOfResidence fallback)
+      expect(getByText('United States')).toBeTruthy();
+    });
+
+    it('falls back to countryOfResidence when countryOfNationality is empty string', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: '',
+        countryOfResidence: 'CA',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByText } = render(<PersonalDetails />);
+
+      // The nationality should show Canada (from countryOfResidence fallback)
+      expect(getByText('Canada')).toBeTruthy();
+    });
+
+    it('falls back to countryOfResidence when countryOfNationality is undefined', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByText } = render(<PersonalDetails />);
+
+      // The nationality should show United States (from countryOfResidence fallback)
+      expect(getByText('United States')).toBeTruthy();
+    });
+
+    it('leaves nationality empty when both countryOfNationality and countryOfResidence are not provided', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { queryByText } = render(<PersonalDetails />);
+
+      // The nationality should be empty - neither country name should appear in the selector
+      expect(queryByText('Canada')).toBeNull();
+      expect(queryByText('United States')).toBeNull();
+    });
+
+    it('enables continue button when nationality is set via countryOfResidence fallback', async () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: null,
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+
+      mockRegisterPersonalDetails.mockResolvedValue({
+        user: { id: 'user-123' },
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      // The form should be pre-filled and the continue button should not be disabled
+      // due to missing nationality (since countryOfResidence is used as fallback)
+      const continueButton = getByTestId('personal-details-continue-button');
+
+      // Button should be enabled since all required fields are populated
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      // Should have called registerPersonalDetails with the countryOfResidence as nationality
+      expect(mockRegisterPersonalDetails).toHaveBeenCalledWith(
+        expect.objectContaining({
+          countryOfNationality: 'US',
+        }),
+      );
     });
   });
 

@@ -1,9 +1,12 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import { waitFor } from 'detox';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
-} from '../../../app/components/UI/Swaps/QuoteView.testIds';
+} from '../../selectors/Bridge/QuoteView.selectors';
+
+const TOKEN_LIST_MATCHER = by.id(QuoteViewSelectorIDs.TOKEN_LIST);
 
 class QuoteView {
   get selectAmountLabel(): DetoxElement {
@@ -22,6 +25,10 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
   }
 
+  get amountInput(): DetoxElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT);
+  }
+
   get destinationTokenArea(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA);
   }
@@ -36,8 +43,8 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.SELECT_ALL);
   }
 
-  get cancelButton(): DetoxElement {
-    return Matchers.getElementByText(QuoteViewSelectorText.CANCEL);
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON);
   }
 
   get networkFeeLabel(): DetoxElement {
@@ -73,13 +80,23 @@ class QuoteView {
   }
 
   async tapToken(chainId: string, symbol: string): Promise<void> {
-    await Gestures.waitAndTap(
-      this.token(chainId, symbol) as unknown as DetoxElement,
+    const tokenElement = this.token(chainId, symbol);
+    // Wait for the token element to exist first (network change may still be in progress)
+    await waitFor(tokenElement).toExist().withTimeout(15000);
+    // Scroll to the token element since it may be below the visible viewport
+    await Gestures.scrollToElement(
+      tokenElement as unknown as DetoxElement,
+      Promise.resolve(TOKEN_LIST_MATCHER),
       {
-        delay: 1000,
-        elemDescription: `Select token symbol ${symbol}`,
+        direction: 'down',
+        scrollAmount: 350,
+        elemDescription: `Scroll to token symbol ${symbol}`,
       },
     );
+    await Gestures.waitAndTap(tokenElement as unknown as DetoxElement, {
+      delay: 1000,
+      elemDescription: `Select token symbol ${symbol}`,
+    });
   }
 
   async typeSearchToken(symbol: string) {
@@ -139,9 +156,9 @@ class QuoteView {
     });
   }
 
-  async tapOnCancelButton() {
-    await Gestures.waitAndTap(this.cancelButton, {
-      elemDescription: 'Cancel swap',
+  async tapOnBackButton() {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back button on Quote View',
     });
   }
 

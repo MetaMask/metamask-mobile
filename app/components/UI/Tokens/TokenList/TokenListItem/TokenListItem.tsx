@@ -24,7 +24,10 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectStablecoinLendingEnabledFlag,
+  selectMerklCampaignClaimingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -40,13 +43,21 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
+import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
 import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import {
+  useMerklRewards,
+  isEligibleForMerklRewards,
+} from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -73,6 +84,12 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       alignContent: 'center',
+    },
+    centered: {
+      textAlign: 'center',
+    },
+    stockBadgeWrapper: {
+      marginLeft: 4,
     },
   });
 
@@ -107,6 +124,8 @@ export const TokenListItem = React.memo(
       }),
     );
 
+    const { isStockToken } = useRWAToken();
+
     const chainId = asset?.chainId as Hex;
 
     const networkName = useNetworkName(chainId);
@@ -128,6 +147,29 @@ export const TokenListItem = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
+    // Check for claimable Merkl rewards
+    const isMerklCampaignClaimingEnabled = useSelector(
+      selectMerklCampaignClaimingEnabledFlag,
+    );
+    const { claimableReward } = useMerklRewards({
+      asset,
+    });
+
+    const isEligibleForMerkl = useMemo(
+      () =>
+        asset?.chainId && asset?.address
+          ? isEligibleForMerklRewards(
+              asset.chainId as Hex,
+              asset.address as Hex | undefined,
+            )
+          : false,
+      [asset?.chainId, asset?.address],
+    );
+
+    const hasClaimableBonus = Boolean(
+      isMerklCampaignClaimingEnabled && claimableReward && isEligibleForMerkl,
+    );
+
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
     const handleConvertToMUSD = useCallback(async () => {
@@ -145,7 +187,12 @@ export const TokenListItem = React.memo(
               location: EVENT_LOCATIONS.TOKEN_LIST_ITEM,
               redirects_to: getRedirectLocation(),
               cta_type: MUSD_CTA_TYPES.SECONDARY,
-              cta_text: strings('earn.musd_conversion.convert_to_musd'),
+              cta_text: strings(
+                'earn.musd_conversion.get_a_percentage_musd_bonus',
+                {
+                  percentage: MUSD_CONVERSION_APY,
+                },
+              ),
               network_chain_id: chainId,
               network_name: networkName,
               asset_symbol: asset?.symbol,
@@ -198,10 +245,43 @@ export const TokenListItem = React.memo(
       pricePercentChange1d !== undefined &&
       Number.isFinite(pricePercentChange1d);
 
+    const onItemPress = useCallback(
+      (token: TokenI, scrollToMerklRewards?: boolean) => {
+        trace({ name: TraceName.AssetDetails });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+            .addProperties({
+              source: isFullView
+                ? 'mobile-token-list-page'
+                : 'mobile-token-list',
+              chain_id: token.chainId,
+              token_symbol: token.symbol,
+            })
+            .build(),
+        );
+
+        navigation.navigate('Asset', {
+          ...token,
+          scrollToMerklRewards,
+        });
+      },
+      [isFullView, trackEvent, createEventBuilder, navigation],
+    );
+
     const secondaryBalanceDisplay = useMemo(() => {
+      if (hasClaimableBonus) {
+        return {
+          text: strings('earn.claim_bonus'),
+          color: TextColor.Primary,
+          onPress: asset ? () => onItemPress(asset as TokenI, true) : undefined,
+        };
+      }
+
       if (shouldShowConvertToMusdCta) {
         return {
-          text: strings('earn.musd_conversion.convert_to_musd'),
+          text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
           color: TextColor.Primary,
           onPress: handleConvertToMUSD,
         };
@@ -228,6 +308,9 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
+      hasClaimableBonus,
+      asset,
+      onItemPress,
       handleConvertToMUSD,
       hasPercentageChange,
       pricePercentChange1d,
@@ -240,23 +323,6 @@ export const TokenListItem = React.memo(
       () => (chainId ? NetworkBadgeSource(chainId) : null),
       [chainId],
     );
-
-    const onItemPress = (token: TokenI) => {
-      trace({ name: TraceName.AssetDetails });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-          .addProperties({
-            source: isFullView ? 'mobile-token-list-page' : 'mobile-token-list',
-            chain_id: token.chainId,
-            token_symbol: token.symbol,
-          })
-          .build(),
-      );
-
-      navigation.navigate('Asset', {
-        ...token,
-      });
-    };
 
     const isStakeable = useSelector((state: RootState) =>
       selectIsStakeableToken(state, asset as TokenI),
@@ -342,6 +408,9 @@ export const TokenListItem = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
+            {isStockToken(asset as BridgeToken) && (
+              <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+            )}
             {renderEarnCta()}
           </View>
         </View>

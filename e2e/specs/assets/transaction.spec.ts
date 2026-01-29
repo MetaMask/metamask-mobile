@@ -5,18 +5,18 @@ import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import enContent from '../../../locales/languages/en.json';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import Assertions from '../../framework/Assertions';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import Assertions from '../../../tests/framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import ToastModal from '../../pages/wallet/ToastModal';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../framework/types';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../tests/framework/types';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 describe(RegressionAssets('Transaction'), () => {
   beforeAll(async () => {
@@ -57,7 +57,7 @@ describe(RegressionAssets('Transaction'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
-            Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+            Object.assign({}, ...confirmationFeatureFlags),
           );
         },
       },

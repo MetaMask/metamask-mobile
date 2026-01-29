@@ -15,6 +15,10 @@ export * from '../../types/navigation';
 import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
 import type { CandleData } from '../../types/perps-types';
 import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
+import { WebSocketConnectionState } from '../../services/HyperLiquidClientService';
+
+// Re-export WebSocketConnectionState for consumers of types
+export { WebSocketConnectionState };
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -63,8 +67,15 @@ export type OrderType = 'market' | 'limit';
 // Market asset type classification (reusable across components)
 export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
 
-// Market type filter including 'all' option and combined 'stocks_and_commodities' for UI filtering
-export type MarketTypeFilter = MarketType | 'all' | 'stocks_and_commodities';
+// Market type filter for UI category badges
+// Note: 'stocks' maps to 'equity' and 'commodities' maps to 'commodity' in the data model
+export type MarketTypeFilter =
+  | 'all'
+  | 'crypto'
+  | 'stocks'
+  | 'commodities'
+  | 'forex'
+  | 'new';
 
 // Input method for amount entry tracking
 export type InputMethod =
@@ -114,7 +125,7 @@ export interface TPSLTrackingData {
 
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
-  coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
+  symbol: string; // Asset identifier (e.g., 'ETH', 'BTC', 'xyz:TSLA')
   isBuy: boolean; // true = BUY order, false = SELL order
   size: string; // Order size as string (derived for validation, provider recalculates from usdAmount)
   orderType: OrderType; // Order type
@@ -132,7 +143,7 @@ export type OrderParams = {
   takeProfitPrice?: string; // Take profit price
   stopLossPrice?: string; // Stop loss price
   clientOrderId?: string; // Optional client-provided order ID
-  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000 = 3%)
+  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000 = 3%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
@@ -140,6 +151,9 @@ export type OrderParams = {
 
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;
+
+  // Multi-provider routing (optional: defaults to active/default provider)
+  providerId?: PerpsProviderType; // Optional: override active provider for routing
 };
 
 export type OrderResult = {
@@ -148,10 +162,11 @@ export type OrderResult = {
   error?: string;
   filledSize?: string; // Amount filled
   averagePrice?: string; // Average execution price
+  providerId?: PerpsProviderType; // Multi-provider: which provider executed this order (injected by aggregator)
 };
 
 export type Position = {
-  coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
+  symbol: string; // Asset identifier (e.g., 'ETH', 'BTC', 'xyz:TSLA')
   size: string; // Signed position size (+ = LONG, - = SHORT)
   entryPrice: string; // Average entry price
   positionValue: string; // Total position value in USD
@@ -175,6 +190,7 @@ export type Position = {
   stopLossPrice?: string; // Stop loss price (if set)
   takeProfitCount: number; // Take profit count, how many tps can affect the position
   stopLossCount: number; // Stop loss count, how many sls can affect the position
+  providerId?: PerpsProviderType; // Multi-provider: which provider holds this position (injected by aggregator)
 };
 
 // Using 'type' instead of 'interface' for BaseController Json compatibility
@@ -203,10 +219,11 @@ export type AccountState = {
       totalBalance: string;
     }
   >;
+  providerId?: PerpsProviderType; // Multi-provider: which provider this account state is from (injected by aggregator)
 };
 
 export type ClosePositionParams = {
-  coin: string; // Asset symbol to close
+  symbol: string; // Asset identifier to close (e.g., 'ETH', 'BTC', 'xyz:TSLA')
   size?: string; // Size to close (omit for full close)
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
@@ -219,10 +236,13 @@ export type ClosePositionParams = {
 
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;
+
+  // Multi-provider routing (optional: defaults to active/default provider)
+  providerId?: PerpsProviderType; // Optional: override active provider for routing
 };
 
 export type ClosePositionsParams = {
-  coins?: string[]; // Optional: specific coins to close (omit or empty array to close all)
+  symbols?: string[]; // Optional: specific symbols to close (omit or empty array to close all)
   closeAll?: boolean; // Explicitly close all positions
 };
 
@@ -231,15 +251,16 @@ export type ClosePositionsResult = {
   successCount: number; // Number of positions closed successfully
   failureCount: number; // Number of positions that failed to close
   results: {
-    coin: string;
+    symbol: string;
     success: boolean;
     error?: string;
   }[];
 };
 
 export type UpdateMarginParams = {
-  coin: string; // Asset symbol (e.g., 'BTC', 'ETH')
+  symbol: string; // Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   amount: string; // Amount to adjust as string (positive = add, negative = remove)
+  providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
 };
 
 export type MarginResult = {
@@ -248,7 +269,7 @@ export type MarginResult = {
 };
 
 export type FlipPositionParams = {
-  coin: string; // Asset symbol to flip
+  symbol: string; // Asset identifier to flip (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   position: Position; // Current position to flip
 };
 
@@ -278,6 +299,7 @@ export interface MarketInfo {
   onlyIsolated?: true; // HyperLiquid: isolated margin only (optional, only when true)
   isDelisted?: true; // HyperLiquid: delisted status (optional, only when true)
   minimumOrderSize?: number; // Minimum order size in USD (protocol-specific)
+  providerId?: PerpsProviderType; // Multi-provider: which provider this market comes from (injected by aggregator)
 }
 
 /**
@@ -343,6 +365,20 @@ export interface PerpsMarketData {
    * - forex: Foreign exchange pairs (HIP-3)
    */
   marketType?: MarketType;
+  /**
+   * Whether this is a HIP-3 market (has DEX prefix like xyz:, flx:)
+   * Used to distinguish between crypto (isHip3=false) and non-crypto markets
+   */
+  isHip3?: boolean;
+  /**
+   * Whether this is a new/uncategorized market (HIP-3 markets not yet in explicit mapping)
+   * Used for the "New" filter tab
+   */
+  isNewMarket?: boolean;
+  /**
+   * Multi-provider: which provider this market data comes from (injected by aggregator)
+   */
+  providerId?: PerpsProviderType;
 }
 
 export interface ToggleTestnetResult {
@@ -358,7 +394,8 @@ export interface AssetRoute {
   constraints?: {
     minAmount?: string; // Minimum deposit/withdrawal amount
     maxAmount?: string; // Maximum deposit/withdrawal amount
-    estimatedTime?: string; // Estimated processing time
+    estimatedTime?: string; // Estimated processing time (formatted string - deprecated, use estimatedMinutes)
+    estimatedMinutes?: number; // Estimated processing time in minutes (raw value for UI formatting)
     fees?: {
       fixed?: number; // Fixed fee amount (e.g., 1 for 1 token)
       percentage?: number; // Percentage fee (e.g., 0.05 for 0.05%)
@@ -369,28 +406,30 @@ export interface AssetRoute {
 
 export interface SwitchProviderResult {
   success: boolean;
-  providerId: string;
+  providerId: PerpsActiveProviderMode;
   error?: string;
 }
 
 export interface CancelOrderParams {
   orderId: string; // Order ID to cancel
-  coin: string; // Asset symbol
+  symbol: string; // Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA')
+  providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
 }
 
 export interface CancelOrderResult {
   success: boolean;
   orderId?: string; // Cancelled order ID
   error?: string;
+  providerId?: PerpsProviderType; // Multi-provider: source provider identifier
 }
 
 export type BatchCancelOrdersParams = {
   orderId: string;
-  coin: string;
+  symbol: string;
 }[];
 
 export type CancelOrdersParams = {
-  coins?: string[]; // Optional: specific coins (omit to cancel all orders)
+  symbols?: string[]; // Optional: specific symbols (omit to cancel all orders)
   orderIds?: string[]; // Optional: specific order IDs (omit to cancel all orders for specified coins)
   cancelAll?: boolean; // Explicitly cancel all orders
 };
@@ -401,7 +440,7 @@ export type CancelOrdersResult = {
   failureCount: number; // Number of orders that failed to cancel
   results: {
     orderId: string;
-    coin: string;
+    symbol: string;
     success: boolean;
     error?: string;
   }[];
@@ -454,6 +493,7 @@ export interface WithdrawParams {
   amount: string; // Amount to withdraw
   destination?: Hex; // Destination address (optional, defaults to current account)
   assetId?: CaipAssetId; // Asset to withdraw (defaults to USDC)
+  providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
 }
 
 export interface WithdrawResult {
@@ -522,7 +562,7 @@ export interface PerpsControllerConfig {
 }
 
 export interface PriceUpdate {
-  coin: string; // Asset symbol
+  symbol: string; // Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   price: string; // Current mid price (average of best bid and ask)
   timestamp: number; // Update timestamp
   percentChange24h?: string; // 24h price change percentage
@@ -535,6 +575,7 @@ export interface PriceUpdate {
   funding?: number; // Current funding rate
   openInterest?: number; // Open interest in USD
   volume24h?: number; // 24h trading volume in USD
+  providerId?: PerpsProviderType; // Multi-provider: price source (injected by aggregator)
 }
 
 export interface OrderFill {
@@ -557,6 +598,7 @@ export interface OrderFill {
   };
   orderType?: 'take_profit' | 'stop_loss' | 'liquidation' | 'regular';
   detailedOrderType?: string; // Original order type from exchange
+  providerId?: PerpsProviderType; // Multi-provider: which provider this fill occurred on (injected by aggregator)
 }
 
 // Parameter interfaces - all fully optional for better UX
@@ -578,6 +620,15 @@ export interface GetOrderFillsParams {
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
   aggregateByTime?: boolean; // Optional: aggregate by time
+}
+
+/**
+ * Parameters for getOrFetchFills - optimized cache-first fill retrieval.
+ * Subset of GetOrderFillsParams for cache filtering.
+ */
+export interface GetOrFetchFillsParams {
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  symbol?: string; // Optional: filter by symbol
 }
 
 export interface GetOrdersParams {
@@ -652,7 +703,7 @@ export interface SubscribeOICapsParams {
 }
 
 export interface SubscribeCandlesParams {
-  coin: string;
+  symbol: string;
   interval: CandlePeriod;
   duration?: TimeDuration;
   callback: (data: CandleData) => void;
@@ -728,7 +779,7 @@ export interface FeeCalculationParams {
   orderType: 'market' | 'limit';
   isMaker?: boolean;
   amount?: string;
-  coin: string; // Required: Asset symbol for HIP-3 fee calculation (e.g., 'BTC', 'xyz:TSLA')
+  symbol: string; // Required: Asset identifier for HIP-3 fee calculation (e.g., 'BTC', 'xyz:TSLA')
 }
 
 export interface FeeCalculationResult {
@@ -754,11 +805,18 @@ export interface FeeCalculationResult {
 }
 
 export interface UpdatePositionTPSLParams {
-  coin: string; // Asset symbol
+  symbol: string; // Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   takeProfitPrice?: string; // Optional: undefined to remove
   stopLossPrice?: string; // Optional: undefined to remove
   // Optional tracking data for MetaMetrics events
   trackingData?: TPSLTrackingData;
+  providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
+  /**
+   * Optional live position data from WebSocket.
+   * If provided, skips the REST API position fetch (avoids rate limiting issues).
+   * If not provided, falls back to fetching positions via REST API.
+   */
+  position?: Position;
 }
 
 export interface Order {
@@ -783,6 +841,7 @@ export interface Order {
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
   triggerPrice?: string; // Trigger condition price for trigger orders (e.g., TP/SL trigger level)
+  providerId?: PerpsProviderType; // Multi-provider: which provider this order is on (injected by aggregator)
 }
 
 export interface Funding {
@@ -793,7 +852,7 @@ export interface Funding {
   transactionHash?: string; // Optional transaction hash
 }
 
-export interface IPerpsProvider {
+export interface PerpsProvider {
   readonly protocolId: string;
 
   // Unified asset and route information
@@ -835,6 +894,14 @@ export interface IPerpsProvider {
    * Example: Market long 1 ETH @ $50,000 → OrderFill with exact execution price and fees
    */
   getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
+
+  /**
+   * Get fills using WebSocket cache first, falling back to REST API.
+   * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss.
+   * Purpose: Prevent 429 errors during rapid market switching by reusing cached fills.
+   * @param params - Optional filter parameters (startTime, symbol)
+   */
+  getOrFetchFills(params?: GetOrFetchFillsParams): Promise<OrderFill[]>;
 
   /**
    * Get historical portfolio data
@@ -911,6 +978,14 @@ export interface IPerpsProvider {
   isReadyToTrade(): Promise<ReadyToTradeResult>;
   disconnect(): Promise<DisconnectResult>;
   ping(timeoutMs?: number): Promise<void>; // Lightweight WebSocket health check with configurable timeout
+  getWebSocketConnectionState?(): WebSocketConnectionState; // Optional: get current WebSocket connection state
+  subscribeToConnectionState?(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void; // Optional: subscribe to WebSocket connection state changes
+  reconnect?(): Promise<void>; // Optional: manually trigger WebSocket reconnection
 
   // Block explorer
   getBlockExplorerUrl(address?: string): string;
@@ -925,4 +1000,483 @@ export interface IPerpsProvider {
    * @returns Array of DEX names (empty string '' represents main DEX)
    */
   getAvailableDexs?(params?: GetAvailableDexsParams): Promise<string[]>;
+}
+
+// ============================================================================
+// Multi-Provider Aggregation Types (Phase 1)
+// ============================================================================
+
+/**
+ * Provider identifier type for multi-provider support.
+ * Add new providers here as they are implemented.
+ */
+export type PerpsProviderType = 'hyperliquid' | 'myx';
+
+/**
+ * Active provider mode for PerpsController state.
+ * - Direct providers: 'hyperliquid', 'myx'
+ * - 'aggregated': Multi-provider aggregation mode
+ */
+export type PerpsActiveProviderMode = PerpsProviderType | 'aggregated';
+
+/**
+ * Aggregation mode for read operations.
+ * - 'all': Aggregate data from all registered providers
+ * - 'active': Only aggregate from providers with active connections
+ * - 'specific': Aggregate from a specific subset of providers
+ */
+export type AggregationMode = 'all' | 'active' | 'specific';
+
+/**
+ * Routing strategy for write operations.
+ * Phase 1 only supports 'default_provider' - advanced strategies deferred to Phase 3.
+ */
+export type RoutingStrategy = 'default_provider';
+
+/**
+ * Configuration for AggregatedPerpsProvider
+ */
+export interface AggregatedProviderConfig {
+  /** Map of provider ID to provider instance */
+  providers: Map<PerpsProviderType, PerpsProvider>;
+  /** Default provider for write operations when providerId not specified */
+  defaultProvider: PerpsProviderType;
+  /** Aggregation mode for read operations (default: 'all') */
+  aggregationMode?: AggregationMode;
+  /** Platform dependencies for logging, metrics, etc. */
+  infrastructure: PerpsPlatformDependencies;
+}
+
+/**
+ * Provider-specific error with context for multi-provider error handling
+ */
+export interface ProviderError {
+  /** Which provider the error originated from */
+  providerId: PerpsProviderType;
+  /** Human-readable error message */
+  message: string;
+  /** Original error object if available */
+  originalError?: Error;
+  /** Whether the operation can be retried */
+  isRetryable?: boolean;
+}
+
+/**
+ * Aggregated account state combining data from multiple providers
+ */
+export interface AggregatedAccountState {
+  /** Combined totals across all providers */
+  total: AccountState;
+  /** Per-provider breakdown */
+  byProvider: Map<PerpsProviderType, AccountState>;
+}
+
+// ============================================================================
+// Injectable Dependency Interfaces
+// These interfaces enable dependency injection for platform-specific services,
+// allowing PerpsController to be moved to core without mobile-specific imports.
+// ============================================================================
+
+/**
+ * Injectable logger interface for error reporting.
+ * Allows core package to be platform-agnostic (mobile: Sentry, extension: different impl)
+ */
+export interface PerpsLogger {
+  error(
+    error: Error,
+    options?: {
+      tags?: Record<string, string | number>;
+      context?: { name: string; data: Record<string, unknown> };
+      extras?: Record<string, unknown>;
+    },
+  ): void;
+}
+
+/**
+ * Analytics events specific to Perps feature.
+ * These are the actual event names sent to analytics backend.
+ * Values must match the corresponding MetaMetricsEvents values in mobile for compatibility.
+ *
+ * When migrating to core monorepo, this enum travels with PerpsController.
+ */
+export enum PerpsAnalyticsEvent {
+  WithdrawalTransaction = 'Perp Withdrawal Transaction',
+  TradeTransaction = 'Perp Trade Transaction',
+  PositionCloseTransaction = 'Perp Position Close Transaction',
+  OrderCancelTransaction = 'Perp Order Cancel Transaction',
+  ScreenViewed = 'Perp Screen Viewed',
+  UiInteraction = 'Perp UI Interaction',
+  RiskManagement = 'Perp Risk Management',
+  PerpsError = 'Perp Error',
+}
+
+/**
+ * Perps-specific trace names. These must match TraceName enum values in mobile.
+ * When in core monorepo, this defines the valid trace names for Perps operations.
+ */
+export type PerpsTraceName =
+  | 'Perps Open Position'
+  | 'Perps Close Position'
+  | 'Perps Deposit'
+  | 'Perps Withdraw'
+  | 'Perps Place Order'
+  | 'Perps Edit Order'
+  | 'Perps Cancel Order'
+  | 'Perps Update TP/SL'
+  | 'Perps Update Margin'
+  | 'Perps Flip Position'
+  | 'Perps Order Submission Toast'
+  | 'Perps Market Data Update'
+  | 'Perps Order View'
+  | 'Perps Tab View'
+  | 'Perps Market List View'
+  | 'Perps Position Details View'
+  | 'Perps Adjust Margin View'
+  | 'Perps Order Details View'
+  | 'Perps Order Book View'
+  | 'Perps Flip Position Sheet'
+  | 'Perps Transactions View'
+  | 'Perps Order Fills Fetch'
+  | 'Perps Orders Fetch'
+  | 'Perps Funding Fetch'
+  | 'Perps Get Positions'
+  | 'Perps Get Account State'
+  | 'Perps Get Historical Portfolio'
+  | 'Perps Get Markets'
+  | 'Perps Fetch Historical Candles'
+  | 'Perps WebSocket Connected'
+  | 'Perps WebSocket Disconnected'
+  | 'Perps WebSocket First Positions'
+  | 'Perps WebSocket First Orders'
+  | 'Perps WebSocket First Account'
+  | 'Perps Data Lake Report'
+  | 'Perps Rewards API Call'
+  | 'Perps Close Position View'
+  | 'Perps Withdraw View'
+  | 'Perps Connection Establishment'
+  | 'Perps Account Switch Reconnection';
+
+/**
+ * Perps trace name constants. Values match TraceName enum in mobile.
+ * When in core, these ARE the source of truth - mobile will re-export from core.
+ */
+export const PerpsTraceNames = {
+  // Trading operations
+  PlaceOrder: 'Perps Place Order',
+  EditOrder: 'Perps Edit Order',
+  CancelOrder: 'Perps Cancel Order',
+  ClosePosition: 'Perps Close Position',
+  UpdateTpsl: 'Perps Update TP/SL',
+  UpdateMargin: 'Perps Update Margin',
+  FlipPosition: 'Perps Flip Position',
+
+  // Account operations
+  Withdraw: 'Perps Withdraw',
+  Deposit: 'Perps Deposit',
+
+  // Market data
+  GetPositions: 'Perps Get Positions',
+  GetAccountState: 'Perps Get Account State',
+  GetMarkets: 'Perps Get Markets',
+  OrderFillsFetch: 'Perps Order Fills Fetch',
+  OrdersFetch: 'Perps Orders Fetch',
+  FundingFetch: 'Perps Funding Fetch',
+  GetHistoricalPortfolio: 'Perps Get Historical Portfolio',
+  FetchHistoricalCandles: 'Perps Fetch Historical Candles',
+
+  // Data lake
+  DataLakeReport: 'Perps Data Lake Report',
+
+  // WebSocket
+  WebsocketConnected: 'Perps WebSocket Connected',
+  WebsocketDisconnected: 'Perps WebSocket Disconnected',
+  WebsocketFirstPositions: 'Perps WebSocket First Positions',
+  WebsocketFirstOrders: 'Perps WebSocket First Orders',
+  WebsocketFirstAccount: 'Perps WebSocket First Account',
+
+  // Other
+  RewardsApiCall: 'Perps Rewards API Call',
+  ConnectionEstablishment: 'Perps Connection Establishment',
+  AccountSwitchReconnection: 'Perps Account Switch Reconnection',
+} as const satisfies Record<string, PerpsTraceName>;
+
+/**
+ * Perps trace operation constants. Values match TraceOperation enum in mobile.
+ * These categorize traces by type of operation for Sentry/observability filtering.
+ */
+export const PerpsTraceOperations = {
+  Operation: 'perps.operation',
+  OrderSubmission: 'perps.order_submission',
+  PositionManagement: 'perps.position_management',
+  MarketData: 'perps.market_data',
+} as const;
+
+/**
+ * Values allowed in trace data/tags. Matches Sentry's TraceValue type.
+ */
+export type PerpsTraceValue = string | number | boolean;
+
+/**
+ * Properties allowed in analytics events. More constrained than unknown.
+ * Named PerpsAnalyticsProperties to avoid conflict with PerpsEventProperties
+ * constant object from eventNames.ts (which contains property key names).
+ */
+export type PerpsAnalyticsProperties = Record<
+  string,
+  string | number | boolean | null | undefined
+>;
+
+/**
+ * Injectable metrics interface for analytics.
+ * Allows core package to work with different analytics backends.
+ */
+export interface PerpsMetrics {
+  isEnabled(): boolean;
+
+  /**
+   * Track a Perps-specific analytics event with properties.
+   * This abstracts away the MetricsEventBuilder pattern used in mobile.
+   *
+   * @param event - The Perps analytics event type (enum with actual event name values)
+   * @param properties - Type-safe key-value properties to attach to the event
+   */
+  trackPerpsEvent(
+    event: PerpsAnalyticsEvent,
+    properties: PerpsAnalyticsProperties,
+  ): void;
+}
+
+/**
+ * Injectable debug logger for development logging.
+ * Only logs in development mode.
+ * Accepts `unknown` to allow logging error objects from catch blocks.
+ */
+export interface PerpsDebugLogger {
+  log(...args: unknown[]): void;
+}
+
+/**
+ * Injectable stream manager interface for pause/resume during critical operations.
+ *
+ * WHY THIS IS NEEDED:
+ * PerpsStreamManager is a React-based mobile-specific singleton that:
+ * - Uses React Context for subscription management
+ * - Uses react-native-performance for tracing
+ * - Directly accesses Engine.context (mobile singleton pattern)
+ * - Manages WebSocket connections with throttling/caching
+ *
+ * PerpsController only needs pause/resume during critical operations (withStreamPause method)
+ * to prevent stale UI updates during batch operations. The minimal interface allows:
+ * - Mobile: Wrap existing singleton (streamManager[channel].pause())
+ * - Extension: Implement with whatever streaming solution they use
+ */
+/**
+ * Injectable stream manager interface for pause/resume during critical operations.
+ *
+ * WHY THIS IS NEEDED:
+ * PerpsStreamManager is a React-based mobile-specific singleton that:
+ * - Uses React Context for subscription management
+ * - Uses react-native-performance for tracing
+ * - Directly accesses Engine.context (mobile singleton pattern)
+ * - Manages WebSocket connections with throttling/caching
+ *
+ * PerpsController only needs pause/resume during critical operations (withStreamPause method)
+ * to prevent stale UI updates during batch operations. The minimal interface allows:
+ * - Mobile: Wrap existing singleton (streamManager[channel].pause())
+ * - Extension: Implement with whatever streaming solution they use
+ */
+export interface PerpsStreamManager {
+  pauseChannel(channel: string): void;
+  resumeChannel(channel: string): void;
+  clearAllChannels(): void;
+}
+
+/**
+ * Injectable performance monitor interface.
+ * Wraps react-native-performance or browser Performance API.
+ */
+export interface PerpsPerformance {
+  now(): number;
+}
+
+/**
+ * Injectable tracer interface for Sentry/observability tracing.
+ * Services use this to create spans and measure operation durations.
+ *
+ * Note: trace() returns void because services use name/id pairs to identify traces.
+ * The actual span management is handled internally by the platform adapter.
+ */
+export interface PerpsTracer {
+  trace(params: {
+    name: PerpsTraceName;
+    id: string;
+    op: string;
+    tags?: Record<string, PerpsTraceValue>;
+    data?: Record<string, PerpsTraceValue>;
+  }): void;
+
+  endTrace(params: {
+    name: PerpsTraceName;
+    id: string;
+    data?: Record<string, PerpsTraceValue>;
+  }): void;
+
+  setMeasurement(name: string, value: number, unit: string): void;
+}
+
+/**
+ * Injectable keyring controller interface for signing operations.
+ * Allows services to sign typed messages without directly accessing Engine.
+ */
+export interface PerpsKeyringController {
+  signTypedMessage(
+    msgParams: { from: string; data: unknown },
+    version: string,
+  ): Promise<string>;
+}
+
+/**
+ * Injectable account utilities interface.
+ * Provides access to selected account without coupling to Engine singleton.
+ */
+export interface PerpsAccountUtils {
+  getSelectedEvmAccount(): { address: string } | undefined;
+  formatAccountToCaipId(address: string, chainId: string): string | null;
+}
+
+// ============================================================================
+// Controller Access Interfaces
+// These granular interfaces define the specific operations needed from each
+// controller, enabling cleaner dependency injection and easier testing.
+// ============================================================================
+
+/**
+ * Network controller operations required by Perps.
+ * Provides chain ID lookups and network client identification.
+ */
+/**
+ * Network controller operations required by Perps.
+ * Provides chain ID lookups and network client identification.
+ */
+export interface PerpsNetworkOperations {
+  /**
+   * Get the chain ID for a given network client.
+   */
+  getChainIdForNetwork(networkClientId: string): Hex;
+
+  /**
+   * Find the network client ID for a given chain.
+   */
+  findNetworkClientIdForChain(chainId: Hex): string | undefined;
+
+  /**
+   * Get the currently selected network client ID.
+   */
+  getSelectedNetworkClientId(): string;
+}
+
+/**
+ * Transaction controller operations required by Perps.
+ * Provides transaction submission capabilities.
+ */
+export interface PerpsTransactionOperations {
+  /**
+   * Submit a transaction to the blockchain.
+   * Returns the result promise and transaction metadata.
+   */
+  submit(
+    txParams: {
+      from: string;
+      to?: string;
+      value?: string;
+      data?: string;
+    },
+    options: {
+      networkClientId: string;
+      origin?: string;
+      type?: string; // Will be bridged to TransactionType in adapter
+      skipInitialGasEstimate?: boolean;
+      gasFeeToken?: Hex;
+    },
+  ): Promise<{
+    result: Promise<string>; // Resolves to txHash
+    transactionMeta: { id: string; hash?: string };
+  }>;
+}
+
+/**
+ * Rewards controller operations required by Perps (optional).
+ * Provides fee discount capabilities for MetaMask rewards program.
+ */
+export interface PerpsRewardsOperations {
+  /**
+   * Get fee discount for an account.
+   * Returns discount in basis points (e.g., 6500 = 65% discount)
+   */
+  getFeeDiscount(
+    caipAccountId: `${string}:${string}:${string}`,
+  ): Promise<number>;
+}
+
+/**
+ * Authentication controller operations required by Perps (optional).
+ * Provides bearer token access for authenticated API calls.
+ */
+export interface PerpsAuthenticationOperations {
+  /**
+   * Get a bearer token for authenticated API requests.
+   */
+  getBearerToken(): Promise<string>;
+}
+
+/**
+ * Consolidated controller access interface.
+ * Groups ALL controller dependencies in one place for clarity.
+ *
+ * Benefits:
+ * 1. Clear separation: observability utilities vs controller access
+ * 2. Consistent pattern: all controllers accessed via deps.controllers.*
+ * 3. Mockable: test can mock entire controllers object
+ * 4. Future-proof: add new controller access without bloating top-level
+ */
+export interface PerpsControllerAccess {
+  /** Account utilities - wraps AccountsController access */
+  accounts: PerpsAccountUtils;
+  /** Keyring operations - wraps KeyringController for signing */
+  keyring: PerpsKeyringController;
+  /** Network operations - wraps NetworkController for chain lookups */
+  network: PerpsNetworkOperations;
+  /** Transaction operations - wraps TransactionController for TX submission */
+  transaction: PerpsTransactionOperations;
+  /** Rewards operations - wraps RewardsController for fee discounts */
+  rewards: PerpsRewardsOperations;
+  /** Authentication operations - wraps AuthenticationController for bearer tokens */
+  authentication: PerpsAuthenticationOperations;
+}
+
+/**
+ * Combined platform dependencies for PerpsController and services.
+ * All platform-specific dependencies are bundled here for easy injection.
+ *
+ * Architecture:
+ * - Observability: logger, debugLogger, metrics, performance, tracer (stateless utilities)
+ * - Platform: streamManager (mobile/extension specific capabilities)
+ * - Controllers: consolidated access to all external controllers
+ *
+ * This interface enables dependency injection for platform-specific services,
+ * allowing PerpsController to be moved to core without mobile-specific imports.
+ */
+export interface PerpsPlatformDependencies {
+  // === Observability (stateless utilities) ===
+  logger: PerpsLogger;
+  debugLogger: PerpsDebugLogger;
+  metrics: PerpsMetrics;
+  performance: PerpsPerformance;
+  tracer: PerpsTracer;
+
+  // === Platform Services (mobile/extension specific) ===
+  streamManager: PerpsStreamManager;
+
+  // === Controller Access (ALL controllers consolidated) ===
+  controllers: PerpsControllerAccess;
 }

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import styleSheet from './MusdConversionAssetListCta.styles';
 import Text, {
@@ -16,19 +16,17 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../constants/musd';
-import { toHex } from '@metamask/controller-utils';
 import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../../Ramp/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
 import { useMusdCtaVisibility } from '../../../hooks/useMusdCtaVisibility';
+import { useMusdConversionFlowData } from '../../../hooks/useMusdConversionFlowData';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import { toChecksumAddress } from '../../../../../../util/address';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
@@ -45,40 +43,36 @@ const MusdConversionAssetListCta = () => {
 
   const { goToBuy } = useRampNavigation();
 
-  const { tokens, getMusdOutputChainId } = useMusdConversionTokens();
+  const {
+    isEmptyWallet,
+    getPaymentTokenForSelectedNetwork,
+    getChainIdForBuyFlow,
+    getMusdOutputChainId,
+  } = useMusdConversionFlowData();
 
   const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
 
   const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+
   const { shouldShowCta, showNetworkIcon, selectedChainId } =
     shouldShowBuyGetMusdCta();
-
-  const { trackEvent, createEventBuilder } = useMetrics();
 
   const networkName = useNetworkName(
     selectedChainId ?? MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   );
 
-  const canConvert = useMemo(
-    () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
-    [tokens],
-  );
-
-  const ctaText = useMemo(() => {
-    if (!canConvert) {
-      return strings('earn.musd_conversion.buy_musd');
-    }
-
-    return strings('earn.musd_conversion.get_musd');
-  }, [canConvert]);
+  const ctaText = isEmptyWallet
+    ? strings('earn.musd_conversion.buy_musd')
+    : strings('earn.musd_conversion.get_musd');
 
   const submitCtaPressedEvent = () => {
     const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
     const getRedirectLocation = () => {
-      if (!canConvert) {
+      if (isEmptyWallet) {
         return EVENT_LOCATIONS.BUY_SCREEN;
       }
 
@@ -103,33 +97,30 @@ const MusdConversionAssetListCta = () => {
 
   const handlePress = async () => {
     submitCtaPressedEvent();
-    // Redirect users to deposit flow if they don't have any stablecoins to convert.
-    if (!canConvert) {
+
+    if (isEmptyWallet) {
+      const chainId = getChainIdForBuyFlow();
       const rampIntent: RampIntent = {
-        assetId:
-          MUSD_TOKEN_ASSET_ID_BY_CHAIN[
-            selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID
-          ],
+        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
       };
       goToBuy(rampIntent);
       return;
     }
 
-    const { address, chainId: paymentTokenChainId } = tokens[0];
+    const paymentToken = getPaymentTokenForSelectedNetwork();
 
-    if (!paymentTokenChainId) {
-      throw new Error('[mUSD Conversion] payment token chainID missing');
+    if (!paymentToken) {
+      Logger.error(
+        new Error('[mUSD Conversion] payment token missing'),
+        '[mUSD Conversion] Failed to initiate conversion - no payment token',
+      );
+      return;
     }
-
-    const paymentTokenAddress = toChecksumAddress(address);
 
     try {
       await initiateConversion({
-        preferredPaymentToken: {
-          address: paymentTokenAddress,
-          chainId: toHex(paymentTokenChainId),
-        },
-        outputChainId: getMusdOutputChainId(paymentTokenChainId),
+        preferredPaymentToken: paymentToken,
+        outputChainId: getMusdOutputChainId(paymentToken.chainId),
       });
     } catch (error) {
       Logger.error(

@@ -18,6 +18,7 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    AMOUNT_INPUT: 'RampAmountInput',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -28,6 +29,7 @@ const Routes = {
       UNSUPPORTED_TOKEN: 'RampUnsupportedTokenModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
       SETTINGS: 'RampSettingsModal',
+      BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
     },
   },
   DEPOSIT: {
@@ -69,6 +71,7 @@ const Routes = {
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
+  QR_SIGNING_TRANSACTION_MODAL: 'QRSigningTransactionModal',
   QR_TAB_SWITCHER: 'QRTabSwitcher',
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
@@ -111,7 +114,6 @@ const Routes = {
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
-    REWARDS_INTRO_MODAL: 'RewardsIntroModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
@@ -139,6 +141,7 @@ const Routes = {
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
     SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
+    REHYDRATE: 'Rehydrate',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -159,6 +162,7 @@ const Routes = {
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
+    REGION_SELECTOR: 'SettingsRegionSelector',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -197,6 +201,7 @@ const Routes = {
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
+    MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
@@ -239,13 +244,10 @@ const Routes = {
   BRIDGE: {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
+    TOKEN_SELECTOR: 'BridgeTokenSelector',
     MODALS: {
       ROOT: 'BridgeModals',
-      SOURCE_TOKEN_SELECTOR: 'BridgeSourceTokenSelector',
-      SOURCE_NETWORK_SELECTOR: 'BridgeSourceNetworkSelector',
       SLIPPAGE_MODAL: 'SlippageModal',
-      DEST_TOKEN_SELECTOR: 'BridgeDestTokenSelector',
-      DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
@@ -335,6 +337,7 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+      CONVERSION_TRANSACTION_DETAILS: 'MusdConversionTransactionDetails',
     },
     MODALS: {
       ROOT: 'EarnModals',
@@ -389,6 +392,9 @@ const Routes = {
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
     VERIFYING_REGISTRATION: 'VerifyingRegistration',
+    CHOOSE_YOUR_CARD: 'ChooseYourCard',
+    REVIEW_ORDER: 'ReviewOrder',
+    ORDER_COMPLETED: 'OrderCompleted',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -410,6 +416,8 @@ const Routes = {
       ASSET_SELECTION: 'CardAssetSelectionModal',
       REGION_SELECTION: 'CardRegionSelectionModal',
       CONFIRM_MODAL: 'CardConfirmModal',
+      RECURRING_FEE: 'CardRecurringFeeModal',
+      DAIMO_PAY: 'CardDaimoPayModal',
     },
   },
   SEND: {
