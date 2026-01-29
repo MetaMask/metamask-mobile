@@ -8,7 +8,7 @@ import { Theme } from '../../../../util/theme/models';
 import { MarketClosedActionButtonStyleSheetVars } from './MarketClosedActionButton.types';
 
 /**
- * Style sheet function for MainActionButton component.
+ * Style sheet function for MarketClosedActionButton component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.

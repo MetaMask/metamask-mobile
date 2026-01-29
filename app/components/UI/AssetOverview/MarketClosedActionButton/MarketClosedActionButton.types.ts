@@ -5,7 +5,7 @@ import { PressableProps } from 'react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 /**
- * MainActionButton component props.
+ * MarketClosedActionButton component props.
  */
 export interface MarketClosedActionButtonProps extends PressableProps {
   /**
