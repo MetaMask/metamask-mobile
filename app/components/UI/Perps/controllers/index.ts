@@ -27,19 +27,19 @@
  * ```
  */
 
-// Core controller and types
+// Core controller and types - from @metamask/perps-controller (Core monorepo via yalc)
 export {
   PerpsController,
   getDefaultPerpsControllerState,
   InitializationState,
-} from './PerpsController';
+} from '@metamask/perps-controller';
 export type {
   PerpsControllerState,
   PerpsControllerOptions,
   PerpsControllerMessenger,
   PerpsControllerActions,
   PerpsControllerEvents,
-} from './PerpsController';
+} from '@metamask/perps-controller';
 
 // Provider interfaces and implementations
 export { HyperLiquidProvider } from './providers/HyperLiquidProvider';

@@ -10,6 +10,7 @@ import { PerpsTestnetToggle } from './PerpsTestnetToggle';
 import { PerpsProviderToggle } from './PerpsProviderToggle';
 import { PerpsConnectionErrorButton } from './PerpsConnectionErrorButton';
 import { PerpsHIP3DebugButton } from './PerpsHIP3DebugButton';
+import { PerpsCoreTesterButton } from './PerpsCoreTesterButton';
 
 const PerpsDeveloperOptionsSectionStyles = () =>
   StyleSheet.create({
@@ -38,6 +39,7 @@ export const PerpsDeveloperOptionsSection = () => {
       <PerpsProviderToggle />
       <PerpsConnectionErrorButton />
       <PerpsHIP3DebugButton />
+      <PerpsCoreTesterButton />
     </View>
   );
 };

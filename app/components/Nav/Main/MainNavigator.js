@@ -131,6 +131,7 @@ import {
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
+import PerpsCoreTester from '../../Views/PerpsCoreTester';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -1335,6 +1336,16 @@ const MainNavigator = () => {
         ///: END:ONLY_INCLUDE_IF
       }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
+      {__DEV__ && (
+        <Stack.Screen
+          name={Routes.DEBUG.PERPS_CORE_TESTER}
+          component={PerpsCoreTester}
+          options={{
+            headerShown: true,
+            title: 'Core Tester',
+          }}
+        />
+      )}
     </Stack.Navigator>
   );
 };

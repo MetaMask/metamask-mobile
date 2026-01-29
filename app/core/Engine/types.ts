@@ -303,7 +303,7 @@ import {
   PerpsControllerState,
   PerpsControllerActions,
   PerpsControllerEvents,
-} from '../../components/UI/Perps/controllers/PerpsController';
+} from '@metamask/perps-controller';
 import { RewardsController } from './controllers/rewards-controller/RewardsController';
 import {
   RewardsDataService,
