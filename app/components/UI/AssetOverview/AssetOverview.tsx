@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -19,7 +19,6 @@ import {
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
-import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
@@ -46,7 +45,6 @@ import {
   addCurrencySymbol,
   balanceToFiatNumber,
 } from '../../../util/number';
-import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
@@ -251,7 +249,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const chainId = asset.chainId as Hex;
-  const ticker = nativeCurrency;
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
@@ -324,7 +321,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isTokenTrustworthy = isTokenTrustworthyForPerps(asset);
 
   const { styles } = useStyles(styleSheet, {});
-  const dispatch = useDispatch();
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -432,12 +428,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       await MultichainNetworkController.setActiveNetwork(
         networkClientId as string,
       );
-    }
-
-    if ((asset.isETH || asset.isNative) && ticker) {
-      dispatch(newAssetTransaction(getEther(ticker)));
-    } else {
-      dispatch(newAssetTransaction(asset));
     }
 
     navigateToSendPage({ location: InitSendLocation.AssetOverview, asset });

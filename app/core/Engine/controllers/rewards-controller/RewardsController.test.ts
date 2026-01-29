@@ -2222,6 +2222,385 @@ describe('RewardsController', () => {
         );
       });
     });
+
+    describe('type parameter caching behavior', () => {
+      let testableController: TestableRewardsController;
+
+      beforeEach(() => {
+        testableController = new TestableRewardsController({
+          messenger: mockMessenger,
+          isDisabled: () => false,
+        });
+        mockMessenger.publish.mockClear();
+      });
+
+      it('uses cache key with type suffix when type is provided', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          type: 'SWAP' as const,
+        };
+
+        const cachedPointsEvents = {
+          results: [
+            {
+              id: 'cached-event-1',
+              type: 'SWAP' as const,
+              timestamp: Date.now(),
+              value: 100,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: Date.now(),
+              payload: null,
+            },
+          ],
+          has_more: false,
+          cursor: null,
+          lastFetched: Date.now(), // Fresh cache
+        };
+
+        // Set up cached points events with type suffix in the key
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123:SWAP'] = cachedPointsEvents;
+        });
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert - should return cached data without calling API
+        expect(result.results[0].id).toEqual('cached-event-1');
+        expect(mockMessenger.call).not.toHaveBeenCalledWith(
+          'RewardsDataService:getPointsEvents',
+          expect.anything(),
+        );
+      });
+
+      it('stores results with type suffix in cache key when type is provided', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          type: 'PERPS' as const,
+        };
+
+        const freshPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: 'fresh-event-1',
+              type: 'PERPS' as const,
+              timestamp: new Date(),
+              value: 200,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date(),
+              payload: null,
+            },
+          ],
+        };
+
+        // When no cache exists for the typed key, hasPointsEventsChanged returns true immediately
+        // without calling getPointsEventsLastUpdated. So only getPointsEvents is called.
+        mockMessenger.call.mockResolvedValueOnce(freshPointsEvents);
+
+        // Act
+        await testableController.getPointsEvents(mockRequest);
+
+        // Assert - verify cache key includes type suffix
+        const cachedData =
+          testableController.state.pointsEvents['current:sub-123:PERPS'];
+        expect(cachedData).toBeDefined();
+        expect(cachedData.results[0].id).toEqual('fresh-event-1');
+      });
+
+      it('has separate cache entries for different types', async () => {
+        // Arrange
+        const swapCachedData = {
+          results: [
+            {
+              id: 'swap-event-1',
+              type: 'SWAP' as const,
+              timestamp: Date.now(),
+              value: 100,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: Date.now(),
+              payload: null,
+            },
+          ],
+          has_more: false,
+          cursor: null,
+          lastFetched: Date.now(), // Fresh cache
+        };
+
+        const perpsCachedData = {
+          results: [
+            {
+              id: 'perps-event-1',
+              type: 'PERPS' as const,
+              timestamp: Date.now(),
+              value: 200,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: Date.now(),
+              payload: null,
+            },
+          ],
+          has_more: false,
+          cursor: null,
+          lastFetched: Date.now(), // Fresh cache
+        };
+
+        // Set up separate cache entries for different types
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123:SWAP'] = swapCachedData;
+          state.pointsEvents['current:sub-123:PERPS'] = perpsCachedData;
+        });
+
+        // Act - request SWAP type
+        const swapResult = await testableController.getPointsEvents({
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          type: 'SWAP' as const,
+        });
+
+        // Act - request PERPS type
+        const perpsResult = await testableController.getPointsEvents({
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          type: 'PERPS' as const,
+        });
+
+        // Assert - each request should return its own cached data
+        expect(swapResult.results[0].id).toEqual('swap-event-1');
+        expect(perpsResult.results[0].id).toEqual('perps-event-1');
+      });
+
+      it('uses cache key without type suffix when type is not provided', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+        };
+
+        const cachedPointsEvents = {
+          results: [
+            {
+              id: 'all-events-1',
+              type: 'SWAP' as const,
+              timestamp: Date.now(),
+              value: 100,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: Date.now(),
+              payload: null,
+            },
+          ],
+          has_more: false,
+          cursor: null,
+          lastFetched: Date.now(), // Fresh cache
+        };
+
+        // Set up cached points events WITHOUT type suffix
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = cachedPointsEvents;
+        });
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert - should return cached data from key without type suffix
+        expect(result.results[0].id).toEqual('all-events-1');
+        expect(mockMessenger.call).not.toHaveBeenCalledWith(
+          'RewardsDataService:getPointsEvents',
+          expect.anything(),
+        );
+      });
+
+      it('does not use untyped cache when type is provided', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          type: 'SWAP' as const,
+        };
+
+        const untypedCachedData = {
+          results: [
+            {
+              id: 'untyped-event-1',
+              type: 'SWAP' as const,
+              timestamp: Date.now(),
+              value: 100,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: Date.now(),
+              payload: null,
+            },
+          ],
+          has_more: false,
+          cursor: null,
+          lastFetched: Date.now(), // Fresh cache
+        };
+
+        const freshTypedData = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: 'typed-event-1',
+              type: 'SWAP' as const,
+              timestamp: new Date(),
+              value: 200,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date(),
+              payload: null,
+            },
+          ],
+        };
+
+        // Set up cached data only in untyped key (should NOT be used)
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = untypedCachedData;
+        });
+
+        // When no cache exists for the typed key (current:sub-123:SWAP), hasPointsEventsChanged
+        // returns true immediately without calling getPointsEventsLastUpdated.
+        // So only getPointsEvents is called.
+        mockMessenger.call.mockResolvedValueOnce(freshTypedData);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert - should NOT return untyped cached data
+        expect(result.results[0].id).toEqual('typed-event-1');
+      });
+    });
+  });
+
+  describe('hasPointsEventsChanged', () => {
+    let testableController: TestableRewardsController;
+
+    beforeEach(() => {
+      testableController = new TestableRewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+      });
+    });
+
+    it('uses cache key with type suffix when type is provided', async () => {
+      // Arrange
+      const params = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        type: 'SWAP' as const,
+      };
+
+      const cachedData = {
+        results: [
+          {
+            id: 'event-1',
+            type: 'SWAP' as const,
+            timestamp: Date.now(),
+            value: 100,
+            bonus: { bips: 0, bonuses: [] },
+            accountAddress: '0x123',
+            updatedAt: Date.now(),
+            payload: null,
+          },
+        ],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
+
+      // Set up cached data with type suffix
+      testableController.testUpdate((state) => {
+        state.pointsEvents['current:sub-123:SWAP'] = cachedData;
+      });
+
+      const cachedUpdatedAt = new Date(cachedData.results[0].updatedAt);
+      mockMessenger.call.mockResolvedValue(cachedUpdatedAt);
+
+      // Act
+      const result = await testableController.hasPointsEventsChanged(params);
+
+      // Assert - should return false because lastUpdated matches cached updatedAt
+      expect(result).toBe(false);
+    });
+
+    it('returns true when no cached data exists for type-filtered request', async () => {
+      // Arrange
+      const params = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        type: 'PERPS' as const,
+      };
+
+      // No cached data set up for PERPS type
+
+      // Act
+      const result = await testableController.hasPointsEventsChanged(params);
+
+      // Assert - should return true because no cached data exists
+      expect(result).toBe(true);
+    });
+
+    it('uses separate cache entries for different types', async () => {
+      // Arrange
+      const swapCachedData = {
+        results: [
+          {
+            id: 'swap-event-1',
+            type: 'SWAP' as const,
+            timestamp: Date.now(),
+            value: 100,
+            bonus: { bips: 0, bonuses: [] },
+            accountAddress: '0x123',
+            updatedAt: Date.now(),
+            payload: null,
+          },
+        ],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
+
+      testableController.testUpdate((state) => {
+        state.pointsEvents['current:sub-123:SWAP'] = swapCachedData;
+        // No cache for PERPS type
+      });
+
+      // SWAP should find cache
+      const swapUpdatedAt = new Date(swapCachedData.results[0].updatedAt);
+      mockMessenger.call.mockResolvedValue(swapUpdatedAt);
+
+      const swapResult = await testableController.hasPointsEventsChanged({
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        type: 'SWAP' as const,
+      });
+
+      // PERPS should NOT find cache
+      const perpsResult = await testableController.hasPointsEventsChanged({
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        type: 'PERPS' as const,
+      });
+
+      // Assert
+      expect(swapResult).toBe(false); // Has cache, same timestamp
+      expect(perpsResult).toBe(true); // No cache
+    });
   });
 
   describe('getPointsEventsLastUpdated', () => {
@@ -5227,7 +5606,8 @@ describe('RewardsController', () => {
       const mockReferralDetailsState: SubscriptionSeasonReferralDetailState = {
         referralCode: 'REF456',
         totalReferees: 10,
-        referralPoints: 200,
+        referredByCode: 'REFERRER200',
+        referralPoints: 500,
         lastFetched: recentTime,
       };
 
@@ -5263,7 +5643,7 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockReferralDetailsState);
       expect(result?.referralCode).toBe('REF456');
       expect(result?.totalReferees).toBe(10);
-      expect(result?.referralPoints).toBe(200);
+      expect(result?.referredByCode).toBe('REFERRER200');
       expect(result?.lastFetched).toBe(recentTime);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
@@ -5276,7 +5656,8 @@ describe('RewardsController', () => {
       const mockApiResponse = {
         referralCode: 'NEWFRESH123',
         totalReferees: 25,
-        referralPoints: 500,
+        referredByCode: 'REFERRER500',
+        referralPoints: 1000,
       };
 
       controller = new RewardsController({
@@ -5318,7 +5699,7 @@ describe('RewardsController', () => {
       expect(result).toBeDefined();
       expect(result?.referralCode).toBe('NEWFRESH123');
       expect(result?.totalReferees).toBe(25);
-      expect(result?.referralPoints).toBe(500);
+      expect(result?.referredByCode).toBe('REFERRER500');
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
     });
 
@@ -5327,7 +5708,8 @@ describe('RewardsController', () => {
       const mockApiResponse = {
         referralCode: 'UPDATED789',
         totalReferees: 15,
-        referralPoints: 300,
+        referredByCode: 'REFERRER300',
+        referralPoints: 750,
       };
 
       controller = new RewardsController({
@@ -5363,7 +5745,7 @@ describe('RewardsController', () => {
       expect(result).toBeDefined();
       expect(result?.referralCode).toBe('UPDATED789');
       expect(result?.totalReferees).toBe(15);
-      expect(result?.referralPoints).toBe(300);
+      expect(result?.referredByCode).toBe('REFERRER300');
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
 
       const updatedReferralDetails =
@@ -5376,8 +5758,8 @@ describe('RewardsController', () => {
       expect(updatedReferralDetails.totalReferees).toBe(
         mockApiResponse.totalReferees,
       );
-      expect(updatedReferralDetails.referralPoints).toBe(
-        mockApiResponse.referralPoints,
+      expect(updatedReferralDetails.referredByCode).toBe(
+        mockApiResponse.referredByCode,
       );
       expect(updatedReferralDetails.lastFetched).toBeGreaterThan(
         Date.now() - 1000,
@@ -7800,7 +8182,8 @@ describe('RewardsController', () => {
             sub123: {
               referralCode: 'REF123',
               totalReferees: 5,
-              referralPoints: 100,
+              referredByCode: 'REFERRER100',
+              referralPoints: 250,
               lastFetched: Date.now(),
             },
           },

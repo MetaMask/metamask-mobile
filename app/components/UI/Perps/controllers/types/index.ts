@@ -67,8 +67,15 @@ export type OrderType = 'market' | 'limit';
 // Market asset type classification (reusable across components)
 export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
 
-// Market type filter including 'all' option and combined 'stocks_and_commodities' for UI filtering
-export type MarketTypeFilter = MarketType | 'all' | 'stocks_and_commodities';
+// Market type filter for UI category badges
+// Note: 'stocks' maps to 'equity' and 'commodities' maps to 'commodity' in the data model
+export type MarketTypeFilter =
+  | 'all'
+  | 'crypto'
+  | 'stocks'
+  | 'commodities'
+  | 'forex'
+  | 'new';
 
 // Input method for amount entry tracking
 export type InputMethod =
@@ -358,6 +365,16 @@ export interface PerpsMarketData {
    * - forex: Foreign exchange pairs (HIP-3)
    */
   marketType?: MarketType;
+  /**
+   * Whether this is a HIP-3 market (has DEX prefix like xyz:, flx:)
+   * Used to distinguish between crypto (isHip3=false) and non-crypto markets
+   */
+  isHip3?: boolean;
+  /**
+   * Whether this is a new/uncategorized market (HIP-3 markets not yet in explicit mapping)
+   * Used for the "New" filter tab
+   */
+  isNewMarket?: boolean;
   /**
    * Multi-provider: which provider this market data comes from (injected by aggregator)
    */
