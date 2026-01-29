@@ -41,11 +41,10 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import { strings } from '../../../../locales/i18n';
 import { AddressSelectorSelectors } from './AddressSelector.testIds';
 
-export const createAddressSelectorNavDetails =
-  createNavigationDetails<AddressSelectorParams>(
-    Routes.MODAL.ROOT_MODAL_FLOW,
-    Routes.SHEET.ADDRESS_SELECTOR,
-  );
+export const createAddressSelectorNavDetails = createNavigationDetails(
+  Routes.MODAL.ROOT_MODAL_FLOW,
+  Routes.SHEET.ADDRESS_SELECTOR,
+);
 
 const AddressSelector = () => {
   const dispatch = useDispatch();

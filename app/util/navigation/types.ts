@@ -94,6 +94,7 @@ export type RootParamList = {
   // Wallet Flow
   WalletView:
     | { shouldSelectPerpsTab?: boolean; initialTab?: string }
+    | { screen?: string; params?: object }
     | undefined;
   WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
   WalletHome: undefined;
@@ -252,7 +253,12 @@ export type RootParamList = {
   SendTo: undefined;
   Amount: undefined;
   Confirm: undefined;
-  Send: { screen?: string } | undefined;
+  Send:
+    | {
+        screen?: string;
+        params?: object;
+      }
+    | undefined;
   Recipient: undefined;
 
   // Swap Flow
@@ -274,10 +280,16 @@ export type RootParamList = {
   RampBuy: object | undefined;
   RampSell: object | undefined;
   GetStarted: undefined;
-  BuildQuote: undefined;
+  BuildQuote: { shouldRouteImmediately?: boolean } | undefined;
   BuildQuoteHasStarted: undefined;
   Quotes: object | undefined;
-  Checkout: undefined;
+  Checkout:
+    | {
+        url?: string;
+        provider?: object;
+        customOrderId?: string;
+      }
+    | undefined;
   OrderDetails: { orderId?: string } | undefined;
   SendTransaction: { orderId?: string } | undefined;
   RampTokenSelection: undefined;
@@ -305,10 +317,25 @@ export type RootParamList = {
         params?: object;
       }
     | undefined;
-  DepositRoot: undefined;
-  EnterEmail: undefined;
-  OtpCode: undefined;
-  VerifyIdentity: { animationEnabled?: boolean } | undefined;
+  DepositRoot: object | undefined;
+  EnterEmail:
+    | {
+        email?: string;
+        stateToken?: string;
+        redirectToRootAfterAuth?: boolean;
+      }
+    | undefined;
+  OtpCode:
+    | {
+        shouldRouteImmediately?: boolean;
+      }
+    | undefined;
+  VerifyIdentity:
+    | {
+        animationEnabled?: boolean;
+        quote?: object;
+      }
+    | undefined;
   BasicInfo: object | undefined;
   EnterAddress: object | undefined;
   KycProcessing: object | undefined;
@@ -436,7 +463,10 @@ export type RootParamList = {
 
   // Card Flow
   CardRoutes: NavigatorScreenParams<CardParamList> | undefined;
-  CardScreens: NavigatorScreenParams<CardParamList> | undefined;
+  CardScreens:
+    | NavigatorScreenParams<CardParamList>
+    | { screen?: string; params?: object }
+    | undefined;
   CardMainRoutes: undefined;
   CardHome: undefined;
   CardWelcome: undefined;
@@ -757,7 +787,10 @@ export type RootParamList = {
 
   // Modals
   DeleteWalletModal: undefined;
-  RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
+  RootModalFlow:
+    | NavigatorScreenParams<RootModalFlowParamList>
+    | { screen?: string; params?: object }
+    | undefined;
   ModalConfirmation: object | undefined;
   ModalMandatory: object | undefined;
   WhatsNewModal: undefined;
@@ -807,7 +840,7 @@ export type RootParamList = {
 
   // Network
   NetworkSelector: object | undefined;
-  DeprecatedNetworkDetails: undefined;
+  DeprecatedNetworkDetails: object | undefined;
   NetworkManager: undefined;
   AddNetwork:
     | {
@@ -886,7 +919,7 @@ export type RootParamList = {
   TurnOnBackupAndSyncFlow: undefined;
 
   // Miscellaneous
-  Webview: undefined;
+  Webview: { url?: string } | object | undefined;
   SetPasswordFlow:
     | {
         screen?: string;
@@ -897,7 +930,7 @@ export type RootParamList = {
     | undefined;
   FeatureFlagOverride: undefined;
   ProfilerManager: undefined;
-  LockScreen: undefined;
+  LockScreen: { bioStateMachineId?: string } | undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithNetworkModal: undefined;
   EditAccountName: { selectedAccount?: object } | undefined;
@@ -910,6 +943,12 @@ export type RootParamList = {
     | { groupId?: string; title?: string; onLoad?: () => void }
     | undefined;
   MultichainAccountDetails: { account?: object } | undefined;
+  MultichainPrivateKeyList:
+    | {
+        groupId?: string;
+        title?: string;
+      }
+    | undefined;
   MultichainAccountGroupDetails:
     | {
         accountGroup?: object;

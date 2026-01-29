@@ -59,10 +59,9 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 
-export const createPrivateKeyListNavigationDetails =
-  createNavigationDetails<PrivateKeyListParams>(
-    Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
-  );
+export const createPrivateKeyListNavigationDetails = createNavigationDetails(
+  Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
+);
 
 /**
  * Check if the account has the private key available according to its keyring type.

@@ -30,10 +30,9 @@ interface RestoreWalletParams {
   previousScreen: string;
 }
 
-export const createRestoreWalletNavDetails =
-  createNavigationDetails<RestoreWalletParams>(
-    Routes.VAULT_RECOVERY.RESTORE_WALLET,
-  );
+export const createRestoreWalletNavDetails = createNavigationDetails(
+  Routes.VAULT_RECOVERY.RESTORE_WALLET,
+);
 
 // Needed for passing the proper params from outside this stack navigator
 // This occurs from the Login screen

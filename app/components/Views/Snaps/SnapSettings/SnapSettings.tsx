@@ -41,8 +41,9 @@ interface SnapSettingsProps {
   snap: Snap;
 }
 
-export const createSnapSettingsNavDetails =
-  createNavigationDetails<SnapSettingsProps>(Routes.SNAPS.SNAP_SETTINGS);
+export const createSnapSettingsNavDetails = createNavigationDetails(
+  Routes.SNAPS.SNAP_SETTINGS,
+);
 
 const SnapSettings = () => {
   const { styles, theme } = useStyles(stylesheet, {});

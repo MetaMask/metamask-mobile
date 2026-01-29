@@ -140,14 +140,18 @@ This document tracks the migration of navigation calls to use type-safe navigati
 ## Progress
 
 - **Total files:** 78
-- **Completed:** ~50 (many fixed by batch updates)
-- **Remaining TS2345 errors:** 42 (34 source + 8 test files)
+- **Completed:** ~65
+- **Remaining TS2345 errors:** 17 (11 source + 6 test files)
 
 **Notes:**
 
-- Removed generics from `createNavigationDetails` in Ramp/Deposit and Ramp/Aggregator
-- Updated `DepositModals`, `RampModals`, `Deposit`, `RestoreWallet` types in RootParamList
-- Remaining errors are mostly dynamic navigation (runtime string routes) requiring type assertions
+- Removed all generics from `createNavigationDetails` in source files
+- Updated many types in RootParamList: `Deposit`, `Send`, `CardScreens`, `RootModalFlow`, `Webview`, `LockScreen`, `WalletView`, etc.
+- Remaining errors are:
+  - Dynamic navigation (runtime string routes): `useMusdConversion`, `useSendNavbar`, `useConfirmNavigation`, `AssetSelectionBottomSheet`
+  - SDK Connect (dynamic route strings): 4 errors
+  - DeepLink handlers: 2 errors
+  - Test files with mock routes: 6 errors
 
 ---
 

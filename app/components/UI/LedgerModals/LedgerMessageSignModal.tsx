@@ -37,10 +37,9 @@ export interface LedgerMessageSignModalParams {
   deviceId: any;
 }
 
-export const createLedgerMessageSignModalNavDetails =
-  createNavigationDetails<LedgerMessageSignModalParams>(
-    Routes.LEDGER_MESSAGE_SIGN_MODAL,
-  );
+export const createLedgerMessageSignModalNavDetails = createNavigationDetails(
+  Routes.LEDGER_MESSAGE_SIGN_MODAL,
+);
 
 const LedgerMessageSignModal = () => {
   const dispatch = useDispatch();

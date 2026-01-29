@@ -12,10 +12,9 @@ import Routes from '../../../constants/navigation/Routes';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { speedUpTransaction } from '../../../util/transaction-controller';
 
-export const createLedgerTransactionModalNavDetails =
-  createNavigationDetails<LedgerTransactionModalParams>(
-    Routes.LEDGER_TRANSACTION_MODAL,
-  );
+export const createLedgerTransactionModalNavDetails = createNavigationDetails(
+  Routes.LEDGER_TRANSACTION_MODAL,
+);
 
 export enum LedgerReplacementTxTypes {
   SPEED_UP = 'speedUp',
