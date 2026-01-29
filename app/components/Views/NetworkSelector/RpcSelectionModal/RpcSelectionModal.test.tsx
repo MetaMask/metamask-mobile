@@ -149,9 +149,6 @@ jest.mock('../../../../core/Engine/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
     },
-    PreferencesController: {
-      setTokenNetworkFilter: jest.fn(),
-    },
   },
 }));
 
@@ -324,58 +321,6 @@ describe('RpcSelectionModal', () => {
     expect(queryByText('mainnet.infura.io')).toBeNull(); // Should not render any RPC URLs
   });
 
-  it('should call preferences controller setTokenNetworkFilter', () => {
-    const { getByText } = renderWithProvider(
-      <RpcSelectionModal {...defaultProps} />,
-    );
-    const rpcUrlElement = getByText('mainnet.infura.io/v3');
-    fireEvent.press(rpcUrlElement);
-    expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
-      1,
-    );
-  });
-
-  it('should not call preferences controller setTokenNetworkFilter when a popular networks filter is selected', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectIsAllNetworks) {
-        return true; // to show all networks
-      }
-      return null;
-    });
-    const { getByText } = renderWithProvider(
-      <RpcSelectionModal {...defaultProps} />,
-    );
-    const rpcUrlElement = getByText('mainnet.infura.io/v3');
-    fireEvent.press(rpcUrlElement);
-    expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
-      0,
-    );
-  });
-
-  it('should not call preferences controller setTokenNetworkFilter when the network is not part of PopularList', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectIsAllNetworks) {
-        return false; // to show current network
-      }
-      return null;
-    });
-    const { getByText } = renderWithProvider(
-      <RpcSelectionModal
-        {...defaultProps}
-        showMultiRpcSelectModal={{
-          isVisible: true,
-          chainId: '0x999',
-          networkName: 'Test Mainnet',
-        }}
-      />,
-    );
-    const rpcUrlElement = getByText('test.infura.io/v3');
-    fireEvent.press(rpcUrlElement);
-    expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
-      0,
-    );
-  });
-
   describe('Network Manager Integration', () => {
     it('calls updateNetwork when RPC is selected', () => {
       const { getByText } = renderWithProvider(
@@ -391,7 +336,6 @@ describe('RpcSelectionModal', () => {
 
     it('initializes with Engine controllers available', () => {
       expect(NetworkController.updateNetwork).toBeDefined();
-      expect(PreferencesController.setTokenNetworkFilter).toBeDefined();
     });
 
     it('renders with default props', () => {

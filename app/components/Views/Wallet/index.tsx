@@ -117,10 +117,7 @@ import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionM
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
-import {
-  selectUseTokenDetection,
-  selectTokenNetworkFilter,
-} from '../../../selectors/preferencesController';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 import { useNftDetection } from '../../hooks/useNftDetection';
 import { Carousel } from '../../UI/Carousel';
@@ -540,7 +537,6 @@ const Wallet = ({
   const enabledNetworks = useSelector(selectEVMEnabledNetworks);
 
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
 
@@ -961,32 +957,16 @@ const Wallet = ({
   }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   /**
-   * Handle network filter called when app is mounted and tokenNetworkFilter is empty
-   * TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
+   * Handle network filter called when app is mounted and no networks are enabled.
+   * Uses NetworkEnablementController to enable the current network.
    */
-  const handleNetworkFilter = useCallback(() => {
-    // TODO: Come back possibly just add the chain id of the eth
-    // network as the default state instead of doing this
-    const { PreferencesController } = Engine.context;
-
-    if (Object.keys(tokenNetworkFilter).length === 0) {
-      PreferencesController.setTokenNetworkFilter({
-        [chainId]: true,
-      });
-    }
-
-    if (enabledEVMNetworks.length === 0) {
-      selectNetwork(chainId);
-    }
-  }, [chainId, selectNetwork, enabledEVMNetworks, tokenNetworkFilter]);
-
   useEffect(() => {
-    if (!isMultichainAccountsState2Enabled) {
-      handleNetworkFilter();
+    if (!isMultichainAccountsState2Enabled && enabledEVMNetworks.length === 0) {
+      selectNetwork(chainId);
     }
   }, [
     chainId,
-    handleNetworkFilter,
+    selectNetwork,
     enabledEVMNetworks,
     isMultichainAccountsState2Enabled,
   ]);

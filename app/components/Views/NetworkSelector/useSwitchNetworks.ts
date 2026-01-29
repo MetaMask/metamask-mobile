@@ -15,10 +15,7 @@ import {
 } from '@metamask/utils';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
-import {
-  selectEvmNetworkConfigurationsByChainId,
-  selectIsAllNetworks,
-} from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -70,7 +67,6 @@ export function useSwitchNetworks({
   closeRpcModal,
   parentSpan,
 }: UseSwitchNetworksProps): UseSwitchNetworksReturn {
-  const isAllNetwork = useSelector(selectIsAllNetworks);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -83,21 +79,6 @@ export function useSwitchNetworks({
   const { navigate } = useNavigation();
   ///: END:ONLY_INCLUDE_IF
 
-  /**
-   * Sets the token network filter based on the chain ID
-   */
-  const setTokenNetworkFilter = useCallback(
-    (chainId: Hex) => {
-      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(chainId);
-      const { PreferencesController } = Engine.context;
-      if (!isAllNetwork && isPopularNetwork) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      }
-    },
-    [isAllNetwork],
-  );
 
   /**
    * Switches to a custom EVM network configuration
@@ -206,7 +187,6 @@ export function useSwitchNetworks({
             networkConfiguration.defaultRpcEndpointIndex
           ].networkClientId ?? type;
 
-        setTokenNetworkFilter(networkConfiguration.chainId);
         await MultichainNetworkController.setActiveNetwork(clientId);
 
         closeRpcModal?.();
@@ -237,7 +217,6 @@ export function useSwitchNetworks({
       domainIsConnectedDapp,
       origin,
       networkConfigurations,
-      setTokenNetworkFilter,
       selectedChainId,
       trackEvent,
       createEventBuilder,

@@ -64,7 +64,6 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 import useNotificationHandler from '../../../util/notifications/hooks';
 import {
@@ -235,38 +234,26 @@ const Main = (props) => {
   const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
   const networkImage = useSelector(selectNetworkImageSource);
 
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const isOnBridgeRoute = useIsOnBridgeRoute();
 
   const hasNetworkChanged = useCallback(
-    (chainId, previousConfig, isEvmSelected) => {
+    (currentChainId, previousConfig, isEvm) => {
       if (!previousConfig) return false;
 
-      return isEvmSelected
-        ? chainId !== previousConfig.chainId ||
+      return isEvm
+        ? currentChainId !== previousConfig.chainId ||
             providerConfig.type !== previousConfig.type
-        : chainId !== previousConfig.chainId;
+        : currentChainId !== previousConfig.chainId;
     },
     [providerConfig.type],
   );
 
-  // Show network switch confirmation.
+  // Handle network enablement when network changes and no networks are enabled.
+  // Uses NetworkEnablementController via useNetworkSelection hook.
   useEffect(() => {
     if (
       hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
     ) {
-      const { PreferencesController } = Engine.context;
-      if (Object.keys(tokenNetworkFilter).length === 1) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      } else {
-        PreferencesController.setTokenNetworkFilter({
-          ...tokenNetworkFilter,
-          [chainId]: true,
-        });
-      }
       if (enabledEVMNetworks.length === 0) {
         selectNetwork(chainId);
       }
@@ -282,8 +269,6 @@ const Main = (props) => {
     chainId,
     isEvmSelected,
     hasNetworkChanged,
-    isAllNetworks,
-    tokenNetworkFilter,
     selectNetwork,
     enabledEVMNetworks,
     isOnBridgeRoute,

@@ -112,9 +112,6 @@ jest.mock('../../../core/Engine', () => ({
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(),
     },
-    PreferencesController: {
-      setTokenNetworkFilter: jest.fn(),
-    },
   },
   setSelectedAddress: jest.fn(), // Add this line
 }));

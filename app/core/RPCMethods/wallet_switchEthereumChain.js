@@ -119,7 +119,6 @@ export const switchEthereumChainHandler = {
     getCaveat: true,
     getCurrentChainIdForDomain: true,
     requestPermittedChainsPermissionIncrementalForOrigin: true,
-    setTokenNetworkFilter: true,
     hasApprovalRequestsForOrigin: true, // not needed here, but is needed by wallet_addEthereumChain
     rejectApprovalRequestsForOrigin: true,
   },

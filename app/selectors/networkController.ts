@@ -16,7 +16,7 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../constants/popular-networks';
-import { selectTokenNetworkFilter } from './preferencesController';
+import { selectEVMEnabledNetworks } from './networkEnablementController';
 import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
 import { PopularList } from '../util/networks/customNetworks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -363,15 +363,13 @@ export const selectIsAllPopularNetworks = createSelector(
 
 export const selectIsAllNetworks = createSelector(
   selectAllPopularNetworkConfigurations,
-  (state: RootState) => selectTokenNetworkFilter(state),
-  (popularNetworkConfigurations, tokenNetworkFilter) => {
-    if (Object.keys(tokenNetworkFilter).length === 1) {
+  selectEVMEnabledNetworks,
+  (popularNetworkConfigurations, enabledNetworks) => {
+    if (enabledNetworks.length === 1) {
       return false;
     }
     const allNetworks = enableAllNetworksFilter(popularNetworkConfigurations);
-    return (
-      Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length
-    );
+    return enabledNetworks.length === Object.keys(allNetworks).length;
   },
 );
 

@@ -7,7 +7,6 @@ import {
   selectDisplayNftMedia,
   selectUseSafeChainsListValidation,
   selectTokenSortConfig,
-  selectTokenNetworkFilter,
   selectIsMultiAccountBalancesEnabled,
   selectShowTestNetworks,
   selectIsIpfsGatewayEnabled,
@@ -15,7 +14,6 @@ import {
   selectSmartTransactionsOptInStatus,
   selectUseTransactionSimulations,
   selectPrivacyMode,
-  selectIsTokenNetworkFilterEqualCurrentNetwork,
 } from './preferencesController';
 
 describe('Preferences Selectors', () => {
@@ -89,14 +87,6 @@ describe('Preferences Selectors', () => {
     });
   });
 
-  describe('selectTokenNetworkFilter', () => {
-    it('returns the token network filter', () => {
-      expect(selectTokenNetworkFilter(mockRootState)).toStrictEqual({
-        '0x1': true,
-      });
-    });
-  });
-
   describe('selectIsMultiAccountBalancesEnabled', () => {
     it('returns the multi-account balances enabled flag', () => {
       expect(selectIsMultiAccountBalancesEnabled(mockRootState)).toBe(true);
@@ -136,30 +126,6 @@ describe('Preferences Selectors', () => {
   describe('selectPrivacyMode', () => {
     it('returns the privacy mode flag', () => {
       expect(selectPrivacyMode(mockRootState)).toBe(false);
-    });
-  });
-
-  describe('selectIsTokenNetworkFilterEqualCurrentNetwork', () => {
-    it('returns true when tokenNetworkFilter matches the current network chainId', () => {
-      const result =
-        selectIsTokenNetworkFilterEqualCurrentNetwork(mockRootState);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when tokenNetworkFilter does not match the current network chainId', () => {
-      const result = selectIsTokenNetworkFilterEqualCurrentNetwork({
-        engine: {
-          backgroundState: {
-            PreferencesController: {
-              ...mockPreferencesState,
-              tokenNetworkFilter: {},
-            },
-          },
-        },
-      } as unknown as RootState);
-
-      expect(result).toBe(false);
     });
   });
 });

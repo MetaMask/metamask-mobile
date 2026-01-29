@@ -128,9 +128,6 @@ jest.mock('../../../../../core/Engine', () => ({
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
-    PreferencesController: {
-      setTokenNetworkFilter: jest.fn(),
-    },
     NetworkEnablementController: {
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
@@ -2311,44 +2308,6 @@ describe('NetworkSettings', () => {
           shouldNetworkSwitchPopToWallet: false,
         }),
       );
-    });
-
-    it('should always call setTokenNetworkFilter when adding a network', async () => {
-      const tokenNetworkFilterSpy = jest.spyOn(
-        PreferencesController,
-        'setTokenNetworkFilter',
-      );
-
-      wrapper.setState({
-        rpcUrl: 'http://localhost:8545',
-        chainId: '0x1',
-        ticker: 'ETH',
-        nickname: 'Localhost',
-        enableAction: true,
-      });
-
-      await wrapper.instance().addRpcUrl();
-      // setTokenNetworkFilter is always called regardless of feature flags
-      expect(tokenNetworkFilterSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call setTokenNetworkFilter with correct chainId when adding a network', async () => {
-      const tokenNetworkFilterSpy = jest.spyOn(
-        PreferencesController,
-        'setTokenNetworkFilter',
-      );
-
-      wrapper.setState({
-        rpcUrl: 'http://localhost:8545',
-        chainId: '0x1',
-        ticker: 'ETH',
-        nickname: 'Localhost',
-        enableAction: true,
-      });
-
-      await wrapper.instance().addRpcUrl();
-      expect(tokenNetworkFilterSpy).toHaveBeenCalledTimes(1);
-      expect(tokenNetworkFilterSpy).toHaveBeenCalledWith({ '0x1': true });
     });
   });
 

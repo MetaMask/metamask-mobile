@@ -25,11 +25,7 @@ jest.mock('../../../core/Engine', () => {
           return undefined;
         },
       },
-      PreferencesController: {
-        setTokenNetworkFilter() {
-          return undefined;
-        },
-      },
+      PreferencesController: {},
       TokensController: {
         addTokens() {
           return undefined;

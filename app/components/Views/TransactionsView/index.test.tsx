@@ -103,9 +103,6 @@ jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(() => null),
 }));
 
-jest.mock('../../../selectors/preferencesController', () => ({
-  selectTokenNetworkFilter: jest.fn(() => ({})),
-}));
 
 jest.mock('../../../selectors/transactionController', () => ({
   selectSortedTransactions: jest.fn(() => []),

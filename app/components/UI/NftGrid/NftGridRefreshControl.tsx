@@ -4,14 +4,14 @@ import { useSelector } from 'react-redux';
 
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { useNftDetection } from '../../hooks/useNftDetection';
 
 const NftGridRefreshControl = React.forwardRef<RefreshControl>((props, ref) => {
   const { colors } = useTheme();
   const allEVMNetworks = useSelector(selectEvmNetworkConfigurationsByChainId);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const enabledNetworks = useSelector(selectEVMEnabledNetworks);
 
   const { detectNfts } = useNftDetection();
 
@@ -19,8 +19,8 @@ const NftGridRefreshControl = React.forwardRef<RefreshControl>((props, ref) => {
 
   const allNetworkClientIds = useMemo(
     () =>
-      Object.keys(tokenNetworkFilter).flatMap((chainId) => {
-        const entry = allEVMNetworks[chainId as `0x${string}`];
+      enabledNetworks.flatMap((chainId) => {
+        const entry = allEVMNetworks[chainId];
         if (!entry) {
           return [];
         }
@@ -28,7 +28,7 @@ const NftGridRefreshControl = React.forwardRef<RefreshControl>((props, ref) => {
         const endpoint = entry.rpcEndpoints[index];
         return endpoint?.networkClientId ? [endpoint.networkClientId] : [];
       }),
-    [tokenNetworkFilter, allEVMNetworks],
+    [enabledNetworks, allEVMNetworks],
   );
 
   const onRefresh = useCallback(async () => {

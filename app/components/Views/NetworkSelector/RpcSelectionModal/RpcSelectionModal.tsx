@@ -1,7 +1,5 @@
 import React, { FC, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Hex } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -23,8 +21,6 @@ import images from 'images/image-icons';
 import hideProtocolFromUrl from '../../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../../util/hideKeyFromUrl';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import { useSelector } from 'react-redux';
-import { selectIsAllNetworks } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine/Engine';
 import Logger from '../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
@@ -34,7 +30,6 @@ import {
   useNetworksByNamespace,
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../../hooks/useNetworkSelection/useNetworkSelection';
-import { POPULAR_NETWORK_CHAIN_IDS } from '../../../../constants/popular-networks';
 
 interface RpcSelectionModalProps {
   showMultiRpcSelectModal: {
@@ -62,7 +57,6 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   networkConfigurations,
   styles,
 }) => {
-  const isAllNetwork = useSelector(selectIsAllNetworks);
   const { networks } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
@@ -108,21 +102,6 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
     [networkConfigurations, navigate],
   );
 
-  const setTokenNetworkFilter = useCallback(
-    (chainId: Hex) => {
-      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(chainId);
-
-      const { PreferencesController } = Engine.context;
-      if (!isAllNetwork && isPopularNetwork) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      }
-      const caipChainId = formatChainIdToCaip(chainId);
-      selectNetwork(caipChainId);
-    },
-    [isAllNetwork, selectNetwork],
-  );
   const imageSource = useMemo(() => {
     switch (showMultiRpcSelectModal.chainId) {
       case CHAIN_IDS.MAINNET:
@@ -139,11 +118,10 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   const handleRpcSelect = useCallback(
     (networkClientId: string, chainIdArg: `0x${string}`) => {
       onRpcSelect(networkClientId, chainIdArg);
-      setTokenNetworkFilter(chainIdArg);
       selectNetwork(chainIdArg);
       closeRpcModal();
     },
-    [onRpcSelect, setTokenNetworkFilter, closeRpcModal, selectNetwork],
+    [onRpcSelect, closeRpcModal, selectNetwork],
   );
 
   if (!showMultiRpcSelectModal.isVisible) return null;
