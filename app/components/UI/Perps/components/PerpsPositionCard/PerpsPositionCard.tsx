@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
@@ -18,8 +19,10 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText from '../../../../../component-library/components/Texts/SensitiveText';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import type { Order, Position } from '../../controllers/types';
 import {
   formatPerpsFiat,
@@ -87,6 +90,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) >= 0;
@@ -198,13 +202,14 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('perps.position.card.pnl_label')}
           </Text>
-          <Text
+          <SensitiveText
             variant={TextVariant.BodyMD}
             color={pnlNum >= 0 ? TextColor.Success : TextColor.Error}
             testID={PerpsPositionCardSelectorsIDs.PNL_VALUE}
+            isHidden={privacyMode}
           >
             {formatPnl(pnlNum)}
-          </Text>
+          </SensitiveText>
         </View>
 
         <View
@@ -214,14 +219,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('perps.position.card.return_label')}
           </Text>
-          <Text
+          <SensitiveText
             variant={TextVariant.BodyMD}
             color={roe >= 0 ? TextColor.Success : TextColor.Error}
             testID={PerpsPositionCardSelectorsIDs.RETURN_VALUE}
+            isHidden={privacyMode}
           >
             {roe >= 0 ? '+' : ''}
             {roe.toFixed(2)}%
-          </Text>
+          </SensitiveText>
         </View>
       </View>
 
@@ -236,17 +242,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {strings('perps.position.card.size_label')}
             </Text>
-            <Text
+            <SensitiveText
               variant={TextVariant.BodyMD}
               color={TextColor.Default}
               testID={PerpsPositionCardSelectorsIDs.SIZE_VALUE}
+              isHidden={privacyMode}
             >
               {showSizeInUSD && currentPrice
                 ? formatPerpsFiat(absoluteSize * currentPrice, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
                 : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.symbol)}`}
-            </Text>
+            </SensitiveText>
           </View>
           <View style={styles.iconButtonContainer}>
             <ButtonIcon
@@ -270,15 +277,16 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {strings('perps.position.card.margin_label')}
             </Text>
-            <Text
+            <SensitiveText
               variant={TextVariant.BodyMD}
               color={TextColor.Default}
               testID={PerpsPositionCardSelectorsIDs.MARGIN_VALUE}
+              isHidden={privacyMode}
             >
               {formatPerpsFiat(position.marginUsed, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}
-            </Text>
+            </SensitiveText>
           </View>
           {onMarginPress && (
             <View style={styles.iconButtonContainer}>
@@ -426,11 +434,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           >
             {strings('perps.position.card.entry_label')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <SensitiveText
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            isHidden={privacyMode}
+          >
             {formatPerpsFiat(position.entryPrice, {
               ranges: PRICE_RANGES_UNIVERSAL,
             })}
-          </Text>
+          </SensitiveText>
         </View>
 
         <View style={styles.detailRow}>
@@ -441,14 +453,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             {strings('perps.position.card.liquidation_price_label')}
           </Text>
           <View style={styles.liquidationPriceValue}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            <SensitiveText
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              isHidden={privacyMode}
+            >
               {position.liquidationPrice !== undefined &&
               position.liquidationPrice !== null
                 ? formatPerpsFiat(position.liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })
                 : PERPS_CONSTANTS.FallbackPriceDisplay}
-            </Text>
+            </SensitiveText>
             {liquidationDistance !== null && (
               <>
                 <Text
@@ -475,9 +491,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           >
             {strings('perps.position.card.funding_payments_label')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={fundingColor}>
+          <SensitiveText
+            variant={TextVariant.BodyMD}
+            color={fundingColor}
+            isHidden={privacyMode}
+          >
             {fundingDisplay}
-          </Text>
+          </SensitiveText>
         </View>
       </View>
     </View>

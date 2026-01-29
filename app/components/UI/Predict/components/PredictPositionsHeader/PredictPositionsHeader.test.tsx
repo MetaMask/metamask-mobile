@@ -95,6 +95,11 @@ jest.mock('../../hooks/usePredictPositions', () => ({
   }),
 }));
 
+// Mock privacy mode selector
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
 const mockClaim = jest.fn();
 jest.mock('../../hooks/usePredictClaim', () => ({
   usePredictClaim: () => ({

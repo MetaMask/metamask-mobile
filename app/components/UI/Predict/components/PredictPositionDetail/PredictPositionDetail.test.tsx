@@ -21,6 +21,11 @@ declare global {
   var __mockNavigate: jest.Mock;
 }
 
+// Mock privacy mode selector
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, string | number>) => {
     switch (key) {
