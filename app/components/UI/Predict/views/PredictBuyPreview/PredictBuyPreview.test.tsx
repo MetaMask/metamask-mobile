@@ -1655,14 +1655,103 @@ describe('PredictBuyPreview', () => {
       mockTotalFeePercentage = 0;
       mockMetamaskFee = 0;
       mockProviderFee = 0;
-      // Tests both ?? 0 fallbacks return 0
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // minimumBetFees = (1 * 0) / 100 = 0
-      // minimumBetWithFees = 1 + 0 = 1
-      // maxBetAmount = 75 (no fee deduction)
       expect(screen.getByText('Available: $75.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('balance check removal', () => {
+    beforeEach(() => {
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+      mockExpectedAmount = 120;
+      mockMetamaskFee = 0.5;
+      mockProviderFee = 1.0;
+      mockTotalFeePercentage = 4;
+    });
+
+    it('does not show insufficient funds error when balance is low', () => {
+      mockBalance = 5;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(
+        screen.queryByText(/Not enough funds\. You can use up to/),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('predict.order.prediction_insufficient_funds'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not show add funds button when balance is insufficient', () => {
+      mockBalance = 5;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(
+        screen.queryByText('predict.deposit.add_funds'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText('Add funds')).not.toBeOnTheScreen();
+    });
+
+    it('shows place bet button when balance is lower than total cost', () => {
+      mockBalance = 5;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      const placeBetButton = screen.queryByText('Yes · 50¢');
+      expect(placeBetButton).toBeOnTheScreen();
+    });
+
+    it('displays place bet button when balance is zero', () => {
+      mockBalance = 0;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(screen.getByText('Yes · 50¢')).toBeOnTheScreen();
+    });
+
+    it('does not include balance validation in canPlaceBet condition', () => {
+      mockBalance = 1;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      const placeBetButton = screen.getByText('Yes · 50¢');
+      expect(placeBetButton).toBeOnTheScreen();
+    });
+
+    it('displays available balance without error state when funds are low', () => {
+      mockBalance = 10;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
+    });
+
+    it('does not show no funds error message when balance is below minimum', () => {
+      mockBalance = 0.5;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(
+        screen.queryByText('predict.order.no_funds_enough'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
     });
   });
 });
