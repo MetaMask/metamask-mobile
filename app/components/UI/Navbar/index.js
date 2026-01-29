@@ -1605,26 +1605,6 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
   };
 }
 
-export function getMusdConversionTransactionDetailsNavbar(navigation) {
-  const leftAction = () => navigation.pop();
-
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        title={strings('bridge_transaction_details.transaction_details')}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    headerLeft: () => (
-      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
-        <Icon name={IconName.ArrowLeft} />
-      </TouchableOpacity>
-    ),
-  };
-}
-
 export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
     perpsTransactionsTitle: {
@@ -1766,44 +1746,6 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
         size={ButtonIconSize.Lg}
         onPress={goBack}
         style={styles.closeButton}
-      />
-    ),
-    ...innerStyles,
-  };
-};
-
-export const getSettingsNavigationOptions = (
-  title,
-  themeColors,
-  navigation,
-) => {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    accessories: {
-      marginHorizontal: 8,
-    },
-  });
-  return {
-    headerLeft: null,
-    headerTitle: () => (
-      <MorphText
-        variant={TextVariant.HeadingMD}
-        testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
-      >
-        {title}
-      </MorphText>
-    ),
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.Close}
-        onPress={() => navigation?.goBack()}
-        style={innerStyles.accessories}
-        testID={NetworksViewSelectorsIDs.CLOSE_ICON}
       />
     ),
     ...innerStyles,
