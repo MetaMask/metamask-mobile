@@ -34,7 +34,6 @@ import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { RootState } from '../../../reducers';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { earnSelectors } from '../../../selectors/earnController';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import {
@@ -99,7 +98,6 @@ function TradeWalletActions() {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isLeaderboardEnabled = useSelector(selectLeaderboardEnabledFlag);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -293,7 +291,7 @@ function TradeWalletActions() {
                     isDisabled={!isSwapsEnabled}
                   />
                 )}
-                {isPerpsEnabled && isEvmSelected && (
+                {isPerpsEnabled && (
                   <ActionListItem
                     label={strings('asset_overview.perps_button')}
                     description={strings('asset_overview.perps_description')}
@@ -329,7 +327,9 @@ function TradeWalletActions() {
                     description={strings('leaderboard.menu_description')}
                     iconName={IconName.People}
                     onPress={onLeaderboard}
-                    testID={WalletActionsBottomSheetSelectorsIDs.LEADERBOARD_BUTTON}
+                    testID={
+                      WalletActionsBottomSheetSelectorsIDs.LEADERBOARD_BUTTON
+                    }
                   />
                 )}
               </Box>
