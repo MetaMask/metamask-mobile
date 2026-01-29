@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import {
@@ -53,6 +47,7 @@ import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
 import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
+import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -283,58 +278,17 @@ const TrendingTokensFullView = () => {
   );
 
   // Track search events with debounce
-  const lastTrackedSearchQuery = useRef<string>('');
-  const searchDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-
-  useEffect(() => {
-    // Clear any existing debounce timer
-    if (searchDebounceTimer.current) {
-      clearTimeout(searchDebounceTimer.current);
-    }
-
-    const trimmedQuery = searchQuery?.trim() || '';
-
-    // Only track if query is non-empty and different from last tracked
-    if (trimmedQuery && trimmedQuery !== lastTrackedSearchQuery.current) {
-      // Debounce search tracking by 500ms to avoid tracking every keystroke
-      searchDebounceTimer.current = setTimeout(() => {
-        const resultsCount = trendingTokens.length;
-        sessionManager.trackSearch({
-          search_query: trimmedQuery,
-          results_count: resultsCount,
-          has_results: resultsCount > 0,
-          time_filter: selectedTimeOption,
-          sort_option:
-            selectedPriceChangeOption || PriceChangeOption.PriceChange,
-          network_filter:
-            selectedNetwork && selectedNetwork.length > 0
-              ? selectedNetwork[0]
-              : 'all',
-        });
-        lastTrackedSearchQuery.current = trimmedQuery;
-      }, 500);
-    }
-
-    // Reset last tracked query when search is cleared
-    if (!trimmedQuery) {
-      lastTrackedSearchQuery.current = '';
-    }
-
-    return () => {
-      if (searchDebounceTimer.current) {
-        clearTimeout(searchDebounceTimer.current);
-      }
-    };
-  }, [
+  useSearchTracking({
     searchQuery,
-    trendingTokens.length,
-    selectedTimeOption,
-    selectedPriceChangeOption,
-    selectedNetwork,
-    sessionManager,
-  ]);
+    resultsCount: trendingTokens.length,
+    isLoading,
+    timeFilter: selectedTimeOption,
+    sortOption: selectedPriceChangeOption || PriceChangeOption.PriceChange,
+    networkFilter:
+      selectedNetwork && selectedNetwork.length > 0
+        ? selectedNetwork[0]
+        : 'all',
+  });
 
   const handlePriceChangeSelect = useCallback(
     (option: PriceChangeOption, sortDirection: SortDirection) => {

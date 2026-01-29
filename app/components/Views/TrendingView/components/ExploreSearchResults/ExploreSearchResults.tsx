@@ -12,6 +12,8 @@ import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSelector } from 'react-redux';
+import { useSearchTracking } from '../../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
+import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
@@ -111,6 +113,16 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       });
     }
   }, [searchQuery, flatData.length]);
+
+  // Track search events for tokens section
+  useSearchTracking({
+    searchQuery,
+    resultsCount: data.tokens?.length || 0,
+    isLoading: isLoading.tokens,
+    timeFilter: TimeOption.TwentyFourHours,
+    sortOption: 'relevance',
+    networkFilter: 'all',
+  });
 
   const renderFooter = useMemo(() => {
     if (searchQuery.length === 0) return null;
