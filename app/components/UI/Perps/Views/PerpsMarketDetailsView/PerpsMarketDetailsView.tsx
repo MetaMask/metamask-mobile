@@ -201,6 +201,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const preservedBannerVariantRef = useRef<'stop_loss' | 'add_margin' | null>(
     null,
   );
+  // Track current market symbol for staleness checks in async callbacks
+  // Using a ref allows reading the CURRENT value at execution time, not closure-captured value
+  const currentMarketSymbolRef = useRef<string | undefined>(market?.symbol);
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -223,6 +226,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Reset optimistic state when market changes
   useEffect(() => {
     setOptimisticWatchlist(null);
+  }, [market?.symbol]);
+
+  // Keep current market symbol ref in sync for staleness checks in async callbacks
+  useEffect(() => {
+    currentMarketSymbolRef.current = market?.symbol;
   }, [market?.symbol]);
 
   // Clear optimistic state once Redux has caught up
@@ -873,7 +881,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       }
 
       // Staleness check: user may have navigated to a different market during API call
-      if (originalSymbol !== market?.symbol) {
+      // Use ref to get CURRENT market symbol, not the closure-captured value
+      if (originalSymbol !== currentMarketSymbolRef.current) {
         return;
       }
 
@@ -897,13 +906,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     } finally {
       setIsSettingStopLoss(false);
     }
-  }, [
-    existingPosition,
-    suggestedStopLossPrice,
-    handleUpdateTPSL,
-    track,
-    market?.symbol,
-  ]);
+  }, [existingPosition, suggestedStopLossPrice, handleUpdateTPSL, track]);
 
   // Handler for when banner fade-out animation completes
   const handleBannerFadeOutComplete = useCallback(() => {
