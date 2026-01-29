@@ -206,6 +206,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       onMessage: (message: Record<string, unknown>) => void;
     }>();
     const fromHomepage = useRef(false);
+    // Track if we're navigating to an external screen (Token/Perps/Predictions)
+    // to prevent hiding autocomplete on blur
+    const isNavigatingToExternalScreen = useRef(false);
     const searchEngine = useSelector(selectSearchEngine);
     const isAssetsTrendingTokensEnabled = useSelector(
       selectAssetsTrendingTokensEnabled,
@@ -1234,18 +1237,26 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const onSelect = useCallback(
       (item: AutocompleteSearchResult) => {
-        // Unfocus the url bar and hide the autocomplete results
-        urlBarRef.current?.hide();
-
         switch (item.category) {
           case UrlAutocompleteCategory.Tokens:
-            navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
+            // Set flag to prevent hiding autocomplete on blur
+            isNavigatingToExternalScreen.current = true;
+            // Navigate to Asset route directly (like Explore page) for proper animation
+            navigation.navigate('Asset', {
               chainId: item.chainId,
               address: item.address,
+              symbol: item.symbol,
+              name: item.name,
+              decimals: item.decimals,
+              image: item.logoUrl,
+              pricePercentChange1d: item.percentChange,
+              isFromTrending: true,
             });
             break;
 
           case UrlAutocompleteCategory.Perps:
+            // Set flag to prevent hiding autocomplete on blur
+            isNavigatingToExternalScreen.current = true;
             // Navigate to Perps market details
             navigation.navigate(Routes.PERPS.ROOT, {
               screen: Routes.PERPS.MARKET_DETAILS,
@@ -1267,6 +1278,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             break;
 
           case UrlAutocompleteCategory.Predictions:
+            // Set flag to prevent hiding autocomplete on blur
+            isNavigatingToExternalScreen.current = true;
             // Navigate to Predictions market details
             navigation.navigate(Routes.PREDICT.ROOT, {
               screen: Routes.PREDICT.MARKET_DETAILS,
@@ -1281,7 +1294,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           case UrlAutocompleteCategory.Recents:
           case UrlAutocompleteCategory.Favorites:
           default:
-            // Navigate to URL in browser
+            // Hide URL bar and navigate to URL in browser
+            urlBarRef.current?.hide();
             onSubmitEditing(item.url);
             break;
         }
@@ -1302,11 +1316,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     /**
      * Hide the autocomplete results
+     * Skip hiding if navigating to an external screen (Token/Perps/Predictions)
      */
-    const hideAutocomplete = useCallback(
-      () => autocompleteRef.current?.hide(),
-      [],
-    );
+    const hideAutocomplete = useCallback(() => {
+      if (isNavigatingToExternalScreen.current) {
+        // Reset the flag but don't hide - user will return to search results
+        isNavigatingToExternalScreen.current = false;
+        return;
+      }
+      autocompleteRef.current?.hide();
+    }, []);
 
     const handleClosePress = useCallback(() => {
       if (fromPerps) {

@@ -65,6 +65,7 @@ export type FuseSearchResult = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type TokenSearchResult = {
   category: UrlAutocompleteCategory.Tokens;
+  assetId: string;
   name: string;
   symbol: string;
   address: string;

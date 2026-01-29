@@ -21,7 +21,6 @@ import {
   AutocompleteSearchResult,
   TokenSearchResult,
   UrlAutocompleteCategory,
-  PerpsSearchResult,
   PredictionsSearchResult,
 } from './types';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
@@ -29,36 +28,18 @@ import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import AppConstants from '../../../core/AppConstants';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { addCurrencySymbol } from '../../../util/number';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import TrendingTokenLogo from '../Trending/components/TrendingTokenLogo';
+import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
 
 interface ResultProps {
   result: AutocompleteSearchResult;
   onPress: () => void;
   onSwapPress: (result: TokenSearchResult) => void;
-  navigation?: NavigationProp<ParamListBase>;
 }
-
-/**
- * Render icon for Perps result
- */
-const PerpsIcon: React.FC<{
-  result: PerpsSearchResult;
-  styles: ReturnType<typeof stylesheet>;
-}> = memo(({ styles }) => (
-  <Box
-    style={styles.bookmarkIco}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Center}
-    twClassName="bg-background-alternative"
-  >
-    <Icon name={IconName.Candlestick} size={IconSize.Md} />
-  </Box>
-));
 
 /**
  * Render icon for Predictions result
@@ -148,16 +129,15 @@ export const Result: React.FC<ResultProps> = memo(
                 />
               }
             >
-              <AvatarToken
-                imageSource={
-                  result.logoUrl ? { uri: result.logoUrl } : undefined
-                }
-                name={result.name}
+              <TrendingTokenLogo
+                assetId={result.assetId}
+                symbol={result.symbol}
+                size={32}
               />
             </BadgeWrapper>
           );
         case UrlAutocompleteCategory.Perps:
-          return <PerpsIcon result={result} styles={styles} />;
+          return <PerpsTokenLogo symbol={result.symbol} size={32} />;
         case UrlAutocompleteCategory.Predictions:
           return <PredictionsIcon result={result} styles={styles} />;
         default:
@@ -187,8 +167,10 @@ export const Result: React.FC<ResultProps> = memo(
 
       if (result.category === UrlAutocompleteCategory.Perps) {
         // Parse the percentage change from the formatted string
-        const percentStr = result.change24hPercent.replace(/[+%]/g, '');
-        const percentValue = parseFloat(percentStr) || 0;
+        // Handles various formats like "+5.2%", "-3.1%", "5.2 %", etc.
+        const cleaned = result.change24hPercent.replace(/[+%\s]/g, '');
+        const parsed = parseFloat(cleaned);
+        const percentValue = isNaN(parsed) ? 0 : parsed;
         return (
           <View style={styles.priceContainer}>
             <Text style={styles.price}>{result.price}</Text>

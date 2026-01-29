@@ -4,6 +4,12 @@ import type { SectionId } from '../../Views/TrendingView/sections.config';
 export const MAX_RECENTS = 5;
 
 /**
+ * Base URL for fetching token logos from the MetaMask Token API
+ */
+export const TOKEN_LOGO_API_BASE_URL =
+  'https://token.api.cx.metamask.io/assets';
+
+/**
  * Categories for empty state (no search query)
  * Shows Recents and Favorites only
  */

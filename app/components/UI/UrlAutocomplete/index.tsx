@@ -17,7 +17,6 @@ import {
   Platform,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import Fuse from 'fuse.js';
 import styleSheet from './styles';
 import { useStyles } from '../../../component-library/hooks';
@@ -39,6 +38,7 @@ import {
 import {
   MAX_RECENTS,
   BROWSER_SEARCH_SECTIONS_ORDER,
+  TOKEN_LOGO_API_BASE_URL,
 } from './UrlAutocomplete.constants';
 import { Result } from './Result';
 import {
@@ -55,6 +55,7 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
 import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 
 /**
  * Fuse.js options for filtering browser history and bookmarks
@@ -90,7 +91,7 @@ const caipChainIdToHex = (caipChainId: string): Hex => {
  * Helper to get token image URL from assetId
  */
 const getTrendingTokenImageUrl = (assetId: string): string =>
-  `https://token.api.cx.metamask.io/assets/${assetId}/logo.png`;
+  `${TOKEN_LOGO_API_BASE_URL}/${assetId}/logo.png`;
 
 interface ResultsWithCategory {
   category: UrlAutocompleteCategory | SectionId;
@@ -118,10 +119,18 @@ const sectionIdToCategory = (sectionId: SectionId): UrlAutocompleteCategory => {
 
 /**
  * Transform TrendingAsset to TokenSearchResult
+ * Handles both ERC-20 tokens (erc20:address) and native tokens (slip44:coinType)
  */
 const transformTokenResult = (asset: TrendingAsset): TokenSearchResult => {
   const [caipChainId, assetIdentifier] = asset.assetId.split('/');
-  const address = assetIdentifier?.split(':')[1] ?? '';
+  // Native tokens use slip44: prefix (e.g., slip44:60 for ETH)
+  // ERC-20 tokens use erc20: prefix (e.g., erc20:0x...)
+  const isNativeToken = assetIdentifier?.startsWith('slip44:');
+  const address = isNativeToken
+    ? NATIVE_SWAPS_TOKEN_ADDRESS
+    : assetIdentifier
+      ? (assetIdentifier.split(':')[1] ?? '')
+      : '';
   const hexChainId = caipChainIdToHex(caipChainId);
   const priceChange = asset.priceChangePct?.h24
     ? parseFloat(asset.priceChangePct.h24)
@@ -129,6 +138,7 @@ const transformTokenResult = (asset: TrendingAsset): TokenSearchResult => {
 
   return {
     category: UrlAutocompleteCategory.Tokens,
+    assetId: asset.assetId,
     name: asset.name ?? '',
     symbol: asset.symbol ?? '',
     address,
@@ -186,6 +196,7 @@ interface SearchContentProps {
   filteredFavorites: FuseSearchResult[];
   onSelect: (item: AutocompleteSearchResult) => void;
   hide: () => void;
+  goToSwaps: (tokenResult: TokenSearchResult) => Promise<void>;
   styles: ReturnType<typeof styleSheet>;
 }
 
@@ -199,9 +210,9 @@ const SearchContent: React.FC<SearchContentProps> = ({
   filteredFavorites,
   onSelect,
   hide,
+  goToSwaps,
   styles,
 }) => {
-  const navigation = useNavigation();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -231,15 +242,6 @@ const SearchContent: React.FC<SearchContentProps> = ({
       let transformedData: AutocompleteSearchResult[] = [];
 
       switch (sectionId) {
-        case 'sites':
-          transformedData = (sectionData as { name: string; url: string }[])
-            .filter((site) => site?.name && site?.url)
-            .map((site) => ({
-              category: UrlAutocompleteCategory.Sites,
-              name: site.name,
-              url: site.url,
-            }));
-          break;
         case 'tokens':
           transformedData = (sectionData as TrendingAsset[])
             .filter((token) => token?.assetId)
@@ -254,6 +256,18 @@ const SearchContent: React.FC<SearchContentProps> = ({
           transformedData = (sectionData as PredictMarket[])
             .filter((market) => market?.id)
             .map(transformPredictionsResult);
+          break;
+        case 'sites':
+        default:
+          // Data comes from useSitesData hook which returns SiteData[] with name/url.
+          // Filter guards against malformed data at runtime.
+          transformedData = (sectionData as { name: string; url: string }[])
+            .filter((site) => site?.name && site?.url)
+            .map((site) => ({
+              category: UrlAutocompleteCategory.Sites,
+              name: site.name,
+              url: site.url,
+            }));
           break;
       }
 
@@ -294,30 +308,11 @@ const SearchContent: React.FC<SearchContentProps> = ({
     filteredFavorites,
   ]);
 
-  const { goToSwaps: goToSwapsHook, networkModal } = useSwapBridgeNavigation({
+  // networkModal is needed for swap chain selection UI
+  const { networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenView,
     sourcePage: 'MainView',
   });
-
-  const goToSwaps = useCallback(
-    async (tokenResult: TokenSearchResult) => {
-      try {
-        const bridgeToken = {
-          address: tokenResult.address,
-          name: tokenResult.name,
-          symbol: tokenResult.symbol,
-          image: tokenResult.logoUrl,
-          decimals: tokenResult.decimals,
-          chainId: tokenResult.chainId,
-        } satisfies BridgeToken;
-
-        goToSwapsHook(bridgeToken);
-      } catch (error) {
-        return;
-      }
-    },
-    [goToSwapsHook],
-  );
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: ResultsWithCategory }) => (
@@ -342,17 +337,22 @@ const SearchContent: React.FC<SearchContentProps> = ({
           <Result
             result={item}
             onPress={() => {
-              if (item.category !== UrlAutocompleteCategory.Tokens) {
+              // Don't hide autocomplete for Tokens/Perps/Predictions - user can return to search results
+              // Only hide for Sites/Recents/Favorites which navigate within the browser
+              const shouldHide =
+                item.category !== UrlAutocompleteCategory.Tokens &&
+                item.category !== UrlAutocompleteCategory.Perps &&
+                item.category !== UrlAutocompleteCategory.Predictions;
+              if (shouldHide) {
                 hide();
               }
               onSelect(item);
             }}
             onSwapPress={goToSwaps}
-            navigation={navigation}
           />
         );
       },
-      [hide, onSelect, goToSwaps, navigation],
+      [hide, onSelect, goToSwaps],
     );
 
   const keyExtractor = useCallback(
@@ -515,6 +515,11 @@ const UrlAutocomplete = forwardRef<
     sourcePage: 'MainView',
   });
 
+  /**
+   * Navigate to swaps with the selected token.
+   * Errors are silently caught as swap navigation is non-critical
+   * and shouldn't block the main search/select user flow.
+   */
   const goToSwaps = useCallback(
     async (tokenResult: TokenSearchResult) => {
       try {
@@ -528,8 +533,8 @@ const UrlAutocomplete = forwardRef<
         } satisfies BridgeToken;
 
         goToSwapsHook(bridgeToken);
-      } catch (error) {
-        return;
+      } catch {
+        // Silent catch - swap navigation failure shouldn't disrupt autocomplete UX
       }
     },
     [goToSwapsHook],
@@ -595,7 +600,10 @@ const UrlAutocomplete = forwardRef<
         keyboardVerticalOffset={100}
       >
         {isSearchMode ? (
-          // Search mode: wrap with Perps providers for omni-search
+          // Search mode: wrap with Perps providers for omni-search.
+          // Providers are conditionally rendered here intentionally - they only maintain
+          // WebSocket connections needed during active search. Unmounting cleans up
+          // subscriptions, and no state needs to persist across search sessions.
           <PerpsConnectionProvider>
             <PerpsStreamProvider>
               <SearchContent
@@ -604,6 +612,7 @@ const UrlAutocomplete = forwardRef<
                 filteredFavorites={filteredFavorites}
                 onSelect={onSelect}
                 hide={hide}
+                goToSwaps={goToSwaps}
                 styles={styles}
               />
             </PerpsStreamProvider>

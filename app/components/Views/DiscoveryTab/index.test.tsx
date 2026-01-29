@@ -104,6 +104,7 @@ describe('DiscoveryTab', () => {
     );
     onSelectProp?.({
       category: UrlAutocompleteCategory.Tokens,
+      assetId: 'eip155:1/erc20:0x123',
       address: '0x123',
       chainId: '0x1',
       name: 'Test Token',

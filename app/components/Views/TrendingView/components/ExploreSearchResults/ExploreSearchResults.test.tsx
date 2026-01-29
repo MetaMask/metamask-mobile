@@ -97,6 +97,7 @@ describe('ExploreSearchResults', () => {
         predictions: false,
         sites: false,
       },
+      sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
     });
 
     const { getByText, getByTestId } = render(
@@ -123,6 +124,7 @@ describe('ExploreSearchResults', () => {
         predictions: false,
         sites: false,
       },
+      sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
     });
 
     const { getByText, queryByText } = render(
@@ -148,6 +150,7 @@ describe('ExploreSearchResults', () => {
         predictions: false,
         sites: false,
       },
+      sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
     });
 
     render(<ExploreSearchResults searchQuery="ethereum" />);
@@ -170,6 +173,7 @@ describe('ExploreSearchResults', () => {
           predictions: false,
           sites: false,
         },
+        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
       });
 
       const { getByTestId } = render(
@@ -193,6 +197,7 @@ describe('ExploreSearchResults', () => {
           predictions: false,
           sites: false,
         },
+        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
       });
 
       const { queryByTestId } = render(<ExploreSearchResults searchQuery="" />);

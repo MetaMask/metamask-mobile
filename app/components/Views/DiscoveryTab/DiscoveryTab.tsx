@@ -79,7 +79,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
           chainId: item.chainId,
           address: item.address,
         });
-      } else {
+      } else if ('url' in item) {
         // Unfocus the url bar and hide the autocomplete results
         urlBarRef.current?.hide();
         onSubmitEditing(item.url);
