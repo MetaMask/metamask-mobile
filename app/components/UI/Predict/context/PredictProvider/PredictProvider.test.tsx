@@ -299,6 +299,43 @@ describe('PredictProvider', () => {
 
       expect(mockCallback).not.toHaveBeenCalled();
     });
+
+    it('ignores transactions with only non-predict nested transaction types', () => {
+      const mockCallback = jest.fn();
+      const { result } = renderHook(() => usePredictContext(), { wrapper });
+      const transactionMeta = createTransactionMeta({
+        nestedTransactions: [
+          { type: TransactionType.tokenMethodTransfer },
+          { type: TransactionType.simpleSend },
+        ],
+      });
+
+      act(() => {
+        result.current.subscribeToDepositEvents(mockCallback);
+      });
+      act(() => {
+        transactionStatusCallback?.({ transactionMeta });
+      });
+
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('ignores transactions with nested transaction with undefined type', () => {
+      const mockCallback = jest.fn();
+      const { result } = renderHook(() => usePredictContext(), { wrapper });
+      const transactionMeta = createTransactionMeta({
+        nestedTransactions: [{ type: undefined }],
+      });
+
+      act(() => {
+        result.current.subscribeToDepositEvents(mockCallback);
+      });
+      act(() => {
+        transactionStatusCallback?.({ transactionMeta });
+      });
+
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
   });
 
   describe('multiple subscribers', () => {
