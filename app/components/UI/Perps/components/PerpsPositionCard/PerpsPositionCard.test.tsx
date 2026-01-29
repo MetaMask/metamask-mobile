@@ -13,7 +13,13 @@ jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
 }));
 
-// Mock react-redux
+// Mock privacy mode selector
+const mockSelectPrivacyMode = jest.fn(() => false);
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: mockSelectPrivacyMode,
+}));
+
+// Mock react-redux - keep useSelector as a jest.fn() so it can be configured per test
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -577,6 +583,101 @@ describe('PerpsPositionCard', () => {
         PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
       );
       expect(shareButton).toBeNull();
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    beforeEach(() => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const selectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      const { selectPrivacyMode } = jest.requireMock(
+        '../../../../../selectors/preferencesController',
+      );
+      // Default: privacy mode off, eligibility on
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPrivacyMode) {
+          return false;
+        }
+        return undefined;
+      });
+    });
+
+    it('shows amounts when privacy mode is disabled', () => {
+      // Arrange - privacy mode is already false in beforeEach
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Assert - amounts should be visible (values from mockPosition)
+      expect(screen.getByText('+$250.00')).toBeOnTheScreen(); // PnL (unrealizedPnl: '250.00')
+      // Size displayed via testID
+      const sizeValue = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SIZE_VALUE,
+      );
+      expect(sizeValue).toHaveTextContent(/2\.5.*ETH/); // size: '2.5'
+    });
+
+    it('hides amounts when privacy mode is enabled', () => {
+      // Arrange - set privacy mode to true
+      const { useSelector } = jest.requireMock('react-redux');
+      const selectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      const { selectPrivacyMode } = jest.requireMock(
+        '../../../../../selectors/preferencesController',
+      );
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPrivacyMode) {
+          return true; // Privacy mode enabled
+        }
+        return undefined;
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Assert - amounts should be hidden (replaced with bullets)
+      expect(screen.queryByText('+$250.00')).toBeNull();
+      // SensitiveText shows 6 bullets by default when hidden
+      expect(screen.getAllByText('••••••').length).toBeGreaterThan(0);
+    });
+
+    it('shows direction and leverage regardless of privacy mode', () => {
+      // Arrange - set privacy mode to true
+      const { useSelector } = jest.requireMock('react-redux');
+      const selectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      const { selectPrivacyMode } = jest.requireMock(
+        '../../../../../selectors/preferencesController',
+      );
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPrivacyMode) {
+          return true; // Privacy mode enabled
+        }
+        return undefined;
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Assert - non-sensitive info should always be visible
+      // Direction and leverage are in a non-sensitive Text component
+      const directionValue = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.DIRECTION_VALUE,
+      );
+      expect(directionValue).toHaveTextContent(/long\s+10x/);
     });
   });
 });

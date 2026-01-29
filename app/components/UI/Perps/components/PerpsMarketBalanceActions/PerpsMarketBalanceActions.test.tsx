@@ -185,6 +185,11 @@ jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((amount) => `$${amount}`),
 }));
 
+// Mock privacy mode selector
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
 // Mock PerpsBottomSheetTooltip to avoid SafeArea issues
 jest.mock('../PerpsBottomSheetTooltip', () => {
   const { View, Text } = jest.requireActual('react-native');

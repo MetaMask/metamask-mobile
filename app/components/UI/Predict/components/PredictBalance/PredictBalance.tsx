@@ -10,6 +10,9 @@ import { Spinner } from '@metamask/design-system-react-native/dist/components/te
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import images from 'images/image-icons';
 import React, { useCallback, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import SensitiveText from '../../../../../component-library/components/Texts/SensitiveText';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { strings } from '../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
@@ -40,6 +43,7 @@ interface PredictBalanceProps {
 
 const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   const tw = useTailwind();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -145,9 +149,12 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           alignItems={BoxAlignItems.Center}
         >
           <Box>
-            <Text style={tw.style('text-body-md font-bold')}>
+            <SensitiveText
+              style={tw.style('text-body-md font-bold')}
+              isHidden={privacyMode}
+            >
               {formatPrice(balance, { maximumDecimals: 2 })}
-            </Text>
+            </SensitiveText>
             <Text
               style={tw.style('color-alternative text-body-sm')}
               color={TextColor.TextAlternative}

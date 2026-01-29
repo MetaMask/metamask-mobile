@@ -14,6 +14,19 @@ import {
 import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 
+// Mock privacy mode selector
+const mockSelectPrivacyMode = jest.fn(() => false);
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: mockSelectPrivacyMode,
+}));
+
+// Mock react-redux
+const mockUseSelector = jest.fn(() => false);
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockUseSelector(),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
     if (key === 'predict.position_info' && vars) {
@@ -76,6 +89,8 @@ describe('PredictPosition', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockLoadPositions.mockClear();
+    // Default privacy mode to false (amounts visible)
+    mockUseSelector.mockReturnValue(false);
     mockUsePredictPositions.mockReturnValue({
       positions: [],
       loadPositions: mockLoadPositions,
@@ -475,6 +490,55 @@ describe('PredictPosition', () => {
           optimistic: false,
         }),
       );
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    it('shows amounts when privacy mode is disabled', () => {
+      // Arrange
+      mockUseSelector.mockReturnValue(false);
+
+      // Act
+      renderComponent({
+        currentValue: 2345.67,
+        percentPnl: 5.25,
+        initialValue: 123.45,
+      });
+
+      // Assert - amounts should be visible
+      expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
+      expect(screen.getByText('5.25%')).toBeOnTheScreen();
+      expect(screen.getByText('$123.45 on Yes to win $10')).toBeOnTheScreen();
+    });
+
+    it('hides amounts when privacy mode is enabled', () => {
+      // Arrange
+      mockUseSelector.mockReturnValue(true);
+
+      // Act
+      renderComponent({
+        currentValue: 2345.67,
+        percentPnl: 5.25,
+        initialValue: 123.45,
+      });
+
+      // Assert - amounts should be hidden (replaced with bullets)
+      expect(screen.queryByText('$2,345.67')).toBeNull();
+      expect(screen.queryByText('5.25%')).toBeNull();
+      expect(screen.queryByText('$123.45 on Yes to win $10')).toBeNull();
+      // SensitiveText shows 6 bullets by default when hidden
+      expect(screen.getAllByText('••••••').length).toBeGreaterThan(0);
+    });
+
+    it('shows title regardless of privacy mode', () => {
+      // Arrange
+      mockUseSelector.mockReturnValue(true);
+
+      // Act
+      renderComponent();
+
+      // Assert - title should always be visible (not sensitive)
+      expect(screen.getByText(basePosition.title)).toBeOnTheScreen();
     });
   });
 });
