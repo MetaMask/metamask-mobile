@@ -124,7 +124,7 @@ export const PredictTransactionToastHandler: React.FC = () => {
   );
 
   const showErrorToast = useCallback(
-    (title: string, description: string) => {
+    (title: string, description: string, retryLabel?: string) => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -136,9 +136,22 @@ export const PredictTransactionToastHandler: React.FC = () => {
         iconColor: theme.colors.error.default,
         backgroundColor: theme.colors.accent04.normal,
         hasNoTimeout: false,
+        ...(retryLabel
+          ? {
+              linkButtonOptions: {
+                label: retryLabel,
+                onPress: () => navigation.goBack(),
+              },
+            }
+          : {}),
       });
     },
-    [theme.colors.accent04.normal, theme.colors.error.default, toastRef],
+    [
+      navigation,
+      theme.colors.accent04.normal,
+      theme.colors.error.default,
+      toastRef,
+    ],
   );
 
   const handleDepositEvent = useCallback(
@@ -189,6 +202,7 @@ export const PredictTransactionToastHandler: React.FC = () => {
         showErrorToast(
           strings('predict.deposit.error_title'),
           strings('predict.deposit.error_description'),
+          strings('predict.deposit.try_again'),
         );
       }
     },
@@ -199,7 +213,11 @@ export const PredictTransactionToastHandler: React.FC = () => {
     (event: PredictTransactionEvent) => {
       const { status } = event;
 
-      if (status === TransactionStatus.approved) {
+      if (status === TransactionStatus.rejected) {
+        Engine.context.PredictController.confirmClaim({
+          providerId: POLYMARKET_PROVIDER_ID,
+        });
+      } else if (status === TransactionStatus.approved) {
         showPendingToast(
           strings('predict.claim.toasts.pending.title', {
             amount: formattedClaimAmount,
@@ -220,6 +238,7 @@ export const PredictTransactionToastHandler: React.FC = () => {
         showErrorToast(
           strings('predict.claim.toasts.error.title'),
           strings('predict.claim.toasts.error.description'),
+          strings('predict.claim.toasts.error.try_again'),
         );
       }
     },
@@ -238,7 +257,9 @@ export const PredictTransactionToastHandler: React.FC = () => {
         Engine.context.PredictController.state.withdrawTransaction?.amount ?? 0;
       const formattedAmount = formatPrice(withdrawAmount.toString());
 
-      if (status === TransactionStatus.approved) {
+      if (status === TransactionStatus.rejected) {
+        Engine.context.PredictController.clearWithdrawTransaction();
+      } else if (status === TransactionStatus.approved) {
         showPendingToast(
           strings('predict.withdraw.withdrawing'),
           strings('predict.withdraw.withdrawing_subtitle'),
@@ -256,6 +277,7 @@ export const PredictTransactionToastHandler: React.FC = () => {
         showErrorToast(
           strings('predict.withdraw.error_title'),
           strings('predict.withdraw.error_description'),
+          strings('predict.withdraw.try_again'),
         );
       }
     },
