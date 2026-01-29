@@ -1,7 +1,7 @@
 import React from 'react';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { fireEvent } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -13,18 +13,30 @@ import {
   type ConfirmationRedesignRemoteFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
-import { GasImpactModalProps } from './GasImpactModal.types';
+import { GasImpactModalRouteParams } from './GasImpactModal.types';
 import GasImpactModal from './index';
 
 const MOCK_SELECTED_INTERNAL_ACCOUNT = {
   address: '0x123',
 } as InternalAccount;
 
+const mockRouteParams: GasImpactModalRouteParams = {
+  amountWei: '3210000000000000',
+  amountFiat: '7.46',
+  annualRewardRate: '2.5%',
+  annualRewardsETH: '2.5 ETH',
+  annualRewardsFiat: '$5000',
+  estimatedGasFee: '0.009171428571428572',
+  estimatedGasFeePercentage: '35%',
+  chainId: '1',
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
     useNavigation: jest.fn(),
+    useRoute: jest.fn(),
   };
 });
 
@@ -67,23 +79,6 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   },
 }));
 
-const props: GasImpactModalProps = {
-  route: {
-    key: '1',
-    params: {
-      amountWei: '3210000000000000',
-      amountFiat: '7.46',
-      annualRewardRate: '2.5%',
-      annualRewardsETH: '2.5 ETH',
-      annualRewardsFiat: '$5000',
-      estimatedGasFee: '0.009171428571428572',
-      estimatedGasFeePercentage: '35%',
-      chainId: '1',
-    },
-    name: 'params',
-  },
-};
-
 const initialMetrics: Metrics = {
   frame: { x: 0, y: 0, width: 320, height: 640 },
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
@@ -92,7 +87,7 @@ const initialMetrics: Metrics = {
 const renderGasImpactModal = () =>
   renderWithProvider(
     <SafeAreaProvider initialMetrics={initialMetrics}>
-      <GasImpactModal {...props} />,
+      <GasImpactModal />,
     </SafeAreaProvider>,
     undefined,
     true,
@@ -105,6 +100,7 @@ describe('GasImpactModal', () => {
     selectConfirmationRedesignFlags,
   );
   const useNavigationMock = jest.mocked(useNavigation);
+  const useRouteMock = jest.mocked(useRoute);
   const mockNavigate = jest.fn();
   const mockGoBack = jest.fn();
 
@@ -123,6 +119,12 @@ describe('GasImpactModal', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
     } as unknown as ReturnType<typeof useNavigation>);
+
+    useRouteMock.mockReturnValue({
+      key: '1',
+      name: 'GasImpact',
+      params: mockRouteParams,
+    });
   });
 
   it('render matches snapshot', () => {
@@ -153,12 +155,12 @@ describe('GasImpactModal', () => {
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
         screen: Routes.STAKING.STAKE_CONFIRMATION,
         params: {
-          amountWei: props.route.params.amountWei,
-          amountFiat: props.route.params.amountFiat,
-          annualRewardsETH: props.route.params.annualRewardsETH,
-          annualRewardsFiat: props.route.params.annualRewardsFiat,
-          annualRewardRate: props.route.params.annualRewardRate,
-          chainId: props.route.params.chainId,
+          amountWei: mockRouteParams.amountWei,
+          amountFiat: mockRouteParams.amountFiat,
+          annualRewardsETH: mockRouteParams.annualRewardsETH,
+          annualRewardsFiat: mockRouteParams.annualRewardsFiat,
+          annualRewardRate: mockRouteParams.annualRewardRate,
+          chainId: mockRouteParams.chainId,
         },
       });
     });
@@ -189,7 +191,7 @@ describe('GasImpactModal', () => {
 
       expect(attemptDepositTransactionMock).toHaveBeenCalledTimes(1);
       expect(attemptDepositTransactionMock).toHaveBeenCalledWith(
-        props.route.params.amountWei,
+        mockRouteParams.amountWei,
         MOCK_SELECTED_INTERNAL_ACCOUNT.address,
       );
     });

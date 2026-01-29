@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { formatEther } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { View } from 'react-native';
 
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
@@ -25,14 +25,17 @@ import {
 import styleSheet from './GasImpactModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import Routes from '../../../../../constants/navigation/Routes';
-import { GasImpactModalProps } from './GasImpactModal.types';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
-const GasImpactModal = ({ route }: GasImpactModalProps) => {
+type GasImpactModalRouteProp = RouteProp<RootParamList, 'GasImpact'>;
+
+const GasImpactModal = () => {
+  const route = useRoute<GasImpactModalRouteProp>();
   const { styles } = useStyles(styleSheet, {});
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,

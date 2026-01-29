@@ -20,12 +20,11 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { Theme } from '../../../../../util/theme/models';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
-import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootParamList } from '../../../../../util/navigation/types';
 
 const styleSheet = (params: { theme: Theme }) =>
@@ -39,10 +38,14 @@ const styleSheet = (params: { theme: Theme }) =>
     },
   });
 
-type Props = StackScreenProps<RootParamList, 'TransactionDetailsBlockExplorer'>;
+type BlockExplorersRouteProp = RouteProp<
+  RootParamList,
+  'TransactionDetailsBlockExplorer'
+>;
 
-const BlockExplorersModal = ({ route }: Props) => {
+const BlockExplorersModal = () => {
   const navigation = useNavigation();
+  const route = useRoute<BlockExplorersRouteProp>();
   const { styles } = useStyles(styleSheet, {});
 
   const { evmTxMeta, multiChainTx } = route.params;

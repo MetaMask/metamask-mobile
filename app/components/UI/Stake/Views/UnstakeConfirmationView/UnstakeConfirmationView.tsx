@@ -1,12 +1,11 @@
 import { View } from 'react-native';
 import React, { useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import styleSheet from './UnstakeConfirmationView.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
-import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
 import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
 import AccountCard from '../../components/StakingConfirmation/AccountCard/AccountCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
@@ -16,13 +15,20 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useSelector } from 'react-redux';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
-const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
+type UnstakeConfirmationRouteProp = RouteProp<
+  RootParamList,
+  'UnstakeConfirmation'
+>;
+
+const UnstakeConfirmationView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const chainId = useSelector(selectEvmChainId);
   const navigation = useNavigation();
+  const route = useRoute<UnstakeConfirmationRouteProp>();
 
   useEffect(() => {
     navigation.setOptions(

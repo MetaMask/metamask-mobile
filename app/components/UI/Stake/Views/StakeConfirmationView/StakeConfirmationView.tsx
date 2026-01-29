@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import styleSheet from './StakeConfirmationView.styles';
@@ -8,7 +8,6 @@ import TokenValueStack from '../../components/StakingConfirmation/TokenValueStac
 import AccountCard from '../../components/StakingConfirmation/AccountCard/AccountCard';
 import RewardsCard from '../../components/StakingConfirmation/RewardsCard/RewardsCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
-import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
 import { strings } from '../../../../../../locales/i18n';
 import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
 import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
@@ -16,11 +15,15 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
-const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
+type StakeConfirmationRouteProp = RouteProp<RootParamList, 'StakeConfirmation'>;
+
+const StakeConfirmationView = () => {
   const navigation = useNavigation();
+  const route = useRoute<StakeConfirmationRouteProp>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -64,7 +67,7 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           />
           <RewardsCard
             rewardRate={route.params.annualRewardRate}
-            rewardsEth={route.params.annualRewardsETH}
+            rewardsEth={route.params.annualRewardsETH ?? ''}
             rewardsFiat={route.params.annualRewardsFiat}
           />
           <UnstakingTimeCard />

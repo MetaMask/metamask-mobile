@@ -8,11 +8,21 @@ import { createMockAccountsControllerState } from '../../../../../util/test/acco
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
+import { StakeConfirmationViewRouteParams } from './StakeConfirmationView.types';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { RootState } from '../../../../../reducers';
+import { useRoute } from '@react-navigation/native';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
+
+const mockRouteParams: StakeConfirmationViewRouteParams = {
+  amountWei: '10000000000000000',
+  amountFiat: '26.21',
+  annualRewardRate: '2.6%',
+  annualRewardsETH: '0.00026 ETH',
+  annualRewardsFiat: '$0.68',
+  chainId: '1',
+};
 
 Image.getSize = jest.fn(
   (
@@ -81,8 +91,11 @@ jest.mock('@react-navigation/native', () => {
       navigate: jest.fn(),
       setOptions: jest.fn(),
     }),
+    useRoute: jest.fn(),
   };
 });
+
+const useRouteMock = jest.mocked(useRoute);
 
 jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   __esModule: true,
@@ -115,25 +128,18 @@ expect.addSnapshotSerializer({
 });
 
 describe('StakeConfirmationView', () => {
-  it('render matches snapshot', () => {
-    const props: StakeConfirmationViewProps = {
-      route: {
-        key: '1',
-        params: {
-          amountWei: '10000000000000000',
-          amountFiat: '26.21',
-          annualRewardRate: '2.6%',
-          annualRewardsETH: '0.00026 ETH',
-          annualRewardsFiat: '$0.68',
-          chainId: '1',
-        },
-        name: 'params',
-      },
-    };
+  beforeEach(() => {
+    useRouteMock.mockReturnValue({
+      key: '1',
+      name: 'StakeConfirmation',
+      params: mockRouteParams,
+    });
+  });
 
+  it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(
       <Provider store={store}>
-        <StakeConfirmationView {...props} />
+        <StakeConfirmationView />
       </Provider>,
     );
 

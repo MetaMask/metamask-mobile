@@ -3,16 +3,11 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeState } from '../../../../../core/redux/slices/bridge';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
 import BlockExplorersModal from './BlockExplorersModal';
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootParamList } from '../../../../../util/navigation/types';
-
-type Props = StackScreenProps<RootParamList, 'TransactionDetailsBlockExplorer'>;
 
 describe('BlockExplorersModal', () => {
   const mockTx = {
@@ -30,35 +25,8 @@ describe('BlockExplorersModal', () => {
     status: TransactionStatus.submitted,
   } as TransactionMeta;
 
-  const mockNavigation = {
-    navigate: jest.fn(),
-    goBack: jest.fn(),
-    setOptions: jest.fn(),
-    dispatch: jest.fn(),
-    reset: jest.fn(),
-    isFocused: jest.fn(),
-    canGoBack: jest.fn(),
-    getParent: jest.fn(),
-    getState: jest.fn(),
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    setParams: jest.fn(),
-    getId: jest.fn(),
-    pop: jest.fn(),
-    popToTop: jest.fn(),
-    push: jest.fn(),
-    replace: jest.fn(),
-  } as unknown as Props['navigation'];
-
-  const mockProps = {
-    route: {
-      params: {
-        evmTxMeta: mockTx,
-      },
-      key: 'test-route-key',
-      name: 'TransactionDetailsBlockExplorer' as const,
-    },
-    navigation: mockNavigation,
+  const mockRouteParams = {
+    evmTxMeta: mockTx,
   };
 
   const mockState = {
@@ -79,24 +47,26 @@ describe('BlockExplorersModal', () => {
     } as BridgeState,
   };
 
-  it('should render without crashing', () => {
+  it('renders without crashing', () => {
     const { getByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      BlockExplorersModal,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
       { state: mockState },
+      mockRouteParams,
     );
     expect(getByText('View on block explorer')).toBeTruthy();
   });
 
-  it('should display both source and destination chain block explorer buttons', () => {
+  it('displays both source and destination chain block explorer buttons', () => {
     const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      BlockExplorersModal,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
       { state: mockState },
+      mockRouteParams,
     );
     const etherscanButton = getAllByText('Etherscan');
     expect(etherscanButton).toHaveLength(1);
@@ -105,7 +75,7 @@ describe('BlockExplorersModal', () => {
     expect(optimisticButton).toHaveLength(1);
   });
 
-  it('should handle missing destination chain transaction hash', () => {
+  it('handles missing destination chain transaction hash', () => {
     const modifiedState = {
       ...mockState,
       engine: {
@@ -133,11 +103,12 @@ describe('BlockExplorersModal', () => {
     };
 
     const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      BlockExplorersModal,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
       { state: modifiedState },
+      mockRouteParams,
     );
     const etherscanButtons = getAllByText('Etherscan');
     expect(etherscanButtons).toHaveLength(1);
