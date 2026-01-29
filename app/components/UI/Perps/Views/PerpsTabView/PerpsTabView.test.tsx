@@ -9,7 +9,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import type { Position } from '../../controllers/types';
+import type { Position, PerpsMarketData } from '../../controllers/types';
 import PerpsTabView from './PerpsTabView';
 import { PerpsEventValues } from '../../constants/eventNames';
 
@@ -273,6 +273,28 @@ describe('PerpsTabView', () => {
     stopLossCount: 0,
   };
 
+  const mockMarket: PerpsMarketData = {
+    symbol: 'ETH',
+    name: 'Ethereum',
+    price: '$2,000.00',
+    change24h: '+$50.00',
+    change24hPercent: '+2.5%',
+    volume: '$1.5B',
+    maxLeverage: '50x',
+    marketType: 'crypto',
+  };
+
+  const mockMarketBTC: PerpsMarketData = {
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    price: '$50,000.00',
+    change24h: '-$500.00',
+    change24hPercent: '-1.0%',
+    volume: '$5B',
+    maxLeverage: '100x',
+    marketType: 'crypto',
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
@@ -376,7 +398,7 @@ describe('PerpsTabView', () => {
       const mockUsePerpsTabExploreData =
         jest.requireMock('../../hooks').usePerpsTabExploreData;
       mockUsePerpsTabExploreData.mockReturnValue({
-        exploreMarkets: [{ symbol: 'ETH' }, { symbol: 'BTC' }],
+        exploreMarkets: [mockMarket, mockMarketBTC],
         watchlistMarkets: [],
         isLoading: false,
       });
@@ -388,8 +410,9 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      // Confirm the explore state is rendered (market type section)
-      expect(screen.getByTestId('perps-market-type-section')).toBeOnTheScreen();
+      // Confirm the explore state is rendered (market data should be visible)
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
     });
 
     it('should render Start a new trade CTA when positions exist', () => {
@@ -625,7 +648,7 @@ describe('PerpsTabView', () => {
       const mockUsePerpsTabExploreData =
         jest.requireMock('../../hooks').usePerpsTabExploreData;
       mockUsePerpsTabExploreData.mockReturnValue({
-        exploreMarkets: [{ symbol: 'ETH' }, { symbol: 'BTC' }],
+        exploreMarkets: [mockMarket, mockMarketBTC],
         watchlistMarkets: [],
         isLoading: false,
       });
@@ -633,9 +656,9 @@ describe('PerpsTabView', () => {
       // Act - Render component
       render(<PerpsTabView />);
 
-      // Assert - Component should render explore state with market section
+      // Assert - Component should render explore state with market data
       expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
-      expect(screen.getByTestId('perps-market-type-section')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
     });
 
     it('should pass correct hasPositions prop to PerpsTabControlBar when positions exist', () => {
@@ -801,14 +824,15 @@ describe('PerpsTabView', () => {
       const mockUsePerpsTabExploreData =
         jest.requireMock('../../hooks').usePerpsTabExploreData;
       mockUsePerpsTabExploreData.mockReturnValue({
-        exploreMarkets: [{ symbol: 'ETH' }, { symbol: 'BTC' }],
+        exploreMarkets: [mockMarket, mockMarketBTC],
         watchlistMarkets: [],
         isLoading: false,
       });
 
       render(<PerpsTabView />);
 
-      expect(screen.getByTestId('perps-market-type-section')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
     });
   });
 });
