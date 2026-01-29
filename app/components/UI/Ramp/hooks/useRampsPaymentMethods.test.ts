@@ -226,7 +226,7 @@ describe('useRampsPaymentMethods', () => {
       ).toHaveBeenCalledWith(mockPaymentMethods[0].id);
     });
 
-    it('calls Engine.context.RampsController.setSelectedPaymentMethod with null when payment method is null', () => {
+    it('calls Engine.context.RampsController.setSelectedPaymentMethod with undefined when payment method is null', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
@@ -238,7 +238,7 @@ describe('useRampsPaymentMethods', () => {
 
       expect(
         Engine.context.RampsController.setSelectedPaymentMethod,
-      ).toHaveBeenCalledWith(null);
+      ).toHaveBeenCalledWith(undefined);
     });
   });
 });
