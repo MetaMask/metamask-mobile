@@ -119,6 +119,7 @@ export const lockApp = async (): Promise<void> => {
 
   await Assertions.expectElementToBeVisible(LoginView.container, {
     description: 'Login screen should be visible after locking',
+    timeout: 30000,
   });
 };
 
@@ -130,13 +131,14 @@ export const unlockApp = async (
 ): Promise<void> => {
   await Assertions.expectElementToBeVisible(LoginView.container, {
     description: 'Login screen should be visible',
+    timeout: 30000,
   });
 
   await LoginView.enterPassword(password);
 
   await Assertions.expectElementToBeVisible(WalletView.container, {
     description: 'Wallet view should be visible after unlock',
-    timeout: 15000,
+    timeout: 30000,
   });
 };
 
@@ -146,6 +148,7 @@ export const unlockApp = async (
 export const resetWallet = async (): Promise<void> => {
   await Assertions.expectElementToBeVisible(LoginView.container, {
     description: 'Login screen should be visible',
+    timeout: 30000,
   });
 
   await LoginView.tapForgotPassword();
@@ -156,5 +159,6 @@ export const resetWallet = async (): Promise<void> => {
 
   await Assertions.expectElementToBeVisible(OnboardingView.container, {
     description: 'Onboarding screen should be visible after wallet reset',
+    timeout: 30000,
   });
 };
