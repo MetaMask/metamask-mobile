@@ -22,4 +22,5 @@ export const CardHomeSelectors = {
   VIEW_CARD_DETAILS_BUTTON: 'view-card-details-button',
   CARD_DETAILS_IMAGE: 'card-details-image',
   CARD_DETAILS_IMAGE_SKELETON: 'card-details-image-skeleton',
+  ORDER_METAL_CARD_ITEM: 'order-metal-card-item',
 };

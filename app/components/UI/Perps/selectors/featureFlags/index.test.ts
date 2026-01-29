@@ -6,6 +6,7 @@ import {
   selectPerpsButtonColorTestVariant,
   selectHip3ConfigVersion,
   selectPerpsFeedbackEnabledFlag,
+  selectPerpsRewardsReferralCodeEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
@@ -886,6 +887,77 @@ describe('Perps Feature Flag Selectors', () => {
         );
         expect(result).toBe(false);
       });
+    });
+  });
+
+  describe('selectPerpsRewardsReferralCodeEnabledFlag', () => {
+    it('returns false when flag is not set', () => {
+      const result = selectPerpsRewardsReferralCodeEnabledFlag(
+        mockedEmptyFlagsState,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns true when flag is boolean true', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                rewardsReferralCodeEnabled: true,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsRewardsReferralCodeEnabledFlag(state);
+      expect(result).toBe(true);
+    });
+
+    it('returns true when version-gated flag is enabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                rewardsReferralCodeEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsRewardsReferralCodeEnabledFlag(state);
+      expect(result).toBe(true);
+    });
+
+    it('returns false when version-gated flag is disabled', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                rewardsReferralCodeEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsRewardsReferralCodeEnabledFlag(state);
+      expect(result).toBe(false);
     });
   });
 

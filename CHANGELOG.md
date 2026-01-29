@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.62.1]
+
+### Fixed
+
+- fix: update selectedGasFeeToken when payment token is selected for gasless flow (#25273)
+
 ## [7.62.0]
 
 ### Added
@@ -9904,7 +9910,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.62.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.62.1...HEAD
+[7.62.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.62.0...v7.62.1
 [7.62.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.6...v7.62.0
 [7.61.6]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.5...v7.61.6
 [7.61.5]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.4...v7.61.5
