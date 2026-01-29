@@ -400,18 +400,27 @@ jobs:
 
           # Create .env file and export to GITHUB_ENV
           > .env
+          exported_count=0
           for var in "${ENV_VARS[@]}"; do
-            value="${!var}"
-            if [ -n "$value" ]; then
+            # Check if variable is set (defined), not just non-empty
+            # This allows explicitly empty strings to be written to .env
+            if [ -n "${!var+x}" ]; then
+              value="${!var}"
               echo "${var}=${value}" >> .env
               echo "${var}=${value}" >> "$GITHUB_ENV"
-              echo "✅ Exported: ${var} (value hidden)"
-            else
-              echo "⚠️ Skipped (empty): ${var}"
+              
+              # Log exported variable (show empty strings explicitly)
+              if [ -z "$value" ]; then
+                echo "✅ Exported: ${var} (empty string)"
+              else
+                echo "✅ Exported: ${var} (value hidden)"
+              fi
+              
+              ((exported_count++))
             fi
           done
 
-          echo "📄 .env file created with $(wc -l < .env) variables"
+          echo "📄 .env file created with ${exported_count} variables"
 
       - name: Determine signing secret name
         shell: bash
