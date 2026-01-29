@@ -28,7 +28,8 @@ export default function migrate(state: unknown): unknown {
       return state;
     }
 
-    const tokenListController = state.engine.backgroundState.TokenListController;
+    const tokenListController =
+      state.engine.backgroundState.TokenListController;
 
     if (!isObject(tokenListController)) {
       captureException(
