@@ -1,14 +1,14 @@
-import FixtureBuilder from './framework/fixtures/FixtureBuilder';
-import { withFixtures } from './framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from './viewHelper';
 import TestHelpers from './helpers';
 import WalletView from './pages/wallet/WalletView';
 import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
 import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import { DappVariants } from './framework/Constants';
-import Assertions from './framework/Assertions';
-import { setupMockRequest } from './api-mocking/helpers/mockHelpers';
+import { DappVariants } from '../tests/framework/Constants';
+import Assertions from '../tests/framework/Assertions';
+import { setupMockRequest } from '../tests/api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 const TRONGRID_API_URL = 'https://api.trongrid.io';

@@ -3,7 +3,7 @@ import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import TronTestDApp from '../../../pages/Browser/TronTestDApp';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 
 export const account1Short = 'TLSL...nf2T';
 export const account2Short = '9Wa2...Dj2U';

@@ -1,9 +1,9 @@
 import { dataTestIds } from '@metamask/test-dapp-tron';
-import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
-import Matchers from '../../framework/Matchers';
+import { getDappUrl } from '../../../tests/framework/fixtures/FixtureUtils';
+import Matchers from '../../../tests/framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Browser from './BrowserView';
-import Gestures from '../../framework/Gestures';
+import Gestures from '../../../tests/framework/Gestures';
 import { waitFor } from 'detox';
 import { TronTestDappSelectorsWebIDs } from '../../selectors/Browser/TronTestDapp.selectors';
 

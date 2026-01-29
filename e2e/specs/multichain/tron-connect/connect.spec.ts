@@ -1,5 +1,5 @@
 import { SmokeNetworkExpansion } from '../../../tags';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import TronTestDApp from '../../../pages/Browser/TronTestDApp';
 import {
   account1Short,
