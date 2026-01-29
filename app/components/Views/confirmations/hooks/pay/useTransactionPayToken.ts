@@ -60,18 +60,12 @@ export function useTransactionPayToken(): {
         console.error('Error updating payment token', e);
       }
 
+      // perps deposits only use relay, so doesn't need gasFeeToken update
       const isPredictDepositTransaction = hasTransactionType(transactionMeta, [
         TransactionType.predictDeposit,
       ]);
-      const isPerpsDepositTransaction = hasTransactionType(transactionMeta, [
-        TransactionType.perpsDeposit,
-      ]);
 
-      const shouldUpdateGasFeeToken =
-        (isPredictDepositTransaction || isPerpsDepositTransaction) &&
-        transactionMeta;
-
-      if (shouldUpdateGasFeeToken) {
+      if (isPredictDepositTransaction && transactionMeta) {
         const isNewPayTokenRequiredToken =
           newPayToken.chainId === primaryRequiredToken?.chainId &&
           newPayToken.address.toLowerCase() ===
