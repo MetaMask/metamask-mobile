@@ -202,6 +202,7 @@ const Routes = {
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
     MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
+    TRANSACTION_DETAILS: 'TransactionDetailsSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
@@ -247,8 +248,7 @@ const Routes = {
     TOKEN_SELECTOR: 'BridgeTokenSelector',
     MODALS: {
       ROOT: 'BridgeModals',
-      DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',
-      CUSTOM_SLIPPAGE_MODAL: 'CustomSlippageModal',
+      SLIPPAGE_MODAL: 'SlippageModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
@@ -408,6 +408,7 @@ const Routes = {
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
+      KYC_PENDING: 'CardOnboardingKYCPending',
       WEBVIEW: 'CardOnboardingWebview',
     },
     MODALS: {
@@ -416,6 +417,7 @@ const Routes = {
       ASSET_SELECTION: 'CardAssetSelectionModal',
       REGION_SELECTION: 'CardRegionSelectionModal',
       CONFIRM_MODAL: 'CardConfirmModal',
+      PASSWORD: 'CardPasswordModal',
       RECURRING_FEE: 'CardRecurringFeeModal',
       DAIMO_PAY: 'CardDaimoPayModal',
     },
