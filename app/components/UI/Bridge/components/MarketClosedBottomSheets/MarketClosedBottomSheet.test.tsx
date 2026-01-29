@@ -82,14 +82,14 @@ describe('MarketClosedBottomSheet', () => {
 
     const headerTitle = getByTestId('header-title');
 
-    expect(headerTitle).toBeTruthy();
+    expect(headerTitle).toBeOnTheScreen();
   });
 
   it('renders description and learn more text', () => {
     const { getByText, getByTestId } = renderMarketClosedBottomSheet();
 
-    expect(getByTestId('market-closed-description')).toBeTruthy();
-    expect(getByText(/Learn more/)).toBeTruthy();
+    expect(getByTestId('market-closed-description')).toBeOnTheScreen();
+    expect(getByText(/Learn more/)).toBeOnTheScreen();
   });
 
   it('renders Done button in footer', () => {
@@ -98,7 +98,7 @@ describe('MarketClosedBottomSheet', () => {
     const footer = getByTestId('bottomsheetfooter');
     const doneButton = getByTestId('bottomsheetfooter-button');
 
-    expect(footer).toBeTruthy();
-    expect(doneButton).toBeTruthy();
+    expect(footer).toBeOnTheScreen();
+    expect(doneButton).toBeOnTheScreen();
   });
 });
