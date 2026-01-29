@@ -29,9 +29,9 @@ export interface UseRampsTokensResult {
   selectedToken: SelectedToken;
   /**
    * Sets the selected token by asset ID.
-   * @param assetId - The asset identifier in CAIP-19 format (e.g., "eip155:1/erc20:0x...").
+   * @param assetId - The asset identifier in CAIP-19 format (e.g., "eip155:1/erc20:0x...")
    */
-  setSelectedToken: (assetId: string) => void;
+  setSelectedToken: (assetId?: string) => void;
   /**
    * Whether the tokens request is currently loading.
    */
@@ -73,7 +73,7 @@ export function useRampsTokens(
   ) as RequestSelectorResult<TokensResponse>;
 
   const setSelectedToken = useCallback(
-    (assetId: string) =>
+    (assetId?: string) =>
       Engine.context.RampsController.setSelectedToken(assetId),
     [],
   );
