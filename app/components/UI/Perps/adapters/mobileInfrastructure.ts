@@ -1,7 +1,7 @@
 /**
  * Mobile Infrastructure Adapter
  *
- * Provides platform-specific implementations of IPerpsPlatformDependencies interfaces
+ * Provides platform-specific implementations of PerpsPlatformDependencies interfaces
  * for the mobile app. This adapter wraps existing mobile utilities to allow
  * PerpsController and its services to remain platform-agnostic.
  *
@@ -28,9 +28,9 @@ import {
 } from '@metamask/keyring-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import type {
-  IPerpsPlatformDependencies,
-  IPerpsMetrics,
-  IPerpsControllerAccess,
+  PerpsPlatformDependencies,
+  PerpsMetrics,
+  PerpsControllerAccess,
   PerpsTraceName,
   PerpsTraceValue,
   PerpsAnalyticsEvent,
@@ -46,9 +46,9 @@ function toTraceName(name: PerpsTraceName): TraceName {
 }
 
 /**
- * Creates a mobile-specific MetaMetrics adapter that implements IPerpsMetrics
+ * Creates a mobile-specific MetaMetrics adapter that implements PerpsMetrics
  */
-function createMobileMetrics(): IPerpsMetrics {
+function createMobileMetrics(): PerpsMetrics {
   const metricsInstance: IMetaMetrics = MetaMetrics.getInstance();
 
   return {
@@ -129,6 +129,15 @@ function createStreamManagerAdapter() {
         }
       }
     },
+    clearAllChannels(): void {
+      const streamManager = getStreamManagerInstance();
+      if (
+        streamManager &&
+        typeof streamManager.clearAllChannels === 'function'
+      ) {
+        streamManager.clearAllChannels();
+      }
+    },
   };
 }
 
@@ -138,9 +147,9 @@ function createStreamManagerAdapter() {
  * This function wraps all mobile-specific dependencies into a single
  * dependencies object that can be injected into PerpsController.
  *
- * @returns IPerpsPlatformDependencies - All platform dependencies bundled
+ * @returns PerpsPlatformDependencies - All platform dependencies bundled
  */
-export function createMobileInfrastructure(): IPerpsPlatformDependencies {
+export function createMobileInfrastructure(): PerpsPlatformDependencies {
   return {
     // === Observability (stateless utilities) ===
     logger: {
@@ -224,7 +233,7 @@ export function createMobileInfrastructure(): IPerpsPlatformDependencies {
  * 3. Mockable - test can mock entire controllers object
  * 4. Future-proof - add new controller access without bloating top-level
  */
-function createControllerAccessAdapter(): IPerpsControllerAccess {
+function createControllerAccessAdapter(): PerpsControllerAccess {
   return {
     // === Account Operations (wraps AccountsController) ===
     accounts: {
@@ -274,6 +283,8 @@ function createControllerAccessAdapter(): IPerpsControllerAccess {
       },
       findNetworkClientIdForChain: (chainId) =>
         Engine.context.NetworkController.findNetworkClientIdByChainId(chainId),
+      getSelectedNetworkClientId: () =>
+        Engine.context.NetworkController.state.selectedNetworkClientId,
     },
 
     // === Transaction Operations (wraps TransactionController) ===
@@ -286,19 +297,20 @@ function createControllerAccessAdapter(): IPerpsControllerAccess {
         }),
     },
 
-    // === Rewards Operations (wraps RewardsController, optional) ===
-    // Check if RewardsController exists - may not in all environments (e.g., extension)
-    // Uses getter to defer Engine.context access until actually needed (lazy evaluation)
-    get rewards() {
-      if (!Engine.context.RewardsController) {
-        return undefined;
-      }
-      return {
-        getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
-          Engine.context.RewardsController.getPerpsDiscountForAccount(
-            caipAccountId,
-          ),
-      };
+    // === Rewards Operations (wraps RewardsController) ===
+    // Provides fee discount capabilities for MetaMask rewards program
+    rewards: {
+      getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
+        Engine.context.RewardsController.getPerpsDiscountForAccount(
+          caipAccountId,
+        ),
+    },
+
+    // === Authentication Operations (wraps AuthenticationController) ===
+    // Provides bearer token access for authenticated API calls (e.g., Data Lake)
+    authentication: {
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
     },
   };
 }

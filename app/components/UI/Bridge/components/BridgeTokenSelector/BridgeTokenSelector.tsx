@@ -17,15 +17,15 @@ import { strings } from '../../../../../../locales/i18n';
 import { getHeaderCenterNavbarOptions } from '../../../../../component-library/components-temp/HeaderCenter';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
-import { CaipAssetType, CaipChainId } from '@metamask/utils';
+import { CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
-  selectEnabledChainRanking,
+  selectSourceChainRanking,
+  selectDestChainRanking,
   setIsSelectingToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
-  formatAddressToAssetId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
@@ -46,7 +46,7 @@ import { SkeletonItem } from '../BridgeTokenSelectorBase';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { BridgeToken } from '../../types';
+import { BridgeToken, TokenSelectorType } from '../../types';
 import { usePopularTokens, IncludeAsset } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
 import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
@@ -54,10 +54,10 @@ import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
-import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
+import { tokenToIncludeAsset } from '../../utils/tokenUtils';
 
 export interface BridgeTokenSelectorRouteParams {
-  type: 'source' | 'dest';
+  type: TokenSelectorType;
 }
 
 const MIN_SEARCH_LENGTH = 3;
@@ -95,7 +95,13 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  const enabledChainRanking = useSelector(selectEnabledChainRanking);
+  // Use appropriate chain ranking based on selector type
+  const sourceChainRanking = useSelector(selectSourceChainRanking);
+  const destChainRanking = useSelector(selectDestChainRanking);
+  const enabledChainRanking =
+    route.params?.type === TokenSelectorType.Source
+      ? sourceChainRanking
+      : destChainRanking;
 
   // Set navigation options for header
   useEffect(() => {
@@ -110,12 +116,12 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
-    route.params.type,
+    route.params?.type,
   );
 
   // Initialize selectedChainId with the chain id of the selected token
   const [selectedChainId, setSelectedChainId] = useState(
-    selectedToken?.chainId && route.params?.type === 'dest'
+    selectedToken?.chainId && route.params?.type === TokenSelectorType.Dest
       ? formatChainIdToCaip(selectedToken.chainId)
       : undefined,
   );
@@ -174,28 +180,33 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [tokensWithBalance, searchString]);
 
   // Create includeAssets array from tokens with balance to be sent to API
+  // Selected token is prepended to pin it to the top of the list
   // Stringified to avoid triggering the useEffect when only balances change
   const includeAssets = useMemo(() => {
-    const assets = filteredTokensWithBalance.reduce<IncludeAsset[]>(
-      (acc, token) => {
-        const assetId = formatAddressToAssetId(token.address, token.chainId);
-        if (assetId) {
-          const normalizedAssetId = isNonEvmChainId(token.chainId)
-            ? assetId
-            : (assetId?.toLowerCase() as CaipAssetType);
-          acc.push({
-            assetId: normalizedAssetId,
-            name: token.name ?? '',
-            symbol: token.symbol,
-            decimals: token.decimals,
-          });
-        }
-        return acc;
-      },
-      [],
-    );
+    // Only include selected token if its network matches the current filter
+    const isSelectedTokenOnFilteredNetwork =
+      selectedToken &&
+      chainIdsToFetch.includes(formatChainIdToCaip(selectedToken.chainId));
+
+    // Convert selected token first (will be pinned to top of list)
+    const selectedAsset = isSelectedTokenOnFilteredNetwork
+      ? tokenToIncludeAsset(selectedToken)
+      : null;
+
+    // Convert balance tokens, excluding selected to avoid duplicates
+    const balanceAssets = filteredTokensWithBalance
+      .map(tokenToIncludeAsset)
+      .filter(
+        (asset): asset is IncludeAsset =>
+          asset !== null && asset.assetId !== selectedAsset?.assetId,
+      );
+
+    const assets = selectedAsset
+      ? [selectedAsset, ...balanceAssets]
+      : balanceAssets;
+
     return JSON.stringify(assets);
-  }, [filteredTokensWithBalance]);
+  }, [filteredTokensWithBalance, selectedToken, chainIdsToFetch]);
 
   // Fetch popular tokens
   const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(
@@ -367,7 +378,7 @@ export const BridgeTokenSelector: React.FC = () => {
       }
 
       const isNoFeeAsset =
-        route.params?.type === 'source'
+        route.params?.type === TokenSelectorType.Source
           ? item.noFee?.isSource
           : item.noFee?.isDestination;
       return (
@@ -495,6 +506,7 @@ export const BridgeTokenSelector: React.FC = () => {
         <NetworkPills
           selectedChainId={selectedChainId}
           onChainSelect={handleChainSelect}
+          type={route.params?.type}
         />
 
         <TextFieldSearch

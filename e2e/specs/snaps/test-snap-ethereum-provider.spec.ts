@@ -8,7 +8,10 @@ import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import {
+  confirmationFeatureFlags,
+  remoteFeatureMultichainAccountsAccountDetailsV2,
+} from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 jest.setTimeout(150_000);
 
@@ -20,10 +23,10 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            Object.assign({}, ...confirmationsRedesignedFeatureFlags),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...Object.assign({}, ...confirmationFeatureFlags),
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(false),
+          });
         },
       },
       async () => {

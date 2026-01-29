@@ -1,9 +1,11 @@
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import type { TransactionParams } from '@metamask/transaction-controller';
+// Use generateTransferData from existing mobile utils which already handles
+// ethereumjs-abi types and ABI encoding
 import { generateTransferData } from '../../../../../util/transactions';
 import { generateDepositId } from '../../utils/idUtils';
-import type { IPerpsProvider, IPerpsPlatformDependencies } from '../types';
+import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 
 // Temporary to avoid estimation failures due to insufficient balance
 const DEPOSIT_GAS_LIMIT = toHex(100000);
@@ -18,13 +20,13 @@ const DEPOSIT_GAS_LIMIT = toHex(100000);
  * Instance-based service with constructor injection of platform dependencies.
  */
 export class DepositService {
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   /**
    * Create a new DepositService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  constructor(deps: IPerpsPlatformDependencies) {
+  constructor(deps: PerpsPlatformDependencies) {
     this.deps = deps;
   }
 
@@ -36,7 +38,7 @@ export class DepositService {
    * @param options.provider - Active provider instance
    * @returns Transaction data ready for TransactionController.addTransaction
    */
-  async prepareTransaction(options: { provider: IPerpsProvider }): Promise<{
+  async prepareTransaction(options: { provider: PerpsProvider }): Promise<{
     transaction: TransactionParams;
     assetChainId: Hex;
     currentDepositId: string;

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useDispatch } from 'react-redux';
-import { View, Image, useColorScheme } from 'react-native';
+import { View, Image, useColorScheme, Linking } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
 import Text, {
@@ -27,10 +27,26 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
-import { MUSD_CONVERSION_APY } from '../../constants/musd';
+import {
+  MUSD_CONVERSION_APY,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+} from '../../constants/musd';
+import { useMusdConversionFlowData } from '../../hooks/useMusdConversionFlowData';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { RampIntent } from '../../../Ramp/types';
+import { EARN_TEST_IDS } from '../../constants/testIds';
+import AppConstants from '../../../../../core/AppConstants';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
+   * Indicates if this navigation originated from a deeplink
+   * When true, the component determines routing based on user state
+   */
+  isDeeplink?: boolean;
+  /**
    * The payment token to preselect in the confirmation screen
+   * Optional - when not provided, determines automatically
    */
   preferredPaymentToken?: {
     address: Hex;
@@ -38,8 +54,9 @@ interface EarnMusdConversionEducationViewRouteParams {
   };
   /**
    * The output token's chainId
+   * Optional - when not provided, determines automatically
    */
-  outputChainId: Hex;
+  outputChainId?: Hex;
 }
 
 /**
@@ -50,9 +67,20 @@ const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
   const { initiateConversion } = useMusdConversion();
+  const { goToBuy } = useRampNavigation();
 
-  const { preferredPaymentToken, outputChainId } =
+  const { preferredPaymentToken, outputChainId, isDeeplink } =
     useParams<EarnMusdConversionEducationViewRouteParams>();
+
+  // Hooks for deeplink case (when no params provided)
+  const {
+    isGeoEligible,
+    hasConvertibleTokens,
+    getPaymentTokenForSelectedNetwork,
+    getChainIdForBuyFlow,
+    getMusdOutputChainId,
+    isMusdBuyable,
+  } = useMusdConversionFlowData();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -69,6 +97,52 @@ const EarnMusdConversionEducationView = () => {
         : musdEducationBackgroundV2Light,
     [colorScheme],
   );
+
+  // Determine deeplink state when this is a deeplink navigation
+  const deeplinkState = useMemo(() => {
+    if (!isDeeplink) return null;
+    if (!isGeoEligible) return { action: 'navigate_home' as const };
+
+    // Try conversion flow if user has convertible tokens
+    if (hasConvertibleTokens) {
+      const paymentToken = getPaymentTokenForSelectedNetwork();
+      if (paymentToken) {
+        return {
+          action: 'convert' as const,
+          paymentToken,
+          outputChainId: getMusdOutputChainId(paymentToken.chainId),
+        };
+      }
+    }
+
+    // Fallback to buy if available, otherwise go home
+    if (isMusdBuyable) {
+      return {
+        action: 'buy' as const,
+        chainId: getChainIdForBuyFlow(),
+      };
+    }
+
+    return { action: 'navigate_home' as const };
+  }, [
+    isDeeplink,
+    isGeoEligible,
+    hasConvertibleTokens,
+    getPaymentTokenForSelectedNetwork,
+    getChainIdForBuyFlow,
+    getMusdOutputChainId,
+    isMusdBuyable,
+  ]);
+
+  const primaryButtonText = useMemo(() => {
+    if (deeplinkState?.action === 'navigate_home') {
+      return strings('earn.musd_conversion.continue');
+    }
+    if (deeplinkState?.action === 'buy') {
+      return strings('earn.musd_conversion.buy_musd');
+    }
+    return strings('earn.musd_conversion.education.primary_button');
+  }, [deeplinkState]);
 
   const { BUTTON_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
@@ -99,6 +173,13 @@ const EarnMusdConversionEducationView = () => {
   }, [submitScreenViewedEvent]);
 
   const submitContinuePressedEvent = useCallback(() => {
+    let redirectsTo = EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+    if (deeplinkState?.action === 'navigate_home') {
+      redirectsTo = EVENT_LOCATIONS.HOME_SCREEN;
+    } else if (deeplinkState?.action === 'buy') {
+      redirectsTo = EVENT_LOCATIONS.BUY_SCREEN;
+    }
+
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
@@ -106,8 +187,8 @@ const EarnMusdConversionEducationView = () => {
         .addProperties({
           location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
           button_type: BUTTON_TYPES.PRIMARY,
-          button_text: strings('earn.musd_conversion.education.primary_button'),
-          redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN, // Redirects to custom amount screen.
+          button_text: primaryButtonText,
+          redirects_to: redirectsTo,
         })
         .build(),
     );
@@ -116,7 +197,11 @@ const EarnMusdConversionEducationView = () => {
     createEventBuilder,
     EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
     EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+    EVENT_LOCATIONS.BUY_SCREEN,
+    EVENT_LOCATIONS.HOME_SCREEN,
     BUTTON_TYPES.PRIMARY,
+    primaryButtonText,
+    deeplinkState,
   ]);
 
   const submitGoBackPressedEvent = () => {
@@ -141,8 +226,40 @@ const EarnMusdConversionEducationView = () => {
       // Mark education as seen so it won't show again
       dispatch(setMusdConversionEducationSeen(true));
 
-      // Proceed to conversion flow if we have the required params
-      if (outputChainId && preferredPaymentToken) {
+      // Handle deeplink case
+      if (deeplinkState) {
+        if (deeplinkState.action === 'navigate_home') {
+          navigation.navigate(Routes.WALLET.HOME, {
+            screen: Routes.WALLET.TAB_STACK_FLOW,
+            params: {
+              screen: Routes.WALLET_VIEW,
+            },
+          });
+          return;
+        }
+
+        if (deeplinkState.action === 'buy') {
+          const chainId =
+            deeplinkState.chainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID;
+          const rampIntent: RampIntent = {
+            assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
+          };
+          goToBuy(rampIntent);
+          return;
+        }
+
+        if (deeplinkState.action === 'convert') {
+          await initiateConversion({
+            outputChainId: deeplinkState.outputChainId,
+            preferredPaymentToken: deeplinkState.paymentToken,
+            skipEducationCheck: true,
+          });
+          return;
+        }
+      }
+
+      // Proceed to conversion flow if we have the required params (normal flow)
+      if (!isDeeplink && outputChainId && preferredPaymentToken) {
         await initiateConversion({
           outputChainId,
           preferredPaymentToken,
@@ -151,10 +268,14 @@ const EarnMusdConversionEducationView = () => {
         return;
       }
 
-      Logger.error(
-        new Error('Missing required parameters'),
-        '[mUSD Conversion Education] Cannot proceed without outputChainId and preferredPaymentToken',
-      );
+      // If we reach here without being a deeplink, params are missing
+      if (!isDeeplink) {
+        Logger.error(
+          new Error('Missing required parameters'),
+          '[mUSD Conversion Education] Cannot proceed without outputChainId and preferredPaymentToken',
+        );
+        return;
+      }
     } catch (error) {
       Logger.error(
         error as Error,
@@ -167,6 +288,10 @@ const EarnMusdConversionEducationView = () => {
     outputChainId,
     preferredPaymentToken,
     submitContinuePressedEvent,
+    deeplinkState,
+    navigation,
+    goToBuy,
+    isDeeplink,
   ]);
 
   const handleGoBack = () => {
@@ -176,9 +301,17 @@ const EarnMusdConversionEducationView = () => {
     }
   };
 
+  const handleTermsOfUsePressed = () => {
+    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+  };
+
   return (
     // Do not remove the top edge as this screen does not have a navbar set in the route options.
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['top', 'bottom']}
+      testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CONTAINER}
+    >
       <View style={styles.content}>
         <Text style={styles.heading} numberOfLines={2} adjustsFontSizeToFit>
           {strings('earn.musd_conversion.education.heading', {
@@ -188,25 +321,38 @@ const EarnMusdConversionEducationView = () => {
         <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
           {strings('earn.musd_conversion.education.description', {
             percentage: MUSD_CONVERSION_APY,
-          })}
+          })}{' '}
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.termsText}
+            onPress={handleTermsOfUsePressed}
+          >
+            {strings('earn.musd_conversion.education.terms_apply')}
+          </Text>
         </Text>
       </View>
       <View style={styles.imageContainer}>
-        <Image source={backgroundImage} style={styles.backgroundImage} />
+        <Image
+          source={backgroundImage}
+          style={styles.backgroundImage}
+          testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE}
+        />
       </View>
 
       <View style={styles.buttonsContainer}>
         <Button
           variant={ButtonVariants.Primary}
-          label={strings('earn.musd_conversion.education.primary_button')}
+          label={primaryButtonText}
           onPress={handleContinue}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
+          testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON}
         />
         <DesignSystemButton
           variant={DesignSystemButtonVariant.Tertiary}
           isFullWidth
           onPress={handleGoBack}
+          testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('earn.musd_conversion.education.secondary_button')}

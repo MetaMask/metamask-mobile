@@ -3,7 +3,7 @@ import {
   QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
-import { Asset } from '@metamask/assets-controllers';
+import { Asset, TokenRwaData } from '@metamask/assets-controllers';
 import { Hex, CaipChainId } from '@metamask/utils';
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
@@ -26,6 +26,9 @@ export interface BridgeToken {
     isSource: boolean;
     isDestination: boolean;
   };
+  aggregators?: string[];
+  metadata?: Record<string, unknown>;
+  rwaData?: TokenRwaData;
 }
 
 export type BridgeQuoteResponse = QuoteResponse &
@@ -39,4 +42,9 @@ export enum BridgeViewMode {
   Swap = 'Swap',
   Bridge = 'Bridge',
   Unified = 'Unified',
+}
+
+export enum TokenSelectorType {
+  Source = 'source',
+  Dest = 'dest',
 }
