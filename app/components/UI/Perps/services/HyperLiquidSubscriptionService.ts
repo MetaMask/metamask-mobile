@@ -140,6 +140,10 @@ export class HyperLiquidSubscriptionService {
   // Global price data cache
   private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
+  // Fills cache for cache-first pattern (similar to price caching)
+  private cachedFills: OrderFill[] | null = null;
+  private fillsCacheInitialized = false;
+
   // HIP-3: assetCtxs subscriptions for multi-DEX market data
   private readonly assetCtxsSubscriptions = new Map<string, ISubscription>(); // Key: dex name ('' for main)
   private readonly dexAssetCtxsCache = new Map<
@@ -1773,6 +1777,22 @@ export class HyperLiquidSubscriptionService {
             : undefined,
         }));
 
+        // Cache fills for cache-first pattern (similar to price caching)
+        // This allows getOrFetchFills() to return cached data without REST API calls
+        if (data.isSnapshot) {
+          // Snapshot: replace cache with initial historical data, sorted newest first
+          this.cachedFills = [...orderFills]
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 100);
+          this.fillsCacheInitialized = true;
+        } else {
+          // Streaming: prepend new fills to existing (newest first)
+          this.cachedFills = [...orderFills, ...(this.cachedFills || [])].slice(
+            0,
+            100,
+          );
+        }
+
         // Distribute to all callbacks for this accountId
         const subscribers = this.orderFillSubscribers.get(normalizedAccountId);
         if (subscribers) {
@@ -1884,6 +1904,50 @@ export class HyperLiquidSubscriptionService {
    */
   public getCachedOrders(): Order[] | null {
     return this.cachedOrders;
+  }
+
+  /**
+   * Atomically get cached orders if initialized
+   * Prevents race condition between checking initialization and getting data
+   * @returns Cached orders array if initialized, null otherwise
+   */
+  public getOrdersCacheIfInitialized(): Order[] | null {
+    if (!this.ordersCacheInitialized) {
+      return null;
+    }
+    return this.cachedOrders ? [...this.cachedOrders] : [];
+  }
+
+  /**
+   * Get cached price for a symbol from WebSocket allMids subscription
+   * OPTIMIZATION: Use this instead of REST infoClient.allMids() to avoid rate limiting
+   * @param symbol - Asset symbol (e.g., 'BTC', 'ETH', 'xyz:TSLA')
+   * @returns Price string, or undefined if not cached
+   */
+  public getCachedPrice(symbol: string): string | undefined {
+    return this.cachedPriceData?.get(symbol)?.price;
+  }
+
+  /**
+   * Get cached fills from WebSocket userFills subscription
+   * OPTIMIZATION: Use this instead of REST userFills() to avoid rate limiting
+   * @returns Copy of cached fills array, or null if not cached
+   */
+  public getCachedFills(): OrderFill[] | null {
+    return this.cachedFills ? [...this.cachedFills] : null;
+  }
+
+  /**
+   * Get cached fills only if the cache has been initialized from WebSocket
+   * OPTIMIZATION: Distinguishes between "not initialized" (null) and "initialized but empty" ([])
+   * - Returns null if cache hasn't received WebSocket snapshot yet (caller should use REST)
+   * - Returns empty array [] if cache is initialized but user has no fills (caller can skip REST)
+   * - Returns fills array if cache has data
+   * @returns Fills array or empty array if initialized, null if not yet initialized
+   */
+  public getFillsCacheIfInitialized(): OrderFill[] | null {
+    if (!this.fillsCacheInitialized) return null;
+    return this.cachedFills ? [...this.cachedFills] : [];
   }
 
   /**
@@ -2812,8 +2876,10 @@ export class HyperLiquidSubscriptionService {
     this.cachedPositions = null;
     this.cachedOrders = null;
     this.cachedAccount = null;
+    this.cachedFills = null;
     this.ordersCacheInitialized = false; // Reset cache initialization flag
     this.positionsCacheInitialized = false; // Reset cache initialization flag
+    this.fillsCacheInitialized = false; // Reset fills cache initialization flag
     this.marketDataCache.clear();
     this.orderBookCache.clear();
     this.symbolSubscriberCounts.clear();

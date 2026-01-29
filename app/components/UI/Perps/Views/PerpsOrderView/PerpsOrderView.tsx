@@ -988,11 +988,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           delete orderWithoutTPSL.stopLossPrice;
 
           await executeOrder(orderWithoutTPSL);
-          await updatePositionTPSL({
+          const tpslResult = await updatePositionTPSL({
             symbol: orderForm.asset,
             takeProfitPrice: orderForm.takeProfitPrice,
             stopLossPrice: orderForm.stopLossPrice,
           });
+
+          // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
+          if (!tpslResult.success) {
+            const errorMessage =
+              tpslResult.error || strings('perps.errors.unknown');
+            showToast(
+              PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+                errorMessage,
+              ),
+            );
+          }
         } else {
           await executeOrder(orderParams);
         }
@@ -1021,6 +1032,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       executeOrder,
       showToast,
       PerpsToastOptions.formValidation.orderForm,
+      PerpsToastOptions.positionManagement.tpsl,
       updatePositionTPSL,
       marginRequired,
       feeResults.totalFee,
