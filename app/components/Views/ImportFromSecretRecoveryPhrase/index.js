@@ -81,7 +81,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
@@ -128,6 +128,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
+  const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
   const srpInputGridRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -160,7 +161,7 @@ const ImportFromSecretRecoveryPhrase = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedPhrase]);
 
-  const { isEnabled: isMetricsEnabled } = useMetrics();
+  const { isEnabled: isMetricsEnabled } = useAnalytics();
 
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
@@ -395,6 +396,14 @@ const ImportFromSecretRecoveryPhrase = ({
     [password, confirmPassword, learnMore],
   );
 
+  const isPasswordTooShort = useMemo(
+    () =>
+      !isPasswordFieldFocused &&
+      password !== '' &&
+      password.length < MIN_PASSWORD_LENGTH,
+    [isPasswordFieldFocused, password],
+  );
+
   const toggleShowPassword = (index) => {
     setShowPasswordIndex((prev) => {
       if (prev.includes(index)) {
@@ -567,8 +576,8 @@ const ImportFromSecretRecoveryPhrase = ({
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
-        bottomOffset={180}
         showsVerticalScrollIndicator={false}
+        enabled={currentStep === 0}
       >
         <Animated.View
           style={[
@@ -655,6 +664,8 @@ const ImportFromSecretRecoveryPhrase = ({
                   size={TextFieldSize.Lg}
                   value={password}
                   onChangeText={onPasswordChange}
+                  onFocus={() => setIsPasswordFieldFocused(true)}
+                  onBlur={() => setIsPasswordFieldFocused(false)}
                   secureTextEntry={showPasswordIndex.includes(0)}
                   returnKeyType={'next'}
                   autoCapitalize="none"
@@ -662,6 +673,8 @@ const ImportFromSecretRecoveryPhrase = ({
                   keyboardAppearance={themeAppearance || 'light'}
                   placeholderTextColor={colors.text.muted}
                   onSubmitEditing={jumpToConfirmPassword}
+                  isError={isPasswordTooShort}
+                  style={isPasswordTooShort ? styles.errorBorder : undefined}
                   endAccessory={
                     <Icon
                       name={
@@ -679,16 +692,16 @@ const ImportFromSecretRecoveryPhrase = ({
                   }
                   testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 />
-                {(!password || password.length < MIN_PASSWORD_LENGTH) && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('choose_password.must_be_at_least', {
-                      number: MIN_PASSWORD_LENGTH,
-                    })}
-                  </Text>
-                )}
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={
+                    isPasswordTooShort ? TextColor.Error : TextColor.Alternative
+                  }
+                >
+                  {strings('choose_password.must_be_at_least', {
+                    number: MIN_PASSWORD_LENGTH,
+                  })}
+                </Text>
               </View>
 
               <View style={styles.field}>

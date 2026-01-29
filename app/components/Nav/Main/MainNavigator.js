@@ -362,7 +362,7 @@ const SettingsFlow = () => (
     <Stack.Screen
       name="Settings"
       component={Settings}
-      options={Settings.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="GeneralSettings"

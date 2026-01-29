@@ -200,6 +200,7 @@ export enum CardErrorType {
   SERVER_ERROR = 'SERVER_ERROR',
   NO_CARD = 'NO_CARD',
   CONFLICT_ERROR = 'CONFLICT_ERROR',
+  NOT_FOUND = 'NOT_FOUND',
 }
 
 export class CardError extends Error {
@@ -448,13 +449,9 @@ export interface DelegationSettingsResponse {
  */
 export interface CardDetailsTokenRequest {
   customCss?: {
-    /** Background color of the card image (hex format, e.g., "#000000") */
     cardBackgroundColor?: string;
-    /** Text color for card information (hex format) */
     cardTextColor?: string;
-    /** Background color for the PAN number display area (hex format) */
     panBackgroundColor?: string;
-    /** Text color for PAN number (hex format) */
     panTextColor?: string;
   };
 }
@@ -463,8 +460,71 @@ export interface CardDetailsTokenRequest {
  * Response from generating card details token
  */
 export interface CardDetailsTokenResponse {
-  /** Secure, time-limited token (UUID format) - valid for ~10 minutes, single-use */
   token: string;
-  /** URL that renders card details as a secure image */
   imageUrl: string;
+}
+
+/**
+ * Payment methods supported for orders
+ */
+export type OrderPaymentMethod = 'CRYPTO_EXTERNAL_DAIMO';
+
+/**
+ * Request body for creating a new order
+ * POST /v1/order
+ */
+export interface CreateOrderRequest {
+  productId: string;
+  paymentMethod: OrderPaymentMethod;
+}
+
+/**
+ * Payment configuration returned when creating an order
+ */
+export interface OrderPaymentConfig {
+  paymentAmount: number;
+  paymentCurrency: string;
+  destinationAddress: string;
+  destinationChainId: string;
+  destinationTokenSymbol: string;
+  destinationTokenAddress: string;
+}
+
+/**
+ * Response from creating a new order
+ * POST /v1/order
+ */
+export interface CreateOrderResponse {
+  orderId: string;
+  paymentConfig: OrderPaymentConfig;
+}
+
+/**
+ * Status of an order
+ */
+export type OrderStatus =
+  | 'PENDING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'EXPIRED'
+  | 'REFUNDED';
+
+/**
+ * Metadata returned with order status
+ */
+export interface OrderStatusMetadata {
+  paymentId?: string;
+  txHash?: string;
+  note?: string;
+}
+
+/**
+ * Response from fetching order status
+ * GET /v1/order/:orderId
+ */
+export interface GetOrderStatusResponse {
+  orderId: string;
+  paidAt?: string;
+  status: OrderStatus;
+  metadata?: OrderStatusMetadata;
 }
