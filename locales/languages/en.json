@@ -3140,7 +3140,12 @@
       "generate_trace_test": "Generate trace test",
       "generate_trace_test_desc": "Generate a developer test Sentry trace.",
       "navigate_to_sample_feature": "Navigate to sample feature",
-      "sample_feature_desc": "A sample feature as a template for developers."
+      "sample_feature_desc": "A sample feature as a template for developers.",
+      "card": {
+        "title": "Card",
+        "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
+        "reset_onboarding_button": "Reset Onboarding State"
+      }
     },
     "feature_flag_override": {
       "title": "Feature flag override",

@@ -47,7 +47,10 @@ const DeveloperOptions = () => {
   }, [navigation, isFullScreenModal, colors]);
 
   return (
-    <ScrollView style={styles.wrapper}>
+    <ScrollView
+      style={styles.wrapper}
+      contentContainerStyle={styles.contentContainer}
+    >
       <SentryTest />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)

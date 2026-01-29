@@ -1,6 +1,7 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Box } from '@metamask/design-system-react-native';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import Text, {
   TextVariant,
@@ -11,60 +12,45 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { useStyles } from '../../../../hooks/useStyles';
-
-const cardDeveloperOptionsSectionStyles = () =>
-  StyleSheet.create({
-    container: {
-      marginTop: 8,
-      gap: 8,
-    },
-    heading: {
-      marginTop: 16,
-    },
-    desc: {
-      marginTop: 8,
-    },
-    accessory: {
-      marginTop: 16,
-    },
-  });
+import { strings } from '../../../../../../locales/i18n';
 
 const CardDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
-  const { styles } = useStyles(cardDeveloperOptionsSectionStyles, {});
+  const tw = useTailwind();
 
-  const handleResetOnboardingState = () => {
+  const handleResetOnboardingState = useCallback(() => {
     dispatch(resetOnboardingState());
-  };
+  }, [dispatch]);
 
   return (
-    <View style={styles.container}>
+    <Box twClassName="mt-2 gap-2">
       <Text
         color={TextColor.Default}
         variant={TextVariant.HeadingLG}
-        style={styles.heading}
+        style={tw.style('mt-4')}
       >
-        {'Card'}
+        {strings('app_settings.developer_options.card.title')}
       </Text>
       <Text
         color={TextColor.Alternative}
         variant={TextVariant.BodyMD}
-        style={styles.desc}
+        style={tw.style('mt-2')}
       >
-        {
-          'Reset Card onboarding state to start the onboarding flow from the beginning.'
-        }
+        {strings(
+          'app_settings.developer_options.card.reset_onboarding_description',
+        )}
       </Text>
       <Button
         variant={ButtonVariants.Secondary}
         size={ButtonSize.Lg}
-        label={'Reset Onboarding State'}
+        label={strings(
+          'app_settings.developer_options.card.reset_onboarding_button',
+        )}
         onPress={handleResetOnboardingState}
         width={ButtonWidthTypes.Full}
-        style={styles.accessory}
+        style={tw.style('mt-4')}
       />
-    </View>
+    </Box>
   );
 };
 

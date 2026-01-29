@@ -424,13 +424,16 @@ exports[`DeveloperOptions renders correctly 1`] = `
                     }
                   >
                     <RCTScrollView
+                      contentContainerStyle={
+                        {
+                          "padding": 24,
+                          "paddingBottom": 56,
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
-                          "marginBottom": 32,
-                          "padding": 24,
-                          "paddingBottom": 48,
                         }
                       }
                     >
@@ -859,10 +862,14 @@ exports[`DeveloperOptions renders correctly 1`] = `
                         </TouchableOpacity>
                         <View
                           style={
-                            {
-                              "gap": 8,
-                              "marginTop": 8,
-                            }
+                            [
+                              {
+                                "display": "flex",
+                                "gap": 8,
+                                "marginTop": 8,
+                              },
+                              undefined,
+                            ]
                           }
                         >
                           <Text
