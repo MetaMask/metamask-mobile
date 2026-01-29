@@ -113,6 +113,7 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
 import { wait } from '../utils/wait';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
@@ -1538,15 +1539,19 @@ export class PerpsController extends BaseController<
       let result: Promise<string>;
       let transactionMeta: { id: string };
 
+      const defaultTransactionOptions = {
+        networkClientId,
+        origin: ORIGIN_METAMASK,
+        skipInitialGasEstimate: true,
+      };
+
       if (depositAndPlaceOrder) {
         // Use addTransaction to create transaction without navigating to confirmation screen
         const { transactionMeta: addedTransactionMeta } = await addTransaction(
           transaction,
           {
-            networkClientId,
-            origin: 'metamask',
+            ...defaultTransactionOptions,
             type: TransactionType.perpsDepositAndOrder,
-            skipInitialGasEstimate: true,
           },
         );
         transactionMeta = addedTransactionMeta;
@@ -1559,10 +1564,8 @@ export class PerpsController extends BaseController<
         // submit shows the confirmation screen and returns a promise
         // The promise will resolve when transaction completes or reject if cancelled/failed
         const submitResult = await controllers.transaction.submit(transaction, {
-          networkClientId,
-          origin: 'metamask',
+          ...defaultTransactionOptions,
           type: TransactionType.perpsDeposit,
-          skipInitialGasEstimate: true,
         });
         result = submitResult.result;
         transactionMeta = submitResult.transactionMeta;
@@ -1573,7 +1576,7 @@ export class PerpsController extends BaseController<
         state.lastDepositTransactionId = transactionMeta.id;
       });
 
-      // Track the transaction lifecycle only if using submit (not skipNavigation)
+      // Track the transaction lifecycle only when using submit (deposit-only flow)
       if (!depositAndPlaceOrder) {
         // At this point, the confirmation modal is shown to the user
         // The result promise will resolve/reject based on user action and transaction outcome

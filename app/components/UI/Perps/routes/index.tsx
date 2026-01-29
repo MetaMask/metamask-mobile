@@ -52,8 +52,8 @@ const PerpsConfirmScreen = (props: React.ComponentProps<typeof Confirm>) => {
   return (
     <Confirm
       {...props}
-      safeAreaEdges={[]}
-      safeAreaStyle={{
+      disableSafeArea
+      fullscreenStyle={{
         backgroundColor: theme.colors.background.default,
       }}
     />

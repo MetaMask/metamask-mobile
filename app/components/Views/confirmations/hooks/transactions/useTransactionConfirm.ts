@@ -27,8 +27,7 @@ export const GO_BACK_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-export function useTransactionConfirm(options?: { skipNavigation?: boolean }) {
-  const { skipNavigation = false } = options ?? {};
+export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -129,12 +128,10 @@ export function useTransactionConfirm(options?: { skipNavigation?: boolean }) {
       log('Error confirming transaction', error);
     }
 
-    // Skip navigation if skipNavigation option is provided
-    if (skipNavigation) {
+    // Perps deposit-and-order: caller handles navigation (e.g. order flow)
+    if (type === TransactionType.perpsDepositAndOrder) {
       return;
-    }
-
-    if (type === TransactionType.perpsDeposit) {
+    } else if (type === TransactionType.perpsDeposit) {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
       });
@@ -167,7 +164,6 @@ export function useTransactionConfirm(options?: { skipNavigation?: boolean }) {
     navigation,
     onRequestConfirm,
     selectedGasFeeToken,
-    skipNavigation,
     transactionMetadata,
     tryEnableEvmNetwork,
     type,

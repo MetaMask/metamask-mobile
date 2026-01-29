@@ -804,9 +804,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { handleDepositConfirm } = usePerpsOrderDepositTracking();
 
-  const { onConfirm: onDepositConfirm } = useTransactionConfirm({
-    skipNavigation: true,
-  });
+  const { onConfirm: onDepositConfirm } = useTransactionConfirm();
 
   const handlePlaceOrder = useCallback(
     async (forceTrade = false) => {

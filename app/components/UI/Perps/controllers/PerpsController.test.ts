@@ -2626,7 +2626,7 @@ describe('PerpsController', () => {
       expect(amounts).toContain('200');
     });
 
-    it('uses addTransaction when skipNavigation is true', async () => {
+    it('uses addTransaction when depositAndPlaceOrder is true', async () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       mockAddTransaction.mockResolvedValue({

@@ -54,8 +54,8 @@ jest.mock('@react-navigation/native', () => ({
 
 const CHAIN_ID_MOCK = '0x123';
 
-function renderHook(options?: { skipNavigation?: boolean }) {
-  return renderHookWithProvider(() => useTransactionConfirm(options), {
+function renderHook() {
+  return renderHookWithProvider(() => useTransactionConfirm(), {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
@@ -240,25 +240,6 @@ describe('useTransactionConfirm', () => {
     expect(onApprovalConfirm).not.toHaveBeenCalled();
   });
 
-  it('skips navigation when skipNavigation option is true', async () => {
-    const tryEnableEvmNetworkMock = jest.fn();
-
-    useNetworkEnablementMock.mockReturnValue({
-      tryEnableEvmNetwork: tryEnableEvmNetworkMock,
-    } as unknown as ReturnType<typeof useNetworkEnablement>);
-
-    const { result } = renderHook({ skipNavigation: true });
-
-    await act(async () => {
-      await result.current.onConfirm();
-    });
-    await flushPromises();
-
-    expect(onApprovalConfirm).toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
   it('returns false for chainSupportsSendBundle when chainId is undefined', async () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -299,6 +280,22 @@ describe('useTransactionConfirm', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
       });
+    });
+
+    it('skips navigation if perps deposit and order (caller handles navigation)', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsDepositAndOrder,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('wallet home if musdConversion', async () => {
