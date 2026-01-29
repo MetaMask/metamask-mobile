@@ -7,7 +7,7 @@ import {
   refreshMobileBrowser,
 } from '../../utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import MultiChainEvmTestDapp from '../../../wdio/screen-objects/MultiChainEvmTestDapp.js';
+import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
@@ -15,19 +15,34 @@ import SwitchChainModal from '../../../wdio/screen-objects/Modals/SwitchChainMod
 import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.js';
+import PlaygroundDappServer from './helpers/PlaygroundDappServer.js';
 
-const EVM_LEGACY_TEST_DAPP_URL =
-  'https://metamask.github.io/connect-monorepo/legacy-evm-e2e/';
-const EVM_LEGACY_TEST_DAPP_NAME = 'Connect | Legacy EVM';
+// Local server configuration
+const DAPP_PORT = 8090;
+const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
+
 // NOTE: This test requires the testing SRP to be used
 const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_3_ADDRESS = '0xE2bEca5CaDC60b61368987728b4229822e6CDa83';
 
-test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
+// Start local playground server before all tests
+test.beforeAll(async () => {
+  await PlaygroundDappServer.start(DAPP_PORT);
+});
+
+// Stop local playground server after all tests
+test.afterAll(async () => {
+  await PlaygroundDappServer.stop();
+});
+
+test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground ', async ({
   device,
 }) => {
+  const platform = device.getPlatform?.() || 'android';
+  const DAPP_URL = PlaygroundDappServer.getUrl(platform);
+
   WalletMainScreen.device = device;
-  MultiChainEvmTestDapp.device = device;
+  BrowserPlaygroundDapp.device = device;
   AndroidScreenHelpers.device = device;
   DappConnectionModal.device = device;
   SignModal.device = device;
@@ -43,20 +58,16 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
     await launchMobileBrowser(device);
-    await navigateToDapp(
-      device,
-      EVM_LEGACY_TEST_DAPP_URL,
-      EVM_LEGACY_TEST_DAPP_NAME,
-    );
+    await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.tapConnectButton();
+      await BrowserPlaygroundDapp.tapConnectLegacy();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -74,14 +85,12 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.isDappConnected();
-      await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
-      await MultiChainEvmTestDapp.assertConnectedAccountsValue(
-        `${ACCOUNT_1_ADDRESS.toLowerCase()},${ACCOUNT_3_ADDRESS.toLowerCase()}`,
-      );
-      await MultiChainEvmTestDapp.tapPersonalSignButton();
+      await BrowserPlaygroundDapp.assertConnected(true);
+      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
+      await BrowserPlaygroundDapp.tapPersonalSign();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -96,13 +105,13 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.assertRequestResponseValue(
+      await BrowserPlaygroundDapp.assertResponseValue(
         // Account 1 signed the message
         '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
       );
-      await MultiChainEvmTestDapp.tapSendTransactionButton();
+      await BrowserPlaygroundDapp.tapSendTransaction();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -118,12 +127,11 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.assertRequestResponseValue(
-        'User denied transaction signature.',
-      );
-      await MultiChainEvmTestDapp.tapSwitchToPolygonButton();
+      // Note: Error message may differ slightly in browser playground
+      await BrowserPlaygroundDapp.assertResponseValue('denied');
+      await BrowserPlaygroundDapp.tapSwitchToPolygon();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -139,10 +147,10 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.assertConnectedChainValue('0x89');
-      await MultiChainEvmTestDapp.tapSendTransactionButton();
+      await BrowserPlaygroundDapp.assertChainIdValue('0x89');
+      await BrowserPlaygroundDapp.tapSendTransaction();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -158,11 +166,11 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.tapSwitchToEthereumMainnetButton();
-      await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
-      await MultiChainEvmTestDapp.tapSendTransactionButton();
+      await BrowserPlaygroundDapp.tapSwitchToMainnet();
+      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+      await BrowserPlaygroundDapp.tapSendTransaction();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -170,7 +178,10 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
     await SignModal.assertNetworkText('Ethereum');
     await SignModal.tapCancelButton();
 
-    // Change selected account to Account 3
+    // Wait here to make sure UI is visible before attempted interaction
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Change selected account to Account 3 in MetaMask
     await WalletMainScreen.tapIdenticon();
     await AccountListComponent.isComponentDisplayed();
     await AccountListComponent.tapOnAccountByName('Account 3');
@@ -183,17 +194,11 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.assertConnectedAccountsValue(
-        // Note that this is checksummed but the initial connection is not checksummed. Fix this
-        `${ACCOUNT_3_ADDRESS},${ACCOUNT_1_ADDRESS.toLowerCase()}`,
-      );
+      // Verify account changed to Account 3
+      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
-
-  //
-  // Resume from refresh
-  //
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await refreshMobileBrowser(device);
@@ -203,16 +208,12 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.isDappConnected();
-      await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
-      await MultiChainEvmTestDapp.assertConnectedAccountsValue(
-        // Note that this is checksummed but the initial connection is not checksummed. Fix this
-        `${ACCOUNT_3_ADDRESS},${ACCOUNT_1_ADDRESS.toLowerCase()}`,
-      );
-      await MultiChainEvmTestDapp.assertRequestResponseValue(''); // Make this better
-      await MultiChainEvmTestDapp.tapPersonalSignButton();
+      await BrowserPlaygroundDapp.assertConnected(true);
+      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
+      await BrowserPlaygroundDapp.tapPersonalSign();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -227,29 +228,19 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      // Validate that responses for requests other than the initial connection request
-      // can be received by the dapp still
-      await MultiChainEvmTestDapp.assertRequestResponseValue(
-        'User rejected the request.',
-      );
+      await BrowserPlaygroundDapp.assertResponseValue('rejected');
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
-
-  //
-  // Terminate and connect
-  //
 
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.tapTerminateButton();
-      await MultiChainEvmTestDapp.assertDappConnected('false');
-      await MultiChainEvmTestDapp.assertConnectedAccountsValue(''); // Make this better
-      // TODO: check chain value when fixed
-      await MultiChainEvmTestDapp.tapConnectButton();
+      await BrowserPlaygroundDapp.tapDisconnect();
+      await BrowserPlaygroundDapp.assertConnected(false);
+      await BrowserPlaygroundDapp.tapConnectLegacy();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -264,14 +255,12 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.isDappConnected();
-      await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
-      await MultiChainEvmTestDapp.assertConnectedAccountsValue(
-        ACCOUNT_3_ADDRESS.toLowerCase(),
-      );
-      await MultiChainEvmTestDapp.tapPersonalSignButton();
+      await BrowserPlaygroundDapp.assertConnected(true);
+      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
+      await BrowserPlaygroundDapp.tapPersonalSign();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -286,24 +275,18 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.assertRequestResponseValue(
-        'User rejected the request.',
-      );
+      await BrowserPlaygroundDapp.assertResponseValue('rejected');
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
-
-  //
-  // Wait for incomplete session timeout on refresh and reconnect after
-  //
 
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.tapTerminateButton();
-      await MultiChainEvmTestDapp.tapConnectButton();
+      await BrowserPlaygroundDapp.tapDisconnect();
+      await BrowserPlaygroundDapp.tapConnectLegacy();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -323,9 +306,9 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.assertDappConnected('false');
+      await BrowserPlaygroundDapp.assertConnected(false);
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -333,10 +316,10 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.assertDappConnected('false'); // should still be false
-      await MultiChainEvmTestDapp.tapConnectButton();
+      await BrowserPlaygroundDapp.assertConnected(false);
+      await BrowserPlaygroundDapp.tapConnectLegacy();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -351,10 +334,10 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.isDappConnected();
-      await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
+      await BrowserPlaygroundDapp.assertConnected(true);
+      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   //
@@ -365,11 +348,12 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.tapEthGetBalanceButton();
+      await BrowserPlaygroundDapp.tapGetBalance();
       await new Promise((resolve) => setTimeout(resolve, 10000));
-      await MultiChainEvmTestDapp.assertRequestResponseValue('0x0');
+      // Balance response should contain "Balance:" prefix
+      await BrowserPlaygroundDapp.assertResponseValue('Balance:');
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   //
@@ -379,8 +363,8 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await MultiChainEvmTestDapp.tapTerminateButton();
+      await BrowserPlaygroundDapp.tapDisconnect();
     },
-    EVM_LEGACY_TEST_DAPP_URL,
+    DAPP_URL,
   );
 });

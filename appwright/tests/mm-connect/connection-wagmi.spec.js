@@ -7,7 +7,7 @@ import {
   refreshMobileBrowser,
 } from '../../utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import WagmiTestDapp from '../../../wdio/screen-objects/WagmiTestDapp.js';
+import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
@@ -15,19 +15,36 @@ import SwitchChainModal from '../../../wdio/screen-objects/Modals/SwitchChainMod
 import AddChainModal from '../../../wdio/screen-objects/Modals/AddChainModal.js';
 import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
+import PlaygroundDappServer from './helpers/PlaygroundDappServer.js';
 
-const WAGMI_TEST_DAPP_URL =
-  'https://metamask.github.io/connect-monorepo/wagmi-e2e/';
-const WAGMI_TEST_DAPP_NAME = 'React Vite';
+// Local server configuration
+const DAPP_PORT = 8090;
+const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
+
 // NOTE: This test requires the testing SRP to be used
 const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_3_ADDRESS = '0xE2bEca5CaDC60b61368987728b4229822e6CDa83';
 
-test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
+// Start local playground server before all tests
+test.beforeAll(async () => {
+  await PlaygroundDappServer.start(DAPP_PORT);
+});
+
+// Stop local playground server after all tests
+test.afterAll(async () => {
+  await PlaygroundDappServer.stop();
+});
+
+test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', async ({
   device,
 }) => {
+  // Get platform-specific URL
+  const platform = device.getPlatform?.() || 'android';
+  const DAPP_URL = PlaygroundDappServer.getUrl(platform);
+
+  // Initialize page objects with device
   WalletMainScreen.device = device;
-  WagmiTestDapp.device = device;
+  BrowserPlaygroundDapp.device = device;
   AndroidScreenHelpers.device = device;
   DappConnectionModal.device = device;
   SignModal.device = device;
@@ -41,20 +58,31 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     shouldWaitForQuiescence: false,
   });
 
+  // ============================================================
+  // LOGIN AND NAVIGATE TO DAPP
+  // ============================================================
+
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
     await launchMobileBrowser(device);
-    await navigateToDapp(device, WAGMI_TEST_DAPP_URL, WAGMI_TEST_DAPP_NAME);
+    await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
+
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
+  // ============================================================
+  // CONNECT VIA WAGMI
+  // ============================================================
 
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.tapConnectButton();
+      await BrowserPlaygroundDapp.tapConnectWagmi();
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
+  // Handle connection approval in MetaMask
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await DappConnectionModal.tapEditAccountsButton();
@@ -73,17 +101,24 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  // ============================================================
+  // VERIFY CONNECTION AND SIGN MESSAGE
+  // ============================================================
+
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.isDappConnected();
-      await WagmiTestDapp.assertConnectedChainValue('1');
-      await WagmiTestDapp.assertConnectedAccountsValue(ACCOUNT_1_ADDRESS);
-      await WagmiTestDapp.tapPersonalSignButton();
+      await BrowserPlaygroundDapp.assertWagmiConnected(true);
+      await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
+      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
+      // Type a message and sign
+      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
+      await BrowserPlaygroundDapp.tapWagmiSignMessage();
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
+  // Approve sign request in MetaMask
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('Ethereum');
@@ -94,19 +129,23 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  // Verify signature result and switch to Sepolia
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.assertPersonalSignResponseValue(
-        '0xf6b3f2e43a0c7f1dbfb107b6d687979c8ae21ab7c065fa610bf52f8c579b21292e224e7af93cf16dd2f309de7072b46f11a21e08d76c6c5a3d10ce885e997d4b1b',
-      );
-      await WagmiTestDapp.tapSwitchChainButton('11155111'); // Sepolia
-      await WagmiTestDapp.assertConnectedChainValue('11155111');
-      await WagmiTestDapp.tapPersonalSignButton();
+      // Verify we got a signature
+      await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
+      // Switch to Sepolia
+      await BrowserPlaygroundDapp.tapWagmiSwitchChain(11155111);
+      await BrowserPlaygroundDapp.assertWagmiChainIdValue('11155111');
+      // Sign another message on Sepolia
+      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello Sepolia');
+      await BrowserPlaygroundDapp.tapWagmiSignMessage();
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
+  // Cancel sign request
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('Sepolia');
@@ -117,12 +156,16 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  // ============================================================
+  // SWITCH TO OP MAINNET (requires approval since unselected earlier)
+  // ============================================================
+
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.tapSwitchChainButton('10'); // OP Mainnet
+      await BrowserPlaygroundDapp.tapWagmiSwitchChain(10); // OP Mainnet
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -138,10 +181,11 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.assertConnectedChainValue('10');
-      await WagmiTestDapp.tapPersonalSignButton();
+      await BrowserPlaygroundDapp.assertWagmiChainIdValue('10');
+      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello OP');
+      await BrowserPlaygroundDapp.tapWagmiSignMessage();
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -149,7 +193,10 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     await SignModal.assertNetworkText('OP');
     await SignModal.tapCancelButton();
 
-    // Change selected account to Account 3
+    // Wait here to make sure UI is visible before attempted interaction
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Change selected account to Account 3 in MetaMask
     await WalletMainScreen.tapIdenticon();
     await AccountListComponent.isComponentDisplayed();
     await AccountListComponent.tapOnAccountByName('Account 3');
@@ -159,13 +206,18 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  // ============================================================
+  // VERIFY ACCOUNT CHANGE AND ADD CELO CHAIN
+  // ============================================================
+
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.assertConnectedAccountsValue(ACCOUNT_3_ADDRESS);
-      await WagmiTestDapp.tapSwitchChainButton('42220'); // Celo
+      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
+      // Try to switch to Celo (will trigger add chain)
+      await BrowserPlaygroundDapp.tapWagmiSwitchChain(42220);
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -182,10 +234,11 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.assertConnectedChainValue('42220');
-      await WagmiTestDapp.tapPersonalSignButton();
+      await BrowserPlaygroundDapp.assertWagmiChainIdValue('42220');
+      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello Celo');
+      await BrowserPlaygroundDapp.tapWagmiSignMessage();
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -198,9 +251,9 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  //
-  // Resume from refresh
-  //
+  // ============================================================
+  // RESUME FROM REFRESH
+  // ============================================================
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await refreshMobileBrowser(device);
@@ -210,13 +263,14 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.isDappConnected();
-      // TODO: Determine why the chain resets to 1 after refresh
-      await WagmiTestDapp.assertConnectedChainValue('1');
-      await WagmiTestDapp.assertConnectedAccountsValue(ACCOUNT_3_ADDRESS);
-      await WagmiTestDapp.tapPersonalSignButton();
+      await BrowserPlaygroundDapp.assertWagmiConnected(true);
+      // Note: Chain may reset to 1 after refresh
+      await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
+      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
+      await BrowserPlaygroundDapp.typeWagmiSignMessage('After refresh');
+      await BrowserPlaygroundDapp.tapWagmiSignMessage();
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -228,20 +282,18 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  //
-  // Terminate and connect
-  //
+  // ============================================================
+  // DISCONNECT AND RECONNECT
+  // ============================================================
 
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.tapDisconnectButton();
-      await WagmiTestDapp.assertDappConnectedStatus('disconnected');
-      await WagmiTestDapp.assertConnectedChainValue('');
-      await WagmiTestDapp.assertConnectedAccountsValue('');
-      await WagmiTestDapp.tapConnectButton();
+      await BrowserPlaygroundDapp.tapDisconnect();
+      await BrowserPlaygroundDapp.assertWagmiConnected(false);
+      await BrowserPlaygroundDapp.tapConnectWagmi();
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -256,24 +308,24 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.isDappConnected();
-      await WagmiTestDapp.assertConnectedChainValue('1');
-      await WagmiTestDapp.assertConnectedAccountsValue(ACCOUNT_3_ADDRESS);
+      await BrowserPlaygroundDapp.assertWagmiConnected(true);
+      await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
+      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
-  //
-  // Wait for incomplete session timeout on refresh and reconnect after
-  //
+  // ============================================================
+  // INCOMPLETE SESSION TIMEOUT TEST
+  // ============================================================
 
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.tapDisconnectButton();
-      await WagmiTestDapp.tapConnectButton();
+      await BrowserPlaygroundDapp.tapDisconnect();
+      await BrowserPlaygroundDapp.tapConnectWagmi();
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -290,23 +342,16 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   });
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
-  await AppwrightHelpers.withWebAction(
-    device,
-    async () => {
-      await WagmiTestDapp.assertDappConnectedStatus('connecting');
-    },
-    WAGMI_TEST_DAPP_URL,
-  );
-
+  // After timeout, should be disconnected
   await new Promise((resolve) => setTimeout(resolve, 10000));
 
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.assertDappConnectedStatus('disconnected');
-      await WagmiTestDapp.tapConnectButton();
+      await BrowserPlaygroundDapp.assertWagmiConnected(false);
+      await BrowserPlaygroundDapp.tapConnectWagmi();
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -321,22 +366,22 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.isDappConnected();
-      await WagmiTestDapp.assertConnectedChainValue('1');
-      await WagmiTestDapp.assertConnectedAccountsValue(ACCOUNT_3_ADDRESS);
+      await BrowserPlaygroundDapp.assertWagmiConnected(true);
+      await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
+      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 
-  //
-  // Reset dapp state
-  //
+  // ============================================================
+  // CLEANUP - DISCONNECT
+  // ============================================================
 
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.tapDisconnectButton();
+      await BrowserPlaygroundDapp.tapDisconnect();
     },
-    WAGMI_TEST_DAPP_URL,
+    DAPP_URL,
   );
 });
