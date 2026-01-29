@@ -21,9 +21,28 @@ declare global {
   var __mockNavigate: jest.Mock;
 }
 
-// Mock privacy mode selector
+// Mock preferencesController selectors to avoid import chain issues
 jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
+  selectSmartTransactionsOptInStatus: jest.fn(() => false),
+  selectIpfsGateway: jest.fn(() => ''),
+  selectUseNftDetection: jest.fn(() => false),
+  selectShowMultiRpcModal: jest.fn(() => false),
+  selectUseTokenDetection: jest.fn(() => true),
+  selectDisplayNftMedia: jest.fn(() => true),
+  selectUseSafeChainsListValidation: jest.fn(() => true),
+  selectTokenSortConfig: jest.fn(() => ({})),
+  selectTokenNetworkFilter: jest.fn(() => ({})),
+  selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
+  selectIsMultiAccountBalancesEnabled: jest.fn(() => true),
+  selectShowTestNetworks: jest.fn(() => false),
+  selectIsIpfsGatewayEnabled: jest.fn(() => true),
+  selectIsSecurityAlertsEnabled: jest.fn(() => false),
+  selectUseTransactionSimulations: jest.fn(() => true),
+  selectSmartTransactionsMigrationApplied: jest.fn(() => false),
+  selectSmartTransactionsBannerDismissed: jest.fn(() => false),
+  selectDismissSmartAccountSuggestionEnabled: jest.fn(() => false),
+  selectSmartAccountOptIn: jest.fn(() => false),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
