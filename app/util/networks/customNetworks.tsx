@@ -27,6 +27,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
   'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
   'monad-mainnet': () => process.env.QUICKNODE_MONAD_URL,
+  'hyperevm-mainnet': () => process.env.QUICKNODE_HYPEREVM_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -93,8 +94,8 @@ export const PopularList = [
   {
     chainId: toHex('999'),
     nickname: 'HyperEVM',
-    rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
-    failoverRpcUrls: [],
+    rpcUrl: `https://hyperevm-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('hyperevm-mainnet'),
     ticker: 'HYPE',
     warning: true,
     rpcPrefs: {
