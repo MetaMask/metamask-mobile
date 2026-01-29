@@ -26,7 +26,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { BridgeModalParamList } from '../../types';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -39,10 +39,7 @@ const styleSheet = (params: { theme: Theme }) =>
     },
   });
 
-type Props = StackScreenProps<
-  BridgeModalParamList,
-  'TransactionDetailsBlockExplorer'
->;
+type Props = StackScreenProps<RootParamList, 'TransactionDetailsBlockExplorer'>;
 
 const BlockExplorersModal = ({ route }: Props) => {
   const navigation = useNavigation();

@@ -10,12 +10,9 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
 import BlockExplorersModal from './BlockExplorersModal';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { BridgeModalParamList } from '../../types';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
-type Props = StackScreenProps<
-  BridgeModalParamList,
-  'TransactionDetailsBlockExplorer'
->;
+type Props = StackScreenProps<RootParamList, 'TransactionDetailsBlockExplorer'>;
 
 describe('BlockExplorersModal', () => {
   const mockTx = {

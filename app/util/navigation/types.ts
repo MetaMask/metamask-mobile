@@ -22,7 +22,10 @@ import type { SecuritySettingsParams } from '../../components/Views/Settings/Sec
 // Import child navigator param lists
 import type { StakeParamList } from '../../components/UI/Stake/routes/types';
 import type { EarnParamList } from '../../components/UI/Earn/routes/types';
-import type { BridgeParamList } from '../../components/UI/Bridge/types';
+import type {
+  BridgeParamList,
+  TransactionDetailsBlockExplorerParams,
+} from '../../components/UI/Bridge/types';
 import type { CardParamList } from '../../components/UI/Card/routes/types';
 import type { RampParamList } from '../../components/UI/Ramp/types';
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
@@ -400,7 +403,7 @@ export type RootParamList = {
   SlippageModal: undefined;
   BridgeDestTokenSelector: undefined;
   BridgeDestNetworkSelector: undefined;
-  TransactionDetailsBlockExplorer: undefined;
+  TransactionDetailsBlockExplorer: TransactionDetailsBlockExplorerParams;
   QuoteExpiredModal: undefined;
   BlockaidModal: undefined;
   RecipientSelectorModal: undefined;

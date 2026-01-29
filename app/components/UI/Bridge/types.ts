@@ -75,6 +75,14 @@ export interface BridgeModalParamList {
 }
 
 /**
+ * Params for TransactionDetailsBlockExplorer route.
+ */
+export interface TransactionDetailsBlockExplorerParams {
+  evmTxMeta?: TransactionMeta;
+  multiChainTx?: Transaction;
+}
+
+/**
  * Combined param list for all Bridge-related navigation.
  */
 export type BridgeParamList = BridgeScreenParamList & BridgeModalParamList;
