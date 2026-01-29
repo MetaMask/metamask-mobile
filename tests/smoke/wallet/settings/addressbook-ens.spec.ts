@@ -17,7 +17,7 @@ import {
   SIMULATION_ENABLED_NETWORKS_MOCK,
   SEND_ETH_SIMULATION_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import CommonView from '../../../../e2e/pages/CommonView';
 import enContent from '../../../../locales/languages/en.json';
 import WalletView from '../../../../e2e/pages/wallet/WalletView';
@@ -29,7 +29,7 @@ const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    Object.assign({}, ...confirmationFeatureFlags),
   );
 
   await setupMockRequest(mockServer, {

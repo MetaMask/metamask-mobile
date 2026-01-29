@@ -98,12 +98,14 @@ jest.mock(
 
 const mockIsEnabled = jest.fn().mockReturnValue(true);
 
-jest.mock('../../hooks/useMetrics', () => {
-  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
+  const actualUseAnalytics = jest.requireActual(
+    '../../hooks/useAnalytics/useAnalytics',
+  );
   return {
-    ...actualUseMetrics,
-    useMetrics: jest.fn().mockReturnValue({
-      ...actualUseMetrics.useMetrics,
+    ...actualUseAnalytics,
+    useAnalytics: jest.fn().mockReturnValue({
+      ...actualUseAnalytics.useAnalytics,
       isEnabled: () => mockIsEnabled(),
     }),
   };
@@ -1377,6 +1379,111 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(passwordInput, 'Weak');
       });
 
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('choose_password.must_be_at_least', {
+              number: MIN_PASSWORD_LENGTH,
+            }),
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('helper text remains visible after password meets minimum length requirement', async () => {
+      const { getByText, getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      // Verify helper text is visible initially
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('choose_password.must_be_at_least', {
+              number: MIN_PASSWORD_LENGTH,
+            }),
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      // Enter a valid password that meets minimum length
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'ValidPassword123');
+      });
+
+      // Helper text should persist even after password meets requirement
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('choose_password.must_be_at_least', {
+              number: MIN_PASSWORD_LENGTH,
+            }),
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('shows error state only after password field loses focus with invalid password', async () => {
+      const { getByText, getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      // Enter a short password
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'short');
+      });
+
+      // Helper text should still be visible
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('choose_password.must_be_at_least', {
+              number: MIN_PASSWORD_LENGTH,
+            }),
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      // Blur the password field
+      await act(async () => {
+        fireEvent(passwordInput, 'blur');
+      });
+
+      // Helper text should still be visible after blur
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('choose_password.must_be_at_least', {
+              number: MIN_PASSWORD_LENGTH,
+            }),
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('hides error state when user focuses back on password field', async () => {
+      const { getByText, getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      // Enter a short password and blur to trigger error state
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'short');
+        fireEvent(passwordInput, 'blur');
+      });
+
+      // Focus back on the password field
+      await act(async () => {
+        fireEvent(passwordInput, 'focus');
+      });
+
+      // Helper text should still be visible but error state should be reset
       await waitFor(() => {
         expect(
           getByText(
