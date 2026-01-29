@@ -51,6 +51,7 @@ interface SectionConfig {
   }>;
   OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
+    index?: number;
     navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
@@ -140,6 +141,17 @@ const DEFAULT_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
   isSearchResult: false,
 };
 
+/**
+ * Filter context for tokens in search results on the Explore page.
+ * Used for analytics tracking of token clicks from search results.
+ */
+const SEARCH_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
+  timeFilter: TimeOption.TwentyFourHours,
+  sortOption: PriceChangeOption.PriceChange,
+  networkFilter: 'all',
+  isSearchResult: true,
+};
+
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
@@ -153,6 +165,13 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         token={item as TrendingAsset}
         position={index}
         filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
+      />
+    ),
+    OverrideRowItemSearch: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
       />
     ),
     Skeleton: TrendingTokensSkeleton,

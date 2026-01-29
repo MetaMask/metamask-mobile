@@ -138,6 +138,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         return (
           <section.OverrideRowItemSearch
             item={item.data}
+            index={index}
             navigation={navigation}
           />
         );
