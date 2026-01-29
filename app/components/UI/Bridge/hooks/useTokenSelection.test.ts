@@ -411,8 +411,7 @@ describe('useTokenSelection', () => {
 
       expect(mockIsStockToken).toHaveBeenCalledWith(stockDestToken);
       expect(mockIsTokenTradingOpen).toHaveBeenCalledWith(stockDestToken);
-      expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(stockDestToken));
-      expect(mockDispatch).toHaveBeenCalledWith(setDestToken(mockSourceToken));
+      expect(mockHandleSwitchTokens).toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalled();
     });
   });
