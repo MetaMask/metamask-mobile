@@ -102,6 +102,8 @@ exports[`InputStepper complete component snapshot renders complete component cor
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -350,6 +352,8 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -571,6 +575,8 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -792,6 +798,8 @@ exports[`InputStepper input renders correct style when value character length is
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -1013,6 +1021,8 @@ exports[`InputStepper input renders correct style when value character length is
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -1234,6 +1244,8 @@ exports[`InputStepper input renders correct style when value character length is
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -1455,6 +1467,8 @@ exports[`InputStepper input renders correct style when value character length is
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -1676,6 +1690,8 @@ exports[`InputStepper input renders correct style when value character length is
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -1897,6 +1913,8 @@ exports[`InputStepper minus button renders correct style of minus button when di
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -2118,6 +2136,8 @@ exports[`InputStepper minus button renders correct style of minus button when en
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -2339,6 +2359,8 @@ exports[`InputStepper plus button renders correct style of plus button when disa
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >
@@ -2560,6 +2582,8 @@ exports[`InputStepper plus button renders correct style of plus button when enab
       style={
         {
           "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
         }
       }
     >

@@ -18,6 +18,8 @@ export const inputStepperStyles = ({
     },
     inputRow: {
       flexDirection: 'row',
+      width: 100,
+      justifyContent: 'center',
     },
     input: {
       borderWidth: 0,
