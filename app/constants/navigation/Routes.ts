@@ -391,6 +391,9 @@ const Routes = {
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
     VERIFYING_REGISTRATION: 'VerifyingRegistration',
+    CHOOSE_YOUR_CARD: 'ChooseYourCard',
+    REVIEW_ORDER: 'ReviewOrder',
+    ORDER_COMPLETED: 'OrderCompleted',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -412,6 +415,8 @@ const Routes = {
       ASSET_SELECTION: 'CardAssetSelectionModal',
       REGION_SELECTION: 'CardRegionSelectionModal',
       CONFIRM_MODAL: 'CardConfirmModal',
+      RECURRING_FEE: 'CardRecurringFeeModal',
+      DAIMO_PAY: 'CardDaimoPayModal',
     },
   },
   SEND: {
