@@ -95,7 +95,7 @@
     "test:e2e:ios:debug:build": "IS_TEST='true' detox build -c ios.sim.main",
     "test:e2e:android:debug:run": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.main",
     "test:e2e:ios:debug:run": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c ios.sim.main",
-    "test:e2e:ios:debug:run:runway": "rm -rf build/Metamask.app && mkdir -p build && cp -R runway-artifacts/*.app build/Metamask.app && yarn test:e2e:ios:debug:run",
+    "test:e2e:ios:debug:run:runway": "yarn install:ios:runway --e2e && yarn test:e2e:ios:debug:run",
     "test:e2e:android:flask:build": "IS_TEST='true' detox build -c android.emu.flask",
     "test:e2e:ios:flask:build": "IS_TEST='true' detox build -c ios.sim.flask",
     "test:e2e:android:flask:run": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.flask",

@@ -136,20 +136,14 @@ This is the fastest way to run E2E tests using prebuilt artifacts from Runway.
 
 ### Prerequisites
 
-1. **Download and install the Runway build** by running:
-
-   ```bash
-   yarn install:ios:runway
-   ```
-
-2. **Configure environment variables** in your `.js.env` file:
+1. **Configure environment variables** in your `.js.env` file:
 
    ```bash
    export METAMASK_ENVIRONMENT='e2e'
    export METAMASK_BUILD_TYPE='main'
    ```
 
-3. **Make a copy of the example .e2e.env file**
+2. **Make a copy of the example .e2e.env file**
    ```bash
    cp .e2e.env.example .e2e.env
    ```
