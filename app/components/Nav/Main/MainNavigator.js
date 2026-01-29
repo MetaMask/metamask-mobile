@@ -600,6 +600,9 @@ const HomeTabs = () => {
             MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
           ).build(),
         );
+        // Re-enable AppState listener when returning to trending tab
+        // (it was disabled when leaving to prevent phantom sessions)
+        TrendingFeedSessionManager.getInstance().enableAppStateListener();
         // Start a new session when returning to trending tab
         // The session manager will ignore if a session is already active
         TrendingFeedSessionManager.getInstance().startSession('tab_press');
@@ -607,6 +610,9 @@ const HomeTabs = () => {
       onLeave: () => {
         // End trending session when user switches to another tab
         TrendingFeedSessionManager.getInstance().endSession();
+        // Disable AppState listener to prevent phantom sessions when app backgrounds/foregrounds
+        // while user is on a different tab (since TrendingView stays mounted with unmountOnBlur: false)
+        TrendingFeedSessionManager.getInstance().disableAppStateListener();
       },
       rootScreenName: Routes.TRENDING_VIEW,
       unmountOnBlur: false,
