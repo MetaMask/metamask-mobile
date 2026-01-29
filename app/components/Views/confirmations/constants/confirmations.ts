@@ -50,7 +50,6 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
   TransactionType.lendingWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
-  TransactionType.perpsDepositAndOrder,
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [

@@ -117,7 +117,10 @@ export const Confirm = ({
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
-  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation });
+  const { styles } = useStyles(styleSheet, {
+    isFullScreenConfirmation,
+    disableSafeArea,
+  });
 
   useEffect(() => {
     if (approvalRequest) {
