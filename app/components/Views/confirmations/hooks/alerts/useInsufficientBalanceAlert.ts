@@ -68,8 +68,8 @@ export const useInsufficientBalanceAlert = ({
     // Simulation is complete if it's disabled, or if enabled and gasFeeTokens is loaded
     const isSimulationComplete = !isSimulationEnabled || Boolean(gasFeeTokens);
 
-    // Check if user has selected a gas fee token (or we're ignoring that check)
-    const hasNoGasFeeTokenSelected = ignoreGasFeeToken || !selectedGasFeeToken;
+    // Check if user has selected a gas fee token (ignore when flag is set)
+    const hasNoGasFeeTokenSelected = !ignoreGasFeeToken && !selectedGasFeeToken;
 
     // Gasless check is complete AND one of:
     //  - Gasless is NOT supported (native currency needed for gas)
@@ -79,7 +79,7 @@ export const useInsufficientBalanceAlert = ({
       isGaslessCheckComplete &&
       (!isGaslessSupported ||
         isGasFeeTokensEmpty ||
-        (!isGasFeeTokensEmpty && !selectedGasFeeToken));
+        (!isGasFeeTokensEmpty && !selectedGasFeeToken && !ignoreGasFeeToken));
 
     const showAlert =
       hasInsufficientBalance &&
