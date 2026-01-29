@@ -29,5 +29,6 @@
   "editor.quickSuggestions": {
     "strings": true
   },
-  "editor.inlayHints.enabled": "on"
+  "editor.inlayHints.enabled": "on",
+  "java.compile.nullAnalysis.mode": "automatic"
 }
