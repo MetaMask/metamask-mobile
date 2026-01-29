@@ -21,7 +21,7 @@ import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
@@ -45,7 +45,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
-import { resetTransaction } from '../../../../../actions/transaction';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
@@ -204,14 +203,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   useClearConfirmationOnBackSwipe();
-  const dispatch = useDispatch();
-  // Clear any pending transaction state when leaving the screen (mirrors cleanup in useTransactionConfirm)
-  useEffect(
-    () => () => {
-      dispatch(resetTransaction());
-    },
-    [dispatch],
-  );
+
   // Disable automatic token selection - we want to show "Perps balance" by default
   // User can explicitly select a token from the modal
   useAutomaticTransactionPayToken({
