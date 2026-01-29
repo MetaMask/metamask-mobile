@@ -3,6 +3,14 @@
  * - ONLY Engine (business) and minimal native mocks.
  */
 
+jest.mock('@metamask/assets-controllers', () => {
+  const actual = jest.requireActual('@metamask/assets-controllers');
+  return {
+    ...actual,
+    getTrendingTokens: jest.fn().mockResolvedValue([]),
+  };
+});
+
 // Engine mock (singleton default export)
 jest.mock('../../../core/Engine', () => {
   const engine = {
