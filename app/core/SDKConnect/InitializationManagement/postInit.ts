@@ -56,7 +56,9 @@ async function postInit(instance: SDKConnect) {
   await waitForCondition({
     fn: () => {
       currentRouteName = instance.state.navigation?.getCurrentRoute()?.name;
-      return !waitRoutes.includes(currentRouteName ?? '');
+      return !waitRoutes.includes(
+        (currentRouteName ?? '') as (typeof waitRoutes)[number],
+      );
     },
     context: 'post_init',
     waitTime: 1000,

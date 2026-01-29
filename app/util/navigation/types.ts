@@ -790,6 +790,7 @@ export type RootParamList = {
   RootModalFlow:
     | NavigatorScreenParams<RootModalFlowParamList>
     | { screen?: string; params?: object }
+    | object
     | undefined;
   ModalConfirmation: object | undefined;
   ModalMandatory: object | undefined;

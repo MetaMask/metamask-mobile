@@ -60,11 +60,19 @@ export const checkPermissions = async ({
     // Make sure to wait for user to be on main pages before requesting permissions or request can get cancelled.
     const pendingRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN];
 
-    if (currentRouteName && pendingRoutes.includes(currentRouteName)) {
+    if (
+      currentRouteName &&
+      pendingRoutes.includes(currentRouteName as (typeof pendingRoutes)[number])
+    ) {
       await waitForCondition({
         fn: (): boolean => {
           const activeRoute = connection.navigation?.getCurrentRoute()?.name;
-          return Boolean(activeRoute && !pendingRoutes.includes(activeRoute));
+          return Boolean(
+            activeRoute &&
+              !pendingRoutes.includes(
+                activeRoute as (typeof pendingRoutes)[number],
+              ),
+          );
         },
         waitTime: 1000,
         context: 'checkPermissions',

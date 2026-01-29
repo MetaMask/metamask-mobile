@@ -161,7 +161,12 @@ async function connectToChannel({
             DevLogger.log(
               `connectToChannel:: currentRouteName=${currentRouteName}`,
             );
-            return !!currentRouteName && !skipRoutes.includes(currentRouteName);
+            return (
+              !!currentRouteName &&
+              !skipRoutes.includes(
+                currentRouteName as (typeof skipRoutes)[number],
+              )
+            );
           },
           context: 'connectToChannel',
         });
