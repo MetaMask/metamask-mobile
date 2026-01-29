@@ -124,8 +124,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 jest.mock('../../../util/phishingDetection', () => ({
-  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
-  getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
+  getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: false }),
 }));
 
 jest.mock('../../../util/browser', () => ({

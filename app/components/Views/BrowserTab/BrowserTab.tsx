@@ -113,11 +113,7 @@ import UrlAutocomplete, {
   UrlAutocompleteCategory,
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import {
-  getPhishingTestResult,
-  getPhishingTestResultAsync,
-  isProductSafetyDappScanningEnabled,
-} from '../../../util/phishingDetection';
+import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
@@ -340,9 +336,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const shouldShowPhishingModal = useCallback(
       (phishingUrlOrigin: string): boolean => {
-        if (!isProductSafetyDappScanningEnabled()) {
-          return true;
-        }
         const resolvedUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
         const loadingUrlOrigin = new URLParse(loadingUrlRef.current).origin;
         const shouldNotShow =
@@ -734,17 +727,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
         setIpfsBannerVisible(true);
         return false;
-      }
-
-      // TODO: Make sure to replace with cache hits once EPD has been deprecated.
-      if (!isProductSafetyDappScanningEnabled()) {
-        const scanResult = getPhishingTestResult(urlToLoad);
-        let whitelistUrlInput = prefixUrlWithProtocol(urlToLoad);
-        whitelistUrlInput = whitelistUrlInput.replace(/\/$/, ''); // removes trailing slash
-        if (scanResult.result && !whitelist.includes(whitelistUrlInput)) {
-          handleNotAllowedUrl(urlToLoad);
-          return false;
-        }
       }
 
       // Check if this is an internal MetaMask deeplink that should be handled within the app

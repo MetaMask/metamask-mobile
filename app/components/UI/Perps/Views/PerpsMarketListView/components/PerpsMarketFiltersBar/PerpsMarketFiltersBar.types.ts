@@ -16,34 +16,19 @@ export interface PerpsMarketFiltersBarProps {
   onSortPress: () => void;
 
   /**
-   * Whether to show market type dropdown
-   */
-  showMarketTypeDropdown?: boolean;
-
-  /**
    * Selected market type filter
    */
-  marketTypeFilter?: MarketTypeFilter;
+  marketTypeFilter: MarketTypeFilter;
 
   /**
-   * Callback when market type dropdown is pressed
+   * Callback when a category is selected
    */
-  onMarketTypePress?: () => void;
+  onCategorySelect: (category: MarketTypeFilter) => void;
 
   /**
-   * Whether to show stocks/commodities dropdown (only for Stocks tab)
+   * Optional list of available categories (for hiding empty categories)
    */
-  showStocksCommoditiesDropdown?: boolean;
-
-  /**
-   * Selected stocks/commodities filter
-   */
-  stocksCommoditiesFilter?: 'all' | 'equity' | 'commodity';
-
-  /**
-   * Callback when stocks/commodities dropdown is pressed
-   */
-  onStocksCommoditiesPress?: () => void;
+  availableCategories?: Exclude<MarketTypeFilter, 'all'>[];
 
   /**
    * Optional test ID for testing
