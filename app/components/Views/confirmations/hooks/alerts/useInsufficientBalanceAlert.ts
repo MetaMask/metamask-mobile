@@ -12,7 +12,11 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
+} from '../pay/useTransactionPayData';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 
@@ -30,6 +34,8 @@ export const useInsufficientBalanceAlert = ({
   const { isSupported: isGaslessSupported, pending: isGaslessCheckPending } =
     useIsGaslessSupported();
   const { payToken } = useTransactionPayToken();
+  const quotes = useTransactionPayQuotes();
+  const isQuotesLoading = useIsTransactionPayLoading();
   const requiredTokens = useTransactionPayRequiredTokens();
   const isSimulationEnabled = useSelector(selectUseTransactionSimulations);
   const { hasInsufficientBalance, nativeCurrency } =
@@ -44,6 +50,10 @@ export const useInsufficientBalanceAlert = ({
     payToken.chainId === primaryRequiredToken?.chainId &&
     payToken.address.toLowerCase() ===
       primaryRequiredToken?.address.toLowerCase();
+
+  const hasPayTokenQuotes = Boolean(quotes?.length);
+  const shouldSkipInsufficientBalanceForPayToken =
+    isPayTokenTarget && (isQuotesLoading || hasPayTokenQuotes);
 
   return useMemo(() => {
     if (
@@ -68,8 +78,8 @@ export const useInsufficientBalanceAlert = ({
     // Simulation is complete if it's disabled, or if enabled and gasFeeTokens is loaded
     const isSimulationComplete = !isSimulationEnabled || Boolean(gasFeeTokens);
 
-    // Check if user has selected a gas fee token (ignore when flag is set)
-    const hasNoGasFeeTokenSelected = !ignoreGasFeeToken && !selectedGasFeeToken;
+    // Check if user has selected a gas fee token (or we're ignoring that check)
+    const hasNoGasFeeTokenSelected = ignoreGasFeeToken || !selectedGasFeeToken;
 
     // Gasless check is complete AND one of:
     //  - Gasless is NOT supported (native currency needed for gas)
@@ -79,9 +89,10 @@ export const useInsufficientBalanceAlert = ({
       isGaslessCheckComplete &&
       (!isGaslessSupported ||
         isGasFeeTokensEmpty ||
-        (!isGasFeeTokensEmpty && !selectedGasFeeToken && !ignoreGasFeeToken));
+        (!isGasFeeTokensEmpty && !selectedGasFeeToken));
 
     const showAlert =
+      !shouldSkipInsufficientBalanceForPayToken &&
       hasInsufficientBalance &&
       isSimulationComplete &&
       hasNoGasFeeTokenSelected &&
@@ -124,6 +135,7 @@ export const useInsufficientBalanceAlert = ({
     isGaslessSupported,
     isSimulationEnabled,
     ignoreGasFeeToken,
+    shouldSkipInsufficientBalanceForPayToken,
     hasInsufficientBalance,
     nativeCurrency,
     goToBuy,

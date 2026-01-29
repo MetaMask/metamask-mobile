@@ -16,7 +16,11 @@ import { noop } from 'lodash';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
-import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
+} from '../pay/useTransactionPayData';
 import {
   TransactionPayRequiredToken,
   TransactionPaymentToken,
@@ -82,6 +86,10 @@ describe('useInsufficientBalanceAlert', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
+  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
+  );
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useHasInsufficientBalanceMock = jest.mocked(useHasInsufficientBalance);
 
@@ -143,6 +151,8 @@ describe('useInsufficientBalanceAlert', () => {
     });
 
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
+    useTransactionPayQuotesMock.mockReturnValue([]);
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
@@ -323,6 +333,33 @@ describe('useInsufficientBalanceAlert', () => {
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 
     expect(result.current).toHaveLength(1);
+  });
+
+  it('returns no alert when pay token matches required token and quotes are available', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: '0x123' as Hex,
+        chainId: mockChainId,
+      } as TransactionPaymentToken,
+      setPayToken: jest.fn(),
+    });
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: '0x123' as Hex,
+        chainId: mockChainId,
+      } as TransactionPayRequiredToken,
+    ]);
+
+    useTransactionPayQuotesMock.mockReturnValue([
+      {
+        provider: 'mock-provider',
+      },
+    ] as unknown as ReturnType<typeof useTransactionPayQuotes>);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toEqual([]);
   });
 
   describe('when ignoreGasFeeToken is true', () => {

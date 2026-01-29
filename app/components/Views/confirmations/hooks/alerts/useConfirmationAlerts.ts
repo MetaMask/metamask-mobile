@@ -15,9 +15,6 @@ import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../utils/transaction';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -26,14 +23,8 @@ function useSignatureAlerts(): Alert[] {
 }
 
 function useTransactionAlerts(): Alert[] {
-  const transactionMetadata = useTransactionMetadataRequest();
-  const ignoreGasFeeToken = hasTransactionType(transactionMetadata, [
-    TransactionType.perpsDeposit,
-  ]);
   const gasEstimateFailedAlert = useGasEstimateFailedAlert();
-  const insufficientBalanceAlert = useInsufficientBalanceAlert({
-    ignoreGasFeeToken,
-  });
+  const insufficientBalanceAlert = useInsufficientBalanceAlert();
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
   const pendingTransactionAlert = usePendingTransactionAlert();
   const batchedUnusedApprovalsAlert = useBatchedUnusedApprovalsAlert();
