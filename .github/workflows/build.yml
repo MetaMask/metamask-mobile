@@ -69,7 +69,7 @@ jobs:
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
-    # Android uses Cirrus runner with SDK pre-installed; iOS uses GitHub-hosted macOS
+    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
     runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     env:
@@ -185,6 +185,9 @@ jobs:
         run: cp android/gradle.properties.github android/gradle.properties
 
       - name: Build ${{ matrix.platform }}
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          METRO_MAX_WORKERS: '4'
         run: |
           ./scripts/build.sh ${{ matrix.platform }} ${{ inputs.build_name }}
 
