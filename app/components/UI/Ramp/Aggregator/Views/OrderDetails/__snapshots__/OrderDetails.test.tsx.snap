@@ -131,7 +131,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={11}
+              handlerTag={12}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -1560,7 +1560,7 @@ exports[`OrderDetails renders a completed order 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={9}
+              handlerTag={10}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3007,7 +3007,7 @@ exports[`OrderDetails renders a created order 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={22}
+              handlerTag={23}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4432,7 +4432,7 @@ exports[`OrderDetails renders a failed order 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={13}
+              handlerTag={14}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5861,7 +5861,7 @@ exports[`OrderDetails renders a pending order 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={7}
+              handlerTag={8}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7696,7 +7696,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={34}
+              handlerTag={35}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -8294,7 +8294,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={30}
+              handlerTag={31}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -9784,7 +9784,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={37}
+              handlerTag={39}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -11277,7 +11277,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={24}
+              handlerTag={25}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -12702,7 +12702,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={26}
+              handlerTag={27}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}

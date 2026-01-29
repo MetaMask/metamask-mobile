@@ -194,8 +194,8 @@ describe('OrderDetails', () => {
     };
     render(OrderDetails);
 
-    expect(screen.getByTestId('header')).toBeTruthy();
-    expect(screen.getByText('Order details')).toBeTruthy();
+    expect(screen.getByTestId('header')).toBeOnTheScreen();
+    expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
   it('redirects to send transaction page when user is redirected back from a provider for a sell order', async () => {
@@ -478,8 +478,8 @@ describe('OrderDetails', () => {
     });
     await waitFor(() => render(OrderDetails, [createdOrder]));
 
-    expect(screen.getByTestId('header')).toBeTruthy();
-    expect(screen.getByText('Order details')).toBeTruthy();
+    expect(screen.getByTestId('header')).toBeOnTheScreen();
+    expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
   it('renders the support links if the provider has them', async () => {
