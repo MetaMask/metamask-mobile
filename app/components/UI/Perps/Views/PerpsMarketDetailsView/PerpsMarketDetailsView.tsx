@@ -13,6 +13,11 @@ import React, {
   useState,
 } from 'react';
 import { Linking, RefreshControl, ScrollView, View } from 'react-native';
+import type { Position ,
+  PerpsMarketData,
+  PerpsNavigationParamList,
+  TPSLTrackingData,
+} from '../../controllers/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -79,11 +84,6 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import type {
-  PerpsMarketData,
-  PerpsNavigationParamList,
-  TPSLTrackingData,
-} from '../../controllers/types';
 import {
   usePerpsConnection,
   usePerpsNavigation,
@@ -204,6 +204,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Track current market symbol for staleness checks in async callbacks
   // Using a ref allows reading the CURRENT value at execution time, not closure-captured value
   const currentMarketSymbolRef = useRef<string | undefined>(market?.symbol);
+  // Track current position for callbacks that are stored (e.g., route params) and called later
+  // This prevents stale closure issues where the captured position is outdated
+  // Initialized to null, will be updated via useEffect when existingPosition is available
+  const currentPositionRef = useRef<Position | null>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -409,6 +413,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     asset: market?.symbol || '',
     loadOnMount: true,
   });
+
+  // Keep current position ref in sync for callbacks stored in route params
+  // This must be after useHasExistingPosition since it depends on existingPosition
+  useEffect(() => {
+    currentPositionRef.current = existingPosition;
+  }, [existingPosition]);
 
   // Compute TP/SL lines for the chart based on existing position
   // Use chartCurrentPrice (from candle close) to ensure price line syncs with live candle
@@ -737,9 +747,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         stopLossPrice?: string,
         trackingData?: TPSLTrackingData,
       ) => {
+        // Use ref to get CURRENT position at execution time, not the closure-captured position
+        // This prevents "No position found" errors when the position updates during navigation
+        const currentPosition = currentPositionRef.current;
+        if (!currentPosition) {
+          return { success: false };
+        }
         // Return value checked for consistency - error toast is shown internally by hook
         const result = await handleUpdateTPSL(
-          existingPosition,
+          currentPosition,
           takeProfitPrice,
           stopLossPrice,
           trackingData,
