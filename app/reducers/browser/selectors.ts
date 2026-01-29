@@ -19,6 +19,3 @@ export const selectBrowserTabCount = (state: RootState) =>
   state.browser.tabs.length;
 
 export const selectBrowserTabs = (state: RootState) => state.browser.tabs;
-
-export const selectBrowserActiveTabId = (state: RootState) =>
-  state.browser.activeTab;

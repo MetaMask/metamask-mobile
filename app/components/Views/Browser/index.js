@@ -63,7 +63,7 @@ const MAX_BROWSER_TABS = 5;
  * Component that wraps all the browser
  * individual tabs and the tabs view
  */
-export const Browser = React.memo((props) => {
+export const BrowserPure = (props) => {
   const {
     route,
     navigation,
@@ -521,8 +521,9 @@ export const Browser = React.memo((props) => {
       {renderTabList()}
     </View>
   );
-});
+};
 
+const Browser = React.memo(BrowserPure);
 Browser.displayName = 'Browser';
 
 const mapStateToProps = (state) => ({
@@ -538,7 +539,7 @@ const mapDispatchToProps = (dispatch) => ({
   updateTab: (id, url) => dispatch(updateTab(id, url)),
 });
 
-Browser.propTypes = {
+BrowserPure.propTypes = {
   /**
    * react-navigation object used to switch between screens
    */
