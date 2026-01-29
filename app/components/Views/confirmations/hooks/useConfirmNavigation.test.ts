@@ -8,6 +8,7 @@ import { ConfirmationLoader } from '../components/confirm/confirm-component';
 import { useConfirmNavigation } from './useConfirmNavigation';
 import { act } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
+import type { RootParamList } from '../../../../util/navigation/types';
 
 const mockNavigate = jest.fn();
 
@@ -26,7 +27,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const STACK_MOCK = 'SomeStack';
+const STACK_MOCK = 'SomeStack' as keyof RootParamList;
 const TRANSACTION_ID_MOCK = '123-456';
 
 function runHook({ transactions }: { transactions?: TransactionMeta[] } = {}) {

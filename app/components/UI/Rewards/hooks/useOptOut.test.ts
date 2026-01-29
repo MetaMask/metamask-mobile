@@ -15,6 +15,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import type { RootParamList } from '../../../../util/navigation/types';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -407,7 +408,9 @@ describe('useOptout', () => {
 
       // Act
       act(() => {
-        result.current.showOptoutBottomSheet(dismissRoute);
+        result.current.showOptoutBottomSheet(
+          dismissRoute as keyof RootParamList,
+        );
       });
 
       // Get onCancel function from navigate call
@@ -713,7 +716,9 @@ describe('useOptout', () => {
 
       // Act
       act(() => {
-        result.current.showOptoutBottomSheet(customDismissRoute);
+        result.current.showOptoutBottomSheet(
+          customDismissRoute as keyof RootParamList,
+        );
       });
 
       // Assert
@@ -749,9 +754,9 @@ describe('useOptout', () => {
 
       // Act - Call showOptoutBottomSheet multiple times rapidly
       act(() => {
-        result.current.showOptoutBottomSheet('Route1');
-        result.current.showOptoutBottomSheet('Route2');
-        result.current.showOptoutBottomSheet('Route3');
+        result.current.showOptoutBottomSheet('Route1' as keyof RootParamList);
+        result.current.showOptoutBottomSheet('Route2' as keyof RootParamList);
+        result.current.showOptoutBottomSheet('Route3' as keyof RootParamList);
       });
 
       // Assert - Should have been called 3 times, with the last call using 'Route3'

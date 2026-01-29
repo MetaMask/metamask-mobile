@@ -61,6 +61,7 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
+import type { RootParamList } from '../../../../../util/navigation/types';
 import {
   getCaipChainId,
   normalizeSymbol,
@@ -87,7 +88,7 @@ interface AssetSelectionModalNavigationDetails {
   onTokenSelect?: (token: CardTokenAllowance) => void;
   hideSolanaAssets?: boolean;
   // For navigation-based selection mode: where to return with the selected token
-  callerRoute?: string;
+  callerRoute?: keyof RootParamList;
   callerParams?: Record<string, unknown>;
 }
 
@@ -516,10 +517,14 @@ const AssetSelectionBottomSheet: React.FC = () => {
         closeBottomSheetAndNavigate(() => {
           if (callerRoute) {
             // Navigate back to the caller route with the selected token
-            navigation.navigate(callerRoute, {
-              ...callerParams,
-              returnedSelectedToken: token,
-            });
+            // Type assertion: callerRoute is keyof RootParamList but navigate expects literal
+            (navigation.navigate as (screen: string, params: object) => void)(
+              callerRoute,
+              {
+                ...callerParams,
+                returnedSelectedToken: token,
+              },
+            );
           } else {
             // Fallback: just go back
             navigation.goBack();

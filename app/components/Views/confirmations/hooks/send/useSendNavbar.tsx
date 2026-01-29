@@ -44,7 +44,13 @@ export function useSendNavbar() {
     if (previousMainRoute.name === 'Home') {
       navigation.navigate(Routes.WALLET_VIEW);
     } else {
-      navigation.navigate(previousMainRoute.name, previousMainRoute.params);
+      // Type assertion: route name from navigation state is string, but navigate expects literal
+      (
+        navigation.navigate as unknown as (
+          screen: string,
+          params?: object,
+        ) => void
+      )(previousMainRoute.name, previousMainRoute.params as object);
     }
   }, [navigation, sendStackState]);
 
