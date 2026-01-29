@@ -9,7 +9,7 @@ export const TrendingViewSelectorsIDs = {
   TOKEN_ROW_ITEM_PREFIX: 'trending-token-row-item-',
   PERPS_ROW_ITEM_PREFIX: 'perps-market-row-item-',
   PREDICTIONS_ROW_ITEM_PREFIX: 'predict-market-list-trending-card-',
-  SITE_ROW_ITEM_PREFIX: 'site-row-item-',
+  SITE_ROW_ITEM: 'site-row-item',
   SEARCH_FOOTER_GOOGLE_LINK: 'trending-search-footer-google-link',
   SCROLL_VIEW: AppTrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW,
   QUICK_ACTIONS_SCROLL_VIEW:

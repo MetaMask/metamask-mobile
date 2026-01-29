@@ -56,7 +56,7 @@ class TrendingView {
   }
 
   getSiteRow(name: string): DetoxElement {
-    return Matchers.getElementByID(`site-row-item-${name}`, 0);
+    return Matchers.getElementByText(name);
   }
 
   getSectionHeader(title: string): DetoxElement {
