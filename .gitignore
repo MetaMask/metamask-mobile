@@ -83,6 +83,7 @@ buck-out/
 
 # environment variables instances
 # only version the example files
+.env
 .*.env
 
 # Sentry

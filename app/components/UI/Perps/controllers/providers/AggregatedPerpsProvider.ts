@@ -40,6 +40,7 @@ import type {
   GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
+  GetOrFetchFillsParams,
   GetPositionsParams,
   GetSupportedPathsParams,
   HistoricalPortfolioResult,
@@ -185,12 +186,16 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   /**
    * Extract successful results from Promise.allSettled.
    * Logs errors for failed promises.
+   *
+   * @param results - Results from Promise.allSettled
+   * @param context - Context string for logging
+   * @returns Array of successful values
    */
-  private extractSuccessfulResults<T>(
-    results: PromiseSettledResult<T>[],
+  private extractSuccessfulResults<TResult>(
+    results: PromiseSettledResult<TResult>[],
     context: string,
-  ): T[] {
-    const successful: T[] = [];
+  ): TResult[] {
+    const successful: TResult[] = [];
     results.forEach((result, index) => {
       if (result.status === 'fulfilled') {
         successful.push(result.value);
@@ -224,7 +229,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const positions = await provider.getPositions(params);
-        return positions.map((p) => ({ ...p, providerId: id }));
+        return positions.map((pos) => ({ ...pos, providerId: id }));
       }),
     );
 
@@ -242,7 +247,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const markets = await provider.getMarkets(params);
-        return markets.map((m) => ({ ...m, providerId: id }));
+        return markets.map((market) => ({ ...market, providerId: id }));
       }),
     );
 
@@ -268,7 +273,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const data = await provider.getMarketDataWithPrices();
-        return data.map((d) => ({ ...d, providerId: id }));
+        return data.map((item) => ({ ...item, providerId: id }));
       }),
     );
 
@@ -282,18 +287,29 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const fills = await provider.getOrderFills(params);
-        return fills.map((f) => ({ ...f, providerId: id }));
+        return fills.map((fill) => ({ ...fill, providerId: id }));
       }),
     );
 
     return this.extractSuccessfulResults(results, 'getOrderFills').flat();
   }
 
+  async getOrFetchFills(params?: GetOrFetchFillsParams): Promise<OrderFill[]> {
+    const results = await Promise.allSettled(
+      this.getActiveProviders().map(async ([id, provider]) => {
+        const fills = await provider.getOrFetchFills(params);
+        return fills.map((fill) => ({ ...fill, providerId: id }));
+      }),
+    );
+
+    return this.extractSuccessfulResults(results, 'getOrFetchFills').flat();
+  }
+
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const orders = await provider.getOrders(params);
-        return orders.map((o) => ({ ...o, providerId: id }));
+        return orders.map((order) => ({ ...order, providerId: id }));
       }),
     );
 
@@ -304,7 +320,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     const results = await Promise.allSettled(
       this.getActiveProviders().map(async ([id, provider]) => {
         const orders = await provider.getOpenOrders(params);
-        return orders.map((o) => ({ ...o, providerId: id }));
+        return orders.map((order) => ({ ...order, providerId: id }));
       }),
     );
 
@@ -330,6 +346,15 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     return this.getDefaultProvider().getHistoricalPortfolio(params);
   }
 
+  /**
+   * Get user non-funding ledger updates from default provider.
+   *
+   * @param params - Optional parameters
+   * @param params.accountId - Account ID to filter by
+   * @param params.startTime - Start time filter
+   * @param params.endTime - End time filter
+   * @returns Raw ledger updates
+   */
   async getUserNonFundingLedgerUpdates(params?: {
     accountId?: string;
     startTime?: number;
@@ -339,6 +364,15 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     return this.getDefaultProvider().getUserNonFundingLedgerUpdates(params);
   }
 
+  /**
+   * Get user history from all providers.
+   *
+   * @param params - Optional parameters
+   * @param params.accountId - Account ID to filter by
+   * @param params.startTime - Start time filter
+   * @param params.endTime - End time filter
+   * @returns Aggregated user history with providerId
+   */
   async getUserHistory(params?: {
     accountId?: CaipAccountId;
     startTime?: number;
@@ -396,9 +430,9 @@ export class AggregatedPerpsProvider implements PerpsProvider {
         success: false,
         successCount: 0,
         failureCount: params.length,
-        results: params.map((p) => ({
-          orderId: p.orderId,
-          symbol: p.symbol,
+        results: params.map((param) => ({
+          orderId: param.orderId,
+          symbol: param.symbol,
           success: false,
           error: 'Batch cancel not supported',
         })),
@@ -611,7 +645,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
 
     // Return success if at least one succeeded
     const successCount = results.filter(
-      (r) => r.status === 'fulfilled' && r.value.success,
+      (res) => res.status === 'fulfilled' && res.value.success,
     ).length;
 
     return {

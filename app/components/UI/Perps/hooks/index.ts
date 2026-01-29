@@ -95,6 +95,9 @@ export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
 // Utility hooks
 export { useStableArray } from './useStableArray';
 
+// Tab view hooks
+export { usePerpsTabExploreData } from './usePerpsTabExploreData';
+
 // Stream hooks (WebSocket subscriptions)
 export * from './stream';
 

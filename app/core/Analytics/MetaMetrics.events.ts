@@ -550,6 +550,11 @@ enum EVENT_NAME {
   CARD_PUSH_PROVISIONING_FAILED = 'Card Push Provisioning Failed',
   CARD_PUSH_PROVISIONING_CANCELED = 'Card Push Provisioning Canceled',
   CARD_ADD_TO_WALLET_CLICKED = 'Card Add To Wallet Clicked',
+  CARD_METAL_CHECKOUT_VIEWED = 'Card Metal Checkout Viewed',
+  CARD_METAL_CHECKOUT_STARTED = 'Card Metal Checkout Started',
+  CARD_METAL_CHECKOUT_COMPLETED = 'Card Metal Checkout Completed',
+  CARD_METAL_CHECKOUT_FAILED = 'Card Metal Checkout Failed',
+  CARD_METAL_CHECKOUT_USER_CANCELED = 'Card Metal Checkout User Canceled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -1455,6 +1460,21 @@ const events = {
   ),
   CARD_ADD_TO_WALLET_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADD_TO_WALLET_CLICKED,
+  ),
+  CARD_METAL_CHECKOUT_VIEWED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_VIEWED,
+  ),
+  CARD_METAL_CHECKOUT_STARTED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_STARTED,
+  ),
+  CARD_METAL_CHECKOUT_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_COMPLETED,
+  ),
+  CARD_METAL_CHECKOUT_FAILED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_FAILED,
+  ),
+  CARD_METAL_CHECKOUT_USER_CANCELED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_USER_CANCELED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
