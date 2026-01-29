@@ -1775,7 +1775,9 @@
       "filter_by": "Filter by",
       "forex": "Forex",
       "watchlist": "Watchlist",
-      "markets": "Markets"
+      "markets": "Markets",
+      "explore_markets": "Explore markets",
+      "see_all_perps": "See all perps"
     },
     "learn_more": {
       "title": "Learn about Perps",
