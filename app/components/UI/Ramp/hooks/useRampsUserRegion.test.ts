@@ -50,16 +50,19 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
-const createMockStore = (rampsControllerState = {}) =>
+const createMockStore = (userRegionState = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            userRegion: null,
-            userRegionLoading: false,
-            userRegionError: null,
-            ...rampsControllerState,
+            userRegion: {
+              data: null,
+              selected: null,
+              isLoading: false,
+              error: null,
+              ...userRegionState,
+            },
           },
         },
       }),
@@ -93,7 +96,7 @@ describe('useRampsUserRegion', () => {
 
   describe('userRegion state', () => {
     it('returns userRegion from state', () => {
-      const store = createMockStore({ userRegion: mockUserRegion });
+      const store = createMockStore({ data: mockUserRegion });
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
@@ -102,9 +105,9 @@ describe('useRampsUserRegion', () => {
   });
 
   describe('loading state', () => {
-    it('returns isLoading true when userRegionLoading is true', () => {
+    it('returns isLoading true when isLoading is true', () => {
       const store = createMockStore({
-        userRegionLoading: true,
+        isLoading: true,
       });
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
@@ -114,9 +117,9 @@ describe('useRampsUserRegion', () => {
   });
 
   describe('error state', () => {
-    it('returns error from userRegionError state', () => {
+    it('returns error from state', () => {
       const store = createMockStore({
-        userRegionError: 'Network error',
+        error: 'Network error',
       });
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),

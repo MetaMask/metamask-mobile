@@ -31,17 +31,19 @@ const mockPaymentMethods: PaymentMethod[] = [
   },
 ];
 
-const createMockStore = (rampsControllerState = {}) =>
+const createMockStore = (paymentMethodsState = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            paymentMethods: [],
-            selectedPaymentMethod: null,
-            paymentMethodsLoading: false,
-            paymentMethodsError: null,
-            ...rampsControllerState,
+            paymentMethods: {
+              data: [],
+              selected: null,
+              isLoading: false,
+              error: null,
+              ...paymentMethodsState,
+            },
           },
         },
       }),
@@ -76,7 +78,7 @@ describe('useRampsPaymentMethods', () => {
 
   describe('paymentMethods state', () => {
     it('returns paymentMethods from state', () => {
-      const store = createMockStore({ paymentMethods: mockPaymentMethods });
+      const store = createMockStore({ data: mockPaymentMethods });
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
       });
@@ -95,7 +97,7 @@ describe('useRampsPaymentMethods', () => {
   describe('selectedPaymentMethod state', () => {
     it('returns selectedPaymentMethod from state', () => {
       const store = createMockStore({
-        selectedPaymentMethod: mockPaymentMethods[0],
+        selected: mockPaymentMethods[0],
       });
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
@@ -115,9 +117,9 @@ describe('useRampsPaymentMethods', () => {
   });
 
   describe('loading state', () => {
-    it('returns isLoading true when paymentMethodsLoading is true', () => {
+    it('returns isLoading true when isLoading is true', () => {
       const store = createMockStore({
-        paymentMethodsLoading: true,
+        isLoading: true,
       });
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
@@ -127,9 +129,9 @@ describe('useRampsPaymentMethods', () => {
   });
 
   describe('error state', () => {
-    it('returns error from paymentMethodsError state', () => {
+    it('returns error from state', () => {
       const store = createMockStore({
-        paymentMethodsError: 'Network error',
+        error: 'Network error',
       });
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),

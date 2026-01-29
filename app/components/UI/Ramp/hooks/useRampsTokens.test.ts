@@ -35,17 +35,19 @@ const mockTokens = {
   ],
 };
 
-const createMockStore = (rampsControllerState = {}) =>
+const createMockStore = (tokensState = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            tokens: null,
-            selectedToken: null,
-            tokensLoading: false,
-            tokensError: null,
-            ...rampsControllerState,
+            tokens: {
+              data: null,
+              selected: null,
+              isLoading: false,
+              error: null,
+              ...tokensState,
+            },
           },
         },
       }),
@@ -80,7 +82,7 @@ describe('useRampsTokens', () => {
 
   describe('tokens state', () => {
     it('returns tokens from state', () => {
-      const store = createMockStore({ tokens: mockTokens });
+      const store = createMockStore({ data: mockTokens });
       const { result } = renderHook(() => useRampsTokens(), {
         wrapper: wrapper(store),
       });
@@ -97,9 +99,9 @@ describe('useRampsTokens', () => {
   });
 
   describe('loading state', () => {
-    it('returns isLoading true when tokensLoading is true', () => {
+    it('returns isLoading true when isLoading is true', () => {
       const store = createMockStore({
-        tokensLoading: true,
+        isLoading: true,
       });
       const { result } = renderHook(() => useRampsTokens(), {
         wrapper: wrapper(store),
@@ -109,9 +111,9 @@ describe('useRampsTokens', () => {
   });
 
   describe('error state', () => {
-    it('returns error from tokensError state', () => {
+    it('returns error from state', () => {
       const store = createMockStore({
-        tokensError: 'Network error',
+        error: 'Network error',
       });
       const { result } = renderHook(() => useRampsTokens(), {
         wrapper: wrapper(store),
@@ -122,7 +124,7 @@ describe('useRampsTokens', () => {
 
   describe('selectedToken state', () => {
     it('returns selectedToken from state', () => {
-      const store = createMockStore({ selectedToken: mockSelectedToken });
+      const store = createMockStore({ selected: mockSelectedToken });
       const { result } = renderHook(() => useRampsTokens(), {
         wrapper: wrapper(store),
       });
@@ -146,12 +148,27 @@ describe('useRampsTokens', () => {
       });
 
       act(() => {
-        result.current.setSelectedToken(mockSelectedToken.assetId);
+        result.current.setSelectedToken(mockSelectedToken);
       });
 
       expect(
         Engine.context.RampsController.setSelectedToken,
       ).toHaveBeenCalledWith(mockSelectedToken.assetId);
+    });
+
+    it('calls Engine.context.RampsController.setSelectedToken with undefined when token is null', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsTokens(), {
+        wrapper: wrapper(store),
+      });
+
+      act(() => {
+        result.current.setSelectedToken(null);
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedToken,
+      ).toHaveBeenCalledWith(undefined);
     });
   });
 });

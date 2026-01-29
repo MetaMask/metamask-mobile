@@ -1,16 +1,28 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectTokens,
-  selectTokensLoading,
-  selectTokensError,
-  selectSelectedToken,
-} from '../../../../selectors/rampsController';
-import { type RampsControllerState } from '@metamask/ramps-controller';
+import { selectTokens } from '../../../../selectors/rampsController';
 import Engine from '../../../../core/Engine';
 
-type TokensResponse = NonNullable<RampsControllerState['tokens']>;
-type SelectedToken = RampsControllerState['selectedToken'];
+/**
+ * Token type from the ramps controller.
+ */
+interface RampsToken {
+  assetId: string;
+  chainId: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  iconUrl?: string;
+  tokenSupported: boolean;
+}
+
+/**
+ * Tokens response type from the ramps controller.
+ */
+interface TokensResponse {
+  topTokens: RampsToken[];
+  allTokens: RampsToken[];
+}
 
 /**
  * Result returned by the useRampsTokens hook.
@@ -23,12 +35,12 @@ export interface UseRampsTokensResult {
   /**
    * The currently selected token, or null if none selected.
    */
-  selectedToken: SelectedToken;
+  selectedToken: RampsToken | null;
   /**
    * Sets the selected token by asset ID.
-   * @param assetId - The asset identifier in CAIP-19 format (e.g., "eip155:1/erc20:0x...")
+   * @param token - The token to select, or null to clear selection.
    */
-  setSelectedToken: (assetId?: string) => void;
+  setSelectedToken: (token: RampsToken | null) => void;
   /**
    * Whether the tokens request is currently loading.
    */
@@ -46,14 +58,16 @@ export interface UseRampsTokensResult {
  * @returns Tokens state.
  */
 export function useRampsTokens(): UseRampsTokensResult {
-  const tokens = useSelector(selectTokens);
-  const selectedToken = useSelector(selectSelectedToken);
-  const isLoading = useSelector(selectTokensLoading);
-  const error = useSelector(selectTokensError);
+  const {
+    data: tokens,
+    selected: selectedToken,
+    isLoading,
+    error,
+  } = useSelector(selectTokens);
 
   const setSelectedToken = useCallback(
-    (assetId?: string) =>
-      Engine.context.RampsController.setSelectedToken(assetId),
+    (token: RampsToken | null) =>
+      Engine.context.RampsController.setSelectedToken(token?.assetId),
     [],
   );
 

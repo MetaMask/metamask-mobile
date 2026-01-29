@@ -32,16 +32,19 @@ const mockCountries: Country[] = [
   },
 ];
 
-const createMockStore = (rampsControllerState = {}) =>
+const createMockStore = (countriesState = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            countries: [],
-            countriesLoading: false,
-            countriesError: null,
-            ...rampsControllerState,
+            countries: {
+              data: [],
+              selected: null,
+              isLoading: false,
+              error: null,
+              ...countriesState,
+            },
           },
         },
       }),
@@ -74,7 +77,7 @@ describe('useRampsCountries', () => {
 
   describe('countries state', () => {
     it('returns countries from state', () => {
-      const store = createMockStore({ countries: mockCountries });
+      const store = createMockStore({ data: mockCountries });
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
@@ -91,9 +94,9 @@ describe('useRampsCountries', () => {
   });
 
   describe('loading state', () => {
-    it('returns isLoading true when countriesLoading is true', () => {
+    it('returns isLoading true when isLoading is true', () => {
       const store = createMockStore({
-        countriesLoading: true,
+        isLoading: true,
       });
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
@@ -101,7 +104,7 @@ describe('useRampsCountries', () => {
       expect(result.current.isLoading).toBe(true);
     });
 
-    it('returns isLoading false when countriesLoading is false', () => {
+    it('returns isLoading false when isLoading is false', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
@@ -111,9 +114,9 @@ describe('useRampsCountries', () => {
   });
 
   describe('error state', () => {
-    it('returns error from countriesError state', () => {
+    it('returns error from state', () => {
       const store = createMockStore({
-        countriesError: 'Network error',
+        error: 'Network error',
       });
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),

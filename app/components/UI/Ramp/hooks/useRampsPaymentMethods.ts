@@ -1,11 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectPaymentMethods,
-  selectPaymentMethodsLoading,
-  selectPaymentMethodsError,
-  selectSelectedPaymentMethod,
-} from '../../../../selectors/rampsController';
+import { selectPaymentMethods } from '../../../../selectors/rampsController';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
@@ -43,10 +38,12 @@ export interface UseRampsPaymentMethodsResult {
  * @returns Payment methods state.
  */
 export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
-  const paymentMethods = useSelector(selectPaymentMethods);
-  const selectedPaymentMethod = useSelector(selectSelectedPaymentMethod);
-  const isLoading = useSelector(selectPaymentMethodsLoading);
-  const error = useSelector(selectPaymentMethodsError);
+  const {
+    data: paymentMethods,
+    selected: selectedPaymentMethod,
+    isLoading,
+    error,
+  } = useSelector(selectPaymentMethods);
 
   const setSelectedPaymentMethod = useCallback(
     (paymentMethod: PaymentMethod | null) =>

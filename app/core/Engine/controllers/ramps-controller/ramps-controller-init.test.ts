@@ -90,28 +90,43 @@ describe('ramps controller init', () => {
 
   it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
-      userRegion: createMockUserRegion('us-ca'),
-      selectedProvider: null,
-      providers: [],
-      tokens: null,
-      selectedToken: null,
-      quotes: null,
+      userRegion: {
+        data: createMockUserRegion('us-ca'),
+        selected: null,
+        isLoading: false,
+        error: null,
+      },
+      countries: {
+        data: [],
+        selected: null,
+        isLoading: false,
+        error: null,
+      },
+      providers: {
+        data: [],
+        selected: null,
+        isLoading: false,
+        error: null,
+      },
+      tokens: {
+        data: null,
+        selected: null,
+        isLoading: false,
+        error: null,
+      },
+      paymentMethods: {
+        data: [],
+        selected: null,
+        isLoading: false,
+        error: null,
+      },
+      quotes: {
+        data: null,
+        selected: null,
+        isLoading: false,
+        error: null,
+      },
       requests: {},
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      countries: [],
-      userRegionLoading: false,
-      userRegionError: null,
-      countriesLoading: false,
-      countriesError: null,
-      providersLoading: false,
-      providersError: null,
-      tokensLoading: false,
-      tokensError: null,
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      quotesLoading: false,
-      quotesError: null,
     };
 
     initRequestMock.persistedState = {

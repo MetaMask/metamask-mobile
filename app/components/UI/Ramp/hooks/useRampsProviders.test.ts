@@ -45,17 +45,19 @@ const mockProviders: RampProvider[] = [
   },
 ];
 
-const createMockStore = (rampsControllerState = {}) =>
+const createMockStore = (providersState = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            providers: [],
-            selectedProvider: null,
-            providersLoading: false,
-            providersError: null,
-            ...rampsControllerState,
+            providers: {
+              data: [],
+              selected: null,
+              isLoading: false,
+              error: null,
+              ...providersState,
+            },
           },
         },
       }),
@@ -90,7 +92,7 @@ describe('useRampsProviders', () => {
 
   describe('providers state', () => {
     it('returns providers from state', () => {
-      const store = createMockStore({ providers: mockProviders });
+      const store = createMockStore({ data: mockProviders });
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
@@ -107,9 +109,9 @@ describe('useRampsProviders', () => {
   });
 
   describe('loading state', () => {
-    it('returns isLoading true when providersLoading is true', () => {
+    it('returns isLoading true when isLoading is true', () => {
       const store = createMockStore({
-        providersLoading: true,
+        isLoading: true,
       });
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
@@ -119,9 +121,9 @@ describe('useRampsProviders', () => {
   });
 
   describe('error state', () => {
-    it('returns error from providersError state', () => {
+    it('returns error from state', () => {
       const store = createMockStore({
-        providersError: 'Network error',
+        error: 'Network error',
       });
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
@@ -132,7 +134,7 @@ describe('useRampsProviders', () => {
 
   describe('selectedProvider state', () => {
     it('returns selectedProvider from state', () => {
-      const store = createMockStore({ selectedProvider: mockProviders[0] });
+      const store = createMockStore({ selected: mockProviders[0] });
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });

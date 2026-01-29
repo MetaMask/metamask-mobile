@@ -1,11 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectProviders,
-  selectProvidersLoading,
-  selectProvidersError,
-  selectSelectedProvider,
-} from '../../../../selectors/rampsController';
+import { selectProviders } from '../../../../selectors/rampsController';
 import { type Provider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
@@ -22,7 +17,7 @@ export interface UseRampsProvidersResult {
    */
   selectedProvider: Provider | null;
   /**
-   * Sets the selected provider.
+   * Sets the selected provider by ID.
    * @param provider - The provider to select, or null to clear selection.
    */
   setSelectedProvider: (provider: Provider | null) => void;
@@ -43,14 +38,18 @@ export interface UseRampsProvidersResult {
  * @returns Providers state.
  */
 export function useRampsProviders(): UseRampsProvidersResult {
-  const providers = useSelector(selectProviders);
-  const selectedProvider = useSelector(selectSelectedProvider);
-  const isLoading = useSelector(selectProvidersLoading);
-  const error = useSelector(selectProvidersError);
+  const {
+    data: providers,
+    selected: selectedProvider,
+    isLoading,
+    error,
+  } = useSelector(selectProviders);
 
-  const setSelectedProvider = useCallback((provider: Provider | null) => {
-    Engine.context.RampsController.setSelectedProvider(provider?.id ?? null);
-  }, []);
+  const setSelectedProvider = useCallback(
+    (provider: Provider | null) =>
+      Engine.context.RampsController.setSelectedProvider(provider?.id ?? null),
+    [],
+  );
 
   return {
     providers,

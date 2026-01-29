@@ -1,9 +1,5 @@
 import { useSelector } from 'react-redux';
-import {
-  selectCountries,
-  selectCountriesLoading,
-  selectCountriesError,
-} from '../../../../selectors/rampsController';
+import { selectCountries } from '../../../../selectors/rampsController';
 import { type Country } from '@metamask/ramps-controller';
 
 /**
@@ -31,9 +27,7 @@ export interface UseRampsCountriesResult {
  * @returns Countries state.
  */
 export function useRampsCountries(): UseRampsCountriesResult {
-  const countries = useSelector(selectCountries);
-  const isLoading = useSelector(selectCountriesLoading);
-  const error = useSelector(selectCountriesError);
+  const { data: countries, isLoading, error } = useSelector(selectCountries);
 
   return {
     countries,

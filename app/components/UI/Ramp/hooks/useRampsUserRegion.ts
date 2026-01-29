@@ -1,11 +1,7 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import {
-  selectUserRegion,
-  selectUserRegionLoading,
-  selectUserRegionError,
-} from '../../../../selectors/rampsController';
+import { selectUserRegion } from '../../../../selectors/rampsController';
 import {
   ExecuteRequestOptions,
   type UserRegion,
@@ -43,9 +39,7 @@ export interface UseRampsUserRegionResult {
  * @returns User region state and fetch/set functions.
  */
 export function useRampsUserRegion(): UseRampsUserRegionResult {
-  const userRegion = useSelector(selectUserRegion);
-  const isLoading = useSelector(selectUserRegionLoading);
-  const error = useSelector(selectUserRegionError);
+  const { data: userRegion, isLoading, error } = useSelector(selectUserRegion);
 
   const setUserRegion = useCallback(
     (region: string, options?: ExecuteRequestOptions) =>
