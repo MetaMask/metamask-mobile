@@ -193,28 +193,23 @@ class CustomReporter {
 
           // Update failed test entry with quality gates info if this test failed
           if (metricsEntry.testFailed) {
-            const teamId = teamInfo.teamId;
-            if (this.failedTestsByTeam[teamId]) {
-              const failedTest = this.failedTestsByTeam[teamId].tests.find(
-                (t) =>
-                  t.testName === test.title && t.projectName === projectName,
-              );
-              if (failedTest) {
-                failedTest.qualityGates = qualityGatesResult;
-                // Determine failure reason
-                if (
-                  qualityGatesResult.hasThresholds &&
-                  !qualityGatesResult.passed
-                ) {
-                  failedTest.failureReason = 'quality_gates_exceeded';
-                  failedTest.qualityGatesViolations =
-                    qualityGatesResult.violations;
-                } else {
-                  failedTest.failureReason =
-                    metricsEntry.failureReason || 'test_error';
-                }
-              }
+            const updates = { qualityGates: qualityGatesResult };
+            if (
+              qualityGatesResult.hasThresholds &&
+              !qualityGatesResult.passed
+            ) {
+              updates.failureReason = 'quality_gates_exceeded';
+              updates.qualityGatesViolations = qualityGatesResult.violations;
+            } else {
+              updates.failureReason =
+                metricsEntry.failureReason || 'test_error';
             }
+            this.updateFailedTestEntry(
+              teamInfo.teamId,
+              test.title,
+              projectName,
+              updates,
+            );
           }
         }
 
@@ -245,15 +240,28 @@ class CustomReporter {
       this.metrics.push(basicEntry);
 
       // Update failed test entry with failure reason (no quality gates since no metrics)
-      const teamId = teamInfo.teamId;
-      if (this.failedTestsByTeam[teamId]) {
-        const failedTest = this.failedTestsByTeam[teamId].tests.find(
-          (t) => t.testName === test.title && t.projectName === projectName,
-        );
-        if (failedTest) {
-          failedTest.failureReason = result.status;
-        }
-      }
+      this.updateFailedTestEntry(teamInfo.teamId, test.title, projectName, {
+        failureReason: result.status,
+      });
+    }
+  }
+
+  /**
+   * Update a failed test entry with additional information
+   * @param {string} teamId - The team ID
+   * @param {string} testTitle - The test title
+   * @param {string} projectName - The project name
+   * @param {Object} updates - Object containing properties to update
+   */
+  updateFailedTestEntry(teamId, testTitle, projectName, updates) {
+    if (!this.failedTestsByTeam[teamId]) {
+      return;
+    }
+    const failedTest = this.failedTestsByTeam[teamId].tests.find(
+      (t) => t.testName === testTitle && t.projectName === projectName,
+    );
+    if (failedTest) {
+      Object.assign(failedTest, updates);
     }
   }
 
