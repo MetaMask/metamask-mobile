@@ -102,5 +102,3 @@ export const useSearchTracking = ({
     sessionManager,
   ]);
 };
-
-export default useSearchTracking;
