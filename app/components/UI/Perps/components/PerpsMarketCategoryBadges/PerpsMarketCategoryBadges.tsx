@@ -97,7 +97,6 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           layout={LinearTransition.duration(ANIMATION_DURATION)}
         >
           <PerpsMarketCategoryBadge
-            category={selectedConfig.category}
             label={strings(selectedConfig.labelKey)}
             isSelected
             showDismiss
@@ -127,7 +126,6 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           layout={LinearTransition.duration(ANIMATION_DURATION)}
         >
           <PerpsMarketCategoryBadge
-            category={config.category}
             label={strings(config.labelKey)}
             isSelected={false}
             showDismiss={false}

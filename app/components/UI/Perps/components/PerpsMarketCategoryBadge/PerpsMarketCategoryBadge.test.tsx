@@ -4,7 +4,6 @@ import PerpsMarketCategoryBadge from './PerpsMarketCategoryBadge';
 
 describe('PerpsMarketCategoryBadge', () => {
   const defaultProps = {
-    category: 'crypto' as const,
     label: 'Crypto',
     isSelected: false,
     onPress: jest.fn(),
@@ -85,21 +84,15 @@ describe('PerpsMarketCategoryBadge', () => {
     expect(button.props.accessibilityState).toEqual({ selected: true });
   });
 
-  it('renders with different categories', () => {
-    const categories = ['stocks', 'commodities', 'forex'] as const;
+  it('renders with different labels', () => {
+    const labels = ['Stocks', 'Commodities', 'Forex'];
 
-    categories.forEach((category) => {
+    labels.forEach((label) => {
       const { getByText } = render(
-        <PerpsMarketCategoryBadge
-          {...defaultProps}
-          category={category}
-          label={category.charAt(0).toUpperCase() + category.slice(1)}
-        />,
+        <PerpsMarketCategoryBadge {...defaultProps} label={label} />,
       );
 
-      expect(
-        getByText(category.charAt(0).toUpperCase() + category.slice(1)),
-      ).toBeTruthy();
+      expect(getByText(label)).toBeTruthy();
     });
   });
 });

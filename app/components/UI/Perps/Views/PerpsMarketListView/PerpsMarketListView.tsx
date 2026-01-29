@@ -147,9 +147,9 @@ const PerpsMarketListView = ({
       const categoryMap: Record<string, string | null> = {
         crypto: PerpsEventValues.BUTTON_CLICKED.CRYPTO,
         stocks: PerpsEventValues.BUTTON_CLICKED.STOCKS,
-        commodities: 'COMMODITIES',
-        forex: 'FOREX',
-        new: 'NEW',
+        commodities: PerpsEventValues.BUTTON_CLICKED.COMMODITIES,
+        forex: PerpsEventValues.BUTTON_CLICKED.FOREX,
+        new: PerpsEventValues.BUTTON_CLICKED.NEW,
         all: null,
       };
 
