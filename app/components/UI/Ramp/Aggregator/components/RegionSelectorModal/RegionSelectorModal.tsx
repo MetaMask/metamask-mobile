@@ -339,14 +339,22 @@ function RegionSelectorModal() {
             ? strings('fiat_on_ramp_aggregator.region.title')
             : regionInTransit?.name
         }
-        onBack={onBackButtonPress}
-        backButtonProps={{
-          testID: 'back-button',
-        }}
-        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+        onClose={onBackButtonPress}
+        onBack={
+          activeView === RegionViewType.STATE
+            ? handleRegionBackButton
+            : undefined
+        }
+        backButtonProps={
+          activeView === RegionViewType.STATE
+            ? {
+                testID: 'back-button',
+              }
+            : undefined
+        }
       />
       <View style={styles.description}>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
           {strings(
             isBuy
               ? 'fiat_on_ramp_aggregator.region.description'
