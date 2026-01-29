@@ -11,7 +11,8 @@
  *
  * Usage:
  *   node scripts/apply-build-config.js main-prod
- *   node scripts/apply-build-config.js main-dev --export  # outputs for shell eval
+ *   node scripts/apply-build-config.js main-dev --export            # shell eval (current step only)
+ *   node scripts/apply-build-config.js main-dev --export-github-env # append to GITHUB_ENV (later steps)
  */
 
 const fs = require('fs');
@@ -86,20 +87,66 @@ function exportForShell(buildName) {
   return lines.join('\n');
 }
 
+const GITHUB_ENV_DELIMITER = '__APPLY_BUILD_CONFIG_EOF__';
+
+/**
+ * Output env vars in GITHUB_ENV format so later workflow steps inherit them.
+ * Uses delimiter syntax for values that contain newlines or '=' to avoid parsing issues.
+ */
+function exportForGitHubEnv(buildName) {
+  const config = loadConfig(buildName);
+  const lines = [];
+
+  function appendVar(key, value) {
+    const str = String(value);
+    if (str.includes('\n') || str.includes('=')) {
+      lines.push(`${key}<<${GITHUB_ENV_DELIMITER}`);
+      lines.push(str);
+      lines.push(GITHUB_ENV_DELIMITER);
+    } else {
+      lines.push(`${key}=${str}`);
+    }
+  }
+
+  if (config.env) {
+    Object.entries(config.env).forEach(([key, value]) => {
+      appendVar(key, value);
+    });
+  }
+
+  if (config.code_fencing) {
+    appendVar('CODE_FENCING_FEATURES', JSON.stringify(config.code_fencing));
+  }
+
+  if (config.remote_feature_flags) {
+    appendVar(
+      'REMOTE_FEATURE_FLAG_DEFAULTS',
+      JSON.stringify(config.remote_feature_flags),
+    );
+  }
+
+  return lines.join('\n');
+}
+
 // CLI
 if (require.main === module) {
   const args = process.argv.slice(2);
   const buildName = args.find((a) => !a.startsWith('--'));
   const exportMode = args.includes('--export');
+  const exportGitHubEnvMode = args.includes('--export-github-env');
 
   if (!buildName) {
-    console.error('Usage: node apply-build-config.js <build-name> [--export]');
+    console.error(
+      'Usage: node apply-build-config.js <build-name> [--export | --export-github-env]',
+    );
     console.error('Example: node apply-build-config.js main-prod');
     process.exit(1);
   }
 
   try {
-    if (exportMode) {
+    if (exportGitHubEnvMode) {
+      console.log(exportForGitHubEnv(buildName));
+    } else if (exportMode) {
       console.log(exportForShell(buildName));
     } else {
       applyConfig(buildName);
@@ -111,4 +158,9 @@ if (require.main === module) {
   }
 }
 
-module.exports = { loadConfig, applyConfig, exportForShell };
+module.exports = {
+  loadConfig,
+  applyConfig,
+  exportForShell,
+  exportForGitHubEnv,
+};
