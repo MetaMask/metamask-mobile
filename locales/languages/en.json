@@ -3140,7 +3140,12 @@
       "generate_trace_test": "Generate trace test",
       "generate_trace_test_desc": "Generate a developer test Sentry trace.",
       "navigate_to_sample_feature": "Navigate to sample feature",
-      "sample_feature_desc": "A sample feature as a template for developers."
+      "sample_feature_desc": "A sample feature as a template for developers.",
+      "card": {
+        "title": "Card",
+        "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
+        "reset_onboarding_button": "Reset Onboarding State"
+      }
     },
     "feature_flag_override": {
       "title": "Feature flag override",
@@ -3269,8 +3274,10 @@
   "screenshot_deterrent": {
     "title": "Safety alert",
     "description": "Screenshots aren't a safe way to keep track of your {{credentialName}}. Store it somewhere that isn't backed up online to keep your account safe.",
+    "card_description": "Screenshots of your card details could be accessed by others. Never share your card number or CVV.",
     "srp_text": "Secret Recovery Phrase",
-    "priv_key_text": "Private key"
+    "priv_key_text": "Private key",
+    "card_text": "card details"
   },
   "password_reset": {
     "password_title": "Password",
@@ -6623,6 +6630,15 @@
       "swap_description": "Swap tokens into {{symbol}} on {{chainName}}",
       "select_method": "Select method"
     },
+    "password_bottomsheet": {
+      "title": "Enter password",
+      "description": "Enter your wallet password to view card details.",
+      "placeholder": "Password",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "error_empty": "Please enter your password",
+      "error_incorrect": "Incorrect password. Please try again."
+    },
     "choose_your_card": {
       "title": "Choose your card",
       "upgrade_title": "Upgrade to Metal",
@@ -6678,8 +6694,8 @@
       "try_again": "Try again"
     },
     "card_onboarding": {
-      "title": "Spend\nand\nEarn",
-      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% cashback.",
+      "title": "Spend\nand Earn",
+      "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
       "apply_now_button": "Apply now",
       "login_button": "Log in",
       "not_now_button": "Not now",
@@ -6769,8 +6785,14 @@
       },
       "kyc_failed": {
         "title": "You're not eligible for MetaMask Card right now",
-        "description": "Our partner approves based on set criteria. Learn more.",
+        "description": "Eligibility is determined by our partner's regulatory and verification checks.",
         "close_button": "Back to home"
+      },
+      "kyc_pending": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "footer_text": "Approvals usually take around 12 hours.\nWe'll notify you when a decision is made.",
+        "got_it_button": "Got it"
       },
       "personal_details": {
         "title": "Add your info",
@@ -6801,8 +6823,8 @@
       },
       "complete": {
         "title": "You're in!",
-        "description": "Let's set up your card so you can start spending your crypto.",
-        "confirm_button": "Set up my card"
+        "description": "Finish setting up your card so you can start spending your crypto.",
+        "confirm_button": "Finish setup"
       },
       "account_exists": {
         "title": "You already have an account",
@@ -6857,6 +6879,7 @@
       "logout_confirmation_confirm": "Log out",
       "enable_card_error": "Failed to enable card. Please try again later.",
       "view_card_details_error": "Unable to load card details. Please try again.",
+      "biometric_verification_required": "Authentication required to view card details.",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
