@@ -22,16 +22,45 @@ export type NavigationDetails<
 
 /**
  * Creates a type-safe navigation details factory.
- * @param name - Route name (must be a key in RootParamList)
- * @param screen - Optional nested screen name
- * @returns Factory function that creates navigation details tuple
+ * Supports both single-level and nested navigation.
+ *
+ * @example Single-level navigation:
+ * const navDetails = createNavigationDetails(Routes.ACCOUNT_SELECTOR);
+ * navigation.navigate(...navDetails({ onSelectAccount }));
+ *
+ * @example Nested navigation:
+ * const navDetails = createNavigationDetails<'CardModals', { regions: Region[] }>(
+ *   Routes.CARD.MODALS.ID,
+ *   Routes.CARD.MODALS.REGION_SELECTION,
+ * );
+ * navigation.navigate(...navDetails({ regions }));
  */
-export const createNavigationDetails =
-  <RouteName extends keyof RootParamList>(name: RouteName, screen?: string) =>
-  (params?: RootParamList[RouteName]): NavigationDetails<RouteName> => [
+// Overload 1: Single-level navigation (no screen argument)
+export function createNavigationDetails<RouteName extends keyof RootParamList>(
+  name: RouteName,
+): (params?: RootParamList[RouteName]) => NavigationDetails<RouteName>;
+
+// Overload 2: Nested navigation (with screen argument)
+export function createNavigationDetails<
+  RouteName extends keyof RootParamList,
+  InnerParams extends object = object,
+>(
+  name: RouteName,
+  screen: string,
+): (params?: InnerParams) => NavigationDetails<RouteName>;
+
+// Implementation
+export function createNavigationDetails<
+  RouteName extends keyof RootParamList,
+  InnerParams extends object = object,
+>(name: RouteName, screen?: string) {
+  return (
+    params?: RootParamList[RouteName] | InnerParams,
+  ): NavigationDetails<RouteName> => [
     name,
     (screen ? { screen, params } : params) as RootParamList[RouteName],
   ];
+}
 
 /**
  * Type-safe navigation using createNavigationDetails tuples.

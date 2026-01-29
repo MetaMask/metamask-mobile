@@ -299,7 +299,12 @@ export type RootParamList = {
   RampModals:
     | {
         screen?: string;
-        params?: { regions?: object[]; region?: object } | object;
+        params?:
+          | { regions?: object[]; region?: object }
+          | { tokens?: object[] }
+          | { currencies?: object[] }
+          | { paymentMethods?: object[] }
+          | object;
       }
     | undefined;
   RampTokenSelectorModal: undefined;
@@ -331,6 +336,9 @@ export type RootParamList = {
   OtpCode:
     | {
         shouldRouteImmediately?: boolean;
+        email?: string;
+        stateToken?: string;
+        redirectToRootAfterAuth?: boolean;
       }
     | undefined;
   VerifyIdentity:
@@ -353,26 +361,37 @@ export type RootParamList = {
   DepositModals:
     | {
         screen?: string;
-        params?: object;
+        params?:
+          | { regions?: object[] }
+          | { selectedState?: string }
+          | { errorMessage?: string }
+          | { sourceUrl?: string }
+          | { quote?: object }
+          | { cryptoCurrencies?: object[] }
+          | { paymentMethods?: object[] }
+          | { stateCode?: string }
+          | object;
       }
     | undefined;
   DepositTokenSelectorModal: {
     selectedAssetId?: string;
     handleSelectAssetId?: (assetId: string) => void;
   };
-  DepositRegionSelectorModal: object | undefined;
+  DepositRegionSelectorModal: { regions?: object[] } | undefined;
   DepositPaymentMethodSelectorModal: {
     selectedPaymentMethodId?: string;
     handleSelectPaymentMethodId?: (paymentMethodId: string) => void;
   };
-  DepositUnsupportedRegionModal: undefined;
+  DepositUnsupportedRegionModal: { regions?: object[] } | undefined;
   DepositUnsupportedStateModal: {
     stateCode?: string;
     stateName?: string;
+    selectedState?: string;
     onStateSelect: (stateCode: string) => void;
   };
   DepositStateSelectorModal: {
     selectedState?: string;
+    stateCode?: string;
     onStateSelect: (stateCode: string) => void;
   };
   DepositWebviewModal: {
@@ -383,7 +402,7 @@ export type RootParamList = {
   IncompatibleAccountTokenModal: undefined;
   SsnInfoModal: undefined;
   DepositConfigurationModal: undefined;
-  DepositErrorDetailsModal: undefined;
+  DepositErrorDetailsModal: { errorMessage?: string } | undefined;
 
   // Bridge Flow
   Bridge: NavigatorScreenParams<BridgeParamList> | undefined;
@@ -497,7 +516,11 @@ export type RootParamList = {
   CardModals:
     | {
         screen?: string;
-        params?: { priorityToken?: object } | object;
+        params?:
+          | { priorityToken?: object }
+          | { regions?: object[] }
+          | { tokensWithAllowances?: object[] }
+          | object;
       }
     | undefined;
   CardAddFundsModal: { priorityToken?: object } | undefined;
