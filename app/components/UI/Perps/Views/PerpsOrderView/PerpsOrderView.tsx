@@ -878,9 +878,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
         if (!tpslResult.success) {
+          const errorMessage =
+            tpslResult.error || strings('perps.errors.unknown');
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-              tpslResult.error,
+              errorMessage,
             ),
           );
         }

@@ -622,6 +622,10 @@ export class HyperLiquidProvider implements PerpsProvider {
   /**
    * Get fills using WebSocket cache first, falling back to REST API
    * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss
+   *
+   * Cache limitation: WebSocket cache is limited to ~100 most recent fills.
+   * For historical data (e.g., position-opening fills from months ago), use getOrderFills directly.
+   *
    * @param params - Optional filter parameters (startTime, symbol)
    * @param logContext - Context string for debug logging
    * @returns Array of order fills
@@ -641,12 +645,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       return this.filterFills(cachedFills, params);
     }
 
-    // Fallback to REST API
+    // Fallback to REST API when cache not initialized
     this.deps.debugLogger.log(
       `Fills cache miss for ${logContext}, falling back to REST`,
       { params },
     );
-    return this.getOrderFills(params);
+    const restFills = await this.getOrderFills(params);
+    // Apply symbol filter to REST results for consistent API behavior
+    // Note: getOrderFills doesn't support symbol filtering natively
+    return this.filterFills(restFills, params);
   }
 
   /**

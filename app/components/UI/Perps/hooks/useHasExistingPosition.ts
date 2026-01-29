@@ -121,14 +121,13 @@ export function useHasExistingPosition(
 
       try {
         // Fetch fills from the last 90 days to find position-opening fill
-        // Use cache-first pattern to avoid 429 errors during rapid market switching
+        // Note: We use getOrderFills (REST) directly here instead of getOrFetchFills
+        // because WebSocket cache is limited to ~100 recent fills and won't contain
+        // position-opening fills for older positions. The REST API is needed for
+        // historical data that predates the WebSocket connection.
         const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
         const controller = Engine.context.PerpsController;
-        const provider = controller.getActiveProvider();
-        const fills = await provider.getOrFetchFills(
-          { startTime },
-          'useHasExistingPosition',
-        );
+        const fills = await controller.getOrderFills({ startTime });
 
         if (!fills || fills.length === 0) {
           return;
