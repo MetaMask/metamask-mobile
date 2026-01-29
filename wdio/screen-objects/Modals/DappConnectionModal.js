@@ -1,5 +1,6 @@
 import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
+import { expect } from 'appwright';
 
 class DappConnectionModal {
     constructor() {}
@@ -163,6 +164,15 @@ class DappConnectionModal {
 
         const element = await this.updateNetworksButton;
         await AppwrightGestures.tap(element)
+    }
+
+    async waitForToastWithText(text, timeout = 10000) {
+        if (!this._device) {
+            return;
+        }
+
+        const toastText = await AppwrightSelectors.getElementByText(this._device, text);
+        await expect(toastText).toBeVisible({ timeout });
     }
 }
 
