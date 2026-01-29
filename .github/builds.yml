@@ -247,6 +247,8 @@ builds:
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
       # iOS: build for simulator (Expo dev build; no signing required)
       IS_SIM_BUILD: "true"
+      # Android: build Debug APK (for Runway/testing; script verifies APK at prod/debug/)
+      CONFIGURATION: "Debug"
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags:
@@ -338,6 +340,8 @@ builds:
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
       # iOS: build for simulator (Expo dev build; no signing required)
       IS_SIM_BUILD: "true"
+      # Android: build Debug APK (for Runway/testing; script verifies APK at flask/debug/)
+      CONFIGURATION: "Debug"
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags:
@@ -402,6 +406,8 @@ builds:
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
       # iOS: build for simulator (Expo dev build; no signing required)
       IS_SIM_BUILD: "true"
+      # Android: build Debug APK (for Runway/testing; script verifies APK at qa/debug/)
+      CONFIGURATION: "Debug"
     secrets:
       <<: *secrets
       # QA uses QA Segment project
