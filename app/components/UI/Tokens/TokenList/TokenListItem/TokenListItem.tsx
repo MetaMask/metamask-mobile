@@ -39,7 +39,6 @@ import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
@@ -138,7 +137,6 @@ export const TokenListItem = React.memo(
     );
 
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
-    const { getMusdOutputChainId } = useMusdConversionTokens();
     const { initiateConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
@@ -211,7 +209,6 @@ export const TokenListItem = React.memo(
         const assetChainId = toHex(asset.chainId);
 
         await initiateConversion({
-          outputChainId: getMusdOutputChainId(assetChainId),
           preferredPaymentToken: {
             address: toHex(asset.address),
             chainId: assetChainId,
@@ -230,7 +227,6 @@ export const TokenListItem = React.memo(
       asset?.symbol,
       chainId,
       createEventBuilder,
-      getMusdOutputChainId,
       hasSeenConversionEducationScreen,
       initiateConversion,
       networkName,

@@ -47,7 +47,6 @@ const MusdConversionAssetListCta = () => {
     isEmptyWallet,
     getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
-    getMusdOutputChainId,
   } = useMusdConversionFlowData();
 
   const { initiateConversion, hasSeenConversionEducationScreen } =
@@ -120,7 +119,6 @@ const MusdConversionAssetListCta = () => {
     try {
       await initiateConversion({
         preferredPaymentToken: paymentToken,
-        outputChainId: getMusdOutputChainId(paymentToken.chainId),
       });
     } catch (error) {
       Logger.error(
