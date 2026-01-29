@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { View } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
   TextColor,
@@ -19,14 +20,12 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { useNavigation } from '@react-navigation/native';
-import { SuccessErrorSheetParams } from './interface';
+import type { RootParamList } from '../../../util/navigation/types';
 
-export interface SuccessErrorSheetProps {
-  route: { params: SuccessErrorSheetParams };
-}
+type SuccessErrorSheetRouteProp = RouteProp<RootParamList, 'SuccessErrorSheet'>;
 
-const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
+const SuccessErrorSheet = () => {
+  const route = useRoute<SuccessErrorSheetRouteProp>();
   const {
     onClose,
     title,
@@ -44,7 +43,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     reverseButtonOrder = false,
     descriptionAlign = 'left',
     iconColor,
-  } = route.params;
+  } = route.params ?? {};
 
   const { colors } = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);

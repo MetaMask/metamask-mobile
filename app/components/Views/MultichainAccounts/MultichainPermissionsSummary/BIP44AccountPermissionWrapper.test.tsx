@@ -3,7 +3,6 @@ import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import { BIP44AccountPermissionWrapper } from './BIP44AccountPermissionWrapper';
-import { AccountPermissionsProps } from '../../AccountPermissions/AccountPermissions.types';
 
 jest.mock('../../AccountPermissions/AccountPermissions', () => ({
   __esModule: true,
@@ -24,6 +23,15 @@ jest.mock(
   }),
 );
 
+const mockUseRoute = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useRoute: () => mockUseRoute(),
+  };
+});
+
 import AccountPermissions from '../../AccountPermissions/AccountPermissions';
 import { MultichainAccountPermissions } from '../MultichainAccountPermissions/MultichainAccountPermissions';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
@@ -41,17 +49,13 @@ const mockSelectMultichainAccountsState2Enabled =
   >;
 
 describe('BIP44AccountPermissionWrapper', () => {
-  const mockProps: AccountPermissionsProps = {
-    route: {
-      params: {
-        hostInfo: {
-          metadata: {
-            origin: 'test.com',
-          },
-        },
+  const mockRouteParams = {
+    hostInfo: {
+      metadata: {
+        origin: 'test.com',
       },
     },
-  } as AccountPermissionsProps;
+  };
 
   const createMockStore = (featureFlagEnabled: boolean) => {
     const mockState = {
@@ -70,9 +74,11 @@ describe('BIP44AccountPermissionWrapper', () => {
   const renderWithProvider = (featureFlagEnabled: boolean) => {
     const store = createMockStore(featureFlagEnabled);
 
+    mockUseRoute.mockReturnValue({ params: mockRouteParams });
+
     return render(
       <Provider store={store}>
-        <BIP44AccountPermissionWrapper {...mockProps} />
+        <BIP44AccountPermissionWrapper />
       </Provider>,
     );
   };
@@ -82,80 +88,88 @@ describe('BIP44AccountPermissionWrapper', () => {
   });
 
   describe('when feature flag is enabled', () => {
-    it('should render MultichainAccountPermissions component', () => {
+    it('renders MultichainAccountPermissions component', () => {
       const featureFlagEnabled = true;
 
       renderWithProvider(featureFlagEnabled);
 
       expect(MockedMultichainAccountPermissions).toHaveBeenCalledWith(
-        mockProps,
+        expect.objectContaining({
+          route: { params: mockRouteParams },
+        }),
         {},
       );
       expect(MockedAccountPermissions).not.toHaveBeenCalled();
     });
 
-    it('should pass all props to MultichainAccountPermissions', () => {
-      const customProps = {
-        ...mockProps,
-        route: {
-          params: {
-            hostInfo: {
-              metadata: {
-                origin: 'custom-test.com',
-              },
-            },
+    it('passes all props to MultichainAccountPermissions', () => {
+      const customRouteParams = {
+        hostInfo: {
+          metadata: {
+            origin: 'custom-test.com',
           },
         },
       };
       const featureFlagEnabled = true;
       const store = createMockStore(featureFlagEnabled);
 
+      mockUseRoute.mockReturnValue({ params: customRouteParams });
+
       render(
         <Provider store={store}>
-          <BIP44AccountPermissionWrapper {...customProps} />
+          <BIP44AccountPermissionWrapper />
         </Provider>,
       );
 
       expect(MockedMultichainAccountPermissions).toHaveBeenCalledWith(
-        customProps,
+        expect.objectContaining({
+          route: { params: customRouteParams },
+        }),
         {},
       );
     });
   });
 
   describe('when feature flag is disabled', () => {
-    it('should render AccountPermissions component', () => {
+    it('renders AccountPermissions component', () => {
       const featureFlagEnabled = false;
 
       renderWithProvider(featureFlagEnabled);
 
-      expect(MockedAccountPermissions).toHaveBeenCalledWith(mockProps, {});
+      expect(MockedAccountPermissions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          route: { params: mockRouteParams },
+        }),
+        {},
+      );
       expect(MockedMultichainAccountPermissions).not.toHaveBeenCalled();
     });
 
-    it('should pass all props to AccountPermissions', () => {
-      const customProps = {
-        ...mockProps,
-        route: {
-          params: {
-            hostInfo: {
-              metadata: {
-                origin: 'legacy-test.com',
-              },
-            },
+    it('passes all props to AccountPermissions', () => {
+      const customRouteParams = {
+        hostInfo: {
+          metadata: {
+            origin: 'legacy-test.com',
           },
         },
       };
       const featureFlagEnabled = false;
       const store = createMockStore(featureFlagEnabled);
 
+      mockUseRoute.mockReturnValue({ params: customRouteParams });
+
       render(
         <Provider store={store}>
-          <BIP44AccountPermissionWrapper {...customProps} />
+          <BIP44AccountPermissionWrapper />
         </Provider>,
       );
 
-      expect(MockedAccountPermissions).toHaveBeenCalledWith(customProps, {});
+      expect(MockedAccountPermissions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          route: { params: customRouteParams },
+        }),
+        {},
+      );
     });
   });
 });

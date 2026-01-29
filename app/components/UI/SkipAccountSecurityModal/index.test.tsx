@@ -9,12 +9,14 @@ import { Platform } from 'react-native';
 
 const mockOnConfirm = jest.fn();
 const mockOnCancel = jest.fn();
+const mockUseRoute = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: jest.fn(),
+    useRoute: () => mockUseRoute(),
     useFocusEffect: jest.fn(),
   };
 });
@@ -65,16 +67,14 @@ describe('SkipAccountSecurityModal', () => {
         reset: jest.fn(),
       });
 
-      const wrapper = renderWithProvider(
-        <SkipAccountSecurityModal
-          route={{
-            params: {
-              onConfirm: mockOnConfirm,
-              onCancel: mockOnCancel,
-            },
-          }}
-        />,
-      );
+      mockUseRoute.mockReturnValue({
+        params: {
+          onConfirm: mockOnConfirm,
+          onCancel: mockOnCancel,
+        },
+      });
+
+      const wrapper = renderWithProvider(<SkipAccountSecurityModal />);
 
       return {
         wrapper,
@@ -169,9 +169,11 @@ describe('SkipAccountSecurityModal', () => {
         reset: jest.fn(),
       });
 
-      const wrapper = renderWithProvider(
-        <SkipAccountSecurityModal route={{}} />,
-      );
+      mockUseRoute.mockReturnValue({
+        params: {},
+      });
+
+      const wrapper = renderWithProvider(<SkipAccountSecurityModal />);
 
       return {
         wrapper,

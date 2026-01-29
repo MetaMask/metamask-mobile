@@ -75,14 +75,21 @@ jest.mock('../../../core/Engine', () => {
 
 jest.mocked(Engine);
 
-const render = (route: {
-  params: {
-    scope: CaipChainId;
-    clientType: WalletClientType;
+const mockUseRoute = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useRoute: () => mockUseRoute(),
   };
+});
+
+const render = (_routeParams: {
+  scope?: CaipChainId;
+  clientType?: WalletClientType;
 }) =>
   renderScreen(
-    () => <AddNewAccountBottomSheet route={route} />,
+    () => <AddNewAccountBottomSheet />,
     {
       name: 'AddNewAccountBottomSheet',
     },
@@ -90,22 +97,28 @@ const render = (route: {
   );
 
 describe('AddNewAccountBottomSheet', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders correctly with default props', () => {
-    const route = { params: undefined };
-    // @ts-expect-error - params not defined for evm
-    const { toJSON } = render(route);
+    mockUseRoute.mockReturnValue({ params: undefined });
+    const { toJSON } = render({});
 
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders correctly with provided scope and clientType', () => {
-    const route = {
+    mockUseRoute.mockReturnValue({
       params: {
         scope: SolScope.Mainnet,
         clientType: WalletClientType.Solana,
       },
-    };
-    const { toJSON } = render(route);
+    });
+    const { toJSON } = render({
+      scope: SolScope.Mainnet,
+      clientType: WalletClientType.Solana,
+    });
 
     expect(toJSON()).toBeTruthy();
   });

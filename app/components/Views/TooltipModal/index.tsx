@@ -1,5 +1,6 @@
 import React, { useRef, isValidElement, useCallback } from 'react';
 import { View } from 'react-native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -17,11 +18,14 @@ import {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 
-import { TooltipModalProps } from './ToolTipModal.types';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './ToolTipModal.styles';
+import type { RootParamList } from '../../../util/navigation/types';
 
-const TooltipModal = ({ route }: TooltipModalProps) => {
+type TooltipModalRouteProp = RouteProp<RootParamList, 'tooltipModal'>;
+
+const TooltipModal = () => {
+  const route = useRoute<TooltipModalRouteProp>();
   const tooltip = route.params.tooltip;
   const title = route.params.title;
 

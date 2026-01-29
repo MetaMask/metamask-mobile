@@ -11,8 +11,8 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { useNavigation } from '@react-navigation/native';
-import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { RootParamList } from '../../../../util/navigation/types';
 import {
   AlignItems,
   FlexDirection,
@@ -60,17 +60,15 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 
-interface AccountGroupDetailsProps {
-  route: {
-    params: {
-      accountGroup: AccountGroupObject;
-    };
-  };
-}
+type AccountGroupDetailsRouteProp = RouteProp<
+  RootParamList,
+  'MultichainAccountGroupDetails'
+>;
 
-export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
+export const AccountGroupDetails = () => {
+  const route = useRoute<AccountGroupDetailsRouteProp>();
   const navigation = useNavigation();
-  const { accountGroup: initialAccountGroup } = props.route.params;
+  const { accountGroup: initialAccountGroup } = route.params;
   const { id } = initialAccountGroup;
 
   // Use selector to get current account group data from Redux store

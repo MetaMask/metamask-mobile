@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ImageSourcePropType, StyleSheet, View } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
@@ -23,6 +24,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
+import type { RootParamList } from '../../../util/navigation/types';
 
 export const BLOCK_BUTTON_TEST_ID = 'block-origin-button';
 export const CONTINUE_BUTTON_TEST_ID = 'continue-origin-button';
@@ -160,11 +162,10 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
   );
 };
 
-const OriginSpamModal = ({
-  route,
-}: {
-  route: { params: { origin: string } };
-}) => {
+type OriginSpamModalRouteProp = RouteProp<RootParamList, 'OriginSpamModal'>;
+
+const OriginSpamModal = () => {
+  const route = useRoute<OriginSpamModalRouteProp>();
   const dispatch = useDispatch();
   const { origin } = route.params;
   const styles = createStyles();

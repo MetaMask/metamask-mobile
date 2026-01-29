@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
 // External dependencies.
 import ButtonPrimary from '../../Buttons/Button/variants/ButtonPrimary';
@@ -24,23 +25,22 @@ import { useTheme } from '../../../../util/theme';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
+import type { RootParamList } from '../../../../util/navigation/types';
 // Internal dependencies
 import {
   WEBVIEW_SCROLL_END_EVENT,
   WEBVIEW_SCROLL_NOT_END_EVENT,
 } from './ModalMandatory.constants';
-import {
-  BodyWebView,
-  BodyWebViewUri,
-  MandatoryModalProps,
-} from './ModalMandatory.types';
+import { BodyWebView, BodyWebViewUri } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../util/termsOfUse/TermsOfUseModal.testIds';
 import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
-import { useNavigation } from '@react-navigation/native';
 import { throttle } from 'lodash';
 
-const ModalMandatory = ({ route }: MandatoryModalProps) => {
+type ModalMandatoryRouteProp = RouteProp<RootParamList, 'ModalMandatory'>;
+
+const ModalMandatory = () => {
+  const route = useRoute<ModalMandatoryRouteProp>();
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, {});
   const webViewRef = useRef<WebView>(null);

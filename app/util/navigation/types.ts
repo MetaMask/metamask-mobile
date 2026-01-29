@@ -18,6 +18,14 @@ import type { OptionsSheetParams } from '../../components/UI/SelectOptionSheet/t
 import type { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
 import type { AccountConnectParams } from '../../components/Views/AccountConnect/AccountConnect.types';
 import type { SecuritySettingsParams } from '../../components/Views/Settings/SecuritySettings/SecuritySettings.types';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { AccountGroupObject } from '@metamask/account-tree-controller';
+import type { AccountWalletId } from '@metamask/account-api';
+import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
+import type { ReactNode } from 'react';
+import type { WalletClientType } from '../../core/SnapKeyring/MultichainWalletSnapClient';
+import type { BodyWebView } from '../../component-library/components/Modals/ModalMandatory/ModalMandatory.types';
+import type { IconName } from '../../component-library/components/Icons/Icon';
 
 // Import child navigator param lists
 import type { StakeParamList } from '../../components/UI/Stake/routes/types';
@@ -147,8 +155,13 @@ export type RootParamList = {
   TokensFullView: undefined;
   TrendingTokensFullView: undefined;
   AssetLoader: object | undefined;
-  AssetOptions: { asset?: object } | undefined;
-  NftOptions: { collectible?: object } | undefined;
+  AssetOptions: {
+    address: string;
+    isNativeCurrency: boolean;
+    chainId: string;
+    asset: TokenI;
+  };
+  NftOptions: { collectible: Collectible };
 
   // Browser Flow
   BrowserTabHome:
@@ -772,10 +785,23 @@ export type RootParamList = {
   AccountSelector: AccountSelectorParams | undefined;
   AddressSelector: AddressSelectorParams | undefined;
   AccountConnect: AccountConnectParams | undefined;
-  AccountPermissions: object | undefined;
-  AccountPermissionsAsFullScreen: object | undefined;
-  AccountPermissionsConfirmRevokeAll: object | undefined;
-  ConnectionDetails: object | undefined;
+  AccountPermissions: {
+    hostInfo: { metadata: { origin: string } };
+    isRenderedAsBottomSheet?: boolean;
+    initialScreen?: string;
+    isNonDappNetworkSwitch?: boolean;
+  };
+  AccountPermissionsAsFullScreen: {
+    hostInfo: { metadata: { origin: string } };
+    isRenderedAsBottomSheet?: boolean;
+    initialScreen?: string;
+    isNonDappNetworkSwitch?: boolean;
+  };
+  RevokeAllAccountPermissions: {
+    hostInfo: { metadata: { origin: string } };
+    onRevokeAll?: () => void;
+  };
+  ConnectionDetails: { connectionDateTime?: number };
   AddNewAccountBottomSheet: object | undefined;
   ImportPrivateKey: undefined;
   ImportPrivateKeyView: undefined;
@@ -784,7 +810,7 @@ export type RootParamList = {
     | NavigatorScreenParams<MultichainAccountDetailActionsParamList>
     | undefined;
   MultichainAccountsIntroModal: undefined;
-  MultichainAccountsLearnMoreBottomSheet: undefined;
+  MultichainAccountsLearnMoreBottomSheet: { onClose?: () => void } | undefined;
   AccountDetails: object | undefined;
   AccountGroupDetails: { accountGroupId: string };
   WalletDetails: object | undefined;
@@ -818,8 +844,28 @@ export type RootParamList = {
     | { screen?: string; params?: object }
     | object
     | undefined;
-  ModalConfirmation: object | undefined;
-  ModalMandatory: object | undefined;
+  ModalConfirmation: {
+    title: string;
+    description: string;
+    onConfirm?: () => void;
+    onCancel?: () => void;
+    cancelLabel?: string;
+    confirmLabel?: string;
+    isDanger?: boolean;
+  };
+  ModalMandatory: {
+    headerTitle: string;
+    footerHelpText?: string;
+    buttonText: string;
+    checkboxText: string;
+    body: BodyWebView | { source: 'Node'; component: () => ReactNode };
+    onAccept: () => void;
+    onRender?: () => void;
+    isScrollToEndNeeded?: boolean;
+    scrollEndBottomMargin?: number;
+    containerTestId?: string;
+    buttonTestId?: string;
+  };
   WhatsNewModal: undefined;
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
@@ -827,7 +873,7 @@ export type RootParamList = {
   DetectedTokensConfirmation:
     | { isHidingAll?: boolean; onConfirm?: () => void }
     | undefined;
-  SRPRevealQuiz: { page?: number } | undefined;
+  SRPRevealQuiz: { keyringId?: string } | undefined;
   WalletActions: undefined;
   TradeWalletActions: undefined;
   FundActionMenu: FundActionMenuParams | undefined;
@@ -839,16 +885,42 @@ export type RootParamList = {
   OTAUpdatesModal: undefined;
   DataCollectionModal: undefined;
   OptionsSheet: OptionsSheetParams | undefined;
-  AssetHideConfirmation: { asset?: object } | undefined;
-  OnboardingSheet: object | undefined;
-  OriginSpamModal: object | undefined;
-  TooltipModal: object | undefined;
-  ChangeInSimulationModal: object | undefined;
-  SuccessErrorSheet: undefined;
-  LearnMoreBottomSheet: undefined;
+  AssetHideConfirmation: { onConfirm: () => void };
+  OnboardingSheet: {
+    onPressCreate?: () => void;
+    onPressImport?: () => void;
+    onPressContinueWithGoogle?: (createWallet: boolean) => void;
+    onPressContinueWithApple?: (createWallet: boolean) => void;
+    createWallet?: boolean;
+  };
+  OriginSpamModal: { origin: string };
+  tooltipModal: { title: string; tooltip: string | ReactNode };
+  ChangeInSimulationModal: { onProceed: () => void; onReject: () => void };
+  SuccessErrorSheet: {
+    onClose?: () => void;
+    title?: string | ReactNode;
+    description?: string | ReactNode;
+    customButton?: ReactNode;
+    type?: 'success' | 'error';
+    icon?: IconName;
+    secondaryButtonLabel?: string;
+    onSecondaryButtonPress?: () => void;
+    primaryButtonLabel?: string;
+    onPrimaryButtonPress?: () => void;
+    isInteractable?: boolean;
+    closeOnPrimaryButtonPress?: boolean;
+    closeOnSecondaryButtonPress?: boolean;
+    reverseButtonOrder?: boolean;
+    descriptionAlign?: 'left' | 'center';
+    iconColor?: string;
+  };
   TurnOnBackupAndSync: undefined;
   ConfirmTurnOnBackupAndSync: object | undefined;
-  ReturnToAppNotification: undefined;
+  ReturnToDappToast: {
+    method?: string;
+    origin?: string;
+    hideReturnToApp?: boolean;
+  };
   PayWithModal: object | undefined;
   ConfirmationRequestModal: undefined;
   ConfirmationSwitchAccountType:
@@ -862,8 +934,22 @@ export type RootParamList = {
   SmartAccountOptIn: undefined;
 
   // SDK
-  SDKSessionModal: object | undefined;
-  SDKDisconnectModal: undefined;
+  SDKManageConnections: {
+    channelId?: string;
+    icon?: string;
+    urlOrTitle: string;
+    version?: string;
+    platform?: string;
+    isV2?: boolean;
+  };
+  SDKDisconnect: {
+    channelId?: string;
+    account?: string;
+    accountName?: string;
+    dapp?: string;
+    accountsLength?: number;
+    isV2?: boolean;
+  };
 
   // Network
   NetworkSelector: object | undefined;
@@ -961,7 +1047,6 @@ export type RootParamList = {
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithNetworkModal: undefined;
   EditAccountName: { selectedAccount?: object } | undefined;
-  ReturnToDappToast: undefined;
   SampleFeature: undefined;
   AssetsSettings: undefined;
   WalletTabStackFlow: undefined;
@@ -969,43 +1054,34 @@ export type RootParamList = {
   MultichainAddressList:
     | { groupId?: string; title?: string; onLoad?: () => void }
     | undefined;
-  MultichainAccountDetails: { account?: object } | undefined;
+  MultichainAccountDetails: { account: InternalAccount };
   MultichainPrivateKeyList:
     | {
         groupId?: string;
         title?: string;
       }
     | undefined;
-  MultichainAccountGroupDetails:
-    | {
-        accountGroup?: object;
-        screen?: string;
-        params?: object;
-      }
-    | undefined;
-  MultichainWalletDetails:
-    | {
-        walletId?: string;
-      }
-    | undefined;
+  MultichainAccountGroupDetails: {
+    accountGroup: AccountGroupObject;
+    screen?: string;
+    params?: object;
+  };
+  MultichainWalletDetails: { walletId?: AccountWalletId };
 
   // Sheet Routes
   AddAccount:
     | {
-        scope?: string;
-        clientType?: string;
+        scope?: `${string}:${string}`;
+        clientType?: WalletClientType;
       }
     | undefined;
   AmbiguousAddress: undefined;
-  BasicFunctionality: undefined;
+  BasicFunctionality: { caller: string };
   ResetNotifications: undefined;
   SDKLoading: undefined;
   SDKFeedback: undefined;
   DataCollection: undefined;
   ExperienceEnhancer: undefined;
-  SDKManageConnections: undefined;
-  SDKDisconnect: undefined;
-  RevokeAllAccountPermissions: undefined;
   PermittedNetworksInfoSheet: undefined;
   AccountActions: undefined;
   SettingsAdvancedFiatOnTestnetsFriction: undefined;
@@ -1015,7 +1091,7 @@ export type RootParamList = {
   TokenSort: undefined;
   SelectSRP: undefined;
   SeedphraseModal: undefined;
-  SkipAccountSecurityModal: undefined;
+  SkipAccountSecurityModal: { onConfirm?: () => void; onCancel?: () => void };
   EligibilityFailedModal: undefined;
   UnsupportedRegionModal: undefined;
 

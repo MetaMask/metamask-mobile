@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useRef } from 'react';
 import { Alert, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,20 +22,15 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
 import Routes from '../../../constants/navigation/Routes';
 import { toHex } from '@metamask/controller-utils';
+import type { RootParamList } from '../../../util/navigation/types';
 
-interface Props {
-  route: {
-    params: {
-      collectible: Collectible;
-    };
-  };
-}
+type NftOptionsRouteProp = RouteProp<RootParamList, 'NftOptions'>;
 
-const NftOptions = (props: Props) => {
-  const { collectible } = props.route.params;
+const NftOptions = () => {
+  const route = useRoute<NftOptionsRouteProp>();
+  const { collectible } = route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();

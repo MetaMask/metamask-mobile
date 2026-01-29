@@ -29,11 +29,15 @@ jest.mock(
 );
 
 const SCAM_ORIGIN_MOCK = 'scam.origin';
-const NAVIGATION_PARAMS_MOCK = {
-  params: {
-    origin: SCAM_ORIGIN_MOCK,
-  },
-};
+const mockUseRoute = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useRoute: () => mockUseRoute(),
+  };
+});
 
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
@@ -48,38 +52,34 @@ describe('OriginSpamModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRoute.mockReturnValue({
+      params: {
+        origin: SCAM_ORIGIN_MOCK,
+      },
+    });
   });
 
   describe('renders', () => {
     it('spam modal content by default', () => {
-      const { toJSON } = renderWithProvider(
-        <OriginSpamModal route={NAVIGATION_PARAMS_MOCK} />,
-        {
-          state: mockInitialState,
-        },
-      );
+      const { toJSON } = renderWithProvider(<OriginSpamModal />, {
+        state: mockInitialState,
+      });
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('SiteBlockedContent if user opt in to block dapp', () => {
-      const wrapper = renderWithProvider(
-        <OriginSpamModal route={NAVIGATION_PARAMS_MOCK} />,
-        {
-          state: mockInitialState,
-        },
-      );
+      const wrapper = renderWithProvider(<OriginSpamModal />, {
+        state: mockInitialState,
+      });
       fireEvent.press(wrapper.getByTestId(BLOCK_BUTTON_TEST_ID));
       expect(wrapper.toJSON()).toMatchSnapshot();
     });
   });
 
   it('reset dapp spam state on clicking continue button', () => {
-    const wrapper = renderWithProvider(
-      <OriginSpamModal route={NAVIGATION_PARAMS_MOCK} />,
-      {
-        state: mockInitialState,
-      },
-    );
+    const wrapper = renderWithProvider(<OriginSpamModal />, {
+      state: mockInitialState,
+    });
     fireEvent.press(wrapper.getByTestId(CONTINUE_BUTTON_TEST_ID));
 
     expect(mockResetOriginSpamState).toHaveBeenCalledTimes(1);

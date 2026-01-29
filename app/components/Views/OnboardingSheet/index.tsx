@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -19,8 +20,8 @@ import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
-import { useNavigation } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
+import type { RootParamList } from '../../../util/navigation/types';
 
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
@@ -30,11 +31,7 @@ export interface OnboardingSheetParams {
   createWallet?: boolean;
 }
 
-export interface OnboardingSheetProps {
-  route: {
-    params: OnboardingSheetParams;
-  };
-}
+type OnboardingSheetRouteProp = RouteProp<RootParamList, 'OnboardingSheet'>;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -91,16 +88,17 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const OnboardingSheet = (props: OnboardingSheetProps) => {
+const OnboardingSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const route = useRoute<OnboardingSheetRouteProp>();
   const {
     onPressCreate,
     onPressImport,
     onPressContinueWithGoogle,
     onPressContinueWithApple,
     createWallet = false,
-  } = props.route.params;
+  } = route.params;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 

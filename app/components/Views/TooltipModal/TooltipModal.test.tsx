@@ -2,9 +2,9 @@ import React from 'react';
 import { Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
+import { useRoute } from '@react-navigation/native';
 
 import TooltipModal from './';
-import { TooltipModalProps } from './ToolTipModal.types';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 
@@ -17,6 +17,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
     }),
+    useRoute: jest.fn(),
   };
 });
 
@@ -47,28 +48,29 @@ const initialMetrics: Metrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
-const createRouteData = (
-  overrides: Partial<TooltipModalProps['route']['params']> = {},
-): TooltipModalProps => ({
-  route: {
+const mockRouteParams = (
+  overrides: { title?: string; tooltip?: React.ReactNode } = {},
+) => {
+  (useRoute as jest.Mock).mockReturnValue({
     params: {
       title: 'Test Tooltip',
       tooltip: 'This is a test tooltip',
       ...overrides,
     },
-  },
-});
+  });
+};
 
-const renderTooltipModal = (props: TooltipModalProps = createRouteData()) =>
+const renderTooltipModal = () =>
   renderWithProvider(
     <SafeAreaProvider initialMetrics={initialMetrics}>
-      <TooltipModal {...props} />
+      <TooltipModal />
     </SafeAreaProvider>,
   );
 
 describe('TooltipModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams();
   });
 
   afterEach(() => {
@@ -85,9 +87,9 @@ describe('TooltipModal', () => {
 
     it('renders with ReactNode tooltip content', () => {
       const customTooltip = <Text testID="custom-tooltip">Custom Content</Text>;
-      const props = createRouteData({ tooltip: customTooltip });
+      mockRouteParams({ tooltip: customTooltip });
 
-      const { getByTestId } = renderTooltipModal(props);
+      const { getByTestId } = renderTooltipModal();
 
       expect(getByTestId('custom-tooltip')).toBeOnTheScreen();
     });

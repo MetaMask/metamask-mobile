@@ -3,9 +3,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 // External dependencies
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { RootParamList } from '../../../../util/navigation/types';
 import { useSelector } from 'react-redux';
 import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
 import Button, {
@@ -71,22 +72,14 @@ const createStyles = (
       justifyContent: 'center',
     },
   });
-interface SDKSEssionMoodalProps {
-  route: {
-    params: {
-      channelId?: string;
-      icon?: string;
-      urlOrTitle: string;
-      version?: string;
-      platform?: string;
-      isV2?: boolean;
-    };
-  };
-}
+type SDKSessionModalRouteProp = RouteProp<
+  RootParamList,
+  'SDKManageConnections'
+>;
 
-const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
-  const { params } = route;
-  const { channelId, icon, urlOrTitle, version, platform, isV2 } = params;
+const SDKSessionModal = () => {
+  const route = useRoute<SDKSessionModalRouteProp>();
+  const { channelId, icon, urlOrTitle, version, platform, isV2 } = route.params;
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const safeAreaInsets = useSafeAreaInsets();

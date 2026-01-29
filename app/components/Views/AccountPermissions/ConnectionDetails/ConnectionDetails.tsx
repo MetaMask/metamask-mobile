@@ -1,5 +1,6 @@
 // Third party dependencies
 import React, { useRef } from 'react';
+import { useRoute, RouteProp } from '@react-navigation/native';
 
 // External dependencies
 import { View } from 'react-native';
@@ -17,17 +18,13 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './ConnectionDetails.styles';
+import type { RootParamList } from '../../../../util/navigation/types';
 
-interface ConnectionDetailsProps {
-  route: {
-    params: {
-      connectionDateTime?: number;
-    };
-  };
-}
+type ConnectionDetailsRouteProp = RouteProp<RootParamList, 'ConnectionDetails'>;
 
-const ConnectionDetails = (props: ConnectionDetailsProps) => {
-  const { connectionDateTime = 123456789 } = props.route.params;
+const ConnectionDetails = () => {
+  const route = useRoute<ConnectionDetailsRouteProp>();
+  const { connectionDateTime = 123456789 } = route.params;
 
   const { styles } = useStyles(styleSheet, {});
 

@@ -37,38 +37,39 @@ jest.mock('../../BottomSheets/BottomSheet', () => ({
   )),
 }));
 
-// Mock useNavigation
+// Mock useNavigation and useRoute
+const mockUseRoute = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useRoute: () => mockUseRoute(),
 }));
 
 describe('ModalMandatory', () => {
   const mockOnAccept = jest.fn();
-  const mockRoute = {
-    params: {
-      headerTitle: 'Test Title',
-      footerHelpText: 'Test Footer',
-      buttonText: 'Accept',
-      body: {
-        source: 'WebView' as const,
-        uri: 'https://test.com',
-      } as BodyWebViewUri,
-      onAccept: mockOnAccept,
-      checkboxText: 'I agree',
-      onRender: jest.fn(),
-      isScrollToEndNeeded: true,
-      scrollEndBottomMargin: 20,
-      containerTestId: 'test-container',
-      buttonTestId: 'test-button',
-    },
+  const mockRouteParams = {
+    headerTitle: 'Test Title',
+    footerHelpText: 'Test Footer',
+    buttonText: 'Accept',
+    body: {
+      source: 'WebView' as const,
+      uri: 'https://test.com',
+    } as BodyWebViewUri,
+    onAccept: mockOnAccept,
+    checkboxText: 'I agree',
+    onRender: jest.fn(),
+    isScrollToEndNeeded: true,
+    scrollEndBottomMargin: 20,
+    containerTestId: 'test-container',
+    buttonTestId: 'test-button',
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRoute.mockReturnValue({ params: mockRouteParams });
   });
 
   it('renders correctly with all props', () => {
-    const { getByText, toJSON } = render(<ModalMandatory route={mockRoute} />);
+    const { getByText, toJSON } = render(<ModalMandatory />);
 
     expect(getByText('Test Title')).toBeTruthy();
     expect(getByText('Test Footer')).toBeTruthy();
@@ -79,7 +80,7 @@ describe('ModalMandatory', () => {
   });
 
   it('handles scroll events correctly', () => {
-    const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
+    const { getByTestId } = render(<ModalMandatory />);
     const webview = getByTestId(TermsOfUseModalSelectorsIDs.WEBVIEW);
 
     fireEvent.press(webview);
@@ -93,7 +94,7 @@ describe('ModalMandatory', () => {
   });
 
   it('handles checkbox selection', () => {
-    const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
+    const { getByTestId } = render(<ModalMandatory />);
     const checkbox = getByTestId(TermsOfUseModalSelectorsIDs.CHECKBOX);
 
     fireEvent.press(checkbox);
@@ -101,24 +102,21 @@ describe('ModalMandatory', () => {
   });
 
   it('disables button when conditions are not met', () => {
-    const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
+    const { getByTestId } = render(<ModalMandatory />);
     const button = getByTestId('test-button');
 
     expect(button.props.disabled).toBe(true);
   });
 
   it('enables button when conditions are met', async () => {
-    const routeWithoutScroll = {
-      ...mockRoute,
+    mockUseRoute.mockReturnValue({
       params: {
-        ...mockRoute.params,
+        ...mockRouteParams,
         isScrollToEndNeeded: false,
       },
-    };
+    });
 
-    const { getByTestId } = render(
-      <ModalMandatory route={routeWithoutScroll} />,
-    );
+    const { getByTestId } = render(<ModalMandatory />);
     const checkbox = getByTestId(TermsOfUseModalSelectorsIDs.CHECKBOX);
     const button = getByTestId('test-button');
 
@@ -128,7 +126,7 @@ describe('ModalMandatory', () => {
     // Select checkbox
     fireEvent.press(checkbox);
 
-    // Should be enabled after checkbox selection
+    // Button is enabled after checkbox selection
     expect(button.props.disabled).toBe(false);
   });
 
@@ -141,17 +139,14 @@ describe('ModalMandatory', () => {
       goBack: mockGoBack,
     } as unknown as ReturnType<typeof useNavigation>);
 
-    const routeWithoutScroll = {
-      ...mockRoute,
+    mockUseRoute.mockReturnValue({
       params: {
-        ...mockRoute.params,
+        ...mockRouteParams,
         isScrollToEndNeeded: false,
       },
-    };
+    });
 
-    const { getByTestId } = render(
-      <ModalMandatory route={routeWithoutScroll} />,
-    );
+    const { getByTestId } = render(<ModalMandatory />);
     const checkbox = getByTestId(TermsOfUseModalSelectorsIDs.CHECKBOX);
     const button = getByTestId('test-button');
 
@@ -160,12 +155,12 @@ describe('ModalMandatory', () => {
 
     // Press button
     fireEvent.press(button);
-    expect(mockRoute.params.onAccept).toHaveBeenCalled();
+    expect(mockRouteParams.onAccept).toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders scroll to end button when needed', () => {
-    const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
+    const { getByTestId } = render(<ModalMandatory />);
     const scrollButton = getByTestId(
       TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON,
     );
@@ -174,56 +169,51 @@ describe('ModalMandatory', () => {
   });
 
   it('handles Node source type correctly', () => {
-    const nodeRoute = {
-      ...mockRoute,
+    mockUseRoute.mockReturnValue({
       params: {
-        ...mockRoute.params,
+        ...mockRouteParams,
         body: {
           source: 'Node' as const,
           component: () => <Text>Test Node Content</Text>,
         },
       },
-    };
+    });
 
-    const { getByText } = render(<ModalMandatory route={nodeRoute} />);
+    const { getByText } = render(<ModalMandatory />);
     expect(getByText('Test Node Content')).toBeTruthy();
   });
 
   it('calls onRender when component mounts', () => {
-    render(<ModalMandatory route={mockRoute} />);
-    expect(mockRoute.params.onRender).toHaveBeenCalled();
+    render(<ModalMandatory />);
+    expect(mockRouteParams.onRender).toHaveBeenCalled();
   });
 
   it('does not render scroll to end button when not needed', () => {
-    const routeWithoutScroll = {
-      ...mockRoute,
+    mockUseRoute.mockReturnValue({
       params: {
-        ...mockRoute.params,
+        ...mockRouteParams,
         isScrollToEndNeeded: false,
       },
-    };
+    });
 
-    const { queryByTestId } = render(
-      <ModalMandatory route={routeWithoutScroll} />,
-    );
+    const { queryByTestId } = render(<ModalMandatory />);
     expect(
       queryByTestId(TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON),
     ).toBeNull();
   });
 
   it('handles WebView with HTML content', () => {
-    const htmlRoute = {
-      ...mockRoute,
+    mockUseRoute.mockReturnValue({
       params: {
-        ...mockRoute.params,
+        ...mockRouteParams,
         body: {
           source: 'WebView' as const,
           html: '<div>Test HTML Content</div>',
         },
       },
-    };
+    });
 
-    const { getByTestId } = render(<ModalMandatory route={htmlRoute} />);
+    const { getByTestId } = render(<ModalMandatory />);
     expect(getByTestId(TermsOfUseModalSelectorsIDs.WEBVIEW)).toBeTruthy();
   });
 
