@@ -12,7 +12,6 @@ import {
   getTransparentOnboardingNavbarOptions,
   getWalletNavbarOptions,
   getStakingNavbar,
-  getMusdConversionTransactionDetailsNavbar,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -672,43 +671,6 @@ describe('getStakingNavbar', () => {
       properties: { from: 'header' },
     });
     expect(handleIconPress).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('getMusdConversionTransactionDetailsNavbar', () => {
-  const mockNavigation = {
-    pop: jest.fn(),
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns navbar options with headerTitle and headerLeft functions', () => {
-    const options = getMusdConversionTransactionDetailsNavbar(mockNavigation);
-
-    expect(options).toBeDefined();
-    expect(options.headerTitle).toBeInstanceOf(Function);
-    expect(options.headerLeft).toBeInstanceOf(Function);
-  });
-
-  it('returns expected navbar structure', () => {
-    const options = getMusdConversionTransactionDetailsNavbar(mockNavigation);
-
-    // Verify the structure matches expected navbar options
-    expect(Object.keys(options)).toEqual(
-      expect.arrayContaining(['headerTitle', 'headerLeft']),
-    );
-  });
-
-  it('calls navigation.pop when back button pressed', () => {
-    const options = getMusdConversionTransactionDetailsNavbar(mockNavigation);
-
-    // Get the headerLeft component and call its onPress directly
-    const HeaderLeftComponent = options.headerLeft();
-    HeaderLeftComponent.props.onPress();
-
-    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
   });
 });
 

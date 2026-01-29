@@ -54,22 +54,26 @@ class BridgeScreen {
   }
 
   async isQuoteDisplayed() {
-      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MM fee");
+      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MetaMask fee");
       await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
 
 
   }
 
   async enterSourceTokenAmount(amount) {
+    // Tap each digit on the numeric keypad
+    const digits = amount.split('');
     AmountScreen.device = this._device;
-    await AmountScreen.enterAmount(amount);
+    for (const digit of digits) {
+      const digitButton = await AppwrightSelectors.getElementByText(this._device, digit, true);
+      await appwrightExpect(digitButton).toBeVisible({ timeout: 10000 });
+      await AmountScreen.tapNumberKey(digit);
+    }
   }
 
   async selectNetworkAndTokenTo(network, token) {
     const destinationToken = await this.destinationTokenArea;
     await AppwrightGestures.tap(destinationToken);
-    const filterNetworkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'See all');
-    await AppwrightGestures.tap(filterNetworkButton);
     const networkButton = await this.getNetworkButton(network);
     await AppwrightGestures.tap(networkButton);
     let tokenNetworkId;
@@ -83,6 +87,7 @@ class BridgeScreen {
       tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
     }
     const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+    await appwrightExpect(tokenButton).toBeVisible({ timeout: 15000 });
     await AppwrightGestures.tap(tokenButton);
   }
 

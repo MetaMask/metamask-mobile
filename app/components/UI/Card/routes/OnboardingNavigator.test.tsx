@@ -94,6 +94,7 @@ jest.mock(
   () => 'VerifyingVeriffKYC',
 );
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
+jest.mock('../components/Onboarding/KYCPending', () => 'KYCPending');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
@@ -593,11 +594,15 @@ describe('OnboardingNavigator', () => {
       );
     });
 
-    it('routes to PERSONAL_DETAILS when cardUserPhase is PERSONAL_INFORMATION', () => {
+    it('routes to PERSONAL_DETAILS when cardUserPhase is PERSONAL_INFORMATION and verificationState is VERIFIED', () => {
       mockUseParams.mockReturnValue({ cardUserPhase: 'PERSONAL_INFORMATION' });
       mockUseSelector.mockReturnValue('onboarding-123');
       mockUseCardSDK.mockReturnValue({
-        user: { id: 'user-123', contactVerificationId: 'contact-123' },
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          verificationState: 'VERIFIED',
+        },
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
@@ -615,11 +620,120 @@ describe('OnboardingNavigator', () => {
       );
     });
 
-    it('routes to PHYSICAL_ADDRESS when cardUserPhase is PHYSICAL_ADDRESS', () => {
+    it('routes to KYC_FAILED when cardUserPhase is PERSONAL_INFORMATION and verificationState is REJECTED', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PERSONAL_INFORMATION' });
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          verificationState: 'REJECTED',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.KYC_FAILED,
+      );
+    });
+
+    it('routes to VERIFY_IDENTITY when cardUserPhase is PERSONAL_INFORMATION and verificationState is PENDING', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PERSONAL_INFORMATION' });
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          verificationState: 'PENDING',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
+      );
+    });
+
+    it('routes to VERIFY_IDENTITY when cardUserPhase is PERSONAL_INFORMATION and verificationState is UNVERIFIED', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PERSONAL_INFORMATION' });
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          verificationState: 'UNVERIFIED',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
+      );
+    });
+
+    it('routes to VERIFY_IDENTITY when cardUserPhase is PERSONAL_INFORMATION and verificationState is undefined', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PERSONAL_INFORMATION' });
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          // verificationState is undefined
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
+      );
+    });
+
+    it('routes to PHYSICAL_ADDRESS when cardUserPhase is PHYSICAL_ADDRESS, verificationState is VERIFIED, and countryOfNationality exists', () => {
       mockUseParams.mockReturnValue({ cardUserPhase: 'PHYSICAL_ADDRESS' });
       mockUseSelector.mockReturnValue('onboarding-123');
       mockUseCardSDK.mockReturnValue({
-        user: { id: 'user-123', contactVerificationId: 'contact-123' },
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          verificationState: 'VERIFIED',
+          countryOfNationality: 'US',
+        },
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
@@ -634,6 +748,141 @@ describe('OnboardingNavigator', () => {
       expect(stackNavigator).not.toBeNull();
       expect(stackNavigator?.props.initialRouteName).toBe(
         Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
+      );
+    });
+
+    it('routes to PERSONAL_DETAILS when cardUserPhase is PHYSICAL_ADDRESS, verificationState is VERIFIED, but countryOfNationality is missing', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PHYSICAL_ADDRESS' });
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          verificationState: 'VERIFIED',
+          // countryOfNationality is missing
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.PERSONAL_DETAILS,
+      );
+    });
+
+    it('routes to KYC_FAILED when cardUserPhase is PHYSICAL_ADDRESS and verificationState is REJECTED', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PHYSICAL_ADDRESS' });
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          verificationState: 'REJECTED',
+          countryOfNationality: 'US',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.KYC_FAILED,
+      );
+    });
+
+    it('routes to VERIFY_IDENTITY when cardUserPhase is PHYSICAL_ADDRESS and verificationState is UNVERIFIED', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PHYSICAL_ADDRESS' });
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          verificationState: 'UNVERIFIED',
+          countryOfNationality: 'US',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
+      );
+    });
+
+    it('routes to VERIFY_IDENTITY when cardUserPhase is PHYSICAL_ADDRESS and verificationState is PENDING', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PHYSICAL_ADDRESS' });
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          verificationState: 'PENDING',
+          countryOfNationality: 'US',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
+      );
+    });
+
+    it('routes to VERIFY_IDENTITY when cardUserPhase is PHYSICAL_ADDRESS and verificationState is undefined', () => {
+      mockUseParams.mockReturnValue({ cardUserPhase: 'PHYSICAL_ADDRESS' });
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          contactVerificationId: 'contact-123',
+          // verificationState is undefined
+          countryOfNationality: 'US',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
       );
     });
   });
