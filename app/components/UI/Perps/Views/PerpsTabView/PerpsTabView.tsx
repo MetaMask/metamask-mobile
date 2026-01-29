@@ -30,7 +30,10 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import type { PerpsNavigationParamList , PerpsMarketData } from '../../controllers/types';
+import type {
+  PerpsNavigationParamList,
+  PerpsMarketData,
+} from '../../controllers/types';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
@@ -273,6 +276,13 @@ const PerpsTabView = () => {
     [navigation],
   );
 
+  const handleSeeAllPerps = useCallback(() => {
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
+    });
+  }, [navigation]);
+
   const renderExploreMarketRow = useCallback(
     (market: PerpsMarketData) => {
       const badgeType = getMarketBadgeType(market);
@@ -361,9 +371,23 @@ const PerpsTabView = () => {
           </Text>
         </View>
         <View>{exploreMarkets.map(renderExploreMarketRow)}</View>
+        <TouchableOpacity
+          style={styles.seeAllButton}
+          onPress={handleSeeAllPerps}
+        >
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {strings('perps.home.see_all_perps')}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
-  }, [isExploreLoading, exploreMarkets, styles, renderExploreMarketRow]);
+  }, [
+    isExploreLoading,
+    exploreMarkets,
+    styles,
+    renderExploreMarketRow,
+    handleSeeAllPerps,
+  ]);
 
   return (
     <SafeAreaView

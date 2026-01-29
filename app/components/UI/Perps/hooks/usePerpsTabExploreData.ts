@@ -47,7 +47,12 @@ export const usePerpsTabExploreData = ({
   const exploreMarkets = useMemo(() => {
     if (!enabled) return [];
     return markets
-      .filter((m) => !m.marketType || m.marketType === 'equity')
+      .filter(
+        (m) =>
+          !m.marketType ||
+          m.marketType === 'crypto' ||
+          m.marketType === 'equity',
+      )
       .slice(0, EXPLORE_MARKETS_LIMIT);
   }, [markets, enabled]);
 

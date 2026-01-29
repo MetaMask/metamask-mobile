@@ -95,8 +95,6 @@ jest.mock('../../hooks', () => ({
     exploreMarkets: [],
     watchlistMarkets: [],
     isLoading: false,
-    handleMarketPress: jest.fn(),
-    handleSeeAllMarketsPress: jest.fn(),
   })),
 }));
 
@@ -374,15 +372,13 @@ describe('PerpsTabView', () => {
   });
 
   describe('User Interactions', () => {
-    it('should show explore section when no positions or orders exist', () => {
+    it('shows explore section when no positions or orders exist', () => {
       const mockUsePerpsTabExploreData =
         jest.requireMock('../../hooks').usePerpsTabExploreData;
       mockUsePerpsTabExploreData.mockReturnValue({
         exploreMarkets: [{ symbol: 'ETH' }, { symbol: 'BTC' }],
         watchlistMarkets: [],
         isLoading: false,
-        handleMarketPress: jest.fn(),
-        handleSeeAllMarketsPress: jest.fn(),
       });
 
       mockUsePerpsFirstTimeUser.mockReturnValue({
@@ -632,8 +628,6 @@ describe('PerpsTabView', () => {
         exploreMarkets: [{ symbol: 'ETH' }, { symbol: 'BTC' }],
         watchlistMarkets: [],
         isLoading: false,
-        handleMarketPress: jest.fn(),
-        handleSeeAllMarketsPress: jest.fn(),
       });
 
       // Act - Render component
@@ -810,8 +804,6 @@ describe('PerpsTabView', () => {
         exploreMarkets: [{ symbol: 'ETH' }, { symbol: 'BTC' }],
         watchlistMarkets: [],
         isLoading: false,
-        handleMarketPress: jest.fn(),
-        handleSeeAllMarketsPress: jest.fn(),
       });
 
       render(<PerpsTabView />);

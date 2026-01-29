@@ -165,6 +165,17 @@ const styleSheet = (params: { theme: Theme }) => {
     exploreMarketChange: {
       marginTop: 2,
     },
+    // "See all perps" button at bottom of explore section
+    seeAllButton: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 12,
+      height: 48,
+      paddingHorizontal: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 12,
+      marginBottom: 12,
+    },
   });
 };
 
