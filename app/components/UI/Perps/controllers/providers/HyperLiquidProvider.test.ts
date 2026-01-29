@@ -363,7 +363,16 @@ describe('HyperLiquidProvider', () => {
       setDexMetaCache: jest.fn(),
       setDexAssetCtxsCache: jest.fn(),
       getDexAssetCtxsCache: jest.fn().mockReturnValue(undefined),
-      restoreSubscriptions: jest.fn().mockResolvedValue(undefined),
+      // Price cache used by placeOrder, editOrder, closePosition optimizations
+      getCachedPrice: jest.fn().mockImplementation((symbol: string) => {
+        const prices: Record<string, string> = { BTC: '50000', ETH: '3000' };
+        return prices[symbol];
+      }),
+      // Orders cache used by updatePositionTPSL and getOpenOrders
+      isOrdersCacheInitialized: jest.fn().mockReturnValue(false),
+      getCachedOrders: jest.fn().mockReturnValue([]),
+      // Atomic getter - returns null when cache not initialized (prevents race condition)
+      getOrdersCacheIfInitialized: jest.fn().mockReturnValue(null),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 
     // Mock constructors
@@ -704,7 +713,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.editOrder(editParams);
 
       expect(result.success).toBe(true);
-      expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+      // Price is fetched from WebSocket cache (getCachedPrice) or REST API (allMids) as fallback
 
       // Verify market orders use FrontendMarket TIF in edit operations
       expect(mockClientService.getExchangeClient().modify).toHaveBeenCalledWith(
@@ -741,6 +750,8 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('handles editOrder when no price is available', async () => {
+      // Mock both WebSocket cache and REST API to return no price
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce(undefined);
       (
         mockClientService.getInfoClient().allMids as jest.Mock
       ).mockResolvedValueOnce({}); // Empty price data
@@ -758,14 +769,166 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.editOrder(editParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('No price available for BTC');
+      expect(result.error).toContain('Invalid price for BTC');
+    });
+
+    it('falls back to REST API when cached price is zero', async () => {
+      // Mock WebSocket cache to return "0" (invalid price)
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce('0');
+      // Mock REST API to return valid price
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({ BTC: '50000' });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      // Should succeed because it fell back to REST API
+      expect(result.success).toBe(true);
+      // Verify REST API was called as fallback
+      expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+    });
+
+    it('falls back to REST API when cached price is NaN', async () => {
+      // Mock WebSocket cache to return invalid string
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce('invalid');
+      // Mock REST API to return valid price
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({ BTC: '50000' });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      // Should succeed because it fell back to REST API
+      expect(result.success).toBe(true);
+      // Verify REST API was called as fallback
+      expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+    });
+
+    it('falls back to REST API when cached price is negative', async () => {
+      // Mock WebSocket cache to return negative price (invalid for crypto)
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce('-100');
+      // Mock REST API to return valid price
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({ BTC: '50000' });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      // Should succeed because it fell back to REST API
+      expect(result.success).toBe(true);
+      // Verify REST API was called as fallback
+      expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+    });
+
+    it('falls back to REST API when cached price is Infinity', async () => {
+      // Mock WebSocket cache to return Infinity (invalid price)
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce('Infinity');
+      // Mock REST API to return valid price
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({ BTC: '50000' });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      // Should succeed because it fell back to REST API
+      expect(result.success).toBe(true);
+      // Verify REST API was called as fallback
+      expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+    });
+
+    it('throws error when REST price is negative', async () => {
+      // Mock WebSocket cache miss
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce(undefined);
+      // Mock REST API to return negative price
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({ BTC: '-50000' });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Invalid price for BTC');
+    });
+
+    it('throws error when REST price is Infinity', async () => {
+      // Mock WebSocket cache miss
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce(undefined);
+      // Mock REST API to return Infinity
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({ BTC: 'Infinity' });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Invalid price for BTC');
     });
 
     it('handles editOrder when asset ID is not found', async () => {
       // Create a spy on the symbolToAssetId.get method to return undefined for BTC
       // eslint-disable-next-line dot-notation
       const originalGet = provider['symbolToAssetId'].get;
-      jest
+      const getSpy = jest
         // eslint-disable-next-line dot-notation
         .spyOn(provider['symbolToAssetId'], 'get')
         .mockImplementation((symbol: string) => {
@@ -792,8 +955,8 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('Asset ID not found for BTC');
 
-      // Restore the original method
-      jest.restoreAllMocks();
+      // Restore only this specific spy (not all mocks)
+      getSpy.mockRestore();
     });
 
     it('cancels an order successfully', async () => {
@@ -5366,11 +5529,8 @@ describe('HyperLiquidProvider', () => {
           isTrigger: false,
         },
       ];
-      // Add cache methods to mock
-      mockSubscriptionService.isOrdersCacheInitialized = jest
-        .fn()
-        .mockReturnValue(true);
-      mockSubscriptionService.getCachedOrders = jest
+      // Use the atomic getter mock
+      mockSubscriptionService.getOrdersCacheIfInitialized = jest
         .fn()
         .mockReturnValue(cachedOrders);
 
@@ -5380,6 +5540,98 @@ describe('HyperLiquidProvider', () => {
       // Assert
       expect(result).toEqual(cachedOrders);
       expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+    });
+
+    it('falls back to REST when atomic cache getter returns null', async () => {
+      // Arrange - atomic getter returns null (cache not initialized or race condition)
+      mockSubscriptionService.getOrdersCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(null);
+
+      const mockFrontendOpenOrders = jest.fn().mockResolvedValue([
+        {
+          coin: 'ETH',
+          side: 'B',
+          limitPx: '3000',
+          sz: '1.0',
+          oid: 501,
+          timestamp: Date.now(),
+          origSz: '1.0',
+          triggerCondition: '',
+          isTrigger: false,
+          triggerPx: '',
+          children: [],
+          isPositionTpsl: false,
+          reduceOnly: false,
+          orderType: 'Limit',
+          tif: 'Gtc',
+          cloid: null,
+        },
+      ]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
+          referredBy: { code: 'MMCSI' },
+        }),
+        frontendOpenOrders: mockFrontendOpenOrders,
+        clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: { totalMarginUsed: '0', accountValue: '1000' },
+          withdrawable: '1000',
+          assetPositions: [],
+          crossMarginSummary: { accountValue: '1000', totalMarginUsed: '0' },
+        }),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 25 }],
+        }),
+        perpDexs: jest.fn().mockResolvedValue([null]),
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      jest.spyOn(provider as any, 'getValidatedDexs').mockResolvedValue([null]);
+
+      // Act
+      const result = await provider.getOpenOrders();
+
+      // Assert - should fall back to REST API
+      expect(mockFrontendOpenOrders).toHaveBeenCalled();
+      expect(result.length).toBe(1);
+      expect(result[0].orderId).toBe('501');
+    });
+
+    it('returns defensive copy of cached orders (not original array)', async () => {
+      // Arrange - this tests that the atomic getter returns a copy
+      const cachedOrders = [
+        {
+          orderId: '101',
+          symbol: 'ETH',
+          side: 'buy' as const,
+          orderType: 'limit' as const,
+          size: '1.0',
+          originalSize: '1.0',
+          filledSize: '0',
+          remainingSize: '1.0',
+          price: '2900',
+          status: 'open' as const,
+          timestamp: Date.now(),
+          detailedOrderType: 'Limit',
+          reduceOnly: false,
+          isTrigger: false,
+        },
+      ];
+      // Return a new array each time (simulating the defensive copy)
+      mockSubscriptionService.getOrdersCacheIfInitialized = jest
+        .fn()
+        .mockImplementation(() => [...cachedOrders]);
+
+      // Act
+      const result1 = await provider.getOpenOrders();
+      const result2 = await provider.getOpenOrders();
+
+      // Assert - should be equal but not the same reference
+      expect(result1).toEqual(result2);
+      expect(result1).not.toBe(result2); // Different array instances
     });
 
     it('queries only main DEX when no additional DEXs enabled', async () => {
@@ -5437,10 +5689,10 @@ describe('HyperLiquidProvider', () => {
 
     it('queries multiple DEXs when HIP-3 enabled', async () => {
       // Arrange
-      // Ensure cache is disabled for this test
-      mockSubscriptionService.isOrdersCacheInitialized = jest
+      // Ensure cache is disabled for this test (atomic getter returns null)
+      mockSubscriptionService.getOrdersCacheIfInitialized = jest
         .fn()
-        .mockReturnValue(false);
+        .mockReturnValue(null);
 
       const mockFrontendOpenOrders = jest
         .fn()
@@ -6612,7 +6864,7 @@ describe('HyperLiquidProvider', () => {
       // Add WebSocket methods to mock client service
       mockClientService.getConnectionState = jest
         .fn()
-        .mockReturnValue(WebSocketConnectionState.CONNECTED);
+        .mockReturnValue(WebSocketConnectionState.Connected);
       mockClientService.subscribeToConnectionState = jest
         .fn()
         .mockReturnValue(jest.fn());
@@ -6622,14 +6874,14 @@ describe('HyperLiquidProvider', () => {
     it('getWebSocketConnectionState delegates to clientService', () => {
       // Arrange
       mockClientService.getConnectionState.mockReturnValue(
-        WebSocketConnectionState.CONNECTED,
+        WebSocketConnectionState.Connected,
       );
 
       // Act
       const result = provider.getWebSocketConnectionState();
 
       // Assert
-      expect(result).toBe(WebSocketConnectionState.CONNECTED);
+      expect(result).toBe(WebSocketConnectionState.Connected);
       expect(mockClientService.getConnectionState).toHaveBeenCalled();
     });
 
@@ -6660,6 +6912,175 @@ describe('HyperLiquidProvider', () => {
 
       // Assert
       expect(mockClientService.reconnect).toHaveBeenCalled();
+    });
+  });
+
+  describe('getOrFetchFills - Cache-First Pattern', () => {
+    const mockFills = [
+      {
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'buy' as const,
+        size: '0.1',
+        price: '50000',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        pnl: '100',
+        direction: 'Open Long',
+        success: true,
+      },
+      {
+        orderId: '124',
+        symbol: 'ETH',
+        side: 'sell' as const,
+        size: '1.0',
+        price: '3000',
+        fee: '3',
+        feeToken: 'USDC',
+        timestamp: Date.now() - 1000,
+        pnl: '-50',
+        direction: 'Close Short',
+        success: true,
+      },
+    ];
+
+    it('uses cached fills when cache is initialized', async () => {
+      // Arrange
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(mockFills);
+
+      // Act
+      const result = await provider.getOrFetchFills({});
+
+      // Assert
+      expect(result).toEqual(mockFills);
+      expect(
+        mockSubscriptionService.getFillsCacheIfInitialized,
+      ).toHaveBeenCalled();
+      // Should NOT call REST API
+      expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+    });
+
+    it('falls back to REST API when cache returns null', async () => {
+      // Arrange - cache not initialized
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(null);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFills: jest.fn().mockResolvedValue([
+          {
+            oid: 125,
+            coin: 'BTC',
+            side: 'B',
+            sz: '0.5',
+            px: '49000',
+            fee: '2',
+            feeToken: 'USDC',
+            time: Date.now(),
+            closedPnl: '50',
+            dir: 'Open Long',
+          },
+        ]),
+      });
+
+      // Act
+      const result = await provider.getOrFetchFills({});
+
+      // Assert
+      expect(
+        mockSubscriptionService.getFillsCacheIfInitialized,
+      ).toHaveBeenCalled();
+      expect(mockClientService.getInfoClient).toHaveBeenCalled();
+      expect(result.length).toBe(1);
+      expect(result[0].symbol).toBe('BTC');
+    });
+
+    it('filters cached fills by startTime', async () => {
+      // Arrange
+      const now = Date.now();
+      const fillsWithDifferentTimes = [
+        { ...mockFills[0], timestamp: now },
+        { ...mockFills[1], timestamp: now - 100000 }, // Older fill
+      ];
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(fillsWithDifferentTimes);
+
+      // Act - filter to only include recent fills
+      const result = await provider.getOrFetchFills({ startTime: now - 50000 });
+
+      // Assert - should only include the more recent fill
+      expect(result.length).toBe(1);
+      expect(result[0].timestamp).toBe(now);
+    });
+
+    it('filters cached fills by symbol', async () => {
+      // Arrange
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(mockFills);
+
+      // Act - filter to only BTC fills
+      const result = await provider.getOrFetchFills({ symbol: 'BTC' });
+
+      // Assert - should only include BTC fill
+      expect(result.length).toBe(1);
+      expect(result[0].symbol).toBe('BTC');
+    });
+
+    it('filters cached fills by both startTime and symbol', async () => {
+      // Arrange
+      const now = Date.now();
+      const fillsWithDifferentTimesAndSymbols = [
+        { ...mockFills[0], symbol: 'BTC', timestamp: now },
+        { ...mockFills[0], symbol: 'BTC', timestamp: now - 100000 },
+        { ...mockFills[0], symbol: 'ETH', timestamp: now },
+      ];
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(fillsWithDifferentTimesAndSymbols);
+
+      // Act - filter to recent BTC fills only
+      const result = await provider.getOrFetchFills({
+        startTime: now - 50000,
+        symbol: 'BTC',
+      });
+
+      // Assert - should only include recent BTC fill
+      expect(result.length).toBe(1);
+      expect(result[0].symbol).toBe('BTC');
+      expect(result[0].timestamp).toBe(now);
+    });
+
+    it('returns all fills when no filter params provided', async () => {
+      // Arrange
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue(mockFills);
+
+      // Act - no filter params
+      const result = await provider.getOrFetchFills();
+
+      // Assert - should return all fills
+      expect(result).toEqual(mockFills);
+    });
+
+    it('returns empty array when cache is initialized but empty', async () => {
+      // Arrange - cache initialized but no fills
+      mockSubscriptionService.getFillsCacheIfInitialized = jest
+        .fn()
+        .mockReturnValue([]);
+
+      // Act
+      const result = await provider.getOrFetchFills({});
+
+      // Assert
+      expect(result).toEqual([]);
+      // Should NOT call REST API since cache is initialized
+      expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
     });
   });
 });

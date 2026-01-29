@@ -512,6 +512,7 @@ enum EVENT_NAME {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+  NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED = 'Network Connection Banner Switch To MetaMask Default RPC Clicked',
   NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Analytics - Consolidated Event
@@ -544,6 +545,11 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
   CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
+  CARD_METAL_CHECKOUT_VIEWED = 'Card Metal Checkout Viewed',
+  CARD_METAL_CHECKOUT_STARTED = 'Card Metal Checkout Started',
+  CARD_METAL_CHECKOUT_COMPLETED = 'Card Metal Checkout Completed',
+  CARD_METAL_CHECKOUT_FAILED = 'Card Metal Checkout Failed',
+  CARD_METAL_CHECKOUT_USER_CANCELED = 'Card Metal Checkout User Canceled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -1368,6 +1374,9 @@ const events = {
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
   ),
+  NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED: generateOpt(
+    EVENT_NAME.NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED,
+  ),
   NetworkConnectionBannerRpcUpdated: generateOpt(
     EVENT_NAME.NetworkConnectionBannerRpcUpdated,
   ),
@@ -1431,6 +1440,21 @@ const events = {
   ),
   CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
+  ),
+  CARD_METAL_CHECKOUT_VIEWED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_VIEWED,
+  ),
+  CARD_METAL_CHECKOUT_STARTED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_STARTED,
+  ),
+  CARD_METAL_CHECKOUT_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_COMPLETED,
+  ),
+  CARD_METAL_CHECKOUT_FAILED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_FAILED,
+  ),
+  CARD_METAL_CHECKOUT_USER_CANCELED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_USER_CANCELED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
