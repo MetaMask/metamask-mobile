@@ -83,8 +83,8 @@ export class FeatureFlagConfigurationService {
       remoteValue.every((item) => typeof item === 'string' && item.length > 0)
     ) {
       const validatedMarkets = (remoteValue as string[])
-        .map((s) => stripQuotes(s.trim()))
-        .filter((s) => s.length > 0);
+        .map((market) => stripQuotes(market.trim()))
+        .filter((market) => market.length > 0);
 
       this.deps.debugLogger.log(
         `PerpsController: HIP-3 ${fieldName} validated from array`,
@@ -110,8 +110,10 @@ export class FeatureFlagConfigurationService {
    */
   private arraysHaveDifferentValues(a: string[], b: string[]): boolean {
     return (
-      JSON.stringify([...a].sort((x, y) => x.localeCompare(y))) !==
-      JSON.stringify([...b].sort((x, y) => x.localeCompare(y)))
+      JSON.stringify(
+        [...a].sort((itemA, itemB) => itemA.localeCompare(itemB)),
+      ) !==
+      JSON.stringify([...b].sort((itemA, itemB) => itemA.localeCompare(itemB)))
     );
   }
 

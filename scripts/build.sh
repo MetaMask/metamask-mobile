@@ -178,6 +178,93 @@ remapEnvVariable() {
     echo "Successfully remapped $old_var_name to $new_var_name."
 }
 
+# Create .env file from environment variables and optionally export to GITHUB_ENV
+createEnvFile() {
+    echo "📝 Creating .env file from environment variables..."
+
+    # List of environment variable names to export
+    ENV_VARS=(
+        "MM_MUSD_CONVERSION_FLOW_ENABLED"
+        "MM_NETWORK_UI_REDESIGN_ENABLED"
+        "MM_NOTIFICATIONS_UI_ENABLED"
+        "MM_PERMISSIONS_SETTINGS_V1_ENABLED"
+        "MM_PERPS_BLOCKED_REGIONS"
+        "MM_PERPS_ENABLED"
+        "MM_PERPS_HIP3_ALLOWLIST_MARKETS"
+        "MM_PERPS_HIP3_BLOCKLIST_MARKETS"
+        "MM_PERPS_HIP3_ENABLED"
+        "MM_SECURITY_ALERTS_API_ENABLED"
+        "BRIDGE_USE_DEV_APIS"
+        "SEEDLESS_ONBOARDING_ENABLED"
+        "RAMP_INTERNAL_BUILD"
+        "FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
+        "FEATURES_ANNOUNCEMENTS_SPACE_ID"
+        "SEGMENT_WRITE_KEY"
+        "SEGMENT_PROXY_URL"
+        "SEGMENT_DELETE_API_SOURCE_ID"
+        "SEGMENT_REGULATIONS_ENDPOINT"
+        "MM_SENTRY_DSN"
+        "MM_SENTRY_AUTH_TOKEN"
+        "IOS_GOOGLE_CLIENT_ID"
+        "IOS_GOOGLE_REDIRECT_URI"
+        "ANDROID_APPLE_CLIENT_ID"
+        "ANDROID_GOOGLE_CLIENT_ID"
+        "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+        "MM_INFURA_PROJECT_ID"
+        "MM_BRANCH_KEY_LIVE"
+        "MM_BRANCH_KEY_TEST"
+        "MM_CARD_BAANX_API_CLIENT_KEY"
+        "WALLET_CONNECT_PROJECT_ID"
+        "MM_FOX_CODE"
+        "FCM_CONFIG_API_KEY"
+        "FCM_CONFIG_AUTH_DOMAIN"
+        "FCM_CONFIG_STORAGE_BUCKET"
+        "FCM_CONFIG_PROJECT_ID"
+        "FCM_CONFIG_MESSAGING_SENDER_ID"
+        "FCM_CONFIG_APP_ID"
+        "FCM_CONFIG_MEASUREMENT_ID"
+        "QUICKNODE_MAINNET_URL"
+        "QUICKNODE_ARBITRUM_URL"
+        "QUICKNODE_AVALANCHE_URL"
+        "QUICKNODE_BASE_URL"
+        "QUICKNODE_LINEA_MAINNET_URL"
+        "QUICKNODE_MONAD_URL"
+        "QUICKNODE_OPTIMISM_URL"
+        "QUICKNODE_POLYGON_URL"
+    )
+
+    # Create .env file
+    > .env
+    
+    # Export to GITHUB_ENV if in CI environment
+    local exported_count=0
+    for var in "${ENV_VARS[@]}"; do
+        # Check if variable is set (defined), not just non-empty
+        # This allows explicitly empty strings (e.g., MM_PERPS_HIP3_ALLOWLIST_MARKETS='')
+        # to be written to .env, which is semantically different from undefined variables
+        if [ -n "${!var+x}" ]; then
+            value="${!var}"
+            # Use double quotes with proper escaping (consistent with .js.env format)
+            # Escape special characters to prevent shell interpretation when sourcing
+            escaped_value="${value//\\/\\\\}"  # Escape backslashes first
+            escaped_value="${escaped_value//\"/\\\"}"  # Escape double quotes
+            escaped_value="${escaped_value//\$/\\\$}"  # Escape dollar signs to prevent variable expansion
+            
+            echo "${var}=\"${escaped_value}\"" >> .env
+            
+            # Export to GITHUB_ENV if in GitHub Actions
+            # Note: GITHUB_ENV expects NAME=value format without quotes
+            if [ -n "$GITHUB_ENV" ]; then
+                echo "${var}=${value}" >> "$GITHUB_ENV"
+            fi
+            
+            ((exported_count++))
+        fi
+    done
+
+    echo "📄 .env file created with ${exported_count} variables"
+}
+
 # Mapping for Main env variables in the dev environment
 remapMainDevEnvVariables() {
   	echo "Remapping Main target environment variables for the dev environment"
@@ -615,22 +702,45 @@ generateAndroidBinary() {
 buildExpoUpdate() {
 		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
 
-		if [ -z "${EXPO_TOKEN}" ]; then
-			echo "EXPO_TOKEN is NOT set in build.sh env"
+		# Create .env file from environment variables because Expo updates pulls env variables from .env 
+		# see https://docs.expo.dev/eas/environment-variables/usage/#using-environment-variables-with-eas-update 
+		createEnvFile
+
+		# Verify .env file was created and source it
+		if [ -f ".env" ]; then
+			echo "✅ .env file exists at $(pwd)/.env"
+			echo "📊 .env file contains $(wc -l < .env | tr -d ' ') lines"
+			# Show first few variables (without values for security)
+			echo "📝 Sample variables in .env:"
+			head -n 5 .env | cut -d= -f1 | sed 's/^/  - /'
+			
+			# Source the .env file to ensure variables are loaded
+			echo "🔄 Sourcing .env file to load variables..."
+			set -a  # automatically export all variables
+			source .env
+			set +a  # turn off automatic export
+			echo "✅ .env file sourced successfully"
 		else
-			echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
+			echo "⚠️ WARNING: .env file was not created!"
 		fi
 
-		# Validate required Expo Update environment variables
-		if [ -z "${EXPO_CHANNEL}" ]; then
-			echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
-			exit 1
-		fi
+	# Validate required Expo Update environment variables
+	if [ -z "${EXPO_TOKEN}" ]; then
+		echo "::error title=Missing EXPO_TOKEN::EXPO_TOKEN secret is not configured. Cannot authenticate with Expo." >&2
+		exit 1
+	else
+		echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
+	fi
 
-		if [ -z "${EXPO_KEY_PRIV}" ]; then
-			echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
-			exit 1
-		fi
+	if [ -z "${EXPO_CHANNEL}" ]; then
+		echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
+		exit 1
+	fi
+
+	if [ -z "${EXPO_KEY_PRIV}" ]; then
+		echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
+		exit 1
+	fi
 
 		# Prepare Expo update signing key
 		mkdir -p keys
@@ -868,7 +978,6 @@ elif [ "$PLATFORM" == "android" ]; then
 		envFileMissing $ANDROID_ENV_FILE
 	fi
 elif [ "$PLATFORM" == "expo-update" ]; then
-	# we don't care about env file in CI
 	buildExpoUpdate
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher

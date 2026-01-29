@@ -24,7 +24,7 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
   it('should be able to call method: signIn', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withSolanaFixture().build(),
+        fixture: new FixtureBuilder().build(),
         dapps: [
           {
             dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,

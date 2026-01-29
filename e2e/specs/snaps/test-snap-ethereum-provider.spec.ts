@@ -9,7 +9,7 @@ import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
-  confirmationsRedesignedFeatureFlags,
+  confirmationFeatureFlags,
   remoteFeatureMultichainAccountsAccountDetailsV2,
 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
@@ -24,7 +24,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         skipReactNativeReload: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
-            ...Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+            ...Object.assign({}, ...confirmationFeatureFlags),
             ...remoteFeatureMultichainAccountsAccountDetailsV2(false),
           });
         },
