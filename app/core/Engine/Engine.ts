@@ -69,6 +69,7 @@ import {
   parseCaipAssetType,
 } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
+import { captureException } from '@sentry/react-native';
 
 import {
   networkIdUpdated,
@@ -476,7 +477,9 @@ export class Engine {
 
     // Initialize RPC domain validation cache for analytics
     // This runs asynchronously and doesn't block Engine initialization
-    initializeRpcProviderDomains();
+    initializeRpcProviderDomains().catch((error) => {
+      captureException(error);
+    });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     snapController.init();
