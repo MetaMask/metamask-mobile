@@ -1038,6 +1038,211 @@ describe('RewardsController', () => {
 
       jest.useRealTimers();
     });
+
+    it('should add successful estimate to history', async () => {
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const mockResponse = {
+        pointsEstimate: 150,
+        bonusBips: 300,
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
+
+      expect(controller.state.pointsEstimateHistory).toHaveLength(0);
+
+      await controller.estimatePoints(mockRequest);
+
+      expect(controller.state.pointsEstimateHistory).toHaveLength(1);
+      const historyEntry = controller.state.pointsEstimateHistory[0];
+      expect(historyEntry).toMatchObject({
+        activityType: 'SWAP',
+        account: CAIP_ACCOUNT_1,
+        pointsEstimate: 150,
+        bonusBips: 300,
+      });
+      expect(historyEntry.timestamp).toBe(now);
+
+      jest.useRealTimers();
+    });
+
+    it('should not add to history when rewards are disabled', async () => {
+      const isDisabled = () => true;
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled,
+      });
+
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      await disabledController.estimatePoints(mockRequest);
+
+      expect(disabledController.state.pointsEstimateHistory).toHaveLength(0);
+    });
+
+    it('should limit history to 20 entries', async () => {
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const mockResponse = {
+        pointsEstimate: 100,
+        bonusBips: 0,
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
+
+      // Make 25 calls - should only keep last 20
+      for (let i = 0; i < 25; i++) {
+        await controller.estimatePoints(mockRequest);
+      }
+
+      expect(controller.state.pointsEstimateHistory).toHaveLength(20);
+
+      jest.useRealTimers();
+    });
+
+    it('should store most recent estimates first in history', async () => {
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      let callCount = 0;
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          callCount += 1;
+          return Promise.resolve({
+            pointsEstimate: callCount * 100,
+            bonusBips: 0,
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+      await controller.estimatePoints(mockRequest);
+      await controller.estimatePoints(mockRequest);
+      await controller.estimatePoints(mockRequest);
+
+      // Most recent (300 points) should be first
+      expect(controller.state.pointsEstimateHistory[0].pointsEstimate).toBe(
+        300,
+      );
+      expect(controller.state.pointsEstimateHistory[1].pointsEstimate).toBe(
+        200,
+      );
+      expect(controller.state.pointsEstimateHistory[2].pointsEstimate).toBe(
+        100,
+      );
+
+      jest.useRealTimers();
+    });
   });
 
   describe('hasActiveSeason', () => {
