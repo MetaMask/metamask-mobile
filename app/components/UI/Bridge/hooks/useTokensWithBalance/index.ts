@@ -22,7 +22,9 @@ import { selectTokenSortConfig } from '../../../../../selectors/preferencesContr
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
-import { renderNumber, renderFiat } from '../../../../../util/number';
+import { renderNumber } from '../../../../../util/number';
+import { formatWithThreshold } from '../../../../../util/assets';
+import I18n from '../../../../../../locales/i18n';
 import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
@@ -228,14 +230,21 @@ export const useTokensWithBalance: ({
         const nonEvmBalance = renderNumber(token.balance ?? '0');
         const chainId = token.chainId as Hex | CaipChainId;
 
-        const evmBalanceFiat = evmBalances?.[i]?.balanceFiat;
-        const nonEvmBalanceFiat = renderFiat(
-          Number(token.balanceFiat ?? 0),
-          currentCurrency,
-        );
-
         const evmTokenFiatAmount = evmBalances?.[i]?.tokenFiatAmount;
         const nonEvmTokenFiatAmount = Number(token.balanceFiat);
+        const tokenFiatAmount = evmTokenFiatAmount ?? nonEvmTokenFiatAmount;
+
+        // Use formatWithThreshold for consistent decimal formatting across all currencies
+        // Matches the formatting used by the main asset list (assets-list.ts)
+        const balanceFiat = formatWithThreshold(
+          tokenFiatAmount ?? 0,
+          0.01,
+          I18n.locale,
+          {
+            style: 'currency',
+            currency: currentCurrency,
+          },
+        );
 
         return {
           address: token.address,
@@ -248,9 +257,9 @@ export const useTokensWithBalance: ({
               formatAddressToAssetId(token.address, chainId),
               isNonEvmChainId(chainId),
             ) || token.image,
-          tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
+          tokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
-          balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
+          balanceFiat,
           accountType: token.accountType,
           aggregators: token.aggregators ?? [],
           metadata: ('metadata' in token
