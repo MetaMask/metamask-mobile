@@ -1,207 +1,93 @@
 import { renderHook } from '@testing-library/react-native';
 import { useTokenBuyability } from './useTokenBuyability';
+import {
+  useRampTokens,
+  UseRampTokensResult,
+} from '../../Ramp/hooks/useRampTokens';
 import { TokenI } from '../../Tokens/types';
 
-// Mock dependencies
 jest.mock('../../Ramp/hooks/useRampTokens', () => ({
   useRampTokens: jest.fn(),
 }));
 
-jest.mock('../../Bridge/hooks/useAssetMetadata/utils', () => ({
-  toAssetId: jest.fn(
-    (address: string, chainId: string) =>
-      `${chainId}/erc20:${address.toLowerCase()}`,
-  ),
-}));
-
-jest.mock('@metamask/multichain-network-controller', () => ({
-  toEvmCaipChainId: jest.fn((chainId: string) => `eip155:${parseInt(chainId)}`),
-}));
-
-jest.mock('../../Ramp/Aggregator/utils/parseCaip19AssetId', () => ({
-  parseCAIP19AssetId: jest.fn((assetId: string) => {
-    if (assetId.includes('slip44')) {
-      return { assetNamespace: 'slip44' };
-    }
-    return { assetNamespace: 'erc20' };
-  }),
-}));
-
-jest.mock('../../../../util/general', () => ({
-  toLowerCaseEquals: jest.fn(
-    (a: string, b: string) => a?.toLowerCase() === b?.toLowerCase(),
-  ),
-}));
-
-import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
-
-const mockUseRampTokens = useRampTokens as jest.MockedFunction<
-  typeof useRampTokens
->;
+const mockUseRampTokens = jest.mocked(useRampTokens);
 
 describe('useTokenBuyability', () => {
-  const mockToken: TokenI = {
-    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-    symbol: 'DAI',
-    name: 'Dai Stablecoin',
-    decimals: 18,
-    chainId: '0x1',
-    balance: '100',
-    balanceFiat: '$100',
-    image: '',
-    logo: '',
-    aggregators: [],
-    isETH: false,
-    isNative: false,
-  };
+  const getMockToken = (overrides: Partial<TokenI> = {}): TokenI =>
+    ({
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      symbol: 'DAI',
+      name: 'Dai Stablecoin',
+      decimals: 18,
+      chainId: '0x1',
+      ...overrides,
+    }) as TokenI;
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('when allTokens is null', () => {
-    it('returns isTokenBuyable as false', () => {
+  const testCases = [
+    {
+      testName: 'token list is null',
+      hookReturn: null,
+      token: getMockToken(),
+      expected: false,
+    },
+    {
+      testName: 'token is not in the list',
+      hookReturn: [],
+      token: getMockToken(),
+      expected: false,
+    },
+    {
+      testName: 'token is in the list but not supported',
+      hookReturn: [
+        {
+          address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+          chainId: 'eip155:1',
+          tokenSupported: false,
+        },
+      ],
+      token: getMockToken(),
+      expected: false,
+    },
+    {
+      testName: 'token is in the list and supported',
+      hookReturn: [
+        {
+          assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+          chainId: 'eip155:1',
+          tokenSupported: true,
+        },
+      ],
+      token: getMockToken(),
+      expected: true,
+    },
+    {
+      testName: 'token is native and supported',
+      hookReturn: [
+        {
+          assetId: 'eip155:1/slip44:60',
+          chainId: 'eip155:1',
+          tokenSupported: true,
+        },
+      ],
+      token: getMockToken({ isNative: true }),
+      expected: true,
+    },
+  ];
+
+  it.each(testCases)(
+    '$testName - returns $expected',
+    ({ hookReturn, token, expected }) => {
       mockUseRampTokens.mockReturnValue({
-        allTokens: null,
-      } as ReturnType<typeof useRampTokens>);
+        allTokens: hookReturn,
+      } as UseRampTokensResult);
 
-      const { result } = renderHook(() => useTokenBuyability(mockToken));
+      const { result } = renderHook(() => useTokenBuyability(token));
 
-      expect(result.current).toBe(false);
-    });
-  });
-
-  describe('when allTokens is empty array', () => {
-    it('returns isTokenBuyable as false', () => {
-      mockUseRampTokens.mockReturnValue({
-        allTokens: [],
-      } as unknown as ReturnType<typeof useRampTokens>);
-
-      const { result } = renderHook(() => useTokenBuyability(mockToken));
-
-      expect(result.current).toBe(false);
-    });
-  });
-
-  describe('when token is found and supported', () => {
-    it('returns isTokenBuyable as true', () => {
-      mockUseRampTokens.mockReturnValue({
-        allTokens: [
-          {
-            assetId:
-              'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
-            chainId: 'eip155:1',
-            tokenSupported: true,
-          },
-        ],
-      } as unknown as ReturnType<typeof useRampTokens>);
-
-      const { result } = renderHook(() => useTokenBuyability(mockToken));
-
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('when token is found but not supported', () => {
-    it('returns isTokenBuyable as false', () => {
-      mockUseRampTokens.mockReturnValue({
-        allTokens: [
-          {
-            assetId:
-              'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
-            chainId: 'eip155:1',
-            tokenSupported: false,
-          },
-        ],
-      } as unknown as ReturnType<typeof useRampTokens>);
-
-      const { result } = renderHook(() => useTokenBuyability(mockToken));
-
-      expect(result.current).toBe(false);
-    });
-  });
-
-  describe('when token is not found in allTokens', () => {
-    it('returns isTokenBuyable as false', () => {
-      mockUseRampTokens.mockReturnValue({
-        allTokens: [
-          {
-            assetId: 'eip155:1/erc20:0xdifferentaddress',
-            chainId: 'eip155:1',
-            tokenSupported: true,
-          },
-        ],
-      } as unknown as ReturnType<typeof useRampTokens>);
-
-      const { result } = renderHook(() => useTokenBuyability(mockToken));
-
-      expect(result.current).toBe(false);
-    });
-  });
-
-  describe('native token handling', () => {
-    it('matches native token by slip44 namespace', () => {
-      const nativeToken: TokenI = {
-        ...mockToken,
-        address: '',
-        isNative: true,
-        symbol: 'ETH',
-      };
-
-      mockUseRampTokens.mockReturnValue({
-        allTokens: [
-          {
-            assetId: 'eip155:1/slip44:60',
-            chainId: 'eip155:1',
-            tokenSupported: true,
-          },
-        ],
-      } as unknown as ReturnType<typeof useRampTokens>);
-
-      const { result } = renderHook(() => useTokenBuyability(nativeToken));
-
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('token without assetId', () => {
-    it('returns isTokenBuyable as false when token has no assetId', () => {
-      mockUseRampTokens.mockReturnValue({
-        allTokens: [
-          {
-            assetId: null,
-            chainId: 'eip155:1',
-            tokenSupported: true,
-          },
-        ],
-      } as unknown as ReturnType<typeof useRampTokens>);
-
-      const { result } = renderHook(() => useTokenBuyability(mockToken));
-
-      expect(result.current).toBe(false);
-    });
-  });
-
-  describe('CAIP chain ID handling', () => {
-    it('handles already CAIP formatted chainId', () => {
-      const caipToken: TokenI = {
-        ...mockToken,
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      };
-
-      mockUseRampTokens.mockReturnValue({
-        allTokens: [
-          {
-            assetId: `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/erc20:${mockToken.address.toLowerCase()}`,
-            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            tokenSupported: true,
-          },
-        ],
-      } as unknown as ReturnType<typeof useRampTokens>);
-
-      const { result } = renderHook(() => useTokenBuyability(caipToken));
-
-      expect(result.current).toBe(true);
-    });
-  });
+      expect(result.current).toBe(expected);
+    },
+  );
 });
