@@ -258,6 +258,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useState(false);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
 
+  // Track when position data has settled to avoid button flash (TAT-2236)
+  const [hasPositionSettled, setHasPositionSettled] = useState(false);
+
   const { account } = usePerpsLiveAccount();
 
   // Get real-time open orders via WebSocket
@@ -394,6 +397,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       asset: market?.symbol || '',
       loadOnMount: true,
     });
+
+  // Wait one frame after loading to avoid button flash (TAT-2236)
+  // This handles the gap between isLoadingPosition=false and existingPosition being populated
+  useEffect(() => {
+    if (isLoadingPosition) {
+      setHasPositionSettled(false);
+    } else {
+      const frame = requestAnimationFrame(() => {
+        setHasPositionSettled(true);
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [isLoadingPosition]);
 
   // Fetch order fills to get position opened timestamp
   const { orderFills } = usePerpsOrderFills({
@@ -939,8 +955,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
-    () => !isLoadingPosition && !hasZeroBalance,
-    [isLoadingPosition, hasZeroBalance],
+    () => !isLoadingPosition && !hasZeroBalance && hasPositionSettled,
+    [isLoadingPosition, hasZeroBalance, hasPositionSettled],
   );
 
   const hasAddFundsButton = useMemo(
