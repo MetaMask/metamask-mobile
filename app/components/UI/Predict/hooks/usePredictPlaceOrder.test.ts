@@ -492,6 +492,105 @@ describe('usePredictPlaceOrder', () => {
     });
   });
 
+  describe('balance check and deposit flow', () => {
+    const INSUFFICIENT_BALANCE = 50;
+    const SUFFICIENT_BALANCE = 150;
+    const ZERO_BALANCE = 0;
+    const EXACT_BALANCE_MATCH = 100;
+
+    it('triggers deposit when balance is insufficient for BUY order', async () => {
+      mockUsePredictBalance.mockReturnValue({
+        balance: INSUFFICIENT_BALANCE,
+        hasNoBalance: false,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+      });
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockDeposit).toHaveBeenCalledTimes(1);
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(mockToastRef.current?.showToast).not.toHaveBeenCalled();
+    });
+
+    it('does not trigger deposit when balance is sufficient for BUY order', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      mockUsePredictBalance.mockReturnValue({
+        balance: SUFFICIENT_BALANCE,
+        hasNoBalance: false,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+      });
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not check balance for SELL orders', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      mockUsePredictBalance.mockReturnValue({
+        balance: ZERO_BALANCE,
+        hasNoBalance: true,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+      });
+
+      const sellOrderParams = {
+        ...mockOrderParams,
+        preview: createMockOrderPreview({
+          side: Side.SELL,
+          minAmountReceived: 150,
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(sellOrderParams);
+      });
+
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('proceeds with order when balance exactly equals maxAmountSpent', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      mockUsePredictBalance.mockReturnValue({
+        balance: EXACT_BALANCE_MATCH,
+        hasNoBalance: false,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+      });
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('hook stability', () => {
     it('returns stable function references across renders', () => {
       const { result, rerender } = renderHook(() => usePredictPlaceOrder());

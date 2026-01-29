@@ -545,7 +545,6 @@ const PredictBuyPreview = () => {
         setCurrentValue={setCurrentValue}
         setCurrentValueUSDString={setCurrentValueUSDString}
         setIsInputFocused={setIsInputFocused}
-        hasInsufficientFunds={false}
         onAddFunds={deposit}
       />
       {renderBottomContent()}
