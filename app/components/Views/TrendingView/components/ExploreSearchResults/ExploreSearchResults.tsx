@@ -119,7 +119,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   }, [searchQuery]);
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
-    ({ item }) => {
+    ({ item, index }) => {
       if (item.type === 'header') {
         return renderSectionHeader(item.data);
       }
@@ -144,7 +144,13 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       }
 
       // Cast navigation to 'never' to satisfy different navigation param list types
-      return <section.RowItem item={item.data} navigation={navigation} />;
+      return (
+        <section.RowItem
+          item={item.data}
+          index={index}
+          navigation={navigation}
+        />
+      );
     },
     [navigation, renderSectionHeader],
   );
