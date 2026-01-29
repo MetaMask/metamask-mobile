@@ -149,4 +149,20 @@ describe('TransactionDetailsHero', () => {
 
     expect(getByText('$456.78')).toBeDefined();
   });
+
+  it('renders amount for musdConversion transactions', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        type: TransactionType.musdConversion,
+        metamaskPay: {
+          targetFiat: '100.00',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText('$100')).toBeDefined();
+  });
 });
