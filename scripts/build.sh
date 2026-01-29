@@ -712,11 +712,11 @@ generateAndroidBinary() {
 }
 
 buildExpoUpdate() {
-		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
+	echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
 
-		# Create .env file from environment variables because Expo updates pulls env variables from .env 
-		# see https://docs.expo.dev/eas/environment-variables/usage/#using-environment-variables-with-eas-update 
-		createEnvFile
+	# Create .env file from environment variables because Expo updates pulls env variables from .env 
+	# see https://docs.expo.dev/eas/environment-variables/usage/#using-environment-variables-with-eas-update 
+	createEnvFile
 
 	# Verify .env file was created and source it
 	if [ -f ".env" ]; then
