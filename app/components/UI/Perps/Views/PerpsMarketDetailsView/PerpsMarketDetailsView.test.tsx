@@ -471,10 +471,69 @@ jest.mock('../../components/PerpsMarketStatisticsCard', () => {
   };
 });
 
-// Mock PerpsPositionCard
+// Mock PerpsPositionCard - render clickable buttons for testing
 jest.mock('../../components/PerpsPositionCard', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: {
+    onAutoClosePress?: () => void;
+    onMarginPress?: () => void;
+  }) => {
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-position-card">
+        {props.onAutoClosePress && (
+          <TouchableOpacity
+            testID="perps-position-card-auto-close-button"
+            onPress={props.onAutoClosePress}
+          >
+            <Text>Auto Close</Text>
+          </TouchableOpacity>
+        )}
+        {props.onMarginPress && (
+          <TouchableOpacity
+            testID="perps-position-card-margin-button"
+            onPress={props.onMarginPress}
+          >
+            <Text>Margin</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  },
+}));
+
+// Mock PerpsStopLossPromptBanner - render clickable buttons for testing
+jest.mock('../../components/PerpsStopLossPromptBanner', () => ({
+  __esModule: true,
+  default: (props: {
+    onSetStopLoss?: () => void;
+    onAddMargin?: () => void;
+    variant?: string;
+    testID?: string;
+  }) => {
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    if (!props.variant) return null;
+    return (
+      <View testID={props.testID || 'perps-stop-loss-prompt-banner'}>
+        {props.variant === 'add_margin' && props.onAddMargin && (
+          <TouchableOpacity
+            testID="stop-loss-prompt-add-margin-button"
+            onPress={props.onAddMargin}
+          >
+            <Text>Add Margin Banner</Text>
+          </TouchableOpacity>
+        )}
+        {props.variant === 'stop_loss' && props.onSetStopLoss && (
+          <TouchableOpacity
+            testID="stop-loss-prompt-set-sl-button"
+            onPress={props.onSetStopLoss}
+          >
+            <Text>Set Stop Loss Banner</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  },
 }));
 
 // Mock notification utility
@@ -530,6 +589,19 @@ jest.mock(
     };
   },
 );
+
+// Mock useStopLossPrompt hook
+jest.mock('../../hooks/useStopLossPrompt', () => ({
+  useStopLossPrompt: jest.fn(() => ({
+    variant: null,
+    liquidationDistance: null,
+    suggestedStopLossPrice: null,
+    suggestedStopLossPercent: null,
+    isVisible: false,
+    isDismissing: false,
+    onDismissComplete: jest.fn(),
+  })),
+}));
 
 const initialState = {
   engine: {
@@ -1482,6 +1554,234 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(getByText('Geo Block Tooltip')).toBeTruthy();
       // Modify sheet should NOT open when user is not eligible
+    });
+
+    it('shows geo block modal when auto-close button is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set up existing position to show position card
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          leverage: { value: 10, type: 'isolated' },
+          marginUsed: '5000',
+          unrealizedPnl: '100',
+          returnOnEquity: '0.02',
+          liquidationPrice: '45000',
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Click the auto-close button from mocked position card
+      const autoCloseButton = getByTestId(
+        'perps-position-card-auto-close-button',
+      );
+      fireEvent.press(autoCloseButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ screen: expect.stringContaining('TPSL') }),
+      );
+    });
+
+    it('shows geo block modal when margin button is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set up existing position to show position card
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          leverage: { value: 10, type: 'isolated' },
+          marginUsed: '5000',
+          unrealizedPnl: '100',
+          returnOnEquity: '0.02',
+          liquidationPrice: '45000',
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Click the margin button from mocked position card
+      const marginButton = getByTestId('perps-position-card-margin-button');
+      fireEvent.press(marginButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+    });
+
+    it('shows geo block modal when add margin from banner is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set up existing position and stop loss prompt conditions
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          leverage: { value: 10, type: 'isolated' },
+          marginUsed: '5000',
+          unrealizedPnl: '-500',
+          returnOnEquity: '-0.10',
+          liquidationPrice: '45000',
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: Date.now() - 120000, // 2 minutes ago
+      });
+
+      // Mock useStopLossPrompt to return add_margin variant
+      const { useStopLossPrompt } = jest.requireMock(
+        '../../hooks/useStopLossPrompt',
+      );
+      useStopLossPrompt.mockReturnValue({
+        variant: 'add_margin',
+        liquidationDistance: 2.5,
+        suggestedStopLossPrice: null,
+        suggestedStopLossPercent: null,
+        isVisible: true,
+        onDismissComplete: jest.fn(),
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Click the add margin button from mocked stop loss prompt banner
+      const addMarginBannerButton = getByTestId(
+        'stop-loss-prompt-add-margin-button',
+      );
+      fireEvent.press(addMarginBannerButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ mode: 'add' }),
+      );
+    });
+
+    it('shows geo block modal when set stop loss from banner is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set up existing position and stop loss prompt conditions
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          leverage: { value: 10, type: 'isolated' },
+          marginUsed: '5000',
+          unrealizedPnl: '-500',
+          returnOnEquity: '-0.10',
+          liquidationPrice: '45000',
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: Date.now() - 120000, // 2 minutes ago
+      });
+
+      // Mock useStopLossPrompt to return stop_loss variant
+      const { useStopLossPrompt } = jest.requireMock(
+        '../../hooks/useStopLossPrompt',
+      );
+      useStopLossPrompt.mockReturnValue({
+        variant: 'stop_loss',
+        liquidationDistance: 15,
+        suggestedStopLossPrice: '45000',
+        suggestedStopLossPercent: -50,
+        isVisible: true,
+        onDismissComplete: jest.fn(),
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Click the set stop loss button from mocked stop loss prompt banner
+      const setStopLossBannerButton = getByTestId(
+        'stop-loss-prompt-set-sl-button',
+      );
+      fireEvent.press(setStopLossBannerButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
     });
   });
 
