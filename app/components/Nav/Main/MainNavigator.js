@@ -50,6 +50,7 @@ import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
+import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
@@ -599,6 +600,13 @@ const HomeTabs = () => {
             MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
           ).build(),
         );
+        // Start a new session when returning to trending tab
+        // The session manager will ignore if a session is already active
+        TrendingFeedSessionManager.getInstance().startSession('tab_press');
+      },
+      onLeave: () => {
+        // End trending session when user switches to another tab
+        TrendingFeedSessionManager.getInstance().endSession();
       },
       rootScreenName: Routes.TRENDING_VIEW,
       unmountOnBlur: false,
