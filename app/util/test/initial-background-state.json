@@ -764,6 +764,19 @@
     "selectedPaymentMethod": null,
     "selectedToken": null,
     "tokens": null,
-    "requests": {}
+    "quotes": null,
+    "requests": {},
+    "userRegionLoading": false,
+    "userRegionError": null,
+    "countriesLoading": false,
+    "countriesError": null,
+    "providersLoading": false,
+    "providersError": null,
+    "tokensLoading": false,
+    "tokensError": null,
+    "paymentMethodsLoading": false,
+    "paymentMethodsError": null,
+    "quotesLoading": false,
+    "quotesError": null
   }
 }
