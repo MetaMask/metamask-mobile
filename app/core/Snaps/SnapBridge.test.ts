@@ -61,7 +61,13 @@ jest.mock('../Engine/Engine', () => ({
       isUnlocked: jest.fn().mockReturnValue(true),
     },
     NetworkController: {
-      findNetworkClientIdByChainId: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+      getNetworkClientById: jest.fn().mockReturnValue({
+        blockTracker: {},
+        provider: {
+          request: jest.fn().mockResolvedValue('0x1'),
+        },
+      }),
     },
     PermissionController: {
       createPermissionMiddleware: jest
@@ -75,9 +81,20 @@ jest.mock('../Engine/Engine', () => ({
         ),
       getPermissions: jest.fn().mockReturnValue({
         'endowment:ethereum-provider': {},
+        'endowment:multichain-provider': {},
       }),
-      hasPermission: jest.fn(),
-      getCaveat: jest.fn(),
+      hasPermission: jest.fn().mockReturnValue(true),
+      getCaveat: jest.fn().mockReturnValue({
+        type: 'authorizedScopes',
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            'eip155:1': {},
+          },
+          sessionProperties: {},
+          isMultichainOrigin: true,
+        },
+      }),
       updateCaveat: jest.fn(),
       executeRestrictedMethod: jest.fn(),
       revokePermission: jest.fn(),
@@ -115,7 +132,8 @@ function createBridge(snapId = 'npm:@metamask/example-snap' as SnapId) {
 
   const mux = setupMultiplex(streamA) as ObjectMultiplex;
 
-  const streamAMux = mux.createStream('metamask-provider');
+  const eip1193Stream = mux.createStream('metamask-provider');
+  const multichainStream = mux.createStream('metamask-multichain-provider');
 
   const bridge = new SnapBridge({
     snapId,
@@ -143,11 +161,23 @@ function createBridge(snapId = 'npm:@metamask/example-snap' as SnapId) {
 
   const request = (json: Json) =>
     new Promise((resolve) => {
-      streamAMux.once('data', (chunk) => resolve(chunk));
-      streamAMux.write(json);
+      eip1193Stream.once('data', (chunk) => resolve(chunk));
+      eip1193Stream.write(json);
     });
 
-  return { bridge, stream: streamAMux, request };
+  const requestMultichain = (json: Json) =>
+    new Promise((resolve) => {
+      multichainStream.once('data', (chunk) => resolve(chunk));
+      multichainStream.write(json);
+    });
+
+  return {
+    bridge,
+    eip1193Stream,
+    multichainStream,
+    request,
+    requestMultichain,
+  };
 }
 
 describe('SnapBridge', () => {
@@ -181,6 +211,24 @@ describe('SnapBridge', () => {
         locked: false,
       }),
     });
+  });
+
+  it('responds to a multichain JSON-RPC request', async () => {
+    const { requestMultichain } = createBridge();
+
+    const response = await requestMultichain({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'wallet_invokeMethod',
+      params: {
+        scope: 'eip155:1',
+        request: {
+          method: 'eth_blockNumber',
+        },
+      },
+    });
+
+    expect(response).toStrictEqual({ jsonrpc: '2.0', id: 1, result: '0x1' });
   });
 
   it('automatically grants permissions to preinstalled Snaps', async () => {

@@ -621,7 +621,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
           DevLogger.log(
             `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First position data received`,
             {
-              metric: PerpsMeasurementName.PERPS_WEBSOCKET_FIRST_POSITION_DATA,
+              metric: PerpsMeasurementName.PerpsWebsocketFirstPositionData,
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
           );

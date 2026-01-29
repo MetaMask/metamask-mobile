@@ -122,10 +122,10 @@ export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
  * Initialization state enum for state machine tracking
  */
 export enum InitializationState {
-  UNINITIALIZED = 'uninitialized',
-  INITIALIZING = 'initializing',
-  INITIALIZED = 'initialized',
-  FAILED = 'failed',
+  Uninitialized = 'uninitialized',
+  Initializing = 'initializing',
+  Initialized = 'initialized',
+  Failed = 'failed',
 }
 
 /**
@@ -290,7 +290,7 @@ export type PerpsControllerState = {
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false, // Default to mainnet
-  initializationState: InitializationState.UNINITIALIZED,
+  initializationState: InitializationState.Uninitialized,
   initializationError: null,
   initializationAttempts: 0,
   accountState: null,
@@ -1039,7 +1039,7 @@ export class PerpsController extends BaseController<
     const baseDelay = 1000;
 
     this.update((state) => {
-      state.initializationState = InitializationState.INITIALIZING;
+      state.initializationState = InitializationState.Initializing;
       state.initializationError = null;
       state.initializationAttempts = 0;
     });
@@ -1132,7 +1132,7 @@ export class PerpsController extends BaseController<
 
         this.isInitialized = true;
         this.update((state) => {
-          state.initializationState = InitializationState.INITIALIZED;
+          state.initializationState = InitializationState.Initialized;
           state.initializationError = null;
         });
 
@@ -1173,7 +1173,7 @@ export class PerpsController extends BaseController<
 
     this.isInitialized = false;
     this.update((state) => {
-      state.initializationState = InitializationState.FAILED;
+      state.initializationState = InitializationState.Failed;
       state.initializationError = lastError?.message ?? 'Unknown error';
     });
     this.initializationPromise = null; // Clear promise to allow retry
@@ -1281,11 +1281,11 @@ export class PerpsController extends BaseController<
 
     // Check if not initialized
     if (
-      this.state.initializationState !== InitializationState.INITIALIZED ||
+      this.state.initializationState !== InitializationState.Initialized ||
       !this.isInitialized
     ) {
       const errorMessage =
-        this.state.initializationState === InitializationState.FAILED
+        this.state.initializationState === InitializationState.Failed
           ? `${PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED}: ${this.state.initializationError || 'Initialization failed'}`
           : PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
 
@@ -1322,7 +1322,7 @@ export class PerpsController extends BaseController<
 
     // Return null if not initialized
     if (
-      this.state.initializationState !== InitializationState.INITIALIZED ||
+      this.state.initializationState !== InitializationState.Initialized ||
       !this.isInitialized
     ) {
       return null;
@@ -2199,10 +2199,10 @@ export class PerpsController extends BaseController<
         return provider.getWebSocketConnectionState();
       }
       // Fallback for providers that don't support this method
-      return WebSocketConnectionState.DISCONNECTED;
+      return WebSocketConnectionState.Disconnected;
     } catch {
       // If no provider is active, return disconnected
-      return WebSocketConnectionState.DISCONNECTED;
+      return WebSocketConnectionState.Disconnected;
     }
   }
 
@@ -2231,7 +2231,7 @@ export class PerpsController extends BaseController<
       };
     } catch {
       // If no provider is active, call with disconnected and return no-op
-      listener(WebSocketConnectionState.DISCONNECTED, 0);
+      listener(WebSocketConnectionState.Disconnected, 0);
       return () => {
         // No-op
       };

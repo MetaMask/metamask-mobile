@@ -442,10 +442,10 @@ export class TradingService {
       const positions = context.getPositions
         ? await context.getPositions()
         : [];
-      const position = positions.find((p) => p.symbol === symbol);
+      const position = positions.find((pos) => pos.symbol === symbol);
 
       this.deps.tracer.setMeasurement(
-        PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
+        PerpsMeasurementName.PerpsGetPositionsOperation,
         this.deps.performance.now() - positionLoadStart,
         'millisecond',
       );
@@ -741,7 +741,7 @@ export class TradingService {
 
     // Record measurement
     this.deps.tracer.setMeasurement(
-      PerpsMeasurementName.PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL,
+      PerpsMeasurementName.PerpsRewardsOrderExecutionFeeDiscountApiCall,
       orderExecutionFeeDiscountDuration,
       'millisecond',
     );
@@ -1060,17 +1060,17 @@ export class TradingService {
         if (params.cancelAll || (!params.symbols && !params.orderIds)) {
           // Cancel all orders (excluding TP/SL orders for positions)
           ordersToCancel = orders.filter(
-            (o) => !isTPSLOrder(o.detailedOrderType),
+            (order) => !isTPSLOrder(order.detailedOrderType),
           );
         } else if (params.orderIds && params.orderIds.length > 0) {
           // Cancel specific order IDs
-          ordersToCancel = orders.filter((o) =>
-            params.orderIds?.includes(o.orderId),
+          ordersToCancel = orders.filter((order) =>
+            params.orderIds?.includes(order.orderId),
           );
         } else if (params.symbols && params.symbols.length > 0) {
           // Cancel orders for specific symbols
-          ordersToCancel = orders.filter((o) =>
-            params.symbols?.includes(o.symbol),
+          ordersToCancel = orders.filter((order) =>
+            params.symbols?.includes(order.symbol),
           );
         }
 
@@ -1106,7 +1106,7 @@ export class TradingService {
 
         // Aggregate results
         const successCount = results.filter(
-          (r) => r.status === 'fulfilled' && r.value.success,
+          (res) => res.status === 'fulfilled' && res.value.success,
         ).length;
         const failureCount = results.length - successCount;
 
@@ -1336,7 +1336,9 @@ export class TradingService {
         providerType: provider.protocolId,
         hasBatchMethod: !!provider.closePositions,
         methodType: typeof provider.closePositions,
-        providerKeys: Object.keys(provider).filter((k) => k.includes('close')),
+        providerKeys: Object.keys(provider).filter((key) =>
+          key.includes('close'),
+        ),
       });
 
       // Use batch close if provider supports it (provider handles filtering)
@@ -1364,7 +1366,7 @@ export class TradingService {
         const positionsToClose =
           params.closeAll || !params.symbols || params.symbols.length === 0
             ? positions
-            : positions.filter((p) => params.symbols?.includes(p.symbol));
+            : positions.filter((pos) => params.symbols?.includes(pos.symbol));
 
         if (positionsToClose.length === 0) {
           operationResult = {
@@ -1389,7 +1391,7 @@ export class TradingService {
 
         // Aggregate results
         const successCount = results.filter(
-          (r) => r.status === 'fulfilled' && r.value.success,
+          (res) => res.status === 'fulfilled' && res.value.success,
         ).length;
         const failureCount = results.length - successCount;
 
