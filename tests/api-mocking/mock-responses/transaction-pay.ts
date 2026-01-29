@@ -1,5 +1,6 @@
 import { Mockttp } from 'mockttp';
-import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder.ts';
+import { USDC_MAINNET, MUSD_MAINNET } from '../../constants/musd-mainnet';
+import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
 
 export const RELAY_QUOTE_MOCK = {
   steps: [
@@ -317,9 +318,6 @@ export const RELAY_QUOTE_MOCK = {
  * - steps[].items[].data.chainId = 1 so gas/network lookups use Mainnet
  * - details.timeEstimate, details.totalImpact.usd
  */
-const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-const MUSD_MAINNET = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-
 export const MAINNET_MUSD_RELAY_QUOTE_MOCK = {
   steps: [
     {

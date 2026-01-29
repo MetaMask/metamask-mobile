@@ -4,14 +4,44 @@ import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../../tests/framework/Assertions';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
+import {
+  LocalNode,
+  LocalNodeType,
+  type WithFixturesOptions,
+} from '../../../tests/framework/types';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 import TransactionPayConfirmation from '../../pages/Confirmation/TransactionPayConfirmation';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { setupMusdMocks } from './helpers/musd-mocks';
-import { createMusdFixture } from './helpers/musd-fixture';
+import {
+  createMusdFixture,
+  type MusdFixtureOptions,
+} from './helpers/musd-fixture';
+
+/**
+ * Returns the shared withFixtures config for mUSD conversion tests.
+ * Only fixture options vary per scenario; localNodeOptions, restartDevice, and testSpecificMock are centralized here.
+ */
+function withMusdFixturesOptions(
+  fixtureOptions: MusdFixtureOptions,
+): WithFixturesOptions {
+  return {
+    fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+      const node = localNodes?.[0] as unknown as AnvilManager;
+      return createMusdFixture(node, fixtureOptions);
+    },
+    localNodeOptions: [
+      {
+        type: LocalNodeType.anvil,
+        options: { chainId: 1 },
+      },
+    ],
+    restartDevice: true,
+    testSpecificMock: setupMusdMocks,
+  };
+}
 
 describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
   beforeAll(async () => {
@@ -21,24 +51,9 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
 
   it('converts USDC to mUSD successfully (First Time User)', async () => {
     await withFixtures(
-      {
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          return createMusdFixture(node, {
-            musdConversionEducationSeen: false,
-          });
-        },
-        localNodeOptions: [
-          {
-            type: LocalNodeType.anvil,
-            options: {
-              chainId: 1,
-            },
-          },
-        ],
-        restartDevice: true,
-        testSpecificMock: setupMusdMocks,
-      },
+      withMusdFixturesOptions({
+        musdConversionEducationSeen: false,
+      }),
       async () => {
         await device.disableSynchronization();
         await loginToApp();
@@ -104,26 +119,11 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
 
   it('converts USDC to mUSD from Token List (Returning User)', async () => {
     await withFixtures(
-      {
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          return createMusdFixture(node, {
-            musdConversionEducationSeen: true,
-            hasMusdBalance: true,
-            musdBalance: 100,
-          });
-        },
-        localNodeOptions: [
-          {
-            type: LocalNodeType.anvil,
-            options: {
-              chainId: 1,
-            },
-          },
-        ],
-        restartDevice: true,
-        testSpecificMock: setupMusdMocks,
-      },
+      withMusdFixturesOptions({
+        musdConversionEducationSeen: true,
+        hasMusdBalance: true,
+        musdBalance: 100,
+      }),
       async () => {
         await device.disableSynchronization();
         await loginToApp();
@@ -178,24 +178,9 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
 
   it('converts USDC to mUSD from Asset Overview', async () => {
     await withFixtures(
-      {
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          return createMusdFixture(node, {
-            musdConversionEducationSeen: true,
-          });
-        },
-        localNodeOptions: [
-          {
-            type: LocalNodeType.anvil,
-            options: {
-              chainId: 1,
-            },
-          },
-        ],
-        restartDevice: true,
-        testSpecificMock: setupMusdMocks,
-      },
+      withMusdFixturesOptions({
+        musdConversionEducationSeen: true,
+      }),
       async () => {
         await device.disableSynchronization();
         await loginToApp();

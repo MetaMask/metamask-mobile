@@ -6,9 +6,10 @@ import {
   mockRelayQuoteMainnetMusd,
   mockRelayStatus,
 } from '../../../../tests/api-mocking/mock-responses/transaction-pay';
-
-const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+import {
+  USDC_MAINNET,
+  MUSD_MAINNET,
+} from '../../../../tests/constants/musd-mainnet';
 
 /**
  * Sets up all API mocks required for mUSD conversion E2E tests: feature flags,
@@ -53,7 +54,7 @@ export const setupMusdMocks = async (mockServer: Mockttp): Promise<void> => {
     response: {
       topTokens: [
         {
-          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          assetId: `eip155:1/erc20:${MUSD_MAINNET}`,
           chainId: 'eip155:1',
           symbol: 'MUSD',
           name: 'MetaMask USD',
@@ -63,7 +64,7 @@ export const setupMusdMocks = async (mockServer: Mockttp): Promise<void> => {
       ],
       allTokens: [
         {
-          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          assetId: `eip155:1/erc20:${MUSD_MAINNET}`,
           chainId: 'eip155:1',
           symbol: 'MUSD',
           name: 'MetaMask USD',
@@ -71,7 +72,7 @@ export const setupMusdMocks = async (mockServer: Mockttp): Promise<void> => {
           tokenSupported: true,
         },
         {
-          assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          assetId: `eip155:1/erc20:${USDC_MAINNET}`,
           chainId: 'eip155:1',
           symbol: 'USDC',
           name: 'USD Coin',
@@ -108,7 +109,7 @@ export const setupMusdMocks = async (mockServer: Mockttp): Promise<void> => {
         pricePercentChange200d: 1.9842726591642341,
         pricePercentChange1y: -5.689801242350527,
       },
-      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
+      [`eip155:1/erc20:${USDC_MAINNET}`]: {
         id: 'usd-coin',
         price: 0.000333804977889164,
         marketCap: 23754743.4686059,
@@ -129,7 +130,7 @@ export const setupMusdMocks = async (mockServer: Mockttp): Promise<void> => {
         pricePercentChange200d: -0.014687097277342517,
         pricePercentChange1y: -0.01926094991611645,
       },
-      'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da': {
+      [`eip155:1/erc20:${MUSD_MAINNET}`]: {
         id: 'metamask-usd',
         price: 0.000333694127478155,
         marketCap: 7677.36891681464,
@@ -163,12 +164,12 @@ export const setupMusdMocks = async (mockServer: Mockttp): Promise<void> => {
         price: 3000.0,
         pricePercentChange1d: 2.65,
       },
-      [USDC_ADDRESS.toLowerCase()]: {
+      [USDC_MAINNET]: {
         id: 'usd-coin',
         price: 1.0,
         pricePercentChange1d: 0.01,
       },
-      [MUSD_ADDRESS.toLowerCase()]: {
+      [MUSD_MAINNET]: {
         id: 'metamask-usd',
         price: 1.0,
         pricePercentChange1d: -0.01,
@@ -225,9 +226,12 @@ export const setupMusdMocks = async (mockServer: Mockttp): Promise<void> => {
   });
 
   await setupMockRequest(mockServer, {
-    url: /token\.api\.cx\.metamask\.io\/token\/1\?address=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
+    url: new RegExp(
+      `token\\.api\\.cx\\.metamask\\.io/token/1\\?address=${MUSD_MAINNET}`,
+      'i',
+    ),
     response: {
-      address: MUSD_ADDRESS,
+      address: MUSD_MAINNET,
       symbol: 'MUSD',
       name: 'MetaMask USD',
       decimals: 6,
@@ -235,6 +239,15 @@ export const setupMusdMocks = async (mockServer: Mockttp): Promise<void> => {
       logoURI: '',
       aggregators: [],
     },
+    requestMethod: 'GET',
+    responseCode: 200,
+  });
+
+  // Merkl rewards API (used by Asset Overview for mUSD/Linea rewards).
+  // Returns empty array so no claimable rewards are shown; avoids live request to api.merkl.xyz.
+  await setupMockRequest(mockServer, {
+    url: /api\.merkl\.xyz\/v4\/users\/0x[a-fA-F0-9]+\/rewards\?chainId=/,
+    response: [],
     requestMethod: 'GET',
     responseCode: 200,
   });

@@ -4,9 +4,11 @@ import { merge } from 'lodash';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { AnvilPort } from '../../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
+import {
+  USDC_MAINNET,
+  MUSD_MAINNET,
+} from '../../../../tests/constants/musd-mainnet';
 
-const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const USDC_DECIMALS = 6;
 const MUSD_DECIMALS = 6;
 const ETH_NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -39,11 +41,13 @@ function ensureTokenBalance(
   if (!engine.TokenBalancesController) {
     merge(engine, { TokenBalancesController: { tokenBalances: {} } });
   }
-  const tb = engine.TokenBalancesController.tokenBalances ?? {};
+  engine.TokenBalancesController.tokenBalances =
+    engine.TokenBalancesController.tokenBalances ?? {};
+  const tb = engine.TokenBalancesController.tokenBalances;
   if (!tb[accountAddress]) tb[accountAddress] = {};
   if (!tb[accountAddress][CHAIN_IDS.MAINNET])
     tb[accountAddress][CHAIN_IDS.MAINNET] = {};
-  const key = toChecksumHexAddress(tokenAddress);
+  const key = toChecksumHexAddress(tokenAddress.toLowerCase());
   tb[accountAddress][CHAIN_IDS.MAINNET][key] =
     '0x' + Math.floor(balance * 10 ** decimals).toString(16);
 }
@@ -85,7 +89,7 @@ export function createMusdFixture(
       name: 'Ethereum',
     },
     {
-      address: toChecksumHexAddress(USDC_ADDRESS),
+      address: toChecksumHexAddress(USDC_MAINNET),
       symbol: 'USDC',
       decimals: USDC_DECIMALS,
       name: 'USDCoin',
@@ -93,7 +97,7 @@ export function createMusdFixture(
     ...(options.hasMusdBalance
       ? [
           {
-            address: toChecksumHexAddress(MUSD_ADDRESS),
+            address: toChecksumHexAddress(MUSD_MAINNET),
             symbol: 'MUSD',
             decimals: MUSD_DECIMALS,
             name: 'MUSD',
@@ -120,8 +124,8 @@ export function createMusdFixture(
       toChecksumHexAddress(ETH_NATIVE_ADDRESS),
       3000.0,
     )
-    .withTokenRates(CHAIN_IDS.MAINNET, toChecksumHexAddress(USDC_ADDRESS), 1.0)
-    .withTokenRates(CHAIN_IDS.MAINNET, toChecksumHexAddress(MUSD_ADDRESS), 1.0)
+    .withTokenRates(CHAIN_IDS.MAINNET, toChecksumHexAddress(USDC_MAINNET), 1.0)
+    .withTokenRates(CHAIN_IDS.MAINNET, toChecksumHexAddress(MUSD_MAINNET), 1.0)
     .build();
 
   merge(fixture.state.user, {
@@ -156,7 +160,7 @@ export function createMusdFixture(
     ensureTokenBalance(
       fixture,
       accountAddress,
-      USDC_ADDRESS,
+      USDC_MAINNET,
       USDC_DECIMALS,
       options.usdcBalance ?? 100,
     );
@@ -165,7 +169,7 @@ export function createMusdFixture(
     ensureTokenBalance(
       fixture,
       accountAddress,
-      MUSD_ADDRESS,
+      MUSD_MAINNET,
       MUSD_DECIMALS,
       options.musdBalance ?? 10,
     );
