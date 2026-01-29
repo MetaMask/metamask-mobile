@@ -1766,14 +1766,18 @@
       "commodities": "Commodities",
       "stocks_and_commodities": "Explore stocks and commodities",
       "tabs": {
-        "all": "All",
         "crypto": "Crypto",
-        "stocks_and_commodities": "Stocks"
+        "stocks": "Stocks",
+        "commodities": "Commodities",
+        "forex": "Forex",
+        "new": "New"
       },
       "filter_by": "Filter by",
       "forex": "Forex",
       "watchlist": "Watchlist",
-      "markets": "Markets"
+      "markets": "Markets",
+      "explore_markets": "Explore markets",
+      "see_all_perps": "See all perps"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -5765,6 +5769,7 @@
     },
     "musd_conversion": {
       "ok": "OK",
+      "continue": "Continue",
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
@@ -5786,6 +5791,13 @@
       "boost_title": "Get {{percentage}}% on your stablecoins",
       "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
       "powered_by_relay": "Powered by Relay"
+    },
+    "bonus_claim": {
+      "toasts": {
+        "claiming": "Your mUSD bonus is processing",
+        "delivered": "Your mUSD bonus is here!",
+        "failed": "Bonus claim failed"
+      }
     },
     "rewards": {
       "rewards_tag_label": "Rewards",
@@ -7019,7 +7031,10 @@
       "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
       "request_rejected": "You rejected the request.",
       "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
-      "service_not_available": "Service is not available at the moment. Please try again shortly."
+      "service_not_available": "Service is not available at the moment. Please try again shortly.",
+      "invalid_referral_code": "Invalid referral code. Please check and try again.",
+      "already_referred": "You have already been referred by another user.",
+      "cannot_use_own_referral_code": "You cannot use your own referral code."
     },
     "claim_reward_error": {
       "title": "Failed to claim reward"
@@ -7057,6 +7072,8 @@
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
     "activity_empty_link": "See ways to earn",
+    "filter_title": "Filter by activity type",
+    "filter_all": "All",
     "events": {
       "to": "to",
       "musd_deposit_for": "For {{date}}",
@@ -7076,6 +7093,7 @@
         "stop_loss": "TP/SL",
         "predict": "Prediction",
         "musd_deposit": "mUSD deposit",
+        "apply_referral_bonus": "Referral code bonus",
         "uncategorized_event": "Uncategorized event"
       },
       "date": "Date",
@@ -7169,6 +7187,14 @@
       "link_account_button": "Add",
       "link_account_failed_error": "Failed to add account",
       "link_account_unknown_error": "Unknown error occurred"
+    },
+    "referred_by_code": {
+      "title": "Referral Code",
+      "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
+      "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
+      "input_placeholder": "Enter referral code",
+      "invalid_code": "Invalid referral code",
+      "apply_button": "Apply referral code"
     },
     "optout": {
       "title": "Opt out of Rewards",

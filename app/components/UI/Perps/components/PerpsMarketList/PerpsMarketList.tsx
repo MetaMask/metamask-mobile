@@ -22,7 +22,7 @@ import type { PerpsMarketData } from '../../controllers/types';
  *
  * Features:
  * - FlashList for optimal performance
- * - Consistent configuration (estimatedItemSize, keyboardShouldPersistTaps)
+ * - Consistent configuration (keyboardShouldPersistTaps, drawDistance)
  * - Empty state handling
  * - Auto-updating via WebSocket (no manual refresh needed)
  * - Optional header component
@@ -45,6 +45,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   sortBy = 'volume',
   showBadge = true,
   contentContainerStyle,
+  filterKey,
   testID = 'perps-market-list',
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -79,6 +80,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
 
   return (
     <FlashList
+      key={filterKey}
       data={markets}
       renderItem={renderItem}
       keyExtractor={(item: PerpsMarketData) => item.symbol}
