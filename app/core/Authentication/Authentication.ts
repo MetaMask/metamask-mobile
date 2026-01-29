@@ -1680,7 +1680,10 @@ class AuthenticationService {
         );
       }
 
-      if (errorWithMessage.message === 'Invalid password') {
+      if (
+        errorWithMessage.message === 'Invalid password' ||
+        errorWithMessage.message.includes('error in DoCipher, status: 2')
+      ) {
         Alert.alert(
           strings('app_settings.invalid_password'),
           strings('app_settings.invalid_password_message'),
