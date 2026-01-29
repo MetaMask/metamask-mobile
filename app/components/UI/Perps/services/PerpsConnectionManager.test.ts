@@ -9,6 +9,9 @@ jest.mock('./TradingReadinessCache', () => ({
   TradingReadinessCache: {
     clear: jest.fn(),
     clearAll: jest.fn(),
+    clearDexAbstraction: jest.fn(),
+    clearBuilderFee: jest.fn(),
+    clearReferral: jest.fn(),
     get: jest.fn(),
     set: jest.fn(),
   },
@@ -774,7 +777,7 @@ describe('PerpsConnectionManager', () => {
     });
 
     describe('clearDexAbstractionCache', () => {
-      it('clears cache for specific network and user address', () => {
+      it('clears only DEX abstraction for specific network and user address', () => {
         // Arrange
         const network = 'mainnet' as const;
         const userAddress = '0x1234567890123456789012345678901234567890';
@@ -782,11 +785,11 @@ describe('PerpsConnectionManager', () => {
         // Act
         PerpsConnectionManager.clearDexAbstractionCache(network, userAddress);
 
-        // Assert
-        expect(mockTradingReadinessCache.clear).toHaveBeenCalledWith(
-          network,
-          userAddress,
-        );
+        // Assert - should call clearDexAbstraction, NOT clear (which deletes entire entry)
+        expect(
+          mockTradingReadinessCache.clearDexAbstraction,
+        ).toHaveBeenCalledWith(network, userAddress);
+        expect(mockTradingReadinessCache.clear).not.toHaveBeenCalled();
         expect(mockDevLogger.log).toHaveBeenCalledWith(
           'PerpsConnectionManager: DEX abstraction cache cleared',
           { network, userAddress },
@@ -802,22 +805,34 @@ describe('PerpsConnectionManager', () => {
         PerpsConnectionManager.clearDexAbstractionCache(network, userAddress);
 
         // Assert
-        expect(mockTradingReadinessCache.clear).toHaveBeenCalledWith(
-          network,
-          userAddress,
-        );
+        expect(
+          mockTradingReadinessCache.clearDexAbstraction,
+        ).toHaveBeenCalledWith(network, userAddress);
       });
     });
 
-    describe('clearAllDexAbstractionCache', () => {
+    describe('clearAllSigningCache', () => {
       it('clears all cache entries', () => {
         // Act
-        PerpsConnectionManager.clearAllDexAbstractionCache();
+        PerpsConnectionManager.clearAllSigningCache();
 
         // Assert
         expect(mockTradingReadinessCache.clearAll).toHaveBeenCalled();
         expect(mockDevLogger.log).toHaveBeenCalledWith(
-          'PerpsConnectionManager: All DEX abstraction cache cleared',
+          'PerpsConnectionManager: All signing cache cleared',
+        );
+      });
+    });
+
+    describe('clearAllDexAbstractionCache (deprecated)', () => {
+      it('delegates to clearAllSigningCache for backward compatibility', () => {
+        // Act
+        PerpsConnectionManager.clearAllDexAbstractionCache();
+
+        // Assert - should still clear all, just with new log message
+        expect(mockTradingReadinessCache.clearAll).toHaveBeenCalled();
+        expect(mockDevLogger.log).toHaveBeenCalledWith(
+          'PerpsConnectionManager: All signing cache cleared',
         );
       });
     });

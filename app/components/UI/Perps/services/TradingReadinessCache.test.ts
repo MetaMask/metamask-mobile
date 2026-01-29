@@ -384,11 +384,141 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
     const mainnetAddress = '0xMainnetUser1234567890123456789012345';
     const testnetAddress = '0xTestnetUser1234567890123456789012345';
 
-    describe('clear()', () => {
-      it('removes specific network/address entry', () => {
+    describe('clearDexAbstraction()', () => {
+      it('clears only DEX abstraction state, preserving other states', () => {
+        // Setup all three operation states
         TradingReadinessCache.set('mainnet', mainnetAddress, {
           attempted: true,
           enabled: true,
+        });
+        PerpsSigningCache.setBuilderFee('mainnet', mainnetAddress, {
+          attempted: true,
+          success: true,
+        });
+        PerpsSigningCache.setReferral('mainnet', mainnetAddress, {
+          attempted: true,
+          success: true,
+        });
+
+        // Clear only DEX abstraction
+        TradingReadinessCache.clearDexAbstraction('mainnet', mainnetAddress);
+
+        // DEX abstraction should be reset
+        const dexResult = TradingReadinessCache.get('mainnet', mainnetAddress);
+        expect(dexResult?.attempted).toBe(false);
+        expect(dexResult?.enabled).toBe(false);
+
+        // Builder fee and referral should be preserved
+        expect(
+          PerpsSigningCache.getBuilderFee('mainnet', mainnetAddress)?.success,
+        ).toBe(true);
+        expect(
+          PerpsSigningCache.getReferral('mainnet', mainnetAddress)?.success,
+        ).toBe(true);
+
+        // Entry should still exist
+        expect(TradingReadinessCache.size()).toBe(1);
+      });
+
+      it('does nothing when entry does not exist', () => {
+        TradingReadinessCache.clearDexAbstraction('mainnet', mainnetAddress);
+        expect(TradingReadinessCache.size()).toBe(0);
+      });
+    });
+
+    describe('clearBuilderFee()', () => {
+      it('clears only builder fee state, preserving other states', () => {
+        // Setup all three operation states
+        TradingReadinessCache.set('mainnet', mainnetAddress, {
+          attempted: true,
+          enabled: true,
+        });
+        PerpsSigningCache.setBuilderFee('mainnet', mainnetAddress, {
+          attempted: true,
+          success: true,
+        });
+        PerpsSigningCache.setReferral('mainnet', mainnetAddress, {
+          attempted: true,
+          success: true,
+        });
+
+        // Clear only builder fee
+        TradingReadinessCache.clearBuilderFee('mainnet', mainnetAddress);
+
+        // Builder fee should be reset
+        const builderResult = PerpsSigningCache.getBuilderFee(
+          'mainnet',
+          mainnetAddress,
+        );
+        expect(builderResult?.attempted).toBe(false);
+        expect(builderResult?.success).toBe(false);
+
+        // DEX abstraction and referral should be preserved
+        expect(
+          TradingReadinessCache.get('mainnet', mainnetAddress)?.enabled,
+        ).toBe(true);
+        expect(
+          PerpsSigningCache.getReferral('mainnet', mainnetAddress)?.success,
+        ).toBe(true);
+      });
+
+      it('does nothing when entry does not exist', () => {
+        TradingReadinessCache.clearBuilderFee('mainnet', mainnetAddress);
+        expect(TradingReadinessCache.size()).toBe(0);
+      });
+    });
+
+    describe('clearReferral()', () => {
+      it('clears only referral state, preserving other states', () => {
+        // Setup all three operation states
+        TradingReadinessCache.set('mainnet', mainnetAddress, {
+          attempted: true,
+          enabled: true,
+        });
+        PerpsSigningCache.setBuilderFee('mainnet', mainnetAddress, {
+          attempted: true,
+          success: true,
+        });
+        PerpsSigningCache.setReferral('mainnet', mainnetAddress, {
+          attempted: true,
+          success: true,
+        });
+
+        // Clear only referral
+        TradingReadinessCache.clearReferral('mainnet', mainnetAddress);
+
+        // Referral should be reset
+        const referralResult = PerpsSigningCache.getReferral(
+          'mainnet',
+          mainnetAddress,
+        );
+        expect(referralResult?.attempted).toBe(false);
+        expect(referralResult?.success).toBe(false);
+
+        // DEX abstraction and builder fee should be preserved
+        expect(
+          TradingReadinessCache.get('mainnet', mainnetAddress)?.enabled,
+        ).toBe(true);
+        expect(
+          PerpsSigningCache.getBuilderFee('mainnet', mainnetAddress)?.success,
+        ).toBe(true);
+      });
+
+      it('does nothing when entry does not exist', () => {
+        TradingReadinessCache.clearReferral('mainnet', mainnetAddress);
+        expect(TradingReadinessCache.size()).toBe(0);
+      });
+    });
+
+    describe('clear()', () => {
+      it('removes entire cache entry (all signing states)', () => {
+        TradingReadinessCache.set('mainnet', mainnetAddress, {
+          attempted: true,
+          enabled: true,
+        });
+        PerpsSigningCache.setBuilderFee('mainnet', mainnetAddress, {
+          attempted: true,
+          success: true,
         });
         TradingReadinessCache.set('testnet', testnetAddress, {
           attempted: true,
@@ -400,8 +530,12 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
         TradingReadinessCache.clear('mainnet', mainnetAddress);
 
         expect(TradingReadinessCache.size()).toBe(1);
+        // Entire entry including builder fee should be gone
         expect(
           TradingReadinessCache.get('mainnet', mainnetAddress),
+        ).toBeUndefined();
+        expect(
+          PerpsSigningCache.getBuilderFee('mainnet', mainnetAddress),
         ).toBeUndefined();
         expect(
           TradingReadinessCache.get('testnet', testnetAddress),

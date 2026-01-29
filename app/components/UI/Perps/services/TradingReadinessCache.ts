@@ -209,7 +209,56 @@ class PerpsSigningCacheManager {
   // ===== General Methods =====
 
   /**
-   * Clear cache entry for a specific network and user address
+   * Clear only DEX abstraction state for a specific network and user address
+   * This preserves builder fee and referral states
+   */
+  public clearDexAbstraction(
+    network: 'mainnet' | 'testnet',
+    userAddress: string,
+  ): void {
+    const key = this.getCacheKey(network, userAddress);
+    const entry = this.cache.get(key);
+    if (entry) {
+      entry.dexAbstraction = { attempted: false, success: false };
+      entry.timestamp = Date.now();
+    }
+  }
+
+  /**
+   * Clear only builder fee state for a specific network and user address
+   * This preserves DEX abstraction and referral states
+   */
+  public clearBuilderFee(
+    network: 'mainnet' | 'testnet',
+    userAddress: string,
+  ): void {
+    const key = this.getCacheKey(network, userAddress);
+    const entry = this.cache.get(key);
+    if (entry) {
+      entry.builderFee = { attempted: false, success: false };
+      entry.timestamp = Date.now();
+    }
+  }
+
+  /**
+   * Clear only referral state for a specific network and user address
+   * This preserves DEX abstraction and builder fee states
+   */
+  public clearReferral(
+    network: 'mainnet' | 'testnet',
+    userAddress: string,
+  ): void {
+    const key = this.getCacheKey(network, userAddress);
+    const entry = this.cache.get(key);
+    if (entry) {
+      entry.referral = { attempted: false, success: false };
+      entry.timestamp = Date.now();
+    }
+  }
+
+  /**
+   * Clear entire cache entry for a specific network and user address
+   * WARNING: This clears ALL signing operation states (dexAbstraction, builderFee, referral)
    */
   public clear(network: 'mainnet' | 'testnet', userAddress: string): void {
     const key = this.getCacheKey(network, userAddress);
@@ -218,6 +267,7 @@ class PerpsSigningCacheManager {
 
   /**
    * Clear all cache entries
+   * WARNING: This clears ALL signing operation states for ALL users
    */
   public clearAll(): void {
     this.cache.clear();
