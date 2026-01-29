@@ -17,7 +17,7 @@ import {
   SIMULATION_ENABLED_NETWORKS_MOCK,
   SEND_ETH_SIMULATION_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
 import DeleteContactBottomSheet from '../../../../e2e/pages/Settings/Contacts/DeleteContactBottomSheet';
 import { LocalNode } from '../../../framework/types';
@@ -36,7 +36,7 @@ const TEST_CONTACT = {
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    Object.assign({}, ...confirmationFeatureFlags),
   );
 
   await setupMockRequest(mockServer, {

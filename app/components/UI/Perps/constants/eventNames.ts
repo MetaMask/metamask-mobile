@@ -214,6 +214,21 @@ export const PerpsEventValues = {
     ADD_FUNDS_ACTION: 'add_funds_action',
     CANCEL_ORDER: 'cancel_order',
     ASSET_DETAIL_SCREEN: 'asset_detail_screen',
+    // TAT-2449: Geo-block sources for close/modify actions
+    CLOSE_POSITION_ACTION: 'close_position_action',
+    MODIFY_POSITION_ACTION: 'modify_position_action',
+    // Geo-block sources for order book actions
+    ORDER_BOOK_LONG_BUTTON: 'order_book_long_button',
+    ORDER_BOOK_SHORT_BUTTON: 'order_book_short_button',
+    ORDER_BOOK_CLOSE_BUTTON: 'order_book_close_button',
+    ORDER_BOOK_MODIFY_BUTTON: 'order_book_modify_button',
+    // Geo-block sources for position management actions
+    AUTO_CLOSE_ACTION: 'auto_close_action',
+    ADJUST_MARGIN_ACTION: 'adjust_margin_action',
+    STOP_LOSS_PROMPT_ADD_MARGIN: 'stop_loss_prompt_add_margin',
+    STOP_LOSS_PROMPT_SET_SL: 'stop_loss_prompt_set_sl',
+    // Geo-block sources for bulk actions
+    CLOSE_ALL_POSITIONS_BUTTON: 'close_all_positions_button',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
@@ -401,6 +416,9 @@ export const PerpsEventValues = {
     MAGNIFYING_GLASS: 'magnifying_glass',
     CRYPTO: 'crypto',
     STOCKS: 'stocks',
+    COMMODITIES: 'commodities',
+    FOREX: 'forex',
+    NEW: 'new',
     GIVE_FEEDBACK: 'give_feedback',
   },
   BUTTON_LOCATION: {

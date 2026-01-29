@@ -1,0 +1,141 @@
+name: Build Mobile App
+
+on:
+  workflow_call:
+    inputs:
+      build_name:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string # android, ios, or both
+  workflow_dispatch:
+    inputs:
+      build_name:
+        required: true
+        type: choice
+        options:
+          - main-prod
+          - main-rc
+          - main-test
+          - main-e2e
+          - main-exp
+          - main-dev
+          - flask-prod
+          - flask-test
+          - flask-e2e
+          - flask-dev
+          - qa-prod
+          - qa-dev
+      platform:
+        required: true
+        type: choice
+        options: [android, ios, both]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # Load config 
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      github_environment: ${{ steps.config.outputs.github_environment }}
+      secrets_json: ${{ steps.config.outputs.secrets_json }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: yarn install --immutable
+      - run: node scripts/validate-build-config.js
+
+      - name: Load config
+        id: config
+        run: |
+          node -e "
+          const yaml = require('js-yaml');
+          const fs = require('fs');
+          const config = yaml.load(fs.readFileSync('.github/builds.yml', 'utf8'));
+          const build = config.builds['${{ inputs.build_name }}'];
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          "
+
+  # Build
+  build:
+    needs: [prepare]
+    strategy:
+      matrix:
+        platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    # Android uses Cirrus runner with SDK pre-installed; iOS uses GitHub-hosted macOS
+    runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    environment: ${{ needs.prepare.outputs.github_environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - run: yarn install --immutable
+
+      - name: Apply build config
+        run: |
+          # Load env vars from builds.yml
+          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
+
+      - name: Set secrets
+        env:
+          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
+        run: node scripts/set-secrets-from-config.js
+
+      # Android only: minimal env (SDK is pre-installed on Cirrus runner)
+      - name: Set Android environment variables
+        if: matrix.platform == 'android'
+        run: |
+          echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
+
+      - name: Setup Java
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Android qa signing (exp-test-e2e): skip for Expo dev builds (main-dev, flask-dev, qa-dev use debug keystore)
+      - name: Configure Android signing certificates
+        if: matrix.platform == 'android' && inputs.build_name != 'main-dev' && inputs.build_name != 'flask-dev' && inputs.build_name != 'qa-dev'
+        uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
+        with:
+          aws-role-to-assume: 'arn:aws:iam::363762752069:role/metamask-mobile-build-signer-qa'
+          aws-region: 'us-east-2'
+          platform: 'android'
+          target: ${{ startsWith(inputs.build_name, 'flask') && 'flask' || 'qa' }}
+
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            if [ "${{ matrix.platform }}" = "ios" ]; then
+              yarn setup:github-ci --build-ios --no-build-android
+            else
+              yarn setup:github-ci --no-build-ios
+            fi
+
+      - name: Build ${{ matrix.platform }}
+        run: |
+          ./scripts/build.sh ${{ matrix.platform }} ${{ inputs.build_name }}
+
+      # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
+      - name: Upload iOS Expo development build
+        if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
+        uses: actions/upload-artifact@v4
+        with:
+          name: expo-dev-ios-${{ inputs.build_name }}
+          path: ios/build/Build/Products/Release-iphonesimulator/

@@ -95,6 +95,7 @@ import type {
   GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
+  GetOrFetchFillsParams,
   GetPositionsParams,
   GetSupportedPathsParams,
   HistoricalPortfolioResult,
@@ -196,6 +197,11 @@ interface HandleOrderErrorParams {
   isBuy: boolean;
 }
 
+interface GetOrFetchPriceParams {
+  symbol: string;
+  dexName: string | null;
+}
+
 /**
  * HyperLiquid provider implementation
  *
@@ -289,7 +295,7 @@ export class HyperLiquidProvider implements PerpsProvider {
   private cachedUsdcTokenId?: string;
 
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
-  private readonly ERROR_MAPPINGS = {
+  private readonly errorMappings = {
     'isolated position does not have sufficient margin available to decrease leverage':
       PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
     'could not immediately match': PERPS_ERROR_CODES.IOC_CANCEL,
@@ -310,7 +316,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     platformDependencies: PerpsPlatformDependencies;
   }) {
     this.deps = options.platformDependencies;
-    const isTestnet = options.isTestnet || false;
+    const isTestnet = options.isTestnet ?? false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
     this.hip3Enabled = options.hip3Enabled ?? __DEV__;
@@ -376,7 +382,8 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Reuse existing initialization promise if one is in progress
     // This prevents race conditions when multiple methods call concurrently
     if (this.initializationPromise) {
-      return this.initializationPromise;
+      await this.initializationPromise;
+      return;
     }
 
     // Create and cache the initialization promise
@@ -507,7 +514,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.deps.debugLogger.log(
         '[ensureReady] Reusing existing initialization promise',
       );
-      return this.ensureReadyPromise;
+      await this.ensureReadyPromise;
+      return;
     }
 
     this.deps.debugLogger.log('[ensureReady] Starting new initialization');
@@ -560,6 +568,115 @@ export class HyperLiquidProvider implements PerpsProvider {
     // The promise is only reset in disconnect() for clean reconnection
     await this.ensureReadyPromise;
     this.deps.debugLogger.log('[ensureReady] Initialization complete');
+  }
+
+  /**
+   * Get current price for a symbol using WebSocket cache first, REST API fallback
+   * Centralizes the price fetching pattern used across multiple methods
+   * @param params - Parameters for fetching price
+   * @param params.symbol - The symbol to get price for
+   * @param params.dexName - Optional DEX name for REST API fallback
+   * @returns The current price as a number
+   * @throws Error if no price is available
+   */
+  private async getOrFetchPrice(
+    params: GetOrFetchPriceParams,
+  ): Promise<number> {
+    const { symbol, dexName } = params;
+
+    // OPTIMIZATION: Use WebSocket price cache first (0 weight), fall back to REST (2 weight)
+    const cachedPrice = this.subscriptionService.getCachedPrice(symbol);
+
+    if (cachedPrice) {
+      const price = parseFloat(cachedPrice);
+      // Validate cached price: must be positive and finite
+      // Covers zero, negative, NaN, and Infinity in one check
+      if (price <= 0 || !isFinite(price)) {
+        this.deps.debugLogger.log(
+          'WebSocket cached price invalid for getOrFetchPrice, falling back to REST',
+          { symbol, cachedPrice, parsedPrice: price },
+        );
+        // Fall through to REST API fallback
+      } else {
+        this.deps.debugLogger.log('Using WebSocket cached price', {
+          symbol,
+          price,
+        });
+        return price;
+      }
+    }
+
+    // Fallback to REST API if cache miss
+    this.deps.debugLogger.log(
+      'Price cache miss for getOrFetchPrice, falling back to REST allMids',
+      { symbol },
+    );
+    const infoClient = this.clientService.getInfoClient();
+    const mids = await infoClient.allMids(
+      dexName ? { dex: dexName } : undefined,
+    );
+    const price = parseFloat(mids[symbol] || '0');
+
+    // Validate REST price: must be positive and finite
+    if (price <= 0 || !isFinite(price)) {
+      throw new Error(`Invalid price for ${symbol}: ${price}`);
+    }
+
+    return price;
+  }
+
+  /**
+   * Get fills using WebSocket cache first, falling back to REST API
+   * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss
+   *
+   * Cache limitation: WebSocket cache is limited to ~100 most recent fills.
+   * For historical data (e.g., position-opening fills from months ago), use getOrderFills directly.
+   *
+   * @param params - Optional filter parameters (startTime, symbol)
+   * @returns Array of order fills
+   */
+  public async getOrFetchFills(
+    params?: GetOrFetchFillsParams,
+  ): Promise<OrderFill[]> {
+    // Check WebSocket cache first (0 API weight)
+    const cachedFills = this.subscriptionService.getFillsCacheIfInitialized();
+
+    if (cachedFills !== null) {
+      this.deps.debugLogger.log('Using WebSocket cached fills', {
+        count: cachedFills.length,
+        params,
+      });
+      return this.filterFills(cachedFills, params);
+    }
+
+    // Fallback to REST API when cache not initialized
+    this.deps.debugLogger.log(
+      'Fills cache miss for getOrFetchFills, falling back to REST',
+      { params },
+    );
+    const restFills = await this.getOrderFills(params);
+    // Apply symbol filter to REST results for consistent API behavior
+    // Note: getOrderFills doesn't support symbol filtering natively
+    return this.filterFills(restFills, params);
+  }
+
+  /**
+   * Filter fills array by optional startTime and symbol parameters
+   * @param fills - Array of fills to filter
+   * @param params - Optional filter parameters
+   * @returns Filtered fills array
+   */
+  private filterFills(
+    fills: OrderFill[],
+    params?: { startTime?: number; symbol?: string },
+  ): OrderFill[] {
+    if (!params) return fills;
+
+    return fills.filter((fill) => {
+      if (params.startTime && fill.timestamp < params.startTime) return false;
+      if (params.symbol && fill.symbol !== params.symbol) return false;
+      return true;
+    });
   }
 
   /**
@@ -860,10 +977,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       {
         count: perpDexs.length,
         dexes: perpDexs
-          .filter((d) => d !== null)
-          .map((d) => ({
-            name: d.name,
-            deployerFeeScale: d.deployerFeeScale,
+          .filter((dex) => dex !== null)
+          .map((dex) => ({
+            name: dex.name,
+            deployerFeeScale: dex.deployerFeeScale,
           })),
       },
     );
@@ -891,7 +1008,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     try {
       // Get deployerFeeScale from perpDexs
       const perpDexs = await this.getCachedPerpDexs();
-      const dexInfo = perpDexs.find((d) => d?.name === dexName);
+      const dexInfo = perpDexs.find((dex) => dex?.name === dexName);
       const parsedScale = parseFloat(dexInfo?.deployerFeeScale ?? '');
       const deployerFeeScale = Number.isNaN(parsedScale)
         ? HIP3_FEE_CONFIG.DefaultDeployerFeeScale
@@ -901,7 +1018,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const meta = await this.getCachedMeta({ dexName });
       const fullAssetName = `${dexName}:${assetSymbol}`;
       const assetMeta = meta.universe.find(
-        (u) => (u as ExtendedAssetMeta).name === fullAssetName,
+        (univ) => (univ as ExtendedAssetMeta).name === fullAssetName,
       ) as ExtendedAssetMeta | undefined;
       const isGrowthMode = assetMeta?.growthMode === 'enabled';
 
@@ -1017,7 +1134,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     const infoClient = this.clientService.getInfoClient();
     const spotMeta = await infoClient.spotMeta();
 
-    const usdcToken = spotMeta.tokens.find((t) => t.name === 'USDC');
+    const usdcToken = spotMeta.tokens.find((tok) => tok.name === 'USDC');
     if (!usdcToken) {
       throw new Error('USDC token not found in spot metadata');
     }
@@ -1040,7 +1157,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     const spotMeta = await infoClient.spotMeta();
 
     const collateralToken = spotMeta.tokens.find(
-      (t: { index: number }) => t.index === meta.collateralToken,
+      (tok: { index: number }) => tok.index === meta.collateralToken,
     );
 
     const isUsdh = collateralToken?.name === USDH_CONFIG.TokenName;
@@ -1171,10 +1288,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Find USDH and USDC tokens by name
     const usdhToken = spotMeta.tokens.find(
-      (t: { name: string }) => t.name === USDH_CONFIG.TokenName,
+      (tok: { name: string }) => tok.name === USDH_CONFIG.TokenName,
     );
     const usdcToken = spotMeta.tokens.find(
-      (t: { name: string }) => t.name === 'USDC',
+      (tok: { name: string }) => tok.name === 'USDC',
     );
 
     if (!usdhToken || !usdcToken) {
@@ -1186,9 +1303,9 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Find USDH/USDC pair by token indices (NOT by name - name is @230)
     const usdhUsdcPair = spotMeta.universe.find(
-      (u: { tokens: number[] }) =>
-        u.tokens.includes(usdhToken.index) &&
-        u.tokens.includes(usdcToken.index),
+      (univ: { tokens: number[] }) =>
+        univ.tokens.includes(usdhToken.index) &&
+        univ.tokens.includes(usdcToken.index),
     );
 
     if (!usdhUsdcPair) {
@@ -1519,7 +1636,7 @@ export class HyperLiquidProvider implements PerpsProvider {
               dex || 'main'
             } - invalid or missing universe data`,
             {
-              hasUniverse: !!meta.universe,
+              hasUniverse: Boolean(meta.universe),
               isArray: Array.isArray(meta.universe),
             },
           );
@@ -1560,8 +1677,8 @@ export class HyperLiquidProvider implements PerpsProvider {
     });
 
     const allKeys = Array.from(this.symbolToAssetId.keys());
-    const mainDexKeys = allKeys.filter((k) => !k.includes(':')).slice(0, 5);
-    const hip3Keys = allKeys.filter((k) => k.includes(':')).slice(0, 10);
+    const mainDexKeys = allKeys.filter((key) => !key.includes(':')).slice(0, 5);
+    const hip3Keys = allKeys.filter((key) => key.includes(':')).slice(0, 10);
 
     this.deps.debugLogger.log('HyperLiquidProvider: Asset mapping built', {
       totalAssets: this.symbolToAssetId.size,
@@ -1633,7 +1750,7 @@ export class HyperLiquidProvider implements PerpsProvider {
   private mapError(error: unknown): Error {
     const message = error instanceof Error ? error.message : String(error);
 
-    for (const [pattern, code] of Object.entries(this.ERROR_MAPPINGS)) {
+    for (const [pattern, code] of Object.entries(this.errorMappings)) {
       if (message.toLowerCase().includes(pattern.toLowerCase())) {
         return new Error(code);
       }
@@ -1914,7 +2031,8 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Try other HIP-3 DEXs
     // Get all available DEXs from cache (includes all HIP-3 DEXs since we no longer filter)
     const availableDexs =
-      this.cachedValidatedDexs?.filter((d): d is string => d !== null) ?? [];
+      this.cachedValidatedDexs?.filter((dex): dex is string => dex !== null) ??
+      [];
     for (const dex of availableDexs) {
       if (dex === targetDex) continue;
 
@@ -2151,7 +2269,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Get existing position to check if we're increasing
     const positions = await this.getPositions();
-    const existingPosition = positions.find((p) => p.symbol === symbol);
+    const existingPosition = positions.find((pos) => pos.symbol === symbol);
 
     let requiredMarginWithBuffer: number;
 
@@ -2258,7 +2376,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           dex: dexName,
           transferredAmount: transferredAmount.toFixed(2),
           availableAfterOrder: leftoverAmount.toFixed(2),
-          leftoverPercentage: leftoverPercentage.toFixed(2) + '%',
+          leftoverPercentage: `${leftoverPercentage.toFixed(2)}%`,
         },
       );
 
@@ -2420,7 +2538,6 @@ export class HyperLiquidProvider implements PerpsProvider {
   ): Promise<GetAssetInfoResult> {
     const { symbol, dexName } = params;
 
-    const infoClient = this.clientService.getInfoClient();
     const meta = await this.getCachedMeta({ dexName });
 
     const assetInfo = meta.universe.find((asset) => asset.name === symbol);
@@ -2430,11 +2547,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
     }
 
-    const mids = await infoClient.allMids({ dex: dexName ?? '' });
-    const currentPrice = parseFloat(mids[symbol] || '0');
-    if (currentPrice === 0) {
-      throw new Error(`No price available for ${symbol}`);
-    }
+    const currentPrice = await this.getOrFetchPrice({
+      symbol,
+      dexName: dexName ?? null,
+    });
 
     return { assetInfo, currentPrice, meta };
   }
@@ -2587,7 +2703,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       orderCount: orders.length,
       mainOrder: orders[0],
       dexName: dexName || 'main',
-      isHip3: !!dexName,
+      isHip3: Boolean(dexName),
     });
 
     try {
@@ -2684,7 +2800,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Debug: Log asset map state before order placement
       const allMapKeys = Array.from(this.symbolToAssetId.keys());
-      const hip3Keys = allMapKeys.filter((k) => k.includes(':'));
+      const hip3Keys = allMapKeys.filter((key) => key.includes(':'));
       const assetExists = this.symbolToAssetId.has(params.symbol);
       this.deps.debugLogger.log('Asset map state at order time', {
         requestedCoin: params.symbol,
@@ -2914,9 +3030,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const { dex: dexName } = parseAssetName(params.newOrder.symbol);
 
       // Get asset info and prices (uses cache to avoid redundant API calls)
-      const infoClient = this.clientService.getInfoClient();
       const meta = await this.getCachedMeta({ dexName });
-      const mids = await infoClient.allMids({ dex: dexName ?? '' });
 
       // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
       const assetInfo = meta.universe.find(
@@ -2930,10 +3044,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         );
       }
 
-      const currentPrice = parseFloat(mids[params.newOrder.symbol] || '0');
-      if (currentPrice === 0) {
-        throw new Error(`No price available for ${params.newOrder.symbol}`);
-      }
+      const currentPrice = await this.getOrFetchPrice({
+        symbol: params.newOrder.symbol,
+        dexName: dexName ?? null,
+      });
 
       // Calculate order parameters using the same logic as placeOrder
       let orderPrice: number;
@@ -3120,8 +3234,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       });
 
       // Parse response statuses (one per order)
-      const statuses = result.response.data.statuses;
-      const successCount = statuses.filter((s) => s === 'success').length;
+      const { statuses } = result.response.data;
+      const successCount = statuses.filter(
+        (status) => status === 'success',
+      ).length;
       const failureCount = statuses.length - successCount;
 
       return {
@@ -3183,7 +3299,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       positionsToClose =
         params.closeAll || !params.symbols || params.symbols.length === 0
           ? positions
-          : positions.filter((p) => params.symbols?.includes(p.symbol));
+          : positions.filter((pos) => params.symbols?.includes(pos.symbol));
 
       this.deps.debugLogger.log('Batch closing positions:', {
         count: positionsToClose.length,
@@ -3200,14 +3316,15 @@ export class HyperLiquidProvider implements PerpsProvider {
         };
       }
 
-      // Get exchange client and meta for price/size formatting
+      // Get exchange client for order submission
       const exchangeClient = this.clientService.getExchangeClient();
-      const infoClient = this.clientService.getInfoClient();
 
       // Pre-fetch meta for all unique DEXs to avoid N API calls in loop
       const uniqueDexs = [
         ...new Set(
-          positionsToClose.map((p) => parseAssetName(p.symbol).dex || 'main'),
+          positionsToClose.map(
+            (pos) => parseAssetName(pos.symbol).dex || 'main',
+          ),
         ),
       ];
       await Promise.all(
@@ -3264,12 +3381,10 @@ export class HyperLiquidProvider implements PerpsProvider {
           });
         }
 
-        // Get current price for market order slippage
-        const mids = await infoClient.allMids({ dex: dexName ?? '' });
-        const currentPrice = parseFloat(mids[position.symbol] || '0');
-        if (currentPrice === 0) {
-          throw new Error(`No price available for ${position.symbol}`);
-        }
+        const currentPrice = await this.getOrFetchPrice({
+          symbol: position.symbol,
+          dexName: dexName ?? null,
+        });
 
         // Calculate order price with slippage
         const slippage = ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000;
@@ -3318,9 +3433,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       });
 
       // Parse response statuses (one per order)
-      const statuses = result.response.data.statuses;
+      const { statuses } = result.response.data;
       const successCount = statuses.filter(
-        (s) => isStatusObject(s) && ('filled' in s || 'resting' in s),
+        (stat) =>
+          isStatusObject(stat) && ('filled' in stat || 'resting' in stat),
       ).length;
       const failureCount = statuses.length - successCount;
 
@@ -3411,28 +3527,45 @@ export class HyperLiquidProvider implements PerpsProvider {
     try {
       this.deps.debugLogger.log('Updating position TP/SL:', params);
 
-      const { symbol, takeProfitPrice, stopLossPrice } = params;
+      const {
+        symbol,
+        takeProfitPrice,
+        stopLossPrice,
+        position: livePosition,
+      } = params;
 
       // Explicitly ensure builder fee approval for trading
       await this.ensureReady();
       await this.ensureBuilderFeeApproval();
 
-      // Get current position to validate it exists
-      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
-      let positions: Position[];
-      try {
-        positions = await this.getPositions({ skipCache: true });
-      } catch (error) {
-        this.deps.logger.error(
-          ensureError(error),
-          this.getErrorContext('updatePositionTPSL > getPositions', {
-            symbol,
-          }),
-        );
-        throw error;
-      }
+      // Use live position (from WebSocket) if available, otherwise fetch via REST
+      // Preferring WebSocket data avoids rate limiting issues with the REST API
+      let position: Position | undefined = livePosition;
 
-      const position = positions.find((p) => p.symbol === symbol);
+      if (!position) {
+        // Fallback: fetch positions via REST API (legacy behavior)
+        this.deps.debugLogger.log(
+          'No live position passed, falling back to REST API fetch',
+        );
+        let positions: Position[];
+        try {
+          positions = await this.getPositions({ skipCache: true });
+        } catch (error) {
+          this.deps.logger.error(
+            ensureError(error),
+            this.getErrorContext('updatePositionTPSL > getPositions', {
+              symbol,
+            }),
+          );
+          throw error;
+        }
+        position = positions.find((pos) => pos.symbol === symbol);
+      } else {
+        this.deps.debugLogger.log('Using live position from WebSocket', {
+          symbol: position.symbol,
+          size: position.size,
+        });
+      }
 
       if (!position) {
         throw new Error(`No position found for ${symbol}`);
@@ -3441,11 +3574,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const positionSize = Math.abs(parseFloat(position.size));
       const isLong = parseFloat(position.size) > 0;
 
-      await this.ensureReady();
-
-      // See ensureReady() - builder fee and referral are session-cached
-
-      // Get current price for the asset
+      // Get clients for API calls (ensureReady already called at method start)
       const infoClient = this.clientService.getInfoClient();
       const exchangeClient = this.clientService.getExchangeClient();
       const userAddress = await this.walletService.getUserAddressWithDefault();
@@ -3453,50 +3582,79 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(symbol);
 
-      // Fetch current price for this asset's DEX
-      const mids = await infoClient.allMids(
-        dexName ? { dex: dexName } : undefined,
-      );
-      const currentPrice = parseFloat(mids[symbol] || '0');
-
-      if (currentPrice === 0) {
-        throw new Error(`No price available for ${symbol}`);
+      // Cancel existing TP/SL orders for this position
+      // OPTIMIZATION: Use WebSocket cache first (0 weight), fall back to single-DEX REST (20 weight)
+      // Previously: queryUserDataAcrossDexs queried ALL DEXs (20 weight × N DEXs = 40+ weight)
+      const assetId = this.symbolToAssetId.get(symbol);
+      if (assetId === undefined) {
+        throw new Error(`Asset ID not found for ${symbol}`);
       }
 
-      // Cancel existing TP/SL orders for this position across all DEXs
-      this.deps.debugLogger.log(
-        'Fetching open orders to cancel existing TP/SL...',
-      );
-      const orderResults = await this.queryUserDataAcrossDexs(
-        { user: userAddress },
-        (p) => infoClient.frontendOpenOrders(p),
-      );
+      let cancelRequests: { a: number; o: number }[] = [];
 
-      // Combine orders from all DEXs
-      const allOrders = orderResults.flatMap((result) => result.data);
+      // Use atomic getter to prevent race condition between check and get
+      const cachedOrders =
+        this.subscriptionService.getOrdersCacheIfInitialized();
 
-      const tpslOrdersToCancel = allOrders.filter(
-        (order) =>
-          order.coin === symbol &&
-          order.reduceOnly === true &&
-          order.isPositionTpsl === !!TP_SL_CONFIG.UsePositionBoundTpsl &&
-          order.isTrigger === true &&
-          (order.orderType.includes('Take Profit') ||
-            order.orderType.includes('Stop')),
-      );
-
-      if (tpslOrdersToCancel.length > 0) {
+      if (cachedOrders !== null) {
+        // WebSocket cache available - use it (no API call, 0 weight)
         this.deps.debugLogger.log(
-          `Canceling ${tpslOrdersToCancel.length} existing TP/SL orders for ${symbol}`,
+          'Using WebSocket cache for TP/SL orders lookup',
+          { cachedOrdersCount: cachedOrders.length },
         );
-        const assetId = this.symbolToAssetId.get(symbol);
-        if (assetId === undefined) {
-          throw new Error(`Asset ID not found for ${symbol}`);
-        }
-        const cancelRequests = tpslOrdersToCancel.map((order) => ({
+
+        // Filter using normalized Order type properties
+        // Note: Cached orders don't have isPositionTpsl, but we identify TP/SL orders by:
+        // - isTrigger === true
+        // - reduceOnly === true
+        // - detailedOrderType contains 'Take Profit' or 'Stop'
+        const tpslOrders = cachedOrders.filter(
+          (order) =>
+            order.symbol === symbol &&
+            order.reduceOnly === true &&
+            order.isTrigger === true &&
+            order.detailedOrderType &&
+            (order.detailedOrderType.includes('Take Profit') ||
+              order.detailedOrderType.includes('Stop')),
+        );
+
+        cancelRequests = tpslOrders.map((order) => ({
+          a: assetId,
+          o: parseInt(order.orderId, 10),
+        }));
+      } else {
+        // Fallback: Query only the specific DEX (20 weight instead of 40+)
+        this.deps.debugLogger.log(
+          'WebSocket cache not initialized, falling back to single-DEX REST query',
+          { dex: dexName || 'main' },
+        );
+
+        const orders = await infoClient.frontendOpenOrders({
+          user: userAddress,
+          dex: dexName || undefined,
+        });
+
+        // Filter using raw SDK response properties
+        const tpslOrders = orders.filter(
+          (order) =>
+            order.coin === symbol &&
+            order.reduceOnly === true &&
+            order.isPositionTpsl === !!TP_SL_CONFIG.UsePositionBoundTpsl &&
+            order.isTrigger === true &&
+            (order.orderType.includes('Take Profit') ||
+              order.orderType.includes('Stop')),
+        );
+
+        cancelRequests = tpslOrders.map((order) => ({
           a: assetId,
           o: order.oid,
         }));
+      }
+
+      if (cancelRequests.length > 0) {
+        this.deps.debugLogger.log(
+          `Canceling ${cancelRequests.length} existing TP/SL orders for ${symbol}`,
+        );
 
         const cancelResult = await exchangeClient.cancel({
           cancels: cancelRequests,
@@ -3534,10 +3692,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         );
       }
 
-      const assetId = this.symbolToAssetId.get(symbol);
-      if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${symbol}`);
-      }
+      // assetId already validated above when building cancelRequests
 
       // Build orders array for TP/SL
       const orders: SDKOrderParams[] = [];
@@ -3672,7 +3827,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Force fresh API data (not WebSocket cache) since we're about to mutate the position
       const positions = await this.getPositions({ skipCache: true });
-      const position = positions.find((p) => p.symbol === params.symbol);
+      const position = positions.find((pos) => pos.symbol === params.symbol);
 
       if (!position) {
         throw new Error(`No position found for ${params.symbol}`);
@@ -3695,7 +3850,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Get current price for validation if not provided (and not a full close)
       // Full closes don't need price for validation
-      let currentPrice = params.currentPrice;
+      let { currentPrice } = params;
       if (!currentPrice && params.size && !params.usdAmount) {
         // Partial close without USD or price: use limit price as fallback for validation
         // For limit orders, the limit price is a reasonable proxy for validation purposes
@@ -3812,7 +3967,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Get current position to determine direction
       // Force fresh API data since we're about to mutate the position
       const positions = await this.getPositions({ skipCache: true });
-      const position = positions.find((p) => p.symbol === symbol);
+      const position = positions.find((pos) => pos.symbol === symbol);
 
       if (!position) {
         throw new Error(`No position found for ${symbol}`);
@@ -3914,11 +4069,11 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Query positions and orders across all enabled DEXs in parallel
       const [stateResults, orderResults] = await Promise.all([
-        this.queryUserDataAcrossDexs({ user: userAddress }, (p) =>
-          infoClient.clearinghouseState(p),
+        this.queryUserDataAcrossDexs({ user: userAddress }, (userParam) =>
+          infoClient.clearinghouseState(userParam),
         ),
-        this.queryUserDataAcrossDexs({ user: userAddress }, (p) =>
-          infoClient.frontendOpenOrders(p),
+        this.queryUserDataAcrossDexs({ user: userAddress }, (userParam) =>
+          infoClient.frontendOpenOrders(userParam),
         ),
       ]);
 
@@ -3927,16 +4082,16 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       this.deps.debugLogger.log('Frontend open orders (all DEXs):', {
         count: allOrders.length,
-        orders: allOrders.map((o) => ({
-          coin: o.coin,
-          oid: o.oid,
-          orderType: o.orderType,
-          reduceOnly: o.reduceOnly,
-          isTrigger: o.isTrigger,
-          triggerPx: o.triggerPx,
-          isPositionTpsl: o.isPositionTpsl,
-          side: o.side,
-          sz: o.sz,
+        orders: allOrders.map((ord) => ({
+          coin: ord.coin,
+          oid: ord.oid,
+          orderType: ord.orderType,
+          reduceOnly: ord.reduceOnly,
+          isTrigger: ord.isTrigger,
+          triggerPx: ord.triggerPx,
+          isPositionTpsl: ord.isPositionTpsl,
+          side: ord.side,
+          sz: ord.sz,
         })),
       });
 
@@ -4238,15 +4393,16 @@ export class HyperLiquidProvider implements PerpsProvider {
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
       // Try WebSocket cache first (unless explicitly bypassed)
-      if (
-        !params?.skipCache &&
-        this.subscriptionService.isOrdersCacheInitialized()
-      ) {
-        const cachedOrders = this.subscriptionService.getCachedOrders() || [];
-        this.deps.debugLogger.log('Using cached open orders from WebSocket', {
-          count: cachedOrders.length,
-        });
-        return cachedOrders;
+      // Use atomic getter to prevent race condition between check and get
+      if (!params?.skipCache) {
+        const cachedOrders =
+          this.subscriptionService.getOrdersCacheIfInitialized();
+        if (cachedOrders !== null) {
+          this.deps.debugLogger.log('Using cached open orders from WebSocket', {
+            count: cachedOrders.length,
+          });
+          return cachedOrders;
+        }
       }
 
       // Fallback to API call
@@ -4267,7 +4423,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Query orders across all enabled DEXs in parallel
       const orderResults = await this.queryUserDataAcrossDexs(
         { user: userAddress },
-        (p) => infoClient.frontendOpenOrders(p),
+        (userParam) => infoClient.frontendOpenOrders(userParam),
       );
 
       // Combine all orders from all DEXs
@@ -4283,7 +4439,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Transform HyperLiquid open orders to abstract Order type using adapter
       // Raw SDK orders use 'coin', adapted positions use 'symbol'
       const orders: Order[] = (rawOrders || []).map((order) => {
-        const position = positions.find((p) => p.symbol === order.coin);
+        const position = positions.find((pos) => pos.symbol === order.coin);
         return adaptOrderFromSDK(order, position);
       });
 
@@ -4519,8 +4675,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Get Spot balance (global, not DEX-specific) and Perps states across all DEXs
       const [spotState, perpsStateResults] = await Promise.all([
         infoClient.spotClearinghouseState({ user: userAddress }),
-        this.queryUserDataAcrossDexs({ user: userAddress }, (p) =>
-          infoClient.clearinghouseState(p),
+        this.queryUserDataAcrossDexs({ user: userAddress }, (userParam) =>
+          infoClient.clearinghouseState(userParam),
         ),
       ]);
 
@@ -4531,7 +4687,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Aggregate account states from all DEXs
       // Each DEX has independent positions and margin, we sum them
-      const aggregatedAccountState = perpsStateResults.reduce(
+      const aggregatedAccountState = perpsStateResults.reduce<AccountState>(
         (acc, result, index) => {
           const { dex, data: perpsState } = result;
 
@@ -4581,7 +4737,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-        } as AccountState,
+        },
       );
 
       // Recalculate return on equity across all DEXs
@@ -5036,8 +5192,8 @@ export class HyperLiquidProvider implements PerpsProvider {
     );
 
     // Debug: Log combinedAllMids to diagnose price lookup issues
-    const hip3Keys = Object.keys(combinedAllMids).filter((k) =>
-      k.includes(':'),
+    const hip3Keys = Object.keys(combinedAllMids).filter((key) =>
+      key.includes(':'),
     );
     this.deps.debugLogger.log('Combined allMids price data:', {
       totalKeys: Object.keys(combinedAllMids).length,
@@ -5406,7 +5562,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           {
             error: assetValidation.error,
             assetId: params.assetId,
-            supportedAssets: supportedRoutes.map((r) => r.assetId),
+            supportedAssets: supportedRoutes.map((route) => route.assetId),
           },
         );
         throw new Error(assetValidation.error);
@@ -5530,7 +5686,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         };
       }
 
-      const errorMessage = `Withdrawal failed: ${result.status}`;
+      const errorMessage = `Withdrawal failed: ${String(result.status)}`;
       this.deps.debugLogger.log('HyperLiquidProvider: WITHDRAWAL FAILED', {
         error: errorMessage,
         status: result.status,
@@ -5687,6 +5843,7 @@ export class HyperLiquidProvider implements PerpsProvider {
             symbols: params.symbols,
           }),
         );
+        return undefined;
       });
 
     return () => {
@@ -5817,7 +5974,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     try {
       const exchangeClient = this.clientService.getExchangeClient();
       const infoClient = this.clientService.getInfoClient();
-      const walletConnected = !!exchangeClient && !!infoClient;
+      const walletConnected = Boolean(exchangeClient) && Boolean(infoClient);
 
       let accountConnected = false;
       try {
@@ -5850,8 +6007,8 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   /**
    * Calculate liquidation price using HyperLiquid's formula
-   * Formula: liq_price = price - side * margin_available / position_size / (1 - l * side)
-   * where l = 1 / MAINTENANCE_LEVERAGE = 1 / (2 * max_leverage)
+   * Formula: liq_price = price - side * margin_available / position_size / (1 - maintenanceMarginRatio * side)
+   * where maintenanceMarginRatio = 1 / MAINTENANCE_LEVERAGE = 1 / (2 * max_leverage)
    */
   async calculateLiquidationPrice(
     params: LiquidationPriceParams,
@@ -5887,7 +6044,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Calculate maintenance leverage and margin according to HyperLiquid docs
     const maintenanceLeverage = 2 * maxLeverage;
-    const l = 1 / maintenanceLeverage;
+    const maintenanceMarginRatio = 1 / maintenanceLeverage;
     const side = direction === 'long' ? 1 : -1;
 
     // For isolated margin, we use the standard formula
@@ -5909,8 +6066,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       const marginAvailable = initialMargin - maintenanceMargin;
 
       // Simplified calculation when position size is 1 unit
-      // liq_price = price - side * margin_available * price / (1 - l * side)
-      const denominator = 1 - l * side;
+      // liq_price = price - side * margin_available * price / (1 - maintenanceMarginRatio * side)
+      const denominator = 1 - maintenanceMarginRatio * side;
       if (Math.abs(denominator) < 0.0001) {
         // Avoid division by very small numbers
         return String(entryPrice);
@@ -5996,7 +6153,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
 
       // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
-      const assetInfo = meta.universe.find((a) => a.name === asset);
+      const assetInfo = meta.universe.find((univ) => univ.name === asset);
       if (!assetInfo) {
         this.deps.debugLogger.log(
           `Asset ${asset} not found in universe, using default max leverage`,
@@ -6630,7 +6787,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           },
         );
         const result = await this.setReferralCode();
-        if (result === true) {
+        if (result) {
           this.deps.debugLogger.log(
             '[ensureReferralSet] Referral code set successfully',
             {
@@ -6738,7 +6895,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         referralData,
       });
 
-      return !!referralData?.referredBy?.code;
+      return Boolean(referralData?.referredBy?.code);
     } catch (error) {
       this.deps.logger.error(
         ensureError(error),

@@ -1,1 +1,2 @@
-export { default } from './MultichainTransactionDetailsModal';
+export { default } from './MultichainTransactionDetailsSheet';
+export { default as MultichainTransactionDetailsSheet } from './MultichainTransactionDetailsSheet';

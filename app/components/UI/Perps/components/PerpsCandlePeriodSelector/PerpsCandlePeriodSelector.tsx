@@ -14,10 +14,10 @@ import { styleSheet } from './PerpsCandlePeriodSelector.styles';
 
 // Default candle periods with preset values
 const DEFAULT_CANDLE_PERIODS = [
-  { label: '1min', value: CandlePeriod.ONE_MINUTE },
-  { label: '3min', value: CandlePeriod.THREE_MINUTES },
-  { label: '5min', value: CandlePeriod.FIVE_MINUTES },
-  { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES },
+  { label: '1min', value: CandlePeriod.OneMinute },
+  { label: '3min', value: CandlePeriod.ThreeMinutes },
+  { label: '5min', value: CandlePeriod.FiveMinutes },
+  { label: '15min', value: CandlePeriod.FifteenMinutes },
 ] as const;
 
 // Helper function to get the display label for a candle period
