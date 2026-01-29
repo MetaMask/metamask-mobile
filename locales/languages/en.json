@@ -25,6 +25,8 @@
       "title": "Alert",
       "checkbox_label": "I have acknowledged the risk and still want to proceed",
       "got_it_btn": "Got it",
+      "acknowledge_btn": "Acknowledge",
+      "close_btn": "Close",
       "alert_details": "Alert details"
     },
     "confirm_modal": {
@@ -1008,6 +1010,7 @@
       "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
       "set_button": "Set"
     },
+    "confirm": "Confirm",
     "deposit": {
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
@@ -1081,6 +1084,8 @@
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
       "in_progress": "Adding funds to Perps",
+      "depositing_your_funds": "Depositing your funds",
+      "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
       "your_funds_are_available_to_trade": "Your funds are available to trade",
@@ -1247,6 +1252,16 @@
           "description": "Execute only at your specified price or better"
         }
       },
+      "payment_token": "Payment token",
+      "select_payment_token": "Select payment token",
+      "select_token": "Select token",
+      "no_payment_tokens": "No payment tokens available",
+      "swap": "SWAP",
+      "swap_submitted": "Swap Submitted",
+      "transaction_id": "Transaction ID: {{txId}}",
+      "swap_failed": "Swap Failed",
+      "swap_error_message": "Failed to submit swap transaction: {{error}}",
+      "swap_converting": "Converting balance to USDC on ARBITRUM",
       "success": {
         "title": "Order placed successfully",
         "subtitle": "Your {{direction}} position for {{asset}} has been created",
@@ -1275,7 +1290,10 @@
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Order failed",
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
-      "order_cancelled_success": "{{detailedOrderType}} order cancelled"
+      "order_cancelled_success": "{{detailedOrderType}} order cancelled",
+      "pay_with_token_required": "Token selection required",
+      "select_token_to_pay_with": "Please select a token to pay with before placing your order",
+      "initializing": "Initializing order..."
     },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
@@ -6328,16 +6346,7 @@
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
-    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
-    "submit": "Submit",
-    "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "exceeding_upper_slippage_warning": "High slippage, this may result in a unfavourable swap",
-    "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",
-    "exceeding_lower_slippage_error": "Enter a value greater than {{value}}%",
-    "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
-    "custom": "Custom"
+    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
