@@ -1,9 +1,6 @@
+import { Mockttp } from 'mockttp';
 import { SmokeWalletPlatform } from '../../tags';
-import {
-  SIMPLE_KEYPAIR_ACCOUNT,
-  goToAccountDetails,
-  withMultichainAccountDetailsEnabledFixtures,
-} from './common';
+import { SIMPLE_KEYPAIR_ACCOUNT, goToAccountDetails } from './common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
 import Assertions from '../../../tests/framework/Assertions';
@@ -11,6 +8,11 @@ import Matchers from '../../../tests/framework/Matchers';
 import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../viewHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const deleteAccount = async () => {
   await AccountDetails.tapDeleteAccountLink();
@@ -18,25 +20,50 @@ const deleteAccount = async () => {
   await DeleteAccount.tapDeleteAccount();
 };
 
-describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
-  beforeEach(async () => {
-    await TestHelpers.reverseServerPort();
-  });
-
-  it('deletes the account', async () => {
-    await withMultichainAccountDetailsEnabledFixtures(async () => {
-      await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
-      );
-
-      await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
-      await deleteAccount();
-      // Go back to account list
-      await WalletView.tapIdenticon();
-
-      const importedAccountsSection =
-        Matchers.getElementByText('Imported Accounts');
-      await Assertions.expectElementToNotBeVisible(importedAccountsSection);
+// TODO: Update test to be BIP-44 compatible
+// https://github.com/MetaMask/metamask-mobile/issues/24144
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(
+  SmokeWalletPlatform('Multichain Accounts: Account Details'),
+  () => {
+    beforeEach(async () => {
+      await TestHelpers.reverseServerPort();
     });
-  });
-});
+
+    it('deletes the account', async () => {
+      const testSpecificMock = async (mockServer: Mockttp) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          remoteFeatureMultichainAccountsAccountDetailsV2(true),
+        );
+      };
+
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
+            .build(),
+          restartDevice: true,
+          testSpecificMock,
+        },
+        async () => {
+          await loginToApp();
+          await WalletView.tapIdenticon();
+
+          await Assertions.expectElementToBeVisible(
+            AccountListBottomSheet.accountList,
+          );
+
+          await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
+          await deleteAccount();
+          // Go back to account list
+          await WalletView.tapIdenticon();
+
+          const importedAccountsSection =
+            Matchers.getElementByText('Imported Accounts');
+          await Assertions.expectElementToNotBeVisible(importedAccountsSection);
+        },
+      );
+    });
+  },
+);
