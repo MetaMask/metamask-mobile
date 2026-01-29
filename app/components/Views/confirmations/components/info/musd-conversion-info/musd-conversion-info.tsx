@@ -51,7 +51,11 @@ interface MusdConversionConfirmationParams {
 
 export const MusdConversionInfo = () => {
   const { preferredPaymentToken } =
-    useParams<MusdConversionConfirmationParams>();
+    useParams<Partial<MusdConversionConfirmationParams>>();
+
+  if (!preferredPaymentToken?.chainId) {
+    throw new Error('Preferred payment token chainId is required');
+  }
 
   const { decimals, name, symbol } = MUSD_TOKEN;
 

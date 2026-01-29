@@ -35,7 +35,18 @@ jest.mock('../../rows/pay-with-row', () => ({
   PayWithRow: jest.fn(() => null),
 }));
 
-const mockRoute = {
+interface MockRoute {
+  key: string;
+  name: string;
+  params?: {
+    preferredPaymentToken?: {
+      address: Hex;
+      chainId: Hex;
+    };
+  };
+}
+
+const mockRoute: MockRoute = {
   key: 'test-route',
   name: 'MusdConversionInfo',
   params: {
@@ -106,6 +117,26 @@ describe('MusdConversionInfo', () => {
       });
 
       expect(mockUseAddToken).toHaveBeenCalled();
+    });
+
+    it('throws error when preferredPaymentToken is missing from route params', () => {
+      mockRoute.params = {};
+
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        expect(() =>
+          renderWithProvider(<MusdConversionInfo />, {
+            state: {},
+          }),
+        ).toThrow('Preferred payment token chainId is required');
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
     });
   });
 
