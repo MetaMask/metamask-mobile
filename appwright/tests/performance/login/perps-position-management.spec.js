@@ -83,10 +83,10 @@ test.describe(PerformancePreps, () => {
     await selectAccountDevice(device, testInfo);
 
     await TabBarModal.tapActionButton();
-    (WalletActionModal.tapPerpsButton(),
-      await selectPerpsMainScreenTimer.measure(async () => {
-        await PerpsTutorialScreen.isContainerDisplayed();
-      }));
+    await WalletActionModal.tapPerpsButton();
+    await selectPerpsMainScreenTimer.measure(async () => {
+      await PerpsTutorialScreen.isContainerDisplayed();
+    });
 
     await PerpsTutorialScreen.tapSkip();
     await selectMarketTimer.measure(async () => {
@@ -120,14 +120,15 @@ test.describe(PerformancePreps, () => {
       async () => await PerpsPositionDetailsView.isPositionOpen(),
     );
 
-    (PerpsPositionDetailsView.closePositionWithRetry(),
-      performanceTracker.addTimers(
-        selectPerpsMainScreenTimer,
-        selectMarketTimer,
-        openOrderScreenTimer,
-        openPositionTimer,
-        MarketDetailsScreenTimer,
-      ));
+    await PerpsPositionDetailsView.closePositionWithRetry();
+
+    performanceTracker.addTimers(
+      selectPerpsMainScreenTimer,
+      selectMarketTimer,
+      openOrderScreenTimer,
+      openPositionTimer,
+      MarketDetailsScreenTimer,
+    );
     await performanceTracker.attachToTest(testInfo);
   });
 }); // End describe

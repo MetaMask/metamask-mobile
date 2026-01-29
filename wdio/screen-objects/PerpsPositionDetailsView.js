@@ -57,7 +57,7 @@ class PerpsPositionDetailsView {
 
   async isContainerDisplayed() {
     const container = await this.marketDetailsHeader;
-    expect(await container).toBeVisible({ timeout: 20000 });
+    await expect(container).toBeVisible({ timeout: 20000 });
   }
 }
 
