@@ -93,8 +93,8 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 12,
       flex: 1,
     },
-    // Section style overrides for PerpsTabView - flat list without card styling
-    watchlistSectionStyle: {
+    // Watchlist section - inline render (not using shared PerpsWatchlistMarkets component)
+    watchlistSection: {
       marginBottom: 0,
     },
     watchlistHeaderStyleNoBalance: {
@@ -106,15 +106,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 24,
       paddingBottom: 4,
       marginBottom: 0,
-    },
-    // Flat content container - no card styling
-    // Note: horizontal padding comes from internal listContent/PerpsMarketList styles
-    flatContentContainerStyle: {
-      marginHorizontal: 0,
-      borderRadius: 0,
-      paddingTop: 0,
-      paddingBottom: 0,
-      backgroundColor: colors.background.default,
     },
     // Custom explore section styles - isolated from shared components
     exploreSection: {

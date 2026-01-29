@@ -42,7 +42,6 @@ import {
   usePerpsTabExploreData,
 } from '../../hooks';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
-import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
@@ -366,6 +365,42 @@ const PerpsTabView = () => {
     [styles, handleExploreMarketPress],
   );
 
+  const renderWatchlistSection = useCallback(() => {
+    if (isExploreLoading) {
+      return (
+        <View style={styles.watchlistSection}>
+          <View style={watchlistHeaderStyle}>
+            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+              {strings('perps.home.watchlist')}
+            </Text>
+          </View>
+          <PerpsRowSkeleton count={3} />
+        </View>
+      );
+    }
+
+    if (watchlistMarkets.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.watchlistSection}>
+        <View style={watchlistHeaderStyle}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+            {strings('perps.home.watchlist')}
+          </Text>
+        </View>
+        {watchlistMarkets.map(renderExploreMarketRow)}
+      </View>
+    );
+  }, [
+    isExploreLoading,
+    watchlistMarkets,
+    styles,
+    watchlistHeaderStyle,
+    renderExploreMarketRow,
+  ]);
+
   const renderExploreSection = useCallback(() => {
     if (isExploreLoading) {
       return (
@@ -433,18 +468,8 @@ const PerpsTabView = () => {
       >
         {!isInitialLoading && hasNoPositionsOrOrders ? (
           <View style={styles.emptyStateContainer}>
-            {/* Watchlist section - only render if user has watchlist markets */}
-            {isWatchlistVisible && (
-              <PerpsWatchlistMarkets
-                markets={watchlistMarkets}
-                isLoading={isExploreLoading}
-                positions={[]}
-                orders={[]}
-                sectionStyle={styles.watchlistSectionStyle}
-                headerStyle={watchlistHeaderStyle}
-                contentContainerStyle={styles.flatContentContainerStyle}
-              />
-            )}
+            {/* Watchlist section - inline render with PerpsTabView-specific styling */}
+            {renderWatchlistSection()}
 
             {/* Explore markets section - custom render for PerpsTabView styling */}
             {renderExploreSection()}

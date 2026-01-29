@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      // Horizontal padding comes from parent TabsList (px-4)
+      paddingHorizontal: 16,
       marginBottom: 8,
     },
     titleRow: {
@@ -26,7 +26,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.section,
     },
     listContent: {
-      // Horizontal padding comes from parent TabsList (px-4)
+      paddingHorizontal: 16,
     },
   });
 };
