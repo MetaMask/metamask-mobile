@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 import PredictHomePositionList from './PredictHomePositionList';
+import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -198,15 +199,19 @@ describe('PredictHomePositionList', () => {
       }),
     ];
 
-    const { getByTestId } = render(
+    render(
       <PredictHomePositionList
         activePositions={[]}
         claimablePositions={claimablePositions}
       />,
     );
 
-    expect(getByTestId('resolved-position-2')).toBeOnTheScreen();
-    expect(getByTestId('resolved-position-3')).toBeOnTheScreen();
-    expect(getByTestId('resolved-position-1')).toBeOnTheScreen();
+    const mockResolvedPosition = jest.mocked(PredictPositionResolved);
+    const callOrder = mockResolvedPosition.mock.calls.map(
+      (call) => call[0].position.id,
+    );
+
+    // Positions sorted descending by endDate: 2024-01-03 (id=2), 2024-01-02 (id=3), 2024-01-01 (id=1)
+    expect(callOrder).toEqual(['2', '3', '1']);
   });
 });
