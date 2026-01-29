@@ -126,7 +126,7 @@ jest.mock('../Bridge/hooks/useSwapBridgeNavigation', () => ({
 import React from 'react';
 import UrlAutocomplete, { UrlAutocompleteRef } from './';
 import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
@@ -135,6 +135,7 @@ import { noop } from 'lodash';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { RootState } from '../../../reducers';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 const defaultState: DeepPartial<RootState> = {
   browser: { history: [{ url: 'https://www.google.com', name: 'Google' }] },
@@ -678,6 +679,82 @@ describe('UrlAutocomplete', () => {
 
       // Assert - component mounts successfully
       expect(ref.current).not.toBeNull();
+    });
+  });
+
+  describe('basic functionality toggle', () => {
+    const mockSelectBasicFunctionality = jest.mocked(
+      selectBasicFunctionalityEnabled,
+    );
+
+    afterEach(() => {
+      // Restore default mock value
+      mockSelectBasicFunctionality.mockReturnValue(true);
+    });
+
+    it('displays local results (Recents/Favorites) when basic functionality is disabled', async () => {
+      // Arrange - disable basic functionality
+      mockSelectBasicFunctionality.mockReturnValue(false);
+
+      const ref = React.createRef<UrlAutocompleteRef>();
+      const stateWithHistory = {
+        ...defaultState,
+        browser: {
+          history: [
+            {
+              url: 'https://example.com',
+              name: 'Example Site',
+            },
+          ],
+        },
+        bookmarks: [
+          {
+            url: 'https://favorite.com',
+            name: 'Favorite Site',
+          },
+        ],
+      };
+
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: stateWithHistory,
+      });
+
+      // Act
+      act(() => {
+        ref.current?.search('example');
+        jest.runAllTimers();
+      });
+
+      // Assert - local results are visible even with basic functionality disabled
+      expect(
+        await screen.findByText('Example Site', {
+          includeHiddenElements: true,
+        }),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides API-dependent sections when basic functionality is disabled', async () => {
+      // Arrange - disable basic functionality
+      mockSelectBasicFunctionality.mockReturnValue(false);
+
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: defaultState,
+      });
+
+      // Act
+      act(() => {
+        ref.current?.search('eth');
+        jest.runAllTimers();
+      });
+
+      // Assert - API-dependent sections are not shown
+      // Note: With basic functionality disabled, tokens from API should not appear
+      // Only local results (Recents/Favorites) matching the query would show
+      await waitFor(() => {
+        // Sites section header should not be visible (API-dependent)
+        expect(screen.queryByText('Sites')).toBeNull();
+      });
     });
   });
 });

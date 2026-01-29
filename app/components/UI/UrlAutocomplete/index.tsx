@@ -369,7 +369,15 @@ const SearchContent: React.FC<SearchContentProps> = ({
           <Result
             result={item}
             onPress={() => {
-              hide();
+              // Only hide for URL-based results (user navigates away from browser)
+              // Keep open for Tokens/Perps/Predictions so user can explore multiple items
+              const isUrlBasedResult =
+                item.category === UrlAutocompleteCategory.Sites ||
+                item.category === UrlAutocompleteCategory.Recents ||
+                item.category === UrlAutocompleteCategory.Favorites;
+              if (isUrlBasedResult) {
+                hide();
+              }
               onSelect(item);
             }}
             onSwapPress={goToSwaps}
