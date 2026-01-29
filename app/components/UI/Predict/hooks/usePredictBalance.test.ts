@@ -123,27 +123,20 @@ describe('usePredictBalance', () => {
         usePredictBalance({ loadOnMount: false }),
       );
 
-      // Assert - isLoading is always true initially to prevent flash of "no balance" state
+      // Assert
       expect(result.current.balance).toBe(0);
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(result.current.hasNoBalance).toBe(false); // false because isLoading is true
+      expect(result.current.hasNoBalance).toBe(true);
       expect(typeof result.current.loadBalance).toBe('function');
     });
 
-    it('returns hasNoBalance as true when not loading and balance is zero', async () => {
-      // Given balance is 0 and loading completes
-      mockGetBalance.mockResolvedValue(0);
-      mockCachedBalance = 0;
+    it('returns hasNoBalance as true when not loading and balance is zero', () => {
+      // Given loading is false and balance is 0
       const { result } = renderHook(() =>
-        usePredictBalance({ loadOnMount: true }),
+        usePredictBalance({ loadOnMount: false }),
       );
-
-      // Wait for loading to complete
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       // Then hasNoBalance should be true
       expect(result.current.hasNoBalance).toBe(true);
@@ -544,9 +537,8 @@ describe('usePredictBalance', () => {
       const { result } = renderHook(() => usePredictBalance());
 
       // Then default options should be applied (loadOnMount and refreshOnFocus are false by default)
-      // Note: isLoading starts as true to prevent flash of "no balance" state
       expect(result.current.balance).toBe(0);
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeNull();
 
