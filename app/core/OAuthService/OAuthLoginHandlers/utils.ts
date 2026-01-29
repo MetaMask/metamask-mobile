@@ -1,3 +1,5 @@
+import { OAuthError } from '../error';
+
 export function toBase64UrlSafe(base64String: string): string {
   return base64String
     .replace(/\+/g, '-')
@@ -76,11 +78,14 @@ export function isRetryableError(error: unknown): boolean {
     return true; // Unknown error types are retried by default
   }
 
-  // Check for HTTP 4xx client errors in the message
-  // These are not retryable as the request itself is invalid
-  const clientErrorPattern = /status:\s*\[4\d{2}\]/i;
-  if (clientErrorPattern.test(error.message)) {
-    return false;
+  if (error instanceof OAuthError) {
+    const status = String(error.data.status);
+    // Check for HTTP 4xx client errors in the message
+    // These are not retryable as the request itself is invalid
+    const clientErrorPattern = /status:\s*\[4\d{2}\]/i;
+    if (clientErrorPattern.test(status)) {
+      return false;
+    }
   }
 
   // Network errors and 5xx server errors are retryable
@@ -121,9 +126,9 @@ export async function retryWithDelay<T>(
 ): Promise<T> {
   const {
     maxRetries,
-    baseDelayMs = 1000,
-    maxDelayMs = 10000,
-    jitterFactor = 0.3,
+    baseDelayMs = 500,
+    maxDelayMs = 5000,
+    jitterFactor = 0.25,
     shouldRetry = isRetryableError,
     onRetry,
   } = options;

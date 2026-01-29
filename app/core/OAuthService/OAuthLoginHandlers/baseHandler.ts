@@ -53,6 +53,10 @@ export async function getAuthTokens(
       res.status
     }]: ${await res.text()}`,
     OAuthErrorType.AuthServerError,
+    {
+      status: res.status,
+      error: await res.text(),
+    },
   );
 }
 
