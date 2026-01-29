@@ -10,6 +10,7 @@ import { noop } from 'lodash';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { RootState } from '../../../reducers';
+import { TokenSearchResponseItem } from '../../hooks/TokenSearchDiscovery/useTokenSearch/types';
 
 const defaultState: DeepPartial<RootState> = {
   browser: { history: [{ url: 'https://www.google.com', name: 'Google' }] },
@@ -63,6 +64,81 @@ const defaultState: DeepPartial<RootState> = {
 
 type RenderWithProviderParams = Parameters<typeof renderWithProvider>;
 
+jest.mock(
+  '../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch',
+  () => {
+    const searchTokens = jest.fn();
+    const results: TokenSearchResponseItem[] = [];
+    const reset = jest.fn();
+    return jest.fn(() => ({
+      results,
+      isLoading: false,
+      reset,
+      searchTokens,
+    }));
+  },
+);
+
+// Mock useExploreSearch hook for omni-search integration
+const mockExploreSearchData = {
+  sites: [],
+  tokens: [],
+  perps: [],
+  predictions: [],
+};
+const mockExploreSearchLoading = {
+  sites: false,
+  tokens: false,
+  perps: false,
+  predictions: false,
+};
+const mockSectionsOrder = ['sites', 'tokens', 'perps', 'predictions'];
+
+jest.mock('../../Views/TrendingView/hooks/useExploreSearch', () => ({
+  useExploreSearch: jest.fn(() => ({
+    data: mockExploreSearchData,
+    isLoading: mockExploreSearchLoading,
+    sectionsOrder: mockSectionsOrder,
+  })),
+}));
+
+// Mock Perps providers
+jest.mock('../Perps/providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('../Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+// Mock settings selector
+jest.mock('../../../selectors/settings', () => ({
+  selectBasicFunctionalityEnabled: jest.fn(() => true),
+}));
+
+const mockUseTSDReturnValue = ({
+  results,
+  isLoading,
+  reset,
+  searchTokens,
+}: {
+  results: TokenSearchResponseItem[];
+  isLoading: boolean;
+  reset: () => void;
+  searchTokens: () => void;
+}) => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const useTSD = require('../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch');
+  useTSD.mockReturnValue({
+    results,
+    isLoading,
+    reset,
+    searchTokens,
+  });
+};
+
 const Stack = createStackNavigator();
 const render = (...args: RenderWithProviderParams) => {
   const Component = () => args[0];
@@ -104,6 +180,10 @@ jest.mock('../../hooks/useFavicon/useFavicon', () => ({
     favicon: null,
   })),
 }));
+
+// Suppress the mockUseTSDReturnValue unused warning - it's available for future tests
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+mockUseTSDReturnValue;
 
 describe('UrlAutocomplete', () => {
   beforeAll(() => {

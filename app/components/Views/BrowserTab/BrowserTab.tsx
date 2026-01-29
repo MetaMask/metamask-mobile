@@ -110,6 +110,7 @@ import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, {
   AutocompleteSearchResult,
   UrlAutocompleteRef,
+  UrlAutocompleteCategory,
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import {
@@ -1235,9 +1236,63 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       (item: AutocompleteSearchResult) => {
         // Unfocus the url bar and hide the autocomplete results
         urlBarRef.current?.hide();
-        onSubmitEditing(item.url);
+
+        switch (item.category) {
+          case UrlAutocompleteCategory.Tokens:
+            navigation.navigate('Asset', {
+              chainId: item.chainId,
+              address: item.address,
+              symbol: item.symbol,
+              name: item.name,
+              decimals: item.decimals,
+              image: item.logoUrl,
+              pricePercentChange1d: item.percentChange,
+              isFromTrending: true,
+            });
+            break;
+
+          case UrlAutocompleteCategory.Perps:
+            // Navigate to Perps market details
+            navigation.navigate(Routes.PERPS.ROOT, {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: {
+                  symbol: item.symbol,
+                  name: item.name,
+                  maxLeverage: item.maxLeverage,
+                  price: item.price,
+                  change24h: item.change24h,
+                  change24hPercent: item.change24hPercent,
+                  volume: item.volume,
+                  openInterest: item.openInterest,
+                  marketType: item.marketType,
+                  marketSource: item.marketSource,
+                },
+              },
+            });
+            break;
+
+          case UrlAutocompleteCategory.Predictions:
+            // Navigate to Predictions market details
+            navigation.navigate(Routes.PREDICT.ROOT, {
+              screen: Routes.PREDICT.MARKET_DETAILS,
+              params: {
+                marketId: item.id,
+                providerId: item.providerId,
+              },
+            });
+            break;
+
+          case UrlAutocompleteCategory.Sites:
+          case UrlAutocompleteCategory.Recents:
+          case UrlAutocompleteCategory.Favorites:
+          default:
+            // Navigate to URL in browser
+            onSubmitEditing(item.url);
+            break;
+        }
       },
-      [onSubmitEditing],
+      [onSubmitEditing, navigation],
     );
 
     /**
