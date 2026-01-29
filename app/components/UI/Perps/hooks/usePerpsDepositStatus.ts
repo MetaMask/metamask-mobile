@@ -12,6 +12,7 @@ import {
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
   USDC_ARBITRUM_MAINNET_ADDRESS,
 } from '../constants/hyperLiquidConfig';
+import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -75,9 +76,16 @@ export const usePerpsDepositStatus = () => {
         metamaskPay?.tokenAddress === USDC_ARBITRUM_MAINNET_ADDRESS;
 
       if (
-        transactionMeta.type === TransactionType.perpsDeposit &&
+        (transactionMeta.type === TransactionType.perpsDeposit ||
+          transactionMeta.type === TransactionType.perpsDepositAndOrder) &&
         transactionMeta.status === TransactionStatus.approved
       ) {
+        // Skip showing toast if a component is actively handling deposit toasts
+        // (e.g., PerpsOrderView handles its own deposit toasts)
+        if (getStreamManagerInstance().hasActiveDepositHandler()) {
+          return;
+        }
+
         expectingDepositRef.current = true;
         prevAvailableBalanceRef.current = liveAccount?.availableBalance || '0';
 
