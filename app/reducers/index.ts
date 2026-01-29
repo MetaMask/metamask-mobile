@@ -5,15 +5,12 @@ import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
 import alertReducer from './alert';
-import transactionReducer from './transaction';
+import securityAlertsReducer, { SecurityAlertsState } from './security-alerts';
 import legalNoticesReducer, { LegalNoticesState } from './legalNotices';
 import userReducer, { UserState } from './user';
 import onboardingReducer, { OnboardingState } from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
-import signatureRequestReducer, {
-  SignatureRequestState,
-} from './signatureRequest';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
@@ -93,9 +90,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   alert: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transaction: any;
+  securityAlerts: SecurityAlertsState;
   user: UserState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,7 +116,6 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   experimentalSettings: any;
-  signatureRequest: SignatureRequestState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rpcEvents: any;
@@ -156,11 +150,10 @@ const baseReducers = {
   modals: modalsReducer,
   settings: settingsReducer,
   alert: alertReducer,
-  transaction: transactionReducer,
+  securityAlerts: securityAlertsReducer,
   user: userReducer,
   onboarding: onboardingReducer,
   notification: notificationReducer,
-  signatureRequest: signatureRequestReducer,
   swaps: swapsReducer,
   fiatOrders,
   infuraAvailability: infuraAvailabilityReducer,

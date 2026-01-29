@@ -527,6 +527,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               {
                 "flexDirection": "column",
                 "marginBottom": 16,
+                "marginTop": "auto",
                 "rowGap": 18,
                 "width": "100%",
               }

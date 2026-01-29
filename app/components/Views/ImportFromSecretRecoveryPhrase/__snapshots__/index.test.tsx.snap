@@ -399,13 +399,13 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                       }
                     >
                       <RCTScrollView
-                        bottomOffset={180}
                         contentContainerStyle={
                           {
                             "flexGrow": 1,
                             "paddingHorizontal": 16,
                           }
                         }
+                        enabled={true}
                         keyboardDismissMode="none"
                         keyboardShouldPersistTaps="always"
                         showsVerticalScrollIndicator={false}

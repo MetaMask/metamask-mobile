@@ -178,7 +178,7 @@ const QRSigningDetails = ({
   const [hasSentOrCanceled, setSentOrCanceled] = useState(false);
 
   useEffect(() => {
-    navigation.addListener('beforeRemove', (e) => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (hasSentOrCanceled) {
         return;
       }
@@ -190,6 +190,7 @@ const QRSigningDetails = ({
       }
       navigation.dispatch(e.data.action);
     });
+    return unsubscribe;
   }, [pendingScanRequest, hasSentOrCanceled, navigation]);
 
   const resetError = () => {

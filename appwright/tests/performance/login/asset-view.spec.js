@@ -21,58 +21,61 @@ import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActi
 import NetworksScreen from '../../../../wdio/screen-objects/NetworksScreen.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 import { login } from '../../../utils/Flows.js';
+import { PerformanceLogin, PerformanceAssetLoading } from '../../../tags.js';
 
 /* Scenario 8: Asset View, SRP 1 + SRP 2 + SRP 3 */
-test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
-  device,
-  performanceTracker,
-}, testInfo) => {
-  WelcomeScreen.device = device;
-  TermOfUseScreen.device = device;
-  OnboardingScreen.device = device;
-  CreateNewWalletScreen.device = device;
-  MetaMetricsScreen.device = device;
-  OnboardingSucessScreen.device = device;
-  OnboardingSheet.device = device;
-  WalletAccountModal.device = device;
-  SkipAccountSecurityModal.device = device;
-  ImportFromSeedScreen.device = device;
-  CreatePasswordScreen.device = device;
-  WalletMainScreen.device = device;
-  AccountListComponent.device = device;
-  AddAccountModal.device = device;
-  TokenOverviewScreen.device = device;
-  CommonScreen.device = device;
-  WalletActionModal.device = device;
-  NetworksScreen.device = device;
-
-  LoginScreen.device = device;
-  WalletMainScreen.device = device;
-  AccountListComponent.device = device;
-  AddAccountModal.device = device;
-
-  TokenOverviewScreen.device = device;
-  CommonScreen.device = device;
-  WalletActionModal.device = device;
-  await login(device);
-
-  const assetViewScreen = new TimerHelper(
-    'Time since the user clicks on the asset view button until the user sees the token overview screen',
-    { ios: 600, android: 600 },
+test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
+  test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
     device,
-  );
+    performanceTracker,
+  }, testInfo) => {
+    WelcomeScreen.device = device;
+    TermOfUseScreen.device = device;
+    OnboardingScreen.device = device;
+    CreateNewWalletScreen.device = device;
+    MetaMetricsScreen.device = device;
+    OnboardingSucessScreen.device = device;
+    OnboardingSheet.device = device;
+    WalletAccountModal.device = device;
+    SkipAccountSecurityModal.device = device;
+    ImportFromSeedScreen.device = device;
+    CreatePasswordScreen.device = device;
+    WalletMainScreen.device = device;
+    AccountListComponent.device = device;
+    AddAccountModal.device = device;
+    TokenOverviewScreen.device = device;
+    CommonScreen.device = device;
+    WalletActionModal.device = device;
+    NetworksScreen.device = device;
 
-  await WalletMainScreen.tapNetworkNavBar();
-  await NetworksScreen.selectNetwork('Ethereum');
+    LoginScreen.device = device;
+    WalletMainScreen.device = device;
+    AccountListComponent.device = device;
+    AddAccountModal.device = device;
 
-  await WalletMainScreen.tapOnToken('USDC');
-  await assetViewScreen.measure(async () => {
-    await TokenOverviewScreen.isTokenOverviewVisible();
-    await TokenOverviewScreen.isTodaysChangeVisible();
-    await TokenOverviewScreen.isSendButtonVisible();
+    TokenOverviewScreen.device = device;
+    CommonScreen.device = device;
+    WalletActionModal.device = device;
+    await login(device);
+
+    const assetViewScreen = new TimerHelper(
+      'Time since the user clicks on the asset view button until the user sees the token overview screen',
+      { ios: 600, android: 600 },
+      device,
+    );
+
+    await WalletMainScreen.tapNetworkNavBar();
+    await NetworksScreen.selectNetwork('Ethereum');
+
+    await WalletMainScreen.tapOnToken('USDC');
+    await assetViewScreen.measure(async () => {
+      await TokenOverviewScreen.isTokenOverviewVisible();
+      await TokenOverviewScreen.isTodaysChangeVisible();
+      await TokenOverviewScreen.isSendButtonVisible();
+    });
+
+    performanceTracker.addTimer(assetViewScreen);
+
+    await performanceTracker.attachToTest(testInfo);
   });
-
-  performanceTracker.addTimer(assetViewScreen);
-
-  await performanceTracker.attachToTest(testInfo);
-});
+}); // End describe
