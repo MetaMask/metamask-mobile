@@ -580,6 +580,15 @@ export interface GetOrderFillsParams {
   aggregateByTime?: boolean; // Optional: aggregate by time
 }
 
+/**
+ * Parameters for getOrFetchFills - optimized cache-first fill retrieval.
+ * Subset of GetOrderFillsParams for cache filtering.
+ */
+export interface GetOrFetchFillsParams {
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  symbol?: string; // Optional: filter by symbol
+}
+
 export interface GetOrdersParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
@@ -759,6 +768,12 @@ export interface UpdatePositionTPSLParams {
   stopLossPrice?: string; // Optional: undefined to remove
   // Optional tracking data for MetaMetrics events
   trackingData?: TPSLTrackingData;
+  /**
+   * Optional live position data from WebSocket.
+   * If provided, skips the REST API position fetch (avoids rate limiting issues).
+   * If not provided, falls back to fetching positions via REST API.
+   */
+  position?: Position;
 }
 
 export interface Order {
@@ -835,6 +850,14 @@ export interface IPerpsProvider {
    * Example: Market long 1 ETH @ $50,000 → OrderFill with exact execution price and fees
    */
   getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
+
+  /**
+   * Get fills using WebSocket cache first, falling back to REST API.
+   * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss.
+   * Purpose: Prevent 429 errors during rapid market switching by reusing cached fills.
+   * @param params - Optional filter parameters (startTime, symbol)
+   */
+  getOrFetchFills(params?: GetOrFetchFillsParams): Promise<OrderFill[]>;
 
   /**
    * Get historical portfolio data
