@@ -78,6 +78,64 @@ describe('tron utils', () => {
 
       expect(total).toBe(15);
     });
+
+    it('handles floating-point values without precision errors', () => {
+      // This test verifies the BigNumber fix using real user data:
+      // User staked 65 TRX for Energy + 65 TRX for Bandwidth = 130 TRX originally
+      // Staking rewards accumulated to give 65.48463 + 65.48463 = 130.96926 TRX total
+      // In native JS: 65.48463 + 65.48463 = 130.96926000000002 (floating-point error!)
+      // With BigNumber: 65.48463 + 65.48463 = 130.96926 (correct)
+      const resources = [
+        {
+          symbol: TRON_RESOURCE.STRX_ENERGY,
+          balance: '65.48463',
+        },
+        {
+          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
+          balance: '65.48463',
+        },
+      ];
+
+      const total = getStakedTrxTotalFromResources(resources);
+
+      expect(total).toBe(130.96926);
+      // Verify it doesn't have floating-point artifacts
+      expect(total.toString()).toBe('130.96926');
+    });
+
+    it('handles values with many decimal places', () => {
+      const resources = [
+        {
+          symbol: TRON_RESOURCE.STRX_ENERGY,
+          balance: '100.123456',
+        },
+        {
+          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
+          balance: '50.654321',
+        },
+      ];
+
+      const total = getStakedTrxTotalFromResources(resources);
+
+      expect(total).toBe(150.777777);
+    });
+
+    it('handles comma-formatted balance strings', () => {
+      const resources = [
+        {
+          symbol: TRON_RESOURCE.STRX_ENERGY,
+          balance: '1,000.5',
+        },
+        {
+          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
+          balance: '2,500.25',
+        },
+      ];
+
+      const total = getStakedTrxTotalFromResources(resources);
+
+      expect(total).toBe(3500.75);
+    });
   });
 
   describe('hasStakedTrxPositions', () => {
@@ -174,6 +232,56 @@ describe('tron utils', () => {
       expect(result.balanceFormatted).toBe('24');
       // 24 TRX with 6 decimals = 24 * 10^6
       expect(result.balanceMinimalUnit).toBe('24000000');
+    });
+
+    it('truncates floating-point precision errors in stakedBalanceOverride', () => {
+      // This test verifies the BigNumber truncation fix:
+      // A value like 130.96926000000002 should be truncated to 130.96926
+      // before converting to minimal units
+      const result = buildTronEarnTokenIfEligible(baseToken, {
+        isTrxStakingEnabled: true,
+        isTronEligible: true,
+        stakedBalanceOverride: 130.96926000000002,
+      }) as EarnTokenDetails;
+
+      expect(result.balanceFormatted).toBe('130.96926000000002');
+      // 130.96926 TRX with 6 decimals = 130969260
+      // The truncation ensures this doesn't throw "too many decimal places"
+      expect(result.balanceMinimalUnit).toBe('130969260');
+    });
+
+    it('handles the exact error case: 130.96926000000002 from floating-point addition', () => {
+      // This is the exact error case from the bug report:
+      // "Error: [number] while converting number 130.96926000000002 to token minimal util, too many decimal places"
+      // This value was produced by floating-point addition and has 14 decimal places,
+      // but TRX only has 6 decimals. Without the fix, toTokenMinimalUnit would throw.
+      const problematicValue = 130.96926000000002;
+
+      // Verify this would have too many decimals without truncation
+      expect(problematicValue.toString().split('.')[1]?.length).toBeGreaterThan(
+        6,
+      );
+
+      const result = buildTronEarnTokenIfEligible(baseToken, {
+        isTrxStakingEnabled: true,
+        isTronEligible: true,
+        stakedBalanceOverride: problematicValue,
+      }) as EarnTokenDetails;
+
+      // Should not throw and should produce correct minimal unit
+      expect(result.balanceMinimalUnit).toBe('130969260');
+    });
+
+    it('handles string balance override with many decimals', () => {
+      const result = buildTronEarnTokenIfEligible(baseToken, {
+        isTrxStakingEnabled: true,
+        isTronEligible: true,
+        stakedBalanceOverride: '50.12345678901234',
+      }) as EarnTokenDetails;
+
+      // Should truncate to 6 decimals (TRX decimals)
+      // 50.123456 * 10^6 = 50123456
+      expect(result.balanceMinimalUnit).toBe('50123456');
     });
   });
 

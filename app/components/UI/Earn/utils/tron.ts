@@ -1,4 +1,5 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
 import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 import {
   normalizeToDotDecimal,
@@ -21,14 +22,12 @@ interface TronResource {
 /**
  * Returns the total staked TRX (sTRX) amount derived from TRON resources.
  * Sums both sTRX Energy and sTRX Bandwidth balances.
+ * Uses BigNumber to avoid floating-point precision errors.
  */
 export const getStakedTrxTotalFromResources = (
   resources?: TronResource[] | null,
 ): number => {
   if (!Array.isArray(resources)) return 0;
-
-  const parseNum = (v?: string | number) =>
-    typeof v === 'number' ? v : parseFloat(String(v ?? '0').replace(/,/g, ''));
 
   const strxEnergy = resources.find(
     (a) => a.symbol?.toLowerCase() === TRON_RESOURCE.STRX_ENERGY,
@@ -37,7 +36,16 @@ export const getStakedTrxTotalFromResources = (
     (a) => a.symbol?.toLowerCase() === TRON_RESOURCE.STRX_BANDWIDTH,
   );
 
-  return parseNum(strxEnergy?.balance) + parseNum(strxBandwidth?.balance);
+  // Use BigNumber to prevent floating-point precision errors
+  // e.g., 65.48463 + 65.48463 should equal 130.96926, not 130.96926000000002
+  const energyBN = new BigNumber(
+    String(strxEnergy?.balance ?? '0').replace(/,/g, ''),
+  );
+  const bandwidthBN = new BigNumber(
+    String(strxBandwidth?.balance ?? '0').replace(/,/g, ''),
+  );
+
+  return energyBN.plus(bandwidthBN).toNumber();
 };
 
 // True if the user holds any sTRX according to TRON resources.
@@ -70,9 +78,16 @@ export const buildTronEarnTokenIfEligible = (
       ? normalizeToDotDecimal(stakedBalanceOverride)
       : normalizeToDotDecimal(token.balance);
 
+  // Truncate to token decimals to prevent "too many decimal places" error
+  // from toTokenMinimalUnit when floating-point arithmetic produces extra decimals
+  const decimals = token.decimals ?? 6;
+  const truncatedBalance = new BigNumber(balanceSource)
+    .decimalPlaces(decimals, BigNumber.ROUND_DOWN)
+    .toFixed();
+
   const balanceMinimalUnit = toTokenMinimalUnit(
-    balanceSource,
-    token.decimals ?? 0,
+    truncatedBalance,
+    decimals,
   ).toString();
 
   const experiences = [

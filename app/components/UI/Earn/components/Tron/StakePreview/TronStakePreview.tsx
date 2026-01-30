@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Animated, Easing } from 'react-native';
+import BigNumber from 'bignumber.js';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -69,42 +70,46 @@ const TronStakePreview = ({
     };
   }, [tronResources]);
 
-  const parseNum = (v?: string | number) =>
-    typeof v === 'number' ? v : parseFloat(String(v ?? '0').replace(/,/g, ''));
+  // Use BigNumber to prevent floating-point precision errors
+  // e.g., 65.48463 + 65.48463 should equal 130.96926, not 130.96926000000002
+  const parseBN = (v?: string | number) =>
+    new BigNumber(String(v ?? '0').replace(/,/g, ''));
 
-  const strxEnergyValue = parseNum(strxEnergy?.balance);
-  const strxBandwidthValue = parseNum(strxBandwidth?.balance);
-  const totalStakedTrx = (strxEnergyValue || 0) + (strxBandwidthValue || 0);
+  const totalStakedTrxBN = React.useMemo(
+    () => parseBN(strxEnergy?.balance).plus(parseBN(strxBandwidth?.balance)),
+    [strxEnergy?.balance, strxBandwidth?.balance],
+  );
 
   const feeItem: ComputeFeeResult[0] | undefined = Array.isArray(fee)
     ? fee[0]
     : fee;
 
   const estimatedAnnualReward = React.useMemo(() => {
-    const inputAmount = stakeAmount ? Number(stakeAmount) : 0;
-    const baseStaked = Number.isNaN(totalStakedTrx) ? 0 : totalStakedTrx;
-    const stake = Number.isNaN(inputAmount) ? 0 : inputAmount;
+    const inputAmountBN = new BigNumber(stakeAmount ?? '0');
 
-    let totalForRewards = baseStaked;
+    let totalForRewardsBN = totalStakedTrxBN;
 
     if (mode === 'stake') {
-      totalForRewards = baseStaked + stake;
+      totalForRewardsBN = totalStakedTrxBN.plus(inputAmountBN);
     } else if (mode === 'unstake') {
-      totalForRewards = Math.max(baseStaked - stake, 0);
+      totalForRewardsBN = BigNumber.max(
+        totalStakedTrxBN.minus(inputAmountBN),
+        0,
+      );
     }
 
-    if (totalForRewards <= 0) {
+    if (totalForRewardsBN.lte(0)) {
       return '';
     }
 
-    const reward = totalForRewards * TRON_STAKING_APR;
-    const rewardRounded = Math.round(reward * 1000) / 1000;
+    const reward = totalForRewardsBN.multipliedBy(TRON_STAKING_APR);
+    const rewardRounded = reward.decimalPlaces(3, BigNumber.ROUND_HALF_UP);
 
-    return `${rewardRounded.toLocaleString(undefined, {
+    return `${rewardRounded.toNumber().toLocaleString(undefined, {
       minimumFractionDigits: 3,
       maximumFractionDigits: 3,
     })} TRX`;
-  }, [stakeAmount, totalStakedTrx, mode]);
+  }, [stakeAmount, totalStakedTrxBN, mode]);
 
   const translateY = React.useRef(new Animated.Value(40)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;
