@@ -367,6 +367,31 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toEqual([]);
   });
 
+  it('returns no alert when pay token matches required token and quotes are loading', () => {
+    mockUseTransactionPayToken.mockReturnValue({
+      payToken: {
+        address: '0x123' as Hex,
+        chainId: mockChainId,
+      } as TransactionPaymentToken,
+      setPayToken: jest.fn(),
+    });
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: '0x123' as Hex,
+        chainId: mockChainId,
+      } as TransactionPayRequiredToken,
+    ]);
+
+    useTransactionPayQuotesMock.mockReturnValue([]);
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
+    useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toEqual([]);
+  });
+
   describe('when ignoreGasFeeToken is true', () => {
     it('returns empty array', () => {
       useHasInsufficientBalanceMock.mockReturnValue({
