@@ -104,11 +104,17 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useFocusEffect,
+  useRoute,
+} from '@react-navigation/native';
 import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
+import { NAVIGATION_PARAMS_DELAY_MS } from '../../../constants/navigation/delays';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -798,6 +804,33 @@ describe('Wallet', () => {
       const wrapper = render(Wallet);
       expect(wrapper.toJSON()).toMatchSnapshot();
     });
+  });
+
+  it('opens the network selector when deeplink param is set', () => {
+    jest.useFakeTimers();
+    jest.mocked(useRoute).mockReturnValueOnce({
+      params: { openNetworkSelector: true },
+    });
+
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
+    render(Wallet);
+
+    const focusEffects = jest
+      .mocked(useFocusEffect)
+      .mock.calls.map(([callback]) => callback);
+
+    const cleanups = focusEffects
+      .map((callback) => callback())
+      .filter(Boolean) as (() => void)[];
+
+    jest.advanceTimersByTime(NAVIGATION_PARAMS_DELAY_MS);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+
+    cleanups.forEach((cleanup) => cleanup());
+    jest.useRealTimers();
   });
 
   // Error Handling Tests
