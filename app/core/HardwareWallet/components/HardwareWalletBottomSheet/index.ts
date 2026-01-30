@@ -1,13 +1,18 @@
 /**
- * Hardware Wallet Components Module
+ * Hardware Wallet Bottom Sheet
+ *
+ * Unified bottom sheet component for hardware wallet operations.
+ * Replaces legacy modal steps with a state-driven approach.
  */
 
-// Unified bottom sheet - handles all connection states including errors
 export {
   HardwareWalletBottomSheet,
   type HardwareWalletBottomSheetProps,
   HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID,
-  // Content components
+} from './HardwareWalletBottomSheet';
+
+// Re-export content components for direct use if needed
+export {
   ConnectingContent,
   AwaitingAppContent,
   AwaitingConfirmationContent,
@@ -30,4 +35,4 @@ export {
   ERROR_CONTENT_MESSAGE_TEST_ID,
   SUCCESS_CONTENT_TEST_ID,
   SUCCESS_CONTENT_ICON_TEST_ID,
-} from './HardwareWalletBottomSheet';
+} from './contents';

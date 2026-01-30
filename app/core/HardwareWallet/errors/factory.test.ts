@@ -45,9 +45,7 @@ describe('createHardwareWalletError', () => {
         HardwareWalletType.Ledger,
       );
 
-      expect(error.metadata?.recoveryAction).toBe(
-        RecoveryAction.OPEN_BLUETOOTH_SETTINGS,
-      );
+      expect(error.metadata?.recoveryAction).toBe(RecoveryAction.RETRY);
     });
   });
 
@@ -166,39 +164,6 @@ describe('createHardwareWalletError', () => {
   });
 
   describe('recovery actions are mapped correctly', () => {
-    it('maps BluetoothDisabled to OPEN_BLUETOOTH_SETTINGS', () => {
-      const error = createHardwareWalletError(
-        ErrorCode.BluetoothDisabled,
-        HardwareWalletType.Ledger,
-      );
-
-      expect(error.metadata?.recoveryAction).toBe(
-        RecoveryAction.OPEN_BLUETOOTH_SETTINGS,
-      );
-    });
-
-    it('maps PermissionBluetoothDenied to OPEN_APP_SETTINGS', () => {
-      const error = createHardwareWalletError(
-        ErrorCode.PermissionBluetoothDenied,
-        HardwareWalletType.Ledger,
-      );
-
-      expect(error.metadata?.recoveryAction).toBe(
-        RecoveryAction.OPEN_APP_SETTINGS,
-      );
-    });
-
-    it('maps PermissionLocationDenied to OPEN_APP_SETTINGS', () => {
-      const error = createHardwareWalletError(
-        ErrorCode.PermissionLocationDenied,
-        HardwareWalletType.Ledger,
-      );
-
-      expect(error.metadata?.recoveryAction).toBe(
-        RecoveryAction.OPEN_APP_SETTINGS,
-      );
-    });
-
     it('maps UserRejected to ACKNOWLEDGE', () => {
       const error = createHardwareWalletError(
         ErrorCode.UserRejected,

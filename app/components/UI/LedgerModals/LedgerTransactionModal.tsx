@@ -1,15 +1,12 @@
-import React, { useCallback, useRef } from 'react';
-import { View } from 'react-native';
+import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
-import { createStyles } from './styles';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { speedUpTransaction } from '../../../util/transaction-controller';
 
 export const createLedgerTransactionModalNavDetails =
@@ -38,17 +35,18 @@ export interface LedgerTransactionModalParams {
 }
 
 const LedgerTransactionModal = () => {
-  const modalRef = useRef<ReusableModalRef | null>(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
-  // TODO: Replace "any" with type
+  const navigation = useNavigation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { TransactionController, ApprovalController } = Engine.context as any;
 
   const { transactionId, onConfirmationComplete, deviceId, replacementParams } =
     useParams<LedgerTransactionModalParams>();
 
-  const dismissModal = useCallback(() => modalRef?.current?.dismissModal(), []);
+  const goBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [navigation]);
 
   const executeOnLedger = useCallback(async () => {
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
@@ -67,25 +65,21 @@ const LedgerTransactionModal = () => {
     }
 
     onConfirmationComplete(true);
-    dismissModal();
+    goBack();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onConfirmationComplete, dismissModal]);
+  }, [onConfirmationComplete, goBack]);
 
   const onRejection = useCallback(() => {
     onConfirmationComplete(false);
-    dismissModal();
-  }, [onConfirmationComplete, dismissModal]);
+    goBack();
+  }, [onConfirmationComplete, goBack]);
 
   return (
-    <ReusableModal ref={modalRef} style={styles.modal}>
-      <View style={styles.contentWrapper}>
-        <LedgerConfirmationModal
-          onConfirmation={executeOnLedger}
-          onRejection={onRejection}
-          deviceId={deviceId}
-        />
-      </View>
-    </ReusableModal>
+    <LedgerConfirmationModal
+      onConfirmation={executeOnLedger}
+      onRejection={onRejection}
+      deviceId={deviceId}
+    />
   );
 };
 

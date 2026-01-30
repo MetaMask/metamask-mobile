@@ -126,6 +126,8 @@ export function useTransactionConfirm() {
       );
     } catch (error) {
       log('Error confirming transaction', error);
+      // Re-throw so callers (e.g. useConfirmActions) can handle the error
+      throw error;
     }
 
     if (type === TransactionType.perpsDeposit) {

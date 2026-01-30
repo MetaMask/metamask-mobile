@@ -10,12 +10,14 @@ import {
   getIconForErrorCode,
   getIconColorForErrorCode,
   getTitleForErrorCode,
+  getRecoveryActionForErrorCode,
 } from './helpers';
 import { HardwareWalletType } from '../helpers';
 import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import { RecoveryAction } from './types';
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -254,6 +256,42 @@ describe('error helpers', () => {
       );
 
       expect(title).toContain('hardware_wallet');
+    });
+  });
+
+  describe('getRecoveryActionForErrorCode', () => {
+    it('returns RETRY for DeviceDisconnected', () => {
+      const action = getRecoveryActionForErrorCode(
+        ErrorCode.DeviceDisconnected,
+      );
+
+      expect(action).toBe(RecoveryAction.RETRY);
+    });
+
+    it('returns RETRY for AuthenticationDeviceLocked', () => {
+      const action = getRecoveryActionForErrorCode(
+        ErrorCode.AuthenticationDeviceLocked,
+      );
+
+      expect(action).toBe(RecoveryAction.RETRY);
+    });
+
+    it('returns RETRY for BluetoothDisabled', () => {
+      const action = getRecoveryActionForErrorCode(ErrorCode.BluetoothDisabled);
+
+      expect(action).toBe(RecoveryAction.RETRY);
+    });
+
+    it('returns RETRY for Unknown error', () => {
+      const action = getRecoveryActionForErrorCode(ErrorCode.Unknown);
+
+      expect(action).toBe(RecoveryAction.RETRY);
+    });
+
+    it('returns default RETRY for unmapped codes', () => {
+      const action = getRecoveryActionForErrorCode(999 as ErrorCode);
+
+      expect(action).toBe(RecoveryAction.RETRY);
     });
   });
 });

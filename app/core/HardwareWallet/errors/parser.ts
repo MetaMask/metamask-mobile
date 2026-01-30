@@ -284,6 +284,18 @@ function parseErrorByMessage(
   walletType: HardwareWalletType,
 ): HardwareWalletError | null {
   const message = error.message.toLowerCase();
+  const name = error.name?.toLowerCase() ?? '';
+
+  // Check for BLE errors first - these are NOT user cancellations
+  // BleError with "Operation was cancelled" is a Bluetooth connection issue
+  if (name === 'bleerror' || message.includes('bleerror')) {
+    return createHardwareWalletError(
+      ErrorCode.BluetoothConnectionFailed,
+      walletType,
+      undefined,
+      { cause: error },
+    );
+  }
 
   // Map message patterns to error codes
   const messagePatterns: {
@@ -310,10 +322,15 @@ function parseErrorByMessage(
         msg.includes('open') || msg.includes('launch') || msg.includes('start'),
     },
     {
-      patterns: ['rejected', 'cancelled', 'denied', 'refused'],
+      patterns: ['rejected', 'cancelled', 'refused'],
       code: ErrorCode.UserRejected,
     },
     { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
+    {
+      patterns: ['not authorized', 'unauthorized'],
+      code: ErrorCode.PermissionNearbyDevicesDenied,
+      condition: (msg) => msg.includes('bluetooth'),
+    },
     {
       patterns: ['bluetooth'],
       code: ErrorCode.BluetoothDisabled,

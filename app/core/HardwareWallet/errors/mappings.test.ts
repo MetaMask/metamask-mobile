@@ -373,37 +373,23 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
   });
 
   describe('recovery actions', () => {
-    it('OPEN_APP_SETTINGS is used for permission errors', () => {
-      expect(
-        MOBILE_ERROR_EXTENSIONS[ErrorCode.PermissionBluetoothDenied]
-          ?.recoveryAction,
-      ).toBe(RecoveryAction.OPEN_APP_SETTINGS);
-      expect(
-        MOBILE_ERROR_EXTENSIONS[ErrorCode.PermissionLocationDenied]
-          ?.recoveryAction,
-      ).toBe(RecoveryAction.OPEN_APP_SETTINGS);
-      expect(
-        MOBILE_ERROR_EXTENSIONS[ErrorCode.PermissionNearbyDevicesDenied]
-          ?.recoveryAction,
-      ).toBe(RecoveryAction.OPEN_APP_SETTINGS);
-    });
-
-    it('OPEN_BLUETOOTH_SETTINGS is used for BluetoothDisabled', () => {
-      expect(
-        MOBILE_ERROR_EXTENSIONS[ErrorCode.BluetoothDisabled]?.recoveryAction,
-      ).toBe(RecoveryAction.OPEN_BLUETOOTH_SETTINGS);
-    });
-
-    it('ACKNOWLEDGE is used for other errors', () => {
-      expect(
-        MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceDisconnected]?.recoveryAction,
-      ).toBe(RecoveryAction.ACKNOWLEDGE);
+    it('ACKNOWLEDGE is used for non-retryable errors', () => {
       expect(
         MOBILE_ERROR_EXTENSIONS[ErrorCode.UserRejected]?.recoveryAction,
       ).toBe(RecoveryAction.ACKNOWLEDGE);
       expect(MOBILE_ERROR_EXTENSIONS[ErrorCode.Unknown]?.recoveryAction).toBe(
         RecoveryAction.ACKNOWLEDGE,
       );
+    });
+
+    it('RETRY is used for retryable errors', () => {
+      expect(
+        MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceDisconnected]?.recoveryAction,
+      ).toBe(RecoveryAction.RETRY);
+      expect(
+        MOBILE_ERROR_EXTENSIONS[ErrorCode.AuthenticationDeviceLocked]
+          ?.recoveryAction,
+      ).toBe(RecoveryAction.RETRY);
     });
   });
 });
