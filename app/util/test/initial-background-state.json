@@ -738,6 +738,7 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "pointsEstimateHistory": [],
     "pointsEvents": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
