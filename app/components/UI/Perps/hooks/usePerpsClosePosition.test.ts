@@ -121,6 +121,7 @@ describe('usePerpsClosePosition', () => {
         usdAmount: undefined,
         priceAtCalculation: undefined,
         maxSlippageBps: undefined,
+        position: mockPosition,
       });
 
       expect(onSuccess).toHaveBeenCalledWith(successResult);
@@ -168,6 +169,7 @@ describe('usePerpsClosePosition', () => {
         usdAmount: undefined,
         priceAtCalculation: undefined,
         maxSlippageBps: undefined,
+        position: mockPosition,
       });
 
       expect(onSuccess).toHaveBeenCalledWith(successResult);
@@ -325,6 +327,7 @@ describe('usePerpsClosePosition', () => {
         usdAmount: undefined,
         priceAtCalculation: undefined,
         maxSlippageBps: undefined,
+        position: mockPosition,
       });
     });
 
@@ -392,6 +395,7 @@ describe('usePerpsClosePosition', () => {
         usdAmount: undefined,
         priceAtCalculation: undefined,
         maxSlippageBps: undefined,
+        position: positionWithTPSL,
       });
     });
 
