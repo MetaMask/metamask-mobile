@@ -235,6 +235,10 @@ interface WalletTokensTabViewProps {
   };
 }
 
+interface WalletRouteParams {
+  openNetworkSelector?: boolean;
+}
+
 const WalletTokensTabView = forwardRef<
   WalletTokensTabViewHandle,
   WalletTokensTabViewProps
@@ -1042,6 +1046,27 @@ const Wallet = ({
         .build(),
     );
   }, [navigate, chainId, trackEvent, createEventBuilder]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const shouldOpenNetworkSelector = (
+        route.params as WalletRouteParams | undefined
+      )?.openNetworkSelector;
+
+      if (!shouldOpenNetworkSelector) {
+        return;
+      }
+
+      const timer = setTimeout(() => {
+        onTitlePress();
+        if (navigation?.setParams) {
+          navigation.setParams({ openNetworkSelector: false });
+        }
+      }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+
+      return () => clearTimeout(timer);
+    }, [navigation, onTitlePress, route.params]),
+  );
 
   /**
    * Handle network filter called when app is mounted and tokenNetworkFilter is empty
