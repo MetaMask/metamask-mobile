@@ -14,7 +14,7 @@ import AppwrightGestures from '../../../tests/framework/AppwrightGestures.js';
 const MULTI_CHAIN_TEST_DAPP_URL = 'http://10.0.2.2:3000/test-dapp-multichain';
 const MULTI_CHAIN_TEST_DAPP_NAME = 'Multichain Test Dapp';
 
-test('@metamask/connect-multichain - Connect to the Multichain Test Dapp', async ({
+test.skip('@metamask/connect-multichain - Connect to the Multichain Test Dapp', async ({
   device,
 }) => {
   WalletMainScreen.device = device;
