@@ -306,15 +306,18 @@ describe('appLockStateMachine', () => {
     mockReset.mockClear();
   });
 
-  it('forks appStateListenerTask and navigates to LockScreen when app is locked', async () => {
+  it('forks appStateListenerTask and resets navigation to LockScreen when app is locked', async () => {
     await expectSaga(appLockStateMachine)
       .dispatch({ type: UserActionType.LOCKED_APP })
       // Verify appStateListenerTask is called
       .call(appStateListenerTask)
       .run();
 
-    // Verify navigation to LockScreen
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
+    // Verify navigation is reset to LockScreen
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.LOCK_SCREEN }],
+    });
   });
 });
 
