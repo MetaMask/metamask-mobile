@@ -472,7 +472,8 @@ export const PerpsTutorialSelectorsIDs = {
 export const PerpsStopLossPromptSelectorsIDs = {
   CONTAINER: 'perps-stop-loss-prompt-container',
   ADD_MARGIN_BUTTON: 'perps-stop-loss-prompt-add-margin-button',
-  TOGGLE: 'perps-stop-loss-prompt-toggle',
+  SET_STOP_LOSS_BUTTON: 'perps-stop-loss-prompt-set-button',
+  SUCCESS_ICON: 'perps-stop-loss-prompt-success-icon',
   LOADING: 'perps-stop-loss-prompt-loading',
 } as const;
 
