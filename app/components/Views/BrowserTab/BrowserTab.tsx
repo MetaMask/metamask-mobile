@@ -110,7 +110,6 @@ import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, {
   AutocompleteSearchResult,
   UrlAutocompleteRef,
-  UrlAutocompleteCategory,
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
@@ -181,8 +180,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const isRefreshing = useSharedValue(false); // Pull-to-refresh in progress
     const urlBarRef = useRef<BrowserUrlBarRef>(null);
     const autocompleteRef = useRef<UrlAutocompleteRef>(null);
-    // Track when navigating to detail screen (Token/Perps/Predictions) to prevent onBlur from hiding autocomplete
-    const isNavigatingToDetailRef = useRef(false);
     const onSubmitEditingRef = useRef<(text: string) => Promise<void>>(
       async () => {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -1218,67 +1215,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const onSelect = useCallback(
       (item: AutocompleteSearchResult) => {
-        switch (item.category) {
-          case UrlAutocompleteCategory.Tokens:
-            // Set flag to prevent onBlur from hiding autocomplete
-            isNavigatingToDetailRef.current = true;
-            navigation.navigate('Asset', {
-              chainId: item.chainId,
-              address: item.address,
-              symbol: item.symbol,
-              name: item.name,
-              decimals: item.decimals,
-              image: item.logoUrl,
-              pricePercentChange1d: item.percentChange,
-              isFromTrending: true,
-            });
-            break;
-
-          case UrlAutocompleteCategory.Perps:
-            // Set flag to prevent onBlur from hiding autocomplete
-            isNavigatingToDetailRef.current = true;
-            navigation.navigate(Routes.PERPS.ROOT, {
-              screen: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: {
-                  symbol: item.symbol,
-                  name: item.name,
-                  maxLeverage: item.maxLeverage,
-                  price: item.price,
-                  change24h: item.change24h,
-                  change24hPercent: item.change24hPercent,
-                  volume: item.volume,
-                  openInterest: item.openInterest,
-                  marketType: item.marketType,
-                  marketSource: item.marketSource,
-                },
-              },
-            });
-            break;
-
-          case UrlAutocompleteCategory.Predictions:
-            // Set flag to prevent onBlur from hiding autocomplete
-            isNavigatingToDetailRef.current = true;
-            navigation.navigate(Routes.PREDICT.ROOT, {
-              screen: Routes.PREDICT.MARKET_DETAILS,
-              params: {
-                marketId: item.id,
-                providerId: item.providerId,
-              },
-            });
-            break;
-
-          case UrlAutocompleteCategory.Sites:
-          case UrlAutocompleteCategory.Recents:
-          case UrlAutocompleteCategory.Favorites:
-          default:
-            // Hide URL bar for URL-based navigation (user leaves browser)
-            urlBarRef.current?.hide();
-            onSubmitEditing(item.url);
-            break;
-        }
+        // Unfocus the url bar and hide the autocomplete results
+        urlBarRef.current?.hide();
+        onSubmitEditing(item.url);
       },
-      [onSubmitEditing, navigation],
+      [onSubmitEditing],
     );
 
     /**
@@ -1294,18 +1235,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     /**
      * Hide the autocomplete results
-     * Skips hiding if navigating to a detail screen (Token/Perps/Predictions)
-     * so user can explore multiple items
      */
-    const hideAutocomplete = useCallback(() => {
-      if (isNavigatingToDetailRef.current) {
-        // Don't hide - user is navigating to explore a detail screen
-        // Reset the flag for next time
-        isNavigatingToDetailRef.current = false;
-        return;
-      }
-      autocompleteRef.current?.hide();
-    }, []);
+    const hideAutocomplete = useCallback(
+      () => autocompleteRef.current?.hide(),
+      [],
+    );
 
     const handleClosePress = useCallback(() => {
       if (fromPerps) {
@@ -1461,14 +1395,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               alignItems={BoxAlignItems.Center}
               twClassName="gap-2"
             >
-              {!isUrlBarFocused && (
-                <ButtonIcon
-                  iconName={IconName.ArrowLeft}
-                  size={ButtonIconSize.Lg}
-                  onPress={handleClosePress}
-                  testID="browser-tab-close-button"
-                />
-              )}
+              <ButtonIcon
+                iconName={IconName.Close}
+                size={ButtonIconSize.Lg}
+                onPress={handleClosePress}
+                testID="browser-tab-close-button"
+              />
               <Box twClassName="flex-1">
                 <BrowserUrlBar
                   ref={urlBarRef}
@@ -1482,6 +1414,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                   activeUrl={resolvedUrlRef.current}
                   setIsUrlBarFocused={setIsUrlBarFocused}
                   isUrlBarFocused={isUrlBarFocused}
+                  showCloseButton={
+                    fromTrending && isAssetsTrendingTokensEnabled
+                  }
                   showTabs={showTabsView}
                 />
               </Box>

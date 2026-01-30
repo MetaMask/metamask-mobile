@@ -37,14 +37,12 @@ import {
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatMarketStats } from './utils';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
-import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
+import { TimeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
-import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
-import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
 
 /**
  * Extracts CAIP chain ID from asset ID
@@ -148,10 +146,6 @@ export const getPriceChangeFieldKey = (
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
   selectedTimeOption?: TimeOption;
-  /** 0-indexed position in the list for analytics */
-  position?: number;
-  /** Filter context for analytics tracking */
-  filterContext?: TrendingFilterContext;
 }
 
 /**
@@ -189,8 +183,6 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
 const TrendingTokenRowItem = ({
   token,
   selectedTimeOption = TimeOption.TwentyFourHours,
-  position,
-  filterContext,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -199,7 +191,6 @@ const TrendingTokenRowItem = ({
   );
   const { addPopularNetwork } = useAddPopularNetwork();
   const { isStockToken } = useRWAToken();
-  const sessionManager = TrendingFeedSessionManager.getInstance();
 
   // Memoize derived values
   const caipChainId = useMemo(
@@ -231,23 +222,6 @@ const TrendingTokenRowItem = ({
   const handlePress = useCallback(async () => {
     if (!assetParams) return;
 
-    // Track token click event BEFORE navigation to ensure capture
-    if (position !== undefined && filterContext) {
-      sessionManager.trackTokenClick({
-        token_symbol: token.symbol,
-        token_address: assetParams.address,
-        token_name: token.name,
-        chain_id: assetParams.chainId,
-        position,
-        price_usd: parseFloat(token.price) || 0,
-        price_change_pct: pricePercentChange ?? 0,
-        time_filter: filterContext.timeFilter,
-        sort_option: filterContext.sortOption || PriceChangeOption.PriceChange,
-        network_filter: filterContext.networkFilter,
-        is_search_result: filterContext.isSearchResult,
-      });
-    }
-
     const isNetworkAdded = Boolean(networkConfigurations[caipChainId]);
 
     if (!isNetworkAdded) {
@@ -276,11 +250,6 @@ const TrendingTokenRowItem = ({
     navigation,
     networkConfigurations,
     addPopularNetwork,
-    position,
-    filterContext,
-    pricePercentChange,
-    token,
-    sessionManager,
   ]);
 
   return (

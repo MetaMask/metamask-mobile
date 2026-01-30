@@ -57,7 +57,6 @@ import {
   type ClosePositionParams,
   type ClosePositionsParams,
   type ClosePositionsResult,
-  type DepositWithConfirmationParams,
   type EditOrderParams,
   type FeeCalculationParams,
   type FeeCalculationResult,
@@ -1485,12 +1484,13 @@ export class PerpsController extends BaseController<
   /**
    * Simplified deposit method that prepares transaction for confirmation screen
    * No complex state tracking - just sets a loading flag
-   * @param params - Parameters for the deposit flow
-   * @param params.amount - Optional deposit amount
-   * @param params.placeOrder - If true, uses addTransaction instead of submit to avoid navigation
+   * @param amount - Optional deposit amount
+   * @param depositAndPlaceOrder - If true, uses addTransaction instead of submit to avoid navigation
    */
-  async depositWithConfirmation(params: DepositWithConfirmationParams = {}) {
-    const { amount, placeOrder } = params;
+  async depositWithConfirmation(
+    amount?: string,
+    depositAndPlaceOrder?: boolean,
+  ) {
     const { controllers } = this.options.infrastructure;
 
     try {
@@ -1545,7 +1545,7 @@ export class PerpsController extends BaseController<
         skipInitialGasEstimate: true,
       };
 
-      if (placeOrder) {
+      if (depositAndPlaceOrder) {
         // Use addTransaction to create transaction without navigating to confirmation screen
         const { transactionMeta: addedTransactionMeta } = await addTransaction(
           transaction,
@@ -1577,7 +1577,7 @@ export class PerpsController extends BaseController<
       });
 
       // Track the transaction lifecycle only when using submit (deposit-only flow)
-      if (!placeOrder) {
+      if (!depositAndPlaceOrder) {
         // At this point, the confirmation modal is shown to the user
         // The result promise will resolve/reject based on user action and transaction outcome
 
@@ -1698,9 +1698,10 @@ export class PerpsController extends BaseController<
 
   /**
    * Same as depositWithConfirmation - prepares transaction for confirmation screen.
+   * @param amount - Optional deposit amount
    */
-  async depositWithOrder() {
-    return this.depositWithConfirmation({ placeOrder: true });
+  async depositWithOrder(amount?: string) {
+    return this.depositWithConfirmation(amount, true);
   }
 
   /**

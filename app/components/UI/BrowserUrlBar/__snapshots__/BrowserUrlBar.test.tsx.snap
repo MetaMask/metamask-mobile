@@ -171,10 +171,9 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
-            "fontFamily": "Geist-Medium",
+            "color": "#4459ff",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }

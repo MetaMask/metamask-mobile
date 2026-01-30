@@ -14,7 +14,7 @@ import { DappVariants } from '../../../../../tests/framework/Constants';
 import { setupRemoteFeatureFlagsMock } from '../../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
-describe.skip(SmokeNetworkAbstractions('Chain Permission System'), () => {
+describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });

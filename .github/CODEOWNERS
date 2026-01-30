@@ -123,6 +123,10 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 ses.cjs                              @MetaMask/supply-chain
 patches/react-native+0.*.patch       @MetaMask/supply-chain
 
+# Portfolio Team
+app/components/hooks/useTokenSearchDiscovery @MetaMask/portfolio
+app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
+
 # Core Platform Team
 **/snaps/**                          @MetaMask/core-platform
 **/Snaps/**                          @MetaMask/core-platform
@@ -183,7 +187,6 @@ app/components/UI/CollectibleOverview @MetaMask/metamask-assets
 app/components/UI/ConfirmAddAsset @MetaMask/metamask-assets
 app/components/UI/DeFiPositions @MetaMask/metamask-assets
 app/components/UI/Tokens @MetaMask/metamask-assets
-app/components/UI/TokenDetails @MetaMask/metamask-assets
 app/components/Views/AddAsset @MetaMask/metamask-assets
 app/components/Views/Asset @MetaMask/metamask-assets
 app/components/Views/AssetDetails @MetaMask/metamask-assets

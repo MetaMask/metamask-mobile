@@ -995,7 +995,10 @@ export function getWalletNavbarOptions(
                 <View
                   testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
                 >
-                  <AddressCopy hitSlop={innerStyles.touchAreaSlop} />
+                  <AddressCopy
+                    account={selectedInternalAccount}
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
                 </View>
                 {shouldDisplayCardButton && (
                   <CardButton

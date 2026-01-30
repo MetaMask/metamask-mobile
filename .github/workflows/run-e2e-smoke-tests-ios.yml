@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       selected_tags:
-        description: 'JSON array of selected tags from Smart E2E selection (e.g., ["SmokeAccounts", "SmokeTrade"])'
+        description: 'JSON array of selected tags from Smart E2E selection (e.g., ["SmokeCore", "SmokeAccounts"])'
         required: false
         type: string
         default: '["ALL"]'
@@ -211,22 +211,6 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
-  multichain-api-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: multichain-api-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeMultiChainAPI'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
-
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
     runs-on: ubuntu-latest
@@ -244,7 +228,6 @@ jobs:
       - rewards-ios-smoke
       - card-ios-smoke
       - ramps-ios-smoke
-      - multichain-api-ios-smoke
     steps:
       - name: Checkout
         uses: actions/checkout@v4

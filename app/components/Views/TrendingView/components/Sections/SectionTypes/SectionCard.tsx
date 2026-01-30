@@ -36,9 +36,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
   const section = SECTIONS_CONFIG[sectionId];
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
-    ({ item, index }) => (
-      <section.RowItem item={item} index={index} navigation={navigation} />
-    ),
+    ({ item }) => <section.RowItem item={item} navigation={navigation} />,
     [navigation, section],
   );
 

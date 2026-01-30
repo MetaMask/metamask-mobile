@@ -275,7 +275,7 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
     name="GeneralSettings"
     options={
       {
-        "headerShown": false,
+        "headerShown": true,
       }
     }
   />
@@ -593,7 +593,7 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
     name="GeneralSettings"
     options={
       {
-        "headerShown": false,
+        "headerShown": true,
       }
     }
   />
@@ -911,7 +911,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="GeneralSettings"
     options={
       {
-        "headerShown": false,
+        "headerShown": true,
       }
     }
   />

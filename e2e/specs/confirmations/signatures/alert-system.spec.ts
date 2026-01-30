@@ -245,7 +245,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
             AlertSystem.alertMismatchTitle,
           );
           await AlertSystem.tapAcknowledgeAlertModal();
-          await AlertSystem.tapAcknowledgeAlertModalButton();
+          await AlertSystem.tapGotItAlertModalButton();
           // Confirm request
           await FooterActions.tapConfirmButton();
           await Assertions.expectElementToBeVisible(

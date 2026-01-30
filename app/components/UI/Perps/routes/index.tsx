@@ -16,6 +16,7 @@ import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
+import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
@@ -271,6 +272,15 @@ const PerpsScreenStack = () => {
             component={PerpsPositionsView}
             options={{
               title: strings('perps.position.title'),
+              headerShown: false,
+            }}
+          />
+
+          <Stack.Screen
+            name={Routes.PERPS.ORDER}
+            component={PerpsOrderView}
+            options={{
+              title: strings('perps.order.title'),
               headerShown: false,
             }}
           />

@@ -72,32 +72,21 @@ Ensure that following devices are set up:
    export PREBUILT_ANDROID_TEST_APK_PATH='build/MetaMask-Test.apk'
    ```
 
-### App Build
-
-You can either use prebuilt app files from Expo (iOS only) or build the app locally.
-
-#### Option 1: Use Expo Prebuilds (iOS Only)
-
-Choose one of the following methods to download the prebuilt iOS app:
-
-**Method A: Using Runway Script (Recommended)**
-
-```bash
-yarn install:ios:runway --skipInstall
-```
-
-**Method B: Manual Download from Runway**
-
-1. Navigate to [Runway builds](https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=)
-2. Download the latest version of the app
-3. Copy and rename the build:
+3. Create the build directory if it doesn't exist:
 
    ```bash
-   # Copy your downloaded .app file to the prebuild path
-   cp /path/to/your/downloaded/AAA.app build/MetaMask.app
+   # In root of project
+   mkdir build
    ```
 
-#### Option 2: Build the App Locally
+4. Install dependencies
+
+   ```bash
+   # In root of project
+   yarn setup:expo
+   ```
+
+### Build the app (optional)
 
 Sometimes it is necessary to build the app locally, for example, to enable build-time feature flags (like GNS), to debug issues more effectively, or to identify and update element locators.
 
@@ -113,56 +102,57 @@ yarn test:e2e:android:debug:build
 # These commands are hardcoded to build for `main` build type and `e2e` environment based on the .detoxrc.js file
 ```
 
+### Use Expo prebuilds (iOS Only)
+
+You can use prebuilt app files instead of building the app locally.
+
+#### iOS builds
+
+1. **Download iOS simulator builds** from Runway/Bitrise/GitHub workflows (build jobs)
+
+2. **Copy and rename the build**: Copy your downloaded .app file to the prebuild path
+
+   ```bash
+   # Copy your downloaded .app file to the prebuild path
+   cp /path/to/your/downloaded/AAA.app build/MetaMask.app
+   ```
+
+3. **Start the build watcher**:
+
+   ```bash
+   source .e2e.env && yarn watch:clean
+   ```
+
+4. **Launch the iPhone 15 Pro simulator** from Xcode or in a new terminal by:
+
+   ```bash
+   xcrun simctl boot "iPhone 15 Pro"
+   open -a Simulator # to open the simulator app GUI
+   ```
+
 ### Run the E2E Tests
 
-Running E2E tests requires two separate terminal sessions: one for the Metro bundler and one for executing the tests.
-
-#### Terminal 1: Start the Metro Bundler
-
-First, ensure the build watcher is running in a dedicated terminal for logs:
-
 ```bash
-export METAMASK_ENVIRONMENT='e2e'
-export METAMASK_BUILD_TYPE='main'
-yarn setup:expo
+# Firstly, make sure the build watcher is running in a dedicated terminal for the logs
+# and the emulators are up and running
+# Ensure METAMASK_BUILD_TYPE is set to `main` and METAMASK_ENVIRONMENT is set to `e2e` in .js.env
+source .e2e.env   # Ensure .js.env is sourced
 yarn watch:clean  # First time or after dependency changes
 yarn watch        # Subsequent runs
-```
 
-#### Terminal 2: Execute Tests
-
-In a separate terminal, set up and run your tests:
-
-**Initial Setup (First Time Only)**
-
-```bash
-cp .e2e.env.example .e2e.env
-```
-
-**Run All Tests**
-
-```bash
+# Run all Tests
 source .e2e.env && yarn test:e2e:ios:debug:run
 source .e2e.env && yarn test:e2e:android:debug:run
-```
 
-**Run Specific Test Folder**
-
-```bash
+# Run specific folder
 source .e2e.env && yarn test:e2e:ios:debug:run e2e/specs/your-folder
 source .e2e.env && yarn test:e2e:android:debug:run e2e/specs/your-folder
-```
 
-**Run Specific Test File**
-
-```bash
+# Run specific test
 source .e2e.env && yarn test:e2e:ios:debug:run e2e/specs/onboarding/create-wallet.spec.js
 source .e2e.env && yarn test:e2e:android:debug:run e2e/specs/onboarding/create-wallet.spec.js
-```
 
-**Run Tests by Tag**
-
-```bash
+# Run tests by tag
 source .e2e.env && yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
 source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 ```

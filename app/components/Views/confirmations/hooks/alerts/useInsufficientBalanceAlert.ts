@@ -11,7 +11,8 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../utils/transaction';
-import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 
@@ -28,13 +29,28 @@ export const useInsufficientBalanceAlert = ({
   const { onReject } = useConfirmActions();
   const { isSupported: isGaslessSupported, pending: isGaslessCheckPending } =
     useIsGaslessSupported();
-  const isUsingPay = useTransactionPayHasSourceAmount();
+  const { payToken } = useTransactionPayToken();
+  const requiredTokens = useTransactionPayRequiredTokens();
   const isSimulationEnabled = useSelector(selectUseTransactionSimulations);
   const { hasInsufficientBalance, nativeCurrency } =
     useHasInsufficientBalance();
 
+  const primaryRequiredToken = (requiredTokens ?? []).find(
+    (token) => !token.skipIfBalance,
+  );
+
+  const isPayTokenTarget =
+    payToken &&
+    payToken.chainId === primaryRequiredToken?.chainId &&
+    payToken.address.toLowerCase() ===
+      primaryRequiredToken?.address.toLowerCase();
+
   return useMemo(() => {
-    if (!transactionMetadata || isTransactionValueUpdating || isUsingPay) {
+    if (
+      !transactionMetadata ||
+      isTransactionValueUpdating ||
+      (payToken && !isPayTokenTarget)
+    ) {
       return [];
     }
 
@@ -102,11 +118,12 @@ export const useInsufficientBalanceAlert = ({
   }, [
     transactionMetadata,
     isTransactionValueUpdating,
+    payToken,
+    isPayTokenTarget,
     isGaslessCheckPending,
     isGaslessSupported,
     isSimulationEnabled,
     ignoreGasFeeToken,
-    isUsingPay,
     hasInsufficientBalance,
     nativeCurrency,
     goToBuy,

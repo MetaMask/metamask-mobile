@@ -30,10 +30,25 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { handleFetch } from '@metamask/controller-utils';
 
+jest.mock('../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../selectors/accountsController'),
+  selectSelectedInternalAccount: jest.fn(),
+}));
+
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   handleFetch: jest.fn(),
 }));
+
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroup: jest.fn(),
+  }),
+);
 
 jest.mock('./Balance', () => {
   /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
@@ -71,6 +86,16 @@ jest.mock('./Balance', () => {
     ),
   };
 });
+
+jest.mock('../../../selectors/assets/assets-list', () => ({
+  ...jest.requireActual('../../../selectors/assets/assets-list'),
+  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -233,6 +258,13 @@ jest.mock('../../../components/hooks/useMetrics', () => {
   };
 });
 
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
 const mockAddPopularNetwork = jest
   .fn()
   .mockImplementation(() => Promise.resolve());
@@ -290,37 +322,6 @@ jest.mock('../Perps', () => ({
   selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
 }));
 
-const mockSelectSelectedInternalAccount = jest.fn();
-jest.mock('../../../selectors/accountsController', () => ({
-  ...jest.requireActual('../../../selectors/accountsController'),
-  selectSelectedInternalAccount: () => mockSelectSelectedInternalAccount(),
-}));
-
-const mockSelectSelectedInternalAccountByScope = jest.fn();
-jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
-  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
-  selectSelectedInternalAccountByScope: () =>
-    mockSelectSelectedInternalAccountByScope,
-}));
-
-const mockSelectTronResourcesBySelectedAccountGroup = jest.fn();
-jest.mock('../../../selectors/assets/assets-list', () => ({
-  ...jest.requireActual('../../../selectors/assets/assets-list'),
-  selectTronResourcesBySelectedAccountGroup: () =>
-    mockSelectTronResourcesBySelectedAccountGroup(),
-}));
-
-const mockSelectSelectedAccountGroup = jest.fn();
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    ...jest.requireActual(
-      '../../../selectors/multichainAccounts/accountTreeController',
-    ),
-    selectSelectedAccountGroup: () => mockSelectSelectedAccountGroup(),
-  }),
-);
-
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -363,18 +364,23 @@ describe('AssetOverview', () => {
       isNonEvmAccount: false,
     });
 
-    mockSelectSelectedInternalAccount.mockReturnValue({
+    // Default selected internal account to an EVM account so token balance flow uses EVM path
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    selectSelectedInternalAccount.mockReturnValue({
       address: MOCK_ADDRESS_2,
       type: 'eip155:eoa',
     });
 
-    mockSelectSelectedInternalAccountByScope.mockReturnValue({
+    // Default mock for selectSelectedInternalAccountByScope
+    const { selectSelectedInternalAccountByScope } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accounts',
+    );
+    const mockGetAccountByScope = jest.fn().mockReturnValue({
       address: MOCK_ADDRESS_2,
-      type: 'eip155:eoa',
     });
-
-    // Default mock for tron resources - return empty array
-    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue([]);
+    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
 
     // Default mock for unified V1 flag - disabled
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
@@ -754,11 +760,27 @@ describe('AssetOverview', () => {
   });
 
   it('should handle receive button press for EVM asset with EVM address', async () => {
-    mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+    // Arrange - Mock the selectors directly to ensure conditions are met
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    const { selectSelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    );
+    const { selectSelectedInternalAccountByScope } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accounts',
+    );
 
-    mockSelectSelectedInternalAccountByScope.mockReturnValue({
+    selectSelectedInternalAccount.mockReturnValue({
+      address: MOCK_ADDRESS_2,
+      type: 'eip155:eoa',
+    });
+    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+
+    const mockGetAccountByScope = jest.fn().mockReturnValue({
       address: MOCK_ADDRESS_2,
     });
+    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
 
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -789,14 +811,23 @@ describe('AssetOverview', () => {
         }),
       },
     );
+
+    // Cleanup mocks for isolation
+    selectSelectedInternalAccount.mockReset();
+    selectSelectedAccountGroup.mockReset();
+    selectSelectedInternalAccountByScope.mockReset();
   });
 
   it('should track receive button click analytics with correct properties', async () => {
     // Arrange - Mock the selectors directly to ensure conditions are met
-    mockSelectSelectedInternalAccount.mockReturnValue({
-      address: MOCK_ADDRESS_2,
-    });
-    mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    const { selectSelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    );
+    selectSelectedInternalAccount.mockReturnValue({ address: MOCK_ADDRESS_2 });
+    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
 
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -830,18 +861,37 @@ describe('AssetOverview', () => {
 
     // Verify trackEvent was called with the built event
     expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
+
+    // Cleanup mocks for isolation
+    selectSelectedInternalAccount.mockReset();
+    selectSelectedAccountGroup.mockReset();
   });
 
   it('should handle receive button press for Solana asset with Solana address', async () => {
     const SOLANA_ADDRESS = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
     const SOLANA_CHAIN_ID = SolScope.Mainnet;
 
-    mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    const { selectSelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    );
+    const { selectSelectedInternalAccountByScope } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accounts',
+    );
 
-    mockSelectSelectedInternalAccountByScope.mockReturnValue({
+    selectSelectedInternalAccount.mockReturnValue({
+      address: MOCK_ADDRESS_2,
+      type: 'eip155:eoa',
+    });
+    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+
+    const mockGetAccountByScope = jest.fn().mockReturnValue({
       address: SOLANA_ADDRESS,
       type: SolAccountType.DataAccount,
     });
+    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
 
     const solanaAsset = {
       ...asset,
@@ -879,9 +929,11 @@ describe('AssetOverview', () => {
       },
     );
 
-    expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalledWith(
-      SOLANA_CHAIN_ID,
-    );
+    expect(mockGetAccountByScope).toHaveBeenCalledWith(SOLANA_CHAIN_ID);
+
+    selectSelectedInternalAccount.mockReset();
+    selectSelectedAccountGroup.mockReset();
+    selectSelectedInternalAccountByScope.mockReset();
   });
 
   it('should not render swap button if displaySwapsButton is false', async () => {
@@ -1008,7 +1060,11 @@ describe('AssetOverview', () => {
   });
 
   it('renders staked TRX details when viewing TRX on Tron', () => {
-    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue([
+    const { selectTronResourcesBySelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/assets/assets-list',
+    );
+
+    selectTronResourcesBySelectedAccountGroup.mockReturnValue([
       { symbol: 'strx-energy', balance: '10' },
       { symbol: 'strx-bandwidth', balance: '20' },
     ]);
@@ -1567,49 +1623,36 @@ describe('AssetOverview', () => {
 
       const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
 
-      // Should display the balance directly (no truncation)
-      expect(secondaryBalance.props.children).toBe('123.456789 SOL');
+      // Should display formatted Solana balance
+      expect(secondaryBalance.props.children).toBe('123.45679 SOL');
     });
   });
 
   it('should not render Balance component when balance is undefined', () => {
-    // Asset on a chain (0x999) that has no account data in AccountTrackerController
-    const assetOnUnknownChain = {
+    // Given an asset with undefined balance
+    const assetWithNoBalance = {
       ...asset,
       balance: undefined as unknown as string,
-      chainId: '0x999', // Chain not in AccountTrackerController.accountsByChainId
-      isETH: false,
-      isNative: false,
     };
 
-    // State without any account data for chain 0x999
-    const stateWithNoChainData = {
-      ...mockInitialState,
-      engine: {
-        ...mockInitialState.engine,
-        backgroundState: {
-          ...mockInitialState.engine.backgroundState,
-          AccountTrackerController: {
-            accountsByChainId: {
-              // No data for 0x999
-            },
-          },
-          TokenBalancesController: {
-            tokenBalances: {
-              // No token balances for this account/chain
-            },
-          },
-        },
-      },
-    };
+    // Override the mock to enable state2 so balance stays undefined
+    const mockModule = jest.requireMock(
+      '../../../selectors/featureFlagController/multichainAccounts',
+    );
+    const originalMock = mockModule.selectMultichainAccountsState2Enabled;
+    mockModule.selectMultichainAccountsState2Enabled = jest
+      .fn()
+      .mockReturnValue(true);
 
     const { queryByTestId } = renderWithProvider(
-      <AssetOverview asset={assetOnUnknownChain} />,
-      { state: stateWithNoChainData },
+      <AssetOverview asset={assetWithNoBalance} />,
+      { state: mockInitialState },
     );
 
-    // Balance component should not render when balance cannot be determined
     expect(queryByTestId(BALANCE_TEST_ID)).toBeNull();
+
+    // Restore original mock
+    mockModule.selectMultichainAccountsState2Enabled = originalMock;
   });
 
   describe('Exchange Rate Fetching', () => {

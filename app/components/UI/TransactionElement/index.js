@@ -12,6 +12,7 @@ import { fontStyles } from '../../../styles/common';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
+import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
 import { connect, useSelector } from 'react-redux';
 import StyledButton from '../StyledButton';
@@ -251,6 +252,7 @@ class TransactionElement extends PureComponent {
     actionKey: undefined,
     cancelIsOpen: false,
     speedUpIsOpen: false,
+    detailsModalVisible: false,
     importModalVisible: false,
     transactionGas: {
       gasBN: undefined,
@@ -310,17 +312,7 @@ class TransactionElement extends PureComponent {
         transactionId: tx.id,
       });
     } else {
-      const { transactionElement, transactionDetails } = this.state;
-      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.TRANSACTION_DETAILS,
-        params: {
-          tx,
-          transactionElement,
-          transactionDetails,
-          showSpeedUpModal: this.showSpeedUpModal,
-          showCancelModal: this.showCancelModal,
-        },
-      });
+      this.setState({ detailsModalVisible: true });
     }
   };
 
@@ -330,6 +322,10 @@ class TransactionElement extends PureComponent {
 
   onCloseImportWalletModal = () => {
     this.setState({ importModalVisible: false });
+  };
+
+  onCloseDetailsModal = () => {
+    this.setState({ detailsModalVisible: false });
   };
 
   renderTxTime = () => {
@@ -735,8 +731,12 @@ class TransactionElement extends PureComponent {
 
   render() {
     const { tx, selectedInternalAccount } = this.props;
-    const { importModalVisible, transactionElement, transactionDetails } =
-      this.state;
+    const {
+      detailsModalVisible,
+      importModalVisible,
+      transactionElement,
+      transactionDetails,
+    } = this.state;
 
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
@@ -760,6 +760,33 @@ class TransactionElement extends PureComponent {
           {this.renderTxElement(transactionElement)}
         </TouchableHighlight>
         {accountImportTime <= time && this.renderImportTime()}
+        {detailsModalVisible && (
+          <Modal
+            isVisible={detailsModalVisible}
+            onBackdropPress={this.onCloseDetailsModal}
+            onBackButtonPress={this.onCloseDetailsModal}
+            onSwipeComplete={this.onCloseDetailsModal}
+            swipeDirection={'down'}
+            backdropColor={colors.overlay.default}
+            backdropOpacity={1}
+          >
+            <DetailsModal>
+              <DetailsModal.Header>
+                <DetailsModal.Title onPress={this.onCloseDetailsModal}>
+                  {transactionElement?.actionKey}
+                </DetailsModal.Title>
+                <DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
+              </DetailsModal.Header>
+              <TransactionDetails
+                transactionObject={tx}
+                transactionDetails={transactionDetails}
+                showSpeedUpModal={this.showSpeedUpModal}
+                showCancelModal={this.showCancelModal}
+                close={this.onCloseDetailsModal}
+              />
+            </DetailsModal>
+          </Modal>
+        )}
         <Modal
           isVisible={importModalVisible}
           onBackdropPress={this.onCloseImportWalletModal}

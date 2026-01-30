@@ -150,6 +150,7 @@ import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-sear
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
 import { tokenListControllerInit } from './controllers/token-list-controller-init';
+import { tokenSearchDiscoveryControllerInit } from './controllers/token-search-discovery-controller-init';
 import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
 import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
 import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
@@ -317,6 +318,7 @@ export class Engine {
         TokenRatesController: tokenRatesControllerInit,
         TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
+        TokenSearchDiscoveryController: tokenSearchDiscoveryControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
@@ -423,6 +425,8 @@ export class Engine {
     const tokenRatesController = controllersByName.TokenRatesController;
     const tokenListController = controllersByName.TokenListController;
     const tokenDetectionController = controllersByName.TokenDetectionController;
+    const tokenSearchDiscoveryController =
+      controllersByName.TokenSearchDiscoveryController;
     const tokenSearchDiscoveryDataController =
       controllersByName.TokenSearchDiscoveryDataController;
     const bridgeController = controllersByName.BridgeController;
@@ -515,6 +519,7 @@ export class Engine {
       RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
       SignatureController: signatureController,
+      TokenSearchDiscoveryController: tokenSearchDiscoveryController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       CronjobController: cronjobController,
@@ -1309,6 +1314,7 @@ export default {
       TokenListController,
       TokenRatesController,
       TokensController,
+      TokenSearchDiscoveryController,
       TokenSearchDiscoveryDataController,
       TransactionController,
       TransactionPayController,
@@ -1375,6 +1381,7 @@ export default {
       TokenListController: TokenListController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,
+      TokenSearchDiscoveryController: TokenSearchDiscoveryController.state,
       TokenSearchDiscoveryDataController:
         TokenSearchDiscoveryDataController.state,
       TransactionController: TransactionController.state,

@@ -2,8 +2,6 @@
  * Props for the UrlAutocomplete component
  */
 
-import type { Hex } from '@metamask/utils';
-
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UrlAutocompleteComponentProps = {
   /**
@@ -22,9 +20,6 @@ export enum UrlAutocompleteCategory {
   Sites = 'sites',
   Recents = 'recents',
   Favorites = 'favorites',
-  Tokens = 'tokens',
-  Perps = 'perps',
-  Predictions = 'predictions',
 }
 
 /**
@@ -59,64 +54,4 @@ export type FuseSearchResult = {
   name: string;
 };
 
-/**
- * The result of a token search
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type TokenSearchResult = {
-  category: UrlAutocompleteCategory.Tokens;
-  name: string;
-  symbol: string;
-  address: string;
-  decimals: number;
-  chainId: Hex;
-  logoUrl?: string;
-  price: number;
-  percentChange: number;
-  assetId: string;
-  isFromSearch: true;
-};
-
-/**
- * The result of a perps market search
- * Re-exports PerpsMarketData from the Perps controller with category added
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PerpsSearchResult = {
-  category: UrlAutocompleteCategory.Perps;
-  symbol: string;
-  name: string;
-  maxLeverage: string;
-  price: string;
-  change24h: string;
-  change24hPercent: string;
-  volume: string;
-  openInterest?: string;
-  marketType?: 'crypto' | 'equity' | 'commodity' | 'forex';
-  marketSource?: string | null;
-};
-
-/**
- * The result of a predictions market search
- * Re-exports PredictMarket from Predict types with category added
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictionsSearchResult = {
-  category: UrlAutocompleteCategory.Predictions;
-  id: string;
-  providerId: string;
-  slug: string;
-  title: string;
-  description: string;
-  endDate?: string;
-  image: string;
-  status: 'open' | 'closed' | 'resolved';
-  liquidity: number;
-  volume: number;
-};
-
-export type AutocompleteSearchResult =
-  | FuseSearchResult
-  | TokenSearchResult
-  | PerpsSearchResult
-  | PredictionsSearchResult;
+export type AutocompleteSearchResult = FuseSearchResult;

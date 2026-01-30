@@ -8,16 +8,6 @@ import {
 export interface ExploreSearchResult {
   data: Record<SectionId, unknown[]>;
   isLoading: Record<SectionId, boolean>;
-  sectionsOrder: SectionId[];
-}
-
-export interface ExploreSearchOptions {
-  /**
-   * Custom order of sections for display.
-   * Defaults to SECTIONS_ARRAY order (tokens, perps, predictions, sites).
-   * Browser uses ['sites', 'tokens', 'perps', 'predictions'] to show Sites first.
-   */
-  sectionsOrder?: SectionId[];
 }
 
 /**
@@ -30,17 +20,9 @@ export interface ExploreSearchOptions {
  * - Returning top 3 items when no query is present
  *
  * @param query - Search query string
- * @param options - Optional configuration including custom section order
  * @returns Search results grouped by section
  */
-export const useExploreSearch = (
-  query: string,
-  options?: ExploreSearchOptions,
-): ExploreSearchResult => {
-  const sectionsOrder = useMemo(
-    () => options?.sectionsOrder ?? SECTIONS_ARRAY.map((s) => s.id),
-    [options?.sectionsOrder],
-  );
+export const useExploreSearch = (query: string): ExploreSearchResult => {
   const [debouncedQuery, setDebouncedQuery] = useState(query);
 
   useEffect(() => {
@@ -85,8 +67,8 @@ export const useExploreSearch = (
       }
     });
 
-    return { data, isLoading, sectionsOrder };
-  }, [debouncedQuery, allSectionsData, isDebouncing, sectionsOrder]);
+    return { data, isLoading };
+  }, [debouncedQuery, allSectionsData, isDebouncing]);
 
   return filteredResults;
 };

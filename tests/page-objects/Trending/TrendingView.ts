@@ -1,9 +1,4 @@
-import {
-  Matchers,
-  Gestures,
-  Assertions,
-  type ScrollOptions,
-} from '../../framework';
+import { Matchers, Gestures, Assertions } from '../../framework';
 import {
   TrendingViewSelectorsIDs,
   SECTION_BACK_BUTTONS,
@@ -116,14 +111,14 @@ class TrendingView {
   }
 
   /**
-   * Scrolls the feed until the target element is visible (same pattern as WalletView.scrollToToken).
-   * Uses Gestures.scrollToElement which retries scroll + visibility check until the element is on screen.
+   * Generic method to scroll to an element in the trending feed.
+   * This ensures elements are visible and hittable before interaction.
+   * Works regardless of section order changes.
    */
   private async scrollToElementInFeed(
     targetElement: DetoxElement,
     description: string,
     direction: 'up' | 'down' = 'down',
-    options: Partial<ScrollOptions> = {},
   ): Promise<void> {
     await Gestures.scrollToElement(
       targetElement,
@@ -132,7 +127,6 @@ class TrendingView {
         direction,
         scrollAmount: 300,
         elemDescription: description,
-        ...options,
       },
     );
   }
@@ -302,8 +296,10 @@ class TrendingView {
   }
 
   /**
-   * Tap on an item row after scrolling until it is visible (same pattern as WalletView.scrollToToken + tap).
-   * Gestures.scrollToElement retries scroll until the element is visible.
+   * Generic method to tap on an item row with automatic scrolling.
+   * @param getElement - Function to get the element
+   * @param identifier - Item identifier (id, symbol, name, etc.)
+   * @param itemType - Type of item for description ('token', 'perp', 'prediction', 'site')
    */
   private async tapItemRow(
     getElement: () => DetoxElement,
@@ -312,15 +308,10 @@ class TrendingView {
   ): Promise<void> {
     const targetElement = getElement();
 
-    // Sites section is typically lower in the feed; give scroll retry more time (same idea as WalletView.scrollDownToAssetOverviewMusdCta)
-    const scrollOptions: Partial<ScrollOptions> =
-      itemType === 'site' ? { timeout: 15000 } : {};
-
+    // Use generic scroll method to ensure element is visible
     await this.scrollToElementInFeed(
       targetElement,
       `Scroll to ${identifier} ${itemType} row`,
-      'down',
-      scrollOptions,
     );
 
     await Gestures.tap(targetElement, {
@@ -361,17 +352,7 @@ class TrendingView {
   }
 
   async verifySiteVisible(name: string): Promise<void> {
-    const siteRow = () => this.getSiteRow(name);
-
-    // Scroll until Site row is visible (same pattern as WalletView.scrollDownToAssetOverviewMusdCta)
-    await this.scrollToElementInFeed(
-      siteRow(),
-      `Scroll to Site row for ${name}`,
-      'down',
-      { timeout: 15000 },
-    );
-
-    await this.verifyItemVisible(siteRow, name, 'site');
+    await this.verifyItemVisible(() => this.getSiteRow(name), name, 'site');
   }
 
   async tapSiteRow(name: string): Promise<void> {

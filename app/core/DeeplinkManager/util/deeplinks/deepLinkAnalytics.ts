@@ -445,18 +445,6 @@ const extractShieldProperties = (
 };
 
 /**
- * Extract properties for NFT route
- * @param urlParams - URL parameters
- * @param sensitiveProps - Object to add properties to
- */
-const extractNftProperties = (
-  _urlParams: UrlParamValues,
-  _sensitiveProps: Record<string, string>,
-): void => {
-  // NFT route doesn't have sensitive parameters to extract
-};
-
-/**
  * Extract properties for INVALID route
  * No properties to extract, this function is a placeholder
  * to satisfy the type checker
@@ -495,7 +483,6 @@ const routeExtractors: Record<
   [DeepLinkRoute.ENABLE_CARD_BUTTON]: extractEnableCardButtonProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
-  [DeepLinkRoute.NFT]: extractNftProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
@@ -628,8 +615,6 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.CARD_ONBOARDING;
     case ACTIONS.CARD_HOME:
       return DeepLinkRoute.CARD_HOME;
-    case ACTIONS.NFT:
-      return DeepLinkRoute.NFT;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -682,8 +667,6 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.CARD_ONBOARDING;
       case 'card-home':
         return DeepLinkRoute.CARD_HOME;
-      case 'nft':
-        return DeepLinkRoute.NFT;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:

@@ -155,7 +155,6 @@ import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hoo
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
-import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -596,10 +595,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS}
       component={MultichainTransactionDetailsSheet}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.TRANSACTION_DETAILS}
-      component={TransactionDetailsSheet}
     />
   </Stack.Navigator>
 );

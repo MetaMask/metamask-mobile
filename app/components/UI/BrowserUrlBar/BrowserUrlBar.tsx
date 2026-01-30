@@ -57,6 +57,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       activeUrl,
       setIsUrlBarFocused,
       isUrlBarFocused,
+      showCloseButton,
       showTabs,
     },
     ref,
@@ -142,7 +143,19 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         );
       }
 
-      // Always show "Cancel" text when focused
+      if (showCloseButton) {
+        return (
+          <ButtonIcon
+            iconName={IconName.Close}
+            onPress={onCancelInput}
+            iconColor={colors.icon.default}
+            size={ButtonIconSizes.Lg}
+            style={styles.closeButton}
+            testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
+          />
+        );
+      }
+
       return (
         <TouchableOpacity
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -157,9 +170,12 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       );
     }, [
       isUrlBarFocused,
+      showCloseButton,
       selectedAddress,
       handleAccountRightButtonPress,
       onCancelInput,
+      colors.icon.default,
+      styles.closeButton,
       styles.cancelButton,
       styles.cancelButtonText,
     ]);

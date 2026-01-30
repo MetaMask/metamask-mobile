@@ -7,7 +7,6 @@
 /* eslint-disable import/no-commonjs */
 /* eslint-disable react/prop-types */
 /* eslint-disable react/display-name */
-
 const { NativeModules } = require('react-native');
 // eslint-disable-next-line import/no-nodejs-modules
 const nodeCrypto = require('crypto');

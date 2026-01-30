@@ -103,21 +103,6 @@ describe('BrowserTab', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  describe('Back Button', () => {
-    it('renders back button when URL bar is not focused', async () => {
-      renderWithProvider(<BrowserTab {...mockProps} />, {
-        state: mockInitialState,
-      });
-
-      await waitFor(() =>
-        expect(screen.getByTestId('browser-webview')).toBeVisible(),
-      );
-
-      const backButton = screen.getByTestId('browser-tab-close-button');
-      expect(backButton).toBeTruthy();
-    });
-  });
-
   describe('WebView originWhitelist', () => {
     it('sets originWhitelist to wildcard for all URLs', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {

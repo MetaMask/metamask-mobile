@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 import TestHelpers from '../../helpers';
-import { getDappUrl } from '../../../tests/framework/fixtures/FixtureUtils';
+import { getDappPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import Matchers from '../../../tests/framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
@@ -22,6 +22,8 @@ const logger = createLogger({
   name: 'MultichainTestDApp',
 });
 
+// Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
+export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getDappPort(0)}`;
 export const DEFAULT_MULTICHAIN_TEST_DAPP_URL =
   'https://metamask.github.io/test-dapp-multichain/';
 
@@ -36,10 +38,10 @@ export function getMultichainTestDappUrl(): string {
   // Check for local development flag
   const useLocal = process.env.USE_LOCAL_DAPP !== 'false'; // default to true if not set
   if (useLocal) {
-    // Call getDappUrl at runtime (not import time) so port is allocated
-    const localUrl = getDappUrl(0);
-    logger.debug(`🏠 Using local multichain dapp URL: ${localUrl}`);
-    return localUrl;
+    logger.debug(
+      `🏠 Using local multichain dapp URL: ${MULTICHAIN_TEST_DAPP_LOCAL_URL}`,
+    );
+    return MULTICHAIN_TEST_DAPP_LOCAL_URL;
   }
 
   // Check for custom URL from environment

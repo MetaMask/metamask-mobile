@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 import GeneralSettings, {
   updateUserTraitsWithCurrentCurrency,
   updateUserTraitsWithCurrencyType,
@@ -11,37 +11,9 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../../../core/Analytics');
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    isEnabled: jest.fn().mockReturnValue(true),
-    enable: jest.fn(),
-    addTraitsToUser: jest.fn(),
-    createEventBuilder: jest.fn(),
-    trackEvent: jest.fn(),
-    trackAnonymousEvent: jest.fn(),
-    getMetaMetricsId: jest.fn(),
-  }),
-  withMetricsAwareness:
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (Component: React.ComponentType<any>) =>
-      (props: Record<string, unknown>) => <Component {...props} metrics={{}} />,
-}));
-jest.mock(
-  '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
-  () => ({
-    __esModule: true,
-    default: () => null,
-    AvatarAccountType: {
-      JazzIcon: 'JazzIcon',
-      Blockies: 'Blockies',
-      Maskicon: 'Maskicon',
-    },
-  }),
-);
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -59,41 +31,14 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
-const mockNavigation = {
-  goBack: jest.fn(),
-  navigate: jest.fn(),
-};
-
-const renderComponent = () =>
-  render(
-    <Provider store={store}>
-      <ThemeContext.Provider value={mockTheme}>
-        <GeneralSettings navigation={mockNavigation} />
-      </ThemeContext.Provider>
-    </Provider>,
-  );
-
 describe('GeneralSettings', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render correctly', () => {
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders header with correct title', () => {
-    const { getByText } = renderComponent();
-    expect(getByText('General')).toBeTruthy();
-  });
-
-  it('calls navigation.goBack when back button is pressed', () => {
-    const { getByTestId } = renderComponent();
-    const backButton = getByTestId('button-icon');
-    fireEvent.press(backButton);
-
-    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    const wrapper = shallow(
+      <Provider store={store}>
+        <GeneralSettings />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
   });
 });
 

@@ -1,8 +1,5 @@
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
@@ -15,7 +12,6 @@ import { selectTransactionPaymentTokenByTransactionId } from '../../../../../sel
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
-import { hasTransactionType } from '../../utils/transaction';
 
 export function useTransactionPayToken(): {
   isNative?: boolean;
@@ -61,17 +57,16 @@ export function useTransactionPayToken(): {
       }
 
       // perps deposits only use relay, so doesn't need gasFeeToken update
-      const isPredictDepositTransaction = hasTransactionType(transactionMeta, [
-        TransactionType.predictDeposit,
-      ]);
+      const isPredictDepositTransaction =
+        transactionMeta?.type === TransactionType.predictDeposit;
 
-      if (isPredictDepositTransaction && transactionMeta) {
+      if (isPredictDepositTransaction) {
         const isNewPayTokenRequiredToken =
           newPayToken.chainId === primaryRequiredToken?.chainId &&
           newPayToken.address.toLowerCase() ===
             primaryRequiredToken?.address.toLowerCase();
 
-        const updatedTx: TransactionMeta = {
+        const updatedTx = {
           ...transactionMeta,
           selectedGasFeeToken: isNewPayTokenRequiredToken
             ? newPayToken.address
