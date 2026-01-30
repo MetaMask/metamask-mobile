@@ -1092,12 +1092,8 @@ describe('RewardsController', () => {
 
       expect(controller.state.pointsEstimateHistory).toHaveLength(1);
       const historyEntry = controller.state.pointsEstimateHistory[0];
-      expect(historyEntry).toMatchObject({
-        activityType: 'SWAP',
-        account: CAIP_ACCOUNT_1,
-        pointsEstimate: 150,
-        bonusBips: 300,
-      });
+      expect(historyEntry.request).toEqual(mockRequest);
+      expect(historyEntry.response).toEqual(mockResponse);
       expect(historyEntry.timestamp).toBe(now);
 
       jest.useRealTimers();
@@ -1231,15 +1227,15 @@ describe('RewardsController', () => {
       await controller.estimatePoints(mockRequest);
 
       // Most recent (300 points) should be first
-      expect(controller.state.pointsEstimateHistory[0].pointsEstimate).toBe(
-        300,
-      );
-      expect(controller.state.pointsEstimateHistory[1].pointsEstimate).toBe(
-        200,
-      );
-      expect(controller.state.pointsEstimateHistory[2].pointsEstimate).toBe(
-        100,
-      );
+      expect(
+        controller.state.pointsEstimateHistory[0].response.pointsEstimate,
+      ).toBe(300);
+      expect(
+        controller.state.pointsEstimateHistory[1].response.pointsEstimate,
+      ).toBe(200);
+      expect(
+        controller.state.pointsEstimateHistory[2].response.pointsEstimate,
+      ).toBe(100);
 
       jest.useRealTimers();
     });
