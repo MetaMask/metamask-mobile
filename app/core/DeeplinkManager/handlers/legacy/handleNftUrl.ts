@@ -1,6 +1,7 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 
 /**
  * NFT deeplink handler
@@ -13,11 +14,18 @@ export const handleNftUrl = () => {
   DevLogger.log('[handleNftUrl] Starting NFT deeplink handling');
 
   try {
-    // Navigate to the NFT full view
     NavigationService.navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
   } catch (error) {
-    DevLogger.log('Failed to handle NFT deeplink:', error);
-    // Fallback navigation on error
-    NavigationService.navigation.navigate(Routes.WALLET.HOME);
+    DevLogger.log('[handleNftUrl] Failed to handle NFT deeplink:', error);
+    Logger.error(error as Error, '[handleNftUrl] Error handling NFT deeplink');
+
+    try {
+      NavigationService.navigation.navigate(Routes.WALLET.HOME);
+    } catch (navError) {
+      Logger.error(
+        navError as Error,
+        '[handleNftUrl] Failed to navigate to fallback screen',
+      );
+    }
   }
 };
