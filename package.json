@@ -179,11 +179,8 @@
     "@ethereumjs/util@npm:^9.0.2": "patch:@ethereumjs/util@npm%3A9.1.0#~/.yarn/patches/@ethereumjs-util-npm-9.1.0-7e85509408.patch",
     "@metamask/key-tree@npm:^10.1.1": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/key-tree@npm:^10.0.2": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
-    "@metamask/transaction-controller@npm:^62.9.0": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.9.0-5c8f871530.patch",
     "qs": "6.14.1",
-    "@playwright/test": "^1.57.0",
-    "@metamask/transaction-controller@npm:^61.0.0": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.9.0-5c8f871530.patch",
-    "@metamask/transaction-controller@npm:^62.9.2": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.9.0-5c8f871530.patch"
+    "@playwright/test": "^1.57.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -297,7 +294,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^15.0.0",
     "@metamask/token-search-discovery-controller": "^4.0.0",
-    "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.9.0-5c8f871530.patch",
+    "@metamask/transaction-controller": "^62.12.0",
     "@metamask/transaction-pay-controller": "^11.1.0",
     "@metamask/tron-wallet-snap": "^1.19.2",
     "@metamask/utils": "^11.8.1",
