@@ -6,6 +6,7 @@ import React from 'react';
 import { View } from 'react-native';
 import MusdConversionAssetOverviewCta from './index';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
+import { MUSD_CONVERSION_APY } from '../../../constants/musd';
 import { fireEvent } from '@testing-library/react-native';
 import { TokenI } from '../../../../Tokens/types';
 
@@ -97,11 +98,14 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     );
 
     // Assert
-    expect(getByText('Boost your stablecoin balance')).toBeOnTheScreen();
     expect(
-      getByText(/Earn a bonus every time you convert stablecoins to/),
+      getByText(`Get ${MUSD_CONVERSION_APY}% on your stablecoins`),
     ).toBeOnTheScreen();
-    expect(getByText('mUSD')).toBeOnTheScreen();
+    expect(
+      getByText(
+        `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('renders close button when onDismiss is provided', () => {
@@ -498,7 +502,9 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     );
 
     // Assert
-    expect(getByText('Boost your stablecoin balance')).toBeOnTheScreen();
+    expect(
+      getByText(`Get ${MUSD_CONVERSION_APY}% on your stablecoins`),
+    ).toBeOnTheScreen();
   });
 
   it('renders CTA with correct boost description text', () => {
@@ -530,9 +536,10 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
 
     // Assert
     expect(
-      getByText(/Earn a bonus every time you convert stablecoins to/),
+      getByText(
+        `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
+      ),
     ).toBeOnTheScreen();
-    expect(getByText('mUSD')).toBeOnTheScreen();
   });
 
   it('renders CTA for USDT asset when in allowlist', () => {
