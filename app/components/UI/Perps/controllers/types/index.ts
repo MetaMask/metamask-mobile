@@ -239,6 +239,13 @@ export type ClosePositionParams = {
 
   // Multi-provider routing (optional: defaults to active/default provider)
   providerId?: PerpsProviderType; // Optional: override active provider for routing
+
+  /**
+   * Optional live position data from WebSocket.
+   * If provided, skips the REST API position fetch (avoids rate limiting issues).
+   * If not provided, falls back to fetching positions via REST API cache.
+   */
+  position?: Position;
 };
 
 export type ClosePositionsParams = {
