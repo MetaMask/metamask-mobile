@@ -629,24 +629,24 @@ generateAndroidBinary() {
 }
 
 buildExpoUpdate() {
-	echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
-	# Validate required Expo Update environment variables
-	if [ -z "${EXPO_TOKEN}" ]; then
-		echo "::error title=Missing EXPO_TOKEN::EXPO_TOKEN secret is not configured. Cannot authenticate with Expo." >&2
-		exit 1
-	else
-		echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
-	fi
+		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
+ 				
+		if [ -z "${EXPO_TOKEN}" ]; then
+			echo "EXPO_TOKEN is NOT set in build.sh env"
+		else
+			echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
+		fi
 
-	if [ -z "${EXPO_CHANNEL}" ]; then
-		echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
-		exit 1
-	fi
+		# Validate required Expo Update environment variables
+		if [ -z "${EXPO_CHANNEL}" ]; then
+			echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
+			exit 1
+		fi
 
-	if [ -z "${EXPO_KEY_PRIV}" ]; then
-		echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
-		exit 1
-	fi
+		if [ -z "${EXPO_KEY_PRIV}" ]; then
+			echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
+			exit 1
+		fi
 
 		# Prepare Expo update signing key
 		mkdir -p keys
@@ -670,11 +670,25 @@ buildExpoUpdate() {
 		echo "ℹ️ Available yarn scripts containing eas:"
 		yarn run --json | grep '"name":"eas"' || true
 
+		# Run platforms sequentially to avoid LavaMoat lockdown serializer conflicts
+		# when bundling multiple platforms simultaneously
+		echo "📱 Publishing iOS update..."
 		yarn run eas update \
+			--platform ios \
 			--channel "${EXPO_CHANNEL}" \
 			--private-key-path "./keys/private-key.pem" \
 			--message "${UPDATE_MESSAGE}" \
 			--non-interactive
+
+		echo "🤖 Publishing Android update..."
+		yarn run eas update \
+			--platform android \
+			--channel "${EXPO_CHANNEL}" \
+			--private-key-path "./keys/private-key.pem" \
+			--message "${UPDATE_MESSAGE}" \
+			--non-interactive
+
+		echo "✅ EAS updates published for both platforms"
 }
 
 buildAndroid() {
@@ -778,7 +792,8 @@ checkAuthToken() {
 	local propertiesFileName="$1"
 
 	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+		# Use | as delimiter to avoid conflicts with special characters in auth token (e.g., /)
+		sed -i'' -e "s|auth.token.*|auth.token=${MM_SENTRY_AUTH_TOKEN}|" "./${propertiesFileName}";
 	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
 		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 			printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
@@ -791,7 +806,8 @@ checkAuthToken() {
 	if [ ! -e "./${propertiesFileName}" ]; then
 		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
-			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+			# Use | as delimiter to avoid conflicts with special characters in auth token (e.g., /)
+			sed -i'' -e "s|auth.token.*|auth.token=${MM_SENTRY_AUTH_TOKEN}|" "./${propertiesFileName}";
 		else
 			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 				printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
@@ -884,6 +900,7 @@ elif [ "$PLATFORM" == "android" ]; then
 		envFileMissing $ANDROID_ENV_FILE
 	fi
 elif [ "$PLATFORM" == "expo-update" ]; then
+	# we don't care about env file in CI
 	buildExpoUpdate
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
