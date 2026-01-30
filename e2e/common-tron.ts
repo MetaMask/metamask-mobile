@@ -2,12 +2,7 @@ import FixtureBuilder from '../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from './viewHelper';
 import TestHelpers from './helpers';
-import WalletView from './pages/wallet/WalletView';
-import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
-import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import { DappVariants } from '../tests/framework/Constants';
-import Assertions from '../tests/framework/Assertions';
 import { setupMockRequest } from '../tests/api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
@@ -109,14 +104,8 @@ const accountResourcesResponse = {
 
 export async function withTronAccountEnabled(
   {
-    numberOfAccounts = 1,
-    tronAccountPermitted,
-    evmAccountPermitted,
     dappVariant,
   }: {
-    numberOfAccounts?: number;
-    tronAccountPermitted?: boolean;
-    evmAccountPermitted?: boolean;
     dappVariant?: DappVariants;
   },
   test: () => Promise<void>,
@@ -144,19 +133,9 @@ export async function withTronAccountEnabled(
     });
   };
 
-  let fixtureBuilder = new FixtureBuilder().withTronFixture();
-
-  if (tronAccountPermitted) {
-    fixtureBuilder = fixtureBuilder.withTronAccountPermission();
-  }
-  if (evmAccountPermitted) {
-    fixtureBuilder = fixtureBuilder.withChainPermission(['0x1']);
-  }
-  const fixtures = fixtureBuilder.build();
-
   await withFixtures(
     {
-      fixture: fixtures,
+      fixture: new FixtureBuilder().build(),
       testSpecificMock,
       dapps: [
         {
@@ -168,18 +147,6 @@ export async function withTronAccountEnabled(
     async () => {
       await TestHelpers.reverseServerPort();
       await loginToApp();
-
-      // Create Tron accounts through the wallet view
-      for (let i = 0; i < numberOfAccounts; i++) {
-        await WalletView.tapCurrentMainWalletAccountActions();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapAddTronAccount();
-        await AddNewHdAccountComponent.tapConfirm();
-        await Assertions.expectElementToHaveText(
-          WalletView.accountName,
-          `Snap Account ${i + 1}`, // TODO: Change to Tron Account ${i + 1}. Needs fixing in the extension/snap
-        );
-      }
 
       await test();
     },
