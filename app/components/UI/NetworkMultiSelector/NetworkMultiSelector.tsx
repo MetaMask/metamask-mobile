@@ -99,11 +99,7 @@ const NetworkMultiSelector = ({
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
   const currentEvmChainId = useSelector(selectEvmChainId);
 
-  const {
-    networksToUse,
-    areAllNetworksSelectedCombined,
-    isMultichainAccountsState2Enabled,
-  } = useNetworksToUse({
+  const { networksToUse, areAllNetworksSelectedCombined } = useNetworksToUse({
     networks,
     networkType: NetworkType.Popular,
     areAllNetworksSelected,
@@ -225,22 +221,15 @@ const NetworkMultiSelector = ({
   );
 
   const additionalNetworksComponent = useMemo(
-    () =>
-      namespace === KnownCaipNamespace.Eip155 ||
-      isMultichainAccountsState2Enabled ? (
-        <Box
-          style={styles.customNetworkContainer}
-          testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORK_CONTAINER}
-        >
-          <CustomNetwork {...customNetworkProps} />
-        </Box>
-      ) : null,
-    [
-      namespace,
-      customNetworkProps,
-      isMultichainAccountsState2Enabled,
-      styles.customNetworkContainer,
-    ],
+    () => (
+      <Box
+        style={styles.customNetworkContainer}
+        testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORK_CONTAINER}
+      >
+        <CustomNetwork {...customNetworkProps} />
+      </Box>
+    ),
+    [customNetworkProps, styles.customNetworkContainer],
   );
 
   const getNetworkName = useCallback(
