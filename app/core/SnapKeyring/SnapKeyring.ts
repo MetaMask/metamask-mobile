@@ -5,9 +5,11 @@ import {
   getDefaultInternalOptions,
 } from '@metamask/eth-snap-keyring';
 import Logger from '../../util/Logger';
+import { showAccountNameSuggestionDialog } from './utils/showDialog';
 import { SnapKeyringBuilderMessenger } from './types';
 import { SnapId } from '@metamask/snaps-sdk';
 import { assertIsValidSnapId } from '@metamask/snaps-utils';
+import { getUniqueAccountName } from './utils/getUniqueAccountName';
 import {
   getSnapName,
   isMultichainWalletSnap,
@@ -82,6 +84,79 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     }
   }
 
+  /**
+   * Get the account name from the user through a dialog.
+   *
+   * @param snapId - ID of the Snap that created the account.
+   * @param accountNameSuggestion - Suggested name for the account.
+   * @returns The name that should be used for the account.
+   */
+  private async getAccountNameFromDialog(
+    snapId: SnapId,
+    accountNameSuggestion: string,
+  ): Promise<{ success: boolean; accountName?: string }> {
+    const { success, name: accountName } =
+      await showAccountNameSuggestionDialog(
+        snapId,
+        this.#messenger,
+        accountNameSuggestion,
+      );
+
+    return { success, accountName };
+  }
+
+  /**
+   * Use the account name suggestion to decide the name of the account.
+   *
+   * @param accountNameSuggestion - Suggested name for the account.
+   * @returns The name that should be used for the account.
+   */
+  private async getAccountNameFromSuggestion(
+    accountNameSuggestion: string,
+  ): Promise<{ success: boolean; accountName?: string }> {
+    const accounts = await this.#messenger.call(
+      'AccountsController:listMultichainAccounts',
+    );
+    const accountName = getUniqueAccountName(accounts, accountNameSuggestion);
+    return { success: true, accountName };
+  }
+
+  private async addAccountConfirmations({
+    snapId,
+    handleUserInput,
+    accountNameSuggestion,
+    skipAccountNameSuggestionDialog,
+    skipApprovalFlow,
+  }: {
+    snapId: SnapId;
+    accountNameSuggestion: string;
+    handleUserInput: (accepted: boolean) => Promise<void>;
+    skipAccountNameSuggestionDialog: boolean;
+    skipApprovalFlow: boolean;
+  }): Promise<{ accountName?: string }> {
+    if (skipApprovalFlow) {
+      const { accountName } = await this.getAccountNameFromSuggestion(
+        accountNameSuggestion,
+      );
+      await handleUserInput(true);
+      return { accountName };
+    }
+    return await this.withApprovalFlow(async (_) => {
+      const { success, accountName } = skipAccountNameSuggestionDialog
+        ? await this.getAccountNameFromSuggestion(accountNameSuggestion)
+        : await this.getAccountNameFromDialog(snapId, accountNameSuggestion);
+
+      // User has cancelled account creation
+      await handleUserInput(success);
+
+      if (!success) {
+        throw new Error('User denied account creation');
+      }
+
+      return { accountName };
+    });
+  }
+
   private async addAccountFinalize({
     address: _address,
     snapId,
@@ -148,7 +223,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     snapId: string,
     handleUserInput: (accepted: boolean) => Promise<void>,
     onceSaved: Promise<string>,
-    _accountNameSuggestion: string = '',
+    accountNameSuggestion: string = '',
     {
       displayConfirmation,
       displayAccountNameSuggestion,
@@ -181,6 +256,17 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
 
     const skipApprovalFlow =
       skipConfirmationDialog && skipAccountNameSuggestionDialog;
+
+    await this.addAccountConfirmations({
+      snapId,
+      // We do not set the account name suggestion if it's a multichain wallet Snap since the
+      // current naming could have race conditions with other account creations, and since
+      // naming is now handled by multichain account groups, we can skip this entirely.
+      accountNameSuggestion: skipAll ? '' : accountNameSuggestion,
+      handleUserInput,
+      skipAccountNameSuggestionDialog,
+      skipApprovalFlow,
+    });
 
     // Auto-approve account creation - the SnapKeyring library requires this callback
     // to be called to proceed with saving the account
