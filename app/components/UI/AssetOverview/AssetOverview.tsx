@@ -17,7 +17,7 @@ import {
   isCaipChainId,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
-import { strings } from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
@@ -79,6 +79,7 @@ import {
   isAssetFromSearch,
   selectTokenDisplayData,
 } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { formatWithThreshold } from '../../../util/assets';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
@@ -609,6 +610,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const exchangeRate = marketDataRate ?? fetchedRate;
 
   let balance;
+
+  const minimumDisplayThreshold = 0.00001;
+  const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -631,6 +635,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   if (balanceSource != null) {
     balance = balanceSource;
+  } else if (isMultichainAsset) {
+    balance = balanceSource
+      ? formatWithThreshold(
+          parseFloat(balanceSource),
+          minimumDisplayThreshold,
+          I18n.locale,
+          { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+        )
+      : undefined;
   } else if (isEthOrNative) {
     balance = renderFromWei(
       // @ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
