@@ -25,59 +25,6 @@ import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
 
 const mockNavigate = jest.fn();
 
-const MOCK_APR_VALUES: { [symbol: string]: string } = {
-  Ethereum: '2.3',
-  USDC: '4.5',
-  USDT: '4.1',
-  DAI: '5.0',
-};
-
-const mockGetEarnToken = jest.fn((token: TokenI) => {
-  const experienceType =
-    token.symbol === 'USDC'
-      ? EARN_EXPERIENCES.STABLECOIN_LENDING
-      : EARN_EXPERIENCES.POOLED_STAKING;
-
-  const experiences = [
-    {
-      type: experienceType as EARN_EXPERIENCES,
-      apr: MOCK_APR_VALUES?.[token.symbol] ?? '',
-      estimatedAnnualRewardsFormatted: '',
-      estimatedAnnualRewardsFiatNumber: 0,
-    },
-  ];
-
-  const baseEarnToken = {
-    ...token,
-    balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
-    balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
-    balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
-    balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
-  };
-
-  const adjustedEarnToken =
-    token.symbol === 'TRX'
-      ? {
-          ...baseEarnToken,
-          balanceMinimalUnit: '1',
-        }
-      : baseEarnToken;
-
-  return {
-    ...adjustedEarnToken,
-    experiences,
-    tokenUsdExchangeRate: 0,
-    experience: experiences[0],
-  };
-});
-
-jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
-  __esModule: true,
-  default: () => ({
-    getEarnToken: (token: TokenI) => mockGetEarnToken(token),
-  }),
-}));
-
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
