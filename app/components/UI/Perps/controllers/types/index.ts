@@ -459,6 +459,14 @@ export interface DepositParams {
   recipient?: Hex; // Recipient address (defaults to selected account)
 }
 
+/** Params for depositWithConfirmation: prepares transaction for confirmation screen */
+export interface DepositWithConfirmationParams {
+  /** Optional deposit amount (display/tracking; actual amount comes from prepared transaction) */
+  amount?: string;
+  /** If true, uses addTransaction instead of submit to avoid navigation (e.g. deposit + place order flow) */
+  placeOrder?: boolean;
+}
+
 export interface DepositResult {
   success: boolean;
   txHash?: string;
