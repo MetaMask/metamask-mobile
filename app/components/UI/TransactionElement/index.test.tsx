@@ -103,7 +103,7 @@ describe('TransactionElement', () => {
   });
 
   describe('MUSD conversion navigation', () => {
-    it('navigates to MUSD conversion details when transaction type is musdConversion', async () => {
+    it('navigates to TransactionDetails when transaction type is musdConversion', async () => {
       const musdConversionTx = {
         id: 'musd-tx-123',
         type: TransactionType.musdConversion,
@@ -139,13 +139,10 @@ describe('TransactionElement', () => {
       // Press the transaction element
       fireEvent.press(getByText('Test Action'));
 
-      // Verify navigation to MUSD conversion details
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS,
-        {
-          transactionMeta: musdConversionTx,
-        },
-      );
+      // Verify navigation to unified TransactionDetails screen
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
+        transactionId: musdConversionTx.id,
+      });
     });
   });
 });

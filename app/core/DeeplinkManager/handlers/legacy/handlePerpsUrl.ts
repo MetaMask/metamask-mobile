@@ -17,12 +17,18 @@ interface HandlePerpsUrlParams {
  * Maps URL tab parameter to internal MarketTypeFilter values
  * - 'all' → 'all' (shows all markets)
  * - 'crypto' → 'crypto' (crypto-only markets)
- * - 'stocks' → 'stocks_and_commodities' (HIP3 stocks & commodities)
+ * - 'stocks' → 'stocks' (HIP3 equities)
+ * - 'commodities' → 'commodities' (HIP3 commodities)
+ * - 'forex' → 'forex' (HIP3 forex)
+ * - 'new' → 'new' (uncategorized HIP3 markets)
  */
 const TAB_TO_FILTER_MAP: Record<string, MarketTypeFilter> = {
   all: 'all',
   crypto: 'crypto',
-  stocks: 'stocks_and_commodities',
+  stocks: 'stocks',
+  commodities: 'commodities',
+  forex: 'forex',
+  new: 'new',
 };
 
 /**
