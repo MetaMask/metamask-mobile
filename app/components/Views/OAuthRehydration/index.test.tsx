@@ -30,6 +30,7 @@ const mockLockApp = jest.fn();
 const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
+const mockUpdateAuthPreference = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -41,6 +42,7 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
     reauthenticate: mockReauthenticate,
     revealSRP: mockRevealSRP,
     revealPrivateKey: mockRevealPrivateKey,
+    updateAuthPreference: mockUpdateAuthPreference,
   }),
 }));
 
@@ -155,6 +157,7 @@ describe('OAuthRehydration', () => {
       isConnected: true,
       isInternetReachable: true,
     });
+    mockUpdateAuthPreference.mockResolvedValue(undefined);
   });
 
   describe('Successful login flow', () => {
@@ -192,6 +195,43 @@ describe('OAuthRehydration', () => {
       });
 
       // Assert
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalled();
+      });
+    });
+
+    it('attempts to setup biometric authentication after successful login', async () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - updateAuthPreference should be called to setup biometrics
+      await waitFor(() => {
+        expect(mockUpdateAuthPreference).toHaveBeenCalled();
+      });
+    });
+
+    it('continues login flow even if biometric setup fails', async () => {
+      // Arrange
+      mockUpdateAuthPreference.mockRejectedValueOnce(
+        new Error('Biometric setup failed'),
+      );
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - should still track successful login despite biometric failure
       await waitFor(() => {
         expect(mockTrackOnboarding).toHaveBeenCalled();
       });

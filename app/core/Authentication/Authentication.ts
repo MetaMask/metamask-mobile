@@ -715,7 +715,6 @@ class AuthenticationService {
 
       endTrace({ name: TraceName.VaultCreation });
 
-      await this.storePassword(password, authData.currentAuthType);
       await this.dispatchLogin();
       this.authData = authData;
 
@@ -797,14 +796,6 @@ class AuthenticationService {
 
           // Unlock keyrings.
           await this.loginVaultCreation(passwordToUse);
-
-          // Update authentication preference.
-          if (authPreference) {
-            await this.updateAuthPreference({
-              password: passwordToUse,
-              authType: authPreference.currentAuthType,
-            });
-          }
 
           // Perform post login operations.
           await this.dispatchLogin();

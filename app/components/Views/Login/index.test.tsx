@@ -506,26 +506,27 @@ describe('Login', () => {
       expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
     });
 
-    it('biometric button is not shown when previously disabled', async () => {
+    it('biometric button is shown when biometric credentials exist', async () => {
+      // With toggle removed, biometric button shows based on credentials, not storage flags
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
         if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
         return Promise.resolve(null);
       });
 
       mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
         availableBiometryType: 'TouchID',
       });
 
-      const { queryByTestId } = renderWithProvider(<Login />);
+      const { getByTestId } = renderWithProvider(<Login />);
 
       // Wait for useEffect to complete
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      // Should NOT render biometric button when previously disabled
-      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
+      // Should render biometric button when biometric credentials exist
+      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
     });
   });
 

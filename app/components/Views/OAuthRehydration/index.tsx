@@ -91,7 +91,6 @@ import Label from '../../../component-library/components/Form/Label';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
-import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -152,7 +151,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
-  const { componentAuthenticationType, unlockWallet } = useAuthentication();
+  const { componentAuthenticationType, unlockWallet, updateAuthPreference } =
+    useAuthentication();
 
   const track = useCallback(
     (
@@ -168,20 +168,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     },
     [saveOnboardingEvent],
   );
-
-  const [biometryChoice, setBiometryChoice] = useState(true);
-  const updateBiometryChoice = useCallback(
-    async (newBiometryChoice: boolean) => {
-      await updateAuthTypeStorageFlags(newBiometryChoice);
-      setBiometryChoice(newBiometryChoice);
-    },
-    [],
-  );
-
-  // default biometric choice to true
-  useEffect(() => {
-    updateBiometryChoice(true);
-  }, [updateBiometryChoice]);
 
   const tooManyAttemptsError = useCallback(
     async (initialRemainingTime: number) => {
@@ -414,7 +400,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         );
 
       if (isBiometricCancellation) {
-        updateBiometryChoice(false);
         setLoading(false);
         return;
       }
@@ -446,7 +431,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       track,
       handleSeedlessOnboardingControllerError,
       handlePasswordError,
-      updateBiometryChoice,
       route.params?.onboardingTraceCtx,
       isComingFromOauthOnboarding,
     ],
@@ -456,7 +440,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     endTrace({ name: TraceName.LoginUserInteraction });
     track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
       account_type: 'social',
-      biometrics: biometryChoice,
     });
 
     try {
@@ -464,12 +447,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // try default with biometric if available and no remember me flag
-      const authType = await componentAuthenticationType(biometryChoice, false);
+      // standardize with login screen, always use password authentication
+      const authType = await componentAuthenticationType(false, false);
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
       authType.oauth2Login = true;
 
+      // default to true for biometrics
+      let biometricSetupSucceeded = true;
       await trace(
         {
           name: TraceName.AuthenticateUser,
@@ -477,12 +462,21 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
         async () => {
           await unlockWallet({ password, authPreference: authType });
+          try {
+            await updateAuthPreference({
+              authType: authType.currentAuthType,
+              password,
+            });
+          } catch (error) {
+            // if error, set biometryChoice to false
+            biometricSetupSucceeded = false;
+          }
         },
       );
 
       track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
         account_type: 'social',
-        biometrics: biometryChoice,
+        biometrics: biometricSetupSucceeded,
         failed_attempts: rehydrationFailedAttempts,
       });
 
@@ -500,13 +494,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
   }, [
     password,
-    biometryChoice,
     finalLoading,
     rehydrationFailedAttempts,
     handleLoginError,
     passwordLoginAttemptTraceCtxRef,
     track,
     componentAuthenticationType,
+    updateAuthPreference,
     unlockWallet,
   ]);
 
@@ -517,7 +511,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(true);
 
       // try default with biometric if available and no remember me flag
-      const authType = await componentAuthenticationType(biometryChoice, false);
+      const authType = await componentAuthenticationType(false, false);
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
       authType.oauth2Login = false;
@@ -529,6 +523,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
         async () => {
           await unlockWallet({ password, authPreference: authType });
+          try {
+            await updateAuthPreference({
+              authType: authType.currentAuthType,
+              password,
+            });
+          } catch (error) {
+            // if error, do nothing
+          }
         },
       );
 
@@ -539,10 +541,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
   }, [
     password,
-    biometryChoice,
     finalLoading,
     handleLoginError,
     componentAuthenticationType,
+    updateAuthPreference,
     unlockWallet,
   ]);
 
