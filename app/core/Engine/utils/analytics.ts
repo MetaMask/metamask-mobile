@@ -9,6 +9,7 @@ import type {
 } from '../../../core/Analytics/MetaMetrics.types';
 import Logger from '../../../util/Logger';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { filterUndefinedValues } from '../../../util/analytics/filterUndefinedValues';
 
 /**
  * Track an analytics event using the initMessenger.
@@ -59,7 +60,7 @@ export const buildAndTrackEvent = (
 ): void => {
   try {
     const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
-      .addProperties((properties || {}) as AnalyticsEventProperties)
+      .addProperties(filterUndefinedValues(properties))
       .build();
     trackEvent(initMessenger, analyticsEvent);
   } catch (error) {

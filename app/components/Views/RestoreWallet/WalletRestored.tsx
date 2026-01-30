@@ -22,6 +22,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { filterUndefinedValues } from '../../../util/analytics/filterUndefinedValues';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -47,7 +48,7 @@ const WalletRestored = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED,
       )
-        .addProperties({ ...deviceMetaData })
+        .addProperties(filterUndefinedValues(deviceMetaData))
         .build(),
     );
   }, [deviceMetaData, trackEvent, createEventBuilder]);
@@ -72,7 +73,7 @@ const WalletRestored = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_CONTINUE_BUTTON_PRESSED,
       )
-        .addProperties({ ...deviceMetaData })
+        .addProperties(filterUndefinedValues(deviceMetaData))
         .build(),
     );
     finishWalletRestore();

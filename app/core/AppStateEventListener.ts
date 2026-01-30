@@ -3,6 +3,7 @@ import Logger from '../util/Logger';
 import { MetaMetricsEvents } from './Analytics';
 import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../util/analytics/analytics';
+import { filterUndefinedValues } from '../util/analytics/filterUndefinedValues';
 import { processAttribution } from './processAttribution';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import ReduxService from './redux';
@@ -93,7 +94,7 @@ export class AppStateEventListener {
           `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId}`,
           utmParams,
         );
-        appOpenedEventBuilder.addProperties({ ...attribution });
+        appOpenedEventBuilder.addProperties(filterUndefinedValues(attribution));
       }
       analytics.trackEvent(appOpenedEventBuilder.build());
     } catch (error) {

@@ -18,7 +18,7 @@ import {
 import { Hex, Json } from '@metamask/utils';
 import Logger from '../../../util/Logger';
 import { buildAndTrackEvent } from '../utils/analytics';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
+import { filterUndefinedValues } from '../../../util/analytics/filterUndefinedValues';
 import { CONNECTIVITY_STATUSES } from '@metamask/connectivity-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -212,7 +212,7 @@ export const networkControllerInit: ControllerInitFunction<
           buildAndTrackEvent(
             initMessenger,
             event,
-            properties as AnalyticsEventProperties | null | undefined,
+            filterUndefinedValues(properties),
           );
         },
         metaMetricsId: analyticsId ?? '',
@@ -240,7 +240,7 @@ export const networkControllerInit: ControllerInitFunction<
           buildAndTrackEvent(
             initMessenger,
             event,
-            properties as AnalyticsEventProperties | null | undefined,
+            filterUndefinedValues(properties),
           );
         },
         metaMetricsId: analyticsId ?? '',
