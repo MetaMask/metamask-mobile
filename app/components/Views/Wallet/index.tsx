@@ -182,6 +182,7 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
+import { OTA_VERSION } from '../../../constants/ota';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -1350,6 +1351,10 @@ const Wallet = ({
             }
           />
         ) : null}
+        <BannerAlert
+          severity={BannerAlertSeverity.Info}
+          title={`this is ota update banner prod ${OTA_VERSION}`}
+        />
         <NetworkConnectionBanner />
       </View>
       <>
