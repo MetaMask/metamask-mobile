@@ -19,10 +19,6 @@ export const ToastContextWrapper: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     // Register the ref with ToastService when the component is mounted
     ToastService.toastRef = toastRef;
-    // Unregister the ref when the component is unmounted
-    return () => {
-      ToastService.toastRef = null;
-    };
   }, [toastRef]);
 
   return (

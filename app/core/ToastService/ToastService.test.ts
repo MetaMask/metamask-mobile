@@ -161,7 +161,6 @@ describe('ToastService', () => {
   describe('resetForTesting', () => {
     it('resets toastRef to null', () => {
       ToastService.toastRef = mockToastRef;
-      expect(ToastService.toastRef).toBe(mockToastRef);
 
       ToastService.resetForTesting();
 
