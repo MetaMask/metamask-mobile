@@ -242,8 +242,7 @@ describe('Snap Keyring Methods', () => {
         },
         true,
       ]);
-      // persistKeyringHelper is called twice: once during handleUserInput and once during saveState
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
       expect(mockGetAccounts).toHaveBeenCalledTimes(1);
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
 
@@ -276,8 +275,7 @@ describe('Snap Keyring Methods', () => {
       });
 
       expect(mockStartFlow).toHaveBeenCalledTimes(2);
-      // persistKeyringHelper is called twice: once during handleUserInput and once during saveState
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
       expect(mockAddRequest).toHaveBeenNthCalledWith(1, [
         {
           origin: mockSnapId,
@@ -431,8 +429,7 @@ describe('Snap Keyring Methods', () => {
       expect(mockListMultichainAccounts).toHaveBeenCalledTimes(1);
 
       // Verify that the account was created
-      // persistKeyringHelper is called twice: once during handleUserInput and once during saveState
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
@@ -471,8 +468,7 @@ describe('Snap Keyring Methods', () => {
       expect(mockStartFlow).toHaveBeenCalledTimes(2);
 
       // Verify that the account was created
-      // persistKeyringHelper is called twice: once during handleUserInput and once during saveState
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
@@ -523,8 +519,7 @@ describe('Snap Keyring Methods', () => {
       ]);
 
       // Verify that the account was created
-      // persistKeyringHelper is called twice: once during handleUserInput and once during saveState
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
@@ -627,8 +622,7 @@ describe('Snap Keyring Methods', () => {
       expect(mockStartFlow).not.toHaveBeenCalled();
 
       // Verify that the account was created
-      // persistKeyringHelper is called twice: once during handleUserInput and once during saveState
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
@@ -667,8 +661,7 @@ describe('Snap Keyring Methods', () => {
       expect(mockStartFlow).toHaveBeenCalledTimes(2);
 
       // Verify that the account was created
-      // persistKeyringHelper is called twice: once during handleUserInput and once during saveState
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization)
       await waitForAllPromises();
