@@ -268,10 +268,6 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
       skipApprovalFlow,
     });
 
-    // Auto-approve account creation - the SnapKeyring library requires this callback
-    // to be called to proceed with saving the account
-    await handleUserInput(true);
-
     // The second part is about selecting the newly created account and showing some other
     // confirmation dialogs (or error dialogs if anything goes wrong while persisting the account
     // into the state.
