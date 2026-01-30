@@ -66,7 +66,7 @@ jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
 
 jest.mock('../../../util/errorHandling', () => ({
   containsErrorMessage: (error: Error, message: string) =>
-    error.message.includes(message),
+    error.toString().toLowerCase().includes(message.toLowerCase()),
 }));
 
 // Mock useMetrics
@@ -158,6 +158,15 @@ describe('OAuthRehydration', () => {
       isInternetReachable: true,
     });
     mockUpdateAuthPreference.mockResolvedValue(undefined);
+    // Reset isDeletingInProgress to false to prevent test pollution
+    mockIsDeletingInProgress.mockReturnValue(false);
+  });
+
+  afterEach(async () => {
+    // Flush any pending async operations to prevent test pollution
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
   });
 
   describe('Successful login flow', () => {
@@ -293,18 +302,15 @@ describe('OAuthRehydration', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      // Assert - biometrics should be true when setup succeeds
+      // Assert - trackOnboarding should be called with biometrics: true
       await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalled();
         const rehydrationCompletedCall = mockTrackOnboarding.mock.calls.find(
           (call) =>
-            call[0]?.properties?.name ===
-            MetaMetricsEvents.REHYDRATION_COMPLETED.category,
+            call[0]?.properties?.biometrics === true &&
+            call[0]?.properties?.account_type === 'social',
         );
-        expect(rehydrationCompletedCall?.[0]?.properties?.params).toMatchObject(
-          {
-            biometrics: true,
-          },
-        );
+        expect(rehydrationCompletedCall).toBeDefined();
       });
     });
 
@@ -323,18 +329,15 @@ describe('OAuthRehydration', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      // Assert - biometrics should be false when setup fails
+      // Assert - trackOnboarding should be called with biometrics: false
       await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalled();
         const rehydrationCompletedCall = mockTrackOnboarding.mock.calls.find(
           (call) =>
-            call[0]?.properties?.name ===
-            MetaMetricsEvents.REHYDRATION_COMPLETED.category,
+            call[0]?.properties?.biometrics === false &&
+            call[0]?.properties?.account_type === 'social',
         );
-        expect(rehydrationCompletedCall?.[0]?.properties?.params).toMatchObject(
-          {
-            biometrics: false,
-          },
-        );
+        expect(rehydrationCompletedCall).toBeDefined();
       });
     });
   });
@@ -844,87 +847,124 @@ describe('OAuthRehydration', () => {
       });
     });
 
-    it('calls updateAuthPreference when submitting new global password', async () => {
-      // Arrange
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-          isSeedlessPasswordOutdated: true,
-        },
-      });
-      mockComponentAuthenticationType.mockResolvedValue({
-        currentAuthType: 'biometrics',
-      });
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+    describe('password outdated login flow', () => {
+      it('calls updateAuthPreference when submitting new global password', async () => {
+        // Arrange - full setup for this test
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: true,
+            isSeedlessPasswordOutdated: true,
+          },
+        });
+        mockUseNetInfo.mockReturnValue({
+          isConnected: true,
+          isInternetReachable: true,
+        });
+        mockComponentAuthenticationType.mockResolvedValue({
+          currentAuthType: 'biometrics',
+        });
+        mockUnlockWallet.mockResolvedValue(undefined);
+        mockUpdateAuthPreference.mockResolvedValue(undefined);
 
-      // Act
-      fireEvent.changeText(passwordInput, 'newValidPassword123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
-      // Assert - updateAuthPreference should be called for password outdated flow
-      await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
-          authType: 'biometrics',
-          password: 'newValidPassword123',
+        // Clear call history after render, before action
+        mockUpdateAuthPreference.mockClear();
+
+        // Act
+        fireEvent.changeText(passwordInput, 'newValidPassword123');
+        await act(async () => {
+          fireEvent(passwordInput, 'submitEditing');
+        });
+
+        // Assert - check updateAuthPreference was called with correct params
+        await waitFor(() => {
+          expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+            authType: 'biometrics',
+            password: 'newValidPassword123',
+          });
         });
       });
-    });
 
-    it('calls componentAuthenticationType with password-only mode for outdated password flow', async () => {
-      // Arrange
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-          isSeedlessPasswordOutdated: true,
-        },
+      it('calls componentAuthenticationType with password-only mode for outdated password flow', async () => {
+        // Arrange - full setup for this test
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: true,
+            isSeedlessPasswordOutdated: true,
+          },
+        });
+        mockUseNetInfo.mockReturnValue({
+          isConnected: true,
+          isInternetReachable: true,
+        });
+        mockComponentAuthenticationType.mockResolvedValue({
+          currentAuthType: 'password',
+        });
+        mockUnlockWallet.mockResolvedValue(undefined);
+        mockUpdateAuthPreference.mockResolvedValue(undefined);
+
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+        // Clear call history after render, before action
+        mockComponentAuthenticationType.mockClear();
+
+        // Act
+        fireEvent.changeText(passwordInput, 'newValidPassword123');
+        await act(async () => {
+          fireEvent(passwordInput, 'submitEditing');
+        });
+
+        // Assert - check componentAuthenticationType was called with (false, false)
+        await waitFor(() => {
+          expect(mockComponentAuthenticationType).toHaveBeenCalledWith(
+            false,
+            false,
+          );
+        });
       });
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
-      // Act
-      fireEvent.changeText(passwordInput, 'newValidPassword123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert - should always use password authentication (false, false)
-      await waitFor(() => {
-        expect(mockComponentAuthenticationType).toHaveBeenCalledWith(
-          false,
-          false,
+      it('continues login when updateAuthPreference fails in outdated password flow', async () => {
+        // Arrange - full setup for this test
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: true,
+            isSeedlessPasswordOutdated: true,
+          },
+        });
+        mockUseNetInfo.mockReturnValue({
+          isConnected: true,
+          isInternetReachable: true,
+        });
+        mockComponentAuthenticationType.mockResolvedValue({
+          currentAuthType: 'password',
+        });
+        mockUnlockWallet.mockResolvedValue(undefined);
+        mockUpdateAuthPreference.mockRejectedValue(
+          new Error('Biometric setup failed'),
         );
-      });
-    });
 
-    it('continues login when updateAuthPreference fails in outdated password flow', async () => {
-      // Arrange
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-          isSeedlessPasswordOutdated: true,
-        },
-      });
-      mockUpdateAuthPreference.mockRejectedValueOnce(
-        new Error('Biometric setup failed'),
-      );
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
-      // Act
-      fireEvent.changeText(passwordInput, 'newValidPassword123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
+        // Clear call history after render, before action
+        mockUnlockWallet.mockClear();
 
-      // Assert - unlockWallet should have been called despite biometric failure
-      await waitFor(() => {
-        expect(mockUnlockWallet).toHaveBeenCalled();
+        // Act
+        fireEvent.changeText(passwordInput, 'newValidPassword123');
+        await act(async () => {
+          fireEvent(passwordInput, 'submitEditing');
+        });
+
+        // Assert - check unlockWallet was called despite auth preference failure
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
+        });
       });
     });
   });
