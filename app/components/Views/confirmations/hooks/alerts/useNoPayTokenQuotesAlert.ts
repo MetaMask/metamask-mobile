@@ -10,7 +10,6 @@ import {
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
   useTransactionPayIsPostQuote,
-  useTransactionPaySelectedToken,
 } from '../pay/useTransactionPayData';
 
 export function useNoPayTokenQuotesAlert() {
@@ -20,7 +19,6 @@ export function useNoPayTokenQuotesAlert() {
   const sourceAmounts = useTransactionPaySourceAmounts();
   const requiredTokens = useTransactionPayRequiredTokens();
   const isPostQuote = useTransactionPayIsPostQuote();
-  const selectedToken = useTransactionPaySelectedToken();
 
   const isOptionalOnly = (sourceAmounts ?? []).every(
     (t) =>
@@ -34,9 +32,9 @@ export function useNoPayTokenQuotesAlert() {
   const isSameTokenWithdrawal =
     isPostQuote &&
     sourceToken &&
-    selectedToken &&
-    sourceToken.address.toLowerCase() === selectedToken.address.toLowerCase() &&
-    sourceToken.chainId === selectedToken.chainId;
+    payToken &&
+    sourceToken.address.toLowerCase() === payToken.address.toLowerCase() &&
+    sourceToken.chainId === payToken.chainId;
 
   const showAlert =
     payToken &&

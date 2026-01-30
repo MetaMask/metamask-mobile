@@ -53,13 +53,6 @@ export const selectTransactionPayIsPostQuoteByTransactionId = createSelector(
   (transactionData) => transactionData?.isPostQuote ?? false,
 );
 
-/**
- * For withdrawal flows (isPostQuote=true), paymentToken represents the destination token.
- * This selector provides a semantic alias for code that's working with withdrawal destinations.
- */
-export const selectTransactionPaySelectedTokenByTransactionId =
-  selectTransactionPaymentTokenByTransactionId;
-
 export const selectTransactionPayTransactionData = createSelector(
   selectTransactionPayControllerState,
   (state) => state.transactionData,

@@ -15,11 +15,9 @@ import {
   useTransactionPayQuotes,
   useTransactionPaySourceAmounts,
   useTransactionPayIsPostQuote,
-  useTransactionPaySelectedToken,
   useTransactionPayRequiredTokens,
 } from '../pay/useTransactionPayData';
 import {
-  TransactionPaymentToken,
   TransactionPayQuote,
   TransactionPayRequiredToken,
   TransactionPaySourceAmount,
@@ -57,9 +55,6 @@ describe('useNoPayTokenQuotesAlert', () => {
   const useTransactionPayIsPostQuoteMock = jest.mocked(
     useTransactionPayIsPostQuote,
   );
-  const useTransactionPaySelectedTokenMock = jest.mocked(
-    useTransactionPaySelectedToken,
-  );
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
@@ -80,7 +75,6 @@ describe('useNoPayTokenQuotesAlert', () => {
       {} as TransactionPaySourceAmount,
     ]);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
-    useTransactionPaySelectedTokenMock.mockReturnValue(undefined);
     useTransactionPayRequiredTokensMock.mockReturnValue([
       { address: '0xSource', chainId: '0x89' } as TransactionPayRequiredToken,
     ]);
@@ -134,11 +128,13 @@ describe('useNoPayTokenQuotesAlert', () => {
     });
 
     it('returns no alert for same-token-same-chain withdrawal (no bridge needed)', () => {
-      // Selected token matches source token
-      useTransactionPaySelectedTokenMock.mockReturnValue({
-        address: SOURCE_TOKEN_ADDRESS,
-        chainId: SOURCE_CHAIN_ID,
-      } as TransactionPaymentToken);
+      // payToken matches source token (same-token withdrawal)
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: SOURCE_TOKEN_ADDRESS,
+          chainId: SOURCE_CHAIN_ID,
+        },
+      } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook();
 
@@ -147,11 +143,13 @@ describe('useNoPayTokenQuotesAlert', () => {
     });
 
     it('returns alert for cross-chain withdrawal with no quotes', () => {
-      // Selected token is different from source token
-      useTransactionPaySelectedTokenMock.mockReturnValue({
-        address: '0xDifferentToken' as Hex,
-        chainId: '0x38' as Hex,
-      } as TransactionPaymentToken);
+      // payToken is different from source token (cross-chain withdrawal)
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: '0xDifferentToken' as Hex,
+          chainId: '0x38' as Hex,
+        },
+      } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook();
 
