@@ -1118,7 +1118,7 @@ describe('RewardsController', () => {
       expect(disabledController.state.pointsEstimateHistory).toHaveLength(0);
     });
 
-    it('should limit history to 20 entries', async () => {
+    it('should limit history to 50 entries', async () => {
       const mockRequest = {
         activityType: 'SWAP' as const,
         account: CAIP_ACCOUNT_1,
@@ -1165,12 +1165,12 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      // Make 25 calls - should only keep last 20
-      for (let i = 0; i < 25; i++) {
+      // Make 55 calls - should only keep last 50
+      for (let i = 0; i < 55; i++) {
         await controller.estimatePoints(mockRequest);
       }
 
-      expect(controller.state.pointsEstimateHistory).toHaveLength(20);
+      expect(controller.state.pointsEstimateHistory).toHaveLength(50);
 
       jest.useRealTimers();
     });

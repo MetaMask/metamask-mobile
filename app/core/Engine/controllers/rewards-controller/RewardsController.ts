@@ -96,7 +96,7 @@ const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
 
 // Maximum number of points estimate history entries to keep for Customer Support diagnostics
-const MAX_POINTS_ESTIMATE_HISTORY_ENTRIES = 20;
+const MAX_POINTS_ESTIMATE_HISTORY_ENTRIES = 50;
 
 /**
  * State metadata for the RewardsController
