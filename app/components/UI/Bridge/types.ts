@@ -5,6 +5,8 @@ import {
 } from '@metamask/bridge-controller';
 import { Asset, TokenRwaData } from '@metamask/assets-controllers';
 import { Hex, CaipChainId } from '@metamask/utils';
+import type { TransactionMeta } from '@metamask/transaction-controller';
+import type { Transaction } from '@metamask/keyring-api';
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
 export interface BridgeToken {
@@ -48,3 +50,51 @@ export enum TokenSelectorType {
   Source = 'source',
   Dest = 'dest',
 }
+
+// ========== Navigation Types ==========
+
+/**
+ * Param list for the Bridge screen stack navigator.
+ */
+export interface BridgeScreenParamList {
+  BridgeView:
+    | {
+        sourcePage?: string;
+        bridgeViewMode?: BridgeViewMode;
+        sourceToken?: BridgeToken;
+        destToken?: BridgeToken;
+        sourceAmount?: string;
+      }
+    | undefined;
+}
+
+/**
+ * Param list for the Bridge modal stack navigator.
+ */
+export interface BridgeModalParamList {
+  BridgeSourceTokenSelector: undefined;
+  BridgeDestTokenSelector: undefined;
+  BridgeSourceNetworkSelector: undefined;
+  BridgeDestNetworkSelector: undefined;
+  SlippageModal: undefined;
+  TransactionDetailsBlockExplorer: {
+    evmTxMeta?: TransactionMeta;
+    multiChainTx?: Transaction;
+  };
+  QuoteExpiredModal: undefined;
+  BlockaidModal: undefined;
+  RecipientSelectorModal: undefined;
+}
+
+/**
+ * Params for TransactionDetailsBlockExplorer route.
+ */
+export interface TransactionDetailsBlockExplorerParams {
+  evmTxMeta?: TransactionMeta;
+  multiChainTx?: Transaction;
+}
+
+/**
+ * Combined param list for all Bridge-related navigation.
+ */
+export type BridgeParamList = BridgeScreenParamList & BridgeModalParamList;

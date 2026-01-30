@@ -21,7 +21,7 @@ import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
-import { TabBarProps } from './TabBar.types';
+import { TabBarProps, TabBarIconKey } from './TabBar.types';
 import {
   ICON_BY_TAB_BAR_ICON_KEY,
   LABEL_BY_TAB_BAR_ICON_KEY,
@@ -42,7 +42,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
       const { options } = descriptors[route.key];
-      const tabBarIconKey = options.tabBarIconKey;
+      const tabBarIconKey = options.tabBarIconKey as TabBarIconKey;
       //TODO: use another option on add it to the prop interface
       const callback = options.callback;
       const rootScreenName = options.rootScreenName;

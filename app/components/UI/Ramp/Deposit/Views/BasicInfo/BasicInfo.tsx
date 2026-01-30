@@ -56,8 +56,9 @@ export interface BasicInfoParams {
   previousFormData?: BasicInfoFormData & AddressFormData;
 }
 
-export const createBasicInfoNavDetails =
-  createNavigationDetails<BasicInfoParams>(Routes.DEPOSIT.BASIC_INFO);
+export const createBasicInfoNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.BASIC_INFO,
+);
 
 export interface BasicInfoFormData {
   firstName: string;

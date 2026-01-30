@@ -1,8 +1,4 @@
-import {
-  NavigationProp,
-  RouteProp,
-  StackActions,
-} from '@react-navigation/native';
+import { RouteProp, StackActions } from '@react-navigation/native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -205,7 +201,7 @@ const mockRoute: RouteProp<PredictNavigationParamList, 'PredictBuyPreview'> = {
   },
 };
 
-const mockNavigation: NavigationProp<PredictNavigationParamList> = {
+const mockNavigation = {
   goBack: mockGoBack,
   dispatch: mockDispatch,
   navigate: jest.fn(),
@@ -216,8 +212,8 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   removeListener: jest.fn(),
   canGoBack: jest.fn(),
   isFocused: jest.fn(),
-  dangerouslyGetParent: jest.fn(),
-  dangerouslyGetState: jest.fn(),
+  getParent: jest.fn(),
+  getState: jest.fn(),
 };
 
 const initialState = {

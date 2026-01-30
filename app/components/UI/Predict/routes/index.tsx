@@ -19,12 +19,12 @@ const ModalStack = createStackNavigator<PredictNavigationParamList>();
 
 const PredictModalStack = () => (
   <ModalStack.Navigator
-    mode="modal"
     screenOptions={{
       headerShown: false,
       cardStyle: {
         backgroundColor: 'transparent',
       },
+      presentation: 'modal',
     }}
   >
     <ModalStack.Screen

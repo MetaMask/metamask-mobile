@@ -45,11 +45,10 @@ interface AddFundsModalNavigationDetails {
   priorityToken?: CardTokenAllowance;
 }
 
-export const createAddFundsModalNavigationDetails =
-  createNavigationDetails<AddFundsModalNavigationDetails>(
-    Routes.CARD.MODALS.ID,
-    Routes.CARD.MODALS.ADD_FUNDS,
-  );
+export const createAddFundsModalNavigationDetails = createNavigationDetails(
+  Routes.CARD.MODALS.ID,
+  Routes.CARD.MODALS.ADD_FUNDS,
+);
 
 const AddFundsBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);

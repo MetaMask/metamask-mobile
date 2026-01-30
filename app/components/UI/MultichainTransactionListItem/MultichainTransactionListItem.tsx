@@ -1,4 +1,4 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, { useCallback } from 'react';
 import {
   Image,
@@ -27,28 +27,28 @@ import Routes from '../../../constants/navigation/Routes';
 const MultichainTransactionListItem = ({
   transaction,
   chainId,
-  navigation,
   index,
 }: {
   transaction: Transaction;
   chainId: SupportedCaipChainId;
-  navigation: NavigationProp<ParamListBase>;
   index?: number;
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
   const appTheme = useSelector((state: RootState) => state.user.appTheme);
 
+  const navigation = useNavigation();
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
   const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
 
   const handlePress = useCallback(() => {
-    navigation.navigate(
-      Routes.MODAL.ROOT_MODAL_FLOW as never,
+    // Type assertion needed for v6 navigate() overload resolution
+    (navigation.navigate as (screen: string, params: object) => void)(
+      Routes.MODAL.ROOT_MODAL_FLOW,
       {
         screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
         params: { displayData, transaction },
-      } as never,
+      },
     );
   }, [navigation, displayData, transaction]);
 

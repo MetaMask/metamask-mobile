@@ -29,7 +29,10 @@ async function updateSDKLoadingState({
     Routes.ONBOARDING.LOGIN,
     Routes.SHEET.ACCOUNT_CONNECT,
   ];
-  if (currentRouteName && skipRoutes.includes(currentRouteName)) {
+  if (
+    currentRouteName &&
+    skipRoutes.includes(currentRouteName as (typeof skipRoutes)[number])
+  ) {
     // Skip on lock screen
     return;
   }

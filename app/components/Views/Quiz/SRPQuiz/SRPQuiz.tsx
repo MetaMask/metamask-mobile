@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Linking, AppState } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -31,25 +31,15 @@ import {
 } from './SrpQuizModal.testIds';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useSelector } from 'react-redux';
+import type { RootParamList } from '../../../../util/navigation/types';
 
 const introductionImg = require('../../../../images/reveal_srp.png');
 
-export interface SRPQuizProps {
-  route: {
-    params: {
-      keyringId?: string;
-    };
-  };
-}
+type SRPQuizRouteProp = RouteProp<RootParamList, 'SRPRevealQuiz'>;
 
-const SRPQuiz = (props: SRPQuizProps) => {
-  // It has be destructured like this because of prettier
-  // shifting the fence to the ending curly brace.
-  const {
-    route: {
-      params: { keyringId },
-    },
-  } = props;
+const SRPQuiz = () => {
+  const route = useRoute<SRPQuizRouteProp>();
+  const { keyringId } = route.params ?? {};
   const modalRef = useRef<BottomSheetRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});

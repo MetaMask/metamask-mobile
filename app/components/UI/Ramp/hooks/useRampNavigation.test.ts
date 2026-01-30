@@ -17,7 +17,7 @@ import { createEligibilityFailedModalNavigationDetails } from '../components/Eli
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 
 jest.mock('@react-navigation/native');
-jest.mock('@react-navigation/compat', () => ({
+jest.mock('../../../hooks/useNavigation', () => ({
   withNavigation: jest.fn((component) => component),
 }));
 jest.mock('../Aggregator/routes/utils');

@@ -59,7 +59,7 @@ interface RegionSelectorModalParams {
 }
 
 export const createRegionSelectorModalNavigationDetails =
-  createNavigationDetails<RegionSelectorModalParams>(
+  createNavigationDetails(
     Routes.CARD.MODALS.ID,
     Routes.CARD.MODALS.REGION_SELECTION,
   );

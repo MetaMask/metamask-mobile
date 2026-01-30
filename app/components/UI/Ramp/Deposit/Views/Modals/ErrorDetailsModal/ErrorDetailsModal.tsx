@@ -26,11 +26,10 @@ export interface ErrorDetailsModalParams {
   errorMessage: string;
 }
 
-export const createErrorDetailsModalNavigationDetails =
-  createNavigationDetails<ErrorDetailsModalParams>(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.ERROR_DETAILS,
-  );
+export const createErrorDetailsModalNavigationDetails = createNavigationDetails(
+  Routes.DEPOSIT.MODALS.ID,
+  Routes.DEPOSIT.MODALS.ERROR_DETAILS,
+);
 
 function ErrorDetailsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);

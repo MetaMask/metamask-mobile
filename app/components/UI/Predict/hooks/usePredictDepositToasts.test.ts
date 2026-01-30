@@ -22,8 +22,8 @@ jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: jest.fn(),
 }));
 
-// Mock @react-navigation/compat
-jest.mock('@react-navigation/compat', () => ({
+// Mock withNavigation HOC
+jest.mock('../../../hooks/useNavigation', () => ({
   withNavigation: jest.fn((component) => component),
 }));
 

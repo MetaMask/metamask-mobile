@@ -5,6 +5,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+import type { RootParamList } from '../../../../util/navigation/types';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -26,7 +27,7 @@ export interface MusdConversionConfig {
   /**
    * Optional navigation stack to use (defaults to Routes.EARN.ROOT)
    */
-  navigationStack?: string;
+  navigationStack?: keyof RootParamList;
   /**
    * Skip the education screen check. Used when calling from the education view itself
    */
@@ -81,13 +82,18 @@ export const useMusdConversion = () => {
         },
       });
 
-      navigation.navigate(navigationStack, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        params: {
-          loader: ConfirmationLoader.CustomAmount,
-          preferredPaymentToken,
+      // Type assertion needed: navigationStack is validated as keyof RootParamList
+      // but navigate() requires a specific literal type for overload resolution
+      (navigation.navigate as (screen: string, params: object) => void)(
+        navigationStack,
+        {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params: {
+            loader: ConfirmationLoader.CustomAmount,
+            preferredPaymentToken,
+          },
         },
-      });
+      );
     },
     [navigation],
   );
@@ -105,12 +111,17 @@ export const useMusdConversion = () => {
       const { preferredPaymentToken, navigationStack = Routes.EARN.ROOT } =
         config;
 
-      navigation.navigate(navigationStack, {
-        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        params: {
-          preferredPaymentToken,
+      // Type assertion needed: navigationStack is validated as keyof RootParamList
+      // but navigate() requires a specific literal type for overload resolution
+      (navigation.navigate as (screen: string, params: object) => void)(
+        navigationStack,
+        {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            preferredPaymentToken,
+          },
         },
-      });
+      );
 
       return true;
     },

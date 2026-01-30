@@ -9,7 +9,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, {
   forwardRef,
   useEffect,
@@ -34,7 +34,6 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { selectPredictWonPositions } from '../../selectors/predictController';
 import { PredictPosition } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
@@ -58,8 +57,7 @@ const PredictPositionsHeader = forwardRef<
 >((props, ref) => {
   const { onError } = props;
   const { claim } = usePredictClaim();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const tw = useTailwind();
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: POLYMARKET_PROVIDER_ID,

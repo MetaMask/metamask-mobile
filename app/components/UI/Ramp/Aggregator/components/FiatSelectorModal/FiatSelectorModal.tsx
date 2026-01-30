@@ -32,11 +32,10 @@ interface FiatSelectorModalNavigationDetails {
   currencies: FiatCurrency[];
 }
 
-export const createFiatSelectorModalNavigationDetails =
-  createNavigationDetails<FiatSelectorModalNavigationDetails>(
-    Routes.RAMP.MODALS.ID,
-    Routes.RAMP.MODALS.FIAT_SELECTOR,
-  );
+export const createFiatSelectorModalNavigationDetails = createNavigationDetails(
+  Routes.RAMP.MODALS.ID,
+  Routes.RAMP.MODALS.FIAT_SELECTOR,
+);
 
 function FiatSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);

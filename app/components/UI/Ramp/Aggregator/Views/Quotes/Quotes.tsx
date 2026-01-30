@@ -70,7 +70,7 @@ export interface QuotesParams {
   fiatCurrency: FiatCurrency;
 }
 
-export const createQuotesNavDetails = createNavigationDetails<QuotesParams>(
+export const createQuotesNavDetails = createNavigationDetails(
   Routes.RAMP.QUOTES,
 );
 

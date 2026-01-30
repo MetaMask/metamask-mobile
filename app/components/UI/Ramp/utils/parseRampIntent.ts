@@ -66,11 +66,12 @@ export default function parseRampIntent(
     delete rampIntentCandidate.chainId;
   }
 
-  Object.keys(rampIntentCandidate).forEach(
-    (key) =>
-      rampIntentCandidate[key as keyof RampIntent] === undefined &&
-      delete rampIntentCandidate[key as keyof RampIntent],
-  );
+  Object.keys(rampIntentCandidate).forEach((key) => {
+    const k = key as keyof typeof rampIntentCandidate;
+    if (rampIntentCandidate[k] === undefined) {
+      delete rampIntentCandidate[k];
+    }
+  });
 
   return rampIntentCandidate as RampIntent;
 }

@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
+import type { RootParamList } from '../../../../util/navigation/types';
 import {
   ConfirmationLoader,
   ConfirmationParams,
@@ -23,7 +24,7 @@ const ROUTE_NO_HEADER = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 export type ConfirmNavigateOptions = {
   amount?: string;
   headerShown?: boolean;
-  stack?: string;
+  stack?: keyof RootParamList;
 } & ConfirmationParams;
 
 export function useConfirmNavigation() {
@@ -67,7 +68,11 @@ export function useConfirmNavigation() {
       log('Navigating', { route, params, stack });
 
       if (stack) {
-        navigate(stack, { screen: route, params });
+        // Type assertion: stack is keyof RootParamList but navigate expects literal
+        (navigate as (screen: string, params: object) => void)(stack, {
+          screen: route,
+          params,
+        });
         return;
       }
 

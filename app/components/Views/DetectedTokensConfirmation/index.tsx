@@ -1,10 +1,12 @@
 import React, { useRef } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
+import type { RootParamList } from '../../../util/navigation/types';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,17 +55,14 @@ const createStyles = (colors: any) =>
     },
   });
 
-interface Props {
-  route: {
-    params: {
-      isHidingAll?: boolean;
-      onConfirm: () => void;
-    };
-  };
-}
+type DetectedTokensConfirmationRouteProp = RouteProp<
+  RootParamList,
+  'DetectedTokensConfirmation'
+>;
 
-const DetectedTokensConfirmation = ({ route }: Props) => {
-  const { onConfirm, isHidingAll } = route.params;
+const DetectedTokensConfirmation = () => {
+  const route = useRoute<DetectedTokensConfirmationRouteProp>();
+  const { onConfirm, isHidingAll } = route.params ?? {};
   const modalRef = useRef<ReusableModalRef>(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);

@@ -81,7 +81,7 @@ export const BaseWalletDetails = ({
     if (keyringId) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        keyringId,
+        params: { keyringId },
       });
     }
   }, [navigation, keyringId]);

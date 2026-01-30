@@ -7,7 +7,7 @@ export interface BrowserParams {
   showTabsView?: boolean;
 }
 
-const createBrowserNavDetails = createNavigationDetails<BrowserParams>(
+const createBrowserNavDetails = createNavigationDetails(
   Routes.BROWSER.HOME,
   Routes.BROWSER.VIEW,
 );

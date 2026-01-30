@@ -1,10 +1,10 @@
 import React from 'react';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { RootNavigationProp } from '../../../../../util/navigation/types';
 import SiteRowItem, { type SiteData } from '../SiteRowItem/SiteRowItem';
 import Routes from '../../../../../constants/navigation/Routes';
 interface SiteRowItemWrapperProps {
   site: SiteData;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: RootNavigationProp;
 }
 
 const SiteRowItemWrapper: React.FC<SiteRowItemWrapperProps> = ({

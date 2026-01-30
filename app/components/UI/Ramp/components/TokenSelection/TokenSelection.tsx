@@ -147,7 +147,7 @@ function TokenSelection() {
       // V1 flow: close the modal before navigating to Deposit/Aggregator
       // V2 flow: navigate within the same stack, no need to close modal
       if (!isRampsUnifiedV2Enabled) {
-        navigation.dangerouslyGetParent()?.goBack();
+        navigation.getParent()?.goBack();
       }
       goToBuy({ assetId });
     },

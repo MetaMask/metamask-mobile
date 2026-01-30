@@ -15,9 +15,8 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 jest.mock('../../hooks/usePredictDeposit');
 jest.mock('../../hooks/usePredictActionGuard');
 
-jest.mock('@react-navigation/compat', () => ({
+jest.mock('../../../../hooks/useNavigation', () => ({
   withNavigation: <T,>(component: T): T => component,
-  withNavigationFocus: <T,>(component: T): T => component,
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

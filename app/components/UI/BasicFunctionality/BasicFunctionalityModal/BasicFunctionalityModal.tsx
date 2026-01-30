@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 
 // External dependencies.
 import BottomSheet, {
@@ -33,16 +34,15 @@ import { useMetrics } from '../../../hooks/useMetrics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
+import type { RootParamList } from '../../../../util/navigation/types';
 
-interface Props {
-  route: {
-    params: {
-      caller: string;
-    };
-  };
-}
+type BasicFunctionalityModalRouteProp = RouteProp<
+  RootParamList,
+  'BasicFunctionality'
+>;
 
-const BasicFunctionalityModal = ({ route }: Props) => {
+const BasicFunctionalityModal = () => {
+  const route = useRoute<BasicFunctionalityModalRouteProp>();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = useTheme();
   const styles = createStyles(colors);

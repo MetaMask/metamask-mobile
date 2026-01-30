@@ -37,7 +37,7 @@ export interface StateSelectorModalParams {
 }
 
 export const createStateSelectorModalNavigationDetails =
-  createNavigationDetails<StateSelectorModalParams>(
+  createNavigationDetails(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.STATE_SELECTOR,
   );

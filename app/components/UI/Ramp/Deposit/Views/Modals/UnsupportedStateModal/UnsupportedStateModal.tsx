@@ -36,7 +36,7 @@ export interface UnsupportedStateModalParams {
 }
 
 export const createUnsupportedStateModalNavigationDetails =
-  createNavigationDetails<UnsupportedStateModalParams>(
+  createNavigationDetails(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.UNSUPPORTED_STATE,
   );
@@ -72,7 +72,7 @@ function UnsupportedStateModal() {
   const handleTryAnotherOption = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
       // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
+      navigation.getParent()?.pop();
       goToAggregator();
     });
   }, [closeBottomSheetAndNavigate, navigation, goToAggregator]);

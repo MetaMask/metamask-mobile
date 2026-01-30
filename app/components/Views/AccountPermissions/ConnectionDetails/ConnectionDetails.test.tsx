@@ -5,6 +5,15 @@ import ConnectionDetails from './ConnectionDetails';
 import { strings } from '../../../../../locales/i18n';
 
 const mockOnCloseBottomSheet = jest.fn();
+const mockUseRoute = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useRoute: () => mockUseRoute(),
+  };
+});
 
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
@@ -33,28 +42,24 @@ describe('ConnectionDetails', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <ConnectionDetails
-        route={{
-          params: {
-            connectionDateTime: 1677628800000, // March 1, 2023
-          },
-        }}
-      />,
-    );
+    mockUseRoute.mockReturnValue({
+      params: {
+        connectionDateTime: 1677628800000, // March 1, 2023
+      },
+    });
+
+    const { toJSON } = renderWithProvider(<ConnectionDetails />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays the correct title', () => {
-    const { getByText } = renderWithProvider(
-      <ConnectionDetails
-        route={{
-          params: {
-            connectionDateTime: 1677628800000,
-          },
-        }}
-      />,
-    );
+    mockUseRoute.mockReturnValue({
+      params: {
+        connectionDateTime: 1677628800000,
+      },
+    });
+
+    const { getByText } = renderWithProvider(<ConnectionDetails />);
 
     expect(
       getByText(strings('permissions.connection_details_title')),
@@ -65,15 +70,13 @@ describe('ConnectionDetails', () => {
     const timestamp = 1677628800000; // March 1, 2023
     const expectedFormattedDate = 'Feb 28, 2023';
 
-    const { getByText } = renderWithProvider(
-      <ConnectionDetails
-        route={{
-          params: {
-            connectionDateTime: timestamp,
-          },
-        }}
-      />,
-    );
+    mockUseRoute.mockReturnValue({
+      params: {
+        connectionDateTime: timestamp,
+      },
+    });
+
+    const { getByText } = renderWithProvider(<ConnectionDetails />);
 
     expect(
       getByText(
@@ -95,13 +98,11 @@ describe('ConnectionDetails', () => {
       },
     );
 
-    const { getByText } = renderWithProvider(
-      <ConnectionDetails
-        route={{
-          params: {},
-        }}
-      />,
-    );
+    mockUseRoute.mockReturnValue({
+      params: {},
+    });
+
+    const { getByText } = renderWithProvider(<ConnectionDetails />);
 
     expect(
       getByText(
@@ -113,15 +114,13 @@ describe('ConnectionDetails', () => {
   });
 
   it('calls onCloseBottomSheet when Got It button is pressed', () => {
-    const { getByText } = renderWithProvider(
-      <ConnectionDetails
-        route={{
-          params: {
-            connectionDateTime: 1677628800000,
-          },
-        }}
-      />,
-    );
+    mockUseRoute.mockReturnValue({
+      params: {
+        connectionDateTime: 1677628800000,
+      },
+    });
+
+    const { getByText } = renderWithProvider(<ConnectionDetails />);
 
     const gotItButton = getByText(strings('permissions.got_it'));
     fireEvent.press(gotItButton);

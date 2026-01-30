@@ -1,4 +1,5 @@
 import { NavigationContainerRef } from '@react-navigation/native';
+import type { RootParamList } from '../../util/navigation/types';
 import Logger from '../../util/Logger';
 
 /**
@@ -18,7 +19,7 @@ const DEFERRED_NAVIGATION_METHODS = ['navigate', 'reset'] as const;
  * when called during React's render cycle or navigation transitions.
  */
 class NavigationService {
-  static #navigation: NavigationContainerRef;
+  static #navigation: NavigationContainerRef<RootParamList>;
 
   /**
    * Checks that the navigation object exists
@@ -35,7 +36,9 @@ class NavigationService {
   /**
    * Checks that the navigation object is valid
    */
-  static #assertNavigationRefType(navRef: NavigationContainerRef) {
+  static #assertNavigationRefType(
+    navRef: NavigationContainerRef<RootParamList>,
+  ) {
     if (typeof navRef?.navigate !== 'function') {
       const error = new Error('Navigation reference is not valid!');
       Logger.error(error);
@@ -88,7 +91,7 @@ class NavigationService {
    * Set the navigation object
    * @param navRef
    */
-  static set navigation(navRef: NavigationContainerRef) {
+  static set navigation(navRef: NavigationContainerRef<RootParamList>) {
     this.#assertNavigationRefType(navRef);
     this.#navigation = this.#createReactAwareNavigation(navRef);
   }

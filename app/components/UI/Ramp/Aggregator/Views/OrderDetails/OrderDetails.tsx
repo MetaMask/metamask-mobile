@@ -43,8 +43,9 @@ interface OrderDetailsParams {
   redirectToSendTransaction?: boolean;
 }
 
-export const createOrderDetailsNavDetails =
-  createNavigationDetails<OrderDetailsParams>(Routes.RAMP.ORDER_DETAILS);
+export const createOrderDetailsNavDetails = createNavigationDetails(
+  Routes.RAMP.ORDER_DETAILS,
+);
 
 const OrderDetails = () => {
   const trackEvent = useAnalytics();

@@ -1,5 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
-import { NavigationProp } from '@react-navigation/native';
+import type { RootNavigationProp } from '../../../util/navigation/types';
 
 export const SlideContentType = {
   IMAGE: 'image',
@@ -50,9 +50,7 @@ interface SlideButton {
   type: typeof SlideContentType.BUTTON;
   buttonType: SlideButtonType;
   buttonText: string;
-  onPress: (props: {
-    navigation: NavigationProp<Record<string, object | undefined>>;
-  }) => void;
+  onPress: (props: { navigation: RootNavigationProp }) => void;
 }
 
 export type SlideContent =

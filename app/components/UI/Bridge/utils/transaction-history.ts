@@ -25,7 +25,7 @@ import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { toFormattedAddress } from '../../../../util/address';
 import Routes from '../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
+import type { RootNavigationProp } from '../../../../util/navigation/types';
 import Engine from '../../../../core/Engine';
 
 export const getSwapBridgeTxActivityTitle = (
@@ -240,7 +240,7 @@ export const handleUnifiedSwapsTxHistoryItemClick = ({
   multiChainTx,
   bridgeTxHistoryItem,
 }: {
-  navigation: ReturnType<typeof useNavigation>;
+  navigation: RootNavigationProp;
   evmTxMeta?: TransactionMeta;
   multiChainTx?: Transaction;
   bridgeTxHistoryItem?: BridgeHistoryItem;

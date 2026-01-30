@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useMusdConversion } from './useMusdConversion';
+import { useMusdConversion, MusdConversionConfig } from './useMusdConversion';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
@@ -53,8 +53,6 @@ const mockNavigation = {
   addListener: jest.fn(),
   removeListener: jest.fn(),
   getId: jest.fn(),
-  dangerouslyGetParent: jest.fn(),
-  dangerouslyGetState: jest.fn(),
 };
 
 const mockNetworkController = {
@@ -332,7 +330,7 @@ describe('useMusdConversion', () => {
       const configWithCustomStack = {
         ...mockConfig,
         navigationStack: 'CustomStack',
-      };
+      } as unknown as MusdConversionConfig;
 
       await result.current.initiateConversion(configWithCustomStack);
 

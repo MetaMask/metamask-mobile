@@ -15,7 +15,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { SELECT_OPTION_PREFIX } from './constants';
 
 export const createOptionsSheetNavDetails = (params: OptionsSheetParams) =>
-  createNavigationDetails<OptionsSheetParams>(Routes.OPTIONS_SHEET)({
+  createNavigationDetails(Routes.OPTIONS_SHEET)({
     ...params,
   });
 

@@ -23,11 +23,10 @@ export interface WebviewModalParams {
   handleNavigationStateChange?: (navState: { url: string }) => void;
 }
 
-export const createWebviewModalNavigationDetails =
-  createNavigationDetails<WebviewModalParams>(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.WEBVIEW,
-  );
+export const createWebviewModalNavigationDetails = createNavigationDetails(
+  Routes.DEPOSIT.MODALS.ID,
+  Routes.DEPOSIT.MODALS.WEBVIEW,
+);
 
 function WebviewModal() {
   const sheetRef = useRef<BottomSheetRef>(null);

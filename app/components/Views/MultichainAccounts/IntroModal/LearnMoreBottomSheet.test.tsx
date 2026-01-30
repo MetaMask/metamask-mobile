@@ -11,6 +11,7 @@ const mockNavigation = {
   navigate: jest.fn(),
 };
 const mockDispatch = jest.fn();
+const mockUseRoute = jest.fn();
 
 // Mock the BottomSheet component
 const mockOnCloseBottomSheet = jest.fn();
@@ -47,6 +48,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualReactNavigation,
     useNavigation: () => mockNavigation,
+    useRoute: () => mockUseRoute(),
     useTheme: () => ({}),
   };
 });
@@ -72,11 +74,17 @@ describe('LearnMoreBottomSheet', () => {
       };
       return selector(mockState);
     });
+    // Mock useRoute to return onClose param
+    mockUseRoute.mockReturnValue({
+      params: {
+        onClose: mockOnClose,
+      },
+    });
   });
 
   it('renders correctly with all elements', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -107,7 +115,7 @@ describe('LearnMoreBottomSheet', () => {
 
   it('displays correct title', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -120,7 +128,7 @@ describe('LearnMoreBottomSheet', () => {
 
   it('displays correct description', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -133,7 +141,7 @@ describe('LearnMoreBottomSheet', () => {
 
   it('displays correct checkbox label', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -148,7 +156,7 @@ describe('LearnMoreBottomSheet', () => {
 
   it('displays correct confirm button label', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -163,7 +171,7 @@ describe('LearnMoreBottomSheet', () => {
 
   it('renders confirm button', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -177,7 +185,7 @@ describe('LearnMoreBottomSheet', () => {
 
   it('handles back button press', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -193,7 +201,7 @@ describe('LearnMoreBottomSheet', () => {
 
   it('handles close button press', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -209,7 +217,7 @@ describe('LearnMoreBottomSheet', () => {
 
   it('handles checkbox press and toggles state', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -220,19 +228,19 @@ describe('LearnMoreBottomSheet', () => {
       LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CONFIRM_BUTTON,
     );
 
-    // Initially checkbox should be unchecked and confirm button disabled
+    // Initially checkbox unchecked and confirm button disabled
     expect(confirmButton).toHaveProp('disabled', true);
 
     // Press checkbox to check it
     fireEvent.press(checkbox);
 
-    // Confirm button should now be enabled
+    // Confirm button is now enabled
     expect(confirmButton).toHaveProp('disabled', false);
   });
 
   it('handles confirm button press when checkbox is checked', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -249,13 +257,13 @@ describe('LearnMoreBottomSheet', () => {
     // Then press confirm button
     fireEvent.press(confirmButton);
 
-    // Should call navigation.goBack twice (close bottom sheet and modal)
+    // navigation.goBack called twice (close bottom sheet and modal)
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(2);
   });
 
   it('does not navigate when confirm button pressed without checkbox checked', () => {
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -268,7 +276,7 @@ describe('LearnMoreBottomSheet', () => {
     // Press confirm button without checking checkbox
     fireEvent.press(confirmButton);
 
-    // Should not call navigation methods
+    // navigation methods not called
     expect(mockNavigation.goBack).not.toHaveBeenCalled();
     expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
@@ -285,7 +293,7 @@ describe('LearnMoreBottomSheet', () => {
     });
 
     const { getByTestId } = renderWithProvider(
-      <LearnMoreBottomSheet onClose={mockOnClose} />,
+      <LearnMoreBottomSheet />,
       undefined,
       true,
       false,
@@ -302,7 +310,7 @@ describe('LearnMoreBottomSheet', () => {
     // Press confirm button
     fireEvent.press(confirmButton);
 
-    // Should call navigation.goBack twice and navigate to basic functionality
+    // navigation.goBack called twice and navigate to basic functionality
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(2);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('RootModalFlow', {
       screen: 'BasicFunctionality',

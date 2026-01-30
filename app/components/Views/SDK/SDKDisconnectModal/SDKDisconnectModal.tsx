@@ -3,9 +3,10 @@ import React, { useMemo, useRef } from 'react';
 
 // External dependencies
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { RootParamList } from '../../../../util/navigation/types';
 import { useSelector } from 'react-redux';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
@@ -42,23 +43,12 @@ const createStyles = (
     },
   });
 
-interface SDKDisconnectModalProps {
-  route: {
-    params: {
-      channelId?: string;
-      account?: string;
-      accountName?: string;
-      dapp?: string;
-      accountsLength?: number;
-      isV2?: boolean;
-    };
-  };
-}
+type SDKDisconnectModalRouteProp = RouteProp<RootParamList, 'SDKDisconnect'>;
 
-const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
-  const { params } = route;
+const SDKDisconnectModal = () => {
+  const route = useRoute<SDKDisconnectModalRouteProp>();
   const { channelId, account, accountsLength, accountName, dapp, isV2 } =
-    params ?? {};
+    route.params ?? {};
 
   const { v2Connections } = useSelector((state: RootState) => state.sdk);
 

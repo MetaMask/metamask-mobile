@@ -1278,7 +1278,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           onPop?.();
         }}
         style={styles.closeButton}
@@ -1323,7 +1323,7 @@ export function getPaymentMethodApplePayNavbar(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           onExit?.();
         }}
         style={styles.closeButton}
@@ -1452,7 +1452,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        onPress={() => navigation.getParent()?.pop()}
         style={styles.closeButton}
       >
         <Text style={innerStyles.headerButtonText}>
@@ -1532,7 +1532,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           .build(),
       );
     }
-    navigation.dangerouslyGetParent()?.pop();
+    navigation.getParent()?.pop();
   };
 
   return {
@@ -1580,7 +1580,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
 
   return getHeaderCenterNavbarOptions({
     title,
-    onClose: () => navigation.dangerouslyGetParent()?.pop(),
+    onClose: () => navigation.getParent()?.pop(),
     includesTopInset: true,
   });
 }

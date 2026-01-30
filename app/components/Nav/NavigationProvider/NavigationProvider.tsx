@@ -5,7 +5,6 @@ import {
   Theme,
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useTheme } from '../../../util/theme';
 import { onNavigationReady } from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
 import NavigationService from '../../../core/NavigationService';
@@ -17,6 +16,7 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { NavigationProviderProps } from './types';
+import type { RootParamList } from '../../../util/navigation/types';
 
 const Stack = createStackNavigator();
 
@@ -26,7 +26,6 @@ const Stack = createStackNavigator();
 const NavigationProvider: React.FC<NavigationProviderProps> = ({
   children,
 }) => {
-  const { colors } = useTheme();
   const dispatch = useDispatch();
   const hasInitialized = useRef(false);
 
@@ -53,7 +52,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   /**
    * Sets the navigation ref on the NavigationService
    */
-  const setNavigationRef = (ref: NavigationContainerRef) => {
+  const setNavigationRef = (ref: NavigationContainerRef<RootParamList>) => {
     // This condition only happens on unmount. But that should never happen since this is meant to always be mounted.
     if (!ref) {
       return;
@@ -63,8 +62,9 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
 
   return (
     <NavigationContainer
-      // TODO: Check if other color properties are needed
-      theme={{ colors: { background: colors.background.default } } as Theme}
+      // Use transparent background so bottom sheets show the screen behind them
+      // Individual stacks should define their own background colors as needed
+      theme={{ colors: { background: 'transparent' } } as Theme}
       onReady={onReady}
       ref={setNavigationRef}
     >

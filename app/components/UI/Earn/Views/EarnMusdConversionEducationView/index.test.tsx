@@ -161,7 +161,6 @@ describe('EarnMusdConversionEducationView', () => {
     jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
 
     mockUseDispatch.mockReturnValue(mockDispatch);
-    // @ts-expect-error - partial mock of navigation is sufficient for testing
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUseFocusEffect.mockImplementation((callback) => {
       callback();

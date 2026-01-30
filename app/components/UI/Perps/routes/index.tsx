@@ -37,8 +37,10 @@ import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import { useTheme } from '../../../../util/theme';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+import type { PerpsNavigationParamList } from '../types/navigation';
+
+const Stack = createStackNavigator<PerpsNavigationParamList>();
+const ModalStack = createStackNavigator<PerpsNavigationParamList>();
 
 const styles = StyleSheet.create({
   container: {
@@ -79,7 +81,6 @@ const PerpsModalStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
-          mode="modal"
           screenOptions={{
             headerShown: false,
             cardStyle: {
@@ -90,6 +91,7 @@ const PerpsModalStack = () => {
                 opacity: 0,
               },
             }),
+            presentation: 'modal',
           }}
         >
           <ModalStack.Screen
@@ -169,7 +171,6 @@ const PerpsClosePositionBottomSheetStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
-          mode="modal"
           screenOptions={{
             headerShown: false,
             cardStyle: {
@@ -180,6 +181,7 @@ const PerpsClosePositionBottomSheetStack = () => {
                 opacity: 0,
               },
             }),
+            presentation: 'modal',
           }}
         >
           <ModalStack.Screen

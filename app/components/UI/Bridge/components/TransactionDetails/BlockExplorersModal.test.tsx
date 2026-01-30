@@ -3,7 +3,6 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeState } from '../../../../../core/redux/slices/bridge';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -26,12 +25,8 @@ describe('BlockExplorersModal', () => {
     status: TransactionStatus.submitted,
   } as TransactionMeta;
 
-  const mockProps = {
-    route: {
-      params: {
-        evmTxMeta: mockTx,
-      },
-    },
+  const mockRouteParams = {
+    evmTxMeta: mockTx,
   };
 
   const mockState = {
@@ -52,24 +47,26 @@ describe('BlockExplorersModal', () => {
     } as BridgeState,
   };
 
-  it('should render without crashing', () => {
+  it('renders without crashing', () => {
     const { getByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      BlockExplorersModal,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
       { state: mockState },
+      mockRouteParams,
     );
     expect(getByText('View on block explorer')).toBeTruthy();
   });
 
-  it('should display both source and destination chain block explorer buttons', () => {
+  it('displays both source and destination chain block explorer buttons', () => {
     const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      BlockExplorersModal,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
       { state: mockState },
+      mockRouteParams,
     );
     const etherscanButton = getAllByText('Etherscan');
     expect(etherscanButton).toHaveLength(1);
@@ -78,7 +75,7 @@ describe('BlockExplorersModal', () => {
     expect(optimisticButton).toHaveLength(1);
   });
 
-  it('should handle missing destination chain transaction hash', () => {
+  it('handles missing destination chain transaction hash', () => {
     const modifiedState = {
       ...mockState,
       engine: {
@@ -106,11 +103,12 @@ describe('BlockExplorersModal', () => {
     };
 
     const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      BlockExplorersModal,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
       { state: modifiedState },
+      mockRouteParams,
     );
     const etherscanButtons = getAllByText('Etherscan');
     expect(etherscanButtons).toHaveLength(1);

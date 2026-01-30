@@ -6,7 +6,11 @@ import {
   renderHook,
 } from '@testing-library/react-native';
 import { Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  NavigationProp,
+  ParamListBase,
+} from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import FeatureFlagOverride from './FeatureFlagOverride';
@@ -270,7 +274,7 @@ describe('useFeatureFlagOverride Hook', () => {
 });
 
 describe('FeatureFlagOverride', () => {
-  let mockNavigation: ReturnType<typeof useNavigation>;
+  let mockNavigation: NavigationProp<ParamListBase>;
 
   // Helper to render with providers
   const renderWithProviders = (

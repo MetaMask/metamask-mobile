@@ -3,7 +3,7 @@ import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DepositSDKProvider } from '../sdk';
 import { DepositNavigationParams } from '../types';
@@ -69,15 +69,17 @@ const getAnimationOptions = ({
   return { animationEnabled };
 };
 
-interface MainRoutesProps {
-  route: RouteProp<{ params: DepositNavigationParams }, 'params'>;
-}
+type DepositRootRouteProp = RouteProp<
+  { DepositRoot: DepositNavigationParams },
+  'DepositRoot'
+>;
 
-const MainRoutes = ({ route }: MainRoutesProps) => {
+const MainRoutes = () => {
+  const route = useRoute<DepositRootRouteProp>();
   const parentParams = route.params;
 
   return (
-    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT} headerMode="screen">
+    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT}>
       <Stack.Screen
         name={Routes.DEPOSIT.ROOT}
         component={Root}
@@ -140,8 +142,7 @@ const MainRoutes = ({ route }: MainRoutesProps) => {
 
 const DepositModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}
@@ -198,7 +199,7 @@ const DepositRoutes = () => (
   <DepositSDKProvider>
     <RootStack.Navigator
       initialRouteName={Routes.DEPOSIT.ROOT}
-      headerMode="none"
+      screenOptions={{ headerShown: false }}
     >
       <RootStack.Screen name={Routes.DEPOSIT.ROOT} component={MainRoutes} />
       <RootStack.Screen

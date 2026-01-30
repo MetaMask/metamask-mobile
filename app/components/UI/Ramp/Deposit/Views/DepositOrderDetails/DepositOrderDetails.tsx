@@ -31,10 +31,9 @@ interface DepositOrderDetailsParams {
   orderId: string;
 }
 
-export const createDepositOrderDetailsNavDetails =
-  createNavigationDetails<DepositOrderDetailsParams>(
-    Routes.DEPOSIT.ORDER_DETAILS,
-  );
+export const createDepositOrderDetailsNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.ORDER_DETAILS,
+);
 
 const DepositOrderDetails = () => {
   const params = useParams<DepositOrderDetailsParams>();

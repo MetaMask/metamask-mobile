@@ -16,7 +16,12 @@ import Checkbox from '../../../../component-library/components/Checkbox';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { useNavigation, useTheme } from '@react-navigation/native';
+import {
+  useNavigation,
+  useTheme,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './LearnMoreBottomSheet.styles';
@@ -24,14 +29,16 @@ import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { useDispatch, useSelector } from 'react-redux';
 import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
+import type { RootParamList } from '../../../../util/navigation/types';
 
-interface LearnMoreBottomSheetProps {
-  onClose: () => void;
-}
+type LearnMoreBottomSheetRouteProp = RouteProp<
+  RootParamList,
+  'MultichainAccountsLearnMoreBottomSheet'
+>;
 
-const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
-  onClose,
-}) => {
+const LearnMoreBottomSheet: React.FC = () => {
+  const route = useRoute<LearnMoreBottomSheetRouteProp>();
+  const onClose = route.params?.onClose;
   const { styles } = useStyles(styleSheet, { theme: useTheme() });
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const sheetRef = useRef<BottomSheetRef>(null);

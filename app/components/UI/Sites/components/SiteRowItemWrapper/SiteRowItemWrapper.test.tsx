@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import SiteRowItemWrapper from './SiteRowItemWrapper';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { RootNavigationProp } from '../../../../../util/navigation/types';
 import type { SiteData } from '../SiteRowItem/SiteRowItem';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -29,7 +29,7 @@ jest.mock('../SiteRowItem/SiteRowItem', () => {
 });
 
 describe('SiteRowItemWrapper', () => {
-  let mockNavigation: jest.Mocked<NavigationProp<ParamListBase>>;
+  let mockNavigation: jest.Mocked<RootNavigationProp>;
   let mockSiteData: SiteData;
   let dateNowSpy: jest.SpyInstance;
 
@@ -49,9 +49,7 @@ describe('SiteRowItemWrapper', () => {
       setOptions: jest.fn(),
       addListener: jest.fn(),
       removeListener: jest.fn(),
-      dangerouslyGetParent: jest.fn(),
-      dangerouslyGetState: jest.fn(),
-    } as jest.Mocked<NavigationProp<ParamListBase>>;
+    } as unknown as jest.Mocked<RootNavigationProp>;
 
     mockSiteData = {
       id: '1',

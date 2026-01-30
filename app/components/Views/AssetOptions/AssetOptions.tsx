@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import {
@@ -9,6 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
+import type { RootParamList } from '../../../util/navigation/types';
 import NotificationManager from '../../../core/NotificationManager';
 import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
@@ -22,7 +23,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { getDecimalChainId } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
-import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
+import { BrowserTab } from '../../../components/UI/Tokens/types';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
@@ -77,24 +78,11 @@ interface Option {
   icon: IconName;
 }
 
-interface Props {
-  route: {
-    params: {
-      address: string;
-      isNativeCurrency: boolean;
-      chainId: string;
-      asset: TokenI;
-    };
-  };
-}
+type AssetOptionsRouteProp = RouteProp<RootParamList, 'AssetOptions'>;
 
-const AssetOptions = (props: Props) => {
-  const {
-    address,
-    isNativeCurrency,
-    chainId: networkId,
-    asset,
-  } = props.route.params;
+const AssetOptions = () => {
+  const route = useRoute<AssetOptionsRouteProp>();
+  const { address, isNativeCurrency, chainId: networkId, asset } = route.params;
   const { styles } = useStyles(styleSheet);
   const navigation = useNavigation();
   const modalRef = useRef<BottomSheetRef>(null);

@@ -16,6 +16,17 @@ const TEST_IDS = {
   MULTICHAIN_ACCOUNT_CONNECT_COMPONENT: 'multichain-account-connect-component',
 } as const;
 
+const mockUseRoute = jest.fn();
+
+// Mock useRoute
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useRoute: () => mockUseRoute(),
+  };
+});
+
 // Mock the child components
 jest.mock('../../AccountConnect/AccountConnect', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -62,24 +73,20 @@ const createMockCaip25Permission = (
   },
 });
 
-const mockProps: AccountConnectProps = {
-  route: {
-    params: {
-      hostInfo: {
-        metadata: {
-          id: 'test-id',
-          origin: 'test-origin.com',
-          isEip1193Request: true,
-        },
-        permissions: createMockCaip25Permission({
-          'wallet:eip155': {
-            accounts: [],
-          },
-        }),
-      },
-      permissionRequestId: 'test-permission-request-id',
+const mockRouteParams = {
+  hostInfo: {
+    metadata: {
+      id: 'test-id',
+      origin: 'test-origin.com',
+      isEip1193Request: true,
     },
+    permissions: createMockCaip25Permission({
+      'wallet:eip155': {
+        accounts: [],
+      },
+    }),
   },
+  permissionRequestId: 'test-permission-request-id',
 };
 
 const createMockState = (isState2Enabled: boolean): DeepPartial<RootState> => ({
@@ -114,8 +121,10 @@ describe('State2AccountConnectWrapper', () => {
       const isState2Enabled = true;
       const mockState = createMockState(isState2Enabled);
 
+      mockUseRoute.mockReturnValue({ params: mockRouteParams });
+
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <State2AccountConnectWrapper {...mockProps} />,
+        <State2AccountConnectWrapper />,
         { state: mockState },
       );
 
@@ -128,28 +137,26 @@ describe('State2AccountConnectWrapper', () => {
     it('forwards all props to MultichainAccountConnect', () => {
       const isState2Enabled = true;
       const mockState = createMockState(isState2Enabled);
-      const customProps: AccountConnectProps = {
-        route: {
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'custom-id',
-                origin: 'custom-origin.com',
-                isEip1193Request: false,
-              },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: ['eip155:1:0x123'],
-                },
-              }),
-            },
-            permissionRequestId: 'custom-permission-id',
+      const customRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'custom-id',
+            origin: 'custom-origin.com',
+            isEip1193Request: false,
           },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: ['eip155:1:0x123'],
+            },
+          }),
         },
+        permissionRequestId: 'custom-permission-id',
       };
 
+      mockUseRoute.mockReturnValue({ params: customRouteParams });
+
       const { getByTestId } = renderWithProvider(
-        <State2AccountConnectWrapper {...customProps} />,
+        <State2AccountConnectWrapper />,
         { state: mockState },
       );
 
@@ -168,8 +175,10 @@ describe('State2AccountConnectWrapper', () => {
       const isState2Enabled = false;
       const mockState = createMockState(isState2Enabled);
 
+      mockUseRoute.mockReturnValue({ params: mockRouteParams });
+
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <State2AccountConnectWrapper {...mockProps} />,
+        <State2AccountConnectWrapper />,
         { state: mockState },
       );
 
@@ -182,28 +191,26 @@ describe('State2AccountConnectWrapper', () => {
     it('forwards all props to AccountConnect', () => {
       const isState2Enabled = false;
       const mockState = createMockState(isState2Enabled);
-      const customProps: AccountConnectProps = {
-        route: {
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'legacy-id',
-                origin: 'legacy-origin.com',
-                isEip1193Request: true,
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: ['eip155:1:0x456'],
-                },
-              }),
-            },
-            permissionRequestId: 'legacy-permission-id',
+      const customRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'legacy-id',
+            origin: 'legacy-origin.com',
+            isEip1193Request: true,
           },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': {
+              accounts: ['eip155:1:0x456'],
+            },
+          }),
         },
+        permissionRequestId: 'legacy-permission-id',
       };
 
+      mockUseRoute.mockReturnValue({ params: customRouteParams });
+
       const { getByTestId } = renderWithProvider(
-        <State2AccountConnectWrapper {...customProps} />,
+        <State2AccountConnectWrapper />,
         { state: mockState },
       );
 
@@ -221,8 +228,10 @@ describe('State2AccountConnectWrapper', () => {
     it('uses feature flag selector to determine component rendering', () => {
       const state2MockState = createMockState(true);
 
+      mockUseRoute.mockReturnValue({ params: mockRouteParams });
+
       const { getByTestId: getByTestIdState2 } = renderWithProvider(
-        <State2AccountConnectWrapper {...mockProps} />,
+        <State2AccountConnectWrapper />,
         { state: state2MockState },
       );
 
@@ -233,7 +242,7 @@ describe('State2AccountConnectWrapper', () => {
       const state1MockState = createMockState(false);
 
       const { getByTestId: getByTestIdState1 } = renderWithProvider(
-        <State2AccountConnectWrapper {...mockProps} />,
+        <State2AccountConnectWrapper />,
         { state: state1MockState },
       );
 
@@ -245,25 +254,23 @@ describe('State2AccountConnectWrapper', () => {
 
   it('handles props with minimal metadata when state 2 is enabled', () => {
     const mockState = createMockState(true);
-    const minimalProps: AccountConnectProps = {
-      route: {
-        params: {
-          hostInfo: {
-            metadata: {
-              id: 'minimal-id',
-              origin: 'minimal.com',
-            },
-            permissions: createMockCaip25Permission({
-              'wallet:eip155': { accounts: [] },
-            }),
-          },
-          permissionRequestId: 'minimal-request',
+    const minimalRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'minimal-id',
+          origin: 'minimal.com',
         },
+        permissions: createMockCaip25Permission({
+          'wallet:eip155': { accounts: [] },
+        }),
       },
+      permissionRequestId: 'minimal-request',
     };
 
+    mockUseRoute.mockReturnValue({ params: minimalRouteParams });
+
     const { getByTestId } = renderWithProvider(
-      <State2AccountConnectWrapper {...minimalProps} />,
+      <State2AccountConnectWrapper />,
       { state: mockState },
     );
 
@@ -274,31 +281,29 @@ describe('State2AccountConnectWrapper', () => {
 
   it('handles props with complex permissions when state 2 is disabled', () => {
     const mockState = createMockState(false);
-    const complexProps: AccountConnectProps = {
-      route: {
-        params: {
-          hostInfo: {
-            metadata: {
-              id: 'complex-id',
-              origin: 'complex.dapp.com',
-              isEip1193Request: true,
-              promptToCreateSolanaAccount: true,
-            },
-            permissions: createMockCaip25Permission({
-              'eip155:1': { accounts: ['eip155:1:0x123'] },
-              'eip155:137': { accounts: ['eip155:137:0x456'] },
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-                accounts: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:abc123'],
-              },
-            }),
-          },
-          permissionRequestId: 'complex-request',
+    const complexRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'complex-id',
+          origin: 'complex.dapp.com',
+          isEip1193Request: true,
+          promptToCreateSolanaAccount: true,
         },
+        permissions: createMockCaip25Permission({
+          'eip155:1': { accounts: ['eip155:1:0x123'] },
+          'eip155:137': { accounts: ['eip155:137:0x456'] },
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+            accounts: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:abc123'],
+          },
+        }),
       },
+      permissionRequestId: 'complex-request',
     };
 
+    mockUseRoute.mockReturnValue({ params: complexRouteParams });
+
     const { getByTestId } = renderWithProvider(
-      <State2AccountConnectWrapper {...complexProps} />,
+      <State2AccountConnectWrapper />,
       { state: mockState },
     );
 
@@ -318,8 +323,10 @@ describe('State2AccountConnectWrapper', () => {
         },
       };
 
+      mockUseRoute.mockReturnValue({ params: mockRouteParams });
+
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <State2AccountConnectWrapper {...mockProps} />,
+        <State2AccountConnectWrapper />,
         { state: mockStateWithoutFlag },
       );
 
@@ -352,8 +359,10 @@ describe('State2AccountConnectWrapper', () => {
         },
       };
 
+      mockUseRoute.mockReturnValue({ params: mockRouteParams });
+
       const { getByTestId } = renderWithProvider(
-        <State2AccountConnectWrapper {...mockProps} />,
+        <State2AccountConnectWrapper />,
         { state: mockStateVersion1 },
       );
 

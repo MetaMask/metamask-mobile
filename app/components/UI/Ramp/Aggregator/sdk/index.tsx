@@ -73,12 +73,7 @@ export interface RampSDK {
   setRampType: (rampType: RampType) => void;
 
   intent: RampIntent | undefined;
-  setIntent: (
-    intentOrSetter:
-      | RampIntent
-      | ((previousIntent: RampIntent | undefined) => void)
-      | undefined,
-  ) => void;
+  setIntent: React.Dispatch<React.SetStateAction<RampIntent | undefined>>;
 
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;
@@ -222,8 +217,6 @@ export const RampSDKProvider = ({
       setRampType,
 
       intent,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error - Ramps team ownership"
       setIntent,
 
       selectedRegion,

@@ -431,6 +431,6 @@ const Routes = {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
-};
+} as const;
 
 export default Routes;

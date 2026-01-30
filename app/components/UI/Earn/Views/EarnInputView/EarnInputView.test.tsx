@@ -127,7 +127,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       setOptions: mockSetOptions,
       reset: mockReset,
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: mockPop,
       }),
     }),

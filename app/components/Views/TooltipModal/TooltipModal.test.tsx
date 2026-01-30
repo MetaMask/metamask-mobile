@@ -137,6 +137,7 @@ const renderTooltipModal = () => renderWithProvider(<TooltipModal />);
 describe('TooltipModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    arrangeParams();
   });
 
   afterEach(() => {

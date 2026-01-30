@@ -548,7 +548,7 @@ describe('getWalletNavbarOptions', () => {
 
 describe('getBridgeNavbar', () => {
   const mockNavigation = {
-    dangerouslyGetParent: jest.fn(() => ({
+    getParent: jest.fn(() => ({
       pop: jest.fn(),
     })),
   };

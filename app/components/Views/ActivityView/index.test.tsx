@@ -103,7 +103,7 @@ const mockNavigation = {
   goBack: jest.fn(),
   canGoBack: jest.fn(() => true),
   reset: jest.fn(),
-  dangerouslyGetParent: () => ({
+  getParent: () => ({
     pop: jest.fn(),
   }),
 };
@@ -311,8 +311,8 @@ describe('ActivityView', () => {
 
     it('navigates to NetworkManager on filter button press', () => {
       const mockNetworkManagerNavDetails = [
-        'NetworkManager',
-        { screen: 'NetworkSelector' },
+        'RootModalFlow',
+        { screen: 'NetworkManager' },
       ] as const;
       const spyOnCreateNetworkManagerNavDetails = jest
         .spyOn(networkManagerUtils, 'createNetworkManagerNavDetails')

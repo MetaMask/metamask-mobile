@@ -11,18 +11,14 @@ import {
   RPC_METHODS,
 } from '../../../core/SDKConnect/SDKConnectConstants.ts';
 import { ImageURISource } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { wait } from '../../../core/SDKConnect/utils/wait.util.ts';
+import type { RootParamList } from '../../../util/navigation/types';
 
-export interface ReturnToAppNotificationProps {
-  route: {
-    params: {
-      method?: string;
-      origin?: string;
-      hideReturnToApp?: boolean;
-    };
-  };
-}
+type ReturnToAppNotificationRouteProp = RouteProp<
+  RootParamList,
+  'ReturnToDappToast'
+>;
 
 // Get the secondary label to display if needed, depending on the method
 const getMethodLabel = (method?: string): string | undefined => {
@@ -54,10 +50,11 @@ const diplayToast = (
  * Fake modal that displays a toast instead of rendering a component.
  * We need to trigger a toast from an SDK service that cannot access a component.
  */
-const ReturnToAppNotification = (props: ReturnToAppNotificationProps) => {
+const ReturnToAppNotification = () => {
+  const route = useRoute<ReturnToAppNotificationRouteProp>();
   const delayAfterMethod: number = 1200;
   const delayBetweenToast: number = 1500;
-  const { method, origin, hideReturnToApp } = props.route.params ?? {};
+  const { method, origin, hideReturnToApp } = route.params ?? {};
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const favicon = useFavicon(origin ?? '');

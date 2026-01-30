@@ -6,14 +6,13 @@ import React, {
 } from 'react';
 
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictNewButton from '../PredictNewButton';
 import PredictPosition from '../PredictPosition/PredictPosition';
@@ -38,8 +37,7 @@ const PredictPositions = forwardRef<
   PredictPositionsHandle,
   PredictPositionsProps
 >(({ isVisible, onError }, ref) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const { positions, isRefreshing, loadPositions, isLoading, error } =
     usePredictPositions({
       loadOnMount: true,

@@ -589,13 +589,11 @@ const UnifiedTransactionsView = ({
       <MultichainBridgeTransactionListItem
         transaction={item.tx}
         bridgeHistoryItem={bridgeHistoryItem}
-        navigation={navigation}
         index={index}
       />
     ) : (
       <MultichainTransactionListItem
         transaction={item.tx}
-        navigation={navigation}
         index={index}
         // Use the transaction's chain property for non-EVM transactions (contains CAIP chainId)
         chainId={item.tx.chain as unknown as SupportedCaipChainId}

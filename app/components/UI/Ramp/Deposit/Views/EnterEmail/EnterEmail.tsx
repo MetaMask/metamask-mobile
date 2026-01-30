@@ -34,8 +34,9 @@ export interface EnterEmailParams {
   redirectToRootAfterAuth?: boolean;
 }
 
-export const createEnterEmailNavDetails =
-  createNavigationDetails<EnterEmailParams>(Routes.DEPOSIT.ENTER_EMAIL);
+export const createEnterEmailNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.ENTER_EMAIL,
+);
 
 const EnterEmail = () => {
   const navigation = useNavigation();

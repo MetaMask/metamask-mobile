@@ -1,6 +1,6 @@
 import { RouteProp } from '@react-navigation/native';
 
-interface GasImpactModalRouteParams {
+export interface GasImpactModalRouteParams {
   amountWei: string;
   amountFiat: string;
   annualRewardsETH: string;

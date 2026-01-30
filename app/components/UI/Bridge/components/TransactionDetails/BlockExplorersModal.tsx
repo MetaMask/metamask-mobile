@@ -15,18 +15,17 @@ import {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { Theme } from '../../../../../util/theme/models';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
-import { Transaction } from '@metamask/keyring-api';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -39,21 +38,17 @@ const styleSheet = (params: { theme: Theme }) =>
     },
   });
 
-interface BlockExplorersModalProps {
-  route: {
-    params: {
-      evmTxMeta?: TransactionMeta;
-      multiChainTx?: Transaction;
-    };
-  };
-}
+type BlockExplorersRouteProp = RouteProp<
+  RootParamList,
+  'TransactionDetailsBlockExplorer'
+>;
 
-const BlockExplorersModal = (props: BlockExplorersModalProps) => {
+const BlockExplorersModal = () => {
   const navigation = useNavigation();
+  const route = useRoute<BlockExplorersRouteProp>();
   const { styles } = useStyles(styleSheet, {});
 
-  const evmTxMeta = props.route.params.evmTxMeta;
-  const multiChainTx = props.route.params.multiChainTx;
+  const { evmTxMeta, multiChainTx } = route.params;
 
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     evmTxMeta,

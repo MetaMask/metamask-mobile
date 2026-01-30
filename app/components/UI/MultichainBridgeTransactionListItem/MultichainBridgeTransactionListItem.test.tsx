@@ -2,12 +2,19 @@ import React from 'react';
 import { TouchableHighlight } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import MultichainBridgeTransactionListItem from '.';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -37,7 +44,6 @@ const renderWithProvider = (ui: React.ReactElement) => {
 };
 
 describe('MultichainBridgeTransactionListItem', () => {
-  const mockNavigation = { navigate: jest.fn() };
   const mockTransaction: Transaction = {
     id: 'tx-123',
     chain: 'solana:mainnet',
@@ -123,7 +129,6 @@ describe('MultichainBridgeTransactionListItem', () => {
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={mockBridgeHistoryItem}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -155,7 +160,6 @@ describe('MultichainBridgeTransactionListItem', () => {
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={pendingBridgeHistoryItem}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -170,19 +174,15 @@ describe('MultichainBridgeTransactionListItem', () => {
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={mockBridgeHistoryItem}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
     const touchable = UNSAFE_getByType(TouchableHighlight);
     fireEvent.press(touchable);
 
-    expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      'BridgeTransactionDetails',
-      {
-        multiChainTx: mockTransaction,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('BridgeTransactionDetails', {
+      multiChainTx: mockTransaction,
+    });
   });
 
   it('displays less than threshold for very small amounts', () => {
@@ -202,7 +202,6 @@ describe('MultichainBridgeTransactionListItem', () => {
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={verySmallAmountBridgeHistoryItem}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -226,7 +225,6 @@ describe('MultichainBridgeTransactionListItem', () => {
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={largerAmountBridgeHistoryItem}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 

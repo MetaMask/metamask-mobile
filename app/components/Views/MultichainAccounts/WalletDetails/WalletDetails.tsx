@@ -1,21 +1,20 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { BaseWalletDetails } from './BaseWalletDetails';
 import { selectWalletById } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { AccountWalletId } from '@metamask/account-api';
+import type { RootParamList } from '../../../../util/navigation/types';
 
-interface WalletDetailsProps {
-  route: {
-    params: {
-      walletId: AccountWalletId;
-    };
-  };
-}
+type WalletDetailsRouteProp = RouteProp<
+  RootParamList,
+  'MultichainWalletDetails'
+>;
 
-export const WalletDetails = (props: WalletDetailsProps) => {
-  const { walletId } = props.route.params;
+export const WalletDetails = () => {
+  const route = useRoute<WalletDetailsRouteProp>();
+  const { walletId } = route.params ?? {};
   const selectWallet = useSelector(selectWalletById);
-  const wallet = selectWallet?.(walletId);
+  const wallet = walletId ? selectWallet?.(walletId) : undefined;
 
   if (!wallet) {
     return null;

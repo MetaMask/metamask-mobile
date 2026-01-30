@@ -114,8 +114,9 @@ interface BuildQuoteParams extends RampIntent {
   showBack?: boolean;
 }
 
-export const createBuildQuoteNavDetails =
-  createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUILD_QUOTE);
+export const createBuildQuoteNavDetails = createNavigationDetails(
+  Routes.RAMP.BUILD_QUOTE,
+);
 
 const BuildQuote = () => {
   const navigation = useNavigation();

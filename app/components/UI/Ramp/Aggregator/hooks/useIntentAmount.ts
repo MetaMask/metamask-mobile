@@ -4,6 +4,7 @@ import { useRampSDK } from '../sdk';
 import { toTokenMinimalUnit } from '../../../../../util/number';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
 import parseAmount from '../../../../../util/parseAmount';
+import type { RampIntent } from '../../types';
 
 /**
  * This hook is used to parse and set the amount of the ramp intent in the view state.
@@ -60,7 +61,10 @@ export default function useIntentAmount(
       } catch (parsingError) {
         console.error('Error parsing intent amount', parsingError as Error);
       } finally {
-        setIntent((prevIntent) => ({ ...prevIntent, amount: undefined }));
+        setIntent((prevIntent: RampIntent | undefined) => ({
+          ...prevIntent,
+          amount: undefined,
+        }));
       }
     }
   }, [

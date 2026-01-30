@@ -8,7 +8,6 @@ import BlockExplorersModal from './components/TransactionDetails/BlockExplorersM
 import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
-
 const clearStackNavigatorOptions = {
   headerShown: false,
   cardStyle: {
@@ -41,8 +40,7 @@ export const BridgeScreenStack = () => (
 const ModalStack = createStackNavigator();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.SLIPPAGE_MODAL}

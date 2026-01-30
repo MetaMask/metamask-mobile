@@ -9,7 +9,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import PropTypes from 'prop-types';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SkipAccountSecurityModalSelectorsIDs } from './SkipAccountSecurityModal.testIds';
@@ -20,7 +19,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -69,11 +68,12 @@ const createStyles = (colors) =>
     },
   });
 
-const SkipAccountSecurityModal = ({ route }) => {
+const SkipAccountSecurityModal = () => {
   const sheetRef = useRef(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
+  const route = useRoute();
 
   const [skipCheckbox, setSkipCheckbox] = useState(false);
 
@@ -160,16 +160,5 @@ const SkipAccountSecurityModal = ({ route }) => {
     </BottomSheet>
   );
 };
-
-const propTypes = {
-  route: PropTypes.shape({
-    params: PropTypes.shape({
-      onConfirm: PropTypes.func,
-      onCancel: PropTypes.func,
-    }),
-  }),
-};
-
-SkipAccountSecurityModal.propTypes = propTypes;
 
 export default SkipAccountSecurityModal;

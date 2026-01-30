@@ -16,11 +16,10 @@ interface KycWebviewModalParams extends WebviewModalParams {
   workFlowRunId: string;
 }
 
-export const createKycWebviewModalNavigationDetails =
-  createNavigationDetails<KycWebviewModalParams>(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
-  );
+export const createKycWebviewModalNavigationDetails = createNavigationDetails(
+  Routes.DEPOSIT.MODALS.ID,
+  Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
+);
 
 function KycWebviewModal() {
   const { quote, workFlowRunId } = useParams<KycWebviewModalParams>();

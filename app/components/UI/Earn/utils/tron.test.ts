@@ -1,4 +1,4 @@
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { RootNavigationProp } from '../../../../util/navigation/types';
 import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 import Routes from '../../../../constants/navigation/Routes';
 import { EARN_EXPERIENCES } from '../constants/experiences';
@@ -215,11 +215,11 @@ describe('tron utils', () => {
   });
 
   describe('handleTronStakingNavigationResult', () => {
-    const createNavigation = (): NavigationProp<ParamListBase> =>
+    const createNavigation = (): RootNavigationProp =>
       ({
         goBack: jest.fn(),
         navigate: jest.fn(),
-      }) as unknown as NavigationProp<ParamListBase>;
+      }) as unknown as RootNavigationProp;
 
     beforeEach(() => {
       jest.clearAllMocks();

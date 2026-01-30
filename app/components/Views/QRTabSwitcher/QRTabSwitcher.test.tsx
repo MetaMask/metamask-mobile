@@ -24,13 +24,9 @@ jest.mock('../../../util/test/configureStore', () => {
   return () => configureMockStore([])();
 });
 
-jest.mock('@react-navigation/compat', () => {
-  const actualNav = jest.requireActual('@react-navigation/compat');
-  return {
-    ...actualNav,
-    withNavigation: (obj: React.ReactNode) => obj,
-  };
-});
+jest.mock('../../hooks/useNavigation', () => ({
+  withNavigation: (obj: React.ReactNode) => obj,
+}));
 
 jest.mock('../QRScanner', () => jest.fn(() => null));
 

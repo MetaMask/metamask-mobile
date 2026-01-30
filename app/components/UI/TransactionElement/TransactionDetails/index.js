@@ -26,7 +26,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
-import { withNavigation } from '@react-navigation/compat';
+import { withNavigation } from '../../../hooks/useNavigation';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {

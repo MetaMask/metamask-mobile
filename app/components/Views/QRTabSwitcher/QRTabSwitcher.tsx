@@ -48,8 +48,9 @@ export interface QRTabSwitcherParams {
   networkName?: string;
 }
 
-export const createQRScannerNavDetails =
-  createNavigationDetails<QRTabSwitcherParams>(Routes.QR_TAB_SWITCHER);
+export const createQRScannerNavDetails = createNavigationDetails(
+  Routes.QR_TAB_SWITCHER,
+);
 
 const QRTabSwitcher = () => {
   // Start tracing component loading

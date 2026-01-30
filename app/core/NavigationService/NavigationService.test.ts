@@ -1,9 +1,10 @@
 import NavigationService from './NavigationService';
 import Logger from '../../util/Logger';
 import type { NavigationContainerRef } from '@react-navigation/native';
+import type { RootParamList } from '../../util/navigation/types';
 
 describe('NavigationService', () => {
-  let mockNavigation: NavigationContainerRef;
+  let mockNavigation: NavigationContainerRef<RootParamList>;
   let mockRequestAnimationFrame: jest.SpyInstance;
   let mockLoggerError: jest.SpyInstance;
 
@@ -26,7 +27,7 @@ describe('NavigationService', () => {
       reset: jest.fn(),
       goBack: jest.fn(),
       dispatch: jest.fn(),
-    } as unknown as NavigationContainerRef;
+    } as unknown as NavigationContainerRef<RootParamList>;
 
     mockLoggerError = jest.spyOn(Logger, 'error');
   });
@@ -59,7 +60,7 @@ describe('NavigationService', () => {
 
   describe('navigation setter', () => {
     it('throws error when navigation is invalid', () => {
-      const invalidNavigation = {} as NavigationContainerRef;
+      const invalidNavigation = {} as NavigationContainerRef<RootParamList>;
 
       expect(() => {
         NavigationService.navigation = invalidNavigation;
@@ -78,7 +79,7 @@ describe('NavigationService', () => {
     it('throws error when navigation is missing required methods', () => {
       const incompleteNavigation = {
         // missing navigate
-      } as unknown as NavigationContainerRef;
+      } as unknown as NavigationContainerRef<RootParamList>;
 
       expect(() => {
         NavigationService.navigation = incompleteNavigation;
@@ -90,7 +91,10 @@ describe('NavigationService', () => {
     it('defers navigate calls via requestAnimationFrame', () => {
       NavigationService.navigation = mockNavigation;
 
-      NavigationService.navigation.navigate('TestScreen');
+      // Type assertion needed for test with mock route name
+      (NavigationService.navigation.navigate as (screen: string) => void)(
+        'TestScreen',
+      );
 
       expect(mockRequestAnimationFrame).toHaveBeenCalled();
       expect(mockNavigation.navigate).toHaveBeenCalledWith('TestScreen');
@@ -121,11 +125,11 @@ describe('NavigationService', () => {
       const navWithProperty = {
         ...mockNavigation,
         key: 'test-nav-key',
-      } as unknown as NavigationContainerRef;
+      } as unknown as NavigationContainerRef<RootParamList>;
       NavigationService.navigation = navWithProperty;
 
       const navigation =
-        NavigationService.navigation as NavigationContainerRef & {
+        NavigationService.navigation as NavigationContainerRef<RootParamList> & {
           key: string;
         };
 

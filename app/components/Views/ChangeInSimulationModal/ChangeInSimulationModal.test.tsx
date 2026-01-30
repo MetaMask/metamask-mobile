@@ -22,12 +22,17 @@ jest.mock(
     ({ children }: { children: React.ReactElement }) => <>{children}</>,
 );
 
-const NAVIGATION_PARAMS_MOCK = {
-  params: {
-    onProceed: jest.fn(),
-    onReject: jest.fn(),
-  },
-};
+const mockOnProceed = jest.fn();
+const mockOnReject = jest.fn();
+const mockUseRoute = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useRoute: () => mockUseRoute(),
+  };
+});
 
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
@@ -43,26 +48,30 @@ describe('ChangeInSimulationModal', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      <ChangeInSimulationModal route={NAVIGATION_PARAMS_MOCK} />,
-      {
-        state: mockInitialState,
+    mockUseRoute.mockReturnValue({
+      params: {
+        onProceed: mockOnProceed,
+        onReject: mockOnReject,
       },
-    );
+    });
+
+    const { toJSON } = renderWithProvider(<ChangeInSimulationModal />, {
+      state: mockInitialState,
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onProceed and onReject callbacks', () => {
-    const mockOnReject = jest.fn();
-    const mockOnProceed = jest.fn();
-    const wrapper = renderWithProvider(
-      <ChangeInSimulationModal
-        route={{ params: { onProceed: mockOnProceed, onReject: mockOnReject } }}
-      />,
-      {
-        state: mockInitialState,
+    mockUseRoute.mockReturnValue({
+      params: {
+        onProceed: mockOnProceed,
+        onReject: mockOnReject,
       },
-    );
+    });
+
+    const wrapper = renderWithProvider(<ChangeInSimulationModal />, {
+      state: mockInitialState,
+    });
     fireEvent.press(wrapper.getByTestId(PROCEED_BUTTON_TEST_ID));
     expect(mockOnProceed).toHaveBeenCalledTimes(1);
 

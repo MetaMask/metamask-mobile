@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { RootParamList } from '../../../../../util/navigation/types';
 import {
   Box,
   Icon,
@@ -532,7 +533,7 @@ const PhysicalAddress = () => {
           dispatch(resetOnboardingState());
           navigation.reset({
             index: 0,
-            routes: [route],
+            routes: [route as { name: keyof RootParamList; params?: object }],
           });
         };
 

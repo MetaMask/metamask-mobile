@@ -34,7 +34,7 @@ interface UnsupportedRegionModalParams {
 }
 
 export const createUnsupportedRegionModalNavigationDetails =
-  createNavigationDetails<UnsupportedRegionModalParams>(
+  createNavigationDetails(
     Routes.RAMP.MODALS.ID,
     Routes.RAMP.MODALS.UNSUPPORTED_REGION,
   );

@@ -7,7 +7,7 @@ import useHandleNewOrder from './useHandleNewOrder';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { endTrace } from '../../../../../util/trace';
 
-jest.mock('@react-navigation/compat', () => ({
+jest.mock('../../../../hooks/useNavigation', () => ({
   withNavigation: jest.fn((component) => component),
 }));
 
