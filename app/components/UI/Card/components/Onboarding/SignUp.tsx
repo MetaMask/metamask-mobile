@@ -298,7 +298,7 @@ const SignUp = () => {
             </TouchableOpacity>
           }
         />
-        {debouncedPassword.length > 0 && isPasswordError && (
+        {debouncedPassword.length > 0 && isPasswordError ? (
           <Text
             testID="signup-password-error-text"
             variant={TextVariant.BodySm}
@@ -306,10 +306,14 @@ const SignUp = () => {
           >
             {strings('card.card_onboarding.sign_up.invalid_password')}
           </Text>
+        ) : (
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-text-alternative"
+          >
+            {strings('card.card_onboarding.sign_up.password_description')}
+          </Text>
         )}
-        <Text variant={TextVariant.BodySm} twClassName="text-text-alternative">
-          {strings('card.card_onboarding.sign_up.password_description')}
-        </Text>
       </Box>
     </>
   );

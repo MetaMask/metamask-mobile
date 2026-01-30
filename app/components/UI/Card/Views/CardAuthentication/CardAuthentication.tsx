@@ -6,11 +6,10 @@ import {
   FontWeight,
   Text,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import TextField, {
   TextFieldSize,
 } from '../../../../../component-library/components/Form/TextField';
@@ -52,6 +51,7 @@ const CardAuthentication = () => {
   const [step, setStep] = useState<'login' | 'otp'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState<CardLocation>('international');
   const [otpData, setOtpData] = useState<{
@@ -436,11 +436,22 @@ const CardAuthentication = () => {
               maxLength={255}
               returnKeyType={'done'}
               onSubmitEditing={() => performLogin()}
-              secureTextEntry
+              secureTextEntry={!isPasswordVisible}
               accessibilityLabel={strings(
                 'card.card_authentication.password_label',
               )}
               testID="password-field"
+              endAccessory={
+                <TouchableOpacity
+                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                  testID="password-visibility-toggle"
+                >
+                  <Icon
+                    name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
+                    size={IconSize.Md}
+                  />
+                </TouchableOpacity>
+              }
             />
           </Box>
         </>
@@ -453,6 +464,7 @@ const CardAuthentication = () => {
       handleOtpValueChange,
       handlePasswordChange,
       handleResendOtp,
+      isPasswordVisible,
       location,
       otpError,
       otpLoading,

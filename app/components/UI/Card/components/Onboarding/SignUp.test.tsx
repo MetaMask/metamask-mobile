@@ -281,9 +281,25 @@ describe('SignUp Component', () => {
       expect(passwordInput.props.secureTextEntry).toBe(true);
     });
 
-    it('shows error message when password is invalid', async () => {
+    it('shows description by default when no error', () => {
+      const { getByText, queryByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      // Description should be visible
+      expect(
+        getByText('card.card_onboarding.sign_up.password_description'),
+      ).toBeTruthy();
+
+      // Error should not be visible
+      expect(queryByTestId('signup-password-error-text')).toBeNull();
+    });
+
+    it('shows error message and hides description when password is invalid', async () => {
       (validatePassword as jest.Mock).mockReturnValue(false);
-      const { getByTestId, findByTestId } = render(
+      const { getByTestId, findByTestId, queryByText } = render(
         <Provider store={store}>
           <SignUp />
         </Provider>,
@@ -294,8 +310,49 @@ describe('SignUp Component', () => {
         fireEvent.changeText(passwordInput, 'weak');
       });
 
+      // Error should be visible
       const errorText = await findByTestId('signup-password-error-text');
       expect(errorText).toBeTruthy();
+
+      // Description should be hidden when error is shown
+      expect(
+        queryByText('card.card_onboarding.sign_up.password_description'),
+      ).toBeNull();
+    });
+
+    it('shows description again when password becomes valid', async () => {
+      (validatePassword as jest.Mock).mockReturnValue(false);
+      const { getByTestId, findByTestId, queryByTestId, getByText } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const passwordInput = getByTestId('signup-password-input');
+
+      // First, enter invalid password
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'weak');
+      });
+
+      // Error should be visible
+      await findByTestId('signup-password-error-text');
+
+      // Now enter valid password
+      (validatePassword as jest.Mock).mockReturnValue(true);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'ValidPassword123!');
+      });
+
+      // Error should be hidden
+      await waitFor(() => {
+        expect(queryByTestId('signup-password-error-text')).toBeNull();
+      });
+
+      // Description should be visible again
+      expect(
+        getByText('card.card_onboarding.sign_up.password_description'),
+      ).toBeTruthy();
     });
   });
 

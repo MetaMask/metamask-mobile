@@ -223,14 +223,30 @@ export const useTokensWithBalance: ({
 
     const allTokens = [...allEvmAccountTokens, ...allNonEvmAccountTokens];
 
+    // Create a map of evmBalances keyed by address-chainId for O(1) lookup
+    // This avoids index mismatch issues when tokens are filtered
+    const evmBalancesMap = new Map<
+      string,
+      { balance: string; tokenFiatAmount: number; balanceFiat?: string }
+    >();
+    allEvmAccountTokens.forEach((token, i) => {
+      const key = `${token.address?.toLowerCase()}-${token.chainId}`;
+      if (evmBalances?.[i]) {
+        evmBalancesMap.set(key, evmBalances[i]);
+      }
+    });
+
     const properTokens: BridgeToken[] = allTokens
       .filter((token) => Boolean(token.chainId) && isTradableToken(token)) // Ensure token has a chainId and is tradable
-      .map((token, i) => {
-        const evmBalance = evmBalances?.[i]?.balance;
-        const nonEvmBalance = renderNumber(token.balance ?? '0');
+      .map((token) => {
         const chainId = token.chainId as Hex | CaipChainId;
+        const balanceKey = `${token.address?.toLowerCase()}-${chainId}`;
+        const evmBalanceData = evmBalancesMap.get(balanceKey);
 
-        const evmTokenFiatAmount = evmBalances?.[i]?.tokenFiatAmount;
+        const evmBalance = evmBalanceData?.balance;
+        const nonEvmBalance = renderNumber(token.balance ?? '0');
+
+        const evmTokenFiatAmount = evmBalanceData?.tokenFiatAmount;
         const nonEvmTokenFiatAmount = Number(token.balanceFiat);
         const tokenFiatAmount = evmTokenFiatAmount ?? nonEvmTokenFiatAmount;
 
