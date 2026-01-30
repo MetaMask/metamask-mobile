@@ -8,7 +8,7 @@ jest.useFakeTimers();
 
 describe('useStopLossPrompt', () => {
   const createMockPosition = (overrides: Partial<Position> = {}): Position => ({
-    coin: 'BTC',
+    symbol: 'BTC',
     size: '0.5',
     entryPrice: '50000',
     positionValue: '25000',
@@ -121,9 +121,7 @@ describe('useStopLossPrompt', () => {
 
       // Advance halfway through the age requirement
       act(() => {
-        jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS / 2,
-        );
+        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs / 2);
       });
 
       // Still should not show
@@ -132,7 +130,7 @@ describe('useStopLossPrompt', () => {
       // Advance past the age requirement
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS / 2 + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs / 2 + 100,
         );
       });
 
@@ -164,14 +162,14 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past position age requirement
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
         );
       });
 
       expect(result.current.shouldShowBanner).toBe(true);
       expect(result.current.variant).toBe('add_margin');
       expect(result.current.liquidationDistance).toBeLessThan(
-        STOP_LOSS_PROMPT_CONFIG.LIQUIDATION_DISTANCE_THRESHOLD,
+        STOP_LOSS_PROMPT_CONFIG.LiquidationDistanceThreshold,
       );
     });
 
@@ -213,8 +211,8 @@ describe('useStopLossPrompt', () => {
       // Both timers must complete for the banner to show
       const requiredTime =
         Math.max(
-          STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS,
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS,
+          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
         ) + 100;
 
       act(() => {
@@ -242,7 +240,7 @@ describe('useStopLossPrompt', () => {
 
       // Fast-forward halfway through debounce
       act(() => {
-        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS / 2);
+        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs / 2);
       });
 
       // ROE recovers
@@ -255,7 +253,7 @@ describe('useStopLossPrompt', () => {
 
       // Fast-forward past original debounce time
       act(() => {
-        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS);
+        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs);
       });
 
       expect(result.current.shouldShowBanner).toBe(false);
@@ -316,7 +314,7 @@ describe('useStopLossPrompt', () => {
 
       // Should still require full debounce period
       act(() => {
-        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS - 100);
+        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs - 100);
       });
 
       expect(result.current.shouldShowBanner).toBe(false);
@@ -447,7 +445,7 @@ describe('useStopLossPrompt', () => {
 
       // Should require full debounce period
       act(() => {
-        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS + 100);
+        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs + 100);
       });
 
       expect(result.current.shouldShowBanner).toBe(true);
@@ -588,7 +586,7 @@ describe('useStopLossPrompt', () => {
 
       // Should return the configured target ROE (-50%), not the price change (-5%)
       expect(result.current.suggestedStopLossPercent).toBe(
-        STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE,
+        STOP_LOSS_PROMPT_CONFIG.SuggestedStopLossRoe,
       );
     });
 
@@ -623,7 +621,7 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past position age requirement
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
         );
       });
 
@@ -649,7 +647,7 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past position age requirement
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
         );
       });
 
@@ -674,7 +672,7 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past position age requirement
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
         );
       });
 
@@ -712,7 +710,7 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past position age requirement
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
         );
       });
 
@@ -739,7 +737,7 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past position age requirement
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
         );
       });
 
@@ -778,7 +776,7 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past position age requirement
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
         );
       });
 
@@ -820,7 +818,7 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past position age requirement to show banner
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
         );
       });
 
@@ -860,8 +858,8 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past both age and debounce requirements
       const requiredTime =
         Math.max(
-          STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS,
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS,
+          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
         ) + 100;
 
       act(() => {
@@ -903,7 +901,7 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past position age requirement
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
         );
       });
 
@@ -992,7 +990,7 @@ describe('useStopLossPrompt', () => {
       // Fast-forward past position age requirement
       act(() => {
         jest.advanceTimersByTime(
-          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
         );
       });
 

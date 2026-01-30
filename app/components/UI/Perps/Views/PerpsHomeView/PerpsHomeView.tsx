@@ -22,6 +22,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
@@ -45,7 +46,7 @@ import {
   FEEDBACK_CONFIG,
   PERPS_CONSTANTS,
 } from '../../constants/perpsConfig';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -54,7 +55,7 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
@@ -98,11 +99,17 @@ const PerpsHomeView = () => {
   const {
     handleAddFunds,
     handleWithdraw,
+    isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
   } = usePerpsHomeActions({
     buttonLocation: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
   });
+
+  // Separate geo-block modal state for close all / cancel all actions
+  const [isCloseAllGeoBlockVisible, setIsCloseAllGeoBlockVisible] =
+    useState(false);
+  const { track } = usePerpsEventTracking();
 
   // Section scroll tracking for analytics
   const { handleSectionLayout, handleScroll, resetTracking } =
@@ -123,7 +130,7 @@ const PerpsHomeView = () => {
     orders,
     watchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
-    stocksAndCommoditiesMarkets,
+    stocksMarkets, // Equity markets only
     forexMarkets,
     recentActivity,
     sortBy,
@@ -260,8 +267,8 @@ const PerpsHomeView = () => {
     navigation.navigate(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
-        url: SUPPORT_CONFIG.URL,
-        title: strings(SUPPORT_CONFIG.TITLE_KEY),
+        url: SUPPORT_CONFIG.Url,
+        title: strings(SUPPORT_CONFIG.TitleKey),
       },
     });
     // Track contact support interaction for Perps analytics
@@ -296,9 +303,9 @@ const PerpsHomeView = () => {
         .build(),
     );
     // Open survey in external browser
-    Linking.openURL(FEEDBACK_CONFIG.URL).catch((error: unknown) => {
+    Linking.openURL(FEEDBACK_CONFIG.Url).catch((error: unknown) => {
       Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         message: 'Failed to open feedback survey URL',
       });
     });
@@ -307,7 +314,7 @@ const PerpsHomeView = () => {
   const navigationItems: NavigationItem[] = useMemo(() => {
     const items: NavigationItem[] = [
       {
-        label: strings(SUPPORT_CONFIG.TITLE_KEY),
+        label: strings(SUPPORT_CONFIG.TitleKey),
         onPress: () => navigateToContactSupport(),
         testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
       },
@@ -316,7 +323,7 @@ const PerpsHomeView = () => {
     // Add feedback button when feature flag is enabled
     if (isFeedbackEnabled) {
       items.push({
-        label: strings(FEEDBACK_CONFIG.TITLE_KEY),
+        label: strings(FEEDBACK_CONFIG.TitleKey),
         onPress: handleGiveFeedback,
         testID: PerpsHomeViewSelectorsIDs.FEEDBACK_BUTTON,
       });
@@ -325,7 +332,7 @@ const PerpsHomeView = () => {
     // Avoid duplicate "Learn more" button (shown in empty state card)
     if (!isBalanceEmpty) {
       items.push({
-        label: strings(LEARN_MORE_CONFIG.TITLE_KEY),
+        label: strings(LEARN_MORE_CONFIG.TitleKey),
         onPress: () => navigtateToTutorial(),
         testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
       });
@@ -340,10 +347,21 @@ const PerpsHomeView = () => {
     handleGiveFeedback,
   ]);
 
-  // Bottom sheet handlers - open sheets directly
+  // Bottom sheet handlers - open sheets directly with geo-restriction check
   const handleCloseAllPress = useCallback(() => {
+    // Geo-restriction check for close all positions
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+      });
+      setIsCloseAllGeoBlockVisible(true);
+      return;
+    }
     setShowCloseAllSheet(true);
-  }, []);
+  }, [isEligible, track]);
 
   const handleCancelAllPress = useCallback(() => {
     setShowCancelAllSheet(true);
@@ -394,11 +412,18 @@ const PerpsHomeView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header - Using extracted component */}
-      <PerpsHomeHeader
-        isSearchVisible={false}
+      {/* Header */}
+      <HeaderCenter
+        title={strings('perps.title')}
         onBack={handleBackPress}
-        onSearchToggle={handleSearchToggle}
+        backButtonProps={{ testID: 'back-button' }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Search,
+            onPress: handleSearchToggle,
+            testID: 'perps-home-search-toggle',
+          },
+        ]}
         testID="perps-home"
       />
 
@@ -412,7 +437,7 @@ const PerpsHomeView = () => {
       >
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
-          showActionButtons={HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS}
+          showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
         />
 
         {/* Positions Section */}
@@ -431,7 +456,7 @@ const PerpsHomeView = () => {
           <View style={styles.positionsOrdersContainer}>
             {positions.map((position, index) => (
               <PerpsCard
-                key={`${position.coin}-${index}`}
+                key={`${position.symbol}-${index}`}
                 position={position}
                 source={PerpsEventValues.SOURCE.HOMESCREEN_TAB}
               />
@@ -478,12 +503,12 @@ const PerpsHomeView = () => {
           />
         </View>
 
-        {/* Stocks & Commodities Markets List */}
+        {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
           <PerpsMarketTypeSection
-            title={strings('perps.home.stocks_and_commodities')}
-            markets={stocksAndCommoditiesMarkets}
-            marketType="stocks_and_commodities"
+            title={strings('perps.home.stocks')}
+            markets={stocksMarkets}
+            marketType="stocks"
             sortBy={sortBy}
             isLoading={isLoading.markets}
           />
@@ -533,7 +558,7 @@ const PerpsHomeView = () => {
       {!isBalanceEmpty &&
         !showCloseAllSheet &&
         !showCancelAllSheet &&
-        !HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS && (
+        !HOME_SCREEN_CONFIG.ShowHeaderActionButtons && (
           <View style={fixedFooterStyle}>
             <View style={styles.footerButtonsContainer}>
               <View style={styles.footerButton}>
@@ -572,6 +597,20 @@ const PerpsHomeView = () => {
               onClose={closeEligibilityModal}
               contentKey={'geo_block'}
               testID={'perps-home-geo-block-tooltip'}
+            />
+          </Modal>
+        </View>
+      )}
+
+      {/* Close All / Cancel All Geo-Block Modal */}
+      {isCloseAllGeoBlockVisible && (
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsCloseAllGeoBlockVisible(false)}
+              contentKey={'geo_block'}
+              testID={'perps-home-close-all-geo-block-tooltip'}
             />
           </Modal>
         </View>

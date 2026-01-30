@@ -20,7 +20,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Icon,
   IconColor,
   IconName,
@@ -73,6 +72,7 @@ import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 
 interface FeedTab {
   key: PredictCategory;
@@ -87,80 +87,6 @@ type PredictFlashListProps = FlashListProps<PredictMarketType> & {
 const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<PredictFlashListProps>,
 ) as unknown as React.ComponentType<PredictFlashListProps>;
-
-const PredictNavBackButton: React.FC = () => {
-  const navigation = useNavigation();
-
-  const handleBackPress = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    } else {
-      navigation.navigate(
-        Routes.WALLET.HOME as never,
-        {
-          screen: Routes.WALLET.TAB_STACK_FLOW,
-          params: {
-            screen: Routes.WALLET_VIEW,
-          },
-        } as never,
-      );
-    }
-  }, [navigation]);
-
-  return (
-    <Pressable
-      testID={PredictMarketListSelectorsIDs.BACK_BUTTON}
-      onPress={handleBackPress}
-    >
-      <Icon
-        name={IconName.ArrowLeft}
-        size={IconSize.Lg}
-        color={IconColor.IconDefault}
-      />
-    </Pressable>
-  );
-};
-
-const PredictNavTitle: React.FC = () => (
-  <Text variant={TextVariant.HeadingLg}>Predictions</Text>
-);
-
-const PredictNavSearchButton: React.FC<{ onPress: () => void }> = ({
-  onPress,
-}) => (
-  <Pressable testID="predict-search-button" onPress={onPress}>
-    <Icon
-      name={IconName.Search}
-      size={IconSize.Lg}
-      color={IconColor.IconDefault}
-    />
-  </Pressable>
-);
-
-interface PredictFeedTopNavProps {
-  onSearchPress: () => void;
-}
-
-const PredictFeedTopNav: React.FC<PredictFeedTopNavProps> = ({
-  onSearchPress,
-}) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Between}
-    twClassName="w-full px-4 py-2"
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
-    >
-      <PredictNavBackButton />
-      <PredictNavTitle />
-    </Box>
-    <PredictNavSearchButton onPress={onSearchPress} />
-  </Box>
-);
 
 const PredictFeedHeader: React.FC = () => (
   <Box twClassName="py-4">
@@ -615,36 +541,34 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
         </Pressable>
       </Box>
 
-      {searchQuery.length > 0 && (
-        <Box twClassName="flex-1">
-          {isSearchLoading ? (
-            <Box twClassName="px-4 pt-4">
-              <PredictMarketSkeleton testID="search-skeleton-1" />
-              <PredictMarketSkeleton testID="search-skeleton-2" />
-              <PredictMarketSkeleton testID="search-skeleton-3" />
-            </Box>
-          ) : error ? (
-            <PredictOffline onRetry={refetch} />
-          ) : !marketData || marketData.length === 0 ? (
-            <Box twClassName="flex-1 justify-center items-center p-8">
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.PrimaryAlternative}
-              >
-                {strings('predict.search_no_markets_found', { q: searchQuery })}
-              </Text>
-            </Box>
-          ) : (
-            <FlashList<PredictMarketType>
-              data={marketData}
-              renderItem={renderItem}
-              keyExtractor={keyExtractor}
-              contentContainerStyle={tw.style('px-4 pt-4 pb-4')}
-              showsVerticalScrollIndicator={false}
-            />
-          )}
-        </Box>
-      )}
+      <Box twClassName="flex-1">
+        {isSearchLoading ? (
+          <Box twClassName="px-4 pt-4">
+            <PredictMarketSkeleton testID="search-skeleton-1" />
+            <PredictMarketSkeleton testID="search-skeleton-2" />
+            <PredictMarketSkeleton testID="search-skeleton-3" />
+          </Box>
+        ) : error ? (
+          <PredictOffline onRetry={refetch} />
+        ) : !marketData || marketData.length === 0 ? (
+          <Box twClassName="flex-1 justify-center items-center p-8">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.PrimaryAlternative}
+            >
+              {strings('predict.search_no_markets_found', { q: searchQuery })}
+            </Text>
+          </Box>
+        ) : (
+          <FlashList<PredictMarketType>
+            data={marketData}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            contentContainerStyle={tw.style('px-4 pt-4 pb-4')}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </Box>
     </Box>
   );
 };
@@ -666,6 +590,7 @@ const PredictFeed: React.FC = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
 
@@ -673,6 +598,22 @@ const PredictFeed: React.FC = () => {
   const tabBarRef = useRef<View>(null);
 
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+  const handleBackPress = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate(
+        Routes.WALLET.HOME as never,
+        {
+          screen: Routes.WALLET.TAB_STACK_FLOW,
+          params: {
+            screen: Routes.WALLET_VIEW,
+          },
+        } as never,
+      );
+    }
+  }, [navigation]);
 
   const sessionManager = PredictFeedSessionManager.getInstance();
 
@@ -744,7 +685,20 @@ const PredictFeed: React.FC = () => {
           paddingTop: insets.top,
         })}
       >
-        <PredictFeedTopNav onSearchPress={() => setIsSearchVisible(true)} />
+        <HeaderCenter
+          title={strings('wallet.predict')}
+          onBack={handleBackPress}
+          backButtonProps={{
+            testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+          }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Search,
+              onPress: () => setIsSearchVisible(true),
+              testID: 'predict-search-button',
+            },
+          ]}
+        />
       </Box>
 
       <Box twClassName="flex-1 relative">

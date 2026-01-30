@@ -234,13 +234,13 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         alwaysBounceVertical={false}
         enableOnAndroid
         enableAutomaticScroll
-        contentContainerStyle={tw.style('flex-grow pt-4 pb-4')}
+        contentContainerStyle={tw.style('flex-grow pb-4')}
       >
         {/* Header copy */}
         <Box twClassName="mb-6">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="text-text-default mb-2"
+            twClassName="text-text-default py-4"
           >
             {screenTitle}
           </Text>

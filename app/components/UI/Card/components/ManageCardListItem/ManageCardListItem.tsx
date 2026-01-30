@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Platform } from 'react-native';
+import { TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import Icon, {
@@ -23,6 +23,7 @@ export interface ManageCardListItemProps {
   rightIcon?: IconName;
   testID?: string;
   onPress?: () => void;
+  isLoading?: boolean;
 }
 
 const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
@@ -30,8 +31,9 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
   onPress,
   description,
   descriptionOrientation = 'column',
-  rightIcon = IconName.ArrowRight,
+  rightIcon,
   testID = 'manage-card-list-item',
+  isLoading = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors, descriptionOrientation);
@@ -49,9 +51,21 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
             description
           )}
         </ListItemColumn>
-        <ListItemColumn>
-          <Icon style={styles.action} size={IconSize.Md} name={rightIcon} />
-        </ListItemColumn>
+        {(isLoading || rightIcon) && (
+          <ListItemColumn>
+            {isLoading ? (
+              <ActivityIndicator size="small" />
+            ) : (
+              rightIcon && (
+                <Icon
+                  style={styles.action}
+                  size={IconSize.Md}
+                  name={rightIcon}
+                />
+              )
+            )}
+          </ListItemColumn>
+        )}
       </ListItem>
     </TouchableOpacity>
   );

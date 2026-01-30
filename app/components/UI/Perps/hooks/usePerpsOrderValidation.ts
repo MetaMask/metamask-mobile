@@ -3,11 +3,16 @@ import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   PERFORMANCE_CONFIG,
+  PERPS_CONSTANTS,
   VALIDATION_THRESHOLDS,
 } from '../constants/perpsConfig';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
+import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import type { OrderParams } from '../controllers/types';
 import type { OrderFormState } from '../types/perps-types';
+import { formatPerpsFiat } from '../utils/formatUtils';
+import { getMaxOrderValue } from '../utils/hyperLiquidValidation';
+import { translatePerpsError } from '../utils/translatePerpsError';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
@@ -114,7 +119,7 @@ export function usePerpsOrderValidation(
     try {
       // Convert form state to OrderParams for protocol validation
       const orderParams: OrderParams = {
-        coin: orderForm.asset,
+        symbol: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize, // Use BTC amount, not USD amount
         orderType: orderForm.type,
@@ -139,17 +144,62 @@ export function usePerpsOrderValidation(
       // Merge immediate errors with protocol validation results
       const errors: string[] = [...immediateErrors];
       if (!protocolValidation.isValid && protocolValidation.error) {
+        // Build context data for error interpolation
+        const errorContext: Record<string, unknown> = {};
+
+        // For leverage errors, provide min/max/required/provided values
+        if (
+          protocolValidation.error === PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID
+        ) {
+          errorContext.min = 1;
+          // Use default max leverage since we don't have market-specific data here
+          errorContext.max = PERPS_CONSTANTS.DefaultMaxLeverage;
+        } else if (
+          protocolValidation.error ===
+          PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION
+        ) {
+          errorContext.required = existingPositionLeverage;
+          errorContext.provided = orderForm.leverage;
+        } else if (
+          protocolValidation.error ===
+          PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED
+        ) {
+          // Calculate max order value based on default leverage and order type
+          const maxValue = getMaxOrderValue(
+            PERPS_CONSTANTS.DefaultMaxLeverage,
+            orderForm.type,
+          );
+          errorContext.maxValue = formatPerpsFiat(maxValue, {
+            minimumDecimals: 0,
+            maximumDecimals: 0,
+          }).replace('$', '');
+        } else if (
+          protocolValidation.error === PERPS_ERROR_CODES.ORDER_SIZE_MIN
+        ) {
+          // Provide minimum amount for the error message
+          errorContext.amount = minimumOrderSize.toString();
+        } else if (
+          protocolValidation.error === PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN
+        ) {
+          // Provide the symbol that was not found
+          errorContext.symbol = orderForm.asset;
+        }
+
+        // Translate error codes from provider to user-friendly messages
+        const translatedError = translatePerpsError(
+          protocolValidation.error,
+          errorContext,
+        );
         // Only add protocol error if not already covered by immediate validation
-        const errorStr = protocolValidation.error;
-        if (!errors.some((e) => e.includes(errorStr))) {
-          errors.push(protocolValidation.error);
+        if (!errors.some((e) => e.includes(translatedError))) {
+          errors.push(translatedError);
         }
       }
 
       const warnings: string[] = [];
 
       // High leverage warning
-      if (orderForm.leverage > VALIDATION_THRESHOLDS.HIGH_LEVERAGE_WARNING) {
+      if (orderForm.leverage > VALIDATION_THRESHOLDS.HighLeverageWarning) {
         warnings.push(strings('perps.order.validation.high_leverage_warning'));
       }
 
@@ -210,7 +260,7 @@ export function usePerpsOrderValidation(
     validationTimerRef.current = setTimeout(() => {
       performValidation();
       validationTimerRef.current = null;
-    }, PERFORMANCE_CONFIG.VALIDATION_DEBOUNCE_MS);
+    }, PERFORMANCE_CONFIG.ValidationDebounceMs);
 
     // Cleanup
     return () => {

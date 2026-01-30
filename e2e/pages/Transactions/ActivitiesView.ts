@@ -2,8 +2,9 @@ import {
   ActivitiesViewSelectorsIDs,
   ActivitiesViewSelectorsText,
 } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Assertions from '../../../tests/framework/Assertions';
 
 class ActivitiesView {
   get title(): DetoxElement {
@@ -150,6 +151,45 @@ class ActivitiesView {
     await Gestures.waitAndTap(el, {
       elemDescription: `Tapping Predict Position: ${positionName}`,
     });
+  }
+
+  /**
+   * Verifies that an activity item with the given title is visible and its row status matches.
+   * Use after TabBarComponent.tapActivity(). Row 0 is the most recent transaction.
+   *
+   * @param titleText - Activity title to look for (e.g. "mUSD conversion", "Sent ETH")
+   * @param statusText - Expected status for the row (e.g. "Confirmed", "Failed")
+   * @param rowIndex - Row index (default 0 = most recent)
+   */
+  async verifyActivityItemWithStatus(
+    titleText: string,
+    statusText: string,
+    rowIndex = 0,
+  ): Promise<void> {
+    await Assertions.expectTextDisplayed(titleText, {
+      timeout: 20000,
+      description: `Activity item "${titleText}" should be visible`,
+    });
+    await Assertions.expectElementToHaveText(
+      this.transactionStatus(rowIndex),
+      statusText,
+      {
+        timeout: 10000,
+        description: `Activity row (index ${rowIndex}) should show status "${statusText}"`,
+      },
+    );
+  }
+
+  /**
+   * Verifies that the mUSD conversion activity item is visible and its status is Confirmed.
+   * Delegates to verifyActivityItemWithStatus.
+   */
+  async verifyMusdConversionConfirmed(rowIndex = 0): Promise<void> {
+    await this.verifyActivityItemWithStatus(
+      ActivitiesViewSelectorsText.MUSD_CONVERSION,
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      rowIndex,
+    );
   }
 }
 

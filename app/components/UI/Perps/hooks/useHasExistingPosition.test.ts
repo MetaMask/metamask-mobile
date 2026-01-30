@@ -35,7 +35,7 @@ describe('useHasExistingPosition', () => {
 
   const mockPositions: Position[] = [
     {
-      coin: 'BTC',
+      symbol: 'BTC',
       size: '0.5',
       entryPrice: '45000',
       positionValue: '22500',
@@ -57,7 +57,7 @@ describe('useHasExistingPosition', () => {
       stopLossCount: 0,
     },
     {
-      coin: 'ETH',
+      symbol: 'ETH',
       size: '-1.2',
       entryPrice: '3000',
       positionValue: '3600',

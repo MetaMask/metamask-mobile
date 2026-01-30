@@ -33,7 +33,7 @@ const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
 
 describe('usePerpsAdjustMarginData', () => {
   const mockPosition = {
-    coin: 'BTC',
+    symbol: 'BTC',
     size: '0.5',
     entryPrice: '100000',
     liquidationPrice: '80000',
@@ -88,7 +88,7 @@ describe('usePerpsAdjustMarginData', () => {
     });
 
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '100000', coin: 'BTC', timestamp: Date.now() },
+      BTC: { price: '100000', symbol: 'BTC', timestamp: Date.now() },
     });
 
     mockUsePerpsMarkets.mockReturnValue({
@@ -104,7 +104,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('returns the live position for the given coin', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -117,7 +117,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('returns null when position is not found', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'ETH',
+          symbol: 'ETH',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -134,7 +134,7 @@ describe('usePerpsAdjustMarginData', () => {
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -148,7 +148,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('returns current margin from live position', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -160,7 +160,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('returns position value from live position', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -172,7 +172,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('returns available balance from live account', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'add',
           inputAmount: 0,
         }),
@@ -186,7 +186,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('returns available balance as max for add mode', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'add',
           inputAmount: 0,
         }),
@@ -199,7 +199,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('calculates max removable margin for remove mode', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -227,7 +227,7 @@ describe('usePerpsAdjustMarginData', () => {
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -244,7 +244,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('returns current liquidation price from live position', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -256,17 +256,17 @@ describe('usePerpsAdjustMarginData', () => {
     it('calculates new liquidation price when adding margin', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'add',
           inputAmount: 1000,
         }),
       );
 
-      // newMargin = 5000 + 1000 = 6000
-      // positionSize = 0.5
-      // marginPerUnit = 6000 / 0.5 = 12000
-      // For long: liquidationPrice = entryPrice - marginPerUnit = 100000 - 12000 = 88000
-      expect(result.current.newLiquidationPrice).toBe(88000);
+      // Uses anchored + delta approach with maintenance margin factor:
+      // marginDelta = 1000, positionSize = 0.5, currentLiqPrice = 80000
+      // maintenanceMarginRate = 1/(2*50) = 0.01, denominator = 1 - 0.01 = 0.99
+      // For long (direction=-1): newLiqPrice = 80000 + (-1 * 1000 / 0.5) / 0.99 ≈ 77979.80
+      expect(result.current.newLiquidationPrice).toBeCloseTo(77979.8, 1);
     });
 
     it('calculates new liquidation price when removing margin', () => {
@@ -282,16 +282,17 @@ describe('usePerpsAdjustMarginData', () => {
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 1000,
         }),
       );
 
-      // newMargin = 8000 - 1000 = 7000
-      // marginPerUnit = 7000 / 0.5 = 14000
-      // For long: liquidationPrice = 100000 - 14000 = 86000
-      expect(result.current.newLiquidationPrice).toBe(86000);
+      // Uses anchored + delta approach with maintenance margin factor:
+      // marginDelta = -1000 (removing), positionSize = 0.5, currentLiqPrice = 80000
+      // maintenanceMarginRate = 1/(2*50) = 0.01, denominator = 0.99
+      // For long (direction=-1): newLiqPrice = 80000 + (-1 * -1000 / 0.5) / 0.99 ≈ 82020.20
+      expect(result.current.newLiquidationPrice).toBeCloseTo(82020.2, 1);
     });
   });
 
@@ -299,7 +300,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('calculates current liquidation distance as percentage', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -312,12 +313,12 @@ describe('usePerpsAdjustMarginData', () => {
 
     it('returns 0 when current price is 0', () => {
       mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '0', coin: 'BTC', timestamp: Date.now() },
+        BTC: { price: '0', symbol: 'BTC', timestamp: Date.now() },
       });
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -331,7 +332,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('correctly identifies add mode', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'add',
           inputAmount: 0,
         }),
@@ -343,7 +344,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('correctly identifies remove mode', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -357,7 +358,7 @@ describe('usePerpsAdjustMarginData', () => {
     it('uses position leverage when available', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),
@@ -379,7 +380,7 @@ describe('usePerpsAdjustMarginData', () => {
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
-          coin: 'BTC',
+          symbol: 'BTC',
           mode: 'remove',
           inputAmount: 0,
         }),

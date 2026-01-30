@@ -19,179 +19,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -297,13 +124,14 @@ exports[`OrderDetails renders a cancelled order 1`] = `
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={11}
+              handlerTag={12}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -399,6 +227,161 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                           ]
                         }
                       >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           handlerTag={-1}
@@ -841,7 +824,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -1428,6 +1411,20 @@ exports[`OrderDetails renders a cancelled order 1`] = `
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1451,179 +1448,6 @@ exports[`OrderDetails renders a completed order 1`] = `
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -1729,13 +1553,14 @@ exports[`OrderDetails renders a completed order 1`] = `
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={9}
+              handlerTag={10}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -1831,6 +1656,161 @@ exports[`OrderDetails renders a completed order 1`] = `
                           ]
                         }
                       >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           handlerTag={-1}
@@ -2291,7 +2271,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -2878,6 +2858,20 @@ exports[`OrderDetails renders a completed order 1`] = `
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -2901,179 +2895,6 @@ exports[`OrderDetails renders a created order 1`] = `
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -3179,13 +3000,14 @@ exports[`OrderDetails renders a created order 1`] = `
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={22}
+              handlerTag={23}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3281,6 +3103,161 @@ exports[`OrderDetails renders a created order 1`] = `
                           ]
                         }
                       >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           handlerTag={-1}
@@ -3756,7 +3733,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -4306,6 +4283,20 @@ exports[`OrderDetails renders a created order 1`] = `
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -4329,179 +4320,6 @@ exports[`OrderDetails renders a failed order 1`] = `
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -4607,13 +4425,14 @@ exports[`OrderDetails renders a failed order 1`] = `
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={13}
+              handlerTag={14}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4709,6 +4528,161 @@ exports[`OrderDetails renders a failed order 1`] = `
                           ]
                         }
                       >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           handlerTag={-1}
@@ -5151,7 +5125,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -5738,6 +5712,20 @@ exports[`OrderDetails renders a failed order 1`] = `
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -5761,179 +5749,6 @@ exports[`OrderDetails renders a pending order 1`] = `
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -6039,13 +5854,14 @@ exports[`OrderDetails renders a pending order 1`] = `
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={7}
+              handlerTag={8}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -6141,6 +5957,161 @@ exports[`OrderDetails renders a pending order 1`] = `
                           ]
                         }
                       >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           handlerTag={-1}
@@ -6616,7 +6587,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -7166,6 +7137,20 @@ exports[`OrderDetails renders a pending order 1`] = `
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -7189,179 +7174,6 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -7467,6 +7279,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
@@ -7568,7 +7381,163 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                             undefined,
                           ]
                         }
-                      />
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
+                      </View>
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -7578,6 +7547,20 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -7601,179 +7584,6 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -7879,13 +7689,14 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={34}
+              handlerTag={35}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7981,6 +7792,161 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                           ]
                         }
                       >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
                         <View
                           style={
                             [
@@ -8179,6 +8145,20 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -8202,179 +8182,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -8480,13 +8287,14 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={30}
+              handlerTag={31}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -8582,6 +8390,161 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                           ]
                         }
                       >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           handlerTag={-1}
@@ -9072,7 +9035,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -9672,6 +9635,20 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -9695,179 +9672,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -9973,13 +9777,14 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={37}
+              handlerTag={39}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -10075,6 +9880,161 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                           ]
                         }
                       >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           handlerTag={-1}
@@ -10562,7 +10522,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -11168,6 +11128,20 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -11191,179 +11165,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -11469,13 +11270,14 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={24}
+              handlerTag={25}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -11571,6 +11373,161 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                           ]
                         }
                       >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           handlerTag={-1}
@@ -12046,7 +12003,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -12596,6 +12553,20 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -12619,179 +12590,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
-              },
-              {
-                "marginTop": 0,
-              },
-              undefined,
-            ]
-          }
-          testID="header"
-        >
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexBasis": "0%",
-                  "flexGrow": 1,
-                  "flexShrink": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Order details
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -12897,13 +12695,14 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={26}
+              handlerTag={27}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -12999,6 +12798,161 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                           ]
                         }
                       >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "height": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 2,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Order details
+                              </Text>
+                            </View>
+                          </View>
+                          <View>
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           handlerTag={-1}
@@ -13489,7 +13443,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -14039,6 +13993,20 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;
