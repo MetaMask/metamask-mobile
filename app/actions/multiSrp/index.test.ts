@@ -365,7 +365,7 @@ describe('MultiSRP Actions', () => {
       );
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 0, // Returns 0 immediately, async discovery happens in callback
+        discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
       });
 
       // Verify callback receives the actual discovered count
@@ -423,7 +423,7 @@ describe('MultiSRP Actions', () => {
       expect(mockAddNewSecretData).not.toHaveBeenCalled();
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 0, // Returns 0 immediately
+        discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
       });
 
       // Verify callback receives the actual discovered count
@@ -461,7 +461,7 @@ describe('MultiSRP Actions', () => {
       });
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 0, // Returns 0 immediately
+        discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
       });
 
       // Verify callback receives the actual discovered count

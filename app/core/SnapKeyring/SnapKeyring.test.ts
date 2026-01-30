@@ -19,7 +19,7 @@ import { SnapId } from '@metamask/snaps-sdk';
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethodMiddleware';
 import { showAccountNameSuggestionDialog } from './utils/showDialog';
 import Logger from '../../util/Logger';
-import { isSnapPreinstalled } from './utils/snaps';
+import { isSnapPreinstalled, isMultichainWalletSnap } from './utils/snaps';
 import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
 
 const mockAddRequest = jest.fn();
@@ -32,9 +32,7 @@ const mockPersisKeyringHelper = jest.fn();
 const mockSetSelectedAccount = jest.fn();
 const mockRemoveAccountHelper = jest.fn();
 const mockGetAccountByAddress = jest.fn();
-const mockSetAccountName = jest.fn();
 const mockSnapControllerHandleRequest = jest.fn();
-const mockListMultichainAccounts = jest.fn();
 
 const mockFlowId = '123';
 const address = '0x2a4d4b667D5f12C3F9Bf8F14a7B9f8D8d9b8c8fA';
@@ -103,8 +101,6 @@ const createControllerMessenger = ({
       'KeyringController:getAccounts',
       'AccountsController:setSelectedAccount',
       'AccountsController:getAccountByAddress',
-      'AccountsController:listMultichainAccounts',
-      'AccountsController:setAccountName',
     ],
     events: [],
     messenger,
@@ -128,10 +124,6 @@ const createControllerMessenger = ({
         return mockGetAccountByAddress.mockReturnValue(account)(params);
       case 'AccountsController:setSelectedAccount':
         return mockSetSelectedAccount(params);
-      case 'AccountsController:setAccountName':
-        return mockSetAccountName.mockReturnValue(null)(params);
-      case 'AccountsController:listMultichainAccounts':
-        return mockListMultichainAccounts.mockReturnValue([])();
       case 'SnapController:handleRequest':
         return mockSnapControllerHandleRequest(params);
       default:
@@ -213,6 +205,7 @@ describe('Snap Keyring Methods', () => {
       // The SnapKeyring library may still call approval requests internally
       mockAddRequest.mockResolvedValue({ success: true });
       (isSnapPreinstalled as jest.Mock).mockReset();
+      (isMultichainWalletSnap as jest.Mock).mockReturnValue(false);
     });
     afterEach(() => {
       jest.resetAllMocks();
@@ -229,18 +222,17 @@ describe('Snap Keyring Methods', () => {
         },
       });
 
-      // The implementation no longer shows dialogs - it just calls addAccountFinalize
-      // which uses an approval flow (startFlow/endFlow) for non-preinstalled snaps
+      // The implementation auto-approves and calls addAccountFinalize
+      // which uses an approval flow for non-preinstalled snaps
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
       expect(mockGetAccounts).toHaveBeenCalledTimes(1);
 
       // Wait for any pending promises (including the account finalization which tracks the event)
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount is called but setAccountName is not called
+      // Verify that setSelectedAccount is called
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockSetAccountName).not.toHaveBeenCalled();
 
       // Verify approval flow was used (startFlow and endFlow called)
       expect(mockStartFlow).toHaveBeenCalledTimes(1);
@@ -251,7 +243,8 @@ describe('Snap Keyring Methods', () => {
       expect(trackSnapAccountEvent).toHaveBeenCalled();
     });
 
-    it('handles account creation with account name suggestion', async () => {
+    it('handles account creation with account name suggestion (ignored in BIP-44)', async () => {
+      // Account name suggestions are no longer processed - naming is handled by multichain account groups
       const mockNameSuggestion = 'suggested name';
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
@@ -266,13 +259,12 @@ describe('Snap Keyring Methods', () => {
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
       expect(mockGetAccounts).toHaveBeenCalledTimes(1);
 
-      // Wait for any pending promises (including the account finalization which tracks the event)
+      // Wait for any pending promises
       await waitForAllPromises();
 
-      // Verify that setSelectedAccount is called (setAccountName is no longer called directly)
+      // Verify that setSelectedAccount is called
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
-      expect(mockSetAccountName).not.toHaveBeenCalled();
 
       // Verify approval flow was used
       expect(mockStartFlow).toHaveBeenCalledTimes(1);
@@ -317,8 +309,8 @@ describe('Snap Keyring Methods', () => {
         },
       });
 
-      // ! This no longer throws an error, but instead, we log it. Since this part
-      // ! of the flow is not awaited, so we await for it explicitly here:
+      // This no longer throws an error, but instead, we log it. Since this part
+      // of the flow is not awaited, so we await for it explicitly here:
       await waitForAllPromises();
       expect(loggerSpy).toHaveBeenCalledWith(
         new Error('save error'),
@@ -331,6 +323,7 @@ describe('Snap Keyring Methods', () => {
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
       expect(trackSnapAccountEvent).not.toHaveBeenCalled();
     });
+
     it('skips approval flow for preinstalled snaps when both confirmations are disabled', async () => {
       // Mock isSnapPreinstalled to return true for this test
       (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
@@ -362,6 +355,39 @@ describe('Snap Keyring Methods', () => {
       // Verify that setSelectedAccount is called
       expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
+
+      // Verify trackSnapAccountEvent was called
+      expect(trackSnapAccountEvent).toHaveBeenCalled();
+    });
+
+    it('skips all dialogs for preinstalled multichain wallet snaps', async () => {
+      // Mock isSnapPreinstalled and isMultichainWalletSnap to return true
+      (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
+      (isMultichainWalletSnap as jest.Mock).mockReturnValue(true);
+
+      const builder = createSnapKeyringBuilder();
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: true, // Even with true, should skip for multichain wallet snaps
+          accountNameSuggestion: 'some name',
+          displayAccountNameSuggestion: true,
+        },
+      });
+
+      // Verify that the account was created
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
+
+      // Wait for any pending promises
+      await waitForAllPromises();
+
+      // For preinstalled multichain wallet snaps, skipAll=true, so no approval flow
+      expect(mockStartFlow).not.toHaveBeenCalled();
+      expect(mockEndFlow).not.toHaveBeenCalled();
+
+      // setSelectedAccount should NOT be called because skipSetSelectedAccountStep=true
+      expect(mockSetSelectedAccount).not.toHaveBeenCalled();
 
       // Verify trackSnapAccountEvent was called
       expect(trackSnapAccountEvent).toHaveBeenCalled();
@@ -458,7 +484,6 @@ describe('Snap Keyring Methods', () => {
 
       // Reset mocks for second test and set them up again
       mockSetSelectedAccount.mockReset();
-      mockSetAccountName.mockReset();
       mockPersisKeyringHelper.mockReset();
       mockStartFlow.mockReset();
       mockEndFlow.mockReset();
@@ -489,6 +514,7 @@ describe('Snap Keyring Methods', () => {
       expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
     });
   });
+
   describe('removeAccount', () => {
     beforeEach(() => {
       mockAddRequest.mockReturnValue(true).mockReturnValue({ success: true });

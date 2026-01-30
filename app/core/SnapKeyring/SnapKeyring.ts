@@ -5,11 +5,9 @@ import {
   getDefaultInternalOptions,
 } from '@metamask/eth-snap-keyring';
 import Logger from '../../util/Logger';
-import { showAccountNameSuggestionDialog } from './utils/showDialog';
 import { SnapKeyringBuilderMessenger } from './types';
 import { SnapId } from '@metamask/snaps-sdk';
 import { assertIsValidSnapId } from '@metamask/snaps-utils';
-import { getUniqueAccountName } from './utils/getUniqueAccountName';
 import {
   getSnapName,
   isMultichainWalletSnap,
@@ -82,43 +80,6 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
         id: flowId,
       });
     }
-  }
-
-  /**
-   * Get the account name from the user through a dialog.
-   *
-   * @param snapId - ID of the Snap that created the account.
-   * @param accountNameSuggestion - Suggested name for the account.
-   * @returns The name that should be used for the account.
-   */
-  private async getAccountNameFromDialog(
-    snapId: SnapId,
-    accountNameSuggestion: string,
-  ): Promise<{ success: boolean; accountName?: string }> {
-    const { success, name: accountName } =
-      await showAccountNameSuggestionDialog(
-        snapId,
-        this.#messenger,
-        accountNameSuggestion,
-      );
-
-    return { success, accountName };
-  }
-
-  /**
-   * Use the account name suggestion to decide the name of the account.
-   *
-   * @param accountNameSuggestion - Suggested name for the account.
-   * @returns The name that should be used for the account.
-   */
-  private async getAccountNameFromSuggestion(
-    accountNameSuggestion: string,
-  ): Promise<{ success: boolean; accountName?: string }> {
-    const accounts = await this.#messenger.call(
-      'AccountsController:listMultichainAccounts',
-    );
-    const accountName = getUniqueAccountName(accounts, accountNameSuggestion);
-    return { success: true, accountName };
   }
 
   private async addAccountFinalize({

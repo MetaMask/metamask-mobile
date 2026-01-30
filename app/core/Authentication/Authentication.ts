@@ -200,23 +200,6 @@ class AuthenticationService {
     }
   };
 
-  private attemptAccountDiscovery = async (
-    clientType: WalletClientType,
-  ): Promise<void> => {
-    await this.retryAccountDiscovery(async (): Promise<void> => {
-      const primaryHdKeyringId =
-        Engine.context.KeyringController.state.keyrings[0].metadata.id;
-      const client = MultichainWalletSnapFactory.createClient(clientType, {
-        setSelectedAccount: false,
-      });
-      const { discoveryScope, discoveryStorageId } =
-        WALLET_SNAP_MAP[clientType];
-
-      await client.addDiscoveredAccounts(primaryHdKeyringId, discoveryScope);
-      await StorageWrapper.removeItem(discoveryStorageId);
-    });
-  };
-
   private attemptMultichainAccountWalletDiscovery = async (
     entropySource?: EntropySourceId,
   ): Promise<void> => {
