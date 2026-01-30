@@ -262,6 +262,11 @@ jest.mock('../../hooks', () => ({
           creationFailed: jest.fn(),
         },
       },
+      positionManagement: {
+        tpsl: {
+          updateTPSLError: jest.fn(),
+        },
+      },
       dataFetching: {
         market: {
           error: {
@@ -1781,6 +1786,11 @@ describe('PerpsOrderView', () => {
               submitted: jest.fn(),
               confirmed: jest.fn(),
               creationFailed: jest.fn(),
+            },
+          },
+          positionManagement: {
+            tpsl: {
+              updateTPSLError: jest.fn(),
             },
           },
           dataFetching: {
