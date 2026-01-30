@@ -3448,9 +3448,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Ensure provider is ready for trading (includes signing operations)
       await this.ensureReadyForTrading();
 
-      // Get all current positions
-      // Force fresh API data (not WebSocket cache) since we're about to mutate positions
-      const positions = await this.getPositions({ skipCache: true });
+      // Get all current positions from cache (avoids 429 rate limiting)
+      const positions = await this.getPositions();
 
       // Filter positions based on params
       positionsToClose =
@@ -3980,9 +3979,13 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Ensure provider is ready for trading (includes signing operations)
       await this.ensureReadyForTrading();
 
-      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
-      const positions = await this.getPositions({ skipCache: true });
-      const position = positions.find((pos) => pos.symbol === params.symbol);
+      // Use provided position (from WebSocket) or fetch from cache
+      // This avoids unnecessary API calls and prevents 429 rate limiting
+      let position = params.position;
+      if (!position) {
+        const positions = await this.getPositions();
+        position = positions.find((pos) => pos.symbol === params.symbol);
+      }
 
       if (!position) {
         throw new Error(`No position found for ${params.symbol}`);
@@ -4119,9 +4122,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Ensure provider is ready
       await this.ensureReady();
 
-      // Get current position to determine direction
-      // Force fresh API data since we're about to mutate the position
-      const positions = await this.getPositions({ skipCache: true });
+      // Get current position to determine direction (from cache to avoid 429 rate limiting)
+      const positions = await this.getPositions();
       const position = positions.find((pos) => pos.symbol === symbol);
 
       if (!position) {
