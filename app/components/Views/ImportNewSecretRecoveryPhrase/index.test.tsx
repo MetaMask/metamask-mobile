@@ -1213,7 +1213,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       expect(mockAlert).toHaveBeenCalledWith(
-        'Invalid QR Code',
+        'Invalid QR code',
         'The QR code does not contain a valid Secret Recovery Phrase',
       );
 

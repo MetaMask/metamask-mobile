@@ -99,6 +99,7 @@ import { isRelaySupported } from '../../util/transactions/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { createTrustSignalsMiddleware } from '../RPCMethods/TrustSignalsMiddleware';
+import createDupeReqFilterStream from './createDupeReqFilterStream';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -551,7 +552,9 @@ export class BackgroundBridge extends EventEmitter {
     // setup connection
     const providerStream = createEngineStream({ engine: this.engine });
 
-    pump(outStream, providerStream, outStream, (err) => {
+    const filterStream = createDupeReqFilterStream();
+
+    pump(outStream, filterStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
       this.engine.destroy();
       if (err) Logger.log('Error with provider stream conn', err);
@@ -582,7 +585,9 @@ export class BackgroundBridge extends EventEmitter {
     this.notifyTronAccountChangedForCurrentAccount();
     ///: END:ONLY_INCLUDE_IF
 
-    pump(outStream, providerStream, outStream, (err) => {
+    const filterStream = createDupeReqFilterStream();
+
+    pump(outStream, filterStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
       this.multichainEngine.destroy();
       if (err) Logger.log('Error with provider stream conn', err);

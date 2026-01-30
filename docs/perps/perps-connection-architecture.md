@@ -119,6 +119,52 @@ graph TD
 
 ---
 
+## Subscription Warmup Process
+
+After controller initialization, the ConnectionManager pre-warms WebSocket subscriptions to enable instant UI rendering.
+
+### Warmup Sequence
+
+```
+PerpsConnectionManager.connect()
+    └── preloadSubscriptions()
+            ├── positions.prewarm() → webData3 subscription
+            ├── orders.prewarm() → webData3 subscription
+            ├── account.prewarm() → webData3 subscription
+            ├── marketData.prewarm() → assetCtxs subscription
+            ├── oiCaps.prewarm() → OI caps data
+            ├── fills.prewarm() → Fill notifications
+            └── prices.prewarm() → allMids for all markets (async)
+```
+
+### Channels Pre-warmed
+
+| Channel    | Data                     | Subscription       |
+| ---------- | ------------------------ | ------------------ |
+| positions  | User positions           | webData3           |
+| orders     | Open orders              | webData3           |
+| account    | Account balance          | webData3           |
+| marketData | Funding, OI, mark prices | assetCtxs per DEX  |
+| oiCaps     | Open interest caps       | OI caps            |
+| fills      | Trade fills              | Fill notifications |
+| prices     | All market prices        | allMids per DEX    |
+
+### Benefits
+
+- **Instant data**: UI components receive cached data immediately on mount
+- **Single subscription**: Components share pre-warmed subscriptions via reference counting
+- **No throttle**: Pre-warm uses throttleMs=0 for fastest cache population
+
+### Cleanup
+
+Pre-warm subscriptions are cleaned up during:
+
+- `disconnect()` - When last provider unmounts
+- `reconnectWithNewContext()` - Before reinitializing
+- Cache clearing - When account/network changes
+
+---
+
 ### Controller Layer: PerpsController (Redux)
 
 **What it is**: Redux controller that manages provider instances and exposes data methods

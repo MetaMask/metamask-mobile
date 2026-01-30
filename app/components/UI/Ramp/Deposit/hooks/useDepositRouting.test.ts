@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDepositRouting } from './useDepositRouting';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { BuyQuote, DepositRegion } from '@consensys/native-ramps-sdk';
 import { KycStatus, REDIRECTION_URL } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
@@ -159,7 +159,10 @@ jest.mock('./useDepositSdkMethod', () => ({
 }));
 
 const mockLogoutFromProvider = jest.fn();
-const mockSelectedRegion = { isoCode: 'US', currency: 'USD' };
+let mockSelectedRegion: DepositRegion | null = {
+  isoCode: 'US',
+  currency: 'USD',
+} as DepositRegion;
 let mockSelectedPaymentMethod = {
   isManualBankTransfer: false,
   id: 'credit_debit_card',
@@ -223,6 +226,7 @@ describe('useDepositRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockSelectedRegion = { isoCode: 'US', currency: 'USD' } as DepositRegion;
     mockSelectedPaymentMethod = {
       isManualBankTransfer: false,
       id: 'credit_debit_card',
@@ -707,6 +711,30 @@ describe('useDepositRouting', () => {
       ).rejects.toThrow('KYC forms fetch failed');
     });
 
+    it('throws error when KYC requirements are missing', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue(null);
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow('Missing KYC requirements');
+    });
+
+    it('throws error when KYC requirements are undefined', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow('Missing KYC requirements');
+    });
+
     it('should throw error when payment URL generation fails', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
@@ -1119,6 +1147,131 @@ describe('useDepositRouting', () => {
         ramp_type: 'DEPOSIT',
         kyc_type: 'SIMPLE',
         region: 'US',
+      });
+    });
+
+    it('tracks RAMPS_KYC_STARTED event with empty region when selectedRegion is missing for NOT_SUBMITTED status', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockSelectedRegion = null;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'NOT_SUBMITTED',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_KYC_STARTED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'SIMPLE',
+        region: '',
+      });
+    });
+
+    it('tracks RAMPS_KYC_STARTED event with kyc_type STANDARD when Level 2 KYC (IDPROOF) is required', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+      });
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'test-kyc-url',
+              workFlowRunId: 'test-workflow-run-id',
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_KYC_STARTED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'STANDARD',
+        region: 'US',
+      });
+    });
+
+    it('tracks RAMPS_KYC_STARTED event with empty region when selectedRegion is missing', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockSelectedRegion = null;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+      });
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'test-kyc-url',
+              workFlowRunId: 'test-workflow-run-id',
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_KYC_STARTED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'STANDARD',
+        region: '',
+      });
+    });
+
+    it('tracks RAMPS_KYC_STARTED event with empty region when selectedRegion.isoCode is missing', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockSelectedRegion = {
+        currency: 'USD',
+      } as unknown as DepositRegion;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+      });
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'test-kyc-url',
+              workFlowRunId: 'test-workflow-run-id',
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_KYC_STARTED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'STANDARD',
+        region: '',
       });
     });
 

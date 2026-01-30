@@ -25,6 +25,7 @@ import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import { useSelector } from 'react-redux';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -56,6 +57,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+  const isEligible = useSelector(selectPerpsEligibility);
+  const { track } = usePerpsEventTracking();
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
@@ -117,12 +120,23 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
-  // Modal handlers - now using navigation to modal stack
+  // Modal handlers - now using navigation to modal stack with geo-restriction check
   const handleCloseAllPress = useCallback(() => {
+    // Geo-restriction check for close all positions
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
       screen: Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS,
     });
-  }, [navigation]);
+  }, [isEligible, navigation, track]);
 
   const handleCancelAllPress = useCallback(() => {
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
@@ -216,11 +230,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             const directionSegment = getPositionDirection(position.size);
             return (
               <View
-                key={`${position.coin}-${index}`}
-                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+                key={`${position.symbol}-${index}`}
+                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.symbol}-${position.leverage.value}x-${directionSegment}-${index}`}
               >
                 <PerpsCard
-                  key={`${position.coin}-${index}`}
+                  key={`${position.symbol}-${index}`}
                   position={position}
                   source={PerpsEventValues.SOURCE.POSITION_TAB}
                 />

@@ -1,10 +1,34 @@
 import { useCallback, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { getErrorMessage } from '../util/getErrorMessage';
+import Engine from '../../../../core/Engine';
 import {
   EmailVerificationVerifyRequest,
   EmailVerificationVerifyResponse,
 } from '../types';
+
+/**
+ * Gets the user's profile ID (JWT sub claim) from authenticated MetaMask requests.
+ * Only returns the profileId if the user is signed in.
+ *
+ * @returns The profile ID string or undefined if not signed in
+ */
+const getProfileId = async (): Promise<string | undefined> => {
+  try {
+    const { AuthenticationController } = Engine.context;
+    const isSignedIn = AuthenticationController.isSignedIn();
+    if (!isSignedIn) {
+      return undefined;
+    }
+    const sessionProfile = await AuthenticationController.getSessionProfile();
+    if (sessionProfile?.profileId) {
+      return sessionProfile.profileId;
+    }
+  } catch {
+    // Return undefined if any error occurs
+  }
+  return undefined;
+};
 
 /**
  * Hook for verifying email verification
@@ -53,8 +77,13 @@ const useEmailVerificationVerify = (): {
         setIsSuccess(false);
         setError(null);
 
+        const userExternalId = await getProfileId();
+
         const emailVerificationVerifyResponse =
-          await sdk.emailVerificationVerify(request);
+          await sdk.emailVerificationVerify({
+            ...request,
+            ...(userExternalId && { userExternalId }),
+          });
 
         setIsSuccess(true);
 

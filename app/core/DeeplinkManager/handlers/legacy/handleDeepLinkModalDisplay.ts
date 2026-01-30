@@ -1,3 +1,4 @@
+// Handles deep link modal display - analytics tracked in handleUniversalLink
 import {
   createDeepLinkModalNavDetails,
   DeepLinkModalParams,
@@ -6,7 +7,7 @@ import { selectDeepLinkModalDisabled } from '../../../../selectors/settings';
 import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
 
-const handleDeepLinkModalDisplay = (params: DeepLinkModalParams) => {
+const handleDeepLinkModalDisplay = async (params: DeepLinkModalParams) => {
   // TODO: Update name since this is meant to remove interstitial if don't remind me again was toggled
   const deepLinkModalDisabled = selectDeepLinkModalDisabled(
     ReduxService.store.getState(),

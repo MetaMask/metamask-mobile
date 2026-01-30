@@ -120,7 +120,7 @@ describe('PerpsModifyActionSheet', () => {
   const mockOnActionSelect = jest.fn();
 
   const mockPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',

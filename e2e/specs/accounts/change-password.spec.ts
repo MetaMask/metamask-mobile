@@ -1,7 +1,7 @@
 import { RegressionAccounts } from '../../tags.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Matchers from '../../framework/Matchers';
-import Assertions from '../../framework/Assertions';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import Matchers from '../../../tests/framework/Matchers';
+import Assertions from '../../../tests/framework/Assertions';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -11,7 +11,7 @@ import ChangePasswordView from '../../pages/Settings/SecurityAndPrivacy/ChangePa
 import LoginView from '../../pages/wallet/LoginView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import ToastModal from '../../pages/wallet/ToastModal';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 
 describe(RegressionAccounts('change password'), () => {
   const PASSWORD = '123123123';

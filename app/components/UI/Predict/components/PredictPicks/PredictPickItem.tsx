@@ -61,17 +61,19 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
           </Text>
         )}
       </Box>
-      <Button
-        variant={ButtonVariant.Secondary}
-        twClassName="py-3 px-4 light:bg-muted/5"
-        onPress={() => onCashOut(currentPosition)}
-        isDisabled={isOptimistic}
-        testID={`predict-picks-cash-out-button-${position.id}`}
-      >
-        <Text variant={TextVariant.BodyMd} twClassName="font-medium">
-          {strings('predict.cash_out')}
-        </Text>
-      </Button>
+      {!position.claimable && (
+        <Button
+          variant={ButtonVariant.Secondary}
+          twClassName="light:bg-muted/5"
+          onPress={() => onCashOut(currentPosition)}
+          isDisabled={isOptimistic}
+          testID={`predict-picks-cash-out-button-${position.id}`}
+        >
+          <Text variant={TextVariant.BodyMd} twClassName="font-medium">
+            {strings('predict.cash_out')}
+          </Text>
+        </Button>
+      )}
     </Box>
   );
 };

@@ -384,6 +384,16 @@ export const PerpsTestnetToggleSelectorsIDs = {
 };
 
 // ========================================
+// PERPS PROVIDER TOGGLE SELECTORS
+// ========================================
+
+export const PerpsProviderToggleSelectorsIDs = {
+  ROOT: 'perps-provider-toggle-root',
+  SWITCH: 'perps-provider-toggle-switch',
+  LOADING_INDICATOR: 'perps-provider-toggle-loading-indicator',
+};
+
+// ========================================
 // PERPS TRANSACTION SELECTORS
 // ========================================
 
@@ -472,8 +482,7 @@ export const PerpsTutorialSelectorsIDs = {
 export const PerpsStopLossPromptSelectorsIDs = {
   CONTAINER: 'perps-stop-loss-prompt-container',
   ADD_MARGIN_BUTTON: 'perps-stop-loss-prompt-add-margin-button',
-  SET_STOP_LOSS_BUTTON: 'perps-stop-loss-prompt-set-button',
-  SUCCESS_ICON: 'perps-stop-loss-prompt-success-icon',
+  TOGGLE: 'perps-stop-loss-prompt-toggle',
   LOADING: 'perps-stop-loss-prompt-loading',
 } as const;
 

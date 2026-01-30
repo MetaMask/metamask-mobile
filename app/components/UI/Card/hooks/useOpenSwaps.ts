@@ -29,7 +29,7 @@ export interface UseOpenSwapsOptions {
 }
 
 export const useOpenSwaps = ({
-  location = SwapBridgeNavigationLocation.TokenDetails,
+  location = SwapBridgeNavigationLocation.TokenView,
   sourcePage = Routes.CARD.HOME,
   priorityToken,
 }: UseOpenSwapsOptions = {}) => {

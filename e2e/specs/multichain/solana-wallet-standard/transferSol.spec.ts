@@ -2,7 +2,7 @@ import { SmokeNetworkExpansion } from '../../../tags';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import { withSolanaAccountEnabled } from '../../../common-solana';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 
 describe(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Transfer SOL'),

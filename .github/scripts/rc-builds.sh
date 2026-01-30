@@ -124,3 +124,10 @@ echo "Android build ID: $ANDROID_WORKFLOW_ID"
 echo "iOS Build ID: $IOS_WORKFLOW_ID"
 echo "Android public link: $ANDROID_PUBLIC_URL"
 echo "Build number: $BUILD_NUMBER"
+
+# Export outputs to GITHUB_OUTPUT for use in subsequent jobs
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  echo "android-public-url=$ANDROID_PUBLIC_URL" >> "$GITHUB_OUTPUT"
+  echo "bitrise-pipeline-url=https://app.bitrise.io/app/$BITRISE_APP_ID/pipelines/$BUILD_SLUG" >> "$GITHUB_OUTPUT"
+  echo "build-number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+fi

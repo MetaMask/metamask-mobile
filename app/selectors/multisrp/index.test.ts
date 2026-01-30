@@ -1,11 +1,14 @@
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+
 import {
   selectHdKeyringIndexByIdOrDefault,
   getSnapAccountsByKeyringId,
+  selectAccountGroupsByKeyringId,
 } from './index';
 import { RootState } from '../../reducers';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { SOLANA_WALLET_SNAP_ID } from '../../core/SnapKeyring/SolanaWalletSnap';
 
 const MOCK_ADDRESS_1 = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
@@ -96,6 +99,74 @@ const mockSnapKeyring = {
   },
 };
 
+// Account groups representing multichain accounts
+const mockAccountGroup1 = {
+  id: `entropy:${mockHDKeyring.metadata.id}/0`,
+  type: AccountGroupType.MultichainAccount,
+  accounts: [mockAccount1.id],
+  metadata: {
+    name: 'Account 1',
+    pinned: false,
+    hidden: false,
+    entropy: { groupIndex: 0 },
+  },
+};
+
+const mockAccountGroup2 = {
+  id: `entropy:${mockHDKeyring.metadata.id}/1`,
+  type: AccountGroupType.MultichainAccount,
+  accounts: [mockAccount2.id],
+  metadata: {
+    name: 'Account 2',
+    pinned: false,
+    hidden: false,
+    entropy: { groupIndex: 1 },
+  },
+};
+
+const mockAccountGroup3 = {
+  id: `entropy:${mockHDKeyring2.metadata.id}/0`,
+  type: AccountGroupType.MultichainAccount,
+  accounts: [mockAccount3.id],
+  metadata: {
+    name: 'Account 3',
+    pinned: false,
+    hidden: false,
+    entropy: { groupIndex: 0 },
+  },
+};
+
+const mockAccountTreeControllerState = {
+  accountTree: {
+    wallets: {
+      [`entropy:${mockHDKeyring.metadata.id}`]: {
+        id: `entropy:${mockHDKeyring.metadata.id}`,
+        type: AccountWalletType.Entropy,
+        metadata: {
+          name: 'Wallet 1',
+          entropy: { id: mockHDKeyring.metadata.id },
+        },
+        groups: {
+          [mockAccountGroup1.id]: mockAccountGroup1,
+          [mockAccountGroup2.id]: mockAccountGroup2,
+        },
+      },
+      [`entropy:${mockHDKeyring2.metadata.id}`]: {
+        id: `entropy:${mockHDKeyring2.metadata.id}`,
+        type: AccountWalletType.Entropy,
+        metadata: {
+          name: 'Wallet 2',
+          entropy: { id: mockHDKeyring2.metadata.id },
+        },
+        groups: {
+          [mockAccountGroup3.id]: mockAccountGroup3,
+        },
+      },
+    },
+    selectedAccountGroup: mockAccountGroup1.id,
+  },
+};
+
 const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
   ({
     engine: {
@@ -121,6 +192,7 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
             selectedAccount: selectedAccount.id,
           },
         },
+        AccountTreeController: mockAccountTreeControllerState,
       },
     },
   }) as unknown as RootState;
@@ -167,6 +239,57 @@ describe('multisrp selectors', () => {
     it('returns empty array when keyringId is not found', () => {
       const result = getSnapAccountsByKeyringId(mockState(), 'non-existent');
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('selectAccountGroupsByKeyringId', () => {
+    it('returns account groups for a specific keyring', () => {
+      const result = selectAccountGroupsByKeyringId(
+        mockState(),
+        mockHDKeyring.metadata.id,
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0].metadata.name).toBe('Account 1');
+      expect(result[1].metadata.name).toBe('Account 2');
+    });
+
+    it('returns account groups for a different keyring', () => {
+      const result = selectAccountGroupsByKeyringId(
+        mockState(),
+        mockHDKeyring2.metadata.id,
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].metadata.name).toBe('Account 3');
+    });
+
+    it('returns empty array when keyringId is not found', () => {
+      const result = selectAccountGroupsByKeyringId(
+        mockState(),
+        'non-existent-keyring-id',
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when no account groups exist for keyring', () => {
+      const result = selectAccountGroupsByKeyringId(
+        mockState(),
+        mockSimpleKeyring.metadata.id,
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns account groups with resolved internal accounts', () => {
+      const result = selectAccountGroupsByKeyringId(
+        mockState(),
+        mockHDKeyring.metadata.id,
+      );
+
+      expect(result[0].accounts).toHaveLength(1);
+      expect(result[0].accounts[0].id).toBe(mockAccount1.id);
     });
   });
 });

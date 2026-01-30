@@ -94,6 +94,7 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   const MockTextField = ({
     testID,
     onChangeText,
+    onBlur,
     value,
     placeholder,
     maxLength,
@@ -103,6 +104,7 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   }: {
     testID?: string;
     onChangeText?: (text: string) => void;
+    onBlur?: () => void;
     value?: string;
     placeholder?: string;
     maxLength?: number;
@@ -112,6 +114,7 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
     React.createElement(TextInput, {
       testID,
       onChangeText,
+      onBlur,
       value,
       placeholder,
       maxLength,
@@ -235,10 +238,6 @@ jest.mock('./RegionSelectorModal', () => ({
     mockSetOnValueChange(callback),
   clearOnValueChange: jest.fn(),
   createRegionSelectorModalNavigationDetails: jest.fn(() => ['MockRoute', {}]),
-}));
-
-jest.mock('../../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: (value: string) => value,
 }));
 
 jest.mock('../../hooks/useRegisterPersonalDetails', () => ({
@@ -542,6 +541,53 @@ describe('PersonalDetails Component', () => {
 
       const ssnInput = getByTestId('personal-details-ssn-input');
       expect(ssnInput.props.maxLength).toBe(9);
+    });
+
+    it('does not show SSN error while typing (before blur)', () => {
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+      fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
+
+      // Error should not be shown while typing
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+    });
+
+    it('shows SSN error after blur when SSN is invalid', () => {
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+      fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
+      fireEvent(ssnInput, 'onBlur');
+
+      // Error should be shown after blur
+      expect(getByTestId('personal-details-ssn-error')).toBeTruthy();
+    });
+
+    it('does not show SSN error after blur when SSN is valid', () => {
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+      fireEvent.changeText(ssnInput, '123456789'); // Valid SSN (9 digits)
+      fireEvent(ssnInput, 'onBlur');
+
+      // Error should not be shown for valid SSN
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+    });
+
+    it('clears SSN error when user starts typing again', () => {
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+
+      // Type invalid SSN and blur to trigger error
+      fireEvent.changeText(ssnInput, '123');
+      fireEvent(ssnInput, 'onBlur');
+      expect(getByTestId('personal-details-ssn-error')).toBeTruthy();
+
+      // Type again - error should be cleared
+      fireEvent.changeText(ssnInput, '1234');
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
     });
   });
 

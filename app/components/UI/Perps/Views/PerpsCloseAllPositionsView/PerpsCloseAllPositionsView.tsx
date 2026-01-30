@@ -64,7 +64,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
 
   // Fetch current prices for fee calculations (throttled to avoid excessive updates)
   const symbols = useMemo(
-    () => (positions || []).map((pos) => pos.coin),
+    () => (positions || []).map((pos) => pos.symbol),
     [positions],
   );
   const priceData = usePerpsLivePrices({

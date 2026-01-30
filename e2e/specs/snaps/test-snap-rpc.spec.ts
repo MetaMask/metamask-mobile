@@ -1,8 +1,8 @@
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import { FlaskBuildTests } from '../../tags';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 
 jest.setTimeout(150_000);
 

@@ -1,6 +1,6 @@
 import { ConfirmationFooterSelectorIDs } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
+import Matchers from '../../../../tests/framework/Matchers';
+import Gestures from '../../../../tests/framework/Gestures';
 import TestHelpers from '../../../helpers';
 
 class FooterActions {

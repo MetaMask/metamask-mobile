@@ -110,7 +110,7 @@ const PerpsHeroCardView: React.FC = () => {
     const marketPriceParsed = parseCurrencyString(marketPrice ?? '');
 
     return {
-      asset: position.coin,
+      asset: position.symbol,
       direction,
       leverage: position.leverage.value,
       pnl: pnlValue,
@@ -126,7 +126,7 @@ const PerpsHeroCardView: React.FC = () => {
     position.unrealizedPnl,
     position.returnOnEquity,
     position.entryPrice,
-    position.coin,
+    position.symbol,
     position.leverage.value,
     marketPrice,
   ]);
@@ -147,7 +147,7 @@ const PerpsHeroCardView: React.FC = () => {
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]:
         PerpsEventValues.SCREEN_TYPE.PNL_HERO_CARD,
-      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.ASSET]: position.symbol,
       [PerpsEventProperties.DIRECTION]:
         data.direction === 'long'
           ? PerpsEventValues.DIRECTION.LONG
@@ -165,7 +165,7 @@ const PerpsHeroCardView: React.FC = () => {
     properties: {
       [PerpsEventProperties.INTERACTION_TYPE]:
         PerpsEventValues.INTERACTION_TYPE.DISPLAY_HERO_CARD,
-      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.ASSET]: position.symbol,
       [PerpsEventProperties.DIRECTION]:
         data.direction === 'long'
           ? PerpsEventValues.DIRECTION.LONG

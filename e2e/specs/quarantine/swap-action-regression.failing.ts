@@ -1,6 +1,6 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../framework/types';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import { RegressionTrade } from '../../tags';
@@ -11,7 +11,7 @@ import {
 import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../swaps/helpers/swap-mocks';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {

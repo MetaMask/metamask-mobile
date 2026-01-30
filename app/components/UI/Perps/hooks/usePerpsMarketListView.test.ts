@@ -115,7 +115,7 @@ describe('usePerpsMarketListView', () => {
         return ['BTC', 'ETH'];
       }
       // Even calls are sort preference (second, fourth, sixth, etc.)
-      return 'volume';
+      return { optionId: 'volume', direction: 'desc' };
     });
   });
 
@@ -304,13 +304,14 @@ describe('usePerpsMarketListView', () => {
           return ['BTC'];
         }
         // Even calls are sort preference
-        return 'priceChange-desc';
+        return { optionId: 'priceChange', direction: 'asc' };
       });
 
       renderHook(() => usePerpsMarketListView());
 
       expect(mockUsePerpsSorting).toHaveBeenCalledWith({
-        initialOptionId: 'priceChange-desc',
+        initialOptionId: 'priceChange',
+        initialDirection: 'asc',
       });
     });
 
@@ -328,17 +329,17 @@ describe('usePerpsMarketListView', () => {
     it('saves sort preference to PerpsController when changed', () => {
       const { result } = renderHook(() => usePerpsMarketListView());
 
-      // Call handleOptionChange
+      // Call handleOptionChange with 'asc' direction
       result.current.sortState.handleOptionChange(
-        'priceChange-desc',
+        'priceChange',
         'priceChange' as SortField,
-        'desc' as SortDirection,
+        'asc' as SortDirection,
       );
 
-      // Should have called Engine's saveMarketFilterPreferences
+      // Should have called Engine's saveMarketFilterPreferences with both optionId and direction
       expect(
         Engine.context.PerpsController.saveMarketFilterPreferences,
-      ).toHaveBeenCalledWith('priceChange-desc');
+      ).toHaveBeenCalledWith('priceChange', 'asc');
     });
 
     it('applies sorting to filtered markets', () => {
@@ -373,7 +374,7 @@ describe('usePerpsMarketListView', () => {
         if (selectorCallCount % 2 === 1) {
           return ['BTC', 'ETH'];
         }
-        return 'volume';
+        return { optionId: 'volume', direction: 'desc' };
       });
 
       const { result } = renderHook(() =>
@@ -434,7 +435,7 @@ describe('usePerpsMarketListView', () => {
         if (selectorCallCount % 2 === 1) {
           return ['BTC', 'ETH'];
         }
-        return 'volume';
+        return { optionId: 'volume', direction: 'desc' };
       });
 
       // Mock search to return only BTC
@@ -464,7 +465,7 @@ describe('usePerpsMarketListView', () => {
         if (selectorCallCount % 2 === 1) {
           return ['ETH'];
         }
-        return 'volume';
+        return { optionId: 'volume', direction: 'desc' };
       });
 
       mockUsePerpsSearch.mockReturnValue({
@@ -482,7 +483,7 @@ describe('usePerpsMarketListView', () => {
       );
 
       mockUsePerpsSorting.mockReturnValue({
-        selectedOptionId: 'priceChange-asc',
+        selectedOptionId: 'priceChange',
         sortBy: 'priceChange' as SortField,
         direction: 'asc' as SortDirection,
         handleOptionChange: jest.fn(),

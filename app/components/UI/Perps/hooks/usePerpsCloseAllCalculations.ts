@@ -286,8 +286,8 @@ export function usePerpsCloseAllCalculations({
               // Calculate position value using current market price for accurate fee estimation
               // Fees must reflect the actual USD value being closed at current market conditions
               // Use ref to get latest price without triggering re-renders
-              const currentPrice = priceDataRef.current[pos.coin]?.price
-                ? parseFloat(priceDataRef.current[pos.coin].price)
+              const currentPrice = priceDataRef.current[pos.symbol]?.price
+                ? parseFloat(priceDataRef.current[pos.symbol].price)
                 : parseFloat(pos.entryPrice); // Fallback to entry price if current price unavailable
               const size = Math.abs(parseFloat(pos.size));
               const positionValue = size * currentPrice;
@@ -298,7 +298,7 @@ export function usePerpsCloseAllCalculations({
                   orderType: 'market',
                   isMaker: false, // Market close orders are always taker
                   amount: positionValue.toString(),
-                  coin: pos.coin,
+                  symbol: pos.symbol,
                 });
 
               // Apply account-level discount to MetaMask fee
@@ -370,7 +370,7 @@ export function usePerpsCloseAllCalculations({
           const perpsContextArray = feeResults.map((result) => ({
             type: 'CLOSE_POSITION' as const,
             usdFeeValue: (result.fees.feeAmount ?? 0).toString(),
-            coin: result.position.coin,
+            coin: result.position.symbol, // EstimatePerpsContextDto uses 'coin' field
           }));
 
           const batchEstimateBody: EstimatePointsDto = {

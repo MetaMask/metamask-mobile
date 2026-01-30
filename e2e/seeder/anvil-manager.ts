@@ -3,10 +3,15 @@ import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import fs from 'fs';
 import path from 'path';
 import { createAnvilClients } from './anvil-clients';
-import { AnvilPort } from '../framework/fixtures/FixtureUtils';
-import { AnvilNodeOptions, ServerStatus, Resource } from '../framework/types';
-import { createLogger } from '../framework/logger';
-import PortManager, { ResourceType } from '../framework/PortManager';
+import { AnvilPort } from '../../tests/framework/fixtures/FixtureUtils';
+import {
+  AnvilNodeOptions,
+  ServerStatus,
+  Resource,
+} from '../../tests/framework/types';
+import { createLogger } from '../../tests/framework/logger';
+import PortManager, { ResourceType } from '../../tests/framework/PortManager';
+import { Block } from 'viem';
 
 const logger = createLogger({
   name: 'AnvilManager',
@@ -182,6 +187,31 @@ class AnvilManager implements Resource {
     const logs = await publicClient.getLogs();
 
     return logs;
+  }
+
+  /**
+   * Get latest block number
+   * @returns {Promise<bigint>} Latest block number
+   */
+  async getLatestBlockNumber(): Promise<bigint> {
+    logger.debug('Getting latest block number...');
+    const { publicClient } = this.getProvider();
+    const blockNumber = await publicClient.getBlockNumber();
+    logger.debug(`Latest block number: ${blockNumber}`);
+    return blockNumber;
+  }
+
+  /**
+   * Get block by number
+   * @param {bigint} blockNumber - Block number
+   * @returns {Promise<Block | undefined>} Block
+   */
+  async getBlockByNumber(blockNumber: bigint): Promise<Block | undefined> {
+    logger.debug(`Getting block by number: ${blockNumber}`);
+    const { publicClient } = this.getProvider();
+    const block = await publicClient.getBlock({ blockNumber });
+    logger.debug(`Got block with ${block.transactions.length} transaction(s)`);
+    return block;
   }
 
   /**

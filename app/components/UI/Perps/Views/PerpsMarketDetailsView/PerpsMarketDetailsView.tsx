@@ -13,12 +13,6 @@ import React, {
   useState,
 } from 'react';
 import { Linking, RefreshControl, ScrollView, View } from 'react-native';
-import type {
-  Position,
-  PerpsMarketData,
-  PerpsNavigationParamList,
-  TPSLTrackingData,
-} from '../../controllers/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -85,6 +79,11 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import type {
+  PerpsMarketData,
+  PerpsNavigationParamList,
+  TPSLTrackingData,
+} from '../../controllers/types';
 import {
   usePerpsConnection,
   usePerpsNavigation,
@@ -109,6 +108,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
+import { usePerpsOrderFills } from '../../hooks/usePerpsOrderFills';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
@@ -123,7 +123,7 @@ import {
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import { createStyles } from './PerpsMarketDetailsView.styles';
@@ -198,17 +198,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Stop loss prompt banner state - for loading/success when setting stop loss via banner
   const [isSettingStopLoss, setIsSettingStopLoss] = useState(false);
   const [isStopLossSuccess, setIsStopLossSuccess] = useState(false);
-  // Preserve banner variant during success fade-out (hook's variant becomes null after SL is set)
-  const preservedBannerVariantRef = useRef<'stop_loss' | 'add_margin' | null>(
-    null,
-  );
-  // Track current market symbol for staleness checks in async callbacks
-  // Using a ref allows reading the CURRENT value at execution time, not closure-captured value
-  const currentMarketSymbolRef = useRef<string | undefined>(market?.symbol);
-  // Track current position for callbacks that are stored (e.g., route params) and called later
-  // This prevents stale closure issues where the captured position is outdated
-  // Initialized to null, will be updated via useEffect when existingPosition is available
-  const currentPositionRef = useRef<Position | null>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -231,11 +220,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Reset optimistic state when market changes
   useEffect(() => {
     setOptimisticWatchlist(null);
-  }, [market?.symbol]);
-
-  // Keep current market symbol ref in sync for staleness checks in async callbacks
-  useEffect(() => {
-    currentMarketSymbolRef.current = market?.symbol;
   }, [market?.symbol]);
 
   // Clear optimistic state once Redux has caught up
@@ -369,7 +353,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     hasHistoricalData,
     fetchMoreHistory,
   } = usePerpsLiveCandles({
-    coin: market?.symbol || '',
+    symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
     duration: TimeDuration.YEAR_TO_DATE,
     throttleMs: 1000,
@@ -393,7 +377,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Only zoom when:
     // 1. The interval has changed (user pressed button)
     // 2. New data exists and matches the selected period
-    if (hasIntervalChanged && candleData?.interval === selectedCandlePeriod) {
+    if (
+      hasIntervalChanged &&
+      candleData &&
+      candleData.interval === selectedCandlePeriod
+    ) {
       chartRef.current?.zoomToLatestCandle(visibleCandleCount);
       // Update the ref to track this interval change
       previousIntervalRef.current = selectedCandlePeriod;
@@ -401,21 +389,32 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [candleData, selectedCandlePeriod, visibleCandleCount]);
 
   // Check if user has an existing position for this market
-  // Also provides positionOpenedTimestamp for stop loss prompt timing
-  const {
-    isLoading: isLoadingPosition,
-    existingPosition,
-    positionOpenedTimestamp,
-  } = useHasExistingPosition({
-    asset: market?.symbol || '',
-    loadOnMount: true,
+  const { isLoading: isLoadingPosition, existingPosition } =
+    useHasExistingPosition({
+      asset: market?.symbol || '',
+      loadOnMount: true,
+    });
+
+  // Fetch order fills to get position opened timestamp
+  const { orderFills } = usePerpsOrderFills({
+    skipInitialFetch: false,
   });
 
-  // Keep current position ref in sync for callbacks stored in route params
-  // This must be after useHasExistingPosition since it depends on existingPosition
-  useEffect(() => {
-    currentPositionRef.current = existingPosition;
-  }, [existingPosition]);
+  // Get position opened timestamp from fills data
+  const positionOpenedTimestamp = useMemo(() => {
+    if (!existingPosition || !orderFills) return undefined;
+
+    // Find the most recent "Open" fill for this asset
+    const openFill = orderFills
+      .filter((fill) => {
+        const isMatchingAsset = fill.symbol === existingPosition.symbol;
+        const isOpenDirection = fill.direction?.startsWith('Open');
+        return isMatchingAsset && isOpenDirection;
+      })
+      .sort((a, b) => b.timestamp - a.timestamp)[0]; // Most recent first
+
+    return openFill?.timestamp;
+  }, [existingPosition, orderFills]);
 
   // Compute TP/SL lines for the chart based on existing position
   // Use chartCurrentPrice (from candle close) to ensure price line syncs with live candle
@@ -440,11 +439,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Stop loss prompt banner logic
   // Hook handles visibility orchestration including fade-out animation
   const {
-    variant: bannerVariantFromHook,
+    variant: bannerVariant,
     liquidationDistance,
     suggestedStopLossPrice,
     suggestedStopLossPercent,
     isVisible: isBannerVisible,
+    isDismissing: isBannerDismissing,
     onDismissComplete: handleBannerDismissComplete,
   } = useStopLossPrompt({
     position: existingPosition,
@@ -452,25 +452,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     positionOpenedTimestamp,
   });
 
-  // Preserve banner variant when we have a valid one (for use during success fade-out)
-  // The hook's variant becomes null after SL is set, but we need to keep rendering
-  // Use useEffect to avoid ref mutation during render (React best practice)
-  useEffect(() => {
-    if (bannerVariantFromHook && !isStopLossSuccess) {
-      preservedBannerVariantRef.current = bannerVariantFromHook;
-    }
-  }, [bannerVariantFromHook, isStopLossSuccess]);
-
-  // Use preserved variant during success fade-out, otherwise use hook's variant
-  const bannerVariant = isStopLossSuccess
-    ? preservedBannerVariantRef.current
-    : bannerVariantFromHook;
-
   // Reset stop loss success state when market or position changes
   useEffect(() => {
     setIsStopLossSuccess(false);
-    preservedBannerVariantRef.current = null;
-  }, [market?.symbol, existingPosition?.coin]);
+  }, [market?.symbol, existingPosition?.symbol]);
 
   // Track Perps asset screen load performance with simplified API
   usePerpsMeasurement({
@@ -733,8 +718,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleAutoClosePress = useCallback(() => {
     if (!existingPosition) return;
 
+    // Geo-restriction check for auto-close (TP/SL) action
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.AUTO_CLOSE_ACTION,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigation.navigate(Routes.PERPS.TPSL, {
-      asset: existingPosition.coin,
+      asset: existingPosition.symbol,
       currentPrice,
       position: existingPosition,
       initialTakeProfitPrice: existingPosition.takeProfitPrice,
@@ -744,28 +741,40 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         stopLossPrice?: string,
         trackingData?: TPSLTrackingData,
       ) => {
-        // Use ref to get CURRENT position at execution time, not the closure-captured position
-        // This prevents "No position found" errors when the position updates during navigation
-        const currentPosition = currentPositionRef.current;
-        if (!currentPosition) {
-          return { success: false };
-        }
-        // Return value checked for consistency - error toast is shown internally by hook
-        const result = await handleUpdateTPSL(
-          currentPosition,
+        await handleUpdateTPSL(
+          existingPosition,
           takeProfitPrice,
           stopLossPrice,
           trackingData,
         );
-        return result;
       },
     });
-  }, [existingPosition, currentPrice, navigation, handleUpdateTPSL]);
+  }, [
+    existingPosition,
+    currentPrice,
+    navigation,
+    handleUpdateTPSL,
+    isEligible,
+    track,
+  ]);
 
   const handleMarginPress = useCallback(() => {
     if (!existingPosition) return;
+
+    // Geo-restriction check for add/remove margin action
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.ADJUST_MARGIN_ACTION,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     openAdjustMarginSheet();
-  }, [existingPosition, openAdjustMarginSheet]);
+  }, [existingPosition, openAdjustMarginSheet, isEligible, track]);
 
   const handleSharePress = useCallback(() => {
     if (!existingPosition) return;
@@ -807,18 +816,56 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Close position handler
   const handleClosePosition = useCallback(() => {
     if (!existingPosition) return;
+
+    // Geo-restriction check for close position action
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.CLOSE_POSITION_ACTION,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigateToClosePosition(existingPosition);
-  }, [existingPosition, navigateToClosePosition]);
+  }, [existingPosition, navigateToClosePosition, isEligible, track]);
 
   // Modify position handler - opens the modify action sheet
   const handleModifyPress = useCallback(() => {
     if (!existingPosition) return;
+
+    // Geo-restriction check for modify position action
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.MODIFY_POSITION_ACTION,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     openModifySheet();
-  }, [existingPosition, openModifySheet]);
+  }, [existingPosition, openModifySheet, isEligible, track]);
 
   // Handler for "Add Margin" from stop loss prompt banner
   const handleAddMarginFromBanner = useCallback(() => {
     if (!existingPosition) return;
+
+    // Geo-restriction check for add margin from banner
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_ADD_MARGIN,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
 
     // Navigate directly to PerpsAdjustMarginView with mode='add'
     navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
@@ -830,18 +877,27 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PerpsEventProperties.INTERACTION_TYPE]:
         PerpsEventValues.INTERACTION_TYPE.ADD_MARGIN,
-      [PerpsEventProperties.ASSET]: existingPosition.coin,
+      [PerpsEventProperties.ASSET]: existingPosition.symbol,
       [PerpsEventProperties.SOURCE]:
         PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_BANNER,
     });
-  }, [existingPosition, navigation, track]);
+  }, [existingPosition, navigation, track, isEligible]);
 
   // Handler for "Set Stop Loss" from stop loss prompt banner
   const handleSetStopLossFromBanner = useCallback(async () => {
     if (!existingPosition || !suggestedStopLossPrice) return;
 
-    // Capture symbol before async to detect market changes during API call
-    const originalSymbol = existingPosition.coin;
+    // Geo-restriction check for set stop loss from banner
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_SET_SL,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
 
     setIsSettingStopLoss(true);
 
@@ -854,24 +910,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       };
 
       // Set the stop loss using the suggested price (keep existing TP if any)
-      const result = await handleUpdateTPSL(
+      await handleUpdateTPSL(
         existingPosition,
         existingPosition.takeProfitPrice, // Keep existing TP
         suggestedStopLossPrice, // Use suggested SL
         trackingData,
       );
-
-      // Only trigger success state if the update actually succeeded
-      if (!result.success) {
-        // Error toast is already shown by handleUpdateTPSL
-        return;
-      }
-
-      // Staleness check: user may have navigated to a different market during API call
-      // Use ref to get CURRENT market symbol, not the closure-captured value
-      if (originalSymbol !== currentMarketSymbolRef.current) {
-        return;
-      }
 
       // Trigger success state to start fade-out animation
       setIsStopLossSuccess(true);
@@ -880,7 +924,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
           PerpsEventValues.INTERACTION_TYPE.STOP_LOSS_ONE_CLICK_PROMPT,
-        [PerpsEventProperties.ASSET]: existingPosition.coin,
+        [PerpsEventProperties.ASSET]: existingPosition.symbol,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_BANNER,
         [PerpsEventProperties.STOP_LOSS_PRICE]: suggestedStopLossPrice,
@@ -893,7 +937,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     } finally {
       setIsSettingStopLoss(false);
     }
-  }, [existingPosition, suggestedStopLossPrice, handleUpdateTPSL, track]);
+  }, [
+    existingPosition,
+    suggestedStopLossPrice,
+    handleUpdateTPSL,
+    track,
+    isEligible,
+  ]);
 
   // Handler for when banner fade-out animation completes
   const handleBannerFadeOutComplete = useCallback(() => {
@@ -1091,8 +1141,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           )}
 
           {/* Stop Loss Prompt Banner - Shows when position needs attention */}
-          {/* Keep mounted while isStopLossSuccess is true to allow fade animation to complete */}
-          {(isBannerVisible || isStopLossSuccess) && bannerVariant && (
+          {/* Uses hook's isVisible which includes fade-out animation state */}
+          {isBannerVisible && bannerVariant && (
             <PerpsStopLossPromptBanner
               variant={bannerVariant}
               liquidationDistance={liquidationDistance ?? 0}
@@ -1101,7 +1151,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onSetStopLoss={handleSetStopLossFromBanner}
               onAddMargin={handleAddMarginFromBanner}
               isLoading={isSettingStopLoss}
-              isSuccess={isStopLossSuccess}
+              isSuccess={isStopLossSuccess || isBannerDismissing}
               onFadeOutComplete={handleBannerFadeOutComplete}
               testID={
                 PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER

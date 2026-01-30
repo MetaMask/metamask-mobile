@@ -113,7 +113,7 @@ describe('useTrendingSearch', () => {
     });
 
     const { result } = renderHookWithProvider(() =>
-      useTrendingSearch('ETH', 'h24_trending'),
+      useTrendingSearch({ searchQuery: 'ETH', sortBy: 'h24_trending' }),
     );
 
     jest.advanceTimersByTime(200);
@@ -150,7 +150,7 @@ describe('useTrendingSearch', () => {
     });
 
     const { result } = renderHookWithProvider(() =>
-      useTrendingSearch('ETH', 'h24_trending'),
+      useTrendingSearch({ searchQuery: 'ETH', sortBy: 'h24_trending' }),
     );
 
     jest.advanceTimersByTime(200);
@@ -194,7 +194,7 @@ describe('useTrendingSearch', () => {
     });
 
     const { result } = renderHookWithProvider(() =>
-      useTrendingSearch('ETH', 'h24_trending'),
+      useTrendingSearch({ searchQuery: 'ETH', sortBy: 'h24_trending' }),
     );
 
     jest.advanceTimersByTime(200);
@@ -208,10 +208,10 @@ describe('useTrendingSearch', () => {
       mockSortTrendingTokens.mockReturnValue(sortedResults);
 
       const { result: result1 } = renderHookWithProvider(() =>
-        useTrendingSearch(''),
+        useTrendingSearch({ searchQuery: '' }),
       );
       const { result: result2 } = renderHookWithProvider(() =>
-        useTrendingSearch('   '),
+        useTrendingSearch({ searchQuery: '   ' }),
       );
 
       await waitFor(() => {
@@ -221,7 +221,9 @@ describe('useTrendingSearch', () => {
     });
 
     it('filters trending results by symbol case-insensitively', async () => {
-      const { result } = renderHookWithProvider(() => useTrendingSearch('eth'));
+      const { result } = renderHookWithProvider(() =>
+        useTrendingSearch({ searchQuery: 'eth' }),
+      );
 
       jest.advanceTimersByTime(200);
 
@@ -233,7 +235,7 @@ describe('useTrendingSearch', () => {
 
     it('filters trending results by name case-insensitively', async () => {
       const { result } = renderHookWithProvider(() =>
-        useTrendingSearch('ethereum'),
+        useTrendingSearch({ searchQuery: 'ethereum' }),
       );
 
       jest.advanceTimersByTime(200);
@@ -245,7 +247,9 @@ describe('useTrendingSearch', () => {
     });
 
     it('filters trending results by partial matches', async () => {
-      const { result } = renderHookWithProvider(() => useTrendingSearch('dai'));
+      const { result } = renderHookWithProvider(() =>
+        useTrendingSearch({ searchQuery: 'dai' }),
+      );
 
       jest.advanceTimersByTime(200);
 
@@ -257,7 +261,7 @@ describe('useTrendingSearch', () => {
 
     it('returns empty array when no trending results match query', async () => {
       const { result } = renderHookWithProvider(() =>
-        useTrendingSearch('NonExistent'),
+        useTrendingSearch({ searchQuery: 'NonExistent' }),
       );
 
       jest.advanceTimersByTime(200);
@@ -269,7 +273,7 @@ describe('useTrendingSearch', () => {
 
     it('trims whitespace from query before filtering', async () => {
       const { result } = renderHookWithProvider(() =>
-        useTrendingSearch('  ETH  '),
+        useTrendingSearch({ searchQuery: '  ETH  ' }),
       );
 
       jest.advanceTimersByTime(200);
@@ -290,7 +294,12 @@ describe('useTrendingSearch', () => {
     });
 
     const { result } = renderHookWithProvider(() =>
-      useTrendingSearch('USDC', 'h24_trending', null, false),
+      useTrendingSearch({
+        searchQuery: 'USDC',
+        sortBy: 'h24_trending',
+        chainIds: null,
+        enableDebounce: false,
+      }),
     );
 
     expect(mockUseSearchRequest).toHaveBeenCalledWith(

@@ -1,7 +1,7 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
-import { Assertions, Utilities } from '../../framework';
+import { Assertions, Utilities } from '../../../tests/framework';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import BrowserView from '../Browser/BrowserView';

@@ -1,0 +1,71 @@
+import { ensureError } from './errorUtils';
+
+describe('ensureError', () => {
+  it('should return the same Error instance when passed an Error', () => {
+    const originalError = new Error('Test error');
+    const result = ensureError(originalError);
+
+    expect(result).toBe(originalError);
+    expect(result.message).toBe('Test error');
+  });
+
+  it('should convert string to Error with the string as message', () => {
+    const result = ensureError('String error message');
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('String error message');
+  });
+
+  it('should convert number to Error with number as string message', () => {
+    const result = ensureError(42);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('42');
+  });
+
+  it('should convert null to Error with "null" as message', () => {
+    const result = ensureError(null);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('null');
+  });
+
+  it('should convert undefined to Error with "undefined" as message', () => {
+    const result = ensureError(undefined);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('undefined');
+  });
+
+  it('should convert object to Error with stringified object as message', () => {
+    const obj = { code: 'ERROR_CODE', details: 'Some details' };
+    const result = ensureError(obj);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('[object Object]');
+  });
+
+  it('should convert boolean to Error with string representation', () => {
+    const result = ensureError(false);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('false');
+  });
+
+  it('should preserve Error subclasses', () => {
+    class CustomError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = 'CustomError';
+      }
+    }
+
+    const customError = new CustomError('Custom error message');
+    const result = ensureError(customError);
+
+    expect(result).toBe(customError);
+    expect(result).toBeInstanceOf(CustomError);
+    expect(result.name).toBe('CustomError');
+    expect(result.message).toBe('Custom error message');
+  });
+});

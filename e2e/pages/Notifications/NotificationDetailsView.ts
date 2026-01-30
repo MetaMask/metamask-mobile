@@ -1,6 +1,6 @@
 import { NotificationDetailsViewSelectorsIDs } from '../../../app/components/Views/Notifications/Details/NotificationDetailsView.testIds';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 
 class NotificationsDetailView {
   get title() {

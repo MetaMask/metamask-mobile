@@ -952,7 +952,7 @@ export function usePerpsTPSLForm(
     orderType: 'market',
     amount: tpNotionalValue,
     isClosing: true,
-    coin: asset,
+    symbol: asset,
   });
 
   const expectedTakeProfitPnL =
@@ -978,7 +978,7 @@ export function usePerpsTPSLForm(
     orderType: 'market',
     amount: slNotionalValue,
     isClosing: true,
-    coin: asset,
+    symbol: asset,
   });
 
   const expectedStopLossPnL =

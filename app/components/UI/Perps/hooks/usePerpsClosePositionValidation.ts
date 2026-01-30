@@ -6,7 +6,7 @@ import type { ClosePositionParams, OrderType } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionValidationParams {
-  coin: string;
+  symbol: string;
   closePercentage: number;
   closeAmount: string;
   orderType: OrderType;
@@ -97,7 +97,7 @@ export function usePerpsClosePositionValidation(
   params: UsePerpsClosePositionValidationParams,
 ): ValidationResult {
   const {
-    coin,
+    symbol,
     closePercentage,
     closeAmount,
     orderType,
@@ -126,7 +126,7 @@ export function usePerpsClosePositionValidation(
     try {
       // Prepare params for protocol validation
       const closeParams: ClosePositionParams = {
-        coin,
+        symbol,
         size: closePercentage === 100 ? undefined : closeAmount.toString(),
         orderType,
         price: orderType === 'limit' ? limitPrice : undefined,
@@ -222,7 +222,7 @@ export function usePerpsClosePositionValidation(
       });
     }
   }, [
-    coin,
+    symbol,
     closePercentage,
     closeAmount,
     orderType,
@@ -243,7 +243,7 @@ export function usePerpsClosePositionValidation(
     }
 
     // Skip validation if critical data is missing
-    if (!coin || currentPrice === 0) {
+    if (!symbol || currentPrice === 0) {
       setValidation({
         errors: [],
         warnings: [],
@@ -254,7 +254,7 @@ export function usePerpsClosePositionValidation(
     }
 
     performValidation();
-  }, [performValidation, coin, currentPrice, skipValidation]);
+  }, [performValidation, symbol, currentPrice, skipValidation]);
 
   return validation;
 }

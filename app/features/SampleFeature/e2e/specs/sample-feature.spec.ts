@@ -1,10 +1,10 @@
 'use strict';
 import SampleFeatureView from '../pages/SampleFeatureView';
 import { RegressionSampleFeature } from '../../../../../e2e/tags';
-import FixtureBuilder from '../../../../../e2e/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../../e2e/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
 import { navigateToSampleFeature } from '../utils';
-import Assertions from '../../../../../e2e/framework/Assertions';
+import Assertions from '../../../../../tests/framework/Assertions';
 
 describe(RegressionSampleFeature('Sample Feature'), () => {
   it('Navigates to sample feature', async () => {

@@ -1,10 +1,10 @@
 import { RegressionWalletUX } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import Assertions from '../../framework/Assertions';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import Assertions from '../../../tests/framework/Assertions';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 
 describe.skip(RegressionWalletUX('Settings'), () => {
   it('Open contact support', async () => {

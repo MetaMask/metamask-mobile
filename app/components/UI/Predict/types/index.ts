@@ -113,7 +113,7 @@ export type PredictCategory =
   | 'politics';
 
 // Sports league types
-export type PredictSportsLeague = 'nfl';
+export type PredictSportsLeague = 'nfl' | 'nba';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -403,3 +403,7 @@ export type PredictWithdraw = {
 export type PredictAccountMeta = {
   isOnboarded: boolean;
 };
+
+export interface PredictCarouselMetadata {
+  marketId: string;
+}

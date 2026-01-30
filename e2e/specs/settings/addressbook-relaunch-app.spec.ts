@@ -4,11 +4,11 @@ import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import TestHelpers from '../../helpers';
-import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
-import Assertions from '../../framework/Assertions';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { getFixturesServerPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import Assertions from '../../../tests/framework/Assertions';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 
 const MEMO = 'Address for testing 123123123';
 

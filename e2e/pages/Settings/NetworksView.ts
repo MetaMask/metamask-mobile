@@ -2,8 +2,8 @@ import {
   NetworksViewSelectorsIDs,
   NetworkViewSelectorsText,
 } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import { NetworkListModalSelectorsIDs } from '../../../app/components/Views/NetworkSelector/NetworkListModal.testIds';
 
 class NetworkView {

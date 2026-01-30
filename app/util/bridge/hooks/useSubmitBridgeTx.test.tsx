@@ -7,7 +7,7 @@ import {
   DummyQuoteMetadata,
   DummyQuotesNoApproval,
   DummyQuotesWithApproval,
-} from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
+} from '../../../../tests/api-mocking/mock-responses/bridge-api-quotes';
 import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';

@@ -1,11 +1,11 @@
 import { Mockttp } from 'mockttp';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { SmokeRewards } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import RewardsClaimBonus from '../../pages/Rewards/RewardsOnboarding';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import RewardsView from '../../pages/Rewards/RewardsView';
 import RewardsActivityTabView from '../../pages/Rewards/RewardsActivityTabView';
 import {

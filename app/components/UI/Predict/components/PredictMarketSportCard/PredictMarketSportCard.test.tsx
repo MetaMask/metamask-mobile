@@ -424,4 +424,138 @@ describe('PredictMarketSportCard', () => {
       );
     });
   });
+
+  describe('onDismiss', () => {
+    it('does not render close button when onDismiss is not provided', () => {
+      const { queryByTestId } = renderWithProvider(
+        <PredictMarketSportCard market={mockMarket} testID="sport-card" />,
+        { state: initialState },
+      );
+
+      expect(queryByTestId('sport-card-close-button')).toBeNull();
+    });
+
+    it('renders close button when onDismiss is provided', () => {
+      const mockOnDismiss = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard
+          market={mockMarket}
+          testID="sport-card"
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('sport-card-close-button')).toBeOnTheScreen();
+    });
+
+    it('calls onDismiss when close button is pressed', () => {
+      const mockOnDismiss = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard
+          market={mockMarket}
+          testID="sport-card"
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('sport-card-close-button'));
+
+      expect(mockOnDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not navigate when close button is pressed', () => {
+      const mockOnDismiss = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard
+          market={mockMarket}
+          testID="sport-card"
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('sport-card-close-button'));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('renders close button without testID when onDismiss is provided but testID is not', () => {
+      const mockOnDismiss = jest.fn();
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketSportCard
+          market={mockMarket}
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText('Super Bowl LX (2026)')).toBeOnTheScreen();
+    });
+  });
+
+  describe('team color fallbacks', () => {
+    const mockGame = mockMarket.game;
+
+    it('uses fallback colors when game team colors are undefined', () => {
+      if (!mockGame) {
+        throw new Error('mockGame is required for this test');
+      }
+
+      const marketWithoutColors: PredictMarketType = {
+        ...mockMarket,
+        game: {
+          ...mockGame,
+          awayTeam: {
+            ...mockGame.awayTeam,
+            color: undefined as unknown as string,
+          },
+          homeTeam: {
+            ...mockGame.homeTeam,
+            color: undefined as unknown as string,
+          },
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketSportCard market={marketWithoutColors} />,
+        { state: initialState },
+      );
+
+      expect(getByText('Super Bowl LX (2026)')).toBeOnTheScreen();
+    });
+
+    it('uses fallback colors when game team colors are null', () => {
+      if (!mockGame) {
+        throw new Error('mockGame is required for this test');
+      }
+
+      const marketWithNullColors: PredictMarketType = {
+        ...mockMarket,
+        game: {
+          ...mockGame,
+          awayTeam: {
+            ...mockGame.awayTeam,
+            color: null as unknown as string,
+          },
+          homeTeam: {
+            ...mockGame.homeTeam,
+            color: null as unknown as string,
+          },
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketSportCard market={marketWithNullColors} />,
+        { state: initialState },
+      );
+
+      expect(getByText('Super Bowl LX (2026)')).toBeOnTheScreen();
+    });
+  });
 });

@@ -4,6 +4,7 @@ import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import { render, cleanup } from '@testing-library/react-native';
+import { DeviceEventEmitter } from 'react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -126,6 +127,15 @@ jest.mock('../../../util/accounts', () => ({
   ),
 }));
 
+// Mock DeviceEventEmitter - use a holder object to avoid hoisting issues with jest.mock
+const mockDeviceEventEmitterHolder: {
+  addListener: jest.Mock;
+  remove: jest.Mock;
+} = {
+  addListener: jest.fn(),
+  remove: jest.fn(),
+};
+
 // Mock React Native components and StyleSheet
 jest.mock('react-native', () => {
   const RN = jest.requireActual(
@@ -140,6 +150,10 @@ jest.mock('react-native', () => {
     },
     InteractionManager: {
       runAfterInteractions: jest.fn((callback: () => void) => callback()),
+    },
+    DeviceEventEmitter: {
+      addListener: (...args: unknown[]) =>
+        mockDeviceEventEmitterHolder.addListener(...args),
     },
   };
 });
@@ -2389,5 +2403,238 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.retry();
 
     expect(instance.setState).toHaveBeenCalled();
+  });
+});
+
+describe('UnconnectedTransactions Scroll to MerklRewards', () => {
+  let mockScrollToOffset: jest.Mock;
+  let instance: UnconnectedTransactions;
+  let addListenerSpy: jest.SpyInstance;
+  let mockRemove: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+
+    mockScrollToOffset = jest.fn();
+    mockRemove = jest.fn();
+
+    // Spy on DeviceEventEmitter.addListener
+    addListenerSpy = jest
+      .spyOn(DeviceEventEmitter, 'addListener')
+      .mockReturnValue({
+        remove: mockRemove,
+      } as unknown as ReturnType<typeof DeviceEventEmitter.addListener>);
+
+    // Create instance with mocked FlatList ref
+    instance = new UnconnectedTransactions(defaultTestProps);
+    instance.flatList = {
+      current: {
+        scrollToOffset: mockScrollToOffset,
+      },
+    };
+    instance.mounted = true;
+    instance.scrollTimeout = null;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    addListenerSpy.mockRestore();
+    if (instance.scrollToMerklRewardsListener) {
+      instance.scrollToMerklRewardsListener.remove();
+    }
+  });
+
+  it('adds scroll listener in componentDidMount', () => {
+    instance.componentDidMount();
+
+    expect(addListenerSpy).toHaveBeenCalledWith(
+      'scrollToMerklRewards',
+      expect.any(Function),
+    );
+  });
+
+  it('scrolls to offset when scroll event is received', () => {
+    instance.componentDidMount();
+
+    // Get the callback passed to addListener
+    const scrollCallback = addListenerSpy.mock.calls.find(
+      (call) => call[0] === 'scrollToMerklRewards',
+    )?.[1];
+
+    // Simulate scroll event
+    scrollCallback({ y: 500 });
+
+    // Fast-forward timers to trigger setTimeout
+    jest.advanceTimersByTime(100);
+
+    expect(mockScrollToOffset).toHaveBeenCalledWith({
+      offset: 500,
+      animated: true,
+    });
+  });
+
+  it('debounces multiple rapid scroll events', () => {
+    instance.componentDidMount();
+    const scrollCallback = addListenerSpy.mock.calls.find(
+      (call) => call[0] === 'scrollToMerklRewards',
+    )?.[1];
+
+    // Trigger multiple rapid events
+    scrollCallback({ y: 500 });
+    scrollCallback({ y: 600 });
+    scrollCallback({ y: 700 });
+
+    // Only advance timers for the last one
+    jest.advanceTimersByTime(100);
+
+    // Should only be called once (last one)
+    expect(mockScrollToOffset).toHaveBeenCalledTimes(1);
+    expect(mockScrollToOffset).toHaveBeenCalledWith({
+      offset: 700,
+      animated: true,
+    });
+  });
+
+  it('does not scroll if FlatList ref is not available', () => {
+    instance.flatList = { current: null };
+    instance.componentDidMount();
+    const scrollCallback = addListenerSpy.mock.calls.find(
+      (call) => call[0] === 'scrollToMerklRewards',
+    )?.[1];
+
+    scrollCallback({ y: 500 });
+    jest.advanceTimersByTime(100);
+
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
+  it('does not scroll if component is not mounted', () => {
+    instance.componentDidMount();
+    const scrollCallback = addListenerSpy.mock.calls.find(
+      (call) => call[0] === 'scrollToMerklRewards',
+    )?.[1];
+
+    // Set mounted to false AFTER componentDidMount (simulating unmount)
+    instance.mounted = false;
+
+    scrollCallback({ y: 500 });
+    jest.advanceTimersByTime(100);
+
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
+  it('logs error and does not crash when scrollToOffset throws', () => {
+    const mockError = new Error('Scroll failed');
+    mockScrollToOffset.mockImplementation(() => {
+      throw mockError;
+    });
+
+    instance.componentDidMount();
+    const scrollCallback = addListenerSpy.mock.calls.find(
+      (call) => call[0] === 'scrollToMerklRewards',
+    )?.[1];
+
+    scrollCallback({ y: 500 });
+    jest.advanceTimersByTime(100);
+
+    // Should not crash, error should be logged
+    expect(Logger.error).toHaveBeenCalledWith(
+      mockError,
+      'Failed to scroll to MerklRewards',
+      {
+        y: 500,
+      },
+    );
+  });
+
+  it('removes listener in componentWillUnmount', () => {
+    instance.componentDidMount();
+    instance.componentWillUnmount();
+
+    expect(mockRemove).toHaveBeenCalled();
+  });
+
+  it('clears scroll timeout in componentWillUnmount', () => {
+    instance.componentDidMount();
+    const scrollCallback = addListenerSpy.mock.calls.find(
+      (call) => call[0] === 'scrollToMerklRewards',
+    )?.[1];
+
+    // Trigger scroll to set timeout
+    scrollCallback({ y: 500 });
+
+    // Unmount before timeout fires
+    instance.componentWillUnmount();
+    jest.advanceTimersByTime(100);
+
+    // Should not scroll after unmount
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
+  it('ensures scroll offset is not negative', () => {
+    instance.componentDidMount();
+    const scrollCallback = addListenerSpy.mock.calls.find(
+      (call) => call[0] === 'scrollToMerklRewards',
+    )?.[1];
+
+    scrollCallback({ y: -100 });
+    jest.advanceTimersByTime(100);
+
+    expect(mockScrollToOffset).toHaveBeenCalledWith({
+      offset: 0, // Math.max(0, -100) = 0
+      animated: true,
+    });
+  });
+
+  it('does not scroll when y value is undefined', () => {
+    instance.componentDidMount();
+    const scrollCallback = addListenerSpy.mock.calls.find(
+      (call) => call[0] === 'scrollToMerklRewards',
+    )?.[1];
+
+    scrollCallback({ y: undefined });
+    jest.advanceTimersByTime(100);
+
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
+  it('does not scroll if FlatList becomes null during timeout', () => {
+    instance.componentDidMount();
+    const scrollCallback = addListenerSpy.mock.calls.find(
+      (call) => call[0] === 'scrollToMerklRewards',
+    )?.[1];
+
+    // Trigger scroll event with valid y
+    scrollCallback({ y: 500 });
+
+    // FlatList becomes null during the 100ms timeout
+    instance.flatList = { current: null };
+
+    // Advance timers to trigger the setTimeout callback
+    jest.advanceTimersByTime(100);
+
+    // Should not scroll because flatList is now null
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
+  it('does not throw on unmount when no listener exists', () => {
+    // Don't call componentDidMount, so no listener is created
+    instance.scrollToMerklRewardsListener = null;
+    instance.scrollTimeout = null;
+
+    // Should not throw when unmounting without a listener
+    expect(() => instance.componentWillUnmount()).not.toThrow();
+  });
+
+  it('removes listener on unmount when no pending timeout exists', () => {
+    instance.componentDidMount();
+
+    // Don't trigger any scroll event, so no timeout is pending
+    instance.scrollTimeout = null;
+
+    // Should handle unmount gracefully
+    expect(() => instance.componentWillUnmount()).not.toThrow();
+    expect(mockRemove).toHaveBeenCalled();
   });
 });

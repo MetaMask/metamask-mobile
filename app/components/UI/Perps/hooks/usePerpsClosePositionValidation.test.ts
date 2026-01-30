@@ -17,7 +17,7 @@ describe('usePerpsClosePositionValidation', () => {
   });
 
   const defaultParams = {
-    coin: 'BTC',
+    symbol: 'BTC',
     closePercentage: 50,
     closeAmount: '0.5',
     orderType: 'market' as const,

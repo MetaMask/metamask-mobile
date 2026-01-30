@@ -1,15 +1,15 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { POLYMARKET_COMPLETE_MOCKS } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagPredictEnabled } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { POLYMARKET_COMPLETE_MOCKS } from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
 import enContent from '../../../locales/languages/en.json';
 import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
 
@@ -66,6 +66,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container, {
           description: 'Wallet container should be visible',
         });
+
         await WalletView.tapOnPredictionsTab();
         await Assertions.expectElementToBeVisible(
           WalletView.PredictionsTabContainer,

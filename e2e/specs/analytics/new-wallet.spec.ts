@@ -3,11 +3,11 @@
 import { SmokeWalletPlatform } from '../../tags';
 import { CreateNewWallet } from '../../viewHelper';
 import TestHelpers from '../../helpers';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import { getEventsPayloads, onboardingEvents } from './helpers';
-import SoftAssert from '../../framework/SoftAssert';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import SoftAssert from '../../../tests/framework/SoftAssert';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 
 const eventNames = [
   onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,

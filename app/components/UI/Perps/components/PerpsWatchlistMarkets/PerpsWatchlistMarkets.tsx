@@ -44,7 +44,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
       // Check if user has a position or order for this market
-      const hasPosition = positions.some((p) => p.coin === market.symbol);
+      const hasPosition = positions.some((p) => p.symbol === market.symbol);
       const hasOrder = orders.some((o) => o.symbol === market.symbol);
 
       // Determine which tab to open (same logic as PerpsCard)

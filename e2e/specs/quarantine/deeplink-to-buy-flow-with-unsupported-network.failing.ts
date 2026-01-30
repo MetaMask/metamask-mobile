@@ -1,11 +1,11 @@
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { SmokeTrade } from '../../tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';

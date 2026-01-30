@@ -735,7 +735,7 @@ describe('PerpsClosePositionView', () => {
       // Assert
       expect(usePerpsLivePricesMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          symbols: expect.arrayContaining([defaultPerpsPositionMock.coin]),
+          symbols: expect.arrayContaining([defaultPerpsPositionMock.symbol]),
           throttleMs: 1000,
         }),
       );
@@ -2747,7 +2747,7 @@ describe('PerpsClosePositionView', () => {
       const mockPosition = {
         ...defaultPerpsPositionMock,
         size: '0.12345',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       useRouteMock.mockReturnValue({
         params: { position: mockPosition },
@@ -2770,13 +2770,13 @@ describe('PerpsClosePositionView', () => {
     it('formats position size with different szDecimals values', () => {
       // Arrange - Test with different decimal precision
       const testCases = [
-        { szDecimals: 1, coin: 'DOGE', size: '123.456789' },
-        { szDecimals: 4, coin: 'ETH', size: '1.23456789' },
-        { szDecimals: 5, coin: 'BTC', size: '0.123456789' },
-        { szDecimals: 6, coin: 'SOL', size: '0.000123456' },
+        { szDecimals: 1, symbol: 'DOGE', size: '123.456789' },
+        { szDecimals: 4, symbol: 'ETH', size: '1.23456789' },
+        { szDecimals: 5, symbol: 'BTC', size: '0.123456789' },
+        { szDecimals: 6, symbol: 'SOL', size: '0.000123456' },
       ];
 
-      testCases.forEach(({ szDecimals, coin, size }) => {
+      testCases.forEach(({ szDecimals, symbol, size }) => {
         // Arrange
         usePerpsMarketDataMock.mockReturnValue({
           marketData: { szDecimals },
@@ -2787,7 +2787,7 @@ describe('PerpsClosePositionView', () => {
         const mockPosition = {
           ...defaultPerpsPositionMock,
           size,
-          coin,
+          symbol,
         };
         useRouteMock.mockReturnValue({
           params: { position: mockPosition },
@@ -2807,7 +2807,7 @@ describe('PerpsClosePositionView', () => {
           ),
         ).toBeDefined();
         expect(usePerpsMarketDataMock).toHaveBeenCalledWith({
-          asset: coin,
+          asset: symbol,
           showErrorToast: true,
         });
       });
@@ -2824,7 +2824,7 @@ describe('PerpsClosePositionView', () => {
       const mockPosition = {
         ...defaultPerpsPositionMock,
         size: '1.5',
-        coin: 'ETH',
+        symbol: 'ETH',
       };
       useRouteMock.mockReturnValue({
         params: { position: mockPosition },
@@ -2894,13 +2894,13 @@ describe('PerpsClosePositionView', () => {
     it('uses correct szDecimals for different assets', () => {
       // Arrange - Test common crypto assets with their typical szDecimals
       const assetConfigs = [
-        { coin: 'BTC', szDecimals: 5, size: '0.00123' },
-        { coin: 'ETH', szDecimals: 4, size: '1.2345' },
-        { coin: 'DOGE', szDecimals: 1, size: '1000.5' },
-        { coin: 'SOL', szDecimals: 3, size: '10.123' },
+        { symbol: 'BTC', szDecimals: 5, size: '0.00123' },
+        { symbol: 'ETH', szDecimals: 4, size: '1.2345' },
+        { symbol: 'DOGE', szDecimals: 1, size: '1000.5' },
+        { symbol: 'SOL', szDecimals: 3, size: '10.123' },
       ];
 
-      assetConfigs.forEach(({ coin, szDecimals, size }) => {
+      assetConfigs.forEach(({ symbol, szDecimals, size }) => {
         // Arrange
         usePerpsMarketDataMock.mockReturnValue({
           marketData: { szDecimals },
@@ -2910,7 +2910,7 @@ describe('PerpsClosePositionView', () => {
 
         const mockPosition = {
           ...defaultPerpsPositionMock,
-          coin,
+          symbol,
           size,
         };
         useRouteMock.mockReturnValue({
@@ -2926,7 +2926,7 @@ describe('PerpsClosePositionView', () => {
 
         // Assert - Fetches market data for specific asset
         expect(usePerpsMarketDataMock).toHaveBeenCalledWith({
-          asset: coin,
+          asset: symbol,
           showErrorToast: true,
         });
       });
@@ -2943,7 +2943,7 @@ describe('PerpsClosePositionView', () => {
       const mockPosition = {
         ...defaultPerpsPositionMock,
         size: '0.00000123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       useRouteMock.mockReturnValue({
         params: { position: mockPosition },
@@ -2975,7 +2975,7 @@ describe('PerpsClosePositionView', () => {
       const mockPosition = {
         ...defaultPerpsPositionMock,
         size: '123456.7',
-        coin: 'DOGE',
+        symbol: 'DOGE',
       };
       useRouteMock.mockReturnValue({
         params: { position: mockPosition },
@@ -2996,11 +2996,11 @@ describe('PerpsClosePositionView', () => {
       ).toBeDefined();
     });
 
-    it('fetches market data on component mount with position coin', () => {
+    it('fetches market data on component mount with position symbol', () => {
       // Arrange
       const mockPosition = {
         ...defaultPerpsPositionMock,
-        coin: 'ETH',
+        symbol: 'ETH',
       };
       useRouteMock.mockReturnValue({
         params: { position: mockPosition },
@@ -3161,7 +3161,7 @@ describe('PerpsClosePositionView', () => {
   });
 
   describe('market price passing to closePosition', () => {
-    it('passes priceData[position.coin]?.price to handleClosePosition', async () => {
+    it('passes priceData[position.symbol]?.price to handleClosePosition', async () => {
       const priceData = {
         ETH: { price: '$2500.00' },
       };
@@ -3206,7 +3206,7 @@ describe('PerpsClosePositionView', () => {
       });
     });
 
-    it('works when priceData[position.coin] is undefined', async () => {
+    it('works when priceData[position.symbol] is undefined', async () => {
       const priceData = {
         BTC: { price: '$50000.00' },
       };
@@ -3230,7 +3230,7 @@ describe('PerpsClosePositionView', () => {
       });
     });
 
-    it('works when priceData[position.coin].price is undefined', async () => {
+    it('works when priceData[position.symbol].price is undefined', async () => {
       const priceData = {
         ETH: { price: undefined },
       };

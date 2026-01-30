@@ -120,8 +120,8 @@ const PerpsPositionsView: React.FC = () => {
           const directionSegment = getPositionDirection(position.size);
           return (
             <View
-              key={`${position.coin}-${index}`}
-              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+              key={`${position.symbol}-${index}`}
+              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.symbol}-${position.leverage.value}x-${directionSegment}-${index}`}
             >
               <PerpsPositionCard position={position} />
             </View>

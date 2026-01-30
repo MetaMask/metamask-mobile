@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import { expect as appwrightExpect } from 'appwright';
@@ -52,7 +52,7 @@ class AmountScreen {
 
   async tapNumberKey(digit) {
     console.log(`tapNumberKey called with digit: "${digit}"`);
-    
+
     try {
       if (AppwrightSelectors.isAndroid(this._device)) {
         console.log(`Android: Looking for button with content-desc='${digit}'`);

@@ -16,11 +16,6 @@ jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
 jest.mock('../services/PerpsConnectionManager');
-jest.mock('../utils/accountUtils', () => ({
-  getEvmAccountFromSelectedAccountGroup: jest.fn().mockReturnValue({
-    address: '0x123456789',
-  }),
-}));
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
@@ -91,6 +86,25 @@ describe('PerpsStreamManager', () => {
       isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
     } as unknown as typeof mockEngine.context.PerpsController;
 
+    // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
+    mockEngine.context.AccountTreeController = {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0x123456789',
+          id: 'account-1',
+          type: 'eip155:eoa',
+          metadata: {
+            name: 'Test Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ]),
+    } as unknown as typeof mockEngine.context.AccountTreeController;
+
     mockDevLogger.log = jest.fn();
   });
 
@@ -135,7 +149,7 @@ describe('PerpsStreamManager', () => {
         // Simulate immediate cached data with all required fields
         const cachedData: PriceUpdate[] = [
           {
-            coin: 'BTC-PERP',
+            symbol: 'BTC-PERP',
             price: '50000',
             percentChange24h: '5',
             timestamp: Date.now(),
@@ -162,7 +176,7 @@ describe('PerpsStreamManager', () => {
     await waitFor(() => {
       expect(onUpdate).toHaveBeenCalledWith({
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           timestamp: expect.any(Number),
           percentChange24h: '5',
@@ -204,7 +218,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
@@ -220,7 +234,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
@@ -240,7 +254,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       expect(onUpdate).toHaveBeenLastCalledWith({
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           timestamp: expect.any(Number),
           percentChange24h: '5.1',
@@ -282,7 +296,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
@@ -298,7 +312,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
@@ -306,7 +320,7 @@ describe('PerpsStreamManager', () => {
       ]);
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50200',
           percentChange24h: '5.2',
           timestamp: Date.now(),
@@ -314,7 +328,7 @@ describe('PerpsStreamManager', () => {
       ]);
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50300',
           percentChange24h: '5.3',
           timestamp: Date.now(),
@@ -335,7 +349,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       expect(onUpdate).toHaveBeenLastCalledWith({
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50300',
           timestamp: expect.any(Number),
           percentChange24h: '5.3',
@@ -404,7 +418,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           price: '3000',
           timestamp: Date.now(),
           percentChange24h: '2',
@@ -419,7 +433,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           price: '3010',
           timestamp: Date.now(),
           percentChange24h: '2.1',
@@ -434,7 +448,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           price: '3020',
           timestamp: Date.now(),
           percentChange24h: '2.2',
@@ -474,7 +488,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           timestamp: Date.now(),
           percentChange24h: '5',
@@ -490,7 +504,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           timestamp: Date.now(),
           percentChange24h: '5.1',
@@ -572,7 +586,7 @@ describe('PerpsStreamManager', () => {
     });
 
     const firstUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50000',
       timestamp: Date.now(),
@@ -588,7 +602,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalled();
       const call = onUpdate.mock.calls[0][0];
       expect(call['BTC-PERP']).toMatchObject({
-        coin: 'BTC-PERP',
+        symbol: 'BTC-PERP',
         price: '50000',
       });
     });
@@ -620,7 +634,7 @@ describe('PerpsStreamManager', () => {
       act(() => {
         priceCallback([
           {
-            coin: 'BTC-PERP',
+            symbol: 'BTC-PERP',
             price: '50000',
             timestamp: Date.now(),
             percentChange24h: '5',
@@ -631,7 +645,7 @@ describe('PerpsStreamManager', () => {
       await waitFor(() => {
         expect(onUpdate).toHaveBeenCalledWith({
           'BTC-PERP': expect.objectContaining({
-            coin: 'BTC-PERP',
+            symbol: 'BTC-PERP',
             price: '50000',
           }),
         });
@@ -946,7 +960,7 @@ describe('PerpsStreamManager', () => {
     });
 
     const firstUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50000',
       timestamp: Date.now(),
@@ -962,14 +976,14 @@ describe('PerpsStreamManager', () => {
     });
 
     const secondUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50100',
       timestamp: Date.now() + 10,
     };
 
     const thirdUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50200',
       timestamp: Date.now() + 20,
@@ -994,7 +1008,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       const lastCall = onUpdate.mock.calls[1][0];
       expect(lastCall['BTC-PERP']).toMatchObject({
-        coin: 'BTC-PERP',
+        symbol: 'BTC-PERP',
         price: '50200',
       });
     });
@@ -1050,7 +1064,7 @@ describe('PerpsStreamManager', () => {
     });
 
     const update: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50000',
       timestamp: Date.now(),
@@ -1966,8 +1980,8 @@ describe('PerpsStreamManager', () => {
 
       const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
       priceCallback([
-        { coin: 'BTC', bestBid: '50000', bestAsk: '50001' },
-        { coin: 'ETH', bestBid: '3000', bestAsk: '3001' },
+        { symbol: 'BTC', bestBid: '50000', bestAsk: '50001' },
+        { symbol: 'ETH', bestBid: '3000', bestAsk: '3001' },
       ]);
 
       expect(callback).toHaveBeenCalledWith({
@@ -1997,7 +2011,7 @@ describe('PerpsStreamManager', () => {
       });
 
       const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
-      priceCallback([{ coin: 'BTC', bestBid: '50000', bestAsk: '50001' }]);
+      priceCallback([{ symbol: 'BTC', bestBid: '50000', bestAsk: '50001' }]);
 
       testStreamManager.topOfBook.clearCache();
 
@@ -2010,7 +2024,7 @@ describe('PerpsStreamManager', () => {
     let mockPositionsUnsubscribe: jest.Mock;
 
     const createMockPosition = (overrides = {}) => ({
-      coin: 'ETH',
+      symbol: 'ETH',
       size: '1.5',
       entryPrice: '3000',
       positionValue: '4500',
@@ -2094,7 +2108,7 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           takeProfitPrice: '3300',
           stopLossPrice: undefined,
           takeProfitCount: 1,
@@ -2154,7 +2168,7 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           takeProfitPrice: undefined,
           stopLossPrice: '2700',
           takeProfitCount: 0,
@@ -2214,7 +2228,7 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           takeProfitPrice: '3300',
           stopLossPrice: '2700',
           takeProfitCount: 1,
@@ -2279,7 +2293,7 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           takeProfitPrice: undefined,
           stopLossPrice: undefined,
           takeProfitCount: 0,
@@ -2317,9 +2331,9 @@ describe('PerpsStreamManager', () => {
       });
 
       // Send multiple positions
-      const ethPosition = createMockPosition({ coin: 'ETH' });
+      const ethPosition = createMockPosition({ symbol: 'ETH' });
       const btcPosition = createMockPosition({
-        coin: 'BTC',
+        symbol: 'BTC',
         entryPrice: '50000',
       });
       act(() => {
@@ -2345,7 +2359,7 @@ describe('PerpsStreamManager', () => {
 
       // Verify ETH position was updated
       expect(calledPositions[0]).toMatchObject({
-        coin: 'ETH',
+        symbol: 'ETH',
         takeProfitPrice: '3300',
         stopLossPrice: '2700',
         takeProfitCount: 1,
@@ -2354,7 +2368,7 @@ describe('PerpsStreamManager', () => {
 
       // Verify BTC position was NOT updated (should keep original values)
       expect(calledPositions[1]).toMatchObject({
-        coin: 'BTC',
+        symbol: 'BTC',
         entryPrice: '50000',
         takeProfitCount: 0,
         stopLossCount: 0,
@@ -2392,7 +2406,7 @@ describe('PerpsStreamManager', () => {
       });
 
       // Send initial position data for ETH
-      const initialPosition = createMockPosition({ coin: 'ETH' });
+      const initialPosition = createMockPosition({ symbol: 'ETH' });
       act(() => {
         positionCallback?.([initialPosition]);
       });
@@ -2474,7 +2488,7 @@ describe('PerpsStreamManager', () => {
 
       // Send position with specific values
       const initialPosition = createMockPosition({
-        coin: 'ETH',
+        symbol: 'ETH',
         size: '2.5',
         entryPrice: '3100',
         unrealizedPnl: '250',
@@ -2502,7 +2516,7 @@ describe('PerpsStreamManager', () => {
       // Verify all original properties are preserved
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '2.5',
           entryPrice: '3100',
           unrealizedPnl: '250',

@@ -358,7 +358,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
     amount: orderForm.amount,
-    coin: orderForm.asset,
+    symbol: orderForm.asset,
     isClosing: false,
     limitPrice: orderForm.limitPrice,
     direction: orderForm.direction,
@@ -819,7 +819,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // 2. Recalculate size with fresh price from usdAmount
       // 3. Use the recalculated size for order execution
       const orderParams: OrderParams = {
-        coin: orderForm.asset,
+        symbol: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize, // Kept for backward compatibility, provider recalculates from usdAmount
         orderType: orderForm.type,
@@ -871,22 +871,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         delete orderWithoutTPSL.stopLossPrice;
 
         await executeOrder(orderWithoutTPSL);
-        const tpslResult = await updatePositionTPSL({
-          coin: orderForm.asset,
+        await updatePositionTPSL({
+          symbol: orderForm.asset,
           takeProfitPrice: orderForm.takeProfitPrice,
           stopLossPrice: orderForm.stopLossPrice,
         });
-
-        // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
-        if (!tpslResult.success) {
-          const errorMessage =
-            tpslResult.error || strings('perps.errors.unknown');
-          showToast(
-            PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-              errorMessage,
-            ),
-          );
-        }
       } else {
         await executeOrder(orderParams);
       }
@@ -895,24 +884,26 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isSubmittingRef.current = false;
     }
   }, [
-    isButtonColorTestEnabled,
+    orderValidation.isValid,
+    orderValidation.errors,
     track,
     orderForm.asset,
     orderForm.direction,
-    orderForm.takeProfitPrice,
-    orderForm.stopLossPrice,
     orderForm.type,
     orderForm.leverage,
-    orderForm.amount,
     orderForm.limitPrice,
-    buttonColorVariant,
-    orderValidation.isValid,
-    orderValidation.errors,
-    currentMarketPosition,
-    navigation,
-    navigationMarketData,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    orderForm.amount,
     positionSize,
     assetData.price,
+    navigation,
+    navigationMarketData,
+    currentMarketPosition,
+    executeOrder,
+    showToast,
+    PerpsToastOptions.formValidation.orderForm,
+    updatePositionTPSL,
     marginRequired,
     feeResults.totalFee,
     feeResults.metamaskFee,
@@ -920,11 +911,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
     source,
-    showToast,
-    PerpsToastOptions.formValidation.orderForm,
-    PerpsToastOptions.positionManagement.tpsl,
-    executeOrder,
-    updatePositionTPSL,
+    isButtonColorTestEnabled,
+    buttonColorVariant,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render

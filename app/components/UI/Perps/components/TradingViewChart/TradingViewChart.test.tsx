@@ -59,7 +59,7 @@ jest.mock('../../Perps.testIds', () => ({
 
 describe('TradingViewChart', () => {
   const mockCandleData: CandleData = {
-    coin: 'BTC',
+    symbol: 'BTC',
     interval: CandlePeriod.ONE_HOUR,
     candles: [
       {
@@ -183,7 +183,7 @@ describe('TradingViewChart', () => {
     it('renders successfully with invalid candle data', () => {
       // Arrange
       const invalidCandleData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -220,7 +220,7 @@ describe('TradingViewChart', () => {
     it('renders successfully with unsorted candle data', () => {
       // Arrange
       const unsortedCandleData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -257,7 +257,7 @@ describe('TradingViewChart', () => {
     it('renders successfully with empty candle data', () => {
       // Arrange
       const emptyData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [],
       };
@@ -415,7 +415,7 @@ describe('TradingViewChart', () => {
     it('handles extremely invalid data gracefully', () => {
       // Arrange
       const extremelyInvalidData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -443,7 +443,7 @@ describe('TradingViewChart', () => {
     it('handles malformed candle objects gracefully', () => {
       // Arrange
       const malformedData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           null, // Null candle
@@ -793,7 +793,7 @@ describe('TradingViewChart', () => {
       // Act - Update with new data
       const updatedData: CandleData = {
         ...mockCandleData,
-        coin: 'ETH', // Different coin
+        symbol: 'ETH', // Different coin
       };
 
       rerender(
@@ -810,7 +810,7 @@ describe('TradingViewChart', () => {
     it('handles data version with single candle', () => {
       // Arrange
       const singleCandleData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [mockCandleData.candles[0]],
       };
@@ -1025,7 +1025,7 @@ describe('TradingViewChart', () => {
     it('handles large datasets efficiently', () => {
       // Arrange - Create large dataset
       const largeCandleData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_MINUTE,
         candles: Array.from({ length: 100 }, (_, i) => ({
           time: 1640995200000 + i * 60000, // 1 minute intervals
@@ -1051,7 +1051,7 @@ describe('TradingViewChart', () => {
     it('handles mixed valid and invalid candles', () => {
       // Arrange
       const mixedData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           mockCandleData.candles[0], // Valid
@@ -1078,7 +1078,7 @@ describe('TradingViewChart', () => {
     it('handles extreme price values', () => {
       // Arrange
       const extremePriceData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1106,7 +1106,7 @@ describe('TradingViewChart', () => {
     it('handles zero and negative volumes', () => {
       // Arrange
       const zeroVolumeData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1265,7 +1265,7 @@ describe('TradingViewChart', () => {
       // Act - Simulate rapid data changes
       for (let i = 0; i < 20; i++) {
         const dynamicData: CandleData = {
-          coin: `COIN${i}`,
+          symbol: `COIN${i}`,
           interval: CandlePeriod.ONE_HOUR,
           candles: [
             {
@@ -1407,7 +1407,7 @@ describe('TradingViewChart', () => {
     it('handles candle data with all zero values', () => {
       // Arrange
       const zeroData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1432,7 +1432,7 @@ describe('TradingViewChart', () => {
     it('handles candle data with identical OHLC values', () => {
       // Arrange
       const identicalOHLC: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1460,7 +1460,7 @@ describe('TradingViewChart', () => {
     it('handles timestamps from different time periods', () => {
       // Arrange
       const diverseTimestamps: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1506,7 +1506,7 @@ describe('TradingViewChart', () => {
     it('handles candles with decimal string precision', () => {
       // Arrange
       const preciseData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1534,7 +1534,7 @@ describe('TradingViewChart', () => {
     it('handles scientific notation in price strings', () => {
       // Arrange
       const scientificData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1562,7 +1562,7 @@ describe('TradingViewChart', () => {
     it('handles candles with inconsistent OHLC logic', () => {
       // Arrange - High < Low (invalid but should be handled)
       const inconsistentData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1693,7 +1693,7 @@ describe('TradingViewChart', () => {
     it('handles timestamp conversion edge cases', () => {
       // Arrange - Edge case timestamps
       const edgeTimestamps: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1729,7 +1729,7 @@ describe('TradingViewChart', () => {
     it('handles duplicate timestamps', () => {
       // Arrange
       const duplicateTimestamps: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1874,7 +1874,7 @@ describe('TradingViewChart', () => {
     it('handles stress test with maximum complexity', () => {
       // Arrange - Create maximum complexity scenario
       const stressTestData: CandleData = {
-        coin: 'STRESS_TEST_COIN_WITH_VERY_LONG_NAME',
+        symbol: 'STRESS_TEST_SYMBOL_WITH_VERY_LONG_NAME',
         interval: CandlePeriod.ONE_MINUTE,
         candles: Array.from({ length: 500 }, (_, i) => ({
           time: 1640995200000 + i * 60000,
@@ -1944,7 +1944,7 @@ describe('TradingViewChart', () => {
     it('exercises formatCandleData with boundary values', () => {
       // Arrange
       const boundaryData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -1972,7 +1972,7 @@ describe('TradingViewChart', () => {
     it('exercises candle filtering logic with edge cases', () => {
       // Arrange - Mix of valid and edge case data
       const edgeCaseData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -2057,14 +2057,14 @@ describe('TradingViewChart', () => {
       // Act - Test different data shapes that exercise memo logic
       const dataVariations = [
         null, // Null data
-        { coin: 'BTC', interval: CandlePeriod.ONE_HOUR, candles: [] }, // Empty candles
+        { symbol: 'BTC', interval: CandlePeriod.ONE_HOUR, candles: [] }, // Empty candles
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           interval: CandlePeriod.ONE_HOUR,
           candles: [mockCandleData.candles[0]],
         }, // Single candle
         mockCandleData, // Normal data
-        { ...mockCandleData, coin: 'ETH' }, // Different coin
+        { ...mockCandleData, symbol: 'ETH' }, // Different coin
         { ...mockCandleData, interval: CandlePeriod.ONE_DAY }, // Different interval
       ];
 

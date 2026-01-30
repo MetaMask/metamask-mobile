@@ -1,4 +1,4 @@
-import { Matchers, Gestures } from '../../../framework';
+import { Matchers, Gestures } from '../../../../tests/framework';
 import { DeveloperOptionsSelectorsText } from '../../../selectors/Settings/DeveloperOptions.selectors';
 
 class DeveloperOptionsView {

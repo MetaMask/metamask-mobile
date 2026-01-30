@@ -13,11 +13,16 @@ import {
 } from '@metamask/design-system-react-native';
 
 import TitleLeft from './TitleLeft';
+import { TitleLeftSize } from './TitleLeft.types';
 
 const TitleLeftMeta = {
   title: 'Components Temp / TitleLeft',
   component: TitleLeft,
   argTypes: {
+    size: {
+      control: 'select',
+      options: Object.values(TitleLeftSize),
+    },
     title: {
       control: 'text',
     },
@@ -43,11 +48,21 @@ export const Default = {
   args: {
     topLabel: 'Send',
     title: '$4.42',
+    size: TitleLeftSize.Md,
   },
 };
 
 export const TitleOnly = {
   render: () => <TitleLeft title="$1,234.56" />,
+};
+
+export const Size = {
+  render: () => (
+    <>
+      <TitleLeft size={TitleLeftSize.Sm} topLabel="Balance" title="$1,234.56" />
+      <TitleLeft size={TitleLeftSize.Md} topLabel="Balance" title="$1,234.56" />
+    </>
+  ),
 };
 
 export const WithTopLabel = {

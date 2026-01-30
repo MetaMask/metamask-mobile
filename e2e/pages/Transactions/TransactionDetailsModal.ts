@@ -3,9 +3,9 @@ import {
   TransactionDetailsModalSelectorsIDs,
   TransactionDetailsSelectorIDs,
 } from '../../../app/components/Views/confirmations/components/activity/TransactionDetailsModal.testIds';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import { Assertions, logger } from '../../framework';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import { Assertions, logger } from '../../../tests/framework';
 
 class TransactionDetailsModal {
   get closeIcon(): DetoxElement {

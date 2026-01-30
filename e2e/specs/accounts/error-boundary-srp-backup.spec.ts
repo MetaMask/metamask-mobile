@@ -2,26 +2,29 @@
 import Browser from '../../pages/Browser/BrowserView';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import TestDApp from '../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { DappVariants, defaultGanacheOptions } from '../../framework/Constants';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import {
+  DappVariants,
+  defaultGanacheOptions,
+} from '../../../tests/framework/Constants';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { RegressionAccounts } from '../../tags';
 import TestHelpers from '../../helpers';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
 import {
   AnvilPort,
   buildPermissions,
-} from '../../framework/fixtures/FixtureUtils';
-import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
+} from '../../../tests/framework/fixtures/FixtureUtils';
+import { setupMockPostRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   SECURITY_ALERTS_REQUEST_BODY,
   securityAlertsUrl,
-} from '../../api-mocking/mock-responses/security-alerts-mock';
-import { LocalNode } from '../../framework/types';
+} from '../../../tests/api-mocking/mock-responses/security-alerts-mock';
+import { LocalNode } from '../../../tests/framework/types';
 import { AnvilManager } from '../../seeder/anvil-manager';
 
 const PASSWORD = '123123123';

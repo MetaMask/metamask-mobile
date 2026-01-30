@@ -5,8 +5,10 @@ import {
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import {
+  SignedTransactionWithMetadata,
   SmartTransactionsController,
   SmartTransactionsControllerSmartTransactionEvent,
+  SmartTransactionsNetworkConfig,
   SmartTransactionStatuses,
   type Fee,
   type Fees,
@@ -26,7 +28,7 @@ import { RAMPS_SEND } from '../../components/UI/Ramp/Aggregator/constants';
 import { Messenger } from '@metamask/messenger';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
-import { isLegacyTransaction } from '../transactions';
+import { getTransactionById, isLegacyTransaction } from '../transactions';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 type AllowedActions = never;
@@ -45,27 +47,11 @@ export interface SubmitSmartTransactionRequest {
   >;
   shouldUseSmartTransaction: boolean;
   approvalController: ApprovalController;
-  featureFlags: {
-    mobile_active: boolean;
-    extension_active: boolean;
-    fallback_to_v1: boolean;
-    fallbackToV1: boolean;
-    mobileActive: boolean;
-    extensionActive: boolean;
-    mobileActiveIOS: boolean;
-    mobileActiveAndroid: boolean;
-    smartTransactions:
-      | {
-          expectedDeadline: number;
-          maxDeadline: number;
-          mobileReturnTxHashAsap: boolean;
-          batchStatusPollingInterval: number;
-        }
-      | Record<string, never>;
-  };
+  featureFlags: SmartTransactionsNetworkConfig;
   transactions?: PublishBatchHookTransaction[];
 }
 
+const DEFAULT_BATCH_STATUS_POLLING_INTERVAL = 1000;
 const LOG_PREFIX = 'STX publishHook';
 // It has to be 21000 for cancel transactions, otherwise the API would reject it.
 const CANCEL_GAS = 21000;
@@ -76,16 +62,7 @@ class SmartTransactionHook {
   #approvalEnded: boolean;
   #approvalId: string | undefined;
   #chainId: Hex;
-  #featureFlags: {
-    extensionActive: boolean;
-    mobileActive: boolean;
-    smartTransactions: {
-      expectedDeadline?: number;
-      maxDeadline?: number;
-      mobileReturnTxHashAsap?: boolean;
-      batchStatusPollingInterval?: number;
-    };
-  };
+  #featureFlags: SmartTransactionsNetworkConfig;
   #shouldUseSmartTransaction: boolean;
   #smartTransactionsController: SmartTransactionsController;
   #transactionController: TransactionController;
@@ -132,7 +109,7 @@ class SmartTransactionHook {
     this.#txParams = transactionMeta.txParams;
     this.#controllerMessenger = controllerMessenger;
     this.#mobileReturnTxHashAsap =
-      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap ?? false;
+      this.#featureFlags?.mobileReturnTxHashAsap ?? false;
     this.#transactions = transactions;
 
     const {
@@ -203,8 +180,11 @@ class SmartTransactionHook {
       }
 
       const batchStatusPollingInterval =
-        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+        this.#featureFlags?.batchStatusPollingInterval ??
+        DEFAULT_BATCH_STATUS_POLLING_INTERVAL;
       if (batchStatusPollingInterval) {
+        // if the interval if undefined, the controller will set 5 seconds by default.
+        // Better to make sure it's set to something lower.
         this.#smartTransactionsController.setStatusRefreshInterval(
           batchStatusPollingInterval,
         );
@@ -280,8 +260,11 @@ class SmartTransactionHook {
 
     try {
       const batchStatusPollingInterval =
-        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+        this.#featureFlags?.batchStatusPollingInterval ??
+        DEFAULT_BATCH_STATUS_POLLING_INTERVAL;
       if (batchStatusPollingInterval) {
+        // if the interval if undefined, the controller will set 5 seconds by default.
+        // Better to make sure it's set to something lower.
         this.#smartTransactionsController.setStatusRefreshInterval(
           batchStatusPollingInterval,
         );
@@ -443,6 +426,7 @@ class SmartTransactionHook {
   }: {
     getFeesResponse?: Fees;
   } = {}) => {
+    let signedTransactionsWithMetadata: SignedTransactionWithMetadata[] = [];
     let signedTransactions: string[] = [];
     if (
       this.#transactions &&
@@ -450,20 +434,41 @@ class SmartTransactionHook {
       this.#transactions.length > 0
     ) {
       // Batch transaction mode - extract signed transactions from this.#transactions[].signedTx
-      signedTransactions = this.#transactions
+      signedTransactionsWithMetadata = this.#transactions
         .filter((tx) => tx?.signedTx)
-        .map((tx) => tx.signedTx);
+        .map((tx) => {
+          const transactionMeta = getTransactionById(
+            tx.id ?? '',
+            this.#transactionController,
+          );
+          const signedTx: SignedTransactionWithMetadata = { tx: tx.signedTx };
+          if (transactionMeta) {
+            signedTx.metadata = { txType: transactionMeta.type };
+          }
+          return signedTx;
+        });
     } else if (this.#signedTransactionInHex) {
       // Single transaction mode with pre-signed transaction
-      signedTransactions = [this.#signedTransactionInHex];
+      signedTransactionsWithMetadata = [
+        {
+          tx: this.#signedTransactionInHex,
+          metadata: { txType: this.#transactionMeta.type },
+        },
+      ];
     } else if (getFeesResponse) {
-      signedTransactions = await this.#createSignedTransactions(
+      const signed = await this.#createSignedTransactions(
         getFeesResponse.tradeTxFees?.fees ?? [],
         false,
       );
+      signedTransactionsWithMetadata = signed.map((signedTx) => ({
+        tx: signedTx,
+        metadata: { txType: this.#transactionMeta.type },
+      }));
     }
+    signedTransactions = signedTransactionsWithMetadata.map((tx) => tx.tx);
     return await this.#smartTransactionsController.submitSignedTransactions({
       signedTransactions,
+      signedTransactionsWithMetadata,
       signedCanceledTransactions: [],
       txParams: this.#txParams,
       transactionMeta: this.#transactionMeta,

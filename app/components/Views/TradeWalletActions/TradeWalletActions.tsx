@@ -117,7 +117,7 @@ function TradeWalletActions() {
   }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
 
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
+    location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
   });
 

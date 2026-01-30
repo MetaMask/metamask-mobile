@@ -6,8 +6,8 @@ import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../testIDs/Components/MetaM
 import { OnboardingCarouselSelectorIDs } from '../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors'
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class WelcomeScreen {

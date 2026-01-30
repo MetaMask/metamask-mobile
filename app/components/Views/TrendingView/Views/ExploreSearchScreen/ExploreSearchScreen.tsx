@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Keyboard } from 'react-native';
+import { Keyboard, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
@@ -20,7 +20,10 @@ const ExploreSearchScreen: React.FC = () => {
   }, [navigation]);
 
   return (
-    <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
+    <Box
+      style={{ paddingTop: insets.top + (Platform.OS === 'android' ? 16 : 0) }}
+      twClassName="flex-1 bg-default"
+    >
       <Box twClassName="px-4 pb-3">
         <ExploreSearchBar
           type="interactive"

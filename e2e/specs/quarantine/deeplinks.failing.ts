@@ -14,7 +14,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
 //const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';

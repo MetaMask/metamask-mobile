@@ -10,18 +10,18 @@ import Browser from '../pages/Browser/BrowserView';
 // eslint-disable-next-line import/no-commonjs
 const mockServer = require('@open-rpc/mock-server/build/index').default;
 import TabBarComponent from '../pages/wallet/TabBarComponent';
-import FixtureBuilder from '../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../viewHelper';
 
 import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
 import { createDriverTransport } from './helpers';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
-import { DappVariants } from '../framework/Constants';
-import { setupMockRequest } from '../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { oldConfirmationsRemoteFeatureFlags } from '../api-mocking/mock-responses/feature-flags-mocks';
+import { DappVariants } from '../../tests/framework/Constants';
+import { setupMockRequest } from '../../tests/api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 // API spec tests use a mock RPC server instead of Ganache (disableLocalNodes: true)
 // Fixed port is fine since tests don't run in parallel

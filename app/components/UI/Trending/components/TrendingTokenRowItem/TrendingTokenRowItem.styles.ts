@@ -10,12 +10,12 @@ const styleSheet = (_params: { theme: Theme }) =>
       alignSelf: 'stretch',
       paddingTop: 8,
       paddingBottom: 8,
+      gap: 16,
     },
     badge: {
       borderRadius: 16,
     },
     leftContainer: {
-      paddingLeft: 16,
       flex: 1,
     },
     tokenHeaderRow: {

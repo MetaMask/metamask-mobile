@@ -286,6 +286,7 @@ const SmartTransactionStatus = ({
   } = useRemainingTime({
     creationTime: effectiveCreationTime,
     isStxPending,
+    chainId,
   });
 
   const viewActivity = () => {

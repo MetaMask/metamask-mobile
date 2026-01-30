@@ -3,13 +3,19 @@
  *
  * Functional orchestrator for AI-powered E2E test analysis.
  * Supports multiple modes via pluggable architecture.
+ * Provider-agnostic: works with Anthropic, OpenAI, or Google.
  */
 
-import Anthropic from '@anthropic-ai/sdk';
 import { ToolInput, ModeAnalysisTypes } from '../types';
-import { CLAUDE_CONFIG } from '../config';
+import { LLM_CONFIG } from '../config';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
-import { executeTool } from '../ai-tools/tool-executor';
+import { executeTool, ToolContext } from '../ai-tools/tool-executor';
+import {
+  ILLMProvider,
+  LLMMessage,
+  LLMContentBlock,
+  LLMToolResultBlock,
+} from '../providers';
 import {
   buildSystemPrompt as buildSelectTagsSystemPrompt,
   buildTaskPrompt as buildSelectTagsTaskPrompt,
@@ -68,15 +74,30 @@ export function validateMode(modeInput?: string): ModeKey {
 }
 
 /**
+ * Analysis context containing all parameters needed for the analysis
+ */
+export interface AnalysisContext {
+  baseDir: string;
+  baseBranch: string;
+  prNumber?: number;
+  githubRepo?: string;
+}
+
+/**
  * Main AI analysis using agentic loop with tools
+ *
+ * @param provider - The LLM provider to use (Anthropic, OpenAI, or Google)
+ * @param allChangedFiles - List of all changed files in the PR
+ * @param criticalFiles - List of critical files that need special attention
+ * @param mode - The analysis mode to use
+ * @param context - Analysis context (baseDir, baseBranch, prNumber, githubRepo)
  */
 export async function analyzeWithAgent<M extends ModeKey>(
-  anthropic: Anthropic,
+  provider: ILLMProvider,
   allChangedFiles: string[],
   criticalFiles: string[],
   mode: M,
-  baseDir: string,
-  baseBranch: string,
+  context: AnalysisContext,
 ): Promise<ModeAnalysisResult<M>> {
   // Get mode configuration with prompt builders
   const modeConfig = MODES[mode];
@@ -87,22 +108,18 @@ export async function analyzeWithAgent<M extends ModeKey>(
   );
 
   const tools = getToolDefinitions();
-  let currentMessage: string | Anthropic.MessageParam['content'] = taskPrompt;
-  const conversationHistory: Anthropic.MessageParam[] = [];
+  let currentMessage: LLMContentBlock[] | string = taskPrompt;
+  const conversationHistory: LLMMessage[] = [];
 
-  for (
-    let iteration = 0;
-    iteration < CLAUDE_CONFIG.maxIterations;
-    iteration++
-  ) {
-    console.log(
-      `🔄 Iteration ${iteration + 1}/${CLAUDE_CONFIG.maxIterations}...`,
-    );
+  console.log(`🤖 Using provider: ${provider.displayName}`);
 
-    const response: Anthropic.Message = await anthropic.messages.create({
-      model: CLAUDE_CONFIG.model,
-      max_tokens: CLAUDE_CONFIG.maxTokens,
-      temperature: CLAUDE_CONFIG.temperature,
+  for (let iteration = 0; iteration < LLM_CONFIG.maxIterations; iteration++) {
+    console.log(`🔄 Iteration ${iteration + 1}/${LLM_CONFIG.maxIterations}...`);
+
+    const response = await provider.createMessage({
+      model: provider.getDefaultModel(),
+      maxTokens: LLM_CONFIG.maxTokens,
+      temperature: LLM_CONFIG.temperature,
       system: systemPrompt,
       tools,
       messages: [
@@ -113,20 +130,19 @@ export async function analyzeWithAgent<M extends ModeKey>(
 
     // Handle tool uses
     const toolUseBlocks = response.content.filter(
-      (block: Anthropic.ContentBlock) => block.type === 'tool_use',
+      (block) => block.type === 'tool_use',
     );
+
     if (toolUseBlocks.length > 0) {
-      const toolResults: Anthropic.MessageParam['content'] = [];
+      const toolResults: LLMToolResultBlock[] = [];
+
       for (const toolUse of toolUseBlocks) {
         if (toolUse.type === 'tool_use') {
           console.log(`🔧 Tool: ${toolUse.name}`);
           const toolResult = await executeTool(
             toolUse.name,
             toolUse.input as ToolInput,
-            {
-              baseDir,
-              baseBranch,
-            },
+            context as ToolContext,
           );
 
           // Log tool result with status indicator
@@ -154,7 +170,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
           if (toolUse.name === modeConfig.finalizeToolName) {
             const analysis = await modeConfig.processAnalysis(
               toolResult,
-              baseDir,
+              context.baseDir,
             );
 
             if (analysis) {
@@ -177,7 +193,8 @@ export async function analyzeWithAgent<M extends ModeKey>(
       // Update conversation history
       conversationHistory.push({
         role: 'user',
-        content: currentMessage,
+        content:
+          typeof currentMessage === 'string' ? currentMessage : currentMessage,
       });
       conversationHistory.push({
         role: 'assistant',
@@ -189,13 +206,11 @@ export async function analyzeWithAgent<M extends ModeKey>(
     }
 
     // Handle text response (fallback)
-    const textContent = response.content.find(
-      (block: Anthropic.ContentBlock) => block.type === 'text',
-    );
+    const textContent = response.content.find((block) => block.type === 'text');
     if (textContent && textContent.type === 'text') {
       const analysis = await modeConfig.processAnalysis(
         textContent.text,
-        baseDir,
+        context.baseDir,
       );
       if (analysis) {
         console.log(`✅ Analysis complete!`);

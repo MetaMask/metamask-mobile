@@ -7,10 +7,10 @@ import ChangePasswordView from '../../pages/Settings/SecurityAndPrivacy/ChangePa
 import ForgotPasswordModal from '../../pages/Common/ForgotPasswordModalView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import CommonView from '../../pages/CommonView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import ToastModal from '../../pages/wallet/ToastModal';
 
 describe(

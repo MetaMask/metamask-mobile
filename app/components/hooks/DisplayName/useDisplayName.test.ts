@@ -5,7 +5,6 @@ import useDisplayName, { DisplayNameVariant } from './useDisplayName';
 import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useERC20Tokens } from './useERC20Tokens';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
-import { useNftNames } from './useNftName';
 import { useAccountNames } from './useAccountNames';
 import { useAccountWalletNames } from './useAccountWalletNames';
 import { useSendFlowEnsResolutions } from '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions';
@@ -32,10 +31,6 @@ jest.mock('./useERC20Tokens', () => ({
   useERC20Tokens: jest.fn(),
 }));
 
-jest.mock('./useNftName', () => ({
-  useNftNames: jest.fn(),
-}));
-
 jest.mock('./useAccountNames', () => ({
   useAccountNames: jest.fn(),
 }));
@@ -59,7 +54,6 @@ describe('useDisplayName', () => {
     useFirstPartyContractNames,
   );
   const mockUseERC20Tokens = jest.mocked(useERC20Tokens);
-  const mockUseNFTNames = jest.mocked(useNftNames);
   const mockUseAccountNames = jest.mocked(useAccountNames);
   const mockUseAccountWalletNames = jest.mocked(useAccountWalletNames);
   const mockUseSendFlowEnsResolutions = jest.mocked(useSendFlowEnsResolutions);
@@ -70,7 +64,6 @@ describe('useDisplayName', () => {
     mockUseWatchedNFTNames.mockReturnValue([]);
     mockUseFirstPartyContractNames.mockReturnValue([]);
     mockUseERC20Tokens.mockReturnValue([]);
-    mockUseNFTNames.mockReturnValue([]);
     mockUseAccountNames.mockReturnValue([]);
     mockUseAccountWalletNames.mockReturnValue([]);
     mockUseSendFlowEnsResolutions.mockReturnValue({

@@ -3,13 +3,13 @@ import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
-import Assertions from '../../framework/Assertions';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import Assertions from '../../../tests/framework/Assertions';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { LocalNode } from '../../framework/types';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import { LocalNode } from '../../../tests/framework/types';
 import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionAssets('Import custom token'), () => {

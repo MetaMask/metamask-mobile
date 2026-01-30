@@ -93,8 +93,11 @@ const createWrapper = () => {
 };
 
 // Helper to create mock positions
-const createMockPosition = (coin: string, leverageValue: number): Position => ({
-  coin,
+const createMockPosition = (
+  symbol: string,
+  leverageValue: number,
+): Position => ({
+  symbol,
   size: '1.5',
   entryPrice: '50000',
   positionValue: '75000',
@@ -143,8 +146,8 @@ describe('usePerpsOrderForm', () => {
       isInitialLoading: false,
     });
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '50000', timestamp: Date.now(), coin: 'BTC' },
-      ETH: { price: '3000', timestamp: Date.now(), coin: 'ETH' },
+      BTC: { price: '50000', timestamp: Date.now(), symbol: 'BTC' },
+      ETH: { price: '3000', timestamp: Date.now(), symbol: 'ETH' },
     });
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],

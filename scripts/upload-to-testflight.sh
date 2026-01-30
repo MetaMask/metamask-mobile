@@ -63,6 +63,6 @@ cd ios
 
 bundle exec fastlane upload_to_testflight_only \
   ipa_path:"$IPA_PATH" \
-  groups:"MetaMask Fastlane Test" \
+  groups:"MetaMask BETA & Release Candidates" \
   changelog:"$CHANGELOG"
 

@@ -93,7 +93,7 @@ export function usePerpsPositions(
         DevLogger.log('usePerpsPositions: Loaded positions', {
           count: validPositions.length,
           positions: validPositions.map((p) => ({
-            coin: p.coin,
+            symbol: p.symbol,
             size: p.size,
             pnl: p.unrealizedPnl,
           })),

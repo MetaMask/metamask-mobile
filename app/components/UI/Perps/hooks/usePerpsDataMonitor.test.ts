@@ -50,7 +50,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
   };
 
   const mockBTCPosition: Position = {
-    coin: 'BTC',
+    symbol: 'BTC',
     size: '1.5',
     entryPrice: '49000',
     positionValue: '73500',
@@ -70,7 +70,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
   };
 
   const mockETHPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '-0.8',
     entryPrice: '3100',
     positionValue: '2480',

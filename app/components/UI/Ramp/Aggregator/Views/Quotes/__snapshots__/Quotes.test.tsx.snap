@@ -701,7 +701,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
@@ -1803,7 +1803,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
@@ -2931,7 +2931,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
@@ -3365,7 +3365,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     ]
                                   }
                                 >
-                                  Select a Quote
+                                  Select a quote
                                 </Text>
                               </View>
                             </View>
@@ -4791,7 +4791,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
@@ -6043,7 +6043,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
@@ -6805,7 +6805,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
@@ -7567,7 +7567,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>
@@ -8329,7 +8329,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   ]
                 }
               >
-                Select a Quote
+                Select a quote
               </Text>
             </View>
           </View>

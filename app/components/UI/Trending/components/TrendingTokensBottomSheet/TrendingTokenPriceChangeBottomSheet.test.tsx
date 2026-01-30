@@ -312,4 +312,72 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     expect(getByText('Market cap')).toBeOnTheScreen();
     expect(getByText('High to low')).toBeOnTheScreen();
   });
+
+  it('resets uncommitted changes when reopening the sheet', () => {
+    const mockOnPriceChangeSelect = jest.fn();
+    const { rerender, getByText, getByTestId } = render(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onPriceChangeSelect={mockOnPriceChangeSelect}
+        selectedOption={PriceChangeOption.PriceChange}
+        sortDirection={SortDirection.Descending}
+      />,
+    );
+
+    // Initially Price change with High to low is selected
+    expect(getByText('Price change')).toBeOnTheScreen();
+    expect(getByText('High to low')).toBeOnTheScreen();
+
+    // User makes changes without applying - select Volume
+    const volumeOption = getByText('Volume');
+    const volumeParent = volumeOption.parent;
+    if (!volumeParent) throw new Error('Volume parent not found');
+    fireEvent.press(volumeParent);
+
+    // Verify the local state changed by pressing Apply and checking the callback
+    fireEvent.press(getByTestId('apply-button'));
+
+    // Should have called with Volume (the uncommitted change)
+    expect(mockOnPriceChangeSelect).toHaveBeenCalledWith(
+      PriceChangeOption.Volume,
+      SortDirection.Descending,
+    );
+
+    // Clear the mock to test the next Apply
+    mockOnPriceChangeSelect.mockClear();
+
+    // User closes the sheet without the uncommitted changes being "saved" to props
+    rerender(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible={false}
+        onClose={mockOnClose}
+        onPriceChangeSelect={mockOnPriceChangeSelect}
+        selectedOption={PriceChangeOption.PriceChange}
+        sortDirection={SortDirection.Descending}
+      />,
+    );
+
+    // User reopens the sheet - props haven't changed (still Price change)
+    rerender(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onPriceChangeSelect={mockOnPriceChangeSelect}
+        selectedOption={PriceChangeOption.PriceChange}
+        sortDirection={SortDirection.Descending}
+      />,
+    );
+
+    // Verify the state was reset by pressing Apply again
+    // Without the fix, this would still be Volume from before
+    fireEvent.press(getByTestId('apply-button'));
+
+    // Should now call with PriceChange (the prop value), not Volume
+    // This proves the uncommitted changes were discarded
+    expect(mockOnPriceChangeSelect).toHaveBeenCalledWith(
+      PriceChangeOption.PriceChange,
+      SortDirection.Descending,
+    );
+  });
 });

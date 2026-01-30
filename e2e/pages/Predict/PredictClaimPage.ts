@@ -1,4 +1,4 @@
-import { Matchers, Gestures } from '../../framework';
+import { Matchers, Gestures } from '../../../tests/framework';
 import { PredictClaimConfirmationSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 
 class PredictClaimPage {

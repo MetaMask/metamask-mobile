@@ -165,7 +165,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   }
                 }
               >
-                Security & Privacy
+                Security and privacy
               </Text>
               <Text
                 accessibilityRole="text"
@@ -273,7 +273,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   }
                 }
               >
-                Access developer features, reset account, setup testnets, state logs, IPFS gateway and custom RPC.
+                Access developer features, reset account, set up testnets, state logs, IPFS gateway and custom RPC.
               </Text>
             </View>
             <View
@@ -931,7 +931,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   }
                 }
               >
-                WalletConnect & more...
+                WalletConnect and more...
               </Text>
             </View>
             <View

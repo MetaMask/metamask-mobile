@@ -18,7 +18,7 @@ import { login } from '../../../../utils/Flows.js';
 import ConfirmationScreen from '../../../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../../wdio/screen-objects/AmountScreen.js';
-import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures';
+import AppwrightGestures from '../../../../../tests/framework/AppwrightGestures';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
 
 test('Cold Start: Measure ColdStart To Login Screen', async ({

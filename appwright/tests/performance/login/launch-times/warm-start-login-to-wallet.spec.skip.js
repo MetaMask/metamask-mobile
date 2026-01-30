@@ -3,7 +3,7 @@ import TimerHelper from '../../../../utils/TimersHelper.js';
 import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScreen.js';
 import { login } from '../../../../utils/Flows.js';
 
-import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../../../../tests/framework/AppwrightGestures.js';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
 
 import TabBarModal from '../../../../../wdio/screen-objects/Modals/TabBarModal.js';

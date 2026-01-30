@@ -43,7 +43,7 @@ export const usePerpsMarketStats = (
 
   // Get candlestick data for 24h high/low calculation via WebSocket streaming
   const { candleData } = usePerpsLiveCandles({
-    coin: symbol,
+    symbol,
     interval: CandlePeriod.ONE_HOUR, // Use 1h candles for 24h calculation
     duration: TimeDuration.ONE_DAY,
     throttleMs: 1000,
@@ -55,10 +55,10 @@ export const usePerpsMarketStats = (
     if (!symbol) return;
 
     let unsubscribe: (() => void) | undefined;
-    const findCoin = (update: PriceUpdate) => update.coin === symbol;
+    const findSymbol = (update: PriceUpdate) => update.symbol === symbol;
 
     const callback = (updates: PriceUpdate[]) => {
-      const update = updates.find(findCoin);
+      const update = updates.find(findSymbol);
       if (update) {
         // Only extract market data, ignore price changes to prevent re-renders
         setMarketData((prev) => {

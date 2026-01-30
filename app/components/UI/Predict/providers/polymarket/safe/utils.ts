@@ -57,6 +57,8 @@ import {
   SplitSignature,
 } from './types';
 
+const MIN_VALID_HEX_DATA_LENGTH = 10;
+
 function joinHexData(hexData: string[]): string {
   return `0x${hexData
     .map((hex) => {
@@ -408,6 +410,13 @@ export const getDeployProxyWalletTransaction = async ({
       },
     };
     Logger.error(error as Error, errorContext);
+
+    // Re-throw to prevent silent failures that cause 'not enough input to decode' errors
+    throw new Error(
+      `Failed to generate deploy proxy wallet transaction: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`,
+    );
   }
 };
 
@@ -569,20 +578,49 @@ export const getProxyWalletAllowancesTransaction = async ({
 }: {
   signer: Signer;
 }) => {
-  const safeAddress = computeProxyAddress(signer.address);
-  const safeTxn = createAllowancesSafeTransaction();
-  const callData = await getSafeTransactionCallData({
-    signer,
-    safeAddress,
-    txn: safeTxn,
-  });
-  return {
-    params: {
-      to: safeAddress as Hex,
-      data: callData as Hex,
-    },
-    type: TransactionType.contractInteraction,
-  };
+  try {
+    const safeAddress = computeProxyAddress(signer.address);
+    const safeTxn = createAllowancesSafeTransaction();
+    const callData = await getSafeTransactionCallData({
+      signer,
+      safeAddress,
+      txn: safeTxn,
+    });
+
+    if (!callData || callData.length < MIN_VALID_HEX_DATA_LENGTH) {
+      throw new Error(
+        `Invalid call data generated: ${callData?.length ?? 0} bytes, minimum ${MIN_VALID_HEX_DATA_LENGTH} required`,
+      );
+    }
+
+    return {
+      params: {
+        to: safeAddress as Hex,
+        data: callData as Hex,
+      },
+      type: TransactionType.contractInteraction,
+    };
+  } catch (error) {
+    const errorContext: LoggerErrorOptions = {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        provider: 'polymarket',
+      },
+      context: {
+        name: 'safeUtils',
+        data: {
+          method: 'getProxyWalletAllowancesTransaction',
+        },
+      },
+    };
+    Logger.error(error as Error, errorContext);
+
+    throw new Error(
+      `Failed to generate proxy wallet allowances transaction: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`,
+    );
+  }
 };
 
 export const hasAllowances = async ({ address }: { address: string }) => {

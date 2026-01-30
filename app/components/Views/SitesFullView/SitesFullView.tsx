@@ -90,7 +90,7 @@ const SitesFullView: React.FC = () => {
   }, [isSearchActive, searchQuery]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       <View
         style={[
           styles.headerContainer,

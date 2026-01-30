@@ -13,7 +13,7 @@ import {
 } from '../../../../util/test/utils';
 import { Linking } from 'react-native';
 import axios, { AxiosResponse } from 'axios';
-import { PerpsModifiersCommandTypes } from '../../../../../e2e/framework/types';
+import { PerpsModifiersCommandTypes } from '../../../../../tests/framework/types';
 
 // Global bridge for E2E mock injection
 export interface E2EBridgePerpsStreaming {
@@ -95,7 +95,7 @@ function registerE2EPerpsDeepLinkHandler(): void {
         /* eslint-disable @typescript-eslint/no-require-imports */
         try {
           // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const mod = require('../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks');
+          const mod = require('../../../../../tests/controller-mocking/mock-responses/perps/perps-e2e-mocks');
           const service = mod?.PerpsE2EMockService?.getInstance?.();
 
           // Parse path and query
@@ -211,7 +211,7 @@ function startE2EPerpsCommandPolling(): void {
     try {
       // Lazy require to keep bridge tree-shakeable in prod and avoid ESM import in Jest
       /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
-      const mod = require('../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks');
+      const mod = require('../../../../../tests/controller-mocking/mock-responses/perps/perps-e2e-mocks');
       const service = mod?.PerpsE2EMockService?.getInstance?.();
       /* eslint-enable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
       if (!service) {
@@ -366,11 +366,11 @@ function autoConfigureE2EBridge(): void {
     /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
     const {
       PerpsE2EMockService,
-    } = require('../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks');
+    } = require('../../../../../tests/controller-mocking/mock-responses/perps/perps-e2e-mocks');
     const {
       applyE2EPerpsControllerMocks,
       createE2EMockStreamManager,
-    } = require('../../../../../e2e/controller-mocking/mock-config/perps-controller-mixin');
+    } = require('../../../../../tests/controller-mocking/mock-config/perps-controller-mixin');
     /* eslint-enable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 
     // Initialize mock service

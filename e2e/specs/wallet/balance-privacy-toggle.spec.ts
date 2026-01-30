@@ -1,12 +1,12 @@
 import { RegressionWalletPlatform } from '../../tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import Assertions from '../../framework/Assertions';
-import { LocalNode } from '../../framework/types';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import Assertions from '../../../tests/framework/Assertions';
+import { LocalNode } from '../../../tests/framework/types';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 
 const EXPECTED_HIDDEN_BALANCE: string = '••••••••••••';

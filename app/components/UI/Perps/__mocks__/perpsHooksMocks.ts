@@ -98,7 +98,7 @@ export const defaultPerpsConnectionMock = {
 };
 
 export const defaultPerpsPositionMock: Position = {
-  coin: 'ETH',
+  symbol: 'ETH',
   size: '1.5',
   entryPrice: '2900.00',
   positionValue: '4350.00',

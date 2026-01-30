@@ -84,11 +84,11 @@ describe('ManageCardListItem Component', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders with default right icon when rightIcon is not provided', () => {
+  it('renders without right icon when rightIcon is not provided', () => {
     const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem
-        title="Default Icon Test"
-        description="Should use ArrowRight icon"
+        title="No Icon Test"
+        description="Should render without any right icon"
       />
     ));
 

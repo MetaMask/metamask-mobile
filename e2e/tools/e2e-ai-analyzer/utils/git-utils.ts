@@ -113,6 +113,43 @@ export function getPRDiff(
 }
 
 /**
+ * Gets diff for a specific file from a PR using GitHub CLI
+ * More reliable than local git diff when analyzing PRs
+ */
+export function getPRFileDiff(
+  prNumber: number,
+  repo: string,
+  filePath: string,
+  linesLimit = 1000,
+): string {
+  try {
+    const fullDiff = execSync(`gh pr diff ${prNumber} --repo ${repo}`, {
+      encoding: 'utf-8',
+      maxBuffer: 50 * 1024 * 1024, // 50MB buffer for large diffs
+    });
+
+    // Extract diff for the specific file
+    const fileDiff = filterDiffByFiles(fullDiff, [filePath]);
+
+    if (!fileDiff || fileDiff === 'No diffs found for specified files') {
+      return `No diff found for ${filePath} in PR #${prNumber}`;
+    }
+
+    const lines = fileDiff.split('\n');
+    if (lines.length > linesLimit) {
+      return `Diff for ${filePath} (from PR #${prNumber}, truncated to ${linesLimit} lines):\n${lines
+        .slice(0, linesLimit)
+        .join('\n')}`;
+    }
+
+    return `Diff for ${filePath} (from PR #${prNumber}):\n${fileDiff}`;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return `Could not fetch diff for ${filePath} from PR #${prNumber}: ${message}`;
+  }
+}
+
+/**
  * Gets files changed in a PR using GitHub CLI
  */
 export function getPRFiles(prNumber: number, repo: string): string[] {

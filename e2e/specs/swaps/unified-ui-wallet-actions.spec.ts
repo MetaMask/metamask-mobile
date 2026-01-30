@@ -2,15 +2,15 @@
 import { Mockttp } from 'mockttp';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeSwaps } from '../../tags.js';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { SmokeTrade } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import TestHelpers from '../../helpers.js';
 
-describe(SmokeSwaps('Trade: Unified UI Wallet Actions'), () => {
+describe(SmokeTrade('Trade: Unified UI Wallet Actions'), () => {
   let mockServer: Mockttp | undefined;
 
   beforeAll(async () => {

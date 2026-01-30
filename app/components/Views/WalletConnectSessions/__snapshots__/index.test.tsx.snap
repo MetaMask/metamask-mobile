@@ -234,7 +234,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                     }
                   }
                 >
-                  WalletConnect Sessions
+                  WalletConnect sessions
                 </Text>
               </Text>
             </View>
@@ -668,7 +668,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                     }
                   }
                 >
-                  WalletConnect Sessions
+                  WalletConnect sessions
                 </Text>
               </Text>
             </View>
@@ -1150,7 +1150,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                     }
                   }
                 >
-                  WalletConnect Sessions
+                  WalletConnect sessions
                 </Text>
               </Text>
             </View>

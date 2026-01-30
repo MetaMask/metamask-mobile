@@ -3,25 +3,25 @@ import TestHelpers from '../../helpers';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+} from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import {
   AnvilPort,
   buildPermissions,
-} from '../../framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../framework/Constants';
+} from '../../../tests/framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../../tests/framework/Constants';
 import {
   setEthAccounts,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import { LocalNode } from '../../framework/types';
+import { LocalNode } from '../../../tests/framework/types';
 import { AnvilManager } from '../../seeder/anvil-manager';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;

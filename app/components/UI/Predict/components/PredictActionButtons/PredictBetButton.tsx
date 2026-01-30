@@ -12,6 +12,7 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
   teamColor,
   disabled = false,
   testID,
+  size,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -39,8 +40,9 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
       testID={testID}
       style={{ backgroundColor: getBackgroundColor() }}
       isFullWidth
+      size={size}
     >
-      <Text style={tw.style('font-medium ', getTextColor())}>
+      <Text style={tw.style('font-medium', getTextColor())}>
         {label.toUpperCase()} · {price}¢
       </Text>
     </Button>

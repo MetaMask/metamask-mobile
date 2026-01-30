@@ -45,7 +45,7 @@ describe('MarketHoursContent', () => {
       await waitFor(() => {
         expect(
           getByText(
-            /You're trading within regular market hours.*9:30 am to 4pm ET/i,
+            /You're trading within regular market hours.*9:30 am to 4 pm ET/i,
           ),
         ).toBeOnTheScreen();
       });
@@ -79,7 +79,7 @@ describe('MarketHoursContent', () => {
       await waitFor(() => {
         expect(
           getByText(
-            /You're trading outside of regular market hours.*9:30 am to 4pm ET/i,
+            /You're trading outside of regular market hours.*9:30 am to 4 pm ET/i,
           ),
         ).toBeOnTheScreen();
       });

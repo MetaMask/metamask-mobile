@@ -659,7 +659,8 @@ export const parsePolymarketEvents = (
         id: event.id,
         slug: event.slug,
         providerId: 'polymarket',
-        title: event.title,
+        // TODO: remove this temporary fix for Super Bowl LX
+        title: event.id === '188978' ? 'Super Bowl LX' : event.title,
         description: event.description,
         image: event.icon,
         status: event.closed

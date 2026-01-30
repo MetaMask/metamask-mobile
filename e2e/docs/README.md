@@ -12,12 +12,12 @@
 ## E2E Framework Structure
 
 - **Testing Scenarios (`e2e/specs/`)** - Test files organized by feature
-- **TypeScript Framework (`e2e/framework/`)**: Modern testing framework with type safety
+- **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
 - **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
 - **Page Objects (`e2e/pages/`)**: Page Object Model implementation
 - **Selectors (`e2e/selectors/`)**: Element selectors organized by feature
-- **Fixtures (`e2e/framework/fixtures/`)**: Test data and state management
-- **API Mocking (`e2e/api-mocking/`)**: Comprehensive API mocking system
+- **Fixtures (`tests/framework/fixtures/`)**: Test data and state management
+- **API Mocking (`tests/api-mocking/`)**: Comprehensive API mocking system
 
 **Core E2E Framework Classes:**
 
@@ -29,11 +29,11 @@
 
 **Key E2E Directories:**
 
-- `e2e/framework/` - TypeScript framework foundation (USE THIS)
+- `tests/framework/` - TypeScript framework foundation (USE THIS)
 - `e2e/specs/` - Test files organized by feature
 - `e2e/pages/` - Page Object classes following POM pattern
 - `e2e/selectors/` - Element selectors (avoid direct use in tests)
-- `e2e/api-mocking/` - API mocking utilities and responses
+- `tests/api-mocking/` - API mocking utilities and responses
 - `e2e/fixtures/` - Test fixtures and data (⚠️ being deprecated)
 - `e2e/utils/` - Legacy utilities (⚠️ deprecated - use framework/)
 
@@ -59,7 +59,7 @@ await withFixtures(
 
 **Framework Usage (MANDATORY):**
 
-- ✅ **ALWAYS** import from `e2e/framework/index.ts` (not individual files)
+- ✅ **ALWAYS** import from `tests/framework/index.ts` (not individual files)
 - ✅ **ALWAYS** use modern TypeScript framework methods
 - ❌ **NEVER** use legacy methods marked with `@deprecated`
 - ❌ **NEVER** use `TestHelpers.delay()` - use proper waiting instead
@@ -84,7 +84,7 @@ await withFixtures(
 
 - All tests run with API mocking enabled by default
 - Use `testSpecificMock` parameter in `withFixtures` for test-specific mocks
-- Default mocks are loaded from `e2e/api-mocking/mock-responses/defaults/`
+- Default mocks are loaded from `tests/api-mocking/mock-responses/defaults/`
 - Feature flags mocked via `setupRemoteFeatureFlagsMock` helper
 
 **Element State Configuration:**
@@ -110,7 +110,7 @@ await Gestures.tap(loadingButton, {
 ## E2E Test Examples and Patterns
 
 - **ALWAYS** use `withFixtures` - every test must use this pattern
-- **Framework Migration**: Use TypeScript framework (`e2e/framework/`), not legacy JavaScript (`e2e/utils/`)
+- **Framework Migration**: Use TypeScript framework (`tests/framework/`), not legacy JavaScript (`e2e/utils/`)
 - **API Mocking**: All tests run with mocked APIs - use `testSpecificMock` for test-specific needs
 - **Page Objects**: Mandatory pattern - no direct element access in test specs
 - **Element State**: Configure visibility, enabled, and stability checking appropriately
@@ -301,7 +301,7 @@ await Utilities.executeWithRetry(
 **Before submitting any E2E test, verify:**
 
 - [ ] Uses `withFixtures` pattern for test setup
-- [ ] Imports from `e2e/framework/index.ts` (not individual files)
+- [ ] Imports from `tests/framework/index.ts` (not individual files)
 - [ ] No usage of `TestHelpers.delay()` or `setTimeout()`
 - [ ] No deprecated methods (check `@deprecated` tags)
 - [ ] All assertions have descriptive `description` parameters

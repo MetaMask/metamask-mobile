@@ -1,18 +1,18 @@
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { RegressionAccounts } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
 import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/wallet/LoginView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
 const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';

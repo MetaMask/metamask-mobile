@@ -80,6 +80,7 @@ export default {
     ORIGIN_QR_CODE: 'qr-code',
     ORIGIN_NOTIFICATION: 'notifications',
     ORIGIN_IN_APP_BROWSER: 'in-app-browser',
+    ORIGIN_PUSH_NOTIFICATION: 'push-notification',
   },
   WALLET_CONNECT: {
     //One day in hours

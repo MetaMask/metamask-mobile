@@ -35,7 +35,7 @@ describe('usePerpsOrderExecution', () => {
   });
 
   const mockOrderParams: OrderParams = {
-    coin: 'BTC',
+    symbol: 'BTC',
     isBuy: true,
     size: '0.1',
     orderType: 'market',
@@ -43,7 +43,7 @@ describe('usePerpsOrderExecution', () => {
   };
 
   const mockPosition: Position = {
-    coin: 'BTC',
+    symbol: 'BTC',
     size: '0.1',
     entryPrice: '50000',
     positionValue: '5000',

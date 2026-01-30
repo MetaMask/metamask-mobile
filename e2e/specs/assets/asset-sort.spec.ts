@@ -1,15 +1,15 @@
 import { RegressionAssets } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import SortModal from '../../pages/wallet/TokenSortBottomSheet';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
-import { MockApiEndpoint } from '../../framework';
+import { MockApiEndpoint } from '../../../tests/framework';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupMockRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
 
 const AAVE_MAINNET_DETAILS = {
   address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',

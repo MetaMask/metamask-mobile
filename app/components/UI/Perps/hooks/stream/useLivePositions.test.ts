@@ -25,7 +25,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
 
 describe('usePerpsLivePositions', () => {
   const mockPosition: Position = {
-    coin: 'BTC-PERP',
+    symbol: 'BTC-PERP',
     size: '1.0',
     entryPrice: '50000',
     positionValue: '50000',
@@ -152,7 +152,7 @@ describe('usePerpsLivePositions', () => {
       // Simulate positions update
       const positions: Position[] = [
         mockPosition,
-        { ...mockPosition, coin: 'ETH-PERP', size: '10.0' },
+        { ...mockPosition, symbol: 'ETH-PERP', size: '10.0' },
       ];
 
       act(() => {
@@ -314,8 +314,8 @@ describe('usePerpsLivePositions', () => {
       });
 
       const secondPositions: Position[] = [
-        { ...mockPosition, coin: 'ETH-PERP', size: '5.0' },
-        { ...mockPosition, coin: 'SOL-PERP', size: '20.0' },
+        { ...mockPosition, symbol: 'ETH-PERP', size: '5.0' },
+        { ...mockPosition, symbol: 'SOL-PERP', size: '20.0' },
       ];
 
       act(() => {
@@ -365,7 +365,7 @@ describe('usePerpsLivePositions', () => {
 
       const priceUpdate: Record<string, PriceUpdate> = {
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '52000',
           markPrice: '52000',
           timestamp: Date.now(),
@@ -415,7 +415,7 @@ describe('usePerpsLivePositions', () => {
 
       const priceUpdate: Record<string, PriceUpdate> = {
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '51000',
           markPrice: '51500',
           timestamp: Date.now(),
@@ -464,7 +464,7 @@ describe('usePerpsLivePositions', () => {
 
       const priceUpdate: Record<string, PriceUpdate> = {
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '51000',
           timestamp: Date.now(),
         },
@@ -512,7 +512,7 @@ describe('usePerpsLivePositions', () => {
 
       const priceUpdate: Record<string, PriceUpdate> = {
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '48000',
           markPrice: '48000',
           timestamp: Date.now(),
@@ -551,7 +551,7 @@ describe('usePerpsLivePositions', () => {
 
       const position: Position = {
         ...mockPosition,
-        coin: 'BTC-PERP',
+        symbol: 'BTC-PERP',
         unrealizedPnl: '1000',
         returnOnEquity: '0.2',
       };
@@ -562,7 +562,7 @@ describe('usePerpsLivePositions', () => {
 
       const priceUpdate: Record<string, PriceUpdate> = {
         'ETH-PERP': {
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           price: '3000',
           timestamp: Date.now(),
         },
@@ -623,7 +623,7 @@ describe('usePerpsLivePositions', () => {
   describe('enrichPositionsWithLivePnL', () => {
     const basePriceData: Record<string, PriceUpdate> = {
       'BTC-PERP': {
-        coin: 'BTC-PERP',
+        symbol: 'BTC-PERP',
         price: '52000',
         markPrice: '52000',
         timestamp: Date.now(),
@@ -657,7 +657,7 @@ describe('usePerpsLivePositions', () => {
     it('returns position unchanged when price for coin is missing', () => {
       const position: Position = {
         ...mockPosition,
-        coin: 'ETH-PERP',
+        symbol: 'ETH-PERP',
         unrealizedPnl: '500',
       };
 
@@ -674,7 +674,7 @@ describe('usePerpsLivePositions', () => {
 
       const invalidPriceData: Record<string, PriceUpdate> = {
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '0',
           timestamp: Date.now(),
         },
@@ -731,14 +731,14 @@ describe('usePerpsLivePositions', () => {
       const positions: Position[] = [
         {
           ...mockPosition,
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           entryPrice: '50000',
           size: '1.0',
           marginUsed: '5000',
         },
         {
           ...mockPosition,
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           unrealizedPnl: '300',
         },
       ];

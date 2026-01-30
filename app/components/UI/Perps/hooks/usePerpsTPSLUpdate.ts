@@ -30,17 +30,16 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       takeProfitPrice: string | undefined,
       stopLossPrice: string | undefined,
       trackingData?: TPSLTrackingData,
-    ): Promise<{ success: boolean }> => {
+    ) => {
       setIsUpdating(true);
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
 
       try {
         const result = await updatePositionTPSL({
-          coin: position.coin,
+          symbol: position.symbol,
           takeProfitPrice,
           stopLossPrice,
           trackingData,
-          position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
         });
 
         if (result.success) {
@@ -49,7 +48,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           // Apply optimistic update immediately for better UX
           // This updates the UI before the WebSocket confirms the change
           stream.positions.updatePositionTPSLOptimistic(
-            position.coin,
+            position.symbol,
             takeProfitPrice,
             stopLossPrice,
           );
@@ -60,23 +59,20 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
           // Call success callback if provided
           options?.onSuccess?.();
+        } else {
+          DevLogger.log('Failed to update position TP/SL:', result.error);
 
-          return { success: true };
+          const errorMessage = result.error || strings('perps.errors.unknown');
+
+          showToast(
+            PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+              errorMessage,
+            ),
+          );
+
+          // Call error callback if provided
+          options?.onError?.(errorMessage);
         }
-        DevLogger.log('Failed to update position TP/SL:', result.error);
-
-        const errorMessage = result.error || strings('perps.errors.unknown');
-
-        showToast(
-          PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-            errorMessage,
-          ),
-        );
-
-        // Call error callback if provided
-        options?.onError?.(errorMessage);
-
-        return { success: false };
       } catch (error) {
         DevLogger.log('Error updating position TP/SL:', error);
 
@@ -91,7 +87,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
             },
             extra: {
               positionContext: {
-                coin: position.coin,
+                symbol: position.symbol,
                 size: position.size,
                 entryPrice: position.entryPrice,
                 unrealizedPnl: position.unrealizedPnl,
@@ -116,8 +112,6 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
         // Call error callback if provided
         options?.onError?.(errorMessage);
-
-        return { success: false };
       } finally {
         DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to false');
         setIsUpdating(false);

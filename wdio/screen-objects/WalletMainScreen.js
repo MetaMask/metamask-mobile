@@ -7,8 +7,8 @@ import { TabBarSelectorIDs } from '../../app/components/Nav/Main/TabBar.testIds'
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 import TimerHelper from 'appwright/utils/TimersHelper.js';
 
@@ -48,9 +48,9 @@ class WalletMainScreen {
             return AppwrightSelectors.getElementByCatchAll(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
           }
         }
-      
-  
-   
+
+
+
   }
 
   get swapButton() {
@@ -152,7 +152,7 @@ class WalletMainScreen {
     }
   }
 
-  
+
 
   async tapImportTokensButton() {
     const importToken = await this.ImportToken;
@@ -208,7 +208,7 @@ class WalletMainScreen {
       }
     }
 
-    
+
   }
 
   async isTokenVisible(token) {
@@ -226,7 +226,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      await AppwrightGestures.tap(await this.accountIcon); 
+      await AppwrightGestures.tap(await this.accountIcon);
     }
   }
 
@@ -240,7 +240,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(await this.swapButton); 
+      await AppwrightGestures.tap(await this.swapButton);
     }
   }
 
@@ -249,7 +249,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      await AppwrightGestures.tap(await this.networkInNavBar); 
+      await AppwrightGestures.tap(await this.networkInNavBar);
     }
   }
 
@@ -320,15 +320,15 @@ class WalletMainScreen {
   }
 
   async waitForBalanceToStabilize(options = {}) {
-    const { 
+    const {
       maxWaitTime = 60000,
-      pollInterval = 100, 
+      pollInterval = 100,
       sameResultTimeout = 8000
     } = options;
 
     const startTime = Date.now();
     const isIOS = AppwrightSelectors.isIOS(this._device);
-    
+
 
     // iOS: Element lookups are extremely slow (15-30s each via Appwright).
     // Skip stability loop and just wait for a valid balance once.
@@ -340,7 +340,7 @@ class WalletMainScreen {
           const rawBalance = await balanceElement.getText();
           const balance = (rawBalance || '').trim();
           previousBalance = balance;
-          
+
           if (balance && balance !== '' && balance !== '$0.00') {
             return balance;
           }
@@ -416,7 +416,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      await AppwrightGestures.tap(await this.accountActionsButton); 
+      await AppwrightGestures.tap(await this.accountActionsButton);
     }
   }
 

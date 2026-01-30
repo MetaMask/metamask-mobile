@@ -47,6 +47,7 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
 
 jest.mock('../selectors/perpsController', () => ({
   selectPerpsNetwork: jest.fn(),
+  selectPerpsProvider: jest.fn(),
 }));
 
 // Mock StreamManager - create a singleton mock instance

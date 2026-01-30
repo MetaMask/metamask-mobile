@@ -83,7 +83,7 @@ export const useStopLossPrompt = ({
   // Track when the current position was first detected (client-side)
   // This is used to enforce the minimum position age requirement
   const positionFirstSeenRef = useRef<{
-    coin: string;
+    symbol: string;
     timestamp: number;
   } | null>(null);
   const [positionAgeCheckPassed, setPositionAgeCheckPassed] = useState(false);
@@ -133,7 +133,7 @@ export const useStopLossPrompt = ({
   // Reset hasBeenShownRef when position changes (from main)
   useEffect(() => {
     hasBeenShownRef.current = false;
-  }, [position?.coin]);
+  }, [position?.symbol]);
 
   // Server timestamp bypass effect (from main)
   // If positionOpenedTimestamp shows position is >2 minutes old, bypass debounce AND position age check
@@ -162,20 +162,20 @@ export const useStopLossPrompt = ({
   // Handle client-side position age tracking (from HEAD)
   // Track when a position is first detected and enforce minimum age before showing banners
   useEffect(() => {
-    if (!enabled || !position?.coin) {
+    if (!enabled || !position?.symbol) {
       // Reset when disabled or no position
       positionFirstSeenRef.current = null;
       setPositionAgeCheckPassed(false);
       return;
     }
 
-    // Check if this is a new position (different coin or first time seeing it)
+    // Check if this is a new position (different symbol or first time seeing it)
     if (
       !positionFirstSeenRef.current ||
-      positionFirstSeenRef.current.coin !== position.coin
+      positionFirstSeenRef.current.symbol !== position.symbol
     ) {
       positionFirstSeenRef.current = {
-        coin: position.coin,
+        symbol: position.symbol,
         timestamp: Date.now(),
       };
       setPositionAgeCheckPassed(false);
@@ -197,7 +197,7 @@ export const useStopLossPrompt = ({
     }
 
     return undefined;
-  }, [enabled, position?.coin]);
+  }, [enabled, position?.symbol]);
 
   // Handle ROE debounce logic
   useEffect(() => {
@@ -408,7 +408,7 @@ export const useStopLossPrompt = ({
     setDismissingVariant(null);
     prevShouldShowBannerRef.current = false;
     prevVariantRef.current = null;
-  }, [position?.coin]);
+  }, [position?.symbol]);
 
   // Callback when fade-out animation completes
   const onDismissComplete = useCallback(() => {

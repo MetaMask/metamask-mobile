@@ -251,7 +251,7 @@ const UrlAutocomplete = forwardRef<
   }, [browserHistory, bookmarks, search]);
 
   const { goToSwaps: goToSwapsHook, networkModal } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenDetails,
+    location: SwapBridgeNavigationLocation.TokenView,
     sourcePage: 'MainView',
   });
 

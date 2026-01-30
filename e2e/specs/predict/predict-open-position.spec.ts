@@ -1,24 +1,26 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../pages/Predict/PredictMarketList';
 import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagPredictEnabled } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
-} from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+} from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
+import { getEventsPayloads } from '../analytics/helpers';
+import SoftAssert from '../../../tests/framework/SoftAssert';
 
 /*
 Test Scenario: Open position on Celtics vs. Nets market
@@ -51,7 +53,10 @@ describe(SmokePredictions('Predictions'), () => {
   it('opens position on Celtics vs. Nets market', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withPolygon().build(),
+        fixture: new FixtureBuilder()
+          .withPolygon()
+          .withMetaMetricsOptIn()
+          .build(),
         restartDevice: true,
         testSpecificMock: PredictionMarketFeature,
       },
@@ -126,6 +131,63 @@ describe(SmokePredictions('Predictions'), () => {
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();
         await Assertions.expectTextDisplayed(positionDetails.newBalance);
+
+        // Verify analytics events
+        const events = await getEventsPayloads(mockServer);
+        const softAssert = new SoftAssert();
+
+        const expectedEvents = {
+          MARKET_DETAILS_OPENED: 'Predict Market Details Opened',
+          POSITION_VIEWED: 'Predict Position Viewed',
+          ACTIVITY_VIEWED: 'Predict Activity Viewed',
+        };
+
+        // Event 1: PREDICT_MARKET_DETAILS_OPENED
+        await softAssert.checkAndCollect(async () => {
+          const marketDetailsOpened = events.filter(
+            (event) => event.event === expectedEvents.MARKET_DETAILS_OPENED,
+          );
+          await Assertions.checkIfValueIsDefined(marketDetailsOpened);
+          if (marketDetailsOpened.length > 0) {
+            await Assertions.checkIfValueIsDefined(
+              marketDetailsOpened[0].properties.entry_point,
+            );
+            await Assertions.checkIfValueIsDefined(
+              marketDetailsOpened[0].properties.market_details_viewed,
+            );
+          }
+        }, 'Market Details Opened event should be tracked');
+
+        // Event 2: PREDICT_POSITION_VIEWED
+        await softAssert.checkAndCollect(async () => {
+          const positionViewed = events.filter(
+            (event) => event.event === expectedEvents.POSITION_VIEWED,
+          );
+          await Assertions.checkIfValueIsDefined(positionViewed);
+          if (positionViewed.length > 0) {
+            await Assertions.checkIfValueIsDefined(
+              positionViewed[0].properties.open_positions_count,
+            );
+          }
+        }, 'Position Viewed event should be tracked');
+
+        // Event 3: PREDICT_ACTIVITY_VIEWED
+        await softAssert.checkAndCollect(async () => {
+          const activityViewed = events.filter(
+            (event) => event.event === expectedEvents.ACTIVITY_VIEWED,
+          );
+          await Assertions.checkIfValueIsDefined(activityViewed);
+          if (activityViewed.length > 0) {
+            await Assertions.checkIfObjectContains(
+              activityViewed[0].properties,
+              {
+                activity_type: 'activity_list',
+              },
+            );
+          }
+        }, 'Activity Viewed event should be tracked');
+
+        softAssert.throwIfErrors();
       },
     );
   });

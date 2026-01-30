@@ -1,19 +1,19 @@
 import { RegressionAssets } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
 import {
   AnvilPort,
   buildPermissions,
-} from '../../framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../framework/Constants';
-import { LocalNode } from '../../framework/types';
+} from '../../../tests/framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../../tests/framework/Constants';
+import { LocalNode } from '../../../tests/framework/types';
 import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe.skip(RegressionAssets('NFT Details page'), () => {

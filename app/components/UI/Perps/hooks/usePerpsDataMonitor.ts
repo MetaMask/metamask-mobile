@@ -121,9 +121,9 @@ export function usePerpsDataMonitor(
       if (!initialPositions || !positions) return false;
 
       const initialPosition = initialPositions.find(
-        (p) => p.coin === targetAsset,
+        (p) => p.symbol === targetAsset,
       );
-      const currentPosition = positions.find((p) => p.coin === targetAsset);
+      const currentPosition = positions.find((p) => p.symbol === targetAsset);
 
       // New position created (no position before, now has position)
       if (!initialPosition && currentPosition) return true;

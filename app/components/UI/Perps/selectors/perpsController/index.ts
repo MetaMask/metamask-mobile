@@ -7,13 +7,15 @@ import {
   selectMarketFilterPreferences,
 } from '../../controllers/selectors';
 import { InitializationState } from '../../controllers/PerpsController';
+import type { PerpsActiveProviderMode } from '../../controllers/types';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
 
 const selectPerpsProvider = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => perpsControllerState.activeProvider,
+  (perpsControllerState): PerpsActiveProviderMode | undefined =>
+    perpsControllerState?.activeProvider,
 );
 
 const selectPerpsAccountState = createSelector(

@@ -234,20 +234,81 @@ describe('PerpsController selectors', () => {
   describe('selectMarketFilterPreferences', () => {
     it('returns saved filter preferences when defined', () => {
       const state = {
-        marketFilterPreferences: 'price',
+        marketFilterPreferences: {
+          optionId: 'priceChange',
+          direction: 'asc',
+        },
       } as unknown as PerpsControllerState;
 
       const result = selectMarketFilterPreferences(state);
 
-      expect(result).toBe('price');
+      expect(result).toEqual({
+        optionId: 'priceChange',
+        direction: 'asc',
+      });
     });
 
-    it('returns default volume when preference is undefined', () => {
+    it('returns default preferences when preference is undefined', () => {
       const state = {} as unknown as PerpsControllerState;
 
       const result = selectMarketFilterPreferences(state);
 
-      expect(result).toBe(MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID);
+      expect(result).toEqual({
+        optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+      });
+    });
+
+    it('handles legacy string format (backward compatibility)', () => {
+      const state = {
+        marketFilterPreferences: 'priceChange',
+      } as unknown as PerpsControllerState;
+
+      const result = selectMarketFilterPreferences(state);
+
+      expect(result).toEqual({
+        optionId: 'priceChange',
+        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+      });
+    });
+
+    it('handles legacy compound ID priceChange-desc (backward compatibility)', () => {
+      const state = {
+        marketFilterPreferences: 'priceChange-desc',
+      } as unknown as PerpsControllerState;
+
+      const result = selectMarketFilterPreferences(state);
+
+      expect(result).toEqual({
+        optionId: 'priceChange',
+        direction: 'desc',
+      });
+    });
+
+    it('handles legacy compound ID priceChange-asc (backward compatibility)', () => {
+      const state = {
+        marketFilterPreferences: 'priceChange-asc',
+      } as unknown as PerpsControllerState;
+
+      const result = selectMarketFilterPreferences(state);
+
+      expect(result).toEqual({
+        optionId: 'priceChange',
+        direction: 'asc',
+      });
+    });
+
+    it('handles other legacy simple strings (backward compatibility)', () => {
+      const state = {
+        marketFilterPreferences: 'volume',
+      } as unknown as PerpsControllerState;
+
+      const result = selectMarketFilterPreferences(state);
+
+      expect(result).toEqual({
+        optionId: 'volume',
+        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+      });
     });
   });
 

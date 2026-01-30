@@ -40,7 +40,7 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
 
       try {
         const result = await flipPosition({
-          coin: position.coin,
+          symbol: position.symbol,
           position,
         });
 
@@ -49,7 +49,7 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
 
           // Show success toast using existing market order confirmation toast
           // (flip is implemented as a market order in opposite direction)
-          const displaySymbol = getPerpsDisplaySymbol(position.coin);
+          const displaySymbol = getPerpsDisplaySymbol(position.symbol);
           showToast(
             PerpsToastOptions.orderManagement.market.confirmed(
               oppositeDirection,
@@ -88,7 +88,7 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
             },
             extra: {
               positionContext: {
-                coin: position.coin,
+                symbol: position.symbol,
                 size: position.size,
                 currentDirection,
                 targetDirection: oppositeDirection,

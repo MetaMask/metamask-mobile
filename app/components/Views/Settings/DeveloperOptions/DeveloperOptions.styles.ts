@@ -10,6 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       padding: 24,
       paddingBottom: 48,
+      marginBottom: 32,
     },
     heading: {
       marginTop: 16,

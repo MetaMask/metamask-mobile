@@ -150,6 +150,15 @@ const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
   typeof useStakingEligibility
 >;
 
+jest.mock('../../hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: jest.fn().mockReturnValue({
+    isEligible: true,
+    isLoading: false,
+    geolocation: 'US',
+    blockedCountries: [],
+  }),
+}));
+
 jest.mock('../../selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(),
   selectPooledStakingEnabledFlag: jest.fn(),
@@ -726,5 +735,126 @@ describe('EarnLendingBalance', () => {
       getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
     ).toBeOnTheScreen();
     expect(queryByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).toBeNull();
+  });
+
+  it('updates user state when close button is pressed on mUSD CTA', async () => {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    (
+      selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
+        typeof selectIsMusdConversionFlowEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    (
+      useMusdConversionTokens as jest.MockedFunction<
+        typeof useMusdConversionTokens
+      >
+    ).mockReturnValue({
+      isConversionToken: jest.fn().mockReturnValue(true),
+      filterAllowedTokens: jest.fn().mockReturnValue([]),
+      isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
+      tokens: [],
+    });
+
+    mockShouldShowAssetOverviewCta.mockReturnValue(true);
+
+    const { getByTestId, store } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet} />,
+      { state: mockInitialState },
+    );
+
+    const closeButton = getByTestId(
+      EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(closeButton);
+    });
+
+    const expectedCtaKey = '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const updatedState = store.getState();
+
+    expect(
+      updatedState.user.musdConversionAssetDetailCtasSeen[expectedCtaKey],
+    ).toBe(true);
+  });
+
+  it('hides mUSD conversion CTA when user is geo-blocked', () => {
+    const mockEmptyReceiptToken = {
+      ...mockADAIMainnet,
+      balanceMinimalUnit: '0',
+      balanceFormatted: '0 ADAI',
+      balanceFiatNumber: 0,
+    };
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: mockEmptyReceiptToken,
+      earnToken: mockDaiMainnet,
+    });
+
+    // Geo-blocked: shouldShowAssetOverviewCta returns false
+    mockShouldShowAssetOverviewCta.mockReturnValue(false);
+
+    const { queryByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet} />,
+      { state: mockInitialState },
+    );
+
+    // mUSD CTA hidden because geo-blocked (useMusdCtaVisibility returns false)
+    expect(
+      queryByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+    ).toBeNull();
+  });
+
+  it('shows mUSD conversion CTA when user is geo-eligible', () => {
+    const mockEmptyReceiptToken = {
+      ...mockADAIMainnet,
+      balanceMinimalUnit: '0',
+      balanceFormatted: '0 ADAI',
+      balanceFiatNumber: 0,
+    };
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: mockEmptyReceiptToken,
+      earnToken: mockDaiMainnet,
+    });
+
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    (
+      selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
+        typeof selectIsMusdConversionFlowEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    // Geo-eligible: shouldShowAssetOverviewCta returns true
+    mockShouldShowAssetOverviewCta.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet} />,
+      { state: mockInitialState },
+    );
+    // mUSD CTA visible because geo-eligible (useMusdCtaVisibility returns true)
+    expect(
+      getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+    ).toBeOnTheScreen();
   });
 });

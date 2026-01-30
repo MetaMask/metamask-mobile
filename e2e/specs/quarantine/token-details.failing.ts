@@ -5,7 +5,7 @@ import {
   importWalletWithRecoveryPhrase,
   switchToSepoliaNetwork,
 } from '../../viewHelper';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import CommonView from '../../pages/CommonView';
 import TestHelpers from '../../helpers';
 

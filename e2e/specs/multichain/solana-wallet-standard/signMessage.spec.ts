@@ -1,9 +1,9 @@
 import { SmokeNetworkExpansion } from '../../../tags';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import { withSolanaAccountEnabled } from '../../../common-solana';
-import { logger } from '../../../framework/logger';
+import { logger } from '../../../../tests/framework/logger';
 
 describe(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Sign Message'),

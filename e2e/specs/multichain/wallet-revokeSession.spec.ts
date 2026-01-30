@@ -3,11 +3,11 @@
  * Tests revoking sessions and verifying the session state afterwards
  */
 import { SmokeMultiChainAPI } from '../../tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import MultichainUtilities from '../../utils/MultichainUtilities';
-import { DappVariants } from '../../framework/Constants';
+import { DappVariants } from '../../../tests/framework/Constants';
 
 describe(SmokeMultiChainAPI('wallet_revokeSession'), () => {
   beforeEach(() => {

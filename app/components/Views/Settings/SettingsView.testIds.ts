@@ -24,4 +24,5 @@ export const SettingsViewSelectorsIDs = {
   BACKUP_AND_SYNC: 'backup-and-sync-settings',
   DEVELOPER_OPTIONS: 'developer-options-settings',
   SNAPS: 'snaps',
+  REGION: 'region-settings',
 };

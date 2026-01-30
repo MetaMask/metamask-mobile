@@ -1,16 +1,16 @@
 import { RegressionAccounts } from '../../tags.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import PrivateKeysList from '../../pages/MultichainAccounts/PrivateKeyList';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import { Mockttp } from 'mockttp';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(RegressionAccounts('Account details private key'), () => {
   const PASSWORD = '123123123';

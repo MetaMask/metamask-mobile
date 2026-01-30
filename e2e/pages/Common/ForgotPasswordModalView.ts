@@ -2,8 +2,8 @@ import {
   ForgotPasswordModalSelectorsIDs,
   ForgotPasswordModalSelectorsText,
 } from '../../../app/util/ForgotPasswordModal.testIds';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../../tests/framework/Matchers.ts';
+import Gestures from '../../../tests/framework/Gestures.ts';
 import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 
 class ForgotPasswordModalView {

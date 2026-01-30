@@ -1,12 +1,12 @@
 import { RegressionWalletPlatform } from '../../tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkManager from '../../pages/wallet/NetworkManager';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';

@@ -13,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
-import { TitleLeftProps } from './TitleLeft.types';
+import { TitleLeftProps, TitleLeftSize } from './TitleLeft.types';
 
 /**
  * TitleLeft is a component that displays a title with optional accessories
@@ -29,6 +29,7 @@ import { TitleLeftProps } from './TitleLeft.types';
  * ```
  */
 const TitleLeft: React.FC<TitleLeftProps> = ({
+  size = TitleLeftSize.Md,
   title,
   titleAccessory,
   topAccessory,
@@ -42,6 +43,8 @@ const TitleLeft: React.FC<TitleLeftProps> = ({
   testID,
   twClassName,
 }) => {
+  const titleVariant =
+    size === TitleLeftSize.Sm ? TextVariant.HeadingLg : TextVariant.DisplayMd;
   // Render top content (topLabel takes priority over topAccessory)
   const renderTopContent = () => {
     if (topLabel) {
@@ -101,7 +104,7 @@ const TitleLeft: React.FC<TitleLeftProps> = ({
             alignItems={BoxAlignItems.Center}
           >
             {title && (
-              <Text variant={TextVariant.DisplayMd} {...titleProps}>
+              <Text variant={titleVariant} {...titleProps}>
                 {title}
               </Text>
             )}

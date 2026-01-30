@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import CardAssetItem from './CardAssetItem';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -40,8 +40,6 @@ function renderWithProvider(
 }
 
 describe('CardAssetItem Component', () => {
-  const mockOnPress = jest.fn();
-
   const mockAsset: TokenI = {
     name: 'Ethereum',
     symbol: 'ETH',
@@ -65,27 +63,7 @@ describe('CardAssetItem Component', () => {
 
   it('renders with required props and matches snapshot', () => {
     const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem asset={mockAsset} privacyMode={false} />
-    ));
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders with all props and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem
-        asset={mockAsset}
-        privacyMode={false}
-        onPress={mockOnPress}
-      />
-    ));
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders with privacy mode enabled and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem asset={mockAsset} privacyMode onPress={mockOnPress} />
+      <CardAssetItem asset={mockAsset} />
     ));
 
     expect(toJSON()).toMatchSnapshot();
@@ -101,26 +79,10 @@ describe('CardAssetItem Component', () => {
     };
 
     const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem asset={nonNativeAsset} privacyMode={false} />
+      <CardAssetItem asset={nonNativeAsset} />
     ));
 
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('calls onPress when pressed', () => {
-    const { getByTestId } = renderWithProvider(() => (
-      <CardAssetItem
-        asset={mockAsset}
-        privacyMode={false}
-        onPress={mockOnPress}
-      />
-    ));
-
-    const assetElement = getByTestId('asset-ETH');
-    fireEvent.press(assetElement);
-
-    expect(mockOnPress).toHaveBeenCalledTimes(1);
-    expect(mockOnPress).toHaveBeenCalledWith(mockAsset);
   });
 
   it('returns null when chainId is missing', () => {
@@ -129,17 +91,13 @@ describe('CardAssetItem Component', () => {
       chainId: undefined as string | undefined,
     };
 
-    const { toJSON } = render(
-      <CardAssetItem asset={assetWithoutChainId} privacyMode={false} />,
-    );
+    const { toJSON } = render(<CardAssetItem asset={assetWithoutChainId} />);
 
     expect(toJSON()).toBeNull();
   });
 
   it('returns null when asset is undefined', () => {
-    const { toJSON } = render(
-      <CardAssetItem asset={undefined} privacyMode={false} />,
-    );
+    const { toJSON } = render(<CardAssetItem asset={undefined} />);
 
     expect(toJSON()).toBeNull();
   });
@@ -151,52 +109,9 @@ describe('CardAssetItem Component', () => {
     });
 
     const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem asset={mockAsset} privacyMode={false} />
+      <CardAssetItem asset={mockAsset} />
     ));
 
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('displays asset name when available', () => {
-    const { getByText } = renderWithProvider(() => (
-      <CardAssetItem asset={mockAsset} privacyMode={false} />
-    ));
-
-    expect(getByText('Ethereum')).toBeOnTheScreen();
-  });
-
-  it('displays asset symbol when name is not available', () => {
-    const assetWithoutName: TokenI = {
-      ...mockAsset,
-      name: '',
-    };
-
-    const { getByText } = renderWithProvider(() => (
-      <CardAssetItem asset={assetWithoutName} privacyMode={false} />
-    ));
-
-    expect(getByText('ETH')).toBeOnTheScreen();
-  });
-
-  it('uses balanceFormatted when provided', () => {
-    const balanceFormatted = '1.234567 ETH';
-
-    renderWithProvider(() => (
-      <CardAssetItem
-        asset={mockAsset}
-        privacyMode={false}
-        balanceFormatted={balanceFormatted}
-      />
-    ));
-
-    expect(mockAsset.balance).toBe('1000000000000000000');
-  });
-
-  it('falls back to asset balance when balanceFormatted is not provided', () => {
-    renderWithProvider(() => (
-      <CardAssetItem asset={mockAsset} privacyMode={false} />
-    ));
-
-    expect(mockAsset.balance).toBe('1000000000000000000');
   });
 });

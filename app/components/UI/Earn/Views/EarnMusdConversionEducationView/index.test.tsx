@@ -13,6 +13,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { MUSD_CONVERSION_APY } from '../../constants/musd';
 
 const FIXED_NOW_MS = 1730000000000;
 const mockTrackEvent = jest.fn();
@@ -160,10 +161,18 @@ describe('EarnMusdConversionEducationView', () => {
       );
 
       expect(
-        getByText(strings('earn.musd_conversion.education.heading')),
+        getByText(
+          strings('earn.musd_conversion.education.heading', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+        ),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('earn.musd_conversion.education.description')),
+        getByText(
+          strings('earn.musd_conversion.education.description', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+        ),
       ).toBeOnTheScreen();
       expect(
         getByText(strings('earn.musd_conversion.education.primary_button')),

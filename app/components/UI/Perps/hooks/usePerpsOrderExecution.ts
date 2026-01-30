@@ -82,7 +82,7 @@ export function usePerpsOrderExecution(
             track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
               [PerpsEventProperties.STATUS]:
                 PerpsEventValues.STATUS.PARTIALLY_FILLED,
-              [PerpsEventProperties.ASSET]: orderParams.coin,
+              [PerpsEventProperties.ASSET]: orderParams.symbol,
               [PerpsEventProperties.DIRECTION]: orderParams.isBuy
                 ? PerpsEventValues.DIRECTION.LONG
                 : PerpsEventValues.DIRECTION.SHORT,
@@ -101,7 +101,7 @@ export function usePerpsOrderExecution(
 
             const fetchedPositions = await getPositions();
             const newPosition = fetchedPositions.find(
-              (p) => p.coin === orderParams.coin,
+              (p) => p.symbol === orderParams.symbol,
             );
 
             if (newPosition) {
@@ -134,7 +134,7 @@ export function usePerpsOrderExecution(
           // Track order failure with specific event
           track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: orderParams.coin,
+            [PerpsEventProperties.ASSET]: orderParams.symbol,
             [PerpsEventProperties.DIRECTION]: orderParams.isBuy
               ? PerpsEventValues.DIRECTION.LONG
               : PerpsEventValues.DIRECTION.SHORT,
@@ -162,7 +162,7 @@ export function usePerpsOrderExecution(
           },
           extra: {
             orderContext: {
-              coin: orderParams.coin,
+              symbol: orderParams.symbol,
               isBuy: orderParams.isBuy,
               orderType: orderParams.orderType,
               size: orderParams.size,
@@ -177,7 +177,7 @@ export function usePerpsOrderExecution(
         // Track exception with specific event
         track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-          [PerpsEventProperties.ASSET]: orderParams.coin,
+          [PerpsEventProperties.ASSET]: orderParams.symbol,
           [PerpsEventProperties.DIRECTION]: orderParams.isBuy
             ? PerpsEventValues.DIRECTION.LONG
             : PerpsEventValues.DIRECTION.SHORT,

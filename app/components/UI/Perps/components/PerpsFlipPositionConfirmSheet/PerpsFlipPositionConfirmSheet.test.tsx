@@ -252,7 +252,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
 
 describe('PerpsFlipPositionConfirmSheet', () => {
   const mockLongPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',

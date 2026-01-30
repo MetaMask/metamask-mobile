@@ -1,19 +1,19 @@
 'use strict';
 
 import { RegressionAccounts } from '../../tags.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import { AccountListBottomSheetSelectorsText } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import { Mockttp } from 'mockttp';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
 

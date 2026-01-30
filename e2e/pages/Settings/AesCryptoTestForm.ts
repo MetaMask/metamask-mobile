@@ -6,8 +6,8 @@ import {
   accountAddress,
   responseText,
 } from '../../../app/components/Views/AesCryptoTestForm/AesCrypto.testIds';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../../tests/framework/Matchers.ts';
+import Gestures from '../../../tests/framework/Gestures.ts';
 
 class AesCryptoTestForm {
   get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {

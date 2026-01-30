@@ -196,7 +196,7 @@ export const useWithdrawalRequests = (
           id: `withdrawal-${update.hash}`,
           timestamp: update.time,
           amount: Math.abs(parseFloat(update.delta.usdc)).toString(),
-          asset: update.delta.coin || 'USDC', // Default to USDC if coin is not specified
+          asset: update.delta.coin || 'USDC', // Default to USDC if symbol is not specified (API uses 'coin')
           accountAddress: selectedAddress, // selectedAddress is guaranteed to exist due to early return above
           txHash: update.hash,
           status: 'completed' as const, // HyperLiquid ledger updates are completed transactions

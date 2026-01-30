@@ -37,7 +37,7 @@ describe('LivePriceHeader', () => {
   it('should show placeholders when price is invalid (zero)', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       ETH: {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '0',
         percentChange24h: '5',
         timestamp: Date.now(),
@@ -69,7 +69,7 @@ describe('LivePriceHeader', () => {
   it('should render valid price and positive change', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       ETH: {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '3000',
         percentChange24h: '5.5',
         timestamp: Date.now(),
@@ -85,7 +85,7 @@ describe('LivePriceHeader', () => {
   it('should render valid price and negative change', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       ETH: {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '2500',
         percentChange24h: '-3.2',
         timestamp: Date.now(),
@@ -101,7 +101,7 @@ describe('LivePriceHeader', () => {
   it('should render valid price and zero change', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       ETH: {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '2000',
         percentChange24h: '0',
         timestamp: Date.now(),
@@ -117,7 +117,7 @@ describe('LivePriceHeader', () => {
   it('should handle different symbols', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       SOL: {
-        coin: 'SOL',
+        symbol: 'SOL',
         price: '100',
         percentChange24h: '2.1',
         timestamp: Date.now(),
@@ -143,7 +143,7 @@ describe('LivePriceHeader', () => {
     it('uses neutral color for loading state when percentChange is undefined', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         ETH: {
-          coin: 'ETH',
+          symbol: 'ETH',
           price: '3000',
           percentChange24h: undefined,
           timestamp: Date.now(),
@@ -176,7 +176,7 @@ describe('LivePriceHeader', () => {
     it('uses success color for positive percentage change', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         ETH: {
-          coin: 'ETH',
+          symbol: 'ETH',
           price: '3000',
           percentChange24h: '5.5',
           timestamp: Date.now(),
@@ -198,7 +198,7 @@ describe('LivePriceHeader', () => {
     it('uses error color for negative percentage change', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         ETH: {
-          coin: 'ETH',
+          symbol: 'ETH',
           price: '2500',
           percentChange24h: '-3.2',
           timestamp: Date.now(),
@@ -220,7 +220,7 @@ describe('LivePriceHeader', () => {
     it('uses success color for zero percentage change', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         ETH: {
-          coin: 'ETH',
+          symbol: 'ETH',
           price: '2000',
           percentChange24h: '0',
           timestamp: Date.now(),
@@ -244,7 +244,7 @@ describe('LivePriceHeader', () => {
     it('displays loading state when price is available but percentChange is undefined', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         ETH: {
-          coin: 'ETH',
+          symbol: 'ETH',
           price: '3000',
           percentChange24h: undefined,
           timestamp: Date.now(),
@@ -262,7 +262,7 @@ describe('LivePriceHeader', () => {
     it('displays loading state when price is available but percentChange is missing', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         ETH: {
-          coin: 'ETH',
+          symbol: 'ETH',
           price: '2500',
           timestamp: Date.now(),
         } as PriceUpdate,
@@ -279,7 +279,7 @@ describe('LivePriceHeader', () => {
     it('displays formatted zero when percentChange is legitimately 0', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         ETH: {
-          coin: 'ETH',
+          symbol: 'ETH',
           price: '2000',
           percentChange24h: '0',
           timestamp: Date.now(),
@@ -309,7 +309,7 @@ describe('LivePriceHeader', () => {
     it('displays loading state when live price exists but percentChange is undefined', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         ETH: {
-          coin: 'ETH',
+          symbol: 'ETH',
           price: '3100',
           percentChange24h: undefined,
           timestamp: Date.now(),

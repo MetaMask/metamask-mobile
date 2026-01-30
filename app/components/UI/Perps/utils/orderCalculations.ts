@@ -1,12 +1,18 @@
 import type { Hex } from '@metamask/utils';
-import { strings } from '../../../../../locales/i18n';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ORDER_SLIPPAGE_CONFIG } from '../constants/perpsConfig';
 import type { SDKOrderParams } from '../types/hyperliquid-types';
+import type { IPerpsDebugLogger } from '../controllers/types';
 import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
 } from './hyperLiquidAdapter';
+
+/**
+ * Optional debug logger for order calculation functions.
+ * When provided, enables detailed logging for debugging.
+ */
+export type OrderCalculationsDebugLogger = IPerpsDebugLogger | undefined;
 
 interface PositionSizeParams {
   amount: string;
@@ -35,6 +41,7 @@ export interface CalculateFinalPositionSizeParams {
   maxSlippageBps?: number;
   szDecimals: number;
   leverage?: number;
+  debugLogger?: OrderCalculationsDebugLogger;
 }
 
 export interface CalculateFinalPositionSizeResult {
@@ -187,6 +194,7 @@ export function calculateFinalPositionSize(
     maxSlippageBps,
     szDecimals,
     leverage,
+    debugLogger,
   } = params;
 
   let finalPositionSize: number;
@@ -210,7 +218,7 @@ export function calculateFinalPositionSize(
         );
       }
 
-      DevLogger.log('Price validation passed:', {
+      debugLogger?.log('Price validation passed:', {
         priceAtCalculation,
         currentPrice,
         deltaBps: priceDeltaBps.toFixed(2),
@@ -232,7 +240,7 @@ export function calculateFinalPositionSize(
       finalPositionSize += 1 / multiplier;
       actualNotionalValue = finalPositionSize * currentPrice;
 
-      DevLogger.log('Position size adjusted to meet USD minimum:', {
+      debugLogger?.log('Position size adjusted to meet USD minimum:', {
         requestedUsd: usdValue,
         beforeAdjustment: finalPositionSize - 1 / multiplier,
         afterAdjustment: finalPositionSize,
@@ -245,7 +253,7 @@ export function calculateFinalPositionSize(
     // Log if rounding caused significant difference
     const usdDifference = Math.abs(actualNotionalValue - usdValue);
     if (usdDifference > 0.01) {
-      DevLogger.log(
+      debugLogger?.log(
         'Position size rounding caused USD difference (acceptable):',
         {
           requestedUsd: usdValue,
@@ -256,7 +264,7 @@ export function calculateFinalPositionSize(
       );
     }
 
-    DevLogger.log('Recalculated position size with fresh price:', {
+    debugLogger?.log('Recalculated position size with fresh price:', {
       usdAmount: usdValue,
       priceAtCalculation,
       currentPrice,
@@ -269,10 +277,13 @@ export function calculateFinalPositionSize(
     // Legacy: Use provided size (backward compatibility)
     finalPositionSize = parseFloat(size || '0');
 
-    DevLogger.log('Using legacy size calculation (no USD amount provided):', {
-      providedSize: size,
-      finalSize: finalPositionSize,
-    });
+    debugLogger?.log(
+      'Using legacy size calculation (no USD amount provided):',
+      {
+        providedSize: size,
+        finalSize: finalPositionSize,
+      },
+    );
   }
 
   return { finalPositionSize };
@@ -314,9 +325,7 @@ export function calculateOrderPriceAndSize(
   } else {
     // Limit orders: use provided price (no slippage applied)
     if (!limitPrice) {
-      throw new Error(
-        strings('perps.errors.orderValidation.limitPriceRequired'),
-      );
+      throw new Error(PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED);
     }
     orderPrice = parseFloat(limitPrice);
     formattedSize = formatHyperLiquidSize({

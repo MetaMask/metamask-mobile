@@ -181,6 +181,12 @@ describe('wallet_watchAsset', () => {
       type: ERC20,
       interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
       networkClientId: '0x1',
+      origin: '',
+      pageMeta: undefined,
+      requestMetadata: {
+        origin: '',
+        pageMeta: undefined,
+      },
     });
   });
 
@@ -228,6 +234,12 @@ describe('wallet_watchAsset', () => {
       type: ERC20,
       interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
       networkClientId: '0x1',
+      origin: '',
+      pageMeta: undefined,
+      requestMetadata: {
+        origin: '',
+        pageMeta: undefined,
+      },
     });
   });
 });

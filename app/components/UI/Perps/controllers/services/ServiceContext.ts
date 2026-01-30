@@ -1,26 +1,30 @@
-import type { IMetaMetrics } from '../../../../../core/Analytics/MetaMetrics.types';
-import type { PerpsStreamManager } from '../../providers/PerpsStreamManager';
-import type { DATA_LAKE_API_CONFIG } from '../../constants/perpsConfig';
 import type {
   PerpsControllerState,
   PerpsControllerMessenger,
 } from '../PerpsController';
 import type { Order, Position } from '../types';
-import type { RewardsController } from '../../../../../core/Engine/controllers/rewards-controller/RewardsController';
-import type { NetworkController } from '@metamask/network-controller';
 
 /**
  * ServiceContext
  *
- * Dependency injection interface for Perps services.
- * Provides all orchestration dependencies (tracing, analytics, state management)
- * to services, allowing them to handle full operation logic independently.
+ * Lightweight per-call context for Perps services.
+ * Contains ONLY data that varies per operation:
+ * - Tracing context (provider, network)
+ * - Error context (controller, method)
+ * - State management callbacks
+ * - Query/action callbacks specific to the operation
+ *
+ * Platform dependencies (logging, metrics, tracing) are injected into service
+ * instances via constructor, not passed per-call.
+ *
+ * Controller-level singletons (RewardsController, NetworkController, messenger)
+ * are also injected into services that need them, not passed per-call.
  *
  * This enables:
+ * - Clean method signatures (no verbose dependency passing)
  * - Fat services with complete orchestration
  * - Thin controller with pure delegation
- * - Easy testing through mock contexts
- * - Explicit dependency management
+ * - Easy testing through mock contexts and constructor injection
  */
 export interface ServiceContext {
   /**
@@ -31,12 +35,6 @@ export interface ServiceContext {
     provider: string;
     isTestnet: boolean;
   };
-
-  /**
-   * MetaMetrics instance for analytics events
-   * Services use this to track events directly
-   */
-  analytics: IMetaMetrics;
 
   /**
    * Error logging context
@@ -59,38 +57,11 @@ export interface ServiceContext {
   };
 
   /**
-   * Optional dependencies - only provided when needed by specific operations
-   */
-
-  /**
-   * RewardsController for fee discount calculations
-   * Required by: TradingService (placeOrder, editOrder, closePosition)
-   */
-  rewardsController?: RewardsController;
-
-  /**
-   * NetworkController for chain ID resolution
-   * Required by: TradingService (fee discount calculation)
-   */
-  networkController?: NetworkController;
-
-  /**
-   * Messenger for controller communication
-   * Required by: TradingService (AuthenticationController:getBearerToken), DataLakeService (getBearerToken)
+   * Messenger for controller communication (optional)
+   * Required by: DataLakeService (getBearerToken)
+   * Note: TradingService now receives this via setControllerDependencies()
    */
   messenger?: PerpsControllerMessenger;
-
-  /**
-   * StreamManager for WebSocket subscriptions
-   * Required by: TradingService (cancelOrders - for order stream refresh)
-   */
-  streamManager?: PerpsStreamManager;
-
-  /**
-   * Data lake configuration
-   * Required by: TradingService (for reporting to data lake)
-   */
-  dataLakeConfig?: typeof DATA_LAKE_API_CONFIG;
 
   /**
    * Query functions for dependent data
@@ -102,7 +73,7 @@ export interface ServiceContext {
   /**
    * Callback functions for controller-specific operations
    */
-  saveTradeConfiguration?: (coin: string, leverage: number) => void;
+  saveTradeConfiguration?: (symbol: string, leverage: number) => void;
 
   /**
    * Feature flag configuration callbacks

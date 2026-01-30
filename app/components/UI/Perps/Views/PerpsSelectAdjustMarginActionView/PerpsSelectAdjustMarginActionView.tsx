@@ -58,7 +58,7 @@ const PerpsSelectAdjustMarginActionView: React.FC<
         createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
           .addProperties({
             [PerpsEventProperties.INTERACTION_TYPE]: interactionType,
-            [PerpsEventProperties.ASSET]: position.coin,
+            [PerpsEventProperties.ASSET]: position.symbol,
             [PerpsEventProperties.SOURCE]:
               PerpsEventValues.SOURCE.POSITION_SCREEN,
           })

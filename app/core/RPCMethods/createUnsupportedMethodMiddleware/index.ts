@@ -5,15 +5,17 @@ import { UNSUPPORTED_RPC_METHODS } from '../utils';
 import { Json, JsonRpcParams } from '@metamask/utils';
 
 /**
- * Creates a middleware that rejects explicitly unsupported RPC methods with the
+ * Create a middleware that rejects explicitly unsupported RPC methods with the
  * appropriate error.
+ *
+ * @param unsupportedMethods - The unsupported methods set.
+ * @returns The middleware.
  */
-const createUnsupportedMethodMiddleware = (): JsonRpcMiddleware<
-  JsonRpcParams,
-  Json
-> =>
+const createUnsupportedMethodMiddleware = (
+  unsupportedMethods: Set<string> = UNSUPPORTED_RPC_METHODS,
+): JsonRpcMiddleware<JsonRpcParams, Json> =>
   async function unsupportedMethodMiddleware(req, _res, next, end) {
-    if ((UNSUPPORTED_RPC_METHODS as Set<string>).has(req.method)) {
+    if (unsupportedMethods.has(req.method)) {
       return end(rpcErrors.methodNotSupported());
     }
     return next();

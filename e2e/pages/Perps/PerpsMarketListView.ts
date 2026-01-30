@@ -3,8 +3,8 @@ import {
   PerpsTokenSelectorSelectorsIDs,
   getPerpsMarketRowItemSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 
 class PerpsMarketListView {
   // Main container
