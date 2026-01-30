@@ -1,9 +1,12 @@
-import { SmokeWalletPlatform } from '../../tags';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../viewHelper';
-import { startExportForKeyring, completeSrpQuiz } from './utils';
-import { defaultOptions } from '../../../tests/seeder/anvil-manager';
+import { SmokeWalletPlatform } from '../../../e2e/tags';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import { loginToApp } from '../../../e2e/viewHelper.ts';
+import {
+  startExportForKeyring,
+  completeSrpQuiz,
+} from '../../flows/accounts.flow.ts';
+import { defaultOptions } from '../../seeder/anvil-manager.ts';
 
 const SRP_1 = {
   index: 1,

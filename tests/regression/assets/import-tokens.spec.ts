@@ -1,13 +1,13 @@
-import { RegressionAssets } from '../../tags';
-import WalletView from '../../pages/wallet/WalletView';
-import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../viewHelper';
-import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
-import Assertions from '../../../tests/framework/Assertions';
+import { RegressionAssets } from '../../../e2e/tags';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import ImportTokensView from '../../../e2e/pages/wallet/ImportTokenFlow/ImportTokensView';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../../e2e/viewHelper';
+import ConfirmAddAssetView from '../../../e2e/pages/wallet/ImportTokenFlow/ConfirmAddAsset';
+import Assertions from '../../framework/Assertions';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 describe(RegressionAssets('Import Tokens'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {

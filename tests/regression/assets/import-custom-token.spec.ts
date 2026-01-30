@@ -1,16 +1,16 @@
-import { RegressionAssets } from '../../tags';
-import TestHelpers from '../../helpers';
-import WalletView from '../../pages/wallet/WalletView';
-import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
-import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
-import Assertions from '../../../tests/framework/Assertions';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../viewHelper';
+import { RegressionAssets } from '../../../e2e/tags';
+import TestHelpers from '../../../e2e/helpers';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import ConfirmAddAssetView from '../../../e2e/pages/wallet/ImportTokenFlow/ConfirmAddAsset';
+import ImportTokensView from '../../../e2e/pages/wallet/ImportTokenFlow/ImportTokensView';
+import Assertions from '../../framework/Assertions';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { loginToApp } from '../../../e2e/viewHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { LocalNode } from '../../../tests/framework/types';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { LocalNode } from '../../framework';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionAssets('Import custom token'), () => {
   beforeAll(async () => {

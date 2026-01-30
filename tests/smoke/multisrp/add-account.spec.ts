@@ -1,15 +1,15 @@
-import { SmokeWalletPlatform } from '../../tags';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import WalletView from '../../pages/wallet/WalletView';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../../tests/framework/Assertions';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
-import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { SmokeWalletPlatform } from '../../../e2e/tags';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
+import { loginToApp } from '../../../e2e/viewHelper.ts';
+import Assertions from '../../framework/Assertions.ts';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet.ts';
+import AddAccountBottomSheet from '../../../e2e/pages/wallet/AddAccountBottomSheet.ts';
+import SRPListItemComponent from '../../../e2e/pages/wallet/MultiSrp/Common/SRPListItemComponent.ts';
+import AddNewHdAccountComponent from '../../../e2e/pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent.ts';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks.ts';
 
 const SRP_1 = {
   index: 1,

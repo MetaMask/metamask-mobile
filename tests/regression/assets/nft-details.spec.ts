@@ -1,20 +1,20 @@
-import { RegressionAssets } from '../../tags';
-import TestHelpers from '../../helpers';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { RegressionAssets } from '../../../e2e/tags';
+import TestHelpers from '../../../e2e/helpers';
+import { loginToApp } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import WalletView from '../../pages/wallet/WalletView';
-import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
-import Assertions from '../../../tests/framework/Assertions';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import ImportNFTView from '../../../e2e/pages/wallet/ImportNFTFlow/ImportNFTView';
+import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
 import {
   AnvilPort,
   buildPermissions,
-} from '../../../tests/framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../../tests/framework/Constants';
-import { LocalNode } from '../../../tests/framework/types';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+} from '../../framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../framework/Constants';
+import { LocalNode } from '../../framework';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe.skip(RegressionAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;

@@ -1,11 +1,11 @@
 'use strict';
-import { loginToApp } from '../../viewHelper';
-import { RegressionAssets } from '../../tags';
-import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../../tests/framework/Assertions';
-import TestHelpers from '../../helpers';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../../e2e/viewHelper';
+import { RegressionAssets } from '../../../e2e/tags';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import Assertions from '../../framework/Assertions';
+import TestHelpers from '../../../e2e/helpers';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 const ETHEREUM_NAME = 'Ethereum';
 const USDC_NAME = 'USDCoin';
