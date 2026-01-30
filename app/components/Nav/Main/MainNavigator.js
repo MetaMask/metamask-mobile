@@ -91,7 +91,6 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
-import { MusdConversionTransactionDetails } from '../../UI/Earn/components/MusdConversionTransactionDetails';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -137,6 +136,7 @@ import {
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
+import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -180,7 +180,7 @@ const AssetStackFlow = (props) => (
   >
     <Stack.Screen
       name={'Asset'}
-      component={Asset}
+      component={TokenDetails}
       initialParams={props.route.params}
     />
     <Stack.Screen
@@ -256,10 +256,6 @@ const TransactionsHome = () => (
     <Stack.Screen
       name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
       component={BridgeTransactionDetails}
-    />
-    <Stack.Screen
-      name={Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS}
-      component={MusdConversionTransactionDetails}
     />
   </Stack.Navigator>
 );
