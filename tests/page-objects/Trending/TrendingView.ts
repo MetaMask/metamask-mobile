@@ -56,7 +56,10 @@ class TrendingView {
   }
 
   getSiteRow(name: string): DetoxElement {
-    return Matchers.getElementByText(name);
+    return Matchers.getElementByID(
+      `${TrendingViewSelectorsIDs.SITE_ROW_ITEM_PREFIX}${name}`,
+      0,
+    );
   }
 
   getSectionHeader(title: string): DetoxElement {
@@ -279,7 +282,15 @@ class TrendingView {
     identifier: string,
     itemType: string,
   ): Promise<void> {
-    await Assertions.expectElementToBeVisible(getElement(), {
+    const targetElement = getElement();
+
+    // Scroll to element to ensure it's fully visible
+    await this.scrollToElementInFeed(
+      targetElement,
+      `Scroll to ${identifier} ${itemType} row for verification`,
+    );
+
+    await Assertions.expectElementToBeVisible(targetElement, {
       description: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} row for ${identifier} should be visible`,
     });
   }

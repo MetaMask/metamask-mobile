@@ -1608,26 +1608,6 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
   };
 }
 
-export function getMusdConversionTransactionDetailsNavbar(navigation) {
-  const leftAction = () => navigation.pop();
-
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        title={strings('bridge_transaction_details.transaction_details')}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    headerLeft: () => (
-      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
-        <Icon name={IconName.ArrowLeft} />
-      </TouchableOpacity>
-    ),
-  };
-}
-
 export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
     perpsTransactionsTitle: {
