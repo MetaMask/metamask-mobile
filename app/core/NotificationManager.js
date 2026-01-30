@@ -27,6 +27,7 @@ export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
   TransactionType.musdConversion,
+  TransactionType.musdClaim,
 ];
 
 export const IN_PROGRESS_SKIP_STATUS = [

@@ -24,6 +24,7 @@ import {
   getActionKey,
   TRANSACTION_TYPES,
   isTransactionIncomplete,
+  calcTokenAmount,
 } from '../../../util/transactions';
 import Engine from '../../../core/Engine';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -35,6 +36,8 @@ import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 import { BigNumber } from 'bignumber.js';
+import { Interface } from '@ethersproject/abi';
+import { DISTRIBUTOR_CLAIM_ABI } from '../Earn/components/MerklRewards/constants';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
@@ -818,6 +821,110 @@ function decodeConfirmTx(args) {
 }
 
 /**
+ * Decode the claim amount from a Merkl claim transaction.
+ * claim(address[] users, address[] tokens, uint256[] amounts, bytes32[][] proofs)
+ */
+function decodeMerklClaimAmount(data) {
+  if (!data || typeof data !== 'string') {
+    return null;
+  }
+
+  try {
+    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
+    const decoded = contractInterface.decodeFunctionData('claim', data);
+    // amounts is the 3rd parameter (index 2)
+    const amounts = decoded[2];
+    if (!amounts || amounts.length === 0) {
+      return null;
+    }
+    return amounts[0].toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Decode musdClaim transaction for display in activity list
+ */
+function decodeMusdClaimTx(args) {
+  const {
+    tx: {
+      txParams,
+      txParams: { from, gas, data },
+      hash,
+    },
+    txChainId,
+    conversionRate,
+    currentCurrency,
+    primaryCurrency,
+    ticker,
+  } = args;
+
+  const totalGas = calculateTotalGas(txParams);
+  const renderFrom = renderFullAddress(from);
+
+  // Decode the claim amount from transaction data
+  const claimAmountRaw = decodeMerklClaimAmount(data);
+  const MUSD_DECIMALS = 18;
+
+  // Calculate display values
+  let renderClaimAmount = strings('transaction.value_not_available');
+  let renderClaimFiat;
+
+  if (claimAmountRaw) {
+    const claimAmount = calcTokenAmount(claimAmountRaw, MUSD_DECIMALS);
+    renderClaimAmount = `${claimAmount.toFixed(2)} mUSD`;
+    // mUSD is a stablecoin, so 1 mUSD ≈ $1
+    renderClaimFiat = addCurrencySymbol(
+      claimAmount.toNumber(),
+      currentCurrency,
+    );
+  }
+
+  const transactionElement = {
+    renderFrom,
+    actionKey: strings('transactions.claim'),
+    value: renderClaimAmount,
+    fiatValue: renderClaimFiat,
+    transactionType: TRANSACTION_TYPES.RECEIVED_TOKEN,
+  };
+
+  let transactionDetails = {
+    renderFrom,
+    hash,
+    renderValue: renderClaimAmount,
+    renderGas: parseInt(gas, 16).toString(),
+    renderGasPrice: renderGwei(txParams),
+    renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+    txChainId,
+  };
+
+  if (primaryCurrency === 'ETH') {
+    transactionDetails = {
+      ...transactionDetails,
+      summaryAmount: renderClaimAmount,
+      summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
+      summarySecondaryTotalAmount: weiToFiat(
+        totalGas,
+        conversionRate,
+        currentCurrency,
+      ),
+      summaryTotalAmount: renderClaimAmount,
+    };
+  } else {
+    transactionDetails = {
+      ...transactionDetails,
+      summaryAmount: renderClaimFiat || renderClaimAmount,
+      summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+      summarySecondaryTotalAmount: renderClaimAmount,
+      summaryTotalAmount: renderClaimFiat || renderClaimAmount,
+    };
+  }
+
+  return [transactionElement, transactionDetails];
+}
+
+/**
  * Parse transaction with wallet information to render
  *
  * @param {*} args - Should contain tx, selectedAddress, ticker, conversionRate,
@@ -879,6 +986,12 @@ export default async function decodeTransaction(args) {
         break;
       case strings('transactions.contract_deploy'):
         [transactionElement, transactionDetails] = decodeDeploymentTx({
+          ...args,
+          actionKey,
+        });
+        break;
+      case TransactionType.musdClaim:
+        [transactionElement, transactionDetails] = decodeMusdClaimTx({
           ...args,
           actionKey,
         });
