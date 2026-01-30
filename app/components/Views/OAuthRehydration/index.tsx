@@ -468,7 +468,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               password,
             });
           } catch (error) {
-            // if error, set biometryChoice to false
+            // if error, set biometricSetupSucceeded to false
             biometricSetupSucceeded = false;
           }
         },
@@ -510,7 +510,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // try default with biometric if available and no remember me flag
+      // standardize with login screen, always use password authentication
+      // updateAuthPreference is called explicitly in the try block
       const authType = await componentAuthenticationType(false, false);
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
