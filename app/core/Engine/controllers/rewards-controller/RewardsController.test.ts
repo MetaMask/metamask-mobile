@@ -1092,8 +1092,14 @@ describe('RewardsController', () => {
 
       expect(controller.state.pointsEstimateHistory).toHaveLength(1);
       const historyEntry = controller.state.pointsEstimateHistory[0];
-      expect(historyEntry.request).toEqual(mockRequest);
-      expect(historyEntry.response).toEqual(mockResponse);
+      // Verify flattened request fields
+      expect(historyEntry.requestActivityType).toBe(mockRequest.activityType);
+      expect(historyEntry.requestAccount).toBe(mockRequest.account);
+      // Verify flattened response fields
+      expect(historyEntry.responsePointsEstimate).toBe(
+        mockResponse.pointsEstimate,
+      );
+      expect(historyEntry.responseBonusBips).toBe(mockResponse.bonusBips);
       expect(historyEntry.timestamp).toBe(now);
 
       jest.useRealTimers();
@@ -1228,13 +1234,13 @@ describe('RewardsController', () => {
 
       // Most recent (300 points) should be first
       expect(
-        controller.state.pointsEstimateHistory[0].response.pointsEstimate,
+        controller.state.pointsEstimateHistory[0].responsePointsEstimate,
       ).toBe(300);
       expect(
-        controller.state.pointsEstimateHistory[1].response.pointsEstimate,
+        controller.state.pointsEstimateHistory[1].responsePointsEstimate,
       ).toBe(200);
       expect(
-        controller.state.pointsEstimateHistory[2].response.pointsEstimate,
+        controller.state.pointsEstimateHistory[2].responsePointsEstimate,
       ).toBe(100);
 
       jest.useRealTimers();

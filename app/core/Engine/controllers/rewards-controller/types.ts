@@ -152,6 +152,17 @@ export interface EstimatePredictContextDto {
   feeAsset: EstimateAssetDto;
 }
 
+export interface EstimateShieldContextDto {
+  /**
+   * Fee asset information, in caip19 format
+   * @example {
+   *   id: 'eip155:1/slip44:60',
+   *   amount: '1000000000000000'
+   * }
+   */
+  feeAsset: EstimateAssetDto;
+}
+
 export interface EstimatePointsContextDto {
   /**
    * Swap context data, must be present for SWAP activity
@@ -171,6 +182,11 @@ export interface EstimatePointsContextDto {
    * Predict context data, must be present for PREDICT activity
    */
   predictContext?: EstimatePredictContextDto;
+
+  /**
+   * Shield context data, must be present for SHIELD activity
+   */
+  shieldContext?: EstimateShieldContextDto;
 }
 
 /**
@@ -721,6 +737,7 @@ export type RewardsAccountState = {
 /**
  * A single entry in the points estimate history.
  * Used by Customer Support to verify points estimates shown to users.
+ * Structure is intentionally flat to simplify debugging and log analysis.
  */
 export interface PointsEstimateHistoryEntry {
   /**
@@ -729,14 +746,111 @@ export interface PointsEstimateHistoryEntry {
   timestamp: number;
 
   /**
-   * The original request containing activity type, account, and context
+   * Type of point earning activity (from request)
+   * @example 'SWAP'
    */
-  request: EstimatePointsDto;
+  requestActivityType: PointsEventEarnType;
 
   /**
-   * The response containing estimated points and bonus information
+   * Account address performing the activity in CAIP-10 format (from request)
+   * @example 'eip155:1:0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
    */
-  response: EstimatedPointsDto;
+  requestAccount: CaipAccountId;
+
+  /**
+   * Source asset ID for swap activity in CAIP-19 format (if applicable)
+   * @example 'eip155:1/slip44:60'
+   */
+  requestSwapSrcAssetId?: CaipAssetType;
+
+  /**
+   * Source asset amount for swap activity (if applicable)
+   * @example '1000000000000000000'
+   */
+  requestSwapSrcAssetAmount?: string;
+
+  /**
+   * Source asset USD price for swap activity (if applicable)
+   * @example '4512.34'
+   */
+  requestSwapSrcAssetUsdPrice?: string;
+
+  /**
+   * Destination asset ID for swap activity in CAIP-19 format (if applicable)
+   * @example 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+   */
+  requestSwapDestAssetId?: CaipAssetType;
+
+  /**
+   * Destination asset amount for swap activity (if applicable)
+   * @example '4500000000'
+   */
+  requestSwapDestAssetAmount?: string;
+
+  /**
+   * Destination asset USD price for swap activity (if applicable)
+   * @example '1.00'
+   */
+  requestSwapDestAssetUsdPrice?: string;
+
+  /**
+   * Fee asset ID for swap activity in CAIP-19 format (if applicable)
+   * @example 'eip155:1/slip44:60'
+   */
+  requestSwapFeeAssetId?: CaipAssetType;
+
+  /**
+   * Fee asset amount for swap activity (if applicable)
+   * @example '5000000000000000'
+   */
+  requestSwapFeeAssetAmount?: string;
+
+  /**
+   * Fee asset USD price for swap activity (if applicable)
+   * @example '4512.34'
+   */
+  requestSwapFeeAssetUsdPrice?: string;
+
+  /**
+   * Type of PERPS action (if applicable)
+   * @example 'OPEN_POSITION'
+   */
+  requestPerpsType?: EstimatePerpsContextDto['type'];
+
+  /**
+   * USD fee value for PERPS activity (if applicable)
+   * @example '12.34'
+   */
+  requestPerpsUsdFeeValue?: string;
+
+  /**
+   * Asset symbol for PERPS activity (if applicable)
+   * @example 'ETH'
+   */
+  requestPerpsCoin?: string;
+
+  /**
+   * Fee asset for predict activity (if applicable)
+   */
+  requestPredictFeeAsset?: EstimateAssetDto;
+
+  /**
+   * Fee asset for shield activity (if applicable)
+   */
+  requestShieldFeeAsset?: EstimateAssetDto;
+
+  /**
+   * Estimated points earnable for the activity (from response)
+   * @example 100
+   */
+  responsePointsEstimate: number;
+
+  /**
+   * Bonus applied to the points estimate, in basis points (from response)
+   * 100 = 1%
+   * @example 200
+   */
+  responseBonusBips: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
