@@ -1106,18 +1106,12 @@ describe('RewardsController', () => {
         return Promise.resolve(null);
       });
 
-      expect(Object.keys(controller.state.pointsEstimateHistory)).toHaveLength(
-        0,
-      );
+      expect(controller.state.pointsEstimateHistory).toHaveLength(0);
 
       await controller.estimatePoints(mockRequest);
 
-      expect(Object.keys(controller.state.pointsEstimateHistory)).toHaveLength(
-        1,
-      );
-      const historyEntry = Object.values(
-        controller.state.pointsEstimateHistory,
-      )[0];
+      expect(controller.state.pointsEstimateHistory).toHaveLength(1);
+      const historyEntry = controller.state.pointsEstimateHistory[0];
 
       // Verify flattened request fields
       expect(historyEntry.requestActivityType).toBe(mockRequest.activityType);
@@ -1223,9 +1217,7 @@ describe('RewardsController', () => {
 
       await controller.estimatePoints(mockRequest);
 
-      const historyEntry = Object.values(
-        controller.state.pointsEstimateHistory,
-      )[0];
+      const historyEntry = controller.state.pointsEstimateHistory[0];
 
       // Verify flattened perps context fields
       expect(historyEntry.requestPerpsType).toBe(mockPerpsContext.type);
@@ -1296,12 +1288,18 @@ describe('RewardsController', () => {
 
       await controller.estimatePoints(mockRequest);
 
-      const historyEntry = Object.values(
-        controller.state.pointsEstimateHistory,
-      )[0];
+      const historyEntry = controller.state.pointsEstimateHistory[0];
 
       // Verify flattened predict context fields
-      expect(historyEntry.requestPredictFeeAsset).toEqual(mockPredictFeeAsset);
+      expect(historyEntry.requestPredictFeeAssetId).toBe(
+        mockPredictFeeAsset.id,
+      );
+      expect(historyEntry.requestPredictFeeAssetAmount).toBe(
+        mockPredictFeeAsset.amount,
+      );
+      expect(historyEntry.requestPredictFeeAssetUsdPrice).toBe(
+        mockPredictFeeAsset.usdPrice,
+      );
 
       jest.useRealTimers();
     });
@@ -1365,12 +1363,16 @@ describe('RewardsController', () => {
 
       await controller.estimatePoints(mockRequest);
 
-      const historyEntry = Object.values(
-        controller.state.pointsEstimateHistory,
-      )[0];
+      const historyEntry = controller.state.pointsEstimateHistory[0];
 
       // Verify flattened shield context fields
-      expect(historyEntry.requestShieldFeeAsset).toEqual(mockShieldFeeAsset);
+      expect(historyEntry.requestShieldFeeAssetId).toBe(mockShieldFeeAsset.id);
+      expect(historyEntry.requestShieldFeeAssetAmount).toBe(
+        mockShieldFeeAsset.amount,
+      );
+      expect(historyEntry.requestShieldFeeAssetUsdPrice).toBe(
+        mockShieldFeeAsset.usdPrice,
+      );
 
       jest.useRealTimers();
     });
@@ -1391,9 +1393,7 @@ describe('RewardsController', () => {
 
       await disabledController.estimatePoints(mockRequest);
 
-      expect(
-        Object.keys(disabledController.state.pointsEstimateHistory),
-      ).toHaveLength(0);
+      expect(disabledController.state.pointsEstimateHistory).toHaveLength(0);
     });
 
     it('should limit history to 50 entries', async () => {
@@ -1449,9 +1449,7 @@ describe('RewardsController', () => {
         await controller.estimatePoints(mockRequest);
       }
 
-      expect(Object.keys(controller.state.pointsEstimateHistory)).toHaveLength(
-        50,
-      );
+      expect(controller.state.pointsEstimateHistory).toHaveLength(50);
 
       jest.useRealTimers();
     });
@@ -1510,26 +1508,19 @@ describe('RewardsController', () => {
       jest.setSystemTime(now + 2000);
       await controller.estimatePoints(mockRequest);
 
-      // Get entries sorted by timestamp (newest first)
-      const sortedEntries = Object.values(
-        controller.state.pointsEstimateHistory,
-      ).sort((a, b) => b.timestamp - a.timestamp);
+      // Array is ordered by timestamp (most recent first)
+      const entries = controller.state.pointsEstimateHistory;
+      expect(entries).toHaveLength(3);
 
-      // Most recent (300 points) should be first when sorted descending
-      expect(sortedEntries[0].responsePointsEstimate).toBe(300);
-      expect(sortedEntries[1].responsePointsEstimate).toBe(200);
-      expect(sortedEntries[2].responsePointsEstimate).toBe(100);
+      // Verify order (most recent first)
+      expect(entries[0].responsePointsEstimate).toBe(300);
+      expect(entries[1].responsePointsEstimate).toBe(200);
+      expect(entries[2].responsePointsEstimate).toBe(100);
 
-      // Verify entries are keyed by their timestamp
-      expect(
-        controller.state.pointsEstimateHistory[now.toString()],
-      ).toBeDefined();
-      expect(
-        controller.state.pointsEstimateHistory[(now + 1000).toString()],
-      ).toBeDefined();
-      expect(
-        controller.state.pointsEstimateHistory[(now + 2000).toString()],
-      ).toBeDefined();
+      // Verify timestamps are in descending order
+      expect(entries[0].timestamp).toBe(now + 2000);
+      expect(entries[1].timestamp).toBe(now + 1000);
+      expect(entries[2].timestamp).toBe(now);
 
       jest.useRealTimers();
     });
@@ -14769,6 +14760,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "pointsEstimateHistory": [],
           "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},
@@ -14787,6 +14779,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "pointsEstimateHistory": [],
           "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},

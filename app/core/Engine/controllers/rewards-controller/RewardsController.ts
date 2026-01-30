@@ -177,7 +177,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeBoosts: {},
   unlockedRewards: {},
   pointsEvents: {},
-  pointsEstimateHistory: {},
+  pointsEstimateHistory: [],
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -1730,13 +1730,21 @@ export class RewardsController extends BaseController<
           requestPerpsUsdFeeValue: activityContext.perpsContext.usdFeeValue,
           requestPerpsCoin: activityContext.perpsContext.coin,
         }),
-      // Predict context fields (if applicable)
+      // Predict context fields (if applicable) - flattened for easier diagnostics
       ...(activityContext.predictContext && {
-        requestPredictFeeAsset: activityContext.predictContext.feeAsset,
+        requestPredictFeeAssetId: activityContext.predictContext.feeAsset.id,
+        requestPredictFeeAssetAmount:
+          activityContext.predictContext.feeAsset.amount,
+        requestPredictFeeAssetUsdPrice:
+          activityContext.predictContext.feeAsset.usdPrice,
       }),
-      // Shield context fields (if applicable)
+      // Shield context fields (if applicable) - flattened for easier diagnostics
       ...(activityContext.shieldContext && {
-        requestShieldFeeAsset: activityContext.shieldContext.feeAsset,
+        requestShieldFeeAssetId: activityContext.shieldContext.feeAsset.id,
+        requestShieldFeeAssetAmount:
+          activityContext.shieldContext.feeAsset.amount,
+        requestShieldFeeAssetUsdPrice:
+          activityContext.shieldContext.feeAsset.usdPrice,
       }),
       // Response fields
       responsePointsEstimate: response.pointsEstimate,
@@ -1744,23 +1752,17 @@ export class RewardsController extends BaseController<
     };
 
     this.update((state: RewardsControllerState) => {
-      const timestampKey = entry.timestamp.toString();
+      // Add new entry at the beginning (most recent first)
+      state.pointsEstimateHistory.unshift(entry);
 
-      // Add new entry with timestamp as key
-      state.pointsEstimateHistory[timestampKey] = entry;
-
-      // Keep only the last N entries by removing oldest if over limit
-      const keys = Object.keys(state.pointsEstimateHistory);
-      if (keys.length > MAX_POINTS_ESTIMATE_HISTORY_ENTRIES) {
-        // Sort keys numerically (timestamps) and remove oldest entries
-        const sortedKeys = keys.sort((a, b) => Number(a) - Number(b));
-        const keysToRemove = sortedKeys.slice(
+      // Keep only the last N entries
+      if (
+        state.pointsEstimateHistory.length > MAX_POINTS_ESTIMATE_HISTORY_ENTRIES
+      ) {
+        state.pointsEstimateHistory = state.pointsEstimateHistory.slice(
           0,
-          keys.length - MAX_POINTS_ESTIMATE_HISTORY_ENTRIES,
+          MAX_POINTS_ESTIMATE_HISTORY_ENTRIES,
         );
-        for (const key of keysToRemove) {
-          delete state.pointsEstimateHistory[key];
-        }
       }
     });
   }
