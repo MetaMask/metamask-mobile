@@ -23,6 +23,7 @@ import { DEFAULT_RPC_ENDPOINT_MOCKS } from './rpc-endpoints.ts';
 import { POLYMARKET_API_MOCKS } from './polymarket-apis.ts';
 import { INFURA_MOCKS } from '../infura-mocks.ts';
 import { CHAINS_NETWORK_MOCK_RESPONSE } from '../chains-network-mocks.ts';
+import { DEFAULT_REWARDS_MOCKS } from './rewards.ts';
 import { ACL_EXECUTION_MOCKS } from './acl-execution.ts';
 import { CONTENTFUL_BANNERS_MOCKS } from './contentful-banners.ts';
 import { PERPS_HYPERLIQUID_MOCKS } from './perps-hyperliquid.ts';
@@ -49,6 +50,7 @@ export const DEFAULT_MOCKS = {
     ...(DEFAULT_IPFS_GATEWAY_MOCKS.GET || []),
     ...(POLYMARKET_API_MOCKS.GET || []),
     ...(INFURA_MOCKS.GET || []),
+    ...(DEFAULT_REWARDS_MOCKS.GET || []),
     ...(ACL_EXECUTION_MOCKS.GET || []),
     ...(CONTENTFUL_BANNERS_MOCKS.GET || []),
     ...(TRENDING_API_MOCKS.GET || []),
@@ -365,6 +367,7 @@ export const DEFAULT_MOCKS = {
         features: [],
       },
     },
+    ...(DEFAULT_REWARDS_MOCKS.POST || []),
     ...(PERPS_HYPERLIQUID_MOCKS.POST || []),
   ],
   PUT: [...(USER_STORAGE_MOCK.PUT || [])],
