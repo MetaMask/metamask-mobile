@@ -126,8 +126,6 @@ export const usePerpsClosePosition = (
           usdAmount: slippage?.usdAmount,
           priceAtCalculation: slippage?.priceAtCalculation,
           maxSlippageBps: slippage?.maxSlippageBps,
-          // Pass live position to avoid getPositions() API call (prevents 429 rate limiting)
-          position,
         });
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
