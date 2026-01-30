@@ -442,7 +442,9 @@ describe('DaimoPayModal', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('does not navigate immediately on paymentCompleted - lets polling handle navigation', async () => {
+    it('navigates immediately on paymentCompleted in demo mode', async () => {
+      mockGetDaimoEnvironment.mockReturnValue('demo');
+
       render(<DaimoPayModal />);
 
       await waitFor(() => {
@@ -467,7 +469,38 @@ describe('DaimoPayModal', () => {
         }
       });
 
-      // paymentCompleted should NOT trigger navigation - polling handles it
+      // In demo mode, paymentCompleted should trigger navigation immediately
+      expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('does not navigate on paymentCompleted in production mode - lets polling handle navigation', async () => {
+      mockGetDaimoEnvironment.mockReturnValue('production');
+
+      render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
+      await act(async () => {
+        if (mockOnMessage) {
+          mockOnMessage({
+            nativeEvent: {
+              data: JSON.stringify({
+                source: 'daimo-pay',
+                version: 1,
+                type: 'paymentCompleted',
+                payload: {
+                  txHash: '0x123',
+                  chainId: 59144,
+                },
+              }),
+            },
+          });
+        }
+      });
+
+      // In production mode, paymentCompleted should NOT trigger navigation - polling handles it
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });

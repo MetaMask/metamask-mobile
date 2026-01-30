@@ -228,6 +228,7 @@ const useSpendingLimit = ({
         | undefined;
       if (params?.returnedSelectedToken) {
         setSelectedToken(params.returnedSelectedToken);
+        setHasInitialized(true);
         navigation.setParams({
           returnedSelectedToken: undefined,
           selectedToken: undefined,

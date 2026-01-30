@@ -353,10 +353,13 @@ const DaimoPayModal: React.FC = () => {
           break;
 
         case 'paymentCompleted':
-          // Don't navigate immediately - let polling verify the order status.
-          // The WebView fires this when transaction is submitted, but we need
-          // to wait for the backend to confirm the order is actually completed.
-          // Tracking is handled elsewhere when polling confirms completion.
+          // In demo mode, navigate immediately since there's no backend to poll.
+          // In production, let polling verify the order status since the WebView
+          // fires this when transaction is submitted, but we need to wait for
+          // the backend to confirm the order is actually completed.
+          if (getDaimoEnvironment(isDaimoDemo) === 'demo') {
+            handlePaymentSuccess(event.payload.txHash, event.payload.chainId);
+          }
           break;
 
         case 'paymentBounced': {
@@ -373,8 +376,10 @@ const DaimoPayModal: React.FC = () => {
       trackEvent,
       createEventBuilder,
       handleClose,
+      handlePaymentSuccess,
       handlePaymentBounced,
       startPolling,
+      isDaimoDemo,
     ],
   );
 
