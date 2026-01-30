@@ -54,7 +54,11 @@ const PreviousSeasonReferralDetails = () => {
       loadingHeight={72}
     >
       <Box twClassName="flex-row gap-1 items-center">
-        <Icon name={IconName.People} size={IconSize.Lg} />
+        <Icon
+          name={IconName.People}
+          size={IconSize.Lg}
+          twClassName="text-success-default"
+        />
         <Text twClassName="text-default ml-2" variant={TextVariant.HeadingSm}>
           {totalReferees}
         </Text>
