@@ -72,6 +72,23 @@ jest.mock('./Balance', () => {
   };
 });
 
+jest.mock('../../../selectors/assets/assets-list', () => ({
+  ...jest.requireActual('../../../selectors/assets/assets-list'),
+  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue({
+    energy: undefined,
+    bandwidth: undefined,
+    maxEnergy: undefined,
+    maxBandwidth: undefined,
+    stakedTrxForEnergy: undefined,
+    stakedTrxForBandwidth: undefined,
+  }),
+}));
+
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
+
 const MOCK_CHAIN_ID = '0x1';
 
 const mockInitialState = {
@@ -1000,10 +1017,18 @@ describe('AssetOverview', () => {
   });
 
   it('renders staked TRX details when viewing TRX on Tron', () => {
-    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue([
-      { symbol: 'strx-energy', balance: '10' },
-      { symbol: 'strx-bandwidth', balance: '20' },
-    ]);
+    const { selectTronResourcesBySelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/assets/assets-list',
+    );
+
+    selectTronResourcesBySelectedAccountGroup.mockReturnValue({
+      energy: undefined,
+      bandwidth: undefined,
+      maxEnergy: undefined,
+      maxBandwidth: undefined,
+      stakedTrxForEnergy: { symbol: 'strx-energy', balance: '10' },
+      stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '20' },
+    });
 
     const tronAsset = {
       address: 'tron:mainnet/slip44:195',

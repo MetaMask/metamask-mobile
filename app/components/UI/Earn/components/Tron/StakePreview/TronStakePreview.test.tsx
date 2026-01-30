@@ -3,8 +3,10 @@ import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 
 import TronStakePreview from './TronStakePreview';
-import { TRON_RESOURCE } from '../../../../../../core/Multichain/constants';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
+import {
+  selectTronResourcesBySelectedAccountGroup,
+  TronResourcesMap,
+} from '../../../../../../selectors/assets/assets-list';
 import type { ComputeFeeResult } from '../../../utils/tron-staking-snap';
 
 jest.mock('react-redux', () => ({
@@ -38,22 +40,24 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 const mockUseSelector = useSelector as jest.Mock;
 
+const createMockResourcesMap = (totalStakedTrx: number): TronResourcesMap => ({
+  energy: undefined,
+  bandwidth: undefined,
+  maxEnergy: undefined,
+  maxBandwidth: undefined,
+  stakedTrxForEnergy: undefined,
+  stakedTrxForBandwidth: undefined,
+  totalStakedTrx,
+});
+
 describe('TronStakePreview', () => {
   beforeEach(() => {
-    const mockResources = [
-      {
-        symbol: TRON_RESOURCE.STRX_ENERGY,
-        balance: '10',
-      },
-      {
-        symbol: TRON_RESOURCE.STRX_BANDWIDTH,
-        balance: '5',
-      },
-    ];
+    // Default: 10 + 5 = 15 TRX staked
+    const mockResourcesMap = createMockResourcesMap(15);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTronResourcesBySelectedAccountGroup) {
-        return mockResources;
+        return mockResourcesMap;
       }
       return undefined;
     });
@@ -71,25 +75,14 @@ describe('TronStakePreview', () => {
   });
 
   it('calculates annual reward from floating-point balances without precision errors', () => {
-    // This test verifies the BigNumber fix for balance addition using real user data:
-    // User staked 65 TRX for Energy + 65 TRX for Bandwidth = 130 TRX originally
-    // Staking rewards accumulated to give 65.48463 + 65.48463 = 130.96926 TRX total
-    // In native JS: 65.48463 + 65.48463 = 130.96926000000002 (floating-point error!)
-    // With BigNumber: 65.48463 + 65.48463 = 130.96926 (correct)
-    const mockResources = [
-      {
-        symbol: TRON_RESOURCE.STRX_ENERGY,
-        balance: '65.48463',
-      },
-      {
-        symbol: TRON_RESOURCE.STRX_BANDWIDTH,
-        balance: '65.48463',
-      },
-    ];
+    // This test verifies BigNumber is used for calculations.
+    // totalStakedTrx is now pre-computed in the selector using BigNumber,
+    // so floating-point errors like 65.48463 + 65.48463 = 130.96926000000002 are avoided.
+    const mockResourcesMap = createMockResourcesMap(130.96926);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTronResourcesBySelectedAccountGroup) {
-        return mockResources;
+        return mockResourcesMap;
       }
       return undefined;
     });

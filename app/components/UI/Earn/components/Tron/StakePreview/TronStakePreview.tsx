@@ -12,9 +12,13 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { TRON_RESOURCE } from '../../../../../../core/Multichain/constants';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
 import type { ComputeFeeResult } from '../../../types/tron-staking.types';
+
+/**
+ * Temporary fixed APR until staking yield is provided
+ */
+const TRON_STAKING_APR = 0.0335; // 3.35%
 
 export interface TronStakePreviewProps {
   fee?: ComputeFeeResult | ComputeFeeResult[0];
@@ -38,9 +42,6 @@ const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   </Box>
 );
 
-// Temporary fixed APR until staking yield is provided
-const TRON_STAKING_APR = 0.0335; // 3.35%
-
 const TronStakePreview = ({
   fee,
   stakeAmount,
@@ -48,36 +49,8 @@ const TronStakePreview = ({
 }: TronStakePreviewProps) => {
   const tw = useTailwind();
 
-  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
-
-  const { strxEnergy, strxBandwidth } = React.useMemo(() => {
-    let strxEnergy, strxBandwidth;
-    for (const asset of tronResources) {
-      switch (asset.symbol.toLowerCase()) {
-        case TRON_RESOURCE.STRX_ENERGY:
-          strxEnergy = asset;
-          break;
-        case TRON_RESOURCE.STRX_BANDWIDTH:
-          strxBandwidth = asset;
-          break;
-        default:
-          break;
-      }
-    }
-    return {
-      strxEnergy,
-      strxBandwidth,
-    };
-  }, [tronResources]);
-
-  // Use BigNumber to prevent floating-point precision errors
-  // e.g., 65.48463 + 65.48463 should equal 130.96926, not 130.96926000000002
-  const parseBN = (v?: string | number) =>
-    new BigNumber(String(v ?? '0').replace(/,/g, ''));
-
-  const totalStakedTrxBN = React.useMemo(
-    () => parseBN(strxEnergy?.balance).plus(parseBN(strxBandwidth?.balance)),
-    [strxEnergy?.balance, strxBandwidth?.balance],
+  const { totalStakedTrx } = useSelector(
+    selectTronResourcesBySelectedAccountGroup,
   );
 
   const feeItem: ComputeFeeResult[0] | undefined = Array.isArray(fee)
@@ -85,43 +58,33 @@ const TronStakePreview = ({
     : fee;
 
   const estimatedAnnualReward = React.useMemo(() => {
-    // Use truthy check to handle empty string (falsy) the same as null/undefined
-    // new BigNumber('') returns NaN, so we default empty string to '0'
-    const inputAmountBN = new BigNumber(stakeAmount || '0');
+    const inputAmount = new BigNumber(stakeAmount || '0');
 
-    // Guard against NaN from invalid input
-    if (inputAmountBN.isNaN()) {
+    if (inputAmount.isNaN()) {
       return '';
     }
 
-    let totalForRewardsBN = totalStakedTrxBN;
+    const baseStaked = new BigNumber(totalStakedTrx);
 
-    // Guard against NaN from staked balance calculation
-    if (totalForRewardsBN.isNaN()) {
-      totalForRewardsBN = new BigNumber(0);
-    }
+    const totalForRewards =
+      mode === 'stake'
+        ? baseStaked.plus(inputAmount)
+        : mode === 'unstake'
+          ? BigNumber.max(baseStaked.minus(inputAmount), 0)
+          : baseStaked;
 
-    if (mode === 'stake') {
-      totalForRewardsBN = totalForRewardsBN.plus(inputAmountBN);
-    } else if (mode === 'unstake') {
-      totalForRewardsBN = BigNumber.max(
-        totalForRewardsBN.minus(inputAmountBN),
-        0,
-      );
-    }
-
-    if (totalForRewardsBN.lte(0)) {
+    if (totalForRewards.lte(0)) {
       return '';
     }
 
-    const reward = totalForRewardsBN.multipliedBy(TRON_STAKING_APR);
+    const reward = totalForRewards.multipliedBy(TRON_STAKING_APR);
     const rewardRounded = reward.decimalPlaces(3, BigNumber.ROUND_HALF_UP);
 
     return `${rewardRounded.toNumber().toLocaleString(undefined, {
       minimumFractionDigits: 3,
       maximumFractionDigits: 3,
     })} TRX`;
-  }, [stakeAmount, totalStakedTrxBN, mode]);
+  }, [stakeAmount, totalStakedTrx, mode]);
 
   const translateY = React.useRef(new Animated.Value(40)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;

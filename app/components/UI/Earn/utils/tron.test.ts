@@ -1,9 +1,9 @@
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 import Routes from '../../../../constants/navigation/Routes';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnTokenDetails } from '../types/lending.types';
 import type { TokenI } from '../../Tokens/types';
+import type { TronResourcesMap } from '../../../../selectors/assets/assets-list';
 import {
   buildTronEarnTokenIfEligible,
   getLocalizedErrorMessage,
@@ -58,111 +58,57 @@ describe('tron utils', () => {
       expect(total).toBe(0);
     });
 
-    it('returns sum of sTRX energy and bandwidth balances', () => {
-      const resources = [
-        {
-          symbol: TRON_RESOURCE.STRX_ENERGY,
-          balance: '10',
-        },
-        {
-          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
-          balance: '5',
-        },
-        {
-          symbol: 'OTHER',
-          balance: '1000',
-        },
-      ];
+    it('returns zero when resources are null', () => {
+      const total = getStakedTrxTotalFromResources(null);
+
+      expect(total).toBe(0);
+    });
+
+    it('returns totalStakedTrx from resources', () => {
+      // totalStakedTrx is now pre-computed in the selector
+      const resources: TronResourcesMap = {
+        energy: undefined,
+        bandwidth: undefined,
+        maxEnergy: undefined,
+        maxBandwidth: undefined,
+        stakedTrxForEnergy: undefined,
+        stakedTrxForBandwidth: undefined,
+        totalStakedTrx: 15,
+      };
 
       const total = getStakedTrxTotalFromResources(resources);
 
       expect(total).toBe(15);
     });
-
-    it('sums floating-point balances without precision errors', () => {
-      // This test verifies the BigNumber fix using real user data:
-      // User staked 65 TRX for Energy + 65 TRX for Bandwidth = 130 TRX originally
-      // Staking rewards accumulated to give 65.48463 + 65.48463 = 130.96926 TRX total
-      // In native JS: 65.48463 + 65.48463 = 130.96926000000002 (floating-point error!)
-      // With BigNumber: 65.48463 + 65.48463 = 130.96926 (correct)
-      const resources = [
-        {
-          symbol: TRON_RESOURCE.STRX_ENERGY,
-          balance: '65.48463',
-        },
-        {
-          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
-          balance: '65.48463',
-        },
-      ];
-
-      const total = getStakedTrxTotalFromResources(resources);
-
-      expect(total).toBe(130.96926);
-      // Verify it doesn't have floating-point artifacts
-      expect(total.toString()).toBe('130.96926');
-    });
-
-    it('sums balances with many decimal places', () => {
-      const resources = [
-        {
-          symbol: TRON_RESOURCE.STRX_ENERGY,
-          balance: '100.123456',
-        },
-        {
-          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
-          balance: '50.654321',
-        },
-      ];
-
-      const total = getStakedTrxTotalFromResources(resources);
-
-      expect(total).toBe(150.777777);
-    });
-
-    it('parses and sums comma-formatted balance strings', () => {
-      const resources = [
-        {
-          symbol: TRON_RESOURCE.STRX_ENERGY,
-          balance: '1,000.5',
-        },
-        {
-          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
-          balance: '2,500.25',
-        },
-      ];
-
-      const total = getStakedTrxTotalFromResources(resources);
-
-      expect(total).toBe(3500.75);
-    });
   });
 
   describe('hasStakedTrxPositions', () => {
-    it('returns false when total staked balance is zero', () => {
-      const resources = [
-        {
-          symbol: TRON_RESOURCE.STRX_ENERGY,
-          balance: '0',
-        },
-        {
-          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
-          balance: '0',
-        },
-      ];
+    it('returns false when totalStakedTrx is zero', () => {
+      const resources: TronResourcesMap = {
+        energy: undefined,
+        bandwidth: undefined,
+        maxEnergy: undefined,
+        maxBandwidth: undefined,
+        stakedTrxForEnergy: undefined,
+        stakedTrxForBandwidth: undefined,
+        totalStakedTrx: 0,
+      };
 
       const result = hasStakedTrxPositions(resources);
 
       expect(result).toBe(false);
     });
 
-    it('returns true when total staked balance is greater than zero', () => {
-      const resources = [
-        {
-          symbol: TRON_RESOURCE.STRX_ENERGY,
-          balance: '1',
-        },
-      ];
+    it('returns true when totalStakedTrx is greater than zero', () => {
+      const resources: TronResourcesMap = {
+        energy: undefined,
+        bandwidth: undefined,
+        maxEnergy: undefined,
+        maxBandwidth: undefined,
+        stakedTrxForEnergy: undefined,
+        stakedTrxForBandwidth: undefined,
+        totalStakedTrx: 1,
+      };
 
       const result = hasStakedTrxPositions(resources);
 
