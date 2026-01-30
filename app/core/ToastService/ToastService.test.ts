@@ -1,10 +1,10 @@
 import ToastService from './ToastService';
 import Logger from '../../util/Logger';
-import type {
-  ToastRef,
-  ToastOptions,
+import {
+  type ToastRef,
+  type ToastOptions,
+  ToastVariants,
 } from '../../component-library/components/Toast/Toast.types';
-import { ToastVariants } from '../../component-library/components/Toast/Toast.types';
 
 jest.mock('../../util/Logger');
 
