@@ -6,7 +6,13 @@ import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeWalletPlatform } from '../../tags';
-import { completeGoogleNewUserOnboarding, lockApp, resetWallet } from './utils';
+import {
+  completeGoogleNewUserOnboarding,
+  lockApp,
+  resetWallet,
+  loginWithPassword,
+  FIXTURE_PASSWORD,
+} from './utils';
 
 describe(SmokeWalletPlatform('Google Login - Reset Wallet'), () => {
   beforeAll(async () => {
@@ -19,9 +25,15 @@ describe(SmokeWalletPlatform('Google Login - Reset Wallet'), () => {
   });
 
   it('onboards with Google login, locks, and resets the wallet', async () => {
+    const isIOS = device.getPlatform() === 'ios';
+
+    const fixture = isIOS
+      ? new FixtureBuilder().build()
+      : new FixtureBuilder({ onboarding: true }).build();
+
     await withFixtures(
       {
-        fixture: new FixtureBuilder({ onboarding: true }).build(),
+        fixture,
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           const oAuthMockttpService = createOAuthMockttpService();
@@ -30,8 +42,11 @@ describe(SmokeWalletPlatform('Google Login - Reset Wallet'), () => {
         },
       },
       async () => {
-        // Complete user onboarding
-        await completeGoogleNewUserOnboarding();
+        if (isIOS) {
+          await loginWithPassword(FIXTURE_PASSWORD);
+        } else {
+          await completeGoogleNewUserOnboarding();
+        }
 
         // Lock the app
         await lockApp();

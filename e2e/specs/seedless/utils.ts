@@ -13,8 +13,20 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/wallet/LoginView';
 import ForgotPasswordModal from '../../pages/Common/ForgotPasswordModalView';
+import {
+  loginToApp,
+  dismissDevScreens,
+  waitForAppReady,
+} from '../../viewHelper';
+import {
+  getFixturesServerPort,
+  getMockServerPortForFixture,
+} from '../../../tests/framework/fixtures/FixtureUtils';
+import Gestures from '../../../tests/framework/Gestures';
 
 export const TEST_PASSWORD = 'Test123!@#';
+
+export const FIXTURE_PASSWORD = '123123123';
 
 /**
  * Social login new user onboarding flow
@@ -107,6 +119,9 @@ export const completeGoogleNewUserOnboarding = (): Promise<void> =>
 export const completeAppleNewUserOnboarding = (): Promise<void> =>
   completeSocialLoginOnboarding('apple');
 
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Locks the app from Settings
  */
@@ -116,6 +131,24 @@ export const lockApp = async (): Promise<void> => {
   await SettingsView.tapLock();
 
   await SettingsView.tapYesAlertButton();
+
+  const isIOS = device.getPlatform() === 'ios';
+
+  if (isIOS) {
+    await delay(1000);
+
+    await device.terminateApp();
+    await device.launchApp({
+      newInstance: false,
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        mockServerPort: `${getMockServerPortForFixture()}`,
+      },
+    });
+
+    await dismissDevScreens();
+    await waitForAppReady();
+  }
 
   await Assertions.expectElementToBeVisible(LoginView.container, {
     description: 'Login screen should be visible after locking',
@@ -129,17 +162,16 @@ export const lockApp = async (): Promise<void> => {
 export const unlockApp = async (
   password: string = TEST_PASSWORD,
 ): Promise<void> => {
-  await Assertions.expectElementToBeVisible(LoginView.container, {
-    description: 'Login screen should be visible',
-    timeout: 30000,
-  });
+  await loginToApp(password);
+};
 
-  await LoginView.enterPassword(password);
-
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description: 'Wallet view should be visible after unlock',
-    timeout: 30000,
-  });
+/**
+ * Login with password
+ */
+export const loginWithPassword = async (
+  password: string = FIXTURE_PASSWORD,
+): Promise<void> => {
+  await loginToApp(password);
 };
 
 /**
@@ -149,6 +181,10 @@ export const resetWallet = async (): Promise<void> => {
   await Assertions.expectElementToBeVisible(LoginView.container, {
     description: 'Login screen should be visible',
     timeout: 30000,
+  });
+
+  await Gestures.swipe(LoginView.container, 'down', {
+    elemDescription: 'Login container - dismiss keyboard',
   });
 
   await LoginView.tapForgotPassword();
