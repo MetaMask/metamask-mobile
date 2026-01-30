@@ -37,7 +37,7 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { isWithdrawal, withdrawalToken } = useWithdrawalToken();
+  const { isWithdrawal } = useWithdrawalToken();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
@@ -58,30 +58,17 @@ export function PayWithRow() {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [canEdit, navigation, setConfirmationMetric]);
 
-  // For withdrawals, use withdrawal token; otherwise use pay token
-  const displayToken = isWithdrawal ? withdrawalToken : payToken;
   const label = isWithdrawal
     ? strings('confirm.label.receive_as')
     : strings('confirm.label.pay_with');
 
+  // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
     [formatFiat, payToken?.balanceUsd],
   );
 
-  // For withdrawals, show the token's fiat price (e.g., "$2,490.12" for ETH)
-  const withdrawalTokenPriceFormatted = useMemo(() => {
-    if (!withdrawalToken?.balanceHuman || !withdrawalToken?.balanceFiat) {
-      return '';
-    }
-    const balanceHuman = parseFloat(withdrawalToken.balanceHuman);
-    const balanceFiat = parseFloat(withdrawalToken.balanceFiat);
-    if (balanceHuman <= 0) return '';
-    const price = balanceFiat / balanceHuman;
-    return formatFiat(new BigNumber(price));
-  }, [formatFiat, withdrawalToken?.balanceHuman, withdrawalToken?.balanceFiat]);
-
-  if (!displayToken) {
+  if (!payToken) {
     return <PayWithRowSkeleton />;
   }
 
@@ -98,27 +85,15 @@ export function PayWithRow() {
         gap={12}
         style={styles.container}
       >
-        <TokenIcon
-          address={displayToken.address}
-          chainId={displayToken.chainId}
-        />
+        <TokenIcon address={payToken.address} chainId={payToken.chainId} />
         <Text
           variant={TextVariant.BodyMDMedium}
           color={TextColor.Default}
           testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
         >
-          {`${label} ${displayToken.symbol}`}
+          {`${label} ${payToken.symbol}`}
         </Text>
-        {/* For withdrawals, show token price; for deposits, show balance */}
-        {isWithdrawal && withdrawalTokenPriceFormatted && (
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-            testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
-          >
-            {withdrawalTokenPriceFormatted}
-          </Text>
-        )}
+        {/* For deposits, show the user's balance; for withdrawals, no balance needed */}
         {!isWithdrawal && (
           <Text
             variant={TextVariant.BodyMDMedium}

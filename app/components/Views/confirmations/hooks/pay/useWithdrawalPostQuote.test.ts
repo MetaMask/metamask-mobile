@@ -3,7 +3,6 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useWithdrawalPostQuote } from './useWithdrawalPostQuote';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import Engine from '../../../../../core/Engine';
-import { withdrawalTokenStore } from './withdrawalTokenStore';
 import { POLYGON_USDCE } from '../../constants/predict';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
@@ -38,7 +37,6 @@ describe('useWithdrawalPostQuote', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    withdrawalTokenStore.reset();
     findNetworkClientIdByChainIdMock.mockReturnValue(NETWORK_CLIENT_ID_MOCK);
   });
 
@@ -100,7 +98,7 @@ describe('useWithdrawalPostQuote', () => {
       id: TRANSACTION_ID_MOCK,
       type: TransactionType.predictWithdraw,
     } as never);
-    findNetworkClientIdByChainIdMock.mockReturnValue(undefined);
+    findNetworkClientIdByChainIdMock.mockReturnValue(undefined as never);
 
     renderHook(() => useWithdrawalPostQuote());
 

@@ -1,11 +1,18 @@
 import { useEffect, useRef } from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { isWithdrawalTransaction } from '../../utils/transaction';
 import { createProjectLogger } from '@metamask/utils';
-import { withdrawalTokenStore } from './withdrawalTokenStore';
+import { POLYGON_USDCE } from '../../constants/predict';
 
 const log = createProjectLogger('transaction-pay-withdrawal');
+
+/** Default withdrawal token: Polygon USDC.E */
+const DEFAULT_WITHDRAWAL_TOKEN = {
+  address: POLYGON_USDCE.address,
+  chainId: CHAIN_IDS.POLYGON,
+};
 
 /**
  * Hook that sets isPostQuote=true for withdrawal transactions and initializes
@@ -32,16 +39,15 @@ export function useWithdrawalPostQuote(): void {
 
       // Initialize paymentToken with the default withdrawal token (Polygon USDC.e)
       // In post-quote mode, paymentToken represents the destination token
-      const defaultToken = withdrawalTokenStore.getToken();
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        defaultToken.chainId,
+        DEFAULT_WITHDRAWAL_TOKEN.chainId,
       );
 
       if (networkClientId) {
         TransactionPayController.updatePaymentToken({
           transactionId,
-          tokenAddress: defaultToken.address,
-          chainId: defaultToken.chainId,
+          tokenAddress: DEFAULT_WITHDRAWAL_TOKEN.address,
+          chainId: DEFAULT_WITHDRAWAL_TOKEN.chainId,
         });
       }
 
@@ -49,7 +55,7 @@ export function useWithdrawalPostQuote(): void {
 
       log('Initialized withdrawal transaction', {
         transactionId,
-        defaultToken,
+        defaultToken: DEFAULT_WITHDRAWAL_TOKEN,
       });
     } catch (error) {
       log('Error initializing withdrawal', { error, transactionId });

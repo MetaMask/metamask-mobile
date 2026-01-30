@@ -1,13 +1,9 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
 import { isWithdrawalTransaction } from '../../utils/transaction';
-import { withdrawalTokenStore, WithdrawalToken } from './withdrawalTokenStore';
-
-// Re-export the type for consumers
-export type { WithdrawalToken } from './withdrawalTokenStore';
 
 /**
  * Whether the withdrawal token picker feature is enabled.
@@ -21,47 +17,25 @@ export interface UseWithdrawalTokenResult {
   isWithdrawal: boolean;
   /** Whether the user can select a different withdrawal token (feature flag) */
   canSelectWithdrawalToken: boolean;
-  /** The currently selected withdrawal token (defaults to Polygon USDC.E) */
-  withdrawalToken: WithdrawalToken | undefined;
   /** Set the withdrawal destination token - updates TransactionPayController paymentToken */
-  setWithdrawalToken: (token: {
-    address: Hex;
-    chainId: Hex;
-    symbol?: string;
-    decimals?: number;
-    name?: string;
-  }) => void;
+  setWithdrawalToken: (token: { address: Hex; chainId: Hex }) => void;
 }
 
 /**
  * Hook for managing withdrawal token selection.
  * For withdrawal transactions, this calls TransactionPayController.updatePaymentToken
  * to set the destination token for the post-quote bridge.
- * Defaults to Polygon USDC.E if no token is selected.
- * Uses a simple store to share state across navigation screens.
+ *
+ * Note: The actual token data (symbol, balance, etc.) should be read from
+ * useTransactionPayToken's payToken, not from this hook.
  */
 export function useWithdrawalToken(): UseWithdrawalTokenResult {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const isWithdrawal = isWithdrawalTransaction(transactionMeta);
 
-  // Subscribe to store changes using useSyncExternalStore
-  const storeToken = useSyncExternalStore(
-    withdrawalTokenStore.subscribe.bind(withdrawalTokenStore),
-    withdrawalTokenStore.getToken.bind(withdrawalTokenStore),
-  );
-
-  // Return the token for withdrawals, undefined otherwise
-  const withdrawalToken = isWithdrawal ? storeToken : undefined;
-
   const setWithdrawalToken = useCallback(
-    (newToken: {
-      address: Hex;
-      chainId: Hex;
-      symbol?: string;
-      decimals?: number;
-      name?: string;
-    }) => {
+    (newToken: { address: Hex; chainId: Hex }) => {
       if (!transactionId) {
         return;
       }
@@ -76,15 +50,6 @@ export function useWithdrawalToken(): UseWithdrawalTokenResult {
       if (!networkClientId) {
         return;
       }
-
-      // Update store state immediately for UI responsiveness
-      withdrawalTokenStore.setToken({
-        address: newToken.address,
-        chainId: newToken.chainId,
-        symbol: newToken.symbol,
-        decimals: newToken.decimals,
-        name: newToken.name,
-      });
 
       // Update TransactionPayController's paymentToken (which represents destination in post-quote mode)
       // This triggers a new quote fetch with the selected destination token
@@ -102,7 +67,6 @@ export function useWithdrawalToken(): UseWithdrawalTokenResult {
   return {
     isWithdrawal,
     canSelectWithdrawalToken: isWithdrawal && isWithdrawalTokenPickerEnabled,
-    withdrawalToken,
     setWithdrawalToken,
   };
 }

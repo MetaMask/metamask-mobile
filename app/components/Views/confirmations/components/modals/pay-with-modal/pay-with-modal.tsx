@@ -50,14 +50,11 @@ export function PayWithModal() {
       }
 
       if (isWithdrawal) {
-        // For withdrawals, update transaction destination via updateEditableParams
+        // For withdrawals, update destination token via TransactionPayController
         close(() => {
           setWithdrawalToken({
             address: token.address as Hex,
             chainId: token.chainId as Hex,
-            symbol: token.symbol,
-            decimals: token.decimals,
-            name: token.name,
           });
         });
         return;
@@ -71,7 +68,14 @@ export function PayWithModal() {
         });
       });
     },
-    [close, isWithdrawal, onMusdPaymentTokenChange, setPayToken, setWithdrawalToken, transactionMeta],
+    [
+      close,
+      isWithdrawal,
+      onMusdPaymentTokenChange,
+      setPayToken,
+      setWithdrawalToken,
+      transactionMeta,
+    ],
   );
 
   const tokenFilter = useCallback(
