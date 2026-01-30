@@ -80,16 +80,21 @@ jest.mock('@react-navigation/stack', () => {
   };
 });
 
-// Mock LockManagerService
-const mockStopListening = jest.fn();
-const mockStartListening = jest.fn();
+// Mock LockManagerService - must use inline jest.fn() to avoid hoisting issues
 jest.mock('../../../../core/LockManagerService', () => ({
   __esModule: true,
   default: {
-    stopListening: mockStopListening,
-    startListening: mockStartListening,
+    stopListening: jest.fn(),
+    startListening: jest.fn(),
   },
 }));
+
+// Get references to the mock functions for assertions
+const mockLockManagerService = jest.requireMock(
+  '../../../../core/LockManagerService',
+).default;
+const mockStopListening = mockLockManagerService.stopListening;
+const mockStartListening = mockLockManagerService.startListening;
 
 // Mock navigation components
 jest.mock('../components/Onboarding/SignUp', () => 'SignUp');

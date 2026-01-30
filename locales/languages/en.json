@@ -4641,7 +4641,9 @@
     "select_provider": "Select your preferred provider",
     "switch_network": "Please switch to mainnet or sepolia",
     "card_title": "Always show MetaMask Card button",
-    "card_desc": "MetaMask Card is only available to residents of select countries."
+    "card_desc": "MetaMask Card is only available to residents of select countries.",
+    "daimo_demo_title": "Use DaimoPay demo environment",
+    "daimo_demo_desc": "Toggle between DaimoPay demo and production environments for card payments."
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",

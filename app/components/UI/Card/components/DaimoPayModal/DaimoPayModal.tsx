@@ -35,6 +35,8 @@ import AppConstants from '../../../../../core/AppConstants';
 import { getPermittedEvmAddressesByHostname } from '../../../../../core/Permissions';
 import { selectPermissionControllerState } from '../../../../../selectors/snaps/permissionController';
 import type { RootState } from '../../../../../reducers';
+import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
+import { getDaimoEnvironment } from '../../util/getDaimoEnvironment';
 
 const POLLING_INTERVAL_MS = 5000;
 const POLLING_TIMEOUT_MS = 10 * 60 * 1000;
@@ -76,11 +78,10 @@ const DaimoPayModal: React.FC = () => {
   const tw = useTailwind();
   const [error, setError] = useState<string | null>(null);
   const [entryScriptWeb3, setEntryScriptWeb3] = useState<string>('');
-
+  const isDaimoDemo = useSelector(selectIsDaimoDemo);
   const { sdk: cardSDK } = useCardSDK();
 
   const webViewUrl = DaimoPayService.buildWebViewUrl(payId);
-  const isProduction = DaimoPayService.isProduction();
   const daimoOrigin = new URL(webViewUrl).origin;
 
   const permittedAccountsList = useSelector((state: RootState) => {
@@ -276,7 +277,10 @@ const DaimoPayModal: React.FC = () => {
   );
 
   const startPolling = useCallback(() => {
-    if (!isProduction || pollingIntervalRef.current) {
+    if (
+      getDaimoEnvironment(isDaimoDemo) !== 'production' ||
+      pollingIntervalRef.current
+    ) {
       return;
     }
 
@@ -309,13 +313,7 @@ const DaimoPayModal: React.FC = () => {
         // Continue polling on error
       }
     }, POLLING_INTERVAL_MS);
-  }, [
-    isProduction,
-    payId,
-    handlePaymentSuccess,
-    handlePaymentBounced,
-    cardSDK,
-  ]);
+  }, [isDaimoDemo, payId, handlePaymentSuccess, handlePaymentBounced, cardSDK]);
 
   const handleDaimoEvent = useCallback(
     (event: DaimoPayEvent) => {

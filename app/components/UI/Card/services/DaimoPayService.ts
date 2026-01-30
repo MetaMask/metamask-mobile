@@ -1,11 +1,7 @@
 import Logger from '../../../../util/Logger';
 import { isSameOrigin } from '../../../../util/url';
 import { CardError, CardErrorType } from '../types';
-import {
-  getDaimoEnvironment,
-  isDaimoProduction,
-  isDaimoDemo,
-} from '../util/getDaimoEnvironment';
+import { getDaimoEnvironment } from '../util/getDaimoEnvironment';
 import { CardSDK } from '../sdk/CardSDK';
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30000;
@@ -248,13 +244,14 @@ const pollProductionPaymentStatus = async (
 
 export interface DaimoPayServiceOptions {
   cardSDK?: CardSDK;
+  isDaimoDemo?: boolean;
 }
 
 export const DaimoPayService = {
   createPayment: async (
     options?: DaimoPayServiceOptions,
   ): Promise<DaimoPaymentResponse> => {
-    if (isDaimoDemo()) {
+    if (getDaimoEnvironment(options?.isDaimoDemo ?? false) === 'demo') {
       return createDemoPayment();
     }
 
@@ -271,7 +268,7 @@ export const DaimoPayService = {
     payId: string,
     options?: DaimoPayServiceOptions,
   ): Promise<DaimoPaymentStatusResponse> => {
-    if (isDaimoDemo()) {
+    if (getDaimoEnvironment(options?.isDaimoDemo ?? false) === 'demo') {
       return {
         status: 'pending',
       };
@@ -315,12 +312,6 @@ export const DaimoPayService = {
       return false;
     }
   },
-
-  getEnvironment: getDaimoEnvironment,
-
-  isProduction: isDaimoProduction,
-
-  isDemo: isDaimoDemo,
 
   isValidMessageOrigin: (origin: string): boolean =>
     isSameOrigin(origin, DAIMO_ALLOWED_ORIGIN),

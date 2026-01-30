@@ -160,6 +160,11 @@ jest.mock('../../../../../core/AppConstants', () => ({
   NOTIFICATION_NAMES: {
     accountsChanged: 'metamask_accountsChanged',
   },
+  BUNDLE_IDS: {
+    ANDROID: 'io.metamask',
+    IOS: 'io.metamask.MetaMask',
+  },
+  MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 }));
 
 jest.mock('../../../../../constants/dapp', () => ({
