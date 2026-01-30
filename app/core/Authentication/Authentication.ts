@@ -82,6 +82,7 @@ import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -855,6 +856,29 @@ class AuthenticationService {
       // eslint-disable-next-line no-useless-catch
     } catch (error) {
       // Error while submitting password.
+
+      // check for specific error
+      if (
+        error instanceof Error &&
+        error.message.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
+        )
+      ) {
+        // Alert user biometric changed
+        Alert.alert(
+          strings('login.biometric_changed'),
+          strings('login.biometric_changed_alert_desc'),
+          [
+            {
+              text: strings('login.biometric_changed_alert_confirm'),
+              onPress: () => {
+                // reset Password
+                this.resetPassword();
+              },
+            },
+          ],
+        );
+      }
 
       // TODO: Refactor lockApp to be more deterministic or create another clean up method.
       try {
