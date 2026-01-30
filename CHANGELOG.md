@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix: cherry-pick 429 rate limiting fix with coin naming convention (#25443)
+- fix(perps): potential rate limit on close positions (#25456)
 
 ## [7.62.1]
 
