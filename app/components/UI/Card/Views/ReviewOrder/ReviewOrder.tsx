@@ -142,7 +142,11 @@ const ReviewOrder = () => {
 
       navigate(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.DAIMO_PAY,
-        params: { payId: response.payId, fromUpgrade },
+        params: {
+          payId: response.payId,
+          orderId: response.orderId,
+          fromUpgrade,
+        },
       });
     } catch (error) {
       Logger.error(

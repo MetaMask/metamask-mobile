@@ -22,6 +22,7 @@ const DEMO_PAYMENT_CONFIG = {
 
 export interface DaimoPaymentResponse {
   payId: string;
+  orderId: string;
 }
 
 export interface DaimoPaymentStatusResponse {
@@ -138,6 +139,7 @@ const createDemoPayment = async (): Promise<DaimoPaymentResponse> => {
 
     return {
       payId: data.id,
+      orderId: data.id,
     };
   } catch (error) {
     if (error instanceof CardError) {
@@ -171,7 +173,8 @@ const createProductionPayment = async (
     });
 
     return {
-      payId: orderResponse.orderId,
+      payId: orderResponse.requestId,
+      orderId: orderResponse.orderId,
     };
   } catch (error) {
     Logger.error(
@@ -265,7 +268,7 @@ export const DaimoPayService = {
   },
 
   pollPaymentStatus: async (
-    payId: string,
+    orderId: string,
     options?: DaimoPayServiceOptions,
   ): Promise<DaimoPaymentStatusResponse> => {
     if (getDaimoEnvironment(options?.isDaimoDemo ?? false) === 'demo') {
@@ -281,7 +284,7 @@ export const DaimoPayService = {
       );
     }
 
-    return pollProductionPaymentStatus(options.cardSDK, payId);
+    return pollProductionPaymentStatus(options.cardSDK, orderId);
   },
 
   buildWebViewUrl: (

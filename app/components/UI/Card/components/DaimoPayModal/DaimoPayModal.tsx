@@ -45,6 +45,7 @@ const { NOTIFICATION_NAMES } = AppConstants;
 export interface DaimoPayModalParams {
   payId: string;
   fromUpgrade?: boolean;
+  orderId: string;
 }
 
 const baseStyles = StyleSheet.create({
@@ -74,7 +75,7 @@ const DaimoPayModal: React.FC = () => {
 
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { payId, fromUpgrade } = useParams<DaimoPayModalParams>();
+  const { payId, fromUpgrade, orderId } = useParams<DaimoPayModalParams>();
   const tw = useTailwind();
   const [error, setError] = useState<string | null>(null);
   const [entryScriptWeb3, setEntryScriptWeb3] = useState<string>('');
@@ -300,7 +301,7 @@ const DaimoPayModal: React.FC = () => {
       }
 
       try {
-        const status = await DaimoPayService.pollPaymentStatus(payId, {
+        const status = await DaimoPayService.pollPaymentStatus(orderId, {
           cardSDK: cardSDK ?? undefined,
         });
 
@@ -313,7 +314,13 @@ const DaimoPayModal: React.FC = () => {
         // Continue polling on error
       }
     }, POLLING_INTERVAL_MS);
-  }, [isDaimoDemo, payId, handlePaymentSuccess, handlePaymentBounced, cardSDK]);
+  }, [
+    isDaimoDemo,
+    orderId,
+    handlePaymentSuccess,
+    handlePaymentBounced,
+    cardSDK,
+  ]);
 
   const handleDaimoEvent = useCallback(
     (event: DaimoPayEvent) => {
@@ -346,7 +353,10 @@ const DaimoPayModal: React.FC = () => {
           break;
 
         case 'paymentCompleted':
-          handlePaymentSuccess(event.payload.txHash, event.payload.chainId);
+          // Don't navigate immediately - let polling verify the order status.
+          // The WebView fires this when transaction is submitted, but we need
+          // to wait for the backend to confirm the order is actually completed.
+          // Tracking is handled elsewhere when polling confirms completion.
           break;
 
         case 'paymentBounced': {
@@ -363,7 +373,6 @@ const DaimoPayModal: React.FC = () => {
       trackEvent,
       createEventBuilder,
       handleClose,
-      handlePaymentSuccess,
       handlePaymentBounced,
       startPolling,
     ],

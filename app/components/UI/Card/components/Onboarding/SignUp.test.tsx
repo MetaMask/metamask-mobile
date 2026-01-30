@@ -156,9 +156,9 @@ describe('SignUp Component', () => {
 
       expect(getByTestId('signup-email-input')).toBeTruthy();
       expect(getByTestId('signup-password-input')).toBeTruthy();
-      expect(getByTestId('signup-confirm-password-input')).toBeTruthy();
       expect(getByTestId('signup-country-select')).toBeTruthy();
       expect(getByTestId('signup-continue-button')).toBeTruthy();
+      expect(getByTestId('signup-password-visibility-toggle')).toBeTruthy();
     });
 
     it('has continue button disabled initially', () => {
@@ -180,7 +180,7 @@ describe('SignUp Component', () => {
       );
 
       expect(queryByTestId('signup-email-error-text')).toBeNull();
-      expect(queryByTestId('signup-confirm-password-error-text')).toBeNull();
+      expect(queryByTestId('signup-password-error-text')).toBeNull();
     });
   });
 
@@ -247,23 +247,42 @@ describe('SignUp Component', () => {
 
       expect(passwordInput.props.value).toBe('password123');
     });
-  });
 
-  describe('Confirm Password Input', () => {
-    it('allows text input', () => {
+    it('has password hidden by default (secureTextEntry)', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
         </Provider>,
       );
 
-      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
-      fireEvent.changeText(confirmPasswordInput, 'password123');
-
-      expect(confirmPasswordInput.props.value).toBe('password123');
+      const passwordInput = getByTestId('signup-password-input');
+      expect(passwordInput.props.secureTextEntry).toBe(true);
     });
 
-    it('shows error message when passwords do not match', async () => {
+    it('toggles password visibility when eye icon is pressed', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const passwordInput = getByTestId('signup-password-input');
+      const visibilityToggle = getByTestId('signup-password-visibility-toggle');
+
+      // Initially hidden
+      expect(passwordInput.props.secureTextEntry).toBe(true);
+
+      // Press to show password
+      fireEvent.press(visibilityToggle);
+      expect(passwordInput.props.secureTextEntry).toBe(false);
+
+      // Press again to hide password
+      fireEvent.press(visibilityToggle);
+      expect(passwordInput.props.secureTextEntry).toBe(true);
+    });
+
+    it('shows error message when password is invalid', async () => {
+      (validatePassword as jest.Mock).mockReturnValue(false);
       const { getByTestId, findByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -271,37 +290,12 @@ describe('SignUp Component', () => {
       );
 
       const passwordInput = getByTestId('signup-password-input');
-      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
-
       await act(async () => {
-        fireEvent.changeText(passwordInput, 'Password123!');
-        fireEvent.changeText(confirmPasswordInput, 'Password321!');
+        fireEvent.changeText(passwordInput, 'weak');
       });
 
-      const errorText = await findByTestId(
-        'signup-confirm-password-error-text',
-      );
+      const errorText = await findByTestId('signup-password-error-text');
       expect(errorText).toBeTruthy();
-    });
-
-    it('does not show error message when passwords match', async () => {
-      const { getByTestId, queryByTestId } = render(
-        <Provider store={store}>
-          <SignUp />
-        </Provider>,
-      );
-
-      const passwordInput = getByTestId('signup-password-input');
-      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'Password123!');
-        fireEvent.changeText(confirmPasswordInput, 'Password123!');
-      });
-
-      await waitFor(() => {
-        expect(queryByTestId('signup-confirm-password-error-text')).toBeNull();
-      });
     });
   });
 
@@ -351,14 +345,12 @@ describe('SignUp Component', () => {
 
       const emailInput = getByTestId('signup-email-input');
       const passwordInput = getByTestId('signup-password-input');
-      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
       const continueButton = getByTestId('signup-continue-button');
 
       // Fill in all form fields
       await act(async () => {
         fireEvent.changeText(emailInput, 'test@example.com');
         fireEvent.changeText(passwordInput, 'Password123!');
-        fireEvent.changeText(confirmPasswordInput, 'Password123!');
       });
 
       // Now check if the continue button is enabled
@@ -389,45 +381,11 @@ describe('SignUp Component', () => {
 
       const emailInput = getByTestId('signup-email-input');
       const passwordInput = getByTestId('signup-password-input');
-      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
         fireEvent.changeText(emailInput, 'invalid-email');
         fireEvent.changeText(passwordInput, 'Password123!');
-        fireEvent.changeText(confirmPasswordInput, 'Password123!');
-      });
-
-      await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(true);
-      });
-    });
-
-    it('keeps continue button disabled when passwords do not match', async () => {
-      const storeWithCountry = createTestStore({
-        onboarding: {
-          selectedCountry: { key: 'US', name: 'United States' },
-          onboardingId: null,
-          contactVerificationId: null,
-          user: null,
-        },
-      });
-
-      const { getByTestId } = render(
-        <Provider store={storeWithCountry}>
-          <SignUp />
-        </Provider>,
-      );
-
-      const emailInput = getByTestId('signup-email-input');
-      const passwordInput = getByTestId('signup-password-input');
-      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
-      const continueButton = getByTestId('signup-continue-button');
-
-      await act(async () => {
-        fireEvent.changeText(emailInput, 'test@example.com');
-        fireEvent.changeText(passwordInput, 'Password123!');
-        fireEvent.changeText(confirmPasswordInput, 'Password321!');
       });
 
       await waitFor(() => {
@@ -454,13 +412,11 @@ describe('SignUp Component', () => {
 
       const emailInput = getByTestId('signup-email-input');
       const passwordInput = getByTestId('signup-password-input');
-      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
         fireEvent.changeText(emailInput, 'test@example.com');
         fireEvent.changeText(passwordInput, 'weak');
-        fireEvent.changeText(confirmPasswordInput, 'weak');
       });
 
       await waitFor(() => {
@@ -477,13 +433,11 @@ describe('SignUp Component', () => {
 
       const emailInput = getByTestId('signup-email-input');
       const passwordInput = getByTestId('signup-password-input');
-      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
         fireEvent.changeText(emailInput, 'test@example.com');
         fireEvent.changeText(passwordInput, 'Password123!');
-        fireEvent.changeText(confirmPasswordInput, 'Password123!');
         // Don't select country
       });
 
@@ -512,13 +466,11 @@ describe('SignUp Component', () => {
 
       const emailInput = getByTestId('signup-email-input');
       const passwordInput = getByTestId('signup-password-input');
-      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
         fireEvent.changeText(emailInput, 'test@example.com');
         fireEvent.changeText(passwordInput, 'Password123!');
-        fireEvent.changeText(confirmPasswordInput, 'Password123!');
       });
 
       await waitFor(() => {
