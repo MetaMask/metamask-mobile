@@ -11,24 +11,13 @@ import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { useConfirmActions } from '../useConfirmActions';
-import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { noop } from 'lodash';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayQuotes,
-  useTransactionPayRequiredTokens,
-} from '../pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
-import {
-  TransactionPayRequiredToken,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
-import { Hex } from '@metamask/utils';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -58,7 +47,6 @@ jest.mock('../../../../../selectors/preferencesController');
 jest.mock('../useHasInsufficientBalance');
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('../pay/useTransactionPayToken');
 jest.mock('../useAccountNativeBalance');
 jest.mock('../../../../../../locales/i18n');
 jest.mock('../../../../../selectors/networkController');
@@ -67,7 +55,6 @@ jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
 jest.mock('../gas/useIsGaslessSupported');
-jest.mock('../pay/useTransactionPayData');
 jest.mock('../pay/useTransactionPayHasSourceAmount');
 
 describe('useInsufficientBalanceAlert', () => {
@@ -79,18 +66,10 @@ describe('useInsufficientBalanceAlert', () => {
   const mockSelectUseTransactionSimulations = jest.mocked(
     selectUseTransactionSimulations,
   );
-  const mockUseTransactionPayToken = jest.mocked(useTransactionPayToken);
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
   const mockUseRampNavigation = jest.mocked(useRampNavigation);
   const mockGoToBuy = jest.fn();
   const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
-  const useTransactionPayRequiredTokensMock = jest.mocked(
-    useTransactionPayRequiredTokens,
-  );
-  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
-  const useIsTransactionPayLoadingMock = jest.mocked(
-    useIsTransactionPayLoading,
-  );
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
   );
@@ -122,10 +101,6 @@ describe('useInsufficientBalanceAlert', () => {
     } as unknown as ReturnType<typeof useAccountNativeBalance>);
     mockUseTransactionMetadataRequest.mockReturnValue(mockTransaction);
     mockSelectUseTransactionSimulations.mockReturnValue(false);
-    mockUseTransactionPayToken.mockReturnValue({
-      payToken: undefined,
-      setPayToken: noop as never,
-    });
 
     (strings as jest.Mock).mockImplementation((key, params) => {
       if (key === 'alert_system.insufficient_balance.buy_action') {
@@ -153,15 +128,7 @@ describe('useInsufficientBalanceAlert', () => {
       goToDeposit: jest.fn(),
     });
 
-    useTransactionPayRequiredTokensMock.mockReturnValue([]);
-    useTransactionPayQuotesMock.mockReturnValue([]);
-    useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionPayHasSourceAmountMock.mockReturnValue(false);
-
-    mockUseTransactionPayToken.mockReturnValue({
-      payToken: undefined,
-      setPayToken: jest.fn(),
-    });
 
     useHasInsufficientBalanceMock.mockReturnValue({
       hasInsufficientBalance: true,
@@ -305,86 +272,7 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns no alert if pay token', () => {
-    mockUseTransactionPayToken.mockReturnValue({
-      payToken: {
-        address: '0x123' as Hex,
-      } as TransactionPaymentToken,
-      setPayToken: jest.fn(),
-    });
-
-    const { result } = renderHook(() => useInsufficientBalanceAlert());
-
-    expect(result.current).toStrictEqual([]);
-  });
-
-  it('returns alert if pay token matches required token', () => {
-    mockUseTransactionPayToken.mockReturnValue({
-      payToken: {
-        address: '0x123' as Hex,
-        chainId: mockChainId,
-      } as TransactionPaymentToken,
-      setPayToken: jest.fn(),
-    });
-
-    useTransactionPayRequiredTokensMock.mockReturnValue([
-      {
-        address: '0x123' as Hex,
-        chainId: mockChainId,
-      } as TransactionPayRequiredToken,
-    ]);
-
-    const { result } = renderHook(() => useInsufficientBalanceAlert());
-
-    expect(result.current).toHaveLength(1);
-  });
-
-  it('returns no alert when pay token matches required token and quotes are available', () => {
-    mockUseTransactionPayToken.mockReturnValue({
-      payToken: {
-        address: '0x123' as Hex,
-        chainId: mockChainId,
-      } as TransactionPaymentToken,
-      setPayToken: jest.fn(),
-    });
-
-    useTransactionPayRequiredTokensMock.mockReturnValue([
-      {
-        address: '0x123' as Hex,
-        chainId: mockChainId,
-      } as TransactionPayRequiredToken,
-    ]);
-
-    useTransactionPayQuotesMock.mockReturnValue([
-      {
-        provider: 'mock-provider',
-      },
-    ] as unknown as ReturnType<typeof useTransactionPayQuotes>);
-    useTransactionPayHasSourceAmountMock.mockReturnValue(true);
-
-    const { result } = renderHook(() => useInsufficientBalanceAlert());
-
-    expect(result.current).toEqual([]);
-  });
-
-  it('returns no alert when pay token matches required token and quotes are loading', () => {
-    mockUseTransactionPayToken.mockReturnValue({
-      payToken: {
-        address: '0x123' as Hex,
-        chainId: mockChainId,
-      } as TransactionPaymentToken,
-      setPayToken: jest.fn(),
-    });
-
-    useTransactionPayRequiredTokensMock.mockReturnValue([
-      {
-        address: '0x123' as Hex,
-        chainId: mockChainId,
-      } as TransactionPayRequiredToken,
-    ]);
-
-    useTransactionPayQuotesMock.mockReturnValue([]);
-    useIsTransactionPayLoadingMock.mockReturnValue(true);
+  it('returns empty array when using pay source amounts', () => {
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());

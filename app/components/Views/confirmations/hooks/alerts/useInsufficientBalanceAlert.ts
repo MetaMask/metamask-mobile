@@ -11,12 +11,6 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../utils/transaction';
-import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayQuotes,
-  useTransactionPayRequiredTokens,
-} from '../pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
@@ -34,35 +28,13 @@ export const useInsufficientBalanceAlert = ({
   const { onReject } = useConfirmActions();
   const { isSupported: isGaslessSupported, pending: isGaslessCheckPending } =
     useIsGaslessSupported();
-  const { payToken } = useTransactionPayToken();
-  const quotes = useTransactionPayQuotes();
-  const isQuotesLoading = useIsTransactionPayLoading();
   const isUsingPay = useTransactionPayHasSourceAmount();
-  const requiredTokens = useTransactionPayRequiredTokens();
   const isSimulationEnabled = useSelector(selectUseTransactionSimulations);
   const { hasInsufficientBalance, nativeCurrency } =
     useHasInsufficientBalance();
 
-  const primaryRequiredToken = (requiredTokens ?? []).find(
-    (token) => !token.skipIfBalance,
-  );
-
-  const isPayTokenTarget =
-    payToken &&
-    payToken.chainId === primaryRequiredToken?.chainId &&
-    payToken.address.toLowerCase() ===
-      primaryRequiredToken?.address.toLowerCase();
-
-  const hasPayTokenQuotes = Boolean(quotes?.length);
-  const shouldSkipInsufficientBalanceForPayToken =
-    isUsingPay && (isQuotesLoading || hasPayTokenQuotes);
-
   return useMemo(() => {
-    if (
-      !transactionMetadata ||
-      isTransactionValueUpdating ||
-      (payToken && !isPayTokenTarget && !isUsingPay)
-    ) {
+    if (!transactionMetadata || isTransactionValueUpdating || isUsingPay) {
       return [];
     }
 
@@ -94,7 +66,6 @@ export const useInsufficientBalanceAlert = ({
         (!isGasFeeTokensEmpty && !selectedGasFeeToken));
 
     const showAlert =
-      !shouldSkipInsufficientBalanceForPayToken &&
       hasInsufficientBalance &&
       isSimulationComplete &&
       hasNoGasFeeTokenSelected &&
@@ -131,13 +102,10 @@ export const useInsufficientBalanceAlert = ({
   }, [
     transactionMetadata,
     isTransactionValueUpdating,
-    payToken,
-    isPayTokenTarget,
     isGaslessCheckPending,
     isGaslessSupported,
     isSimulationEnabled,
     ignoreGasFeeToken,
-    shouldSkipInsufficientBalanceForPayToken,
     isUsingPay,
     hasInsufficientBalance,
     nativeCurrency,
