@@ -7,7 +7,7 @@ import { getTransactionTypeValue } from './base';
 
 describe('TransactionType', () => {
   it('defines perpsDepositAndOrder (required by Perps one-click trading)', () => {
-    expect(TransactionType.perpsDepositAndOrder).toBeDefined();
+    expect(TransactionType.perpsDepositAndOrder).toBe('perpsDepositAndOrder');
   });
 });
 
