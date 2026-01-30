@@ -30,7 +30,10 @@ import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useDispatch } from 'react-redux';
-import { setOnboardingId } from '../../../../../core/redux/slices/card';
+import {
+  setOnboardingId,
+  setUserCardLocation,
+} from '../../../../../core/redux/slices/card';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -187,6 +190,7 @@ const CardAuthentication = () => {
         }
 
         if (loginResponse?.phase) {
+          dispatch(setUserCardLocation(location));
           dispatch(setOnboardingId(loginResponse.userId));
           navigation.reset({
             index: 0,
