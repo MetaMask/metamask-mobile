@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       selected_tags:
-        description: 'JSON array of selected tags from Smart E2E selection (e.g., ["SmokeCore", "SmokeAccounts"])'
+        description: 'JSON array of selected tags from Smart E2E selection (e.g., ["SmokeAccounts", "SmokeTrade"])'
         required: false
         type: string
         default: '["ALL"]'
@@ -211,6 +211,22 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
+  multichain-api-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI')
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: multichain-api-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'SmokeMultiChainAPI'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      changed_files: ${{ inputs.changed_files }}
+    secrets: inherit
+
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
@@ -228,6 +244,7 @@ jobs:
       - rewards-android-smoke
       - card-android-smoke
       - ramps-android-smoke
+      - multichain-api-android-smoke
     steps:
       - name: Checkout
         uses: actions/checkout@v4

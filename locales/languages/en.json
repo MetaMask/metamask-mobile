@@ -25,6 +25,8 @@
       "title": "Alert",
       "checkbox_label": "I have acknowledged the risk and still want to proceed",
       "got_it_btn": "Got it",
+      "acknowledge_btn": "Acknowledge",
+      "close_btn": "Close",
       "alert_details": "Alert details"
     },
     "confirm_modal": {
@@ -196,7 +198,10 @@
     "placeholder": "Search by site or address",
     "recents": "Recents",
     "favorites": "Favorites",
-    "sites": "Sites"
+    "sites": "Sites",
+    "tokens": "Trending tokens",
+    "perps": "Perps",
+    "predictions": "Predictions"
   },
   "navigation": {
     "back": "Back",
