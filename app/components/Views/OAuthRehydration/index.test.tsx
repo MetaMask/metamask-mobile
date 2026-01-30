@@ -236,6 +236,107 @@ describe('OAuthRehydration', () => {
         expect(mockTrackOnboarding).toHaveBeenCalled();
       });
     });
+
+    it('calls componentAuthenticationType with password-only mode (false, false)', async () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - should always use password authentication (first arg false)
+      await waitFor(() => {
+        expect(mockComponentAuthenticationType).toHaveBeenCalledWith(
+          false,
+          false,
+        );
+      });
+    });
+
+    it('calls updateAuthPreference with correct authType and password', async () => {
+      // Arrange
+      mockComponentAuthenticationType.mockResolvedValueOnce({
+        currentAuthType: 'biometrics',
+      });
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - should call updateAuthPreference with authType and password
+      await waitFor(() => {
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: 'biometrics',
+          password: 'validPassword123',
+        });
+      });
+    });
+
+    it('tracks biometrics as true in REHYDRATION_COMPLETED when updateAuthPreference succeeds', async () => {
+      // Arrange
+      mockUpdateAuthPreference.mockResolvedValueOnce(undefined);
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      mockTrackOnboarding.mockClear();
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - biometrics should be true when setup succeeds
+      await waitFor(() => {
+        const rehydrationCompletedCall = mockTrackOnboarding.mock.calls.find(
+          (call) =>
+            call[0]?.properties?.name ===
+            MetaMetricsEvents.REHYDRATION_COMPLETED.category,
+        );
+        expect(rehydrationCompletedCall?.[0]?.properties?.params).toMatchObject(
+          {
+            biometrics: true,
+          },
+        );
+      });
+    });
+
+    it('tracks biometrics as false in REHYDRATION_COMPLETED when updateAuthPreference fails', async () => {
+      // Arrange
+      mockUpdateAuthPreference.mockRejectedValueOnce(
+        new Error('Biometric setup failed'),
+      );
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      mockTrackOnboarding.mockClear();
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - biometrics should be false when setup fails
+      await waitFor(() => {
+        const rehydrationCompletedCall = mockTrackOnboarding.mock.calls.find(
+          (call) =>
+            call[0]?.properties?.name ===
+            MetaMetricsEvents.REHYDRATION_COMPLETED.category,
+        );
+        expect(rehydrationCompletedCall?.[0]?.properties?.params).toMatchObject(
+          {
+            biometrics: false,
+          },
+        );
+      });
+    });
   });
 
   describe('Password validation', () => {
@@ -740,6 +841,90 @@ describe('OAuthRehydration', () => {
         expect(errorElement.props.children).toContain(
           strings('login.seedless_password_outdated'),
         );
+      });
+    });
+
+    it('calls updateAuthPreference when submitting new global password', async () => {
+      // Arrange
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+      mockComponentAuthenticationType.mockResolvedValue({
+        currentAuthType: 'biometrics',
+      });
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'newValidPassword123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - updateAuthPreference should be called for password outdated flow
+      await waitFor(() => {
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: 'biometrics',
+          password: 'newValidPassword123',
+        });
+      });
+    });
+
+    it('calls componentAuthenticationType with password-only mode for outdated password flow', async () => {
+      // Arrange
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'newValidPassword123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - should always use password authentication (false, false)
+      await waitFor(() => {
+        expect(mockComponentAuthenticationType).toHaveBeenCalledWith(
+          false,
+          false,
+        );
+      });
+    });
+
+    it('continues login when updateAuthPreference fails in outdated password flow', async () => {
+      // Arrange
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+      mockUpdateAuthPreference.mockRejectedValueOnce(
+        new Error('Biometric setup failed'),
+      );
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'newValidPassword123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - unlockWallet should have been called despite biometric failure
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
       });
     });
   });
