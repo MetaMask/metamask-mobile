@@ -729,9 +729,8 @@ buildExpoUpdate() {
 	fi
 	
 	if [ -z "${EXPO_TOKEN}" ]; then
-		echo "EXPO_TOKEN is NOT set in build.sh env"
-	else
-		echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
+		echo "::error title=Missing EXPO_TOKEN::EXPO_TOKEN secret is not configured. Cannot authenticate with Expo." >&2
+		exit 1
 	fi
 
 	# Validate required Expo Update environment variables
