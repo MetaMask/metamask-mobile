@@ -177,7 +177,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeBoosts: {},
   unlockedRewards: {},
   pointsEvents: {},
-  pointsEstimateHistory: [],
+  pointsEstimateHistory: {},
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -1744,17 +1744,23 @@ export class RewardsController extends BaseController<
     };
 
     this.update((state: RewardsControllerState) => {
-      // Add new entry at the beginning (most recent first)
-      state.pointsEstimateHistory.unshift(entry);
+      const timestampKey = entry.timestamp.toString();
 
-      // Keep only the last N entries
-      if (
-        state.pointsEstimateHistory.length > MAX_POINTS_ESTIMATE_HISTORY_ENTRIES
-      ) {
-        state.pointsEstimateHistory = state.pointsEstimateHistory.slice(
+      // Add new entry with timestamp as key
+      state.pointsEstimateHistory[timestampKey] = entry;
+
+      // Keep only the last N entries by removing oldest if over limit
+      const keys = Object.keys(state.pointsEstimateHistory);
+      if (keys.length > MAX_POINTS_ESTIMATE_HISTORY_ENTRIES) {
+        // Sort keys numerically (timestamps) and remove oldest entries
+        const sortedKeys = keys.sort((a, b) => Number(a) - Number(b));
+        const keysToRemove = sortedKeys.slice(
           0,
-          MAX_POINTS_ESTIMATE_HISTORY_ENTRIES,
+          keys.length - MAX_POINTS_ESTIMATE_HISTORY_ENTRIES,
         );
+        for (const key of keysToRemove) {
+          delete state.pointsEstimateHistory[key];
+        }
       }
     });
   }

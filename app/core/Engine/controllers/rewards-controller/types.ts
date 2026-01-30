@@ -869,8 +869,9 @@ export type RewardsControllerState = {
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
+   * Keyed by timestamp (string) for O(1) lookup while maintaining bounded size.
    */
-  pointsEstimateHistory: PointsEstimateHistoryEntry[];
+  pointsEstimateHistory: { [timestamp: string]: PointsEstimateHistoryEntry };
 };
 
 /**
