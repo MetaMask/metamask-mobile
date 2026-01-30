@@ -89,7 +89,7 @@ export const usePerpsMarketFills = ({
       }
 
       // Use time-filtered API to limit data fetched for active traders
-      const startTime = Date.now() - PERPS_CONSTANTS.FILLS_LOOKBACK_MS;
+      const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
 
       const fills = await provider.getOrderFills({
         aggregateByTime: false,
@@ -103,7 +103,7 @@ export const usePerpsMarketFills = ({
       // Log error to Sentry but don't fail - WebSocket fills still work
       Logger.error(ensureError(err), {
         tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
         },
         extra: {
           hook: 'usePerpsMarketFills',

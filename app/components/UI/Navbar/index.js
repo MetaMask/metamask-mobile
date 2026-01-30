@@ -1755,44 +1755,6 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
   };
 };
 
-export const getSettingsNavigationOptions = (
-  title,
-  themeColors,
-  navigation,
-) => {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    accessories: {
-      marginHorizontal: 8,
-    },
-  });
-  return {
-    headerLeft: null,
-    headerTitle: () => (
-      <MorphText
-        variant={TextVariant.HeadingMD}
-        testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
-      >
-        {title}
-      </MorphText>
-    ),
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.Close}
-        onPress={() => navigation?.goBack()}
-        style={innerStyles.accessories}
-        testID={NetworksViewSelectorsIDs.CLOSE_ICON}
-      />
-    ),
-    ...innerStyles,
-  };
-};
-
 /**
  *
  * @param {String} title - Navbar Title.

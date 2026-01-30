@@ -21,6 +21,11 @@ export interface ShowNetworkConnectionBannerAction extends Action {
   networkName: string;
   rpcUrl: string;
   isInfuraEndpoint: boolean;
+  /**
+   * Network client ID of an available Infura endpoint (for custom networks that have one)
+   * that can be used to switch to Infura. Undefined if no Infura endpoint is available.
+   */
+  infuraNetworkClientId?: string;
 }
 
 /**
@@ -39,6 +44,7 @@ export type NetworkConnectionBannerAction =
  * showNetworkConnectionBanner action creator
  * @param {Hex} chainId: the chain id of the network that is having the issue
  * @param {NetworkConnectionBannerStatus} status: the status of the network connection banner
+ * @param {string} [infuraNetworkClientId]: optional network client ID of an Infura endpoint that can be switched to
  * @returns {ShowNetworkConnectionBannerAction} - the action object to show the network connection banner
  */
 export function showNetworkConnectionBanner({
@@ -47,12 +53,14 @@ export function showNetworkConnectionBanner({
   networkName,
   rpcUrl,
   isInfuraEndpoint,
+  infuraNetworkClientId,
 }: {
   chainId: Hex;
   status: NetworkConnectionBannerStatus;
   networkName: string;
   rpcUrl: string;
   isInfuraEndpoint: boolean;
+  infuraNetworkClientId?: string;
 }): ShowNetworkConnectionBannerAction {
   return {
     type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
@@ -61,6 +69,7 @@ export function showNetworkConnectionBanner({
     networkName,
     rpcUrl,
     isInfuraEndpoint,
+    infuraNetworkClientId,
   };
 }
 
