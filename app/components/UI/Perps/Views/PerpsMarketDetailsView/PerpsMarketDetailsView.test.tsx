@@ -252,21 +252,28 @@ jest.mock('../../hooks/usePerpsOpenOrders', () => ({
   usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
 }));
 
-const mockUsePerpsOrderFillsImpl = jest.fn<
+const mockUsePerpsLiveFillsImpl = jest.fn<
   ReturnType<
-    typeof import('../../hooks/usePerpsOrderFills').usePerpsOrderFills
+    typeof import('../../hooks/stream/usePerpsLiveFills').usePerpsLiveFills
   >,
   []
 >(() => ({
-  orderFills: [],
-  isLoading: false,
-  error: null,
-  refresh: jest.fn(),
-  isRefreshing: false,
+  fills: [],
+  isInitialLoading: false,
 }));
 
-jest.mock('../../hooks/usePerpsOrderFills', () => ({
-  usePerpsOrderFills: () => mockUsePerpsOrderFillsImpl(),
+jest.mock('../../hooks/stream/usePerpsLiveFills', () => ({
+  usePerpsLiveFills: () => mockUsePerpsLiveFillsImpl(),
+}));
+
+// Mock Engine for REST fallback tests
+const mockGetOrderFills = jest.fn();
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      getOrderFills: (...args: unknown[]) => mockGetOrderFills(...args),
+    },
+  },
 }));
 
 // Mock for usePerpsMarkets that can be modified per test
@@ -304,7 +311,7 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
 jest.mock('../../hooks/stream/usePerpsLiveCandles', () => ({
   usePerpsLiveCandles: () => ({
     candleData: {
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: '1h',
       candles: [
         {
@@ -471,10 +478,69 @@ jest.mock('../../components/PerpsMarketStatisticsCard', () => {
   };
 });
 
-// Mock PerpsPositionCard
+// Mock PerpsPositionCard - render clickable buttons for testing
 jest.mock('../../components/PerpsPositionCard', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: {
+    onAutoClosePress?: () => void;
+    onMarginPress?: () => void;
+  }) => {
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-position-card">
+        {props.onAutoClosePress && (
+          <TouchableOpacity
+            testID="perps-position-card-auto-close-button"
+            onPress={props.onAutoClosePress}
+          >
+            <Text>Auto Close</Text>
+          </TouchableOpacity>
+        )}
+        {props.onMarginPress && (
+          <TouchableOpacity
+            testID="perps-position-card-margin-button"
+            onPress={props.onMarginPress}
+          >
+            <Text>Margin</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  },
+}));
+
+// Mock PerpsStopLossPromptBanner - render clickable buttons for testing
+jest.mock('../../components/PerpsStopLossPromptBanner', () => ({
+  __esModule: true,
+  default: (props: {
+    onSetStopLoss?: () => void;
+    onAddMargin?: () => void;
+    variant?: string;
+    testID?: string;
+  }) => {
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    if (!props.variant) return null;
+    return (
+      <View testID={props.testID || 'perps-stop-loss-prompt-banner'}>
+        {props.variant === 'add_margin' && props.onAddMargin && (
+          <TouchableOpacity
+            testID="stop-loss-prompt-add-margin-button"
+            onPress={props.onAddMargin}
+          >
+            <Text>Add Margin Banner</Text>
+          </TouchableOpacity>
+        )}
+        {props.variant === 'stop_loss' && props.onSetStopLoss && (
+          <TouchableOpacity
+            testID="stop-loss-prompt-set-sl-button"
+            onPress={props.onSetStopLoss}
+          >
+            <Text>Set Stop Loss Banner</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  },
 }));
 
 // Mock notification utility
@@ -531,6 +597,19 @@ jest.mock(
   },
 );
 
+// Mock useStopLossPrompt hook
+jest.mock('../../hooks/useStopLossPrompt', () => ({
+  useStopLossPrompt: jest.fn(() => ({
+    variant: null,
+    liquidationDistance: null,
+    suggestedStopLossPrice: null,
+    suggestedStopLossPercent: null,
+    isVisible: false,
+    isDismissing: false,
+    onDismissComplete: jest.fn(),
+  })),
+}));
+
 const initialState = {
   engine: {
     backgroundState,
@@ -568,6 +647,7 @@ describe('PerpsMarketDetailsView', () => {
       error: null,
       existingPosition: null,
       refreshPosition: jest.fn(),
+      positionOpenedTimestamp: undefined,
     });
 
     // Reset navigation mocks
@@ -600,12 +680,9 @@ describe('PerpsMarketDetailsView', () => {
     };
 
     // Reset order fills mock to default
-    mockUsePerpsOrderFillsImpl.mockReturnValue({
-      orderFills: [],
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
+    mockUsePerpsLiveFillsImpl.mockReturnValue({
+      fills: [],
+      isInitialLoading: false,
     });
   });
 
@@ -817,7 +894,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         existingPosition: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '44000',
           positionValue: '22000',
@@ -834,6 +911,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
         refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
       });
 
       const { getByTestId, queryByText, queryByTestId } = renderWithProvider(
@@ -924,6 +1002,7 @@ describe('PerpsMarketDetailsView', () => {
         error: null,
         existingPosition: null,
         refreshPosition: mockRefreshPosition, // No-op function for WebSocket positions
+        positionOpenedTimestamp: undefined,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -958,7 +1037,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         existingPosition: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '44000',
           positionValue: '22000',
@@ -975,6 +1054,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
         refreshPosition: mockRefreshPosition,
+        positionOpenedTimestamp: undefined,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1011,6 +1091,7 @@ describe('PerpsMarketDetailsView', () => {
         error: null,
         existingPosition: null,
         refreshPosition: mockRefreshPosition,
+        positionOpenedTimestamp: undefined,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1075,6 +1156,7 @@ describe('PerpsMarketDetailsView', () => {
         error: null,
         existingPosition: null,
         refreshPosition: mockRefreshPosition,
+        positionOpenedTimestamp: undefined,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1371,6 +1453,345 @@ describe('PerpsMarketDetailsView', () => {
       fireEvent.press(tooltip);
 
       expect(queryByText('Geo Block Tooltip')).toBeNull();
+    });
+
+    // TAT-2449: Geo-restriction tests for close/modify actions
+    it('shows geo block modal when close position button is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set up existing position to show close button
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '44000',
+          positionValue: '22000',
+          unrealizedPnl: '50',
+          marginUsed: '500',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '1.14',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const closeButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+      );
+      fireEvent.press(closeButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows geo block modal when modify button is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set up existing position to show modify button
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '44000',
+          positionValue: '22000',
+          unrealizedPnl: '50',
+          marginUsed: '500',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '1.14',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const modifyButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON,
+      );
+      fireEvent.press(modifyButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      // Modify sheet should NOT open when user is not eligible
+    });
+
+    it('shows geo block modal when auto-close button is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set up existing position to show position card
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          leverage: { value: 10, type: 'isolated' },
+          marginUsed: '5000',
+          unrealizedPnl: '100',
+          returnOnEquity: '0.02',
+          liquidationPrice: '45000',
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Click the auto-close button from mocked position card
+      const autoCloseButton = getByTestId(
+        'perps-position-card-auto-close-button',
+      );
+      fireEvent.press(autoCloseButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ screen: expect.stringContaining('TPSL') }),
+      );
+    });
+
+    it('shows geo block modal when margin button is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set up existing position to show position card
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          leverage: { value: 10, type: 'isolated' },
+          marginUsed: '5000',
+          unrealizedPnl: '100',
+          returnOnEquity: '0.02',
+          liquidationPrice: '45000',
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Click the margin button from mocked position card
+      const marginButton = getByTestId('perps-position-card-margin-button');
+      fireEvent.press(marginButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+    });
+
+    it('shows geo block modal when add margin from banner is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set up existing position and stop loss prompt conditions
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          leverage: { value: 10, type: 'isolated' },
+          marginUsed: '5000',
+          unrealizedPnl: '-500',
+          returnOnEquity: '-0.10',
+          liquidationPrice: '45000',
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: Date.now() - 120000, // 2 minutes ago
+      });
+
+      // Mock useStopLossPrompt to return add_margin variant
+      const { useStopLossPrompt } = jest.requireMock(
+        '../../hooks/useStopLossPrompt',
+      );
+      useStopLossPrompt.mockReturnValue({
+        variant: 'add_margin',
+        liquidationDistance: 2.5,
+        suggestedStopLossPrice: null,
+        suggestedStopLossPercent: null,
+        isVisible: true,
+        onDismissComplete: jest.fn(),
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Click the add margin button from mocked stop loss prompt banner
+      const addMarginBannerButton = getByTestId(
+        'stop-loss-prompt-add-margin-button',
+      );
+      fireEvent.press(addMarginBannerButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ mode: 'add' }),
+      );
+    });
+
+    it('shows geo block modal when set stop loss from banner is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set up existing position and stop loss prompt conditions
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          leverage: { value: 10, type: 'isolated' },
+          marginUsed: '5000',
+          unrealizedPnl: '-500',
+          returnOnEquity: '-0.10',
+          liquidationPrice: '45000',
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: Date.now() - 120000, // 2 minutes ago
+      });
+
+      // Mock useStopLossPrompt to return stop_loss variant
+      const { useStopLossPrompt } = jest.requireMock(
+        '../../hooks/useStopLossPrompt',
+      );
+      useStopLossPrompt.mockReturnValue({
+        variant: 'stop_loss',
+        liquidationDistance: 15,
+        suggestedStopLossPrice: '45000',
+        suggestedStopLossPercent: -50,
+        isVisible: true,
+        onDismissComplete: jest.fn(),
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Click the set stop loss button from mocked stop loss prompt banner
+      const setStopLossBannerButton = getByTestId(
+        'stop-loss-prompt-set-sl-button',
+      );
+      fireEvent.press(setStopLossBannerButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
     });
   });
 
@@ -1692,16 +2113,19 @@ describe('PerpsMarketDetailsView', () => {
     });
   });
 
-  describe('Position opened timestamp calculation', () => {
-    it('computes position opened timestamp from order fills data', () => {
-      // Arrange
-      const timestamp = Date.now();
+  describe('Position opened timestamp', () => {
+    // Note: The timestamp calculation logic has been moved to useHasExistingPosition hook
+    // These tests verify the component correctly uses the hook's positionOpenedTimestamp
+
+    it('uses positionOpenedTimestamp from useHasExistingPosition hook', () => {
+      // Arrange - Hook provides the timestamp
+      const timestamp = Date.now() - 5 * 60 * 1000;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
         error: null,
         existingPosition: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '44000',
           positionValue: '22000',
@@ -1718,51 +2142,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
         refreshPosition: jest.fn(),
-      });
-
-      mockUsePerpsOrderFillsImpl.mockReturnValue({
-        orderFills: [
-          {
-            orderId: 'order-1',
-            symbol: 'BTC',
-            side: 'buy',
-            direction: 'Open Long',
-            timestamp: timestamp - 2000,
-            size: '0.3',
-            price: '43000',
-            pnl: '0',
-            fee: '0.001',
-            feeToken: 'USDC',
-          },
-          {
-            orderId: 'order-2',
-            symbol: 'BTC',
-            side: 'buy',
-            direction: 'Open Long',
-            timestamp,
-            size: '0.5',
-            price: '44000',
-            pnl: '0',
-            fee: '0.001',
-            feeToken: 'USDC',
-          },
-          {
-            orderId: 'order-3',
-            symbol: 'ETH',
-            side: 'sell',
-            direction: 'Open Short',
-            timestamp: timestamp - 1000,
-            size: '1.0',
-            price: '3000',
-            pnl: '0',
-            fee: '0.001',
-            feeToken: 'USDC',
-          },
-        ],
-        isLoading: false,
-        error: null,
-        refresh: jest.fn(),
-        isRefreshing: false,
+        positionOpenedTimestamp: timestamp, // Hook now provides this
       });
 
       // Act
@@ -1775,11 +2155,53 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Assert
+      // Assert - component renders with position data
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
       ).toBeTruthy();
-      expect(mockUsePerpsOrderFillsImpl).toHaveBeenCalled();
+    });
+
+    it('handles undefined positionOpenedTimestamp from hook', () => {
+      // Arrange - Hook returns undefined timestamp (e.g., new position)
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '44000',
+          positionValue: '22000',
+          unrealizedPnl: '50',
+          marginUsed: '500',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '1.14',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined, // No timestamp available yet
+      });
+
+      // Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Assert - component still renders correctly
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeTruthy();
     });
   });
 

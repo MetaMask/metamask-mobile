@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import { RootState } from '../../reducers';
 import { isUUID } from '../../core/SDKConnect/utils/isUUID';
-import { SourceType } from './useMetrics/useMetrics.types';
+import { SourceType } from './useAnalytics/useAnalytics.types';
 import AppConstants from '../../core/AppConstants';
 
 interface UseOriginSourceProps {

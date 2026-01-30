@@ -12,8 +12,6 @@ import {
   createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
 import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
-// eslint-disable-next-line import/no-namespace
-import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
@@ -23,6 +21,7 @@ import {
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import {
   ActionButtonType,
   ActionLocation,
@@ -222,6 +221,9 @@ jest.mock('../../../core/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
     },
+    SwapsController: {
+      fetchTokenWithCache: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 
@@ -295,6 +297,29 @@ jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
 const mockUseRampTokens = jest.fn();
 jest.mock('../Ramp/hooks/useRampTokens', () => ({
   useRampTokens: () => mockUseRampTokens(),
+}));
+
+// Only mock the new hook added in this branch: useScrollToMerklRewards
+// This hook uses useRoute/useNavigation which need proper test setup
+jest.mock('./hooks/useScrollToMerklRewards', () => ({
+  useScrollToMerklRewards: jest.fn(() => ({
+    hasScrolledRef: { current: false },
+  })),
+}));
+
+jest.mock('../../Views/confirmations/hooks/useSendNavigation', () => ({
+  useSendNavigation: jest.fn(),
+}));
+
+// Perps Discovery Banner mocks
+const mockUsePerpsMarketForAsset = jest.fn();
+jest.mock('../Perps/hooks/usePerpsMarketForAsset', () => ({
+  usePerpsMarketForAsset: () => mockUsePerpsMarketForAsset(),
+}));
+
+const mockSelectPerpsEnabledFlag = jest.fn();
+jest.mock('../Perps', () => ({
+  selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
 }));
 
 const asset = {
@@ -377,6 +402,20 @@ describe('AssetOverview', () => {
       topTokens: [],
       isLoading: false,
       error: null,
+    });
+
+    // Setup useSendNavigation mock to call navigate
+    (useSendNavigation as jest.Mock).mockReturnValue({
+      navigateToSendPage: jest.fn((params) => {
+        mockNavigate('Send', params);
+      }),
+    });
+
+    // Default Perps mock - disabled and no market exists (banner won't show)
+    mockSelectPerpsEnabledFlag.mockReturnValue(false);
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: false,
+      marketData: null,
     });
   });
 
@@ -630,8 +669,6 @@ describe('AssetOverview', () => {
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
-    const spyOnGetEther = jest.spyOn(transactions, 'getEther');
-
     const nativeAsset = {
       balance: '400',
       balanceFiat: '1500',
@@ -694,8 +731,13 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate.mock.calls[1][0]).toEqual('Send');
-    expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
+    // onSend now navigates to home first, then calls navigateToSendPage
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.WALLET.HOME,
+      expect.objectContaining({
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+      }),
+    );
   });
 
   it('should handle swap button press', async () => {
@@ -1687,7 +1729,7 @@ describe('AssetOverview', () => {
         [testTokenAddress.toLowerCase()]: { price: 0.0005 },
       });
 
-      const { findByText } = renderWithProvider(
+      const { findAllByText } = renderWithProvider(
         <AssetOverview asset={testToken} />,
         {
           state: {
@@ -1705,7 +1747,9 @@ describe('AssetOverview', () => {
         },
       );
 
-      await findByText(testToken.name);
+      // Name appears in multiple places (Price header and Balance section) after Stock badge changes
+      const nameElements = await findAllByText(testToken.name);
+      expect(nameElements.length).toBeGreaterThanOrEqual(1);
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
@@ -1817,15 +1861,150 @@ describe('AssetOverview', () => {
         [SOLANA_ASSET_ID]: { price: 0.431111 },
       });
 
-      const { findByText } = renderWithProvider(
+      const { findAllByText } = renderWithProvider(
         <AssetOverview asset={solanaToken} />,
         { state: createSolanaState() },
       );
 
-      await findByText(solanaToken.name);
+      // Name appears in multiple places (Price header and Balance section) after Stock badge changes
+      const nameElements = await findAllByText(solanaToken.name);
+      expect(nameElements.length).toBeGreaterThanOrEqual(1);
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
+    });
+  });
+
+  describe('Perps Discovery Banner Token Trust Validation', () => {
+    const mockMarketData = {
+      symbol: 'ETH',
+      maxLeverage: 50,
+    };
+
+    beforeEach(() => {
+      // Reset Perps mocks before each test
+      mockSelectPerpsEnabledFlag.mockReset();
+      mockUsePerpsMarketForAsset.mockReset();
+    });
+
+    it('does NOT render Perps banner for token with insufficient aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithNoAggregators = {
+        ...asset,
+        aggregators: [], // No aggregators - not trustworthy
+        isETH: false,
+        isNative: false,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithNoAggregators} />,
+        { state: mockInitialState },
+      );
+
+      // Banner NOT rendered
+      expect(queryByTestId('perps-discovery-banner')).toBeNull();
+    });
+
+    it('renders Perps banner for native token regardless of aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const nativeToken = {
+        ...asset,
+        aggregators: [], // No aggregators, but native token is always trusted
+        isNative: true,
+        isETH: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={nativeToken} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for native tokens
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('renders Perps banner for ETH token regardless of aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const ethToken = {
+        ...asset,
+        aggregators: [], // No aggregators, but ETH is always trusted
+        isETH: true,
+        isNative: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={ethToken} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for ETH tokens
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('renders Perps banner for token with sufficient aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithAggregators = {
+        ...asset,
+        aggregators: ['CoinGecko', 'CoinMarketCap'], // 2 aggregators - trustworthy
+        isETH: false,
+        isNative: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithAggregators} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for tokens with sufficient aggregators
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('does NOT render Perps banner for token with only 1 aggregator', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithOneAggregator = {
+        ...asset,
+        aggregators: ['CoinGecko'], // Only 1 aggregator - not enough
+        isETH: false,
+        isNative: false,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithOneAggregator} />,
+        { state: mockInitialState },
+      );
+
+      // Banner NOT rendered - 1 aggregator is not enough
+      expect(queryByTestId('perps-discovery-banner')).toBeNull();
     });
   });
 });

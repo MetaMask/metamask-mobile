@@ -1,13 +1,13 @@
 'use strict';
 /* eslint-disable no-console */
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../framework/types';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { AnvilManager } from '../../seeder/anvil-manager';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import QuoteView from '../../pages/swaps/QuoteView';
 import { testSpecificMock } from './helpers/swap-mocks';
 import WalletView from '../../pages/wallet/WalletView';

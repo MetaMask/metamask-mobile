@@ -9,7 +9,7 @@
     {
       "name": "Google Pixel 8 Pro",
       "os_version": "14.0",
-      "category": "high",
+      "category": "low",
       "description": "High-end Google flagship device with Android 14"
     }
   ],
@@ -23,7 +23,7 @@
     {
       "name": "iPhone 12",
       "os_version": "17",
-      "category": "medium",
+      "category": "low",
       "description": "Medium iPhone 12."
     }
   ],

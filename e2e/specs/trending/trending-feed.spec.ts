@@ -1,17 +1,17 @@
 import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
-import TrendingView from '../../pages/Trending/TrendingView';
-import { TrendingViewSelectorsText } from '../../selectors/Trending/TrendingView.selectors';
-import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
-import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
+import TrendingView from '../../../tests/page-objects/Trending/TrendingView';
+import { TrendingViewSelectorsText } from '../../../tests/locators/Trending/TrendingView.selectors';
+import { TRENDING_API_MOCKS } from '../../../tests/api-mocking/mock-responses/trending-api-mocks';
+import { setupMockEvents } from '../../../tests/api-mocking/helpers/mockHelpers';
 import {
   remoteFeatureFlagTrendingTokensEnabled,
   remoteFeatureFlagPredictEnabled,
-} from '../../api-mocking/mock-responses/feature-flags-mocks';
+} from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {

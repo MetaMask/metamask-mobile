@@ -11,6 +11,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+
+const mockTrace = trace as jest.MockedFunction<typeof trace>;
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
@@ -18,6 +21,15 @@ jest.mock('../../../../util/Logger');
 jest.mock('../../../../util/transactions');
 jest.mock('@react-navigation/native');
 jest.mock('react-redux');
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  TraceName: {
+    MusdConversionNavigation: 'mUSD Conversion Navigation',
+  },
+  TraceOperation: {
+    MusdConversionOperation: 'musd.conversion.operation',
+  },
+}));
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
@@ -111,7 +123,6 @@ describe('useMusdConversion', () => {
 
   describe('initiateConversion', () => {
     const mockConfig = {
-      outputChainId: '0x1' as Hex,
       preferredPaymentToken: {
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
         chainId: '0x1' as Hex,
@@ -140,7 +151,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
     });
@@ -165,7 +175,6 @@ describe('useMusdConversion', () => {
           from: '0x123456789abcdef',
           data: '0xmockedTransferData',
           value: '0x0',
-          chainId: '0x1',
         },
         {
           networkClientId: 'mainnet',
@@ -208,26 +217,6 @@ describe('useMusdConversion', () => {
       expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('throws error when outputChainId is missing', async () => {
-      setupUseSelectorMock();
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      const invalidConfig = {
-        ...mockConfig,
-        outputChainId: undefined,
-      };
-
-      await act(async () => {
-        await expect(
-          // @ts-expect-error - Intentionally testing invalid config with missing outputChainId
-          result.current.initiateConversion(invalidConfig),
-        ).rejects.toThrow(
-          'Output chain ID and preferred payment token are required',
-        );
-      });
-    });
-
     it('throws error when preferredPaymentToken is missing', async () => {
       setupUseSelectorMock();
 
@@ -242,9 +231,7 @@ describe('useMusdConversion', () => {
         await expect(
           // @ts-expect-error - Intentionally testing invalid config with missing preferredPaymentToken
           result.current.initiateConversion(invalidConfig),
-        ).rejects.toThrow(
-          'Output chain ID and preferred payment token are required',
-        );
+        ).rejects.toThrow('Preferred payment token is required');
       });
     });
 
@@ -270,7 +257,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
     });
@@ -303,7 +289,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
       expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
@@ -359,7 +344,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
     });
@@ -379,6 +363,55 @@ describe('useMusdConversion', () => {
       const transactionId = await result.current.initiateConversion(mockConfig);
 
       expect(transactionId).toBe('tx-123');
+    });
+
+    it('starts navigation trace when navigating to conversion screen', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-123' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await result.current.initiateConversion(mockConfig);
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.MusdConversionNavigation,
+        op: TraceOperation.MusdConversionOperation,
+        tags: {
+          paymentTokenChainId: '0x1',
+        },
+      });
+    });
+
+    it('starts navigation trace before navigation occurs', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-123' },
+      });
+
+      const callOrder: string[] = [];
+      mockTrace.mockImplementation(() => {
+        callOrder.push('trace');
+        return undefined as ReturnType<typeof mockTrace>;
+      });
+      mockNavigation.navigate.mockImplementation(() => {
+        callOrder.push('navigate');
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await result.current.initiateConversion(mockConfig);
+
+      expect(callOrder).toEqual(['trace', 'navigate']);
     });
   });
 
@@ -401,7 +434,6 @@ describe('useMusdConversion', () => {
       const { result } = renderHook(() => useMusdConversion());
 
       const testConfig = {
-        outputChainId: '0x1' as Hex,
         preferredPaymentToken: {
           address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
           chainId: '0x1' as Hex,

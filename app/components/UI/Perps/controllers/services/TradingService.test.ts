@@ -2,7 +2,7 @@ import { TradingService } from './TradingService';
 import type { ServiceContext } from './ServiceContext';
 import {
   PerpsAnalyticsEvent,
-  type IPerpsProvider,
+  type PerpsProvider,
   type OrderParams,
   type OrderResult,
   type EditOrderParams,
@@ -13,7 +13,7 @@ import {
   type Position,
   type Order,
   type UpdatePositionTPSLParams,
-  type IPerpsPlatformDependencies,
+  type PerpsPlatformDependencies,
 } from '../types';
 import {
   createMockServiceContext,
@@ -25,9 +25,9 @@ import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 
 describe('TradingService', () => {
-  let mockProvider: jest.Mocked<IPerpsProvider>;
+  let mockProvider: jest.Mocked<PerpsProvider>;
   let mockContext: ServiceContext;
-  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
   let tradingService: TradingService;
   let mockReportOrderToDataLake: jest.Mock;
   let mockWithStreamPause: jest.Mock;
@@ -58,7 +58,7 @@ describe('TradingService', () => {
       rewardsIntegrationService: mockRewardsIntegrationService as never,
     });
     mockProvider =
-      createMockHyperLiquidProvider() as unknown as jest.Mocked<IPerpsProvider>;
+      createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
     mockSaveTradeConfiguration = jest.fn();
     mockContext = createMockServiceContext({
       errorContext: { controller: 'TradingService', method: 'test' },
@@ -83,7 +83,7 @@ describe('TradingService', () => {
   describe('placeOrder', () => {
     it('places order successfully without fee discount', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -114,7 +114,7 @@ describe('TradingService', () => {
 
     it('places order successfully with fee discount applied and cleared', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -150,7 +150,7 @@ describe('TradingService', () => {
 
     it('clears fee discount when order placement fails', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -181,7 +181,7 @@ describe('TradingService', () => {
 
     it('adds and removes order from pending state optimistically', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -208,7 +208,7 @@ describe('TradingService', () => {
 
     it('saves trade configuration when leverage is provided', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -236,7 +236,7 @@ describe('TradingService', () => {
 
     it('tracks analytics event when order succeeds', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -280,7 +280,7 @@ describe('TradingService', () => {
 
     it('tracks analytics event when order fails', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -312,7 +312,7 @@ describe('TradingService', () => {
 
     it('reports order to data lake on success (fire-and-forget)', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -338,7 +338,7 @@ describe('TradingService', () => {
 
       expect(mockReportOrderToDataLake).toHaveBeenCalledWith({
         action: 'open',
-        coin: 'BTC',
+        symbol: 'BTC',
         sl_price: 45000,
         tp_price: 55000,
       });
@@ -346,7 +346,7 @@ describe('TradingService', () => {
 
     it('does not throw when data lake reporting fails', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -374,7 +374,7 @@ describe('TradingService', () => {
 
     it('creates trace for order placement', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -407,7 +407,7 @@ describe('TradingService', () => {
 
     it('handles order placement failure', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -434,7 +434,7 @@ describe('TradingService', () => {
 
     it('handles provider exception during order placement', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -463,7 +463,7 @@ describe('TradingService', () => {
 
     it('handles data lake reporting failure', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -503,7 +503,7 @@ describe('TradingService', () => {
       const editParams: EditOrderParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.2',
           orderType: 'limit',
@@ -535,7 +535,7 @@ describe('TradingService', () => {
       const editParams: EditOrderParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.2',
           orderType: 'limit',
@@ -571,7 +571,7 @@ describe('TradingService', () => {
       const editParams: EditOrderParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.2',
           orderType: 'limit',
@@ -606,7 +606,7 @@ describe('TradingService', () => {
       const editParams: EditOrderParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.2',
           orderType: 'limit',
@@ -641,7 +641,7 @@ describe('TradingService', () => {
       const editParams: EditOrderParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.2',
           orderType: 'limit',
@@ -673,7 +673,7 @@ describe('TradingService', () => {
       const editParams: EditOrderParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.2',
           orderType: 'market',
@@ -699,7 +699,7 @@ describe('TradingService', () => {
       const editParams: EditOrderParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.2',
           orderType: 'market',
@@ -728,7 +728,7 @@ describe('TradingService', () => {
     it('cancels order successfully', async () => {
       const cancelParams: CancelOrderParams = {
         orderId: 'order-123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       const mockResult = {
         success: true,
@@ -750,7 +750,7 @@ describe('TradingService', () => {
     it('tracks analytics event when cancellation succeeds', async () => {
       const cancelParams: CancelOrderParams = {
         orderId: 'order-123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       const mockResult = {
         success: true,
@@ -776,7 +776,7 @@ describe('TradingService', () => {
     it('tracks analytics event when cancellation fails', async () => {
       const cancelParams: CancelOrderParams = {
         orderId: 'order-123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       const mockResult = {
         success: false,
@@ -802,7 +802,7 @@ describe('TradingService', () => {
     it('logs error when cancellation throws exception', async () => {
       const cancelParams: CancelOrderParams = {
         orderId: 'order-123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       mockProvider.cancelOrder.mockRejectedValue(new Error('Cancel failed'));
@@ -821,7 +821,7 @@ describe('TradingService', () => {
     it('handles order cancel failure', async () => {
       const cancelParams: CancelOrderParams = {
         orderId: 'order-123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       mockProvider.cancelOrder.mockResolvedValue({
         success: false,
@@ -842,7 +842,7 @@ describe('TradingService', () => {
     it('handles provider exception during order cancel', async () => {
       const cancelParams: CancelOrderParams = {
         orderId: 'order-123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       const error = new Error('Network error');
       mockProvider.cancelOrder.mockRejectedValue(error);
@@ -932,7 +932,7 @@ describe('TradingService', () => {
 
       expect(result.success).toBe(true);
       expect(mockProvider.cancelOrders).toHaveBeenCalledWith([
-        { coin: 'BTC', orderId: 'order-1' },
+        { symbol: 'BTC', orderId: 'order-1' },
       ]);
     });
 
@@ -963,7 +963,7 @@ describe('TradingService', () => {
 
     it('cancels orders for specific coins when provided', async () => {
       const params: CancelOrdersParams = {
-        coins: ['BTC'],
+        symbols: ['BTC'],
       };
 
       mockGetOpenOrders.mockResolvedValue(mockOrders);
@@ -981,14 +981,14 @@ describe('TradingService', () => {
 
       expect(result.success).toBe(true);
       expect(mockProvider.cancelOrders).toHaveBeenCalledWith([
-        { coin: 'BTC', orderId: 'order-1' },
-        { coin: 'BTC', orderId: 'order-3' },
+        { symbol: 'BTC', orderId: 'order-1' },
+        { symbol: 'BTC', orderId: 'order-3' },
       ]);
     });
 
     it('returns empty results when no orders match filters', async () => {
       const params: CancelOrdersParams = {
-        coins: ['SOL'],
+        symbols: ['SOL'],
       };
 
       mockGetOpenOrders.mockResolvedValue(mockOrders);
@@ -1099,7 +1099,7 @@ describe('TradingService', () => {
 
   describe('closePosition', () => {
     const mockPosition: Position = {
-      coin: 'BTC',
+      symbol: 'BTC',
       size: '0.5',
       entryPrice: '50000',
       liquidationPrice: '45000',
@@ -1116,7 +1116,7 @@ describe('TradingService', () => {
 
     it('closes position successfully without fee discount', async () => {
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       const mockResult: OrderResult = {
         success: true,
@@ -1145,7 +1145,7 @@ describe('TradingService', () => {
 
     it('closes position successfully with fee discount applied and cleared', async () => {
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       const mockResult: OrderResult = {
         success: true,
@@ -1176,7 +1176,7 @@ describe('TradingService', () => {
 
     it('tracks analytics with PNL calculation', async () => {
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       const mockResult: OrderResult = {
         success: true,
@@ -1208,7 +1208,7 @@ describe('TradingService', () => {
 
     it('reports order to data lake on successful close', async () => {
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       const mockResult: OrderResult = {
         success: true,
@@ -1230,7 +1230,7 @@ describe('TradingService', () => {
 
       expect(mockReportOrderToDataLake).toHaveBeenCalledWith({
         action: 'close',
-        coin: 'BTC',
+        symbol: 'BTC',
         sl_price: undefined,
         tp_price: undefined,
       });
@@ -1242,7 +1242,7 @@ describe('TradingService', () => {
         size: '-0.5',
       };
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       const mockResult: OrderResult = {
         success: true,
@@ -1272,7 +1272,7 @@ describe('TradingService', () => {
 
     it('tracks analytics on position close failure', async () => {
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
       };
       const mockFailureResult: OrderResult = {
         success: false,
@@ -1306,7 +1306,7 @@ describe('TradingService', () => {
   describe('closePositions', () => {
     const mockPositions: Position[] = [
       {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
         entryPrice: '50000',
         liquidationPrice: '45000',
@@ -1321,7 +1321,7 @@ describe('TradingService', () => {
         stopLossCount: 0,
       },
       {
-        coin: 'ETH',
+        symbol: 'ETH',
         size: '5.0',
         entryPrice: '3000',
         liquidationPrice: '2700',
@@ -1346,8 +1346,8 @@ describe('TradingService', () => {
       (mockProvider.closePositions as jest.Mock).mockResolvedValue({
         success: true,
         results: [
-          { success: true, orderId: 'close-1', coin: 'BTC' },
-          { success: true, orderId: 'close-2', coin: 'ETH' },
+          { success: true, orderId: 'close-1', symbol: 'BTC' },
+          { success: true, orderId: 'close-2', symbol: 'ETH' },
         ],
       });
       mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
@@ -1366,13 +1366,13 @@ describe('TradingService', () => {
 
     it('closes specific coins when provided', async () => {
       const params: ClosePositionsParams = {
-        coins: ['BTC'],
+        symbols: ['BTC'],
       };
 
       mockGetPositions.mockResolvedValue(mockPositions);
       (mockProvider.closePositions as jest.Mock).mockResolvedValue({
         success: true,
-        results: [{ success: true, orderId: 'close-1', coin: 'BTC' }],
+        results: [{ success: true, orderId: 'close-1', symbol: 'BTC' }],
       });
       mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
         undefined,
@@ -1390,7 +1390,7 @@ describe('TradingService', () => {
 
     it('returns empty results when no positions match', async () => {
       const params: ClosePositionsParams = {
-        coins: ['SOL'],
+        symbols: ['SOL'],
       };
 
       mockGetPositions.mockResolvedValue(mockPositions);
@@ -1420,8 +1420,8 @@ describe('TradingService', () => {
       (mockProvider.closePositions as jest.Mock).mockResolvedValue({
         success: false,
         results: [
-          { success: true, orderId: 'close-1', coin: 'BTC' },
-          { success: false, coin: 'ETH', error: 'Insufficient liquidity' },
+          { success: true, orderId: 'close-1', symbol: 'BTC' },
+          { success: false, symbol: 'ETH', error: 'Insufficient liquidity' },
         ],
       });
       mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
@@ -1440,7 +1440,7 @@ describe('TradingService', () => {
 
     it('uses fallback when provider does not support batch closing', async () => {
       const params: ClosePositionsParams = {
-        coins: ['BTC'],
+        symbols: ['BTC'],
       };
 
       mockGetPositions.mockResolvedValue(mockPositions);
@@ -1466,7 +1466,7 @@ describe('TradingService', () => {
 
   describe('updatePositionTPSL', () => {
     const mockPosition: Position = {
-      coin: 'BTC',
+      symbol: 'BTC',
       size: '0.5',
       entryPrice: '50000',
       liquidationPrice: '45000',
@@ -1483,7 +1483,7 @@ describe('TradingService', () => {
 
     it('updates TP/SL successfully without fee discount', async () => {
       const params: UpdatePositionTPSLParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         takeProfitPrice: '55000',
         stopLossPrice: '45000',
       };
@@ -1510,7 +1510,7 @@ describe('TradingService', () => {
 
     it('updates TP/SL successfully with fee discount applied and cleared', async () => {
       const params: UpdatePositionTPSLParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         takeProfitPrice: '55000',
       };
       const mockResult: OrderResult = {
@@ -1540,7 +1540,7 @@ describe('TradingService', () => {
 
     it('tracks analytics event when update succeeds', async () => {
       const params: UpdatePositionTPSLParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         takeProfitPrice: '55000',
         stopLossPrice: '45000',
       };
@@ -1570,7 +1570,7 @@ describe('TradingService', () => {
 
     it('tracks analytics event when update fails', async () => {
       const params: UpdatePositionTPSLParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         takeProfitPrice: '55000',
       };
       const mockResult: OrderResult = {
@@ -1600,7 +1600,7 @@ describe('TradingService', () => {
 
     it('includes direction and size in analytics', async () => {
       const params: UpdatePositionTPSLParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         stopLossPrice: '45000',
         trackingData: {
           direction: 'long',
@@ -1635,7 +1635,7 @@ describe('TradingService', () => {
 
     it('clears fee discount when update throws exception', async () => {
       const params: UpdatePositionTPSLParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         takeProfitPrice: '55000',
       };
 
@@ -1670,14 +1670,14 @@ describe('TradingService', () => {
 
       const result = await tradingService.updateMargin({
         provider: mockProvider,
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
         context: mockContext,
       });
 
       expect(result).toEqual(mockResult);
       expect(mockProvider.updateMargin).toHaveBeenCalledWith({
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
       });
     });
@@ -1688,14 +1688,14 @@ describe('TradingService', () => {
 
       const result = await tradingService.updateMargin({
         provider: mockProvider,
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '-50',
         context: mockContext,
       });
 
       expect(result).toEqual(mockResult);
       expect(mockProvider.updateMargin).toHaveBeenCalledWith({
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '-50',
       });
     });
@@ -1706,7 +1706,7 @@ describe('TradingService', () => {
       await expect(
         tradingService.updateMargin({
           provider: mockProvider,
-          coin: 'BTC',
+          symbol: 'BTC',
           amount: '100',
           context: mockContext,
         }),
@@ -1719,7 +1719,7 @@ describe('TradingService', () => {
 
       const result = await tradingService.updateMargin({
         provider: mockProvider,
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
         context: mockContext,
       });
@@ -1734,7 +1734,7 @@ describe('TradingService', () => {
 
       await tradingService.updateMargin({
         provider: mockProvider,
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
         context: mockContext,
       });
@@ -1755,7 +1755,7 @@ describe('TradingService', () => {
       await expect(
         tradingService.updateMargin({
           provider: mockProvider,
-          coin: 'BTC',
+          symbol: 'BTC',
           amount: '100',
           context: mockContext,
         }),
@@ -1775,7 +1775,7 @@ describe('TradingService', () => {
 
       await tradingService.updateMargin({
         provider: mockProvider,
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
         context: mockContext,
       });
@@ -1789,7 +1789,7 @@ describe('TradingService', () => {
 
       await tradingService.updateMargin({
         provider: mockProvider,
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
         context: mockContext,
       });
@@ -1806,7 +1806,7 @@ describe('TradingService', () => {
 
   describe('flipPosition', () => {
     const mockPosition: Position = {
-      coin: 'BTC',
+      symbol: 'BTC',
       size: '0.5',
       entryPrice: '50000',
       liquidationPrice: '45000',
@@ -1851,7 +1851,7 @@ describe('TradingService', () => {
       // Verify order placed with 2x position size (0.5 * 2 = 1.0)
       expect(mockProvider.placeOrder).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '1',
         }),
       );
@@ -2018,7 +2018,7 @@ describe('TradingService', () => {
       });
 
       expect(mockProvider.placeOrder).toHaveBeenCalledWith({
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: false,
         size: '1',
         orderType: 'market',

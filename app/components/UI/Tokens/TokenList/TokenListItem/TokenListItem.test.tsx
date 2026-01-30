@@ -28,6 +28,27 @@ jest.mock('../../../Stake/components/StakeButton', () => ({
   default: () => null,
 }));
 
+// Mock useRWAToken hook
+const mockIsStockToken = jest.fn();
+const mockIsTokenTradingOpen = jest.fn();
+jest.mock('../../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isStockToken: mockIsStockToken,
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+  }),
+}));
+
+// Mock StockBadge component to simplify testing
+jest.mock('../../../shared/StockBadge', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ token }: { token: unknown }) => (
+      <Text testID="stock-badge">{`Stock Badge: ${(token as { symbol?: string })?.symbol}`}</Text>
+    ),
+  };
+});
+
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -264,6 +285,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isMusdConversionEnabled?: boolean;
     isTokenWithCta?: boolean;
     isGeoEligible?: boolean;
+    isStockToken?: boolean;
   }
 
   function prepareMocks({
@@ -272,9 +294,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isMusdConversionEnabled = false,
     isTokenWithCta = false,
     isGeoEligible = true,
+    isStockToken = false,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
+    // Stock token mocks
+    mockIsStockToken.mockReturnValue(isStockToken);
+    mockIsTokenTradingOpen.mockResolvedValue(true);
     jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
     mockBuild.mockReturnValue({ name: 'mock-built-event' });
     mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
@@ -292,7 +318,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     );
     mockUseMusdConversionTokens.mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
-      getMusdOutputChainId: jest.fn().mockReturnValue('0xe708'),
       filterAllowedTokens: jest.fn(),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
@@ -645,7 +670,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: '0xe708',
           preferredPaymentToken: {
             address: toHex('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'),
             chainId: toHex('0x1'),
@@ -773,6 +797,167 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+  });
+
+  describe('Stock Badge', () => {
+    const stockAsset = {
+      ...defaultAsset,
+      symbol: 'AAPL',
+      name: 'Apple Inc.',
+      rwaData: {
+        instrumentType: 'stock',
+        market: { nextOpen: '2024-01-01', nextClose: '2024-01-02' },
+      },
+    };
+
+    const assetKey: FlashListAssetKey = {
+      address: '0x456',
+      chainId: '0x1',
+      isStaked: false,
+    };
+
+    it('renders StockBadge when asset is a stock token', () => {
+      prepareMocks({
+        asset: stockAsset,
+        isStockToken: true,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
+      expect(mockIsStockToken).toHaveBeenCalled();
+    });
+
+    it('does NOT render StockBadge when asset is NOT a stock token', () => {
+      prepareMocks({
+        asset: defaultAsset,
+        isStockToken: false,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(queryByTestId('stock-badge')).toBeNull();
+      expect(mockIsStockToken).toHaveBeenCalled();
+    });
+
+    it('passes the asset to isStockToken function', () => {
+      prepareMocks({
+        asset: stockAsset,
+        isStockToken: true,
+      });
+
+      renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(mockIsStockToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'AAPL',
+          name: 'Apple Inc.',
+        }),
+      );
+    });
+
+    it('renders StockBadge with correct token prop', () => {
+      prepareMocks({
+        asset: stockAsset,
+        isStockToken: true,
+      });
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText('Stock Badge: AAPL')).toBeOnTheScreen();
+    });
+
+    it('renders StockBadge alongside other token information', () => {
+      prepareMocks({
+        asset: stockAsset,
+        isStockToken: true,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText('Apple Inc.')).toBeOnTheScreen();
+      expect(getByText('1.23 AAPL')).toBeOnTheScreen();
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
+    });
+
+    it('renders StockBadge with percentage change when both conditions are met', () => {
+      prepareMocks({
+        asset: stockAsset,
+        isStockToken: true,
+        pricePercentChange1d: 2.5,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
+      expect(getByText('+2.50%')).toBeOnTheScreen();
+    });
+
+    it('does NOT render StockBadge when RWA feature flag is disabled (isStockToken returns false)', () => {
+      prepareMocks({
+        asset: {
+          ...stockAsset,
+          rwaData: {
+            instrumentType: 'stock',
+            market: { nextOpen: '2024-01-01', nextClose: '2024-01-02' },
+          },
+        },
+        isStockToken: false, // RWA disabled, so isStockToken returns false
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(queryByTestId('stock-badge')).toBeNull();
     });
   });
 });

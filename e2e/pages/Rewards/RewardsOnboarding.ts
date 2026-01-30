@@ -1,7 +1,7 @@
 import { REWARDS_VIEW_SELECTORS } from '../../../app/components/UI/Rewards/Views/RewardsView.constants';
-import Assertions from '../../framework/Assertions';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import Assertions from '../../../tests/framework/Assertions';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 
 class RewardsClaimBonus {
   get rewardsClaimBonusButton(): DetoxElement {

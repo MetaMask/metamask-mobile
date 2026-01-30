@@ -11,7 +11,10 @@ import { extractTestResults } from './e2e-extract-test-results.mjs';
 
 const env = {
   TEST_SUITE_TAG: process.env.TEST_SUITE_TAG,
-  BASE_DIR: process.env.BASE_DIR || './e2e/specs',
+  // Starting at the root drastically affects the performance of the script. 
+  // This will be reverted as soon as all specs are migrated to the new folder 
+  // structure.
+  BASE_DIR: process.env.BASE_DIR || './',
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE || 'main',
   PLATFORM: process.env.PLATFORM || 'ios',
   SPLIT_NUMBER: Number(process.env.SPLIT_NUMBER || '1'),
