@@ -1,6 +1,5 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
-import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 import {
   normalizeToDotDecimal,
   toTokenMinimalUnit,
@@ -13,44 +12,23 @@ import type { TronStakeResult, TronUnstakeResult } from './tron-staking-snap';
 import { TokenI } from '../../Tokens/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import type { TronResourcesMap } from '../../../../selectors/assets/assets-list';
 
-interface TronResource {
-  symbol?: string;
-  balance?: string | number;
+/**
+ * Returns the total staked TRX (sTRX) amount from TRON resources.
+ * This is pre-computed in the selector using BigNumber to avoid floating-point precision errors.
+ */
+export function getStakedTrxTotalFromResources(
+  resources?: TronResourcesMap | null,
+): number {
+  return resources?.totalStakedTrx ?? 0;
 }
 
 /**
- * Returns the total staked TRX (sTRX) amount derived from TRON resources.
- * Sums both sTRX Energy and sTRX Bandwidth balances.
- * Uses BigNumber to avoid floating-point precision errors.
+ * True if the user holds any sTRX according to TRON resources.
  */
-export const getStakedTrxTotalFromResources = (
-  resources?: TronResource[] | null,
-): number => {
-  if (!Array.isArray(resources)) return 0;
-
-  const strxEnergy = resources.find(
-    (a) => a.symbol?.toLowerCase() === TRON_RESOURCE.STRX_ENERGY,
-  );
-  const strxBandwidth = resources.find(
-    (a) => a.symbol?.toLowerCase() === TRON_RESOURCE.STRX_BANDWIDTH,
-  );
-
-  // Use BigNumber to prevent floating-point precision errors
-  // e.g., 65.48463 + 65.48463 should equal 130.96926, not 130.96926000000002
-  const energyBN = new BigNumber(
-    String(strxEnergy?.balance ?? '0').replace(/,/g, ''),
-  );
-  const bandwidthBN = new BigNumber(
-    String(strxBandwidth?.balance ?? '0').replace(/,/g, ''),
-  );
-
-  return energyBN.plus(bandwidthBN).toNumber();
-};
-
-// True if the user holds any sTRX according to TRON resources.
 export const hasStakedTrxPositions = (
-  resources?: TronResource[] | null,
+  resources?: TronResourcesMap | null,
 ): boolean => getStakedTrxTotalFromResources(resources) > 0;
 
 export const buildTronEarnTokenIfEligible = (
