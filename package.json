@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.64.0",
+  "version": "7.65.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -297,7 +297,6 @@
     "@metamask/storage-service": "^0.0.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^15.0.0",
-    "@metamask/token-search-discovery-controller": "^4.0.0",
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.9.0-5c8f871530.patch",
     "@metamask/transaction-pay-controller": "^12.0.2",
     "@metamask/tron-wallet-snap": "^1.19.2",
