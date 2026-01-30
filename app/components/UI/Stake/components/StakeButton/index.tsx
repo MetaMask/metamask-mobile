@@ -38,6 +38,8 @@ import { isTronChainId } from '../../../../../core/Multichain/utils';
 import useTronStakeApy from '../../../Earn/hooks/useTronStakeApy';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 ///: END:ONLY_INCLUDE_IF
+import BigNumber from 'bignumber.js';
+import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
 
 const styles = StyleSheet.create({
   stakeButton: {
@@ -201,6 +203,13 @@ export const StakeButton = (props: StakeButtonProps) => {
   if (!isEligible) {
     return null;
   }
+
+  if (
+    new BigNumber(props.asset?.balance ?? '0').lt(MINIMUM_BALANCE_FOR_EARN_CTA)
+  ) {
+    return null;
+  }
+
   return (
     <StakeSDKProvider>
       <StakeButtonContent {...props} />

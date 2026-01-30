@@ -21,6 +21,7 @@ import {
 } from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
 
 const mockNavigate = jest.fn();
 
@@ -218,10 +219,25 @@ const STATE_MOCK = {
   },
 } as unknown as RootState;
 
+const MOCK_MINIMUM_BALANCE_AS_STRING = String(MINIMUM_BALANCE_FOR_EARN_CTA);
+
+const MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE: TokenI = {
+  ...MOCK_ETH_MAINNET_ASSET,
+  balance: MOCK_MINIMUM_BALANCE_AS_STRING,
+};
+
+const MOCK_USDC_MAINNET_ASSET_WITH_MINIMUM_BALANCE: TokenI = {
+  ...MOCK_USDC_MAINNET_ASSET,
+  balance: MOCK_MINIMUM_BALANCE_AS_STRING,
+};
+
 const renderComponent = (state = STATE_MOCK) =>
-  renderWithProvider(<StakeButton asset={MOCK_ETH_MAINNET_ASSET} />, {
-    state,
-  });
+  renderWithProvider(
+    <StakeButton asset={MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE} />,
+    {
+      state,
+    },
+  );
 
 const selectPrimaryEarnExperienceTypeForAssetMock = jest.requireMock(
   '../../../../../selectors/earnController/earn',
@@ -234,6 +250,17 @@ const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
 describe('StakeButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
 
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
@@ -258,7 +285,7 @@ describe('StakeButton', () => {
         expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
           screen: Routes.STAKING.STAKE,
           params: {
-            token: MOCK_ETH_MAINNET_ASSET,
+            token: MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE,
           },
         });
       });
@@ -314,7 +341,7 @@ describe('StakeButton', () => {
         expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
           screen: Routes.STAKING.STAKE,
           params: {
-            token: { ...MOCK_ETH_MAINNET_ASSET },
+            token: { ...MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE },
           },
         });
       });
@@ -324,7 +351,7 @@ describe('StakeButton', () => {
   describe('Stablecoin Lending', () => {
     it('navigates to Lending Input View when earn button is pressed', async () => {
       const { getByTestId } = renderWithProvider(
-        <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
+        <StakeButton asset={MOCK_USDC_MAINNET_ASSET_WITH_MINIMUM_BALANCE} />,
         {
           state: STATE_MOCK,
         },
@@ -336,7 +363,7 @@ describe('StakeButton', () => {
         expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
           screen: Routes.STAKING.STAKE,
           params: {
-            token: MOCK_USDC_MAINNET_ASSET,
+            token: MOCK_USDC_MAINNET_ASSET_WITH_MINIMUM_BALANCE,
           },
         });
       });
@@ -352,6 +379,7 @@ describe('StakeButton', () => {
       isNative: true,
       // Ensure ETH-specific logic does not apply
       isETH: false,
+      balance: MOCK_MINIMUM_BALANCE_AS_STRING,
     };
 
     it('navigates to Stake Input screen when TRX has POOLED_STAKING experience', async () => {
@@ -425,5 +453,41 @@ describe('StakeButton', () => {
     const { queryByTestId } = renderComponent();
 
     expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
+  });
+
+  describe('Earn CTA minimum balance threshold', () => {
+    it('does not render button when asset balance is below minimum earn cta threshold', () => {
+      // Arrange
+      const asset = { ...MOCK_ETH_MAINNET_ASSET, balance: '0.009' };
+
+      // Act
+      const { queryByTestId } = renderWithProvider(
+        <StakeButton asset={asset} />,
+        {
+          state: STATE_MOCK,
+        },
+      );
+
+      // Assert
+      expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
+    });
+
+    it('renders button when asset balance meets minimum earn cta threshold', () => {
+      // Arrange
+      const asset = MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE;
+
+      // Act
+      const { getByTestId } = renderWithProvider(
+        <StakeButton asset={asset} />,
+        {
+          state: STATE_MOCK,
+        },
+      );
+
+      // Assert
+      expect(
+        getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON),
+      ).toBeOnTheScreen();
+    });
   });
 });
