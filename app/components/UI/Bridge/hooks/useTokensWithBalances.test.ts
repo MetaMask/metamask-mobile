@@ -1,12 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
-import { CaipAssetType, CaipChainId } from '@metamask/utils';
+import { CaipAssetType } from '@metamask/utils';
 import { constants } from 'ethers';
 import { BtcAccountType } from '@metamask/keyring-api';
 import { useTokensWithBalances } from './useTokensWithBalances';
 import {
   createMockPopularToken,
   createMockBalanceData,
-  MOCK_CHAIN_IDS,
 } from '../testUtils/fixtures';
 import { BalancesByAssetId } from './useBalancesByAssetId';
 
@@ -22,7 +21,6 @@ describe('useTokensWithBalances', () => {
         createMockPopularToken({
           assetId:
             'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType,
-          chainId: MOCK_CHAIN_IDS.ethereum,
         }),
         {
           address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -33,7 +31,6 @@ describe('useTokensWithBalances', () => {
         'EVM native token',
         createMockPopularToken({
           assetId: 'eip155:1/slip44:60' as CaipAssetType,
-          chainId: MOCK_CHAIN_IDS.ethereum,
           symbol: 'ETH',
         }),
         { address: constants.AddressZero, chainId: '0x1' },
@@ -43,7 +40,6 @@ describe('useTokensWithBalances', () => {
         createMockPopularToken({
           assetId:
             'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as CaipAssetType,
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId,
           symbol: 'USDC',
         }),
         {
@@ -68,13 +64,11 @@ describe('useTokensWithBalances', () => {
         createMockPopularToken({
           assetId:
             'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174' as CaipAssetType,
-          chainId: MOCK_CHAIN_IDS.polygon,
           symbol: 'USDC',
         }),
         createMockPopularToken({
           assetId:
             'eip155:10/erc20:0x7f5c764cbc14f9669b88837ca1490cca17c31607' as CaipAssetType,
-          chainId: MOCK_CHAIN_IDS.optimism,
           symbol: 'USDC',
         }),
       ];

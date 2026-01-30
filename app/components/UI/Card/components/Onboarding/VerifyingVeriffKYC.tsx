@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -8,16 +8,21 @@ import { CardScreens } from '../../util/metrics';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import OnboardingStep from './OnboardingStep';
 import AnimatedSpinner from '../../../AnimatedSpinner';
+
+// Timeout duration before redirecting to KYC Pending screen (in milliseconds)
+const POLLING_TIMEOUT_MS = 30000;
+
 /**
  * Screen shown after Veriff KYC WebView completes.
  * Polls the registration status to check if the user was approved or rejected.
  * - VERIFIED: Navigate to PERSONAL_DETAILS to continue onboarding
  * - REJECTED: Navigate to KYC_FAILED
- * - PENDING: Continue polling indefinitely
+ * - PENDING: After 30 seconds of polling, navigate to KYC_PENDING
  */
 const VerifyingVeriffKYC = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { verificationState, startPolling, stopPolling } =
     useUserRegistrationStatus();
@@ -32,28 +37,45 @@ const VerifyingVeriffKYC = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  // Start polling on mount
   useEffect(() => {
     startPolling();
+
+    timeoutRef.current = setTimeout(() => {
+      stopPolling();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+      });
+    }, POLLING_TIMEOUT_MS);
+
     return () => {
       stopPolling();
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
-  }, [startPolling, stopPolling]);
+  }, [startPolling, stopPolling, navigation]);
 
-  // Navigate based on verification state
   useEffect(() => {
     if (verificationState === 'VERIFIED') {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       navigation.reset({
         index: 0,
         routes: [{ name: Routes.CARD.ONBOARDING.PERSONAL_DETAILS }],
       });
     } else if (verificationState === 'REJECTED') {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       navigation.reset({
         index: 0,
         routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
       });
     }
-    // PENDING state continues polling indefinitely
+
+    // PENDING state continues polling until timeout
   }, [verificationState, navigation]);
 
   const renderFormFields = () => (
