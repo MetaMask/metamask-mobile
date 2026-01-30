@@ -123,10 +123,6 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 ses.cjs                              @MetaMask/supply-chain
 patches/react-native+0.*.patch       @MetaMask/supply-chain
 
-# Portfolio Team
-app/components/hooks/useTokenSearchDiscovery @MetaMask/portfolio
-app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
-
 # Core Platform Team
 **/snaps/**                          @MetaMask/core-platform
 **/Snaps/**                          @MetaMask/core-platform
