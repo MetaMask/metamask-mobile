@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { CustomSlippageModal } from './CustomSlippageModal';
-import { Keys } from '../../../../Base/Keypad/constants';
 
 // Mock BottomSheet
 jest.mock(
@@ -85,6 +84,21 @@ jest.mock('../InputStepper', () => ({
 // Mock Keypad
 jest.mock('../../../../Base/Keypad', () => ({
   __esModule: true,
+  Keys: {
+    Back: 'Back',
+    Period: 'Period',
+    Digit0: '0',
+    Digit1: '1',
+    Digit2: '2',
+    Digit3: '3',
+    Digit4: '4',
+    Digit5: '5',
+    Digit6: '6',
+    Digit7: '7',
+    Digit8: '8',
+    Digit9: '9',
+    Initial: 'Initial',
+  },
   default: jest.fn(
     ({
       value,
@@ -109,7 +123,7 @@ jest.mock('../../../../Base/Keypad', () => ({
               onChange({
                 value: value + '5',
                 valueAsNumber: parseFloat(value + '5'),
-                pressedKey: '5', // Use string literal in mock
+                pressedKey: '5',
               })
             }
           >
@@ -202,7 +216,10 @@ describe('CustomSlippageModal', () => {
     mockUseSlippageConfig.mockReturnValue(mockSlippageConfig);
     mockUseShouldDisableCustomSlippageConfirm.mockReturnValue(false);
     mockUseSlippageStepperDescription.mockReturnValue(undefined);
-    mockUseParams.mockReturnValue({ network: '0x1' });
+    mockUseParams.mockReturnValue({
+      sourceChainId: '0x1',
+      destChainId: undefined,
+    });
     mockSelector.mockReturnValue(undefined);
   });
 
@@ -498,7 +515,7 @@ describe('CustomSlippageModal', () => {
       keypadOnChange({
         value: '150',
         valueAsNumber: 150,
-        pressedKey: Keys.Digit0,
+        pressedKey: '0' as never,
       });
 
       // Re-render to apply state change
@@ -528,7 +545,7 @@ describe('CustomSlippageModal', () => {
       keypadOnChange({
         value: '1.234',
         valueAsNumber: 1.234,
-        pressedKey: Keys.Digit4,
+        pressedKey: '4' as never,
       });
 
       // Value should remain unchanged (rejected)
@@ -548,7 +565,7 @@ describe('CustomSlippageModal', () => {
       keypadOnChange({
         value: '1.25',
         valueAsNumber: 1.25,
-        pressedKey: Keys.Digit5,
+        pressedKey: '5' as never,
       });
 
       // Re-render to apply state change
@@ -571,7 +588,7 @@ describe('CustomSlippageModal', () => {
       keypadOnChange({
         value: '100.',
         valueAsNumber: 100,
-        pressedKey: Keys.Period,
+        pressedKey: 'Period' as never,
       });
 
       // Re-render to apply state change
@@ -620,7 +637,7 @@ describe('CustomSlippageModal', () => {
       keypadOnChange({
         value: '25',
         valueAsNumber: 25,
-        pressedKey: Keys.Digit5,
+        pressedKey: '5' as never,
       });
 
       // Re-render to apply state change
@@ -632,6 +649,76 @@ describe('CustomSlippageModal', () => {
           mockUseSlippageStepperDescription.mock.calls.length - 1
         ];
       expect(lastDescriptionCall[0].hasAttemptedToExceedMax).toBe(false);
+    });
+
+    it('removes trailing dot when backspace is pressed', () => {
+      mockSelector.mockReturnValue('5.');
+
+      const { getByTestId, rerender } = render(<CustomSlippageModal />);
+
+      // Get the Keypad onChange handler
+      const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
+
+      // Simulate backspace press that results in trailing dot
+      // e.g., user had "5.5", pressed backspace, keypad returns "5."
+      keypadOnChange({
+        value: '5.',
+        valueAsNumber: 5,
+        pressedKey: 'Back' as never,
+      });
+
+      // Re-render to apply state change
+      rerender(<CustomSlippageModal />);
+
+      // Value should have trailing dot removed
+      const valueElement = getByTestId('input-stepper-value');
+      expect(valueElement.props.children).toBe('5');
+    });
+
+    it('removes trailing dot for "0." when backspace is pressed', () => {
+      mockSelector.mockReturnValue('0.5');
+
+      const { getByTestId, rerender } = render(<CustomSlippageModal />);
+
+      // Get the Keypad onChange handler
+      const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
+
+      // Simulate backspace press on "0.5" resulting in "0."
+      keypadOnChange({
+        value: '0.',
+        valueAsNumber: 0,
+        pressedKey: 'Back' as never,
+      });
+
+      // Re-render to apply state change
+      rerender(<CustomSlippageModal />);
+
+      // Value should have trailing dot removed
+      const valueElement = getByTestId('input-stepper-value');
+      expect(valueElement.props.children).toBe('0');
+    });
+
+    it('does not remove trailing dot for non-backspace keypresses', () => {
+      mockSelector.mockReturnValue('5');
+
+      const { getByTestId, rerender } = render(<CustomSlippageModal />);
+
+      // Get the Keypad onChange handler
+      const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
+
+      // Simulate period key press (not backspace)
+      keypadOnChange({
+        value: '5.',
+        valueAsNumber: 5,
+        pressedKey: 'Period' as never,
+      });
+
+      // Re-render to apply state change
+      rerender(<CustomSlippageModal />);
+
+      // Value should keep the trailing dot since it was a period press
+      const valueElement = getByTestId('input-stepper-value');
+      expect(valueElement.props.children).toBe('5.');
     });
   });
 
@@ -762,12 +849,18 @@ describe('CustomSlippageModal', () => {
   });
 
   describe('integration with hooks', () => {
-    it('calls useSlippageConfig with network param', () => {
-      mockUseParams.mockReturnValue({ network: 'eip155:1' });
+    it('calls useSlippageConfig with sourceChainId and destChainId params', () => {
+      mockUseParams.mockReturnValue({
+        sourceChainId: 'eip155:1',
+        destChainId: 'eip155:137',
+      });
 
       render(<CustomSlippageModal />);
 
-      expect(mockUseSlippageConfig).toHaveBeenCalledWith('eip155:1');
+      expect(mockUseSlippageConfig).toHaveBeenCalledWith({
+        sourceChainId: 'eip155:1',
+        destChainId: 'eip155:137',
+      });
     });
 
     it('calls useShouldDisableCustomSlippageConfirm with correct params', () => {

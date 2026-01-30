@@ -10,7 +10,7 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import Keypad from '../../../../Base/Keypad';
+import Keypad, { Keys } from '../../../../Base/Keypad';
 import { InputStepper } from '../InputStepper';
 import { DefaultSlippageModalParams } from './types';
 import { customSlippageModalStyles } from './styles';
@@ -27,8 +27,9 @@ import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisa
 export const CustomSlippageModal = () => {
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { network } = useParams<DefaultSlippageModalParams>();
-  const slippageConfig = useSlippageConfig(network);
+  const { sourceChainId, destChainId } =
+    useParams<DefaultSlippageModalParams>();
+  const slippageConfig = useSlippageConfig({ sourceChainId, destChainId });
   const currentSlippage = useSelector(selectSlippage);
   const [inputAmount, setInputAmount] = useState(currentSlippage ?? '0');
   const [hasAttemptedToExceedMax, setHasAttemptedToExceedMax] = useState(false);
@@ -52,28 +53,36 @@ export const CustomSlippageModal = () => {
   }, [dispatch, inputAmount]);
 
   const handleKeypadChange = useCallback(
-    (data: { value: string; valueAsNumber: number }) => {
-      const [, decimalPart] = data.value.split('.');
+    (data: { value: string; valueAsNumber: number; pressedKey: Keys }) => {
+      let newValue = data.value;
       setHasAttemptedToExceedMax(false);
+
+      // If user pressed backspace and the result ends with a trailing dot, remove it
+      if (data.pressedKey === Keys.Back && newValue.endsWith('.')) {
+        newValue = newValue.slice(0, -1);
+      }
+
+      const [, decimalPart] = newValue.split('.');
+      const valueAsNumber = parseFloat(newValue) || 0;
 
       // Cap the value to input_max_decimals
       if ((decimalPart?.length ?? 0) > slippageConfig.input_max_decimals) {
         return;
       }
 
-      if (data.valueAsNumber > slippageConfig.max_amount) {
+      if (valueAsNumber > slippageConfig.max_amount) {
         setHasAttemptedToExceedMax(true);
         return;
       }
 
       // Do not render dot when reaching max_amount
-      if (data.value === slippageConfig.max_amount + '.') {
+      if (newValue === slippageConfig.max_amount + '.') {
         setInputAmount(String(slippageConfig.max_amount));
         setHasAttemptedToExceedMax(true);
         return;
       }
 
-      setInputAmount(data.value);
+      setInputAmount(newValue);
     },
     [slippageConfig],
   );

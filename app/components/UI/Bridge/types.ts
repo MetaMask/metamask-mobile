@@ -142,9 +142,24 @@ export interface BridgeSlippageConfig {
     readonly has_custom_slippage_option: boolean;
   };
   /**
-   * Override default slippage options on Solana.
+   * Override __default__ options based on source and destination chain rules.
    */
-  [key: CaipChainId]: Partial<BridgeSlippageConfig['__default__']>;
+  [sourceChainId: CaipChainId]: {
+    /**
+     * Wildcard: Override __default__ options when chain id match source token chain id.
+     * This has higher priority than __default__.
+     */
+    '*'?: Partial<BridgeSlippageConfig['__default__']>;
+
+    /**
+     * Override __default__ options when chain id match source token chain id and destination chain id.
+     * If a destination chain and wildcard config is not defined, the default values will be used.
+     * This has higher priority than __default__ and whildcard.
+     */
+    [destinationChainId: CaipChainId]: Partial<
+      BridgeSlippageConfig['__default__']
+    >;
+  };
 }
 
 export enum TokenSelectorType {

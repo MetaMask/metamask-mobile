@@ -149,7 +149,10 @@ describe('DefaultSlippageModal', () => {
   beforeEach(() => {
     mockUseSlippageConfig.mockReturnValue(mockSlippageConfig);
     mockUseGetSlippageOptions.mockReturnValue(mockSlippageOptions);
-    mockUseParams.mockReturnValue({ network: '0x1' });
+    mockUseParams.mockReturnValue({
+      sourceChainId: '0x1',
+      destChainId: undefined,
+    });
     mockSelector.mockReturnValue(undefined); // Default: no slippage set
   });
 
@@ -182,12 +185,18 @@ describe('DefaultSlippageModal', () => {
       );
     });
 
-    it('passes network param to useSlippageConfig', () => {
-      mockUseParams.mockReturnValue({ network: 'eip155:1' });
+    it('passes sourceChainId and destChainId params to useSlippageConfig', () => {
+      mockUseParams.mockReturnValue({
+        sourceChainId: 'eip155:1',
+        destChainId: 'eip155:137',
+      });
 
       render(<DefaultSlippageModal />);
 
-      expect(mockUseSlippageConfig).toHaveBeenCalledWith('eip155:1');
+      expect(mockUseSlippageConfig).toHaveBeenCalledWith({
+        sourceChainId: 'eip155:1',
+        destChainId: 'eip155:137',
+      });
     });
 
     it('uses slippage config options', () => {
@@ -229,7 +238,10 @@ describe('DefaultSlippageModal', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL,
-        network: '0x1',
+        params: {
+          sourceChainId: '0x1',
+          destChainId: undefined,
+        },
       });
     });
 
@@ -474,24 +486,46 @@ describe('DefaultSlippageModal', () => {
       );
     });
 
-    it('handles network param from navigation', () => {
+    it('handles Solana chain params from navigation', () => {
       mockUseParams.mockReturnValue({
-        network: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        sourceChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        destChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       });
 
       render(<DefaultSlippageModal />);
 
-      expect(mockUseSlippageConfig).toHaveBeenCalledWith(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
+      expect(mockUseSlippageConfig).toHaveBeenCalledWith({
+        sourceChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        destChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      });
     });
 
-    it('handles undefined network param', () => {
-      mockUseParams.mockReturnValue({ network: undefined });
+    it('handles undefined chain params', () => {
+      mockUseParams.mockReturnValue({
+        sourceChainId: undefined,
+        destChainId: undefined,
+      });
 
       render(<DefaultSlippageModal />);
 
-      expect(mockUseSlippageConfig).toHaveBeenCalledWith(undefined);
+      expect(mockUseSlippageConfig).toHaveBeenCalledWith({
+        sourceChainId: undefined,
+        destChainId: undefined,
+      });
+    });
+
+    it('handles sourceChainId only (no destChainId)', () => {
+      mockUseParams.mockReturnValue({
+        sourceChainId: '0x1',
+        destChainId: undefined,
+      });
+
+      render(<DefaultSlippageModal />);
+
+      expect(mockUseSlippageConfig).toHaveBeenCalledWith({
+        sourceChainId: '0x1',
+        destChainId: undefined,
+      });
     });
   });
 

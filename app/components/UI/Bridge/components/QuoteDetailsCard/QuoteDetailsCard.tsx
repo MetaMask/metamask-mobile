@@ -122,7 +122,8 @@ const QuoteDetailsCard: React.FC = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL,
       params: {
-        network: sourceToken?.chainId,
+        sourceChainId: sourceToken?.chainId,
+        destChainId: destToken?.chainId,
       },
     });
   };

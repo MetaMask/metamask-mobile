@@ -62,7 +62,9 @@ export default {
         has_custom_slippage_option: true,
       },
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-        default_slippage_options: ['auto', '0.5', '2'],
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+          default_slippage_options: ['auto', '0.5', '2'],
+        },
       },
     },
   },

@@ -35,8 +35,9 @@ export const DefaultSlippageModal = () => {
   const [selectedSlippage, setSelectedSlippage] = useState<SlippageType>(
     slippage ?? AUTO_SLIPPAGE_VALUE,
   );
-  const { network } = useParams<DefaultSlippageModalParams>();
-  const slippageConfig = useSlippageConfig(network);
+  const { sourceChainId, destChainId } =
+    useParams<DefaultSlippageModalParams>();
+  const slippageConfig = useSlippageConfig({ sourceChainId, destChainId });
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -46,9 +47,9 @@ export const DefaultSlippageModal = () => {
     navigation.goBack();
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL,
-      network,
+      params: { sourceChainId, destChainId },
     });
-  }, [navigation, network]);
+  }, [navigation, sourceChainId, destChainId]);
 
   const handleSubmit = useCallback(() => {
     dispatch(
