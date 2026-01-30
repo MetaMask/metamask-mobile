@@ -463,6 +463,39 @@ describe('useTransactionAutoScroll', () => {
       expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
     });
 
+    it('clears pending scroll when enabled changes from true to false', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const getItemId = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data, enabled }) =>
+          useTransactionAutoScroll(data, listRef, {
+            getItemId,
+            enabled,
+          }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+            enabled: true,
+          },
+        },
+      );
+
+      // Add new transaction while enabled - this schedules a scroll
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }], enabled: true });
+
+      // Disable before the scroll timeout fires
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }], enabled: false });
+
+      // Advance past the scroll delay
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Pending scroll should have been cleared when disabled
+      expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
+    });
+
     it('respects custom delay option', () => {
       const listRef = createMockListRef<{ id: string }>();
       const getItemId = jest.fn((item: { id: string }) => item.id);

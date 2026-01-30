@@ -58,7 +58,14 @@ export function useTransactionAutoScroll<T>(
    * Scroll to top when a new item is added
    */
   useEffect(() => {
-    if (!enabled) return;
+    // Clear any pending scroll when disabled
+    if (!enabled) {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = null;
+      }
+      return;
+    }
 
     // Safely extract the first item ID with error handling
     const getCurrentFirstItemId = (): string | null => {
