@@ -57,7 +57,7 @@ const PreviousSeasonReferralDetails = () => {
         <Icon
           name={IconName.People}
           size={IconSize.Lg}
-          twClassName="text-success-default"
+          twClassName="text-primary-default"
         />
         <Text twClassName="text-default ml-2" variant={TextVariant.HeadingSm}>
           {totalReferees}
