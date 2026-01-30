@@ -4,6 +4,30 @@ import Tabs from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
+// Mock ButtonIcon to pass through testID
+jest.mock('../../../component-library/components/Buttons/ButtonIcon', () => {
+  const { TouchableOpacity, View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onPress,
+      testID,
+    }: {
+      onPress?: () => void;
+      testID?: string;
+    }) => (
+      <TouchableOpacity testID={testID} onPress={onPress}>
+        <View />
+      </TouchableOpacity>
+    ),
+    ButtonIconSizes: {
+      Sm: 'sm',
+      Md: 'md',
+      Lg: 'lg',
+    },
+  };
+});
+
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -67,7 +91,6 @@ const mockTabs = [
 describe('Tabs', () => {
   const mockNewTab = jest.fn();
   const mockCloseTab = jest.fn();
-  const mockCloseAllTabs = jest.fn();
   const mockCloseTabsView = jest.fn();
   const mockSwitchToTab = jest.fn();
 
@@ -86,7 +109,6 @@ describe('Tabs', () => {
         activeTab={1}
         newTab={mockNewTab}
         closeTab={mockCloseTab}
-        closeAllTabs={mockCloseAllTabs}
         closeTabsView={mockCloseTabsView}
         switchToTab={mockSwitchToTab}
       />,
@@ -103,7 +125,6 @@ describe('Tabs', () => {
         activeTab={null}
         newTab={mockNewTab}
         closeTab={mockCloseTab}
-        closeAllTabs={mockCloseAllTabs}
         closeTabsView={mockCloseTabsView}
         switchToTab={mockSwitchToTab}
       />,
@@ -123,13 +144,34 @@ describe('Tabs', () => {
         activeTab={1}
         newTab={mockNewTab}
         closeTab={mockCloseTab}
-        closeAllTabs={mockCloseAllTabs}
         closeTabsView={mockCloseTabsView}
         switchToTab={mockSwitchToTab}
       />,
       { state: mockInitialState },
     );
 
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders top bar with title and action buttons', () => {
+    // The first snapshot test already verifies the top bar structure:
+    // - Back button with testID "tabs_back_button"
+    // - Title "Opened tabs"
+    // - Add button with testID "tabs_add"
+    // See snapshot for "renders tabs component with multiple tabs"
+    const { toJSON } = renderWithProvider(
+      <Tabs
+        tabs={mockTabs}
+        activeTab={1}
+        newTab={mockNewTab}
+        closeTab={mockCloseTab}
+        closeTabsView={mockCloseTabsView}
+        switchToTab={mockSwitchToTab}
+      />,
+      { state: mockInitialState },
+    );
+
+    // Verify component renders (matching snapshot verifies structure)
     expect(toJSON()).toMatchSnapshot();
   });
 });

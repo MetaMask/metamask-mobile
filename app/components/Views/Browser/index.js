@@ -410,9 +410,17 @@ export const Browser = (props) => {
 
   const closeTabsView = () => {
     setShouldShowTabs(false);
-    // If no tabs left, navigate away from browser
-    if (tabs.length === 0) {
-      navigation.goBack();
+
+    // Check if the active tab still exists in the tabs list
+    const activeTabExists = tabs.some((tab) => tab.id === activeTabId);
+
+    // Navigate to Explore if:
+    // 1. No tabs exist, OR
+    // 2. Active tab was closed (activeTabId not in tabs)
+    if (tabs.length === 0 || !activeTabExists) {
+      navigation.navigate(Routes.TRENDING_VIEW, {
+        screen: Routes.TRENDING_FEED,
+      });
     }
   };
 
@@ -426,7 +434,6 @@ export const Browser = (props) => {
           newTab={newTab}
           closeTab={closeTab}
           closeTabsView={closeTabsView}
-          closeAllTabs={closeAllTabs}
         />
       );
     }

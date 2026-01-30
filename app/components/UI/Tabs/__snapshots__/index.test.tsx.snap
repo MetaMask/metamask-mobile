@@ -15,11 +15,55 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
     }
   }
 >
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "paddingHorizontal": 16,
+        "paddingVertical": 12,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[MockFunction]}
+      testID="tabs_back_button"
+    >
+      <View />
+    </TouchableOpacity>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "flex": 1,
+          "fontFamily": "Geist-Bold",
+          "fontSize": 18,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "textAlign": "center",
+        }
+      }
+    >
+      Opened tabs
+    </Text>
+    <TouchableOpacity
+      onPress={[Function]}
+      testID="tabs_add"
+    >
+      <View />
+    </TouchableOpacity>
+  </View>
   <RCTScrollView
     contentContainerStyle={
       {
         "backgroundColor": "transparent",
-        "padding": 15,
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "padding": 16,
       }
     }
     style={
@@ -56,18 +100,17 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
             [
               {
                 "borderColor": "#b7bbc8",
-                "borderRadius": 10,
+                "borderRadius": 12,
                 "borderWidth": 1,
-                "elevation": 8,
-                "height": 266.8,
-                "justifyContent": "space-evenly",
-                "marginBottom": 15,
+                "elevation": 4,
+                "height": 345.94,
+                "justifyContent": "flex-start",
                 "overflow": "hidden",
-                "width": 720,
+                "width": 353,
               },
               {
                 "borderColor": "#4459ff",
-                "borderWidth": 5,
+                "borderWidth": 3,
               },
             ]
           }
@@ -79,17 +122,18 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
-                "padding": 8,
+                "padding": 6,
               }
             }
           >
             <View
               style={
                 {
+                  "alignItems": "center",
                   "backgroundColor": "transparent",
                   "flex": 1,
                   "flexDirection": "row",
-                  "marginRight": 40,
+                  "marginRight": 24,
                 }
               }
             >
@@ -98,12 +142,11 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
                   {
                     "backgroundColor": "#ffffff",
                     "borderRadius": 16,
-                    "height": 22,
+                    "height": 16,
                     "marginLeft": 2,
-                    "marginRight": 5,
-                    "marginTop": 1,
+                    "marginRight": 4,
                     "overflow": "hidden",
-                    "width": 22,
+                    "width": 16,
                   }
                 }
               >
@@ -127,13 +170,13 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flex": 1,
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 12,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "marginLeft": 5,
-                    "marginRight": 40,
-                    "marginTop": 0,
+                    "marginLeft": 4,
+                    "marginRight": 24,
                   }
                 }
               >
@@ -187,7 +230,6 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
                 {
                   "bottom": 0,
                   "left": 0,
-                  "paddingTop": 1044,
                   "position": "absolute",
                   "resizeMode": "cover",
                   "right": 0,
@@ -223,14 +265,13 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
             [
               {
                 "borderColor": "#b7bbc8",
-                "borderRadius": 10,
+                "borderRadius": 12,
                 "borderWidth": 1,
-                "elevation": 8,
-                "height": 266.8,
-                "justifyContent": "space-evenly",
-                "marginBottom": 15,
+                "elevation": 4,
+                "height": 345.94,
+                "justifyContent": "flex-start",
                 "overflow": "hidden",
-                "width": 720,
+                "width": 353,
               },
               false,
             ]
@@ -243,17 +284,18 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
-                "padding": 8,
+                "padding": 6,
               }
             }
           >
             <View
               style={
                 {
+                  "alignItems": "center",
                   "backgroundColor": "transparent",
                   "flex": 1,
                   "flexDirection": "row",
-                  "marginRight": 40,
+                  "marginRight": 24,
                 }
               }
             >
@@ -262,12 +304,11 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
                   {
                     "backgroundColor": "#ffffff",
                     "borderRadius": 16,
-                    "height": 22,
+                    "height": 16,
                     "marginLeft": 2,
-                    "marginRight": 5,
-                    "marginTop": 1,
+                    "marginRight": 4,
                     "overflow": "hidden",
-                    "width": 22,
+                    "width": 16,
                   }
                 }
               >
@@ -291,13 +332,13 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flex": 1,
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 12,
                     "letterSpacing": 0,
                     "lineHeight": 24,
-                    "marginLeft": 5,
-                    "marginRight": 40,
-                    "marginTop": 0,
+                    "marginLeft": 4,
+                    "marginRight": 24,
                   }
                 }
               >
@@ -351,7 +392,6 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
                 {
                   "bottom": 0,
                   "left": 0,
-                  "paddingTop": 1044,
                   "position": "absolute",
                   "resizeMode": "cover",
                   "right": 0,
@@ -364,167 +404,9 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
       </View>
     </View>
   </RCTScrollView>
-  <View
-    style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flexDirection": "row",
-          "paddingBottom": 17,
-          "paddingHorizontal": 20,
-          "paddingTop": 17,
-          "shadowColor": "#0000001a",
-          "shadowOffset": {
-            "height": 2,
-            "width": 0,
-          },
-          "shadowOpacity": 1,
-          "shadowRadius": 16,
-        },
-        {
-          "paddingBottom": 17,
-        },
-      ]
-    }
-  >
-    <TouchableOpacity
-      onPress={[MockFunction]}
-      style={
-        [
-          {
-            "alignContent": "center",
-            "alignSelf": "flex-start",
-            "flex": 1,
-            "justifyContent": "center",
-          },
-          {
-            "justifyContent": "center",
-          },
-        ]
-      }
-      testID="tabs_close_all"
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "0": {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-            },
-            "1": null,
-            "color": "#121314",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        Close all
-      </Text>
-    </TouchableOpacity>
-    <View
-      style={
-        {
-          "alignContent": "center",
-          "alignSelf": "flex-start",
-          "flex": 1,
-          "justifyContent": "center",
-        }
-      }
-    >
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignContent": "flex-start",
-            "alignSelf": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 100,
-            "height": 30,
-            "justifyContent": "flex-start",
-            "marginTop": -7,
-            "width": 30,
-          }
-        }
-        testID="tabs_add"
-      >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
-          style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 15,
-              },
-              {
-                "alignContent": "center",
-                "color": "#ffffff",
-                "fontSize": 24,
-                "justifyContent": "center",
-                "marginTop": 3,
-                "textAlign": "center",
-              },
-              {
-                "fontFamily": "Material Design Icons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
-          }
-        >
-          󰐕
-        </Text>
-      </TouchableOpacity>
-    </View>
-    <TouchableOpacity
-      onPress={[MockFunction]}
-      style={
-        [
-          {
-            "alignContent": "center",
-            "alignSelf": "flex-start",
-            "flex": 1,
-            "justifyContent": "center",
-          },
-          {
-            "alignItems": "flex-end",
-            "justifyContent": "center",
-          },
-        ]
-      }
-      testID="tabs_done"
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "0": {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-            },
-            "1": {
-              "fontFamily": "Geist-Bold",
-            },
-            "2": null,
-            "color": "#121314",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        Done
-      </Text>
-    </TouchableOpacity>
-  </View>
 </View>
 `;
+
+exports[`Tabs renders top bar with title and action buttons 1`] = `null`;
 
 exports[`Tabs renders with single tab 1`] = `null`;
