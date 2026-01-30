@@ -1,4 +1,7 @@
-import { ToastRef, ToastOptions } from '../../component-library/components/Toast/Toast.types';
+import {
+  ToastRef,
+  ToastOptions,
+} from '../../component-library/components/Toast/Toast.types';
 import Logger from '../../util/Logger';
 
 /**
@@ -26,9 +29,7 @@ class ToastService {
    */
   static #assertToastRefExists(message: string): ToastRef {
     if (!this.#toastRef?.current) {
-      const error = new Error(
-        `Toast reference is not available: ${message}`,
-      );
+      const error = new Error(`Toast reference is not available: ${message}`);
       Logger.error(error);
       throw error;
     }
@@ -76,4 +77,3 @@ class ToastService {
 }
 
 export default ToastService;
-

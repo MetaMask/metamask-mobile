@@ -1,6 +1,9 @@
 import ToastService from './ToastService';
 import Logger from '../../util/Logger';
-import type { ToastRef, ToastOptions } from '../../component-library/components/Toast/Toast.types';
+import type {
+  ToastRef,
+  ToastOptions,
+} from '../../component-library/components/Toast/Toast.types';
 import { ToastVariants } from '../../component-library/components/Toast/Toast.types';
 
 jest.mock('../../util/Logger');
@@ -168,4 +171,3 @@ describe('ToastService', () => {
     });
   });
 });
-
