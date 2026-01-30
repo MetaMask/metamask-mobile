@@ -30,6 +30,7 @@ import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
 import { getTransactionById, isLegacyTransaction } from '../transactions';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { getClientForTransactionMetadata } from '../../constants/smartTransactions';
 
 type AllowedActions = never;
 
@@ -443,7 +444,10 @@ class SmartTransactionHook {
           );
           const signedTx: SignedTransactionWithMetadata = { tx: tx.signedTx };
           if (transactionMeta) {
-            signedTx.metadata = { txType: transactionMeta.type };
+            signedTx.metadata = {
+              txType: transactionMeta.type,
+              client: getClientForTransactionMetadata(),
+            };
           }
           return signedTx;
         });
@@ -452,7 +456,10 @@ class SmartTransactionHook {
       signedTransactionsWithMetadata = [
         {
           tx: this.#signedTransactionInHex,
-          metadata: { txType: this.#transactionMeta.type },
+          metadata: {
+            txType: this.#transactionMeta.type,
+            client: getClientForTransactionMetadata(),
+          },
         },
       ];
     } else if (getFeesResponse) {
@@ -462,7 +469,10 @@ class SmartTransactionHook {
       );
       signedTransactionsWithMetadata = signed.map((signedTx) => ({
         tx: signedTx,
-        metadata: { txType: this.#transactionMeta.type },
+        metadata: {
+          txType: this.#transactionMeta.type,
+          client: getClientForTransactionMetadata(),
+        },
       }));
     }
     signedTransactions = signedTransactionsWithMetadata.map((tx) => tx.tx);

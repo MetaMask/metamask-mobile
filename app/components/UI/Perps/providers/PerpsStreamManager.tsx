@@ -621,7 +621,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
           DevLogger.log(
             `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First position data received`,
             {
-              metric: PerpsMeasurementName.PERPS_WEBSOCKET_FIRST_POSITION_DATA,
+              metric: PerpsMeasurementName.PerpsWebsocketFirstPositionData,
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
           );
@@ -1336,6 +1336,27 @@ export class PerpsStreamManager {
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
   // public readonly trades = new TradeStreamChannel();
+
+  // UI coordination: Track if a component is actively handling deposit toasts
+  // This prevents duplicate toasts between usePerpsDepositStatus and usePerpsOrderDepositTracking
+  private activeDepositHandler = false;
+
+  /**
+   * Set whether a component is actively handling deposit toasts
+   * Used by PerpsOrderView to prevent duplicate toasts from usePerpsDepositStatus
+   * @param isActive - Whether a component is actively handling deposit toasts
+   */
+  public setActiveDepositHandler(isActive: boolean): void {
+    this.activeDepositHandler = isActive;
+  }
+
+  /**
+   * Check if a component is actively handling deposit toasts
+   * @returns true if a component is actively handling deposit toasts
+   */
+  public hasActiveDepositHandler(): boolean {
+    return this.activeDepositHandler;
+  }
 
   /**
    * Force reconnection of all stream channels after WebSocket reconnection

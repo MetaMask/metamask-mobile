@@ -38,6 +38,11 @@ export interface EarnToastOptionsConfig {
     success: EarnToastOptions;
     failed: EarnToastOptions;
   };
+  bonusClaim: {
+    inProgress: EarnToastOptions;
+    success: EarnToastOptions;
+    failed: EarnToastOptions;
+  };
 }
 
 interface EarnToastLabelOptions {
@@ -187,6 +192,30 @@ const useEarnToasts = (): {
           ...earnBaseToastOptions.error,
           labelOptions: getEarnToastLabels({
             primary: strings('earn.musd_conversion.toasts.failed'),
+          }),
+          closeButtonOptions,
+        },
+      },
+      bonusClaim: {
+        inProgress: {
+          ...earnBaseToastOptions.inProgress,
+          labelOptions: getEarnToastLabels({
+            primary: strings('earn.bonus_claim.toasts.claiming'),
+          }),
+          closeButtonOptions,
+        },
+        // Reuse the mUSD conversion success toast as per acceptance criteria
+        success: {
+          ...earnBaseToastOptions.success,
+          labelOptions: getEarnToastLabels({
+            primary: strings('earn.bonus_claim.toasts.delivered'),
+          }),
+          closeButtonOptions,
+        },
+        failed: {
+          ...earnBaseToastOptions.error,
+          labelOptions: getEarnToastLabels({
+            primary: strings('earn.bonus_claim.toasts.failed'),
           }),
           closeButtonOptions,
         },
