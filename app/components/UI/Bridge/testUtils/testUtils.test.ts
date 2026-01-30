@@ -7,7 +7,6 @@ import {
   createMockBalanceData,
   createMockSearchResponse,
   createMockPaginatedResponse,
-  MOCK_CHAIN_IDS,
 } from './index';
 import { getDefaultBridgeControllerState } from '@metamask/bridge-controller';
 import { mockBridgeReducerState } from '../_mocks_/bridgeReducerState';
@@ -56,7 +55,7 @@ describe('Bridge Test Utilities', () => {
       [
         'createMockPopularToken',
         createMockPopularToken,
-        { chainId: MOCK_CHAIN_IDS.ethereum },
+        { symbol: 'TEST', decimals: 18 },
       ],
       ['createMockBalanceData', createMockBalanceData, { balance: '1.0' }],
     ])('%s creates fixture with defaults', (_, factory, expected) => {

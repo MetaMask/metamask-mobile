@@ -3,11 +3,7 @@ import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  SECTIONS_CONFIG,
-  SECTIONS_ARRAY,
-  type SectionId,
-} from '../../sections.config';
+import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
@@ -41,7 +37,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const { data, isLoading } = useExploreSearch(searchQuery);
+  const { data, isLoading, sectionsOrder } = useExploreSearch(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -63,11 +59,14 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     const result: FlatListItem[] = [];
 
     // Filter sections based on basic functionality toggle
-    const sectionsToShow = isBasicFunctionalityEnabled ? SECTIONS_ARRAY : [];
+    const sectionIdsToShow = isBasicFunctionalityEnabled ? sectionsOrder : [];
 
-    sectionsToShow.forEach((section) => {
-      const items = data[section.id];
-      const sectionIsLoading = isLoading[section.id];
+    sectionIdsToShow.forEach((sectionId) => {
+      const section = SECTIONS_CONFIG[sectionId];
+      if (!section) return;
+
+      const items = data[sectionId];
+      const sectionIsLoading = isLoading[sectionId];
 
       // Show section if it has items or is loading
       if ((items && items.length > 0) || sectionIsLoading) {
@@ -82,7 +81,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           for (let i = 0; i < 3; i++) {
             result.push({
               type: 'skeleton',
-              sectionId: section.id,
+              sectionId,
               index: i,
             });
           }
@@ -91,7 +90,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           items.forEach((item) => {
             result.push({
               type: 'item',
-              sectionId: section.id,
+              sectionId,
               data: item,
             });
           });
@@ -100,7 +99,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     });
 
     return result;
-  }, [data, isLoading, isBasicFunctionalityEnabled]);
+  }, [data, isLoading, isBasicFunctionalityEnabled, sectionsOrder]);
 
   // Scroll to top when search query changes
   useEffect(() => {
