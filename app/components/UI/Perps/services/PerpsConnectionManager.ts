@@ -26,6 +26,7 @@ import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ensureError } from '../../../../util/errorUtils';
 import { wait } from '../utils/wait';
+import { TradingReadinessCache } from './TradingReadinessCache';
 
 /**
  * Singleton manager for Perps connection state
@@ -980,6 +981,40 @@ class PerpsConnectionManagerClass {
    */
   isCurrentlyConnecting(): boolean {
     return this.isConnecting;
+  }
+
+  /**
+   * Clear DEX abstraction cache for a specific address
+   * Useful for debugging or allowing user to retry after rejecting signature
+   * Note: This only clears DEX abstraction state, preserving builder fee and referral states
+   */
+  clearDexAbstractionCache(
+    network: 'mainnet' | 'testnet',
+    userAddress: string,
+  ): void {
+    TradingReadinessCache.clearDexAbstraction(network, userAddress);
+    DevLogger.log('PerpsConnectionManager: DEX abstraction cache cleared', {
+      network,
+      userAddress,
+    });
+  }
+
+  /**
+   * Clear all signing operation caches for all users
+   * Useful for debugging or app-level cache resets
+   * WARNING: This clears ALL signing states (dexAbstraction, builderFee, referral) for ALL users
+   */
+  clearAllSigningCache(): void {
+    TradingReadinessCache.clearAll();
+    DevLogger.log('PerpsConnectionManager: All signing cache cleared');
+  }
+
+  /**
+   * @deprecated Use clearAllSigningCache() instead - this method name is misleading
+   * as it clears ALL signing operation states, not just DEX abstraction
+   */
+  clearAllDexAbstractionCache(): void {
+    this.clearAllSigningCache();
   }
 }
 

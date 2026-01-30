@@ -85,7 +85,11 @@ const DiscoveryTabPure: React.FC<DiscoveryTabProps> = ({
     (item: AutocompleteSearchResult) => {
       // Unfocus the url bar and hide the autocomplete results
       urlBarRef.current?.hide();
-      onSubmitEditing(item.url);
+      // Only navigate if the item has a URL (Sites, Recents, Favorites)
+      // Tokens, Perps, and Predictions don't have URLs and are handled elsewhere
+      if ('url' in item) {
+        onSubmitEditing(item.url);
+      }
     },
     [onSubmitEditing],
   );
