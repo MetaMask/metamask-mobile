@@ -313,11 +313,19 @@ const OnboardingNav = () => {
  * Parent Stack navigator that allows the
  * child OnboardingNav navigator to push modals on top of it
  */
-const SimpleWebviewScreen = () => (
-  <Stack.Navigator screenOptions={{ presentation: 'modal' }}>
-    <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
-  </Stack.Navigator>
-);
+const SimpleWebviewScreen = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        presentation: 'modal',
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
+    </Stack.Navigator>
+  );
+};
 
 const OnboardingRootNav = () => {
   const { colors } = useTheme();

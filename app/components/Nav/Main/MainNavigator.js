@@ -745,11 +745,19 @@ const HomeTabs = () => {
   );
 };
 
-const Webview = () => (
-  <Stack.Navigator screenOptions={{ presentation: 'modal' }}>
-    <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
-  </Stack.Navigator>
-);
+const Webview = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        presentation: 'modal',
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
+    </Stack.Navigator>
+  );
+};
 
 /* eslint-disable react/prop-types */
 const NftDetailsModeView = (props) => (
@@ -1098,7 +1106,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
+        }}
       />
       <Stack.Screen
         name="StakeScreens"
@@ -1124,12 +1135,18 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
+        }}
       />
       <Stack.Screen
         name="StakeModals"
         component={StakeModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
+        }}
       />
       {isPerpsEnabled && (
         <>
@@ -1162,7 +1179,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
-            options={clearStackNavigatorOptions}
+            options={{
+              ...clearStackNavigatorOptions,
+              presentation: 'transparentModal',
+            }}
           />
         </>
       )}
@@ -1218,7 +1238,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
-            options={clearStackNavigatorOptions}
+            options={{
+              ...clearStackNavigatorOptions,
+              presentation: 'transparentModal',
+            }}
           />
         </>
       )}
