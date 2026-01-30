@@ -186,8 +186,9 @@ const PerpsMarketListView = ({
     toggleSearchVisibility();
 
     if (isSearchVisible) {
-      // When disabling search, clear the query
+      // When disabling search, clear the query and reset category filter
       clearSearch();
+      setMarketTypeFilter(defaultMarketTypeFilter);
     } else {
       // When enabling search, track the event
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -195,7 +196,14 @@ const PerpsMarketListView = ({
           PerpsEventValues.INTERACTION_TYPE.SEARCH_CLICKED,
       });
     }
-  }, [isSearchVisible, toggleSearchVisibility, clearSearch, track]);
+  }, [
+    isSearchVisible,
+    toggleSearchVisibility,
+    clearSearch,
+    track,
+    setMarketTypeFilter,
+    defaultMarketTypeFilter,
+  ]);
 
   // Performance tracking: Measure screen load time until market data is displayed
   usePerpsMeasurement({
