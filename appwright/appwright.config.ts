@@ -149,10 +149,10 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'emulator',
-          name: 'Samsung Galaxy S24 Ultra', // this can be changed to your emulator name
-          osVersion: '14', // this can be changed to your emulator version
+          name: 'Medium Phone API 35', // this can be changed to your emulator name
+          osVersion: '15', // this can be changed to your emulator version
         },
-        buildPath: 'PATH-TO-BUILD', // Path to your .apk file
+        buildPath: '/Users/user/Downloads/metamask-main-rc-3418.apk', // Path to your .apk file
         expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },

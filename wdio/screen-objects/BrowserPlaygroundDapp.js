@@ -31,7 +31,7 @@ class BrowserPlaygroundDapp {
   /**
    * Helper to create XPath selector for data-testid attribute
    * @param {string} testId - The data-testid value
-   * @returns {Promise} - Element locator
+   * @returns {Promise<import('appwright').AppwrightLocator>} - Element locator
    */
   _getByTestId(testId) {
     if (!this._device) return null;

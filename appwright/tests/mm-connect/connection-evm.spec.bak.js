@@ -23,7 +23,7 @@ const EVM_LEGACY_TEST_DAPP_NAME = 'Connect | Legacy EVM';
 const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_3_ADDRESS = '0xE2bEca5CaDC60b61368987728b4229822e6CDa83';
 
-test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
+test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   device,
 }) => {
   WalletMainScreen.device = device;
