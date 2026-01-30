@@ -53,7 +53,7 @@ jest.mock('@react-navigation/native', () => ({
 const CHAIN_ID_MOCK = '0x123';
 
 function renderHook() {
-  return renderHookWithProvider(useTransactionConfirm, {
+  return renderHookWithProvider(() => useTransactionConfirm(), {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
@@ -263,6 +263,22 @@ describe('useTransactionConfirm', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
       });
+    });
+
+    it('skips navigation if perps deposit and order (caller handles navigation)', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsDepositAndOrder,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('wallet home if musdConversion', async () => {
