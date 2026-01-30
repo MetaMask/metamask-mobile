@@ -63,6 +63,7 @@ export type {
 
   // Deposit/withdrawal types
   DepositParams,
+  DepositWithConfirmationParams,
   DepositResult,
   WithdrawParams,
   WithdrawResult,
