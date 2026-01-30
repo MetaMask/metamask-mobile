@@ -70,6 +70,51 @@ describe('TronStakePreview', () => {
     expect(getByText(/0[,.]670 TRX/)).toBeOnTheScreen();
   });
 
+  it('calculates annual reward from floating-point balances without precision errors', () => {
+    // This test verifies the BigNumber fix for balance addition using real user data:
+    // User staked 65 TRX for Energy + 65 TRX for Bandwidth = 130 TRX originally
+    // Staking rewards accumulated to give 65.48463 + 65.48463 = 130.96926 TRX total
+    // In native JS: 65.48463 + 65.48463 = 130.96926000000002 (floating-point error!)
+    // With BigNumber: 65.48463 + 65.48463 = 130.96926 (correct)
+    const mockResources = [
+      {
+        symbol: TRON_RESOURCE.STRX_ENERGY,
+        balance: '65.48463',
+      },
+      {
+        symbol: TRON_RESOURCE.STRX_BANDWIDTH,
+        balance: '65.48463',
+      },
+    ];
+
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTronResourcesBySelectedAccountGroup) {
+        return mockResources;
+      }
+      return undefined;
+    });
+
+    // Stake amount of 10, total staked is 130.96926 + 10 = 140.96926
+    // Annual reward = 140.96926 * 0.0335 = 4.722 (rounded to 3 decimals)
+    const { getByText } = render(<TronStakePreview stakeAmount="10" />);
+
+    expect(getByText('Est. annual reward')).toBeOnTheScreen();
+    expect(getByText(/4[,.]722 TRX/)).toBeOnTheScreen();
+  });
+
+  it('displays existing staked balance reward when stakeAmount is empty string', () => {
+    // When user clears input, stakeAmount becomes ''.
+    // new BigNumber('') returns NaN, which must not propagate to the UI.
+    // With existing staked balance (15 TRX), reward = 15 * 0.0335 = 0.503 TRX
+    const { getByText, queryByText } = render(
+      <TronStakePreview stakeAmount="" />,
+    );
+
+    expect(getByText('Est. annual reward')).toBeOnTheScreen();
+    expect(getByText(/0[,.]503 TRX/)).toBeOnTheScreen();
+    expect(queryByText(/NaN/)).toBeNull();
+  });
+
   it('shows release information without annual reward when mode is unstake', () => {
     const { getByText, queryByText } = render(
       <TronStakePreview stakeAmount="5" mode="unstake" />,
