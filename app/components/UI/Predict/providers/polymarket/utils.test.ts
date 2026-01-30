@@ -2393,6 +2393,110 @@ describe('polymarket utils', () => {
         'Network error',
       );
     });
+
+    describe('hot tab with customQueryParams', () => {
+      it('uses only limit, offset, and customQueryParams when category is hot', async () => {
+        const mockResponse = {
+          data: [mockEvent],
+        };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockResponse),
+        });
+
+        const params: GetMarketsParams = {
+          category: 'hot',
+          customQueryParams: '&tag_id=149&tag_id=100995&order=volume24hr',
+          limit: 20,
+          offset: 0,
+        };
+
+        await getParsedMarketsFromPolymarketApi(params);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://gamma-api.polymarket.com/events/pagination?limit=20&offset=0&tag_id=149&tag_id=100995&order=volume24hr',
+        );
+      });
+
+      it('falls back to default params when hot tab has no customQueryParams', async () => {
+        const mockResponse = {
+          data: [mockEvent],
+        };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockResponse),
+        });
+
+        const params: GetMarketsParams = {
+          category: 'hot',
+          limit: 20,
+          offset: 0,
+        };
+
+        await getParsedMarketsFromPolymarketApi(params);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&order=volume24hr',
+        );
+      });
+
+      it('does not apply default filters for hot tab with customQueryParams', async () => {
+        const mockResponse = {
+          data: [mockEvent],
+        };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockResponse),
+        });
+
+        const params: GetMarketsParams = {
+          category: 'hot',
+          customQueryParams: '&tag_id=198',
+          limit: 10,
+          offset: 20,
+        };
+
+        await getParsedMarketsFromPolymarketApi(params);
+
+        const callUrl = mockFetch.mock.calls[0][0] as string;
+
+        expect(callUrl).not.toContain('active=true');
+        expect(callUrl).not.toContain('archived=false');
+        expect(callUrl).not.toContain('closed=false');
+        expect(callUrl).not.toContain('liquidity_min');
+        expect(callUrl).not.toContain('volume_min');
+        expect(callUrl).toContain('limit=10');
+        expect(callUrl).toContain('offset=20');
+        expect(callUrl).toContain('tag_id=198');
+      });
+
+      it('ignores customQueryParams for non-hot categories', async () => {
+        const mockResponse = {
+          data: [mockEvent],
+        };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockResponse),
+        });
+
+        const params: GetMarketsParams = {
+          category: 'trending',
+          customQueryParams: '&tag_id=149',
+          limit: 20,
+          offset: 0,
+        };
+
+        await getParsedMarketsFromPolymarketApi(params);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&order=volume24hr',
+        );
+      });
+    });
   });
 
   describe('getMarketsFromPolymarketApi', () => {

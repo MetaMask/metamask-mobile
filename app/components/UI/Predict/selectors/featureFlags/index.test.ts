@@ -1,4 +1,4 @@
-import { selectPredictEnabledFlag } from '.';
+import { selectPredictEnabledFlag, selectPredictHotTabFlag } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,
@@ -183,6 +183,131 @@ describe('Predict Feature Flag Selectors', () => {
 
         expect(result).toBe(true);
       });
+    });
+  });
+
+  describe('selectPredictHotTabFlag', () => {
+    it('returns hot tab flag when present in remote feature flags', () => {
+      const stateWithHotTabFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: {
+                  enabled: true,
+                  queryParams: '&tag_id=149&order=volume24hr',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithHotTabFlag);
+
+      expect(result).toEqual({
+        enabled: true,
+        queryParams: '&tag_id=149&order=volume24hr',
+      });
+    });
+
+    it('returns default flag when remote flag is missing', () => {
+      const result = selectPredictHotTabFlag(mockedEmptyFlagsState);
+
+      expect(result).toEqual({
+        enabled: false,
+        queryParams:
+          '&active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+      });
+    });
+
+    it('returns default flag when remote flag is null', () => {
+      const stateWithNullFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: null,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithNullFlag);
+
+      expect(result).toEqual({
+        enabled: false,
+        queryParams:
+          '&active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+      });
+    });
+
+    it('returns default flag when controller is undefined', () => {
+      const stateWithUndefinedController = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: undefined,
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithUndefinedController);
+
+      expect(result).toEqual({
+        enabled: false,
+        queryParams:
+          '&active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+      });
+    });
+
+    it('returns disabled flag from remote when flag is disabled', () => {
+      const stateWithDisabledFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: {
+                  enabled: false,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithDisabledFlag);
+
+      expect(result).toEqual({
+        enabled: false,
+      });
+    });
+
+    it('returns flag with empty queryParams when not provided', () => {
+      const stateWithFlagNoQueryParams = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: {
+                  enabled: true,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithFlagNoQueryParams);
+
+      expect(result).toEqual({
+        enabled: true,
+      });
+      expect(result.queryParams).toBeUndefined();
     });
   });
 

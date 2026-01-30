@@ -234,4 +234,75 @@ describe('usePredictMarketData', () => {
 
     expect(result.current.refetch).toBe(firstRefetch);
   });
+
+  describe('customQueryParams option', () => {
+    it('passes customQueryParams to getMarkets', async () => {
+      mockGetMarkets.mockResolvedValue(mockMarketData);
+
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictMarketData({
+          category: 'hot',
+          customQueryParams: '&tag_id=149&order=volume24hr',
+        }),
+      );
+
+      await waitForNextUpdate();
+
+      expect(mockGetMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'hot',
+          customQueryParams: '&tag_id=149&order=volume24hr',
+        }),
+      );
+    });
+
+    it('refetches when customQueryParams changes', async () => {
+      mockGetMarkets.mockResolvedValue(mockMarketData);
+
+      const { waitForNextUpdate, rerender } = renderHook(
+        ({ customQueryParams }) =>
+          usePredictMarketData({
+            category: 'hot',
+            customQueryParams,
+          }),
+        {
+          initialProps: { customQueryParams: '&tag_id=149' },
+        },
+      );
+
+      await waitForNextUpdate();
+
+      expect(mockGetMarkets).toHaveBeenCalledTimes(1);
+
+      rerender({ customQueryParams: '&tag_id=200' });
+
+      await waitForNextUpdate();
+
+      expect(mockGetMarkets).toHaveBeenCalledTimes(2);
+      expect(mockGetMarkets).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          customQueryParams: '&tag_id=200',
+        }),
+      );
+    });
+
+    it('does not pass customQueryParams when undefined', async () => {
+      mockGetMarkets.mockResolvedValue(mockMarketData);
+
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictMarketData({
+          category: 'trending',
+        }),
+      );
+
+      await waitForNextUpdate();
+
+      expect(mockGetMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'trending',
+          customQueryParams: undefined,
+        }),
+      );
+    });
+  });
 });
