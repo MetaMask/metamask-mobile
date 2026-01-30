@@ -871,11 +871,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         delete orderWithoutTPSL.stopLossPrice;
 
         await executeOrder(orderWithoutTPSL);
-        await updatePositionTPSL({
+        const tpslResult = await updatePositionTPSL({
           symbol: orderForm.asset,
           takeProfitPrice: orderForm.takeProfitPrice,
           stopLossPrice: orderForm.stopLossPrice,
         });
+
+        // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
+        if (!tpslResult.success) {
+          const errorMessage =
+            tpslResult.error || strings('perps.errors.unknown');
+          showToast(
+            PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+              errorMessage,
+            ),
+          );
+        }
       } else {
         await executeOrder(orderParams);
       }
@@ -884,26 +895,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isSubmittingRef.current = false;
     }
   }, [
-    orderValidation.isValid,
-    orderValidation.errors,
+    isButtonColorTestEnabled,
     track,
     orderForm.asset,
     orderForm.direction,
-    orderForm.type,
-    orderForm.leverage,
-    orderForm.limitPrice,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
+    orderForm.type,
+    orderForm.leverage,
     orderForm.amount,
-    positionSize,
-    assetData.price,
+    orderForm.limitPrice,
+    buttonColorVariant,
+    orderValidation.isValid,
+    orderValidation.errors,
+    currentMarketPosition,
     navigation,
     navigationMarketData,
-    currentMarketPosition,
-    executeOrder,
-    showToast,
-    PerpsToastOptions.formValidation.orderForm,
-    updatePositionTPSL,
+    positionSize,
+    assetData.price,
     marginRequired,
     feeResults.totalFee,
     feeResults.metamaskFee,
@@ -911,8 +920,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
     source,
-    isButtonColorTestEnabled,
-    buttonColorVariant,
+    showToast,
+    PerpsToastOptions.formValidation.orderForm,
+    PerpsToastOptions.positionManagement.tpsl,
+    executeOrder,
+    updatePositionTPSL,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
