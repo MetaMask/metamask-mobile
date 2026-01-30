@@ -57,11 +57,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      getByText(
-        strings('earn.musd_conversion.education.description', {
-          percentage: MUSD_CONVERSION_APY,
-        }),
-      ),
+      getByText(/Convert your stablecoins to mUSD.*receive up to a \d+% bonus/),
     ).toBeOnTheScreen();
     expect(
       getByText(strings('earn.musd_conversion.education.primary_button')),
@@ -393,12 +389,10 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
 
     // Assert
     const description = getByText(
-      strings('earn.musd_conversion.education.description', {
-        percentage: MUSD_CONVERSION_APY,
-      }),
+      /Convert your stablecoins to mUSD.*receive up to a \d+% bonus/,
     );
     expect(description).toBeOnTheScreen();
-    expect(description.props.children).toContain(`${MUSD_CONVERSION_APY}%`);
+    expect(description.props.children[0]).toContain(`${MUSD_CONVERSION_APY}%`);
   });
 
   it('renders education screen when education has been seen', () => {
