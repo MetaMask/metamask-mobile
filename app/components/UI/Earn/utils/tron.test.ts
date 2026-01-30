@@ -136,6 +136,23 @@ describe('tron utils', () => {
 
       expect(total).toBe(3500.75);
     });
+
+    it('handles numeric balance values directly without string conversion', () => {
+      const resources = [
+        {
+          symbol: TRON_RESOURCE.STRX_ENERGY,
+          balance: 65.48463,
+        },
+        {
+          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
+          balance: 65.48463,
+        },
+      ];
+
+      const total = getStakedTrxTotalFromResources(resources);
+
+      expect(total).toBe(130.96926);
+    });
   });
 
   describe('hasStakedTrxPositions', () => {

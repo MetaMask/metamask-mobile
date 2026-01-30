@@ -38,12 +38,21 @@ export const getStakedTrxTotalFromResources = (
 
   // Use BigNumber to prevent floating-point precision errors
   // e.g., 65.48463 + 65.48463 should equal 130.96926, not 130.96926000000002
-  const energyBN = new BigNumber(
-    String(strxEnergy?.balance ?? '0').replace(/,/g, ''),
-  );
-  const bandwidthBN = new BigNumber(
-    String(strxBandwidth?.balance ?? '0').replace(/,/g, ''),
-  );
+  const energyBalance = strxEnergy?.balance ?? 0;
+  const bandwidthBalance = strxBandwidth?.balance ?? 0;
+
+  // Remove commas from string values (e.g., "1,000.50" -> "1000.50")
+  const cleanEnergy =
+    typeof energyBalance === 'string'
+      ? energyBalance.replace(/,/g, '')
+      : energyBalance;
+  const cleanBandwidth =
+    typeof bandwidthBalance === 'string'
+      ? bandwidthBalance.replace(/,/g, '')
+      : bandwidthBalance;
+
+  const energyBN = new BigNumber(cleanEnergy);
+  const bandwidthBN = new BigNumber(cleanBandwidth);
 
   return energyBN.plus(bandwidthBN).toNumber();
 };
