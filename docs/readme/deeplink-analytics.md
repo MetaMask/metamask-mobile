@@ -185,6 +185,7 @@ Routes are extracted from the deep link action and mapped to standardized route 
 | Route                | Value                | Actions Mapped                                                  |
 | -------------------- | -------------------- | --------------------------------------------------------------- |
 | `HOME`               | "home"               | `ACTIONS.HOME`                                                  |
+| `ASSET`              | "asset"              | `ACTIONS.ASSET`                                                 |
 | `SWAP`               | "swap"               | `ACTIONS.SWAP`                                                  |
 | `PERPS`              | "perps"              | `ACTIONS.PERPS`, `ACTIONS.PERPS_MARKETS`, `ACTIONS.PERPS_ASSET` |
 | `DEPOSIT`            | "deposit"            | `ACTIONS.DEPOSIT`                                               |

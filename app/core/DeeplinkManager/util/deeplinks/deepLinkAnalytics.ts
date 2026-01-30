@@ -308,6 +308,20 @@ const extractHomeProperties = (
 };
 
 /**
+ * Extract properties specific to ASSET route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractAssetProperties = (
+  urlParams: UrlParamValues,
+  sensitiveProps: Record<string, string>,
+): void => {
+  const assetValue =
+    getStringValue(urlParams, 'asset') ?? getStringValue(urlParams, 'assetId');
+  addPropertyIfExists(sensitiveProps, 'asset', assetValue);
+};
+
+/**
  * Extract properties for DAPP route
  * DAPP routes may contain sensitive URLs, so we don't extract them
  * @param urlParams - URL parameters
@@ -472,6 +486,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.BUY]: extractBuyProperties,
   [DeepLinkRoute.SELL]: extractSellProperties,
   [DeepLinkRoute.HOME]: extractHomeProperties,
+  [DeepLinkRoute.ASSET]: extractAssetProperties,
   [DeepLinkRoute.DAPP]: extractDappProperties,
   [DeepLinkRoute.WC]: extractWcProperties,
   [DeepLinkRoute.REWARDS]: extractRewardsProperties,
@@ -593,6 +608,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SELL;
     case ACTIONS.HOME:
       return DeepLinkRoute.HOME;
+    case ACTIONS.ASSET:
+      return DeepLinkRoute.ASSET;
     case ACTIONS.DAPP:
       return DeepLinkRoute.DAPP;
     case ACTIONS.WC:
@@ -645,6 +662,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SELL;
       case 'home':
         return DeepLinkRoute.HOME;
+      case 'asset':
+        return DeepLinkRoute.ASSET;
       case 'dapp':
         return DeepLinkRoute.DAPP;
       case 'wc':

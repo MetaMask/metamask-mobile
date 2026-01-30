@@ -888,6 +888,7 @@ describe('Dynamic signature verification', () => {
 | `deposit`              | Cash deposit                | `handleDepositCashUrl`   |                                                 |
 | `send`                 | Send transaction            | Recursive `parse()` call |                                                 |
 | `home`                 | Navigate home               | `navigateToHomeUrl`      |                                                 |
+| `asset`                | Asset overview              | `handleAssetUrl`         | Params: `asset` or `assetId` (CAIP-19)          |
 | `dapp`                 | Open dApp browser           | `handleBrowserUrl`       |                                                 |
 | `create-account`       | Create new account          | `handleCreateAccountUrl` |                                                 |
 | `perps`                | Perpetuals trading          | `handlePerpsUrl`         | Params: `screen` (tabs/markets/asset), `symbol` |

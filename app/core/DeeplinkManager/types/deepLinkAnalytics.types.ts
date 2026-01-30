@@ -37,6 +37,7 @@ export enum AppInstallationStatus {
  */
 export enum DeepLinkRoute {
   HOME = 'home',
+  ASSET = 'asset',
   SWAP = 'swap',
   PERPS = 'perps',
   DEPOSIT = 'deposit',
