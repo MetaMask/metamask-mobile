@@ -14,7 +14,7 @@ import TransactionPayConfirmation from '../../pages/Confirmation/TransactionPayC
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { setupMusdMocks } from './helpers/musd-mocks';
+import { setupMusdMocks } from '../../../tests/api-mocking/mock-responses/musd/musd-mocks';
 import {
   createMusdFixture,
   type MusdFixtureOptions,

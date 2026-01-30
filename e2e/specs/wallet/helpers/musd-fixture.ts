@@ -1,6 +1,7 @@
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
+import FixtureBuilder, {
+  type MusdFixtureOptions,
+} from '../../../../tests/framework/fixtures/FixtureBuilder';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { merge } from 'lodash';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { AnvilPort } from '../../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
@@ -12,69 +13,12 @@ import {
 const USDC_DECIMALS = 6;
 const MUSD_DECIMALS = 6;
 const ETH_NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
-const ETH_BALANCE_WEI = '0x' + (BigInt(10) * BigInt(10 ** 18)).toString(16);
 
-export interface MusdFixtureOptions {
-  musdConversionEducationSeen: boolean;
-  hasUsdcBalance?: boolean;
-  usdcBalance?: number;
-  hasMusdBalance?: boolean;
-  musdBalance?: number;
-}
-
-function getAccountAddress(
-  fixture: ReturnType<FixtureBuilder['build']>,
-): string | undefined {
-  const ac = fixture.state.engine.backgroundState.AccountsController;
-  const id = ac?.internalAccounts?.selectedAccount;
-  return ac?.internalAccounts?.accounts?.[id]?.address;
-}
-
-function ensureTokenBalance(
-  fixture: ReturnType<FixtureBuilder['build']>,
-  accountAddress: string,
-  tokenAddress: string,
-  decimals: number,
-  balance: number,
-): void {
-  const engine = fixture.state.engine.backgroundState;
-  if (!engine.TokenBalancesController) {
-    merge(engine, { TokenBalancesController: { tokenBalances: {} } });
-  }
-  engine.TokenBalancesController.tokenBalances =
-    engine.TokenBalancesController.tokenBalances ?? {};
-  const tb = engine.TokenBalancesController.tokenBalances;
-  if (!tb[accountAddress]) tb[accountAddress] = {};
-  if (!tb[accountAddress][CHAIN_IDS.MAINNET])
-    tb[accountAddress][CHAIN_IDS.MAINNET] = {};
-  const key = toChecksumHexAddress(tokenAddress.toLowerCase());
-  tb[accountAddress][CHAIN_IDS.MAINNET][key] =
-    '0x' + Math.floor(balance * 10 ** decimals).toString(16);
-}
-
-function ensureNativeEthBalance(
-  fixture: ReturnType<FixtureBuilder['build']>,
-  accountAddress: string,
-): void {
-  const engine = fixture.state.engine.backgroundState;
-  if (!engine.AccountTrackerController) {
-    merge(engine, {
-      AccountTrackerController: { accounts: {}, accountsByChainId: {} },
-    });
-  }
-  const atc = engine.AccountTrackerController;
-  atc.accounts = atc.accounts ?? {};
-  atc.accountsByChainId = atc.accountsByChainId ?? {};
-  atc.accounts[accountAddress] = { balance: ETH_BALANCE_WEI };
-  atc.accountsByChainId[CHAIN_IDS.MAINNET] = {
-    ...atc.accountsByChainId[CHAIN_IDS.MAINNET],
-    [accountAddress]: { balance: ETH_BALANCE_WEI },
-  };
-}
+export type { MusdFixtureOptions };
 
 /**
- * Builds a fixture for mUSD conversion E2E tests: Mainnet, ETH/USDC/mUSD tokens,
- * rates, balances, and mUSD eligibility state (geo, ramp).
+ * Builds a fixture for mUSD conversion E2E tests using FixtureBuilder:
+ * Mainnet, ETH/USDC/mUSD tokens, rates, balances, and mUSD eligibility state.
  */
 export function createMusdFixture(
   node: AnvilManager,
@@ -106,7 +50,7 @@ export function createMusdFixture(
       : []),
   ];
 
-  const fixture = new FixtureBuilder()
+  return new FixtureBuilder()
     .withNetworkController({
       providerConfig: {
         chainId: CHAIN_IDS.MAINNET,
@@ -126,54 +70,6 @@ export function createMusdFixture(
     )
     .withTokenRates(CHAIN_IDS.MAINNET, toChecksumHexAddress(USDC_MAINNET), 1.0)
     .withTokenRates(CHAIN_IDS.MAINNET, toChecksumHexAddress(MUSD_MAINNET), 1.0)
+    .withMusdConversion(options)
     .build();
-
-  merge(fixture.state.user, {
-    musdConversionEducationSeen: options.musdConversionEducationSeen,
-  });
-
-  if (!fixture.state.engine.backgroundState.CurrencyRateController) {
-    merge(fixture.state.engine.backgroundState, {
-      CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
-    });
-  }
-  merge(fixture.state.engine.backgroundState.CurrencyRateController, {
-    currentCurrency: 'usd',
-    currencyRates: {
-      ETH: {
-        conversionDate: Date.now() / 1000,
-        conversionRate: 3000.0,
-        usdConversionRate: 3000.0,
-      },
-    },
-  });
-
-  fixture.state.fiatOrders.detectedGeolocation = 'US';
-  fixture.state.fiatOrders.rampRoutingDecision = 'AGGREGATOR';
-
-  const accountAddress = getAccountAddress(fixture);
-  if (!accountAddress) return fixture;
-
-  ensureNativeEthBalance(fixture, accountAddress);
-
-  if (options.hasUsdcBalance !== false) {
-    ensureTokenBalance(
-      fixture,
-      accountAddress,
-      USDC_MAINNET,
-      USDC_DECIMALS,
-      options.usdcBalance ?? 100,
-    );
-  }
-  if (options.hasMusdBalance) {
-    ensureTokenBalance(
-      fixture,
-      accountAddress,
-      MUSD_MAINNET,
-      MUSD_DECIMALS,
-      options.musdBalance ?? 10,
-    );
-  }
-
-  return fixture;
 }
