@@ -297,7 +297,9 @@ export const TokenListItem = React.memo(
       if (
         isStablecoinLendingEnabled &&
         earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-        new BigNumber(asset?.balance ?? '0').gte(MINIMUM_BALANCE_FOR_EARN_CTA)
+        new BigNumber(earnToken?.balanceFiatNumber || '0').gte(
+          MINIMUM_BALANCE_FOR_EARN_CTA,
+        )
       ) {
         return {
           text: `${strings('stake.earn')}`,

@@ -88,6 +88,7 @@ jest.mock('../../hooks/useTokenPricePercentageChange', () => ({
 }));
 
 interface MockEarnToken {
+  balanceFiatNumber?: number;
   experience?: {
     type?: EARN_EXPERIENCES;
   };
@@ -1012,6 +1013,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         pricePercentChange1d: 1.23,
         isStablecoinLendingEnabled: true,
         earnToken: {
+          balanceFiatNumber: 0.009,
           experience: { type: EARN_EXPERIENCES.STABLECOIN_LENDING },
         },
       });
@@ -1038,6 +1040,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         pricePercentChange1d: 1.23,
         isStablecoinLendingEnabled: true,
         earnToken: {
+          balanceFiatNumber: 0.01,
           experience: { type: EARN_EXPERIENCES.STABLECOIN_LENDING },
         },
       });

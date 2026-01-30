@@ -116,6 +116,19 @@ jest.mock('../../../../../selectors/earnController/earn', () => ({
     selectPrimaryEarnExperienceTypeForAsset: jest.fn((_state, asset) =>
       asset.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING',
     ),
+    selectEarnToken: jest.fn((_state, asset) => {
+      const balanceFiatNumber = Number(asset?.balance ?? '0') || 0;
+
+      return {
+        ...asset,
+        // `StakeButton` checks this value against `MINIMUM_BALANCE_FOR_EARN_CTA`
+        balanceFiatNumber,
+        // Ensure ETH-specific conditions behave consistently
+        isETH: asset?.symbol === 'ETH' || asset?.isETH,
+      };
+    }),
+    selectEarnOutputToken: jest.fn(() => undefined),
+    selectEarnTokenPair: jest.fn(() => undefined),
   },
 }));
 
@@ -231,6 +244,18 @@ const MOCK_USDC_MAINNET_ASSET_WITH_MINIMUM_BALANCE: TokenI = {
   balance: MOCK_MINIMUM_BALANCE_AS_STRING,
 };
 
+const getExpectedNavigationToken = (token: TokenI) =>
+  expect.objectContaining({
+    address: token.address,
+    chainId: token.chainId,
+    symbol: token.symbol,
+    decimals: token.decimals,
+    isNative: token.isNative,
+    isETH: token.isETH,
+    balance: token.balance,
+    balanceFiatNumber: expect.any(Number),
+  });
+
 const renderComponent = (state = STATE_MOCK) =>
   renderWithProvider(
     <StakeButton asset={MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE} />,
@@ -285,7 +310,9 @@ describe('StakeButton', () => {
         expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
           screen: Routes.STAKING.STAKE,
           params: {
-            token: MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE,
+            token: getExpectedNavigationToken(
+              MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE,
+            ),
           },
         });
       });
@@ -341,7 +368,9 @@ describe('StakeButton', () => {
         expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
           screen: Routes.STAKING.STAKE,
           params: {
-            token: { ...MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE },
+            token: getExpectedNavigationToken(
+              MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE,
+            ),
           },
         });
       });
@@ -363,7 +392,9 @@ describe('StakeButton', () => {
         expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
           screen: Routes.STAKING.STAKE,
           params: {
-            token: MOCK_USDC_MAINNET_ASSET_WITH_MINIMUM_BALANCE,
+            token: getExpectedNavigationToken(
+              MOCK_USDC_MAINNET_ASSET_WITH_MINIMUM_BALANCE,
+            ),
           },
         });
       });
@@ -401,7 +432,7 @@ describe('StakeButton', () => {
         expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
           screen: Routes.STAKING.STAKE,
           params: {
-            token: MOCK_TRX_ASSET,
+            token: getExpectedNavigationToken(MOCK_TRX_ASSET),
           },
         });
       });
