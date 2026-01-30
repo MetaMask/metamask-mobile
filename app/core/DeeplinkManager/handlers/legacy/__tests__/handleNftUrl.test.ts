@@ -17,16 +17,8 @@ describe('handleNftUrl', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to NFTS_FULL_VIEW with no parameters', () => {
-    handleNftUrl({ nftPath: '' });
-
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      Routes.WALLET.NFTS_FULL_VIEW,
-    );
-  });
-
-  it('navigates to NFTS_FULL_VIEW even with query parameters', () => {
-    handleNftUrl({ nftPath: '?someParam=test' });
+  it('navigates to NFTS_FULL_VIEW', () => {
+    handleNftUrl();
 
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       Routes.WALLET.NFTS_FULL_VIEW,
@@ -41,7 +33,7 @@ describe('handleNftUrl', () => {
       },
     );
 
-    handleNftUrl({ nftPath: '' });
+    handleNftUrl();
 
     // Second call should be fallback
     expect(NavigationService.navigation.navigate).toHaveBeenLastCalledWith(

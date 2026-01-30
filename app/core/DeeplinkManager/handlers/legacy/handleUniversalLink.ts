@@ -600,7 +600,7 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.NFT: {
-      handleNftUrl({ nftPath: actionBasedRampPath });
+      handleNftUrl();
       break;
     }
   }
