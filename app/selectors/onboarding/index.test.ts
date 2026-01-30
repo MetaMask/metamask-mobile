@@ -8,7 +8,7 @@ describe('Onboarding selectors', () => {
     },
   } as RootState;
 
-  it('returns the correct value for selectCompletedOnboarding ', () => {
+  it('returns the correct value for selectCompletedOnboarding', () => {
     expect(selectCompletedOnboarding(mockState)).toEqual(
       mockState.onboarding.completedOnboarding,
     );

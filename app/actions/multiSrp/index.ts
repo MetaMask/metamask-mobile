@@ -20,11 +20,12 @@ import { getTraceTags } from '../../util/sentry/tags';
 import ReduxService from '../../core/redux';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
-import { SecretType } from '@metamask/seedless-onboarding-controller';
+import { EncAccountDataType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { captureException } from '@sentry/core';
+import { Authentication } from '../../core';
 
 export interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
@@ -105,9 +106,12 @@ export async function importNewSecretRecoveryPhrase(
         name: TraceName.OnboardingAddSrp,
         op: TraceOperation.OnboardingSecurityOp,
       });
+      // Run data type migration before adding new SRP to ensure data consistency.
+      await Authentication.runSeedlessOnboardingMigrations();
+
       await SeedlessOnboardingController.addNewSecretData(
         seed,
-        SecretType.Mnemonic,
+        EncAccountDataType.ImportedSrp,
         {
           keyringId: newKeyring.id,
         },

@@ -34,7 +34,7 @@ describe('onboardingReducer', () => {
     expect(state.events).toEqual([]);
   });
 
-  it('handle the SET_COMPLETED_ONBOARDING action', () => {
+  it('handles the SET_COMPLETED_ONBOARDING action', () => {
     const action = {
       type: SET_COMPLETED_ONBOARDING,
       completedOnboarding: true,
