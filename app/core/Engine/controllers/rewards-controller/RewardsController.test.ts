@@ -1526,6 +1526,356 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('addPointsEstimateToHistory', () => {
+    it('adds entry to history with basic request/response fields', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const response = {
+        pointsEstimate: 100,
+        bonusBips: 200,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      expect(controller.state.pointsEstimateHistory).toHaveLength(1);
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      expect(entry.timestamp).toBe(now);
+      expect(entry.requestActivityType).toBe('SWAP');
+      expect(entry.requestAccount).toBe(CAIP_ACCOUNT_1);
+      expect(entry.responsePointsEstimate).toBe(100);
+      expect(entry.responseBonusBips).toBe(200);
+
+      jest.useRealTimers();
+    });
+
+    it('flattens swap context fields into history entry', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const mockSwapContext = {
+        srcAsset: {
+          id: 'eip155:1/slip44:60' as const,
+          amount: '1000000000000000000',
+          usdPrice: '2500.00',
+        },
+        destAsset: {
+          id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const,
+          amount: '2500000000',
+          usdPrice: '1.00',
+        },
+        feeAsset: {
+          id: 'eip155:1/slip44:60' as const,
+          amount: '5000000000000000',
+          usdPrice: '2500.00',
+        },
+      };
+
+      const request = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          swapContext: mockSwapContext,
+        },
+      };
+
+      const response = {
+        pointsEstimate: 150,
+        bonusBips: 300,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      expect(entry.requestSwapSrcAssetId).toBe('eip155:1/slip44:60');
+      expect(entry.requestSwapSrcAssetAmount).toBe('1000000000000000000');
+      expect(entry.requestSwapSrcAssetUsdPrice).toBe('2500.00');
+      expect(entry.requestSwapDestAssetId).toBe(
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      );
+      expect(entry.requestSwapDestAssetAmount).toBe('2500000000');
+      expect(entry.requestSwapDestAssetUsdPrice).toBe('1.00');
+      expect(entry.requestSwapFeeAssetId).toBe('eip155:1/slip44:60');
+      expect(entry.requestSwapFeeAssetAmount).toBe('5000000000000000');
+      expect(entry.requestSwapFeeAssetUsdPrice).toBe('2500.00');
+
+      jest.useRealTimers();
+    });
+
+    it('flattens single perps context fields into history entry', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const mockPerpsContext = {
+        type: 'CLOSE_POSITION' as const,
+        coin: 'BTC',
+        usdFeeValue: '15.75',
+      };
+
+      const request = {
+        activityType: 'PERPS' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          perpsContext: mockPerpsContext,
+        },
+      };
+
+      const response = {
+        pointsEstimate: 200,
+        bonusBips: 150,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      expect(entry.requestPerpsType).toBe('CLOSE_POSITION');
+      expect(entry.requestPerpsCoin).toBe('BTC');
+      expect(entry.requestPerpsUsdFeeValue).toBe('15.75');
+
+      jest.useRealTimers();
+    });
+
+    it('excludes perps context fields when perpsContext is an array', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const mockPerpsContextArray = [
+        {
+          type: 'CLOSE_POSITION' as const,
+          coin: 'BTC',
+          usdFeeValue: '10.50',
+        },
+        {
+          type: 'CLOSE_POSITION' as const,
+          coin: 'ETH',
+          usdFeeValue: '5.25',
+        },
+      ];
+
+      const request = {
+        activityType: 'PERPS' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          perpsContext: mockPerpsContextArray,
+        },
+      };
+
+      const response = {
+        pointsEstimate: 300,
+        bonusBips: 100,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      // Perps fields should not be present when context is an array
+      expect(entry.requestPerpsType).toBeUndefined();
+      expect(entry.requestPerpsCoin).toBeUndefined();
+      expect(entry.requestPerpsUsdFeeValue).toBeUndefined();
+      // Basic fields should still be present
+      expect(entry.requestActivityType).toBe('PERPS');
+      expect(entry.responsePointsEstimate).toBe(300);
+
+      jest.useRealTimers();
+    });
+
+    it('flattens predict context fields into history entry', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request = {
+        activityType: 'PREDICT' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          predictContext: {
+            feeAsset: {
+              id: 'eip155:8453/slip44:60' as const,
+              amount: '1000000000000000',
+              usdPrice: '2500.00',
+            },
+          },
+        },
+      };
+
+      const response = {
+        pointsEstimate: 75,
+        bonusBips: 50,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      expect(entry.requestPredictFeeAssetId).toBe('eip155:8453/slip44:60');
+      expect(entry.requestPredictFeeAssetAmount).toBe('1000000000000000');
+      expect(entry.requestPredictFeeAssetUsdPrice).toBe('2500.00');
+
+      jest.useRealTimers();
+    });
+
+    it('flattens shield context fields into history entry', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request = {
+        activityType: 'SHIELD' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          shieldContext: {
+            feeAsset: {
+              id: 'eip155:1/slip44:60' as const,
+              amount: '2000000000000000',
+              usdPrice: '2500.00',
+            },
+          },
+        },
+      };
+
+      const response = {
+        pointsEstimate: 50,
+        bonusBips: 25,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      expect(entry.requestShieldFeeAssetId).toBe('eip155:1/slip44:60');
+      expect(entry.requestShieldFeeAssetAmount).toBe('2000000000000000');
+      expect(entry.requestShieldFeeAssetUsdPrice).toBe('2500.00');
+
+      jest.useRealTimers();
+    });
+
+    it('limits history to 50 entries', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const response = {
+        pointsEstimate: 100,
+        bonusBips: 0,
+      };
+
+      // Add 55 entries
+      for (let i = 0; i < 55; i++) {
+        jest.setSystemTime(now + i);
+        controller.addPointsEstimateToHistory(request, response);
+      }
+
+      expect(controller.state.pointsEstimateHistory).toHaveLength(50);
+
+      jest.useRealTimers();
+    });
+
+    it('adds new entries at the beginning (most recent first)', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request1 = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const request2 = {
+        activityType: 'PERPS' as const,
+        account: CAIP_ACCOUNT_2,
+        activityContext: {},
+      };
+
+      const response1 = {
+        pointsEstimate: 100,
+        bonusBips: 0,
+      };
+
+      const response2 = {
+        pointsEstimate: 200,
+        bonusBips: 50,
+      };
+
+      jest.setSystemTime(now);
+      controller.addPointsEstimateToHistory(request1, response1);
+
+      jest.setSystemTime(now + 1000);
+      controller.addPointsEstimateToHistory(request2, response2);
+
+      const entries = controller.state.pointsEstimateHistory;
+      expect(entries).toHaveLength(2);
+
+      // Most recent entry should be first
+      expect(entries[0].timestamp).toBe(now + 1000);
+      expect(entries[0].requestActivityType).toBe('PERPS');
+      expect(entries[0].responsePointsEstimate).toBe(200);
+
+      // Older entry should be second
+      expect(entries[1].timestamp).toBe(now);
+      expect(entries[1].requestActivityType).toBe('SWAP');
+      expect(entries[1].responsePointsEstimate).toBe(100);
+
+      jest.useRealTimers();
+    });
+
+    it('preserves oldest entries within limit when trimming', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      // Add 55 entries with different timestamps and points
+      for (let i = 0; i < 55; i++) {
+        jest.setSystemTime(now + i);
+        controller.addPointsEstimateToHistory(request, {
+          pointsEstimate: i + 1,
+          bonusBips: 0,
+        });
+      }
+
+      const entries = controller.state.pointsEstimateHistory;
+
+      // Should have exactly 50 entries
+      expect(entries).toHaveLength(50);
+
+      // Most recent entry (55th added) should be first
+      expect(entries[0].responsePointsEstimate).toBe(55);
+      expect(entries[0].timestamp).toBe(now + 54);
+
+      // Oldest kept entry should be the 6th one added (indices 5-54 are kept)
+      expect(entries[49].responsePointsEstimate).toBe(6);
+      expect(entries[49].timestamp).toBe(now + 5);
+
+      jest.useRealTimers();
+    });
+  });
+
   describe('hasActiveSeason', () => {
     it('should return false when rewards feature is disabled', async () => {
       const isDisabled = () => true;

@@ -1679,7 +1679,7 @@ export class RewardsController extends BaseController<
       );
 
       // Track successful estimate in history for Customer Support diagnostics
-      this.#addPointsEstimateToHistory(request, estimatedPoints);
+      this.addPointsEstimateToHistory(request, estimatedPoints);
 
       return estimatedPoints;
     } catch (error) {
@@ -1697,7 +1697,7 @@ export class RewardsController extends BaseController<
    * @param request - The estimate request containing activity details
    * @param response - The estimated points response
    */
-  #addPointsEstimateToHistory(
+  addPointsEstimateToHistory(
     request: EstimatePointsDto,
     response: EstimatedPointsDto,
   ): void {
@@ -1845,7 +1845,7 @@ export class RewardsController extends BaseController<
         if (type === 'previous') {
           seasonInfo = discoverSeasons.previous;
         } else if (type === 'current') {
-          seasonInfo = discoverSeasons.current;
+          seasonInfo = discoverSeasons.current || discoverSeasons.previous;
         }
 
         // If found with valid start date, fetch metadata and populate cache
@@ -1951,7 +1951,9 @@ export class RewardsController extends BaseController<
             season,
             seasonState,
           );
-
+          seasonStatus.season.endDate = new Date(
+            new Date().getTime() + 1000 * 60 * 60 * 24 * 30,
+          ); // 30 days from now
           return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
         } catch (error) {
           if (error instanceof AuthorizationFailedError) {
