@@ -123,7 +123,7 @@ export function hasTransactionType(
  * Withdrawal transaction types that use a "Receive as" token picker
  * instead of "Pay with" for selecting the destination token.
  */
-export const WITHDRAWAL_TRANSACTION_TYPES = [
+const WITHDRAWAL_TRANSACTION_TYPES = [
   TransactionType.predictWithdraw,
   // TransactionType.perpsWithdraw, // Add when implementing for Perps
 ] as const;

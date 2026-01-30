@@ -96,8 +96,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       preferredToken,
     });
     useTransactionPayMetrics();
-    // Set isPostQuote=true for withdrawal transactions
-    useWithdrawalPostQuote();
+    useWithdrawalPostQuote(); // Set isPostQuote=true for withdrawal transactions
 
     const transactionMeta = useTransactionMetadataRequest();
     const isWithdrawal = isWithdrawalTransaction(transactionMeta);
