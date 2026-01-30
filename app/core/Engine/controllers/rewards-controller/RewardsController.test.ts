@@ -1524,6 +1524,86 @@ describe('RewardsController', () => {
 
       jest.useRealTimers();
     });
+
+    it('should return successful estimate even when history tracking fails', async () => {
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const mockResponse = {
+        pointsEstimate: 100,
+        bonusBips: 200,
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
+
+      // Spy on addPointsEstimateToHistory and make it throw
+      const historyError = new Error('State update failed');
+      const addHistorySpy = jest
+        .spyOn(controller, 'addPointsEstimateToHistory')
+        .mockImplementation(() => {
+          throw historyError;
+        });
+
+      // Act - should not throw despite history tracking failure
+      const result = await controller.estimatePoints(mockRequest);
+
+      // Assert - estimate should be returned successfully
+      expect(result).toEqual(mockResponse);
+
+      // Verify the history method was called
+      expect(addHistorySpy).toHaveBeenCalledWith(mockRequest, mockResponse);
+
+      // Verify the error was logged (not the main estimate error)
+      expect(Logger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to add points estimate to history:',
+        'State update failed',
+      );
+
+      // Verify the misleading "Failed to estimate points" was NOT logged
+      expect(Logger.log).not.toHaveBeenCalledWith(
+        'RewardsController: Failed to estimate points:',
+        expect.anything(),
+      );
+
+      addHistorySpy.mockRestore();
+      jest.useRealTimers();
+    });
   });
 
   describe('addPointsEstimateToHistory', () => {
