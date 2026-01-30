@@ -1,3 +1,5 @@
+import { TokenI } from '../../Tokens/types';
+
 /**
  * Perps feature constants
  */
@@ -63,6 +65,29 @@ export const METAMASK_FEE_CONFIG = {
   // Note: Trading fees are now handled by each provider's calculateFees()
   // which returns complete fee breakdown including MetaMask fees
 } as const;
+
+/**
+ * Minimum number of aggregators (exchanges) a token must be listed on
+ * to be considered trustworthy for showing the Perps Discovery Banner.
+ * Native tokens (ETH, BNB, etc.) bypass this check.
+ */
+export const PERPS_MIN_AGGREGATORS_FOR_TRUST = 2;
+
+/**
+ * Checks if an asset is trustworthy for displaying the Perps Discovery Banner.
+ * An asset is considered trustworthy if:
+ * - It is a native asset (ETH, BNB, SOL, etc.), OR
+ * - It is listed on at least PERPS_MIN_AGGREGATORS_FOR_TRUST exchanges
+ *
+ * @param asset - Asset object (TokenI or partial TokenI)
+ * @returns true if the asset is trustworthy, false otherwise
+ */
+export const isTokenTrustworthyForPerps = (asset: Partial<TokenI>): boolean => {
+  const isNativeAsset = asset.isNative || asset.isETH;
+  const hasEnoughAggregators =
+    (asset.aggregators?.length ?? 0) >= PERPS_MIN_AGGREGATORS_FOR_TRUST;
+  return isNativeAsset || hasEnoughAggregators;
+};
 
 /**
  * Validation thresholds for UI warnings and checks

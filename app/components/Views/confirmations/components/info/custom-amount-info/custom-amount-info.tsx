@@ -28,8 +28,8 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
-  useTransactionPaySourceAmounts,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import Text, {
@@ -290,16 +290,7 @@ function useIsResultReady({
 }) {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
-  const requiredTokens = useTransactionPayRequiredTokens();
-  const sourceAmounts = useTransactionPaySourceAmounts();
-
-  const hasSourceAmount = sourceAmounts?.some((a) =>
-    requiredTokens.some(
-      (rt) =>
-        rt.address.toLowerCase() === a.targetTokenAddress.toLowerCase() &&
-        !rt.skipIfBalance,
-    ),
-  );
+  const hasSourceAmount = useTransactionPayHasSourceAmount();
 
   return (
     !isKeyboardVisible &&

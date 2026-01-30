@@ -70,16 +70,12 @@ const createStyles = (theme: Theme) =>
       paddingRight: 16,
     },
     controlBarWrapper: {
-      flexDirection: 'row',
       paddingVertical: 16,
       paddingHorizontal: 16,
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      alignSelf: 'stretch',
+      flexGrow: 0,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
-      flex: 1,
       justifyContent: 'space-between',
       alignItems: 'center',
     },
@@ -87,7 +83,9 @@ const createStyles = (theme: Theme) =>
       flexDirection: 'row',
       gap: 8,
       alignItems: 'center',
-      flexShrink: 0,
+      flexShrink: 1,
+      marginLeft: 8,
+      minWidth: 0,
     },
     controlButton: {
       paddingVertical: 8,
@@ -101,6 +99,15 @@ const createStyles = (theme: Theme) =>
       alignItems: 'center',
       borderRadius: 8,
       backgroundColor: theme.colors.background.muted,
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    controlButtonRightFixed: {
+      padding: 8,
+      alignItems: 'center',
+      borderRadius: 8,
+      backgroundColor: theme.colors.background.muted,
+      flexShrink: 0,
     },
     controlButtonContent: {
       flexDirection: 'row',
@@ -114,6 +121,8 @@ const createStyles = (theme: Theme) =>
       fontWeight: '600',
       lineHeight: 19.6, // 140% of 14px
       fontStyle: 'normal',
+      flexShrink: 1,
+      minWidth: 0,
     },
     controlButtonDisabled: {
       opacity: 0.5,
@@ -353,7 +362,11 @@ const TrendingTokensFullView = () => {
                 activeOpacity={0.2}
               >
                 <View style={styles.controlButtonContent}>
-                  <Text style={styles.controlButtonText}>
+                  <Text
+                    style={styles.controlButtonText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     {selectedNetworkName}
                   </Text>
                   <Icon
@@ -367,7 +380,7 @@ const TrendingTokensFullView = () => {
                 testID="24h-button"
                 onPress={handle24hPress}
                 style={[
-                  styles.controlButtonRight,
+                  styles.controlButtonRightFixed,
                   searchQuery?.trim() && styles.controlButtonDisabled,
                 ]}
                 activeOpacity={0.2}

@@ -114,6 +114,7 @@ import { selectPerpsEnabledFlag } from '../Perps';
 import { usePerpsMarketForAsset } from '../Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../Perps/components/PerpsDiscoveryBanner';
 import { PerpsEventValues } from '../Perps/constants/eventNames';
+import { isTokenTrustworthyForPerps } from '../Perps/constants/perpsConfig';
 import DSText, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -311,6 +312,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
     isPerpsEnabled ? asset.symbol : null,
   );
+
+  // Check if token is trustworthy for showing Perps banner
+  const isTokenTrustworthy = isTokenTrustworthyForPerps(asset);
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
@@ -857,21 +861,24 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               <MerklRewards asset={asset} />
             </View>
           )}
-          {isPerpsEnabled && hasPerpsMarket && marketData && (
-            <>
-              <View style={styles.perpsPositionHeader}>
-                <DSText variant={TextVariant.HeadingMD}>
-                  {strings('asset_overview.perps_position')}
-                </DSText>
-              </View>
-              <PerpsDiscoveryBanner
-                symbol={marketData.symbol}
-                maxLeverage={marketData.maxLeverage}
-                onPress={handlePerpsDiscoveryPress}
-                testID="perps-discovery-banner"
-              />
-            </>
-          )}
+          {isPerpsEnabled &&
+            hasPerpsMarket &&
+            marketData &&
+            isTokenTrustworthy && (
+              <>
+                <View style={styles.perpsPositionHeader}>
+                  <DSText variant={TextVariant.HeadingMD}>
+                    {strings('asset_overview.perps_position')}
+                  </DSText>
+                </View>
+                <PerpsDiscoveryBanner
+                  symbol={marketData.symbol}
+                  maxLeverage={marketData.maxLeverage}
+                  onPress={handlePerpsDiscoveryPress}
+                  testID="perps-discovery-banner"
+                />
+              </>
+            )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
