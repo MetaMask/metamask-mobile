@@ -93,37 +93,39 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 12,
       flex: 1,
     },
-    // Section style overrides for PerpsTabView - flat list without card styling
-    watchlistSectionStyle: {
+    // Watchlist section - inline render (not using shared PerpsWatchlistMarkets component)
+    watchlistSection: {
       marginBottom: 0,
     },
     watchlistHeaderStyleNoBalance: {
       paddingTop: 16,
-      paddingHorizontal: 16,
       paddingBottom: 4,
       marginBottom: 0,
     },
     watchlistHeaderStyleWithBalance: {
       paddingTop: 24,
-      paddingHorizontal: 16,
       paddingBottom: 4,
       marginBottom: 0,
-    },
-    // Flat content container - no card styling
-    // Note: horizontal padding comes from internal listContent/PerpsMarketList styles
-    flatContentContainerStyle: {
-      marginHorizontal: 0,
-      borderRadius: 0,
-      paddingTop: 0,
-      paddingBottom: 0,
-      backgroundColor: colors.background.default,
     },
     // Custom explore section styles - isolated from shared components
     exploreSection: {
       marginBottom: 0,
     },
-    exploreSectionHeader: {
-      paddingTop: 8,
+    // Explore header: at top, no balance - 16px/4px
+    exploreSectionHeaderNoBalance: {
+      paddingTop: 16,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    // Explore header: at top, with balance - 24px/4px
+    exploreSectionHeaderWithBalance: {
+      paddingTop: 24,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    // Explore header: below watchlist - 20px/8px
+    exploreSectionHeaderBelowWatchlist: {
+      paddingTop: 20,
       paddingBottom: 8,
       marginBottom: 0,
     },
@@ -131,7 +133,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 6,
+      paddingVertical: 16,
     },
     exploreMarketLeft: {
       flexDirection: 'row',
@@ -175,6 +177,7 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       marginTop: 12,
       marginBottom: 12,
+      marginHorizontal: 16,
     },
   });
 };

@@ -202,6 +202,7 @@ const Routes = {
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
     MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
+    TRANSACTION_DETAILS: 'TransactionDetailsSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
@@ -259,7 +260,6 @@ const Routes = {
   PERPS: {
     ROOT: 'Perps',
     PERPS_TAB: 'PerpsTradingView', // Redirect to wallet home and select perps tab
-    ORDER: 'PerpsOrder',
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)
