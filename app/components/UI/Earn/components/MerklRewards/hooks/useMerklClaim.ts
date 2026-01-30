@@ -111,7 +111,7 @@ export const useMerklClaim = (asset: TokenI) => {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
         origin: MERKL_CLAIM_ORIGIN,
-        type: TransactionType.contractInteraction,
+        type: TransactionType.musdClaim,
       });
 
       // transactionMeta can be undefined if user cancels before tx is created

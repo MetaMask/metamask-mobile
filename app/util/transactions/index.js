@@ -570,6 +570,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.lendingWithdraw,
       TransactionType.perpsDeposit,
       TransactionType.musdConversion,
+      TransactionType.musdClaim,
     ].includes(type)
   ) {
     return type;

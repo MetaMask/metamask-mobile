@@ -34,7 +34,7 @@ describe('TransactionDetailsTotalRow', () => {
     });
 
     useTokenAmountMock.mockReturnValue({
-      amount: TOKEN_TOTAL,
+      amountUnformatted: TOKEN_TOTAL,
     } as ReturnType<typeof useTokenAmount>);
   });
 
@@ -66,5 +66,22 @@ describe('TransactionDetailsTotalRow', () => {
     const { toJSON } = render();
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('renders total from token amount for musdClaim', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        metamaskPay: {},
+        type: TransactionType.musdClaim,
+      } as unknown as TransactionMeta,
+    });
+
+    useTokenAmountMock.mockReturnValue({
+      amountUnformatted: '123.45',
+    } as ReturnType<typeof useTokenAmount>);
+
+    const { getByText } = render();
+
+    expect(getByText('$123.45')).toBeDefined();
   });
 });

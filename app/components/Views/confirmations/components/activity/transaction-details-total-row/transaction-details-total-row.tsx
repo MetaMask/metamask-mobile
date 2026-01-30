@@ -10,17 +10,20 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
 
-const FALLBACK_TYPES = [TransactionType.predictWithdraw];
+const FALLBACK_TYPES = [
+  TransactionType.musdClaim,
+  TransactionType.predictWithdraw,
+];
 
 export function TransactionDetailsTotalRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { transactionMeta } = useTransactionDetails();
-  const { amount } = useTokenAmount({ transactionMeta }) ?? {};
+  const { amountUnformatted } = useTokenAmount({ transactionMeta }) ?? {};
 
   const { metamaskPay } = transactionMeta;
   const { totalFiat: payTotal } = metamaskPay || {};
 
-  const total = payTotal ?? amount;
+  const total = payTotal ?? amountUnformatted;
 
   const totalFormatted = useMemo(
     () => formatFiat(new BigNumber(total ?? '0')),
@@ -32,6 +35,7 @@ export function TransactionDetailsTotalRow() {
   }
 
   const label = hasTransactionType(transactionMeta, [
+    TransactionType.musdClaim,
     TransactionType.predictClaim,
     TransactionType.predictWithdraw,
   ])

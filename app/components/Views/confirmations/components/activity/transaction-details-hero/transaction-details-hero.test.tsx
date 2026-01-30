@@ -165,4 +165,19 @@ describe('TransactionDetailsHero', () => {
 
     expect(getByText('$100')).toBeDefined();
   });
+
+  it('renders nothing for musdClaim without valid claim data', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        type: TransactionType.musdClaim,
+        txParams: {
+          data: '0x123', // Invalid claim data
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { queryByTestId } = render();
+    expect(queryByTestId('transaction-details-hero')).toBeNull();
+  });
 });
