@@ -995,10 +995,7 @@ export function getWalletNavbarOptions(
                 <View
                   testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
                 >
-                  <AddressCopy
-                    account={selectedInternalAccount}
-                    hitSlop={innerStyles.touchAreaSlop}
-                  />
+                  <AddressCopy hitSlop={innerStyles.touchAreaSlop} />
                 </View>
                 {shouldDisplayCardButton && (
                   <CardButton
@@ -1589,26 +1586,6 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
 }
 
 export function getBridgeTransactionDetailsNavbar(navigation) {
-  const leftAction = () => navigation.pop();
-
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        title={strings('bridge_transaction_details.transaction_details')}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    headerLeft: () => (
-      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
-        <Icon name={IconName.ArrowLeft} />
-      </TouchableOpacity>
-    ),
-  };
-}
-
-export function getMusdConversionTransactionDetailsNavbar(navigation) {
   const leftAction = () => navigation.pop();
 
   return {
