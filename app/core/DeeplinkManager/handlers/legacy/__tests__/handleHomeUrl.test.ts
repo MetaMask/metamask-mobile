@@ -2,7 +2,7 @@ import NavigationService from '../../../../NavigationService';
 import { setContentPreviewToken } from '../../../../../actions/notification/helpers';
 import { navigateToHomeUrl } from '../handleHomeUrl';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PERFORMANCE_CONFIG } from '../../../../../components/UI/Perps/constants/perpsConfig';
+import { NAVIGATION_PARAMS_DELAY_MS } from '../../../../../constants/navigation/delays';
 
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../../actions/notification/helpers');
@@ -60,7 +60,7 @@ describe('navigateToHomeUrl', () => {
     expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith(null);
     expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
 
-    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+    jest.advanceTimersByTime(NAVIGATION_PARAMS_DELAY_MS);
 
     expect(mocks.mockSetParams).toHaveBeenCalledWith({
       openNetworkSelector: true,

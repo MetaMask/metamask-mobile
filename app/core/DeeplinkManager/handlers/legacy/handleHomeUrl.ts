@@ -1,7 +1,7 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { setContentPreviewToken } from '../../../../actions/notification/helpers';
-import { PERFORMANCE_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
+import { NAVIGATION_PARAMS_DELAY_MS } from '../../../../constants/navigation/delays';
 
 export function navigateToHomeUrl(params: { homePath?: string }) {
   const { homePath } = params;
@@ -20,6 +20,6 @@ export function navigateToHomeUrl(params: { homePath?: string }) {
   if (shouldOpenNetworkSelector) {
     setTimeout(() => {
       NavigationService.navigation.setParams({ openNetworkSelector: true });
-    }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+    }, NAVIGATION_PARAMS_DELAY_MS);
   }
 }
