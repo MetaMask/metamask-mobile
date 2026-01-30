@@ -48,7 +48,7 @@ env:
   BASE_BRANCH_REF: ${{ inputs.base_branch }}
   UPDATE_MESSAGE: ${{ inputs.message }}
   TARGET_CHANNEL: ${{ inputs.channel }}
-  PLATFORM: ${{ inputs.platform }}
+  OTA_PUSH_PLATFORM: ${{ inputs.platform }}
 
 jobs:
   setup-dependencies:
