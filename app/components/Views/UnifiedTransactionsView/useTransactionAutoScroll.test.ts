@@ -28,34 +28,49 @@ describe('useTransactionAutoScroll', () => {
     jest.clearAllTimers();
   });
 
-  describe('EVM transactions', () => {
-    it('scrolls to top when a new EVM transaction is added', () => {
-      const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+  describe('Chain-agnostic scrolling behavior', () => {
+    // The hook is chain-agnostic - it only checks if the first item's ID changed.
+    // These parameterized tests verify consistent behavior across all supported chains.
+    it.each([
+      { chain: 'EVM', prefix: 'evm', txPrefix: 'evm-tx' },
+      { chain: 'Solana', prefix: 'solana', txPrefix: 'sol-tx' },
+      { chain: 'Tron', prefix: 'tron', txPrefix: 'trx-tx' },
+      { chain: 'Bitcoin', prefix: 'btc', txPrefix: 'btc-tx' },
+    ])(
+      'scrolls to top when a new $chain transaction is added',
+      ({ prefix, txPrefix }) => {
+        const listRef = createMockListRef<{ id: string }>();
+        const getItemId = jest.fn(
+          (item: { id: string }) => `${prefix}-${item.id}`,
+        );
 
-      const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
-        {
-          initialProps: {
-            data: [{ id: 'evm-tx-1' }],
+        const { rerender } = renderHook(
+          ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+          {
+            initialProps: {
+              data: [{ id: `${txPrefix}-1` }],
+            },
           },
-        },
-      );
+        );
 
-      // Add a new transaction at the top
-      rerender({ data: [{ id: 'evm-tx-2' }, { id: 'evm-tx-1' }] });
+        // Add a new transaction at the top
+        rerender({
+          data: [{ id: `${txPrefix}-2` }, { id: `${txPrefix}-1` }],
+        });
 
-      act(() => {
-        jest.advanceTimersByTime(150);
-      });
+        act(() => {
+          jest.advanceTimersByTime(150);
+        });
 
-      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
-        offset: 0,
-        animated: true,
-      });
-    });
+        expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+          offset: 0,
+          animated: true,
+        });
+        expect(getItemId).toHaveBeenCalled();
+      },
+    );
 
-    it('scrolls to top when a new EVM transaction replaces the first', () => {
+    it('scrolls to top when a new transaction replaces the first', () => {
       const listRef = createMockListRef<{ id: string }>();
       const getItemId = jest.fn((item: { id: string }) => item.id);
 
@@ -63,13 +78,13 @@ describe('useTransactionAutoScroll', () => {
         ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
         {
           initialProps: {
-            data: [{ id: 'evm-tx-1' }],
+            data: [{ id: 'tx-1' }],
           },
         },
       );
 
       // Replace the first transaction
-      rerender({ data: [{ id: 'evm-tx-2' }] });
+      rerender({ data: [{ id: 'tx-2' }] });
 
       act(() => {
         jest.advanceTimersByTime(150);
@@ -81,7 +96,7 @@ describe('useTransactionAutoScroll', () => {
       });
     });
 
-    it('does not scroll when no new EVM transaction is added', () => {
+    it('does not scroll when no new transaction is added', () => {
       const listRef = createMockListRef<{ id: string }>();
       const getItemId = jest.fn((item: { id: string }) => item.id);
 
@@ -89,104 +104,19 @@ describe('useTransactionAutoScroll', () => {
         ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
         {
           initialProps: {
-            data: [{ id: 'evm-tx-1' }],
+            data: [{ id: 'tx-1' }],
           },
         },
       );
 
       // Re-render with same data
-      rerender({ data: [{ id: 'evm-tx-1' }] });
+      rerender({ data: [{ id: 'tx-1' }] });
 
       act(() => {
         jest.advanceTimersByTime(150);
       });
 
       expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Solana transactions', () => {
-    it('scrolls to top when a new Solana transaction is added', () => {
-      const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => `solana-${item.id}`);
-
-      const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
-        {
-          initialProps: {
-            data: [{ id: 'sol-tx-1' }],
-          },
-        },
-      );
-
-      // Add a new Solana transaction
-      rerender({ data: [{ id: 'sol-tx-2' }, { id: 'sol-tx-1' }] });
-
-      act(() => {
-        jest.advanceTimersByTime(150);
-      });
-
-      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
-        offset: 0,
-        animated: true,
-      });
-      expect(getItemId).toHaveBeenCalled();
-    });
-  });
-
-  describe('Tron transactions', () => {
-    it('scrolls to top when a new Tron transaction is added', () => {
-      const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => `tron-${item.id}`);
-
-      const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
-        {
-          initialProps: {
-            data: [{ id: 'trx-tx-1' }],
-          },
-        },
-      );
-
-      // Add a new Tron transaction
-      rerender({ data: [{ id: 'trx-tx-2' }, { id: 'trx-tx-1' }] });
-
-      act(() => {
-        jest.advanceTimersByTime(150);
-      });
-
-      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
-        offset: 0,
-        animated: true,
-      });
-    });
-  });
-
-  describe('Bitcoin transactions', () => {
-    it('scrolls to top when a new Bitcoin transaction is added', () => {
-      const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => `btc-${item.id}`);
-
-      const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
-        {
-          initialProps: {
-            data: [{ id: 'btc-tx-1' }],
-          },
-        },
-      );
-
-      // Add a new Bitcoin transaction
-      rerender({ data: [{ id: 'btc-tx-2' }, { id: 'btc-tx-1' }] });
-
-      act(() => {
-        jest.advanceTimersByTime(150);
-      });
-
-      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
-        offset: 0,
-        animated: true,
-      });
     });
   });
 
@@ -706,6 +636,94 @@ describe('useTransactionAutoScroll', () => {
 
       // Should not scroll when list decreases
       expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('handles non-EVM transactions without id using chain-timestamp fallback', () => {
+      // This test verifies that getItemId implementations using chain-timestamp fallback
+      // (like the keyExtractor pattern) work correctly for auto-scroll detection
+      interface NonEvmTx {
+        id?: string;
+        chain: string;
+        timestamp?: number;
+      }
+
+      const listRef = createMockListRef<NonEvmTx>();
+      // Simulate the getItemId implementation that uses chain-timestamp fallback
+      const getItemId = jest.fn((item: NonEvmTx) =>
+        String(item.id ?? `${item.chain}-${item.timestamp ?? '0'}`),
+      );
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        {
+          initialProps: {
+            data: [{ chain: 'solana:mainnet', timestamp: 1000 }],
+          },
+        },
+      );
+
+      // Add a new transaction without id - should use chain-timestamp as fallback ID
+      rerender({
+        data: [
+          { chain: 'solana:mainnet', timestamp: 2000 },
+          { chain: 'solana:mainnet', timestamp: 1000 },
+        ],
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should scroll because the first item's fallback ID changed
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+      // Verify the fallback ID format was used
+      expect(getItemId).toHaveBeenCalledWith({
+        chain: 'solana:mainnet',
+        timestamp: 2000,
+      });
+    });
+
+    it('detects new transaction when id is undefined but chain-timestamp differs', () => {
+      // Ensures auto-scroll works for transactions that never have an id property
+      interface NonEvmTx {
+        id?: string;
+        chain: string;
+        timestamp?: number;
+      }
+
+      const listRef = createMockListRef<NonEvmTx>();
+      const getItemId = jest.fn((item: NonEvmTx) =>
+        String(item.id ?? `${item.chain}-${item.timestamp ?? '0'}`),
+      );
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        {
+          initialProps: {
+            data: [{ chain: 'bitcoin:mainnet', timestamp: 100 }],
+          },
+        },
+      );
+
+      // Add new Bitcoin transaction without id
+      rerender({
+        data: [
+          { chain: 'bitcoin:mainnet', timestamp: 200 },
+          { chain: 'bitcoin:mainnet', timestamp: 100 },
+        ],
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
     });
   });
 });

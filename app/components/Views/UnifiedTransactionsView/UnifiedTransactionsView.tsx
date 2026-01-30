@@ -549,7 +549,10 @@ const UnifiedTransactionsView = ({
         return getTransactionId(item.tx) ?? null;
       }
       // For non-EVM (Solana, Bitcoin, Tron, etc.)
-      return item.tx?.id ? String(item.tx.id) : null;
+      // Use same fallback as keyExtractor to ensure consistency
+      return String(
+        item.tx?.id ?? `${item.tx?.chain}-${item.tx?.timestamp ?? '0'}`,
+      );
     },
   });
 
