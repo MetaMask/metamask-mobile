@@ -18,7 +18,6 @@ import {
 import { Hex, Json } from '@metamask/utils';
 import Logger from '../../../util/Logger';
 import { buildAndTrackEvent } from '../utils/analytics';
-import { filterUndefinedValues } from '../../../util/analytics/filterUndefinedValues';
 import { CONNECTIVITY_STATUSES } from '@metamask/connectivity-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -209,11 +208,7 @@ export const networkControllerInit: ControllerInitFunction<
         infuraProjectId,
         error,
         trackEvent: ({ event, properties }) => {
-          buildAndTrackEvent(
-            initMessenger,
-            event,
-            filterUndefinedValues(properties),
-          );
+          buildAndTrackEvent(initMessenger, event, properties);
         },
         metaMetricsId: analyticsId ?? '',
       });
@@ -237,11 +232,7 @@ export const networkControllerInit: ControllerInitFunction<
         error,
         infuraProjectId,
         trackEvent: ({ event, properties }) => {
-          buildAndTrackEvent(
-            initMessenger,
-            event,
-            filterUndefinedValues(properties),
-          );
+          buildAndTrackEvent(initMessenger, event, properties);
         },
         metaMetricsId: analyticsId ?? '',
       });
