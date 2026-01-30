@@ -201,6 +201,8 @@ const Routes = {
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
+    MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
+    TRANSACTION_DETAILS: 'TransactionDetailsSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
@@ -258,7 +260,6 @@ const Routes = {
   PERPS: {
     ROOT: 'Perps',
     PERPS_TAB: 'PerpsTradingView', // Redirect to wallet home and select perps tab
-    ORDER: 'PerpsOrder',
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)
@@ -337,7 +338,6 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
-      CONVERSION_TRANSACTION_DETAILS: 'MusdConversionTransactionDetails',
     },
     MODALS: {
       ROOT: 'EarnModals',
@@ -392,6 +392,9 @@ const Routes = {
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
     VERIFYING_REGISTRATION: 'VerifyingRegistration',
+    CHOOSE_YOUR_CARD: 'ChooseYourCard',
+    REVIEW_ORDER: 'ReviewOrder',
+    ORDER_COMPLETED: 'OrderCompleted',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -405,6 +408,7 @@ const Routes = {
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
+      KYC_PENDING: 'CardOnboardingKYCPending',
       WEBVIEW: 'CardOnboardingWebview',
     },
     MODALS: {
@@ -413,6 +417,9 @@ const Routes = {
       ASSET_SELECTION: 'CardAssetSelectionModal',
       REGION_SELECTION: 'CardRegionSelectionModal',
       CONFIRM_MODAL: 'CardConfirmModal',
+      PASSWORD: 'CardPasswordModal',
+      RECURRING_FEE: 'CardRecurringFeeModal',
+      DAIMO_PAY: 'CardDaimoPayModal',
     },
   },
   SEND: {

@@ -123,7 +123,6 @@ describe('useMusdConversion', () => {
 
   describe('initiateConversion', () => {
     const mockConfig = {
-      outputChainId: '0x1' as Hex,
       preferredPaymentToken: {
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
         chainId: '0x1' as Hex,
@@ -152,7 +151,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
     });
@@ -177,7 +175,6 @@ describe('useMusdConversion', () => {
           from: '0x123456789abcdef',
           data: '0xmockedTransferData',
           value: '0x0',
-          chainId: '0x1',
         },
         {
           networkClientId: 'mainnet',
@@ -220,26 +217,6 @@ describe('useMusdConversion', () => {
       expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('throws error when outputChainId is missing', async () => {
-      setupUseSelectorMock();
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      const invalidConfig = {
-        ...mockConfig,
-        outputChainId: undefined,
-      };
-
-      await act(async () => {
-        await expect(
-          // @ts-expect-error - Intentionally testing invalid config with missing outputChainId
-          result.current.initiateConversion(invalidConfig),
-        ).rejects.toThrow(
-          'Output chain ID and preferred payment token are required',
-        );
-      });
-    });
-
     it('throws error when preferredPaymentToken is missing', async () => {
       setupUseSelectorMock();
 
@@ -254,9 +231,7 @@ describe('useMusdConversion', () => {
         await expect(
           // @ts-expect-error - Intentionally testing invalid config with missing preferredPaymentToken
           result.current.initiateConversion(invalidConfig),
-        ).rejects.toThrow(
-          'Output chain ID and preferred payment token are required',
-        );
+        ).rejects.toThrow('Preferred payment token is required');
       });
     });
 
@@ -282,7 +257,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
     });
@@ -315,7 +289,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
       expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
@@ -371,7 +344,6 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          outputChainId: '0x1',
         },
       });
     });
@@ -411,7 +383,6 @@ describe('useMusdConversion', () => {
         name: TraceName.MusdConversionNavigation,
         op: TraceOperation.MusdConversionOperation,
         tags: {
-          outputChainId: '0x1',
           paymentTokenChainId: '0x1',
         },
       });
@@ -463,7 +434,6 @@ describe('useMusdConversion', () => {
       const { result } = renderHook(() => useMusdConversion());
 
       const testConfig = {
-        outputChainId: '0x1' as Hex,
         preferredPaymentToken: {
           address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
           chainId: '0x1' as Hex,
