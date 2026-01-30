@@ -9678,17 +9678,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/token-search-discovery-controller@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@metamask/token-search-discovery-controller@npm:4.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/utils": "npm:^11.8.1"
-  checksum: 10/0e4f067acc872bd538db41ec07e55104d641caa522565c2a55c8be85bffcf6368ac2c24205c2e0b55230c73f36e9793c4366f3551edad69291e375f18b84a64f
-  languageName: node
-  linkType: hard
-
 "@metamask/toprf-secure-backup@npm:^0.10.0":
   version: 0.10.1
   resolution: "@metamask/toprf-secure-backup@npm:0.10.1"
@@ -34828,7 +34817,6 @@ __metadata:
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/token-search-discovery-controller": "npm:^4.0.0"
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.12.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.12.0-ec76186ad2.patch"
     "@metamask/transaction-pay-controller": "npm:^12.0.2"
     "@metamask/tron-wallet-snap": "npm:^1.19.2"
