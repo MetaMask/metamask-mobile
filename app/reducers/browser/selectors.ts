@@ -17,5 +17,3 @@ export const selectSearchEngine = (state: RootState) =>
  */
 export const selectBrowserTabCount = (state: RootState) =>
   state.browser.tabs.length;
-
-export const selectBrowserTabs = (state: RootState) => state.browser.tabs;
