@@ -154,6 +154,8 @@ import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/Mu
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
+import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
+import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -591,6 +593,14 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.CARD.NOTIFICATION}
       component={CardNotification}
     />
+    <Stack.Screen
+      name={Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS}
+      component={MultichainTransactionDetailsSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.TRANSACTION_DETAILS}
+      component={TransactionDetailsSheet}
+    />
   </Stack.Navigator>
 );
 
@@ -845,21 +855,6 @@ const MultichainPrivateKeyList = () => {
   );
 };
 
-const ModalConfirmationRequest = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-    mode={'modal'}
-  >
-    <Stack.Screen
-      name={Routes.CONFIRMATION_REQUEST_MODAL}
-      component={Confirm}
-    />
-  </Stack.Navigator>
-);
-
 const ModalSwitchAccountType = () => (
   <Stack.Navigator
     screenOptions={{
@@ -1077,7 +1072,7 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.CONFIRMATION_REQUEST_MODAL}
           options={emptyNavHeaderOptions}
-          component={ModalConfirmationRequest}
+          component={Confirm}
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}

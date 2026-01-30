@@ -14,28 +14,44 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
+import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
+import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 
 export function PayWithModal() {
+  const transactionMeta = useTransactionMetadataRequest();
+  const hideNetworkFilter = hasTransactionType(
+    transactionMeta,
+    HIDE_NETWORK_FILTER_TYPES,
+  );
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
+  const { onPaymentTokenChange: onMusdPaymentTokenChange } =
+    useMusdPaymentToken();
 
-  const handleClose = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
+  const close = useCallback((onClosed?: () => void) => {
+    // Called after the bottom sheet's closing animation completes.
+    bottomSheetRef.current?.onCloseBottomSheet(onClosed);
   }, []);
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      setPayToken({
-        address: token.address as Hex,
-        chainId: token.chainId as Hex,
-      });
+      if (
+        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
+      ) {
+        close(() => onMusdPaymentTokenChange(token));
+        return;
+      }
 
-      handleClose();
+      close(() => {
+        setPayToken({
+          address: token.address as Hex,
+          chainId: token.chainId as Hex,
+        });
+      });
     },
-    [handleClose, setPayToken],
+    [close, onMusdPaymentTokenChange, setPayToken, transactionMeta],
   );
 
   const tokenFilter = useCallback(
@@ -65,13 +81,16 @@ export function PayWithModal() {
     >
       <HeaderCenter
         title={strings('pay_with_modal.title')}
-        onClose={handleClose}
+        // HeaderCenter close handler receives a press event; we must ignore it so it
+        // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
+        onClose={() => close()}
       />
       <Asset
         includeNoBalance
         hideNfts
         tokenFilter={tokenFilter}
         onTokenSelect={handleTokenSelect}
+        hideNetworkFilter={hideNetworkFilter}
       />
     </BottomSheet>
   );

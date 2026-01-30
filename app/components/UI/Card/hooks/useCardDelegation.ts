@@ -47,6 +47,7 @@ interface DelegationParams {
   amount: string;
   currency: string;
   network: CardNetwork;
+  faucet?: boolean;
 }
 
 interface SignCardMessageResult {
@@ -459,6 +460,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         delegation_amount: isNaN(Number(params.amount))
           ? 0
           : Number(params.amount),
+        faucet: params.faucet ?? false,
       };
 
       try {
