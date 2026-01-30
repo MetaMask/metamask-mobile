@@ -453,8 +453,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       // Only set oauth2Login for normal rehydration, not when password is outdated
       authType.oauth2Login = true;
 
-      // default to true for biometrics
-      let biometricSetupSucceeded = true;
+      // default to false for biometrics
+      let biometricSetupSucceeded = false;
       await trace(
         {
           name: TraceName.AuthenticateUser,
@@ -467,9 +467,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               authType: authType.currentAuthType,
               password,
             });
+            biometricSetupSucceeded = true;
           } catch (error) {
-            // if error, set biometricSetupSucceeded to false
-            biometricSetupSucceeded = false;
+            // if error, do nothing
           }
         },
       );
