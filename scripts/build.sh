@@ -729,9 +729,8 @@ buildExpoUpdate() {
 	fi
 	
 	if [ -z "${EXPO_TOKEN}" ]; then
-		echo "EXPO_TOKEN is NOT set in build.sh env"
-	else
-		echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
+		echo "::error title=Missing EXPO_TOKEN::EXPO_TOKEN secret is not configured. Cannot authenticate with Expo." >&2
+		exit 1
 	fi
 
 	# Validate required Expo Update environment variables
@@ -767,12 +766,16 @@ buildExpoUpdate() {
 	echo "ℹ️ Available yarn scripts containing eas:"
 	yarn run --json | grep '"name":"eas"' || true
 
-	# Run platforms based on PLATFORM environment variable (default: all)
+	# Run platforms based on OTA_PUSH_PLATFORM environment variable (default: all)
 	# Run sequentially to avoid LavaMoat lockdown serializer conflicts
 	# when bundling multiple platforms simultaneously
-	PLATFORM="${PLATFORM:-all}"
+	OTA_PUSH_PLATFORM="${OTA_PUSH_PLATFORM:-all}"
 	
-	if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "ios" ]; then
+	# Track exit codes to ensure failures propagate
+	local ios_exit_code=0
+	local android_exit_code=0
+	
+	if [ "$OTA_PUSH_PLATFORM" = "all" ] || [ "$OTA_PUSH_PLATFORM" = "ios" ]; then
 		echo "📱 Publishing iOS update..."
 		yarn run eas update \
 			--platform ios \
@@ -780,9 +783,14 @@ buildExpoUpdate() {
 			--private-key-path "./keys/private-key.pem" \
 			--message "${UPDATE_MESSAGE}" \
 			--non-interactive
+		ios_exit_code=$?
+		
+		if [ $ios_exit_code -ne 0 ]; then
+			echo "::error title=iOS update failed::iOS EAS update command failed with exit code ${ios_exit_code}" >&2
+		fi
 	fi
 
-	if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "android" ]; then
+	if [ "$OTA_PUSH_PLATFORM" = "all" ] || [ "$OTA_PUSH_PLATFORM" = "android" ]; then
 		echo "🤖 Publishing Android update..."
 		yarn run eas update \
 			--platform android \
@@ -790,12 +798,23 @@ buildExpoUpdate() {
 			--private-key-path "./keys/private-key.pem" \
 			--message "${UPDATE_MESSAGE}" \
 			--non-interactive
+		android_exit_code=$?
+		
+		if [ $android_exit_code -ne 0 ]; then
+			echo "::error title=Android update failed::Android EAS update command failed with exit code ${android_exit_code}" >&2
+		fi
 	fi
 
-	if [ "$PLATFORM" = "all" ]; then
+	# Check for failures and exit accordingly
+	if [ $ios_exit_code -ne 0 ] || [ $android_exit_code -ne 0 ]; then
+		echo "::error title=EAS update failed::One or more platform updates failed. iOS exit code: ${ios_exit_code}, Android exit code: ${android_exit_code}" >&2
+		exit 1
+	fi
+	
+	if [ "$OTA_PUSH_PLATFORM" = "all" ]; then
 		echo "✅ EAS updates published for both platforms"
 	else
-		echo "✅ EAS update published for ${PLATFORM}"
+		echo "✅ EAS update published for ${OTA_PUSH_PLATFORM}"
 	fi
 }
 
