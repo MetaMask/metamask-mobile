@@ -841,7 +841,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     if (!existingPosition || !suggestedStopLossPrice) return;
 
     // Capture symbol before async to detect market changes during API call
-    const originalSymbol = existingPosition.symbol;
+    const originalSymbol = existingPosition.coin;
 
     setIsSettingStopLoss(true);
 

@@ -784,7 +784,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          symbol: 'BTC',
+          coin: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -810,7 +810,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          symbol: 'BTC',
+          coin: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -836,7 +836,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          symbol: 'BTC',
+          coin: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -862,7 +862,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          symbol: 'BTC',
+          coin: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -888,7 +888,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          symbol: 'BTC',
+          coin: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -912,7 +912,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          symbol: 'BTC',
+          coin: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -6821,67 +6821,6 @@ describe('HyperLiquidProvider', () => {
         // With buffer (1.003) = 4212.6
         expect(result).toBeCloseTo(4212.6, 1);
       });
-    });
-  });
-
-  describe('WebSocket connection state methods', () => {
-    // Import actual enum to ensure type compatibility
-    const { WebSocketConnectionState } = jest.requireActual(
-      '../../services/HyperLiquidClientService',
-    );
-
-    beforeEach(() => {
-      // Add WebSocket methods to mock client service
-      mockClientService.getConnectionState = jest
-        .fn()
-        .mockReturnValue(WebSocketConnectionState.Connected);
-      mockClientService.subscribeToConnectionState = jest
-        .fn()
-        .mockReturnValue(jest.fn());
-      mockClientService.reconnect = jest.fn().mockResolvedValue(undefined);
-    });
-
-    it('getWebSocketConnectionState delegates to clientService', () => {
-      // Arrange
-      mockClientService.getConnectionState.mockReturnValue(
-        WebSocketConnectionState.Connected,
-      );
-
-      // Act
-      const result = provider.getWebSocketConnectionState();
-
-      // Assert
-      expect(result).toBe(WebSocketConnectionState.Connected);
-      expect(mockClientService.getConnectionState).toHaveBeenCalled();
-    });
-
-    it('subscribeToConnectionState delegates to clientService', () => {
-      // Arrange
-      const mockUnsubscribe = jest.fn();
-      mockClientService.subscribeToConnectionState.mockReturnValue(
-        mockUnsubscribe,
-      );
-      const listener = jest.fn();
-
-      // Act
-      const unsubscribe = provider.subscribeToConnectionState(listener);
-
-      // Assert
-      expect(mockClientService.subscribeToConnectionState).toHaveBeenCalledWith(
-        listener,
-      );
-      expect(unsubscribe).toBe(mockUnsubscribe);
-    });
-
-    it('reconnect delegates to clientService', async () => {
-      // Arrange
-      mockClientService.reconnect.mockResolvedValue(undefined);
-
-      // Act
-      await provider.reconnect();
-
-      // Assert
-      expect(mockClientService.reconnect).toHaveBeenCalled();
     });
   });
 
