@@ -68,7 +68,7 @@ export function useHasExistingPosition(
     // Find the most recent "Open" fill for this position's symbol
     const openFill = orderFills
       .filter((fill) => {
-        const isMatchingAsset = fill.symbol === existingPosition.symbol;
+        const isMatchingAsset = fill.symbol === existingPosition.coin;
         const isOpenDirection = fill.direction?.startsWith('Open');
         return isMatchingAsset && isOpenDirection;
       })
@@ -96,7 +96,7 @@ export function useHasExistingPosition(
 
     // Check if this is a new symbol (different from what we last fetched)
     const isNewSymbol =
-      restFetchedForSymbolRef.current !== existingPosition.symbol;
+      restFetchedForSymbolRef.current !== existingPosition.coin;
 
     // Skip if we've already fetched for this position symbol
     if (!isNewSymbol) {
@@ -108,7 +108,7 @@ export function useHasExistingPosition(
     setRestPositionTimestamp(undefined);
 
     // Mark that we're fetching for this symbol to prevent duplicate calls
-    restFetchedForSymbolRef.current = existingPosition.symbol;
+    restFetchedForSymbolRef.current = existingPosition.coin;
 
     // Track if this effect is still current to prevent stale updates
     // This prevents race conditions when users rapidly switch markets
@@ -116,7 +116,7 @@ export function useHasExistingPosition(
 
     const fetchHistoricalFills = async () => {
       // Capture symbol at fetch start for validation and logging
-      const symbolAtFetchStart = existingPosition.symbol;
+      const symbolAtFetchStart = existingPosition.coin;
 
       try {
         // Fetch fills from the last 90 days to find position-opening fill
@@ -124,7 +124,7 @@ export function useHasExistingPosition(
         // because WebSocket cache is limited to ~100 recent fills and won't contain
         // position-opening fills for older positions. The REST API is needed for
         // historical data that predates the WebSocket connection.
-        const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
+        const startTime = Date.now() - PERPS_CONSTANTS.FILLS_LOOKBACK_MS;
         const controller = Engine.context.PerpsController;
         const fills = await controller.getOrderFills({ startTime });
 

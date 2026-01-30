@@ -528,13 +528,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Validate cached price: must be positive and finite
       // Covers zero, negative, NaN, and Infinity in one check
       if (price <= 0 || !isFinite(price)) {
-        this.deps.debugLogger.log(
+        DevLogger.log(
           'WebSocket cached price invalid for getOrFetchPrice, falling back to REST',
           { symbol, cachedPrice, parsedPrice: price },
         );
         // Fall through to REST API fallback
       } else {
-        this.deps.debugLogger.log('Using WebSocket cached price', {
+        DevLogger.log('Using WebSocket cached price', {
           symbol,
           price,
         });
@@ -543,7 +543,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Fallback to REST API if cache miss
-    this.deps.debugLogger.log(
+    DevLogger.log(
       'Price cache miss for getOrFetchPrice, falling back to REST allMids',
       { symbol },
     );
@@ -578,7 +578,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const cachedFills = this.subscriptionService.getFillsCacheIfInitialized();
 
     if (cachedFills !== null) {
-      this.deps.debugLogger.log('Using WebSocket cached fills', {
+      DevLogger.log('Using WebSocket cached fills', {
         count: cachedFills.length,
         params,
       });
@@ -586,7 +586,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Fallback to REST API when cache not initialized
-    this.deps.debugLogger.log(
+    DevLogger.log(
       'Fills cache miss for getOrFetchFills, falling back to REST',
       { params },
     );
