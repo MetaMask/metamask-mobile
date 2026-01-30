@@ -6,6 +6,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { filterUndefinedValues } from '../../../../util/analytics/filterUndefinedValues';
+import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
 
 interface MergedRampEvents extends AggregatorEvents, DepositEvents {}
 
@@ -15,7 +16,9 @@ export function trackEvent<T extends keyof MergedRampEvents>(
 ) {
   analytics.trackEvent(
     AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents[eventType])
-      .addProperties(filterUndefinedValues(params))
+      .addProperties(
+        filterUndefinedValues(params as AnalyticsUnfilteredProperties),
+      )
       .build(),
   );
 }

@@ -4,6 +4,7 @@ import { MetaMetricsEvents } from './Analytics';
 import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../util/analytics/analytics';
 import { filterUndefinedValues } from '../util/analytics/filterUndefinedValues';
+import type { AnalyticsUnfilteredProperties } from '../util/analytics/analytics.types';
 import { processAttribution } from './processAttribution';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import ReduxService from './redux';
@@ -94,7 +95,9 @@ export class AppStateEventListener {
           `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId}`,
           utmParams,
         );
-        appOpenedEventBuilder.addProperties(filterUndefinedValues(attribution));
+        appOpenedEventBuilder.addProperties(
+          filterUndefinedValues(attribution as AnalyticsUnfilteredProperties),
+        );
       }
       analytics.trackEvent(appOpenedEventBuilder.build());
     } catch (error) {

@@ -1,4 +1,5 @@
 import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
+import type { AnalyticsUnfilteredProperties } from './analytics.types';
 
 /**
  * Returns an empty object if input is null/undefined, or a copy of the given object with `undefined` property values removed.
@@ -25,13 +26,13 @@ import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
  * @example
  * // Safe to pass to analytics builder
  * eventBuilder.addProperties(filterUndefinedValues(attribution));
+ *
+ * @example
+ * // Casting specific event interfaces
+ * eventBuilder.addProperties(filterUndefinedValues(params as AnalyticsUnfilteredProperties));
  */
 export function filterUndefinedValues(
-  unfilteredProperties:
-    | AnalyticsEventProperties
-    | Record<string, unknown | undefined>
-    | null
-    | undefined,
+  unfilteredProperties: AnalyticsUnfilteredProperties,
 ): AnalyticsEventProperties {
   if (unfilteredProperties == null) {
     return {};

@@ -9,7 +9,7 @@ import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import type { BridgeControllerInitMessenger } from '../../messengers/bridge-controller-messenger';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { buildAndTrackEvent } from '../../utils/analytics';
-import { filterUndefinedValues } from '../../../../util/analytics/filterUndefinedValues';
+import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
 import {
   ChainId,
   handleFetch,
@@ -68,7 +68,7 @@ export const bridgeControllerInit: ControllerInitFunction<
         buildAndTrackEvent(
           initMessenger,
           event,
-          filterUndefinedValues(properties),
+          properties as AnalyticsUnfilteredProperties,
         );
       },
       traceFn: trace as TraceCallback,
