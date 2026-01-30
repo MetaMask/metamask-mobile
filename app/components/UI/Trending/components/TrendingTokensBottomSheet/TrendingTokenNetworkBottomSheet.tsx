@@ -116,6 +116,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={handleSheetClose}
+      testID="trending-token-network-bottom-sheet"
     >
       <HeaderCenter
         title={strings('trending.networks')}
@@ -142,6 +143,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
           const isSelected = isNetworkSelected(network);
           return (
             <Cell
+              testID={`network-select-${network.caipChainId}`}
               key={network.caipChainId}
               variant={CellVariant.Select}
               title={network.name}

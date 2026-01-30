@@ -154,6 +154,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={handleSheetClose}
+      testID="trending-token-price-change-bottom-sheet"
     >
       <HeaderCenter
         title={strings('trending.sort_by')}
@@ -162,6 +163,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       />
       <View style={optionStyles.optionsList}>
         <TouchableOpacity
+          testID="price-change-select-price-change"
           style={[
             optionStyles.optionRow,
             selectedOption === PriceChangeOption.PriceChange &&
@@ -196,6 +198,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           )}
         </TouchableOpacity>
         <TouchableOpacity
+          testID="price-change-select-volume"
           style={[
             optionStyles.optionRow,
             selectedOption === PriceChangeOption.Volume &&
@@ -228,6 +231,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           )}
         </TouchableOpacity>
         <TouchableOpacity
+          testID="price-change-select-market-cap"
           style={[
             optionStyles.optionRow,
             selectedOption === PriceChangeOption.MarketCap &&
