@@ -95,7 +95,9 @@ jest.mock('../../hooks/usePerpsHomeActions', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
-  usePerpsEventTracking: jest.fn(),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/stream', () => ({
