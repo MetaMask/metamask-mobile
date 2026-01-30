@@ -1,6 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
-import URLParse from 'url-parse';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -18,10 +17,7 @@ import styleSheet from './WebviewModal.styles';
 import ErrorView from '../../../components/ErrorView';
 import Device from '../../../../../../../util/device';
 import Logger from '../../../../../../../util/Logger';
-import {
-  paymentProtocolList,
-  handlePaymentProtocolUrl,
-} from '../../../../../../../util/browser';
+import { shouldStartLoadWithRequest } from '../../../../../../../util/browser';
 
 export interface WebviewModalParams {
   sourceUrl: string;
@@ -56,16 +52,7 @@ function WebviewModal() {
   };
 
   const handleShouldStartLoadWithRequest = useCallback(
-    ({ url }: { url: string }) => {
-      const { protocol } = new URLParse(url);
-
-      if (paymentProtocolList.includes(protocol)) {
-        handlePaymentProtocolUrl(url, Logger);
-        return false;
-      }
-
-      return true;
-    },
+    ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
     [],
   );
 

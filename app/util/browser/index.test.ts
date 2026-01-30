@@ -11,6 +11,7 @@ import {
   processUrlForBrowser,
   buildPortfolioUrl,
   handlePaymentProtocolUrl,
+  shouldStartLoadWithRequest,
 } from '.';
 import { strings } from '../../../locales/i18n';
 
@@ -492,5 +493,74 @@ describe('Browser utils :: handlePaymentProtocolUrl', () => {
       error,
       'Failed to open payment URL: gpay://pay',
     );
+  });
+});
+
+describe('shouldStartLoadWithRequest', () => {
+  let mockLogger: {
+    log: jest.Mock;
+    error: jest.Mock;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+    };
+    (Linking.canOpenURL as jest.Mock).mockResolvedValue(true);
+    (Linking.openURL as jest.Mock).mockResolvedValue(undefined);
+  });
+
+  describe('when URL has payment protocol', () => {
+    it('returns false and calls handlePaymentProtocolUrl for upi:// protocol', () => {
+      const mockUrl = 'upi://pay?pa=test@paytm';
+      const result = shouldStartLoadWithRequest(mockUrl, mockLogger);
+
+      expect(result).toBe(false);
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(mockUrl);
+    });
+
+    it('returns false and calls handlePaymentProtocolUrl for paytmmp:// protocol', () => {
+      const mockUrl = 'paytmmp://pay?pa=test@paytm';
+      const result = shouldStartLoadWithRequest(mockUrl, mockLogger);
+
+      expect(result).toBe(false);
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(mockUrl);
+    });
+
+    it('returns false and calls handlePaymentProtocolUrl for phonepe:// protocol', () => {
+      const mockUrl = 'phonepe://pay?pa=test@phonepe';
+      const result = shouldStartLoadWithRequest(mockUrl, mockLogger);
+
+      expect(result).toBe(false);
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(mockUrl);
+    });
+
+    it('returns false and calls handlePaymentProtocolUrl for gpay:// protocol', () => {
+      const mockUrl = 'gpay://upi/pay?pa=test@google';
+      const result = shouldStartLoadWithRequest(mockUrl, mockLogger);
+
+      expect(result).toBe(false);
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(mockUrl);
+    });
+  });
+
+  describe('when URL has non-payment protocol', () => {
+    it('returns true for https:// protocol', () => {
+      const mockUrl = 'https://example.com';
+      const result = shouldStartLoadWithRequest(mockUrl, mockLogger);
+
+      expect(result).toBe(true);
+      expect(Linking.canOpenURL).not.toHaveBeenCalled();
+    });
+
+    it('returns true for http:// protocol', () => {
+      const mockUrl = 'http://example.com';
+      const result = shouldStartLoadWithRequest(mockUrl, mockLogger);
+
+      expect(result).toBe(true);
+      expect(Linking.canOpenURL).not.toHaveBeenCalled();
+    });
   });
 });

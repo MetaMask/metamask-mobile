@@ -167,6 +167,31 @@ export const handlePaymentProtocolUrl = (
     });
 
 /**
+ * Determines if a WebView should start loading a URL based on its protocol
+ * Payment protocol URLs are handled by the OS, other URLs load normally in WebView
+ *
+ * @param url - URL string to evaluate
+ * @param Logger - Logger instance for logging
+ * @returns boolean - true to allow WebView to load URL, false to prevent it
+ */
+export const shouldStartLoadWithRequest = (
+  url: string,
+  Logger: {
+    log: (message: string) => void;
+    error: (error: Error, message: string) => void;
+  },
+): boolean => {
+  const { protocol } = new Url(url);
+
+  if (paymentProtocolList.includes(protocol)) {
+    handlePaymentProtocolUrl(url, Logger);
+    return false;
+  }
+
+  return true;
+};
+
+/**
  * Returns translated warning message for the
  * warning dialog box the user sees when the to be loaded
  * website tries to automatically start an external

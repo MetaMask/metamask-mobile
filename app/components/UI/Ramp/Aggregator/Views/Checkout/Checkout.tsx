@@ -5,7 +5,6 @@ import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import URLParse from 'url-parse';
 import { useTheme } from '../../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useRampSDK, SDK } from '../../sdk';
@@ -42,10 +41,7 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../../util/device';
-import {
-  paymentProtocolList,
-  handlePaymentProtocolUrl,
-} from '../../../../../../util/browser';
+import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
 
 interface CheckoutParams {
   url: string;
@@ -187,16 +183,7 @@ const CheckoutWebView = () => {
   };
 
   const handleShouldStartLoadWithRequest = useCallback(
-    ({ url }: { url: string }) => {
-      const { protocol } = new URLParse(url);
-
-      if (paymentProtocolList.includes(protocol)) {
-        handlePaymentProtocolUrl(url, Logger);
-        return false;
-      }
-
-      return true;
-    },
+    ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
     [],
   );
 
