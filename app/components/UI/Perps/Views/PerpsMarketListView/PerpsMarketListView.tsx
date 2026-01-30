@@ -186,9 +186,11 @@ const PerpsMarketListView = ({
     toggleSearchVisibility();
 
     if (isSearchVisible) {
-      // When disabling search, clear the query and reset category filter to show all markets
+      // When disabling search, clear the query and reset category filter to the default
+      // This preserves context: navigating via "See all crypto" keeps crypto selected,
+      // while navigating via search icon from home resets to 'all'
       clearSearch();
-      setMarketTypeFilter('all');
+      setMarketTypeFilter(defaultMarketTypeFilter);
     } else {
       // When enabling search, track the event
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -202,6 +204,7 @@ const PerpsMarketListView = ({
     clearSearch,
     track,
     setMarketTypeFilter,
+    defaultMarketTypeFilter,
   ]);
 
   // Performance tracking: Measure screen load time until market data is displayed
