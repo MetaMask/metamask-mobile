@@ -16,7 +16,6 @@ import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
-import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
@@ -36,6 +35,7 @@ import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
+import { useTheme } from '../../../../util/theme';
 
 import type { PerpsNavigationParamList } from '../types/navigation';
 
@@ -47,6 +47,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+const PerpsConfirmScreen = (props: React.ComponentProps<typeof Confirm>) => {
+  const theme = useTheme();
+  return (
+    <Confirm
+      {...props}
+      disableSafeArea
+      fullscreenStyle={{
+        backgroundColor: theme.colors.background.default,
+      }}
+    />
+  );
+};
 
 const PerpsModalStack = () => {
   const isBasicFunctionalityEnabled = useSelector(
@@ -265,15 +278,6 @@ const PerpsScreenStack = () => {
           />
 
           <Stack.Screen
-            name={Routes.PERPS.ORDER}
-            component={PerpsOrderView}
-            options={{
-              title: strings('perps.order.title'),
-              headerShown: false,
-            }}
-          />
-
-          <Stack.Screen
             name={Routes.PERPS.CLOSE_POSITION}
             component={PerpsClosePositionView}
             options={{
@@ -381,11 +385,9 @@ const PerpsScreenStack = () => {
 
           <Stack.Screen
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-            component={Confirm}
+            component={PerpsConfirmScreen}
             options={{
-              headerLeft: () => null,
-              headerShown: true,
-              title: '',
+              header: () => null,
             }}
           />
         </Stack.Navigator>
@@ -396,4 +398,4 @@ const PerpsScreenStack = () => {
 
 // Export the stack wrapped with provider
 export default PerpsScreenStack;
-export { PerpsModalStack, PerpsClosePositionBottomSheetStack };
+export { PerpsClosePositionBottomSheetStack, PerpsModalStack };

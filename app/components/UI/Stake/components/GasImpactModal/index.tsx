@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { View } from 'react-native';
 
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import BottomSheet, {
   BottomSheetRef,
@@ -37,11 +36,8 @@ type GasImpactModalRouteProp = RouteProp<RootParamList, 'GasImpact'>;
 const GasImpactModal = () => {
   const route = useRoute<GasImpactModalRouteProp>();
   const { styles } = useStyles(styleSheet, {});
-  const confirmationRedesignFlags = useSelector(
-    selectConfirmationRedesignFlags,
-  );
-  const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_confirmations;
+  // TODO: Remove dead code as we are not using the legacy confirmations anymore
+  const isStakingDepositRedesignedEnabled = true;
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,

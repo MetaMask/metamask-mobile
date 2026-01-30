@@ -83,7 +83,7 @@ export const useStopLossPrompt = ({
   // Track when the current position was first detected (client-side)
   // This is used to enforce the minimum position age requirement
   const positionFirstSeenRef = useRef<{
-    coin: string;
+    symbol: string;
     timestamp: number;
   } | null>(null);
   const [positionAgeCheckPassed, setPositionAgeCheckPassed] = useState(false);
@@ -133,7 +133,7 @@ export const useStopLossPrompt = ({
   // Reset hasBeenShownRef when position changes (from main)
   useEffect(() => {
     hasBeenShownRef.current = false;
-  }, [position?.coin]);
+  }, [position?.symbol]);
 
   // Server timestamp bypass effect (from main)
   // If positionOpenedTimestamp shows position is >2 minutes old, bypass debounce AND position age check
@@ -148,8 +148,7 @@ export const useStopLossPrompt = ({
       ? Date.now() - positionOpenedTimestamp
       : 0;
 
-    const isBelowThreshold =
-      roePercent <= STOP_LOSS_PROMPT_CONFIG.ROE_THRESHOLD;
+    const isBelowThreshold = roePercent <= STOP_LOSS_PROMPT_CONFIG.RoeThreshold;
 
     // If position is old enough (from actual order fill data), bypass both debounce and position age check
     // Server timestamp is authoritative - no need to wait for client-side age tracking
@@ -162,20 +161,20 @@ export const useStopLossPrompt = ({
   // Handle client-side position age tracking (from HEAD)
   // Track when a position is first detected and enforce minimum age before showing banners
   useEffect(() => {
-    if (!enabled || !position?.coin) {
+    if (!enabled || !position?.symbol) {
       // Reset when disabled or no position
       positionFirstSeenRef.current = null;
       setPositionAgeCheckPassed(false);
       return;
     }
 
-    // Check if this is a new position (different coin or first time seeing it)
+    // Check if this is a new position (different symbol or first time seeing it)
     if (
       !positionFirstSeenRef.current ||
-      positionFirstSeenRef.current.coin !== position.coin
+      positionFirstSeenRef.current.symbol !== position.symbol
     ) {
       positionFirstSeenRef.current = {
-        coin: position.coin,
+        symbol: position.symbol,
         timestamp: Date.now(),
       };
       setPositionAgeCheckPassed(false);
@@ -183,12 +182,11 @@ export const useStopLossPrompt = ({
 
     // Check if minimum age has passed
     const elapsed = Date.now() - positionFirstSeenRef.current.timestamp;
-    if (elapsed >= STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS) {
+    if (elapsed >= STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs) {
       setPositionAgeCheckPassed(true);
     } else {
       // Set up timer to check again when age threshold is reached
-      const remainingTime =
-        STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS - elapsed;
+      const remainingTime = STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs - elapsed;
       const timer = setTimeout(() => {
         setPositionAgeCheckPassed(true);
       }, remainingTime);
@@ -197,7 +195,7 @@ export const useStopLossPrompt = ({
     }
 
     return undefined;
-  }, [enabled, position?.coin]);
+  }, [enabled, position?.symbol]);
 
   // Handle ROE debounce logic
   useEffect(() => {
@@ -208,8 +206,7 @@ export const useStopLossPrompt = ({
       return;
     }
 
-    const isBelowThreshold =
-      roePercent <= STOP_LOSS_PROMPT_CONFIG.ROE_THRESHOLD;
+    const isBelowThreshold = roePercent <= STOP_LOSS_PROMPT_CONFIG.RoeThreshold;
 
     if (isBelowThreshold) {
       // Start tracking if not already
@@ -219,11 +216,11 @@ export const useStopLossPrompt = ({
 
       // Check if debounce period has passed
       const elapsed = Date.now() - roeBelowThresholdSinceRef.current;
-      if (elapsed >= STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS) {
+      if (elapsed >= STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs) {
         finishDebounce();
       } else {
         // Set up timer to check again
-        const remainingTime = STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS - elapsed;
+        const remainingTime = STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs - elapsed;
         const timer = setTimeout(() => {
           // Re-check if still below threshold
           if (roeBelowThresholdSinceRef.current !== null) {
@@ -263,8 +260,7 @@ export const useStopLossPrompt = ({
     }
 
     // Target ROE is configurable (default -50%)
-    const targetRoeDecimal =
-      STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE / 100;
+    const targetRoeDecimal = STOP_LOSS_PROMPT_CONFIG.SuggestedStopLossRoe / 100;
 
     // Calculate price at target ROE
     // ROE = (priceChange / entryPrice) * leverage * direction
@@ -287,7 +283,7 @@ export const useStopLossPrompt = ({
   const suggestedStopLossPercent = useMemo(() => {
     // Dev override: provide mock percentage for stop_loss variant without position
     if (__DEV__ && FORCE_BANNER_VARIANT === 'stop_loss' && !position) {
-      return STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE;
+      return STOP_LOSS_PROMPT_CONFIG.SuggestedStopLossRoe;
     }
 
     // Return the configured target ROE if we have a valid stop loss price
@@ -296,7 +292,7 @@ export const useStopLossPrompt = ({
     }
 
     // The stop loss price was calculated to achieve this specific ROE
-    return STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE;
+    return STOP_LOSS_PROMPT_CONFIG.SuggestedStopLossRoe;
   }, [suggestedStopLossPrice, position]);
 
   // Determine if banner should show and which variant
@@ -348,7 +344,7 @@ export const useStopLossPrompt = ({
     // No banner shown until ROE drops below MIN_LOSS_THRESHOLD (-10%)
     if (
       roePercent === null ||
-      roePercent > STOP_LOSS_PROMPT_CONFIG.MIN_LOSS_THRESHOLD
+      roePercent > STOP_LOSS_PROMPT_CONFIG.MinLossThreshold
     ) {
       return { shouldShowBanner: false, variant: null };
     }
@@ -356,8 +352,7 @@ export const useStopLossPrompt = ({
     // Priority 1: Near liquidation → Add margin variant
     if (
       liquidationDistance !== null &&
-      liquidationDistance <
-        STOP_LOSS_PROMPT_CONFIG.LIQUIDATION_DISTANCE_THRESHOLD
+      liquidationDistance < STOP_LOSS_PROMPT_CONFIG.LiquidationDistanceThreshold
     ) {
       return { shouldShowBanner: true, variant: 'add_margin' };
     }
@@ -408,7 +403,7 @@ export const useStopLossPrompt = ({
     setDismissingVariant(null);
     prevShouldShowBannerRef.current = false;
     prevVariantRef.current = null;
-  }, [position?.coin]);
+  }, [position?.symbol]);
 
   // Callback when fade-out animation completes
   const onDismissComplete = useCallback(() => {

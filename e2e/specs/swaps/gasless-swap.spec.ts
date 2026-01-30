@@ -1,15 +1,15 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../framework/types';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Assertions from '../../framework/Assertions';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import Assertions from '../../../tests/framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeTrade } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import { logger } from '../../framework/logger';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { logger } from '../../../tests/framework/logger';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 import QuoteView from '../../pages/swaps/QuoteView';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupMockRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
 import { GASLESS_SWAP_QUOTES_ETH_MUSD } from './helpers/constants';
 
 describe(SmokeTrade('Gasless Swap - '), (): void => {

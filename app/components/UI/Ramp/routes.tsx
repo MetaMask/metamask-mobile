@@ -2,7 +2,10 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './components/TokenSelection';
+import BuildQuote from './components/BuildQuote';
 import UnsupportedTokenModal from './components/UnsupportedTokenModal';
+import SettingsModal from './components/Modals/SettingsModal';
+
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -21,6 +24,7 @@ const MainRoutes = () => (
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
     />
+    <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
   </Stack.Navigator>
 );
 
@@ -31,6 +35,10 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_TOKEN}
       component={UnsupportedTokenModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.BUILD_QUOTE_SETTINGS}
+      component={SettingsModal}
     />
   </ModalsStack.Navigator>
 );

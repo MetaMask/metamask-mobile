@@ -10,8 +10,6 @@ import {
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
 } from '../../constants/storage';
 import {
-  authSuccess,
-  authError,
   logIn,
   logOut,
   passwordSet,
@@ -78,7 +76,6 @@ import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
-import { handlePasswordSubmissionError } from './utils';
 import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
@@ -428,6 +425,8 @@ class AuthenticationService {
             password,
             SecureKeychain.TYPES.BIOMETRICS,
           );
+
+          // TODO: Remove this once we have a proper way to handle biometrics
           await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
 
@@ -437,8 +436,11 @@ class AuthenticationService {
             password,
             SecureKeychain.TYPES.PASSCODE,
           );
+
+          // TODO: Remove this once we have a proper way to handle biometrics
           await StorageWrapper.removeItem(PASSCODE_DISABLED);
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
           break;
         case AUTHENTICATION_TYPE.REMEMBER_ME: {
           // Store the current auth type before switching to remember me
@@ -457,12 +459,16 @@ class AuthenticationService {
             password,
             SecureKeychain.TYPES.REMEMBER_ME,
           );
-          // SecureKeychain.setGenericPassword handles flag management for REMEMBER_ME
-          // (sets BIOMETRY_CHOICE_DISABLED and PASSCODE_DISABLED to disable biometric/passcode)
+
+          // TODO: Remove this once we have a proper way to handle biometrics
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
           break;
         }
         case AUTHENTICATION_TYPE.PASSWORD: {
           await SecureKeychain.setGenericPassword(password, undefined);
+
           // Password only: disable both biometrics and passcode
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
@@ -480,6 +486,7 @@ class AuthenticationService {
         }
         default:
           await SecureKeychain.setGenericPassword(password, undefined);
+
           // Default to password behavior: disable both
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
@@ -765,10 +772,11 @@ class AuthenticationService {
     try {
       const existingUser = selectExistingUser(ReduxService.store.getState());
 
-      if (existingUser) {
+      if (existingUser || authPreference?.oauth2Login) {
         // User exists. Attempt to unlock wallet.
+        // existing user is always false when user try to rehydrate
 
-        if (password) {
+        if (password !== undefined) {
           // Explicitly provided password.
           passwordToUse = password;
         } else {
@@ -803,10 +811,31 @@ class AuthenticationService {
           this.dispatchPasswordSet();
           void this.postLoginAsyncOperations();
 
-          // Authentication successful.Navigate to home screen.
-          NavigationService.navigation?.reset({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          });
+          // TODO: Refactor this orchestration to sagas.
+          // Navigate to optin metrics or home screen based on metrics consent and UI seen.
+          const isMetricsEnabled = MetaMetrics.getInstance().isEnabled();
+          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+            OPTIN_META_METRICS_UI_SEEN,
+          );
+          if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
+            NavigationService.navigation?.reset({
+              routes: [
+                {
+                  name: Routes.ONBOARDING.ROOT_NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.NAV,
+                    params: {
+                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                    },
+                  },
+                },
+              ],
+            });
+          } else {
+            NavigationService.navigation?.reset({
+              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            });
+          }
         } else {
           // No password provided or derived. Navigate to login.
           NavigationService.navigation?.reset({
@@ -823,9 +852,24 @@ class AuthenticationService {
           routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
         });
       }
+      // eslint-disable-next-line no-useless-catch
     } catch (error) {
       // Error while submitting password.
-      handlePasswordSubmissionError(error as Error);
+
+      // TODO: Refactor lockApp to be more deterministic or create another clean up method.
+      try {
+        await this.lockApp({ reset: false, navigateToLogin: false });
+      } catch (lockError) {
+        // Log but don't replace the original error
+        Logger.error(
+          lockError as Error,
+          'Failed to lock app during unlockWallet error condition.',
+        );
+      }
+
+      // TODO: Use handlePasswordSubmissionError once we have a standard way of displaying error messages in the UI.
+      // handlePasswordSubmissionError(error as Error);
+      throw error;
     } finally {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();
@@ -835,16 +879,13 @@ class AuthenticationService {
 
   /**
    * Attempts to use biometric/pin code/remember me to login
-   * @param bioStateMachineId - ID associated with each biometric session.
    * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
    */
   appTriggeredAuth = async (
     options: {
-      bioStateMachineId?: string;
       disableAutoLogout?: boolean;
     } = {},
   ): Promise<void> => {
-    const bioStateMachineId = options?.bioStateMachineId;
     const disableAutoLogout = options?.disableAutoLogout;
     try {
       // TODO: Replace "any" with type
@@ -877,7 +918,6 @@ class AuthenticationService {
       endTrace({ name: TraceName.VaultCreation });
 
       await this.dispatchLogin();
-      ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
 
       // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
@@ -897,7 +937,6 @@ class AuthenticationService {
         context: 'app_triggered_auth_failed',
       });
 
-      ReduxService.store.dispatch(authError(bioStateMachineId));
       !disableAutoLogout && this.lockApp({ reset: false });
       throw new AuthenticationError(
         errorMessage,
@@ -1621,9 +1660,6 @@ class AuthenticationService {
     // Password found or provided. Validate and update the auth preference.
     try {
       const passwordToUse = await this.reauthenticate(password);
-
-      // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
-      await this.resetPassword();
 
       // storePassword handles all storage flag management internally
       await this.storePassword(passwordToUse.password, authType);

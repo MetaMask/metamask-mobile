@@ -27,6 +27,10 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     marketId: market.id,
     autoRefreshTimeout: 10000,
   });
+  const { positions: claimablePositions } = usePredictPositions({
+    marketId: market.id,
+    claimable: true,
+  });
   const { livePositions } = useLivePositions(positions);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -56,16 +60,24 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     );
   };
 
-  if (livePositions.length === 0) {
+  if (livePositions.length === 0 && claimablePositions.length === 0) {
     return null;
   }
 
   return (
     <Box testID={testID} twClassName="flex-col">
-      <Text variant={TextVariant.HeadingMd} twClassName="font-medium py-2">
+      <Text variant={TextVariant.HeadingMd} twClassName="font-medium pt-8">
         {strings('predict.market_details.your_picks')}
       </Text>
       {livePositions.map((position) => (
+        <PredictPickItem
+          key={position.id}
+          position={position}
+          onCashOut={onCashOut}
+          testID={`${testID}-item-${position.id}`}
+        />
+      ))}
+      {claimablePositions.map((position) => (
         <PredictPickItem
           key={position.id}
           position={position}

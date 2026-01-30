@@ -125,7 +125,7 @@ const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
-    title: strings('trending.tokens'),
+    title: strings('trending.trending_tokens'),
     icon: IconName.Ethereum,
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);

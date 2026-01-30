@@ -1,15 +1,10 @@
 import React, { useCallback } from 'react';
-import { FlatList, View, TouchableOpacity } from 'react-native';
+import { FlatList, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { PerpsMarketData, Position, Order } from '../../controllers/types';
@@ -25,6 +20,12 @@ interface PerpsWatchlistMarketsProps {
   positions?: Position[];
   /** Orders from parent - avoids duplicate WebSocket subscriptions */
   orders?: Order[];
+  /** Override section styles (e.g., to adjust margins) */
+  sectionStyle?: StyleProp<ViewStyle>;
+  /** Override header styles (e.g., to remove horizontal padding) */
+  headerStyle?: StyleProp<ViewStyle>;
+  /** Override content container styles (e.g., to remove horizontal margin) */
+  contentContainerStyle?: StyleProp<ViewStyle>;
 }
 
 const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
@@ -32,6 +33,9 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   isLoading,
   positions = [],
   orders = [],
+  sectionStyle,
+  headerStyle,
+  contentContainerStyle,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -39,7 +43,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
       // Check if user has a position or order for this market
-      const hasPosition = positions.some((p) => p.coin === market.symbol);
+      const hasPosition = positions.some((p) => p.symbol === market.symbol);
       const hasOrder = orders.some((o) => o.symbol === market.symbol);
 
       // Determine which tab to open (same logic as PerpsCard)
@@ -73,38 +77,24 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     [handleMarketPress],
   );
 
-  const handleViewAll = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_LIST,
-      params: {},
-    });
-  }, [navigation]);
-
-  // Header component - full row is pressable with chevron icon next to title
+  // Header component
   const SectionHeader = useCallback(
     () => (
-      <TouchableOpacity style={styles.header} onPress={handleViewAll}>
-        <View style={styles.titleRow}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-            {strings('perps.home.watchlist')}
-          </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-          />
-        </View>
-      </TouchableOpacity>
+      <View style={[styles.header, headerStyle]}>
+        <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+          {strings('perps.home.watchlist')}
+        </Text>
+      </View>
     ),
-    [styles.header, styles.titleRow, handleViewAll],
+    [styles.header, headerStyle],
   );
 
   // Show skeleton during initial load
   if (isLoading) {
     return (
-      <View style={styles.section}>
+      <View style={[styles.section, sectionStyle]}>
         <SectionHeader />
-        <View style={styles.contentContainer}>
+        <View style={[styles.contentContainer, contentContainerStyle]}>
           <PerpsRowSkeleton count={3} />
         </View>
       </View>
@@ -118,9 +108,9 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
 
   // Render market list
   return (
-    <View style={styles.section}>
+    <View style={[styles.section, sectionStyle]}>
       <SectionHeader />
-      <View style={styles.contentContainer}>
+      <View style={[styles.contentContainer, contentContainerStyle]}>
         <FlatList
           data={markets}
           renderItem={renderMarket}

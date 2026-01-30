@@ -46,6 +46,7 @@ export const ConfirmationRowComponentIDs = {
   TOKEN_HERO: 'token-hero',
   TOTAL: 'total',
   TRANSACTION_FEE: 'transaction-fee',
+  NETWORK_FEE: 'network-fee',
 } as const;
 
 export const ConfirmationFooterSelectorIDs = {
@@ -61,7 +62,7 @@ export const ConfirmAlertModalSelectorsIDs = {
 
 export const AlertModalSelectorsIDs = {
   ALERT_MODAL_CHECKBOX: 'alert-modal-checkbox',
-  ALERT_MODAL_GOT_IT_BUTTON: 'alert-modal-got-it-button',
+  ALERT_MODAL_ACKNOWLEDGE_BUTTON: 'alert-modal-acknowledge-button',
 } as const;
 
 export const AlertModalSelectorsText = {

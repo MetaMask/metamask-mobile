@@ -1,6 +1,5 @@
 import React, { useRef, isValidElement, useCallback } from 'react';
 import { View } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -18,18 +17,16 @@ import {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 
+import { TooltipModalRouteParams } from './ToolTipModal.types';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './ToolTipModal.styles';
-import type { RootParamList } from '../../../util/navigation/types';
-
-type TooltipModalRouteProp = RouteProp<RootParamList, 'tooltipModal'>;
+import { useParams } from '../../../util/navigation/navUtils';
 
 const TooltipModal = () => {
-  const route = useRoute<TooltipModalRouteProp>();
-  const tooltip = route.params.tooltip;
-  const title = route.params.title;
+  const { tooltip, title, footerText, buttonText, bottomPadding } =
+    useParams<TooltipModalRouteParams>();
 
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { bottomPadding });
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -41,9 +38,9 @@ const TooltipModal = () => {
 
   const footerButtons = [
     {
-      label: strings('browser.got_it'),
+      label: buttonText ?? strings('browser.got_it'),
       onPress: handleGotItPress,
-      variant: ButtonVariants.Secondary,
+      variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
     },
   ];
@@ -65,6 +62,13 @@ const TooltipModal = () => {
         buttonPropsArray={footerButtons}
         style={styles.footerContainer}
       />
+      {footerText && (
+        <View style={styles.footerTextContainer}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {footerText}
+          </Text>
+        </View>
+      )}
     </BottomSheet>
   );
 };

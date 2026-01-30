@@ -261,7 +261,7 @@ describe('PerpsOrderDetailsView', () => {
     await waitFor(() => {
       expect(mockCancelOrder).toHaveBeenCalledWith({
         orderId: 'order-123',
-        coin: 'BTC',
+        symbol: 'BTC',
       });
     });
 

@@ -16,7 +16,7 @@ jest.mock('../SiteRowItem/SiteRowItem', () => {
   return {
     __esModule: true,
     default: jest.fn(({ onPress, site }) => (
-      <TouchableOpacity testID="site-row-item" onPress={onPress}>
+      <TouchableOpacity testID={`site-row-item-${site.name}`} onPress={onPress}>
         <Text testID="site-id">{site.id}</Text>
         <Text testID="site-name">{site.name}</Text>
         <Text testID="site-url">{site.url}</Text>
@@ -73,7 +73,7 @@ describe('SiteRowItemWrapper', () => {
         <SiteRowItemWrapper site={mockSiteData} navigation={mockNavigation} />,
       );
 
-      expect(getByTestId('site-row-item')).toBeTruthy();
+      expect(getByTestId('site-row-item-Example Site')).toBeTruthy();
       expect(getByTestId('site-id').props.children).toBe('1');
       expect(getByTestId('site-name').props.children).toBe('Example Site');
       expect(getByTestId('site-url').props.children).toBe(
@@ -184,7 +184,7 @@ describe('SiteRowItemWrapper', () => {
         <SiteRowItemWrapper site={mockSiteData} navigation={mockNavigation} />,
       );
 
-      fireEvent.press(getByTestId('site-row-item'));
+      fireEvent.press(getByTestId('site-row-item-Example Site'));
     });
 
     it('should navigate to TrendingBrowser with correct params when pressed', () => {
@@ -192,7 +192,7 @@ describe('SiteRowItemWrapper', () => {
         <SiteRowItemWrapper site={mockSiteData} navigation={mockNavigation} />,
       );
 
-      fireEvent.press(getByTestId('site-row-item'));
+      fireEvent.press(getByTestId('site-row-item-Example Site'));
 
       assertBrowserNavigation('https://example.com');
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
@@ -210,7 +210,7 @@ describe('SiteRowItemWrapper', () => {
         <SiteRowItemWrapper site={customSite} navigation={mockNavigation} />,
       );
 
-      fireEvent.press(getByTestId('site-row-item'));
+      fireEvent.press(getByTestId('site-row-item-Custom Site'));
 
       assertBrowserNavigation('https://custom-url.com/page');
     });
@@ -220,7 +220,7 @@ describe('SiteRowItemWrapper', () => {
         <SiteRowItemWrapper site={mockSiteData} navigation={mockNavigation} />,
       );
 
-      const siteRowItem = getByTestId('site-row-item');
+      const siteRowItem = getByTestId('site-row-item-Example Site');
 
       fireEvent.press(siteRowItem);
       fireEvent.press(siteRowItem);
@@ -233,7 +233,7 @@ describe('SiteRowItemWrapper', () => {
         <SiteRowItemWrapper site={mockSiteData} navigation={mockNavigation} />,
       );
 
-      fireEvent.press(getByTestId('site-row-item'));
+      fireEvent.press(getByTestId('site-row-item-Example Site'));
 
       assertBrowserNavigation();
     });
@@ -255,7 +255,7 @@ describe('SiteRowItemWrapper', () => {
         />,
       );
 
-      fireEvent.press(getByTestId('site-row-item'));
+      fireEvent.press(getByTestId('site-row-item-Minimal'));
 
       assertBrowserNavigation('https://minimal.com');
     });

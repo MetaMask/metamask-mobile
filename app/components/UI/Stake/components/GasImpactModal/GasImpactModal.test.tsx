@@ -8,10 +8,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { flushPromises } from '../../../../../util/test/utils';
-import {
-  selectConfirmationRedesignFlags,
-  type ConfirmationRedesignRemoteFlags,
-} from '../../../../../selectors/featureFlagController/confirmations';
+
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { GasImpactModalRouteParams } from './GasImpactModal.types';
 import GasImpactModal from './index';
@@ -96,9 +93,6 @@ const renderGasImpactModal = () =>
 
 describe('GasImpactModal', () => {
   const usePoolStakedDepositMock = jest.mocked(usePoolStakedDeposit);
-  const selectConfirmationRedesignFlagsMock = jest.mocked(
-    selectConfirmationRedesignFlags,
-  );
   const useNavigationMock = jest.mocked(useNavigation);
   const useRouteMock = jest.mocked(useRoute);
   const mockNavigate = jest.fn();
@@ -110,10 +104,6 @@ describe('GasImpactModal', () => {
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
-
-    selectConfirmationRedesignFlagsMock.mockReturnValue({
-      staking_confirmations: false,
-    } as ConfirmationRedesignRemoteFlags);
 
     useNavigationMock.mockReturnValue({
       navigate: mockNavigate,
@@ -144,32 +134,29 @@ describe('GasImpactModal', () => {
   });
 
   describe('navigates to', () => {
-    it('StakeConfirmationView on approval', () => {
+    it('StakeConfirmationView on approval', async () => {
+      const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
+
+      usePoolStakedDepositMock.mockReturnValue({
+        attemptDepositTransaction: attemptDepositTransactionMock,
+      });
+
       const { getByText } = renderGasImpactModal();
 
       const proceedAnywayButton = getByText(strings('stake.proceed_anyway'));
 
       fireEvent.press(proceedAnywayButton);
 
+      await flushPromises();
+
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE_CONFIRMATION,
-        params: {
-          amountWei: mockRouteParams.amountWei,
-          amountFiat: mockRouteParams.amountFiat,
-          annualRewardsETH: mockRouteParams.annualRewardsETH,
-          annualRewardsFiat: mockRouteParams.annualRewardsFiat,
-          annualRewardRate: mockRouteParams.annualRewardRate,
-          chainId: mockRouteParams.chainId,
-        },
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
     });
 
     it('redesigned stake deposit confirmation view', async () => {
       const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
-      selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_confirmations: true,
-      } as ConfirmationRedesignRemoteFlags);
 
       usePoolStakedDepositMock.mockReturnValue({
         attemptDepositTransaction: attemptDepositTransactionMock,
@@ -205,20 +192,23 @@ describe('GasImpactModal', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('tracks proceed event when proceeding with stake', () => {
+    it('tracks proceed event when proceeding with stake', async () => {
+      const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
+
+      usePoolStakedDepositMock.mockReturnValue({
+        attemptDepositTransaction: attemptDepositTransactionMock,
+      });
+
       const { getByText } = renderGasImpactModal();
       const proceedButton = getByText(strings('stake.proceed_anyway'));
       fireEvent.press(proceedButton);
+      await flushPromises();
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('redesigned stake deposit flow', () => {
     it('handles case when attemptDepositTransaction is undefined', async () => {
-      selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_confirmations: true,
-      } as ConfirmationRedesignRemoteFlags);
-
       usePoolStakedDepositMock.mockReturnValue({
         attemptDepositTransaction: undefined,
       });
@@ -234,9 +224,6 @@ describe('GasImpactModal', () => {
       const attemptDepositTransactionMock = jest
         .fn()
         .mockRejectedValue(new Error('Transaction failed'));
-      selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_confirmations: true,
-      } as ConfirmationRedesignRemoteFlags);
 
       usePoolStakedDepositMock.mockReturnValue({
         attemptDepositTransaction: attemptDepositTransactionMock,

@@ -58,6 +58,7 @@ export interface CarouselSlide {
   testID?: string;
   testIDTitle?: string;
   testIDCloseButton?: string;
+  metadata?: unknown;
 }
 
 export interface CarouselProps {

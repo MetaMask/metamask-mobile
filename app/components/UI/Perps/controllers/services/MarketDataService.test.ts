@@ -10,7 +10,7 @@ import {
 } from '../../__mocks__/providerMocks';
 import type { ServiceContext } from './ServiceContext';
 import type {
-  IPerpsProvider,
+  PerpsProvider,
   Position,
   AccountState,
   Order,
@@ -20,7 +20,7 @@ import type {
   FeeCalculationResult,
   FeeCalculationParams,
   AssetRoute,
-  IPerpsPlatformDependencies,
+  PerpsPlatformDependencies,
 } from '../types';
 import type { CandleData } from '../../types/perps-types';
 import type { CandlePeriod } from '../../constants/chartConfig';
@@ -28,14 +28,14 @@ import type { CandlePeriod } from '../../constants/chartConfig';
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 
 describe('MarketDataService', () => {
-  let mockProvider: jest.Mocked<IPerpsProvider>;
+  let mockProvider: jest.Mocked<PerpsProvider>;
   let mockContext: ServiceContext;
-  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
   let marketDataService: MarketDataService;
 
   beforeEach(() => {
     mockProvider =
-      createMockHyperLiquidProvider() as unknown as jest.Mocked<IPerpsProvider>;
+      createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
     mockDeps = createMockInfrastructure();
     marketDataService = new MarketDataService(mockDeps);
     mockContext = createMockServiceContext({
@@ -654,7 +654,7 @@ describe('MarketDataService', () => {
     it('calculates fees successfully', async () => {
       const params: FeeCalculationParams = {
         orderType: 'market',
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '0.1',
         isMaker: false,
       };
@@ -679,7 +679,7 @@ describe('MarketDataService', () => {
     it('handles fee calculation errors', async () => {
       const params: FeeCalculationParams = {
         orderType: 'limit',
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '0.1',
         isMaker: true,
       };
@@ -701,7 +701,7 @@ describe('MarketDataService', () => {
   describe('validateOrder', () => {
     it('validates order successfully', async () => {
       const params = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market' as const,
@@ -720,7 +720,7 @@ describe('MarketDataService', () => {
 
     it('returns validation error when order invalid', async () => {
       const params = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.001',
         orderType: 'market' as const,
@@ -739,7 +739,7 @@ describe('MarketDataService', () => {
 
     it('handles validation errors', async () => {
       const params = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market' as const,
@@ -762,7 +762,7 @@ describe('MarketDataService', () => {
   describe('validateClosePosition', () => {
     it('validates close position request', async () => {
       const params = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
       };
       const mockResult = { isValid: true };
@@ -779,7 +779,7 @@ describe('MarketDataService', () => {
 
     it('returns error when close position invalid', async () => {
       const params = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '10',
       };
       const mockResult = { isValid: false, error: 'Position size mismatch' };
@@ -860,7 +860,7 @@ describe('MarketDataService', () => {
 
   describe('fetchHistoricalCandles', () => {
     const mockCandleData: CandleData = {
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: '1h' as CandlePeriod,
       candles: [
         {
@@ -886,7 +886,7 @@ describe('MarketDataService', () => {
 
       const result = await marketDataService.fetchHistoricalCandles({
         provider: mockProvider,
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as CandlePeriod,
         limit: 100,
         context: mockContext,
@@ -913,7 +913,7 @@ describe('MarketDataService', () => {
       await expect(
         marketDataService.fetchHistoricalCandles({
           provider: providerWithoutClient,
-          coin: 'BTC',
+          symbol: 'BTC',
           interval: '1h' as CandlePeriod,
           context: mockContext,
         }),
@@ -941,7 +941,7 @@ describe('MarketDataService', () => {
       await expect(
         marketDataService.fetchHistoricalCandles({
           provider: mockProvider,
-          coin: 'BTC',
+          symbol: 'BTC',
           interval: '1h' as CandlePeriod,
           context: mockContext,
         }),
