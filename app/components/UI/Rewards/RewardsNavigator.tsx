@@ -10,11 +10,14 @@ import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation } from '@react-navigation/native';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
+import { useTheme } from '../../../util/theme';
+import { colors as importedColors } from '../../../styles/common';
 const Stack = createStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
   // Set candidate subscription ID in Redux state when component mounts and account changes
   useCandidateSubscriptionId();
@@ -42,7 +45,21 @@ const RewardsNavigator: React.FC = () => {
   }, [navigation, subscriptionId]);
 
   return (
-    <Stack.Navigator initialRouteName={getInitialRoute()}>
+    <Stack.Navigator
+      initialRouteName={getInitialRoute()}
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.background.default,
+          shadowColor: importedColors.transparent,
+          elevation: 0,
+        },
+        cardStyle: { backgroundColor: colors.background.default },
+        headerTintColor: colors.primary.default,
+        headerTitleStyle: {
+          color: colors.text.default,
+        },
+      }}
+    >
       <Stack.Screen
         name={Routes.REWARDS_ONBOARDING_FLOW}
         component={OnboardingNavigator}

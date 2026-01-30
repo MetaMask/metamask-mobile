@@ -7,6 +7,16 @@ import { useTheme } from '../../../../util/theme';
 import { Box } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
+
+const RewardsSettingsHeaderTitle = () => (
+  <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+    {strings('rewards.settings.title')}
+  </Text>
+);
 
 const RewardsSettingsView: React.FC = () => {
   const navigation = useNavigation();
@@ -24,6 +34,7 @@ const RewardsSettingsView: React.FC = () => {
         colors,
       ),
       headerTitleAlign: 'center',
+      headerTitle: RewardsSettingsHeaderTitle,
     });
   }, [colors, navigation]);
 

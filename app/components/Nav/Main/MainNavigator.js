@@ -261,27 +261,27 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
       component={RewardsBottomSheetModal}
-      options={{ presentation: 'modal' }}
+      options={{ presentation: 'transparentModal' }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
       component={RewardsClaimBottomSheetModal}
-      options={{ presentation: 'modal' }}
+      options={{ presentation: 'transparentModal' }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
       component={RewardOptInAccountGroupModal}
-      options={{ headerShown: false, presentation: 'modal' }}
+      options={{ headerShown: false, presentation: 'transparentModal' }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
       component={ReferralBottomSheetModal}
-      options={{ presentation: 'modal' }}
+      options={{ presentation: 'transparentModal' }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
       component={EndOfSeasonClaimBottomSheet}
-      options={{ presentation: 'modal' }}
+      options={{ presentation: 'transparentModal' }}
     />
   </Stack.Navigator>
 );
@@ -906,10 +906,13 @@ const MainNavigator = () => {
     selectAssetsTrendingTokensEnabled,
   );
 
+  const { colors } = useTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
       }}
       initialRouteName={'Home'}
     >
