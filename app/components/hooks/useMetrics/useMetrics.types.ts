@@ -8,6 +8,11 @@ import {
 } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
+/**
+ * @deprecated SourceType has been moved to useAnalytics.types.ts
+ * This export is kept for backward compatibility with files outside Phase 1 migration.
+ * New code should import SourceType from './useAnalytics/useAnalytics.types' instead.
+ */
 export const SourceType = {
   SDK: 'sdk',
   SDK_CONNECT_V2: 'sdk_connect_v2',

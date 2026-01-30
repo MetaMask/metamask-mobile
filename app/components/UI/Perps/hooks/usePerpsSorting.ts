@@ -12,6 +12,7 @@ import {
 
 interface UsePerpsSortingParams {
   initialOptionId?: SortOptionId;
+  initialDirection?: SortDirection;
 }
 
 interface UsePerpsSortingReturn {
@@ -28,28 +29,35 @@ interface UsePerpsSortingReturn {
 
 /**
  * Hook for managing market sorting state
- * Uses combined option IDs (e.g., 'volume', 'priceChange-desc') for simplified selection
+ * Maintains sort field and direction as separate state
+ * Direction can be toggled independently (used for price change option in UI)
  */
 export const usePerpsSorting = ({
-  initialOptionId = MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+  initialOptionId = MARKET_SORTING_CONFIG.DefaultSortOptionId,
+  initialDirection = MARKET_SORTING_CONFIG.DefaultDirection,
 }: UsePerpsSortingParams = {}): UsePerpsSortingReturn => {
   const [selectedOptionId, setSelectedOptionId] =
     useState<SortOptionId>(initialOptionId);
 
-  // Derive sortBy and direction from selectedOptionId
-  const { sortBy, direction } = useMemo(() => {
-    const option = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
+  // Maintain direction as separate state to allow toggling
+  const [direction, setDirection] = useState<SortDirection>(initialDirection);
+
+  // Derive sortBy from selectedOptionId
+  const sortBy = useMemo(() => {
+    const option = MARKET_SORTING_CONFIG.SortOptions.find(
       (opt) => opt.id === selectedOptionId,
     );
-    return {
-      sortBy: option?.field ?? MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
-      direction: option?.direction ?? MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
-    };
+    return option?.field ?? MARKET_SORTING_CONFIG.SortFields.Volume;
   }, [selectedOptionId]);
 
   const handleOptionChange = useCallback(
-    (optionId: SortOptionId, _field: SortField, _direction: SortDirection) => {
+    (
+      optionId: SortOptionId,
+      _field: SortField,
+      newDirection: SortDirection,
+    ) => {
       setSelectedOptionId(optionId);
+      setDirection(newDirection);
     },
     [],
   );

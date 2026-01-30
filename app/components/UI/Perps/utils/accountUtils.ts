@@ -1,25 +1,31 @@
 /**
  * Account utilities for Perps components
  * Handles account selection and EVM account filtering
+ *
+ * Note: This file contains only platform-agnostic (pure) functions
+ * that can be used in the core monorepo.
+ *
+ * Mobile-specific functions (like getEvmAccountFromSelectedAccountGroup)
+ * are defined in adapters/mobileInfrastructure.ts
  */
 import { isEvmAccountType } from '@metamask/keyring-api';
-import Engine from '../../../../core/Engine';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
- * Gets the EVM account from the selected account group
- * Extracts the duplicated pattern used throughout PerpsController
+ * Pure function: Find EVM account from a list of accounts
+ * Platform-agnostic - can be used in core monorepo
  *
+ * @param accounts - Array of InternalAccount objects
  * @returns EVM account or null if not found
  */
-export const getEvmAccountFromSelectedAccountGroup = () => {
-  const { AccountTreeController } = Engine.context;
-  const accounts = AccountTreeController.getAccountsFromSelectedAccountGroup();
+export function findEvmAccount(
+  accounts: InternalAccount[],
+): InternalAccount | null {
   const evmAccount = accounts.find(
     (account) => account && isEvmAccountType(account.type),
   );
-
   return evmAccount || null;
-};
+}
 
 /**
  * Interface for ROE calculation input

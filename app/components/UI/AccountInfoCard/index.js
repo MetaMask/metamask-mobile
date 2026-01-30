@@ -26,11 +26,7 @@ import {
 import Device from '../../../util/device';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  getActiveTabUrl,
-  getNormalizedTxState,
-  getTicker,
-} from '../../../util/transactions';
+import { getActiveTabUrl, getTicker } from '../../../util/transactions';
 import ApproveTransactionHeader from '../../Views/confirmations/legacy/components/ApproveTransactionHeader';
 import Identicon from '../Identicon';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
@@ -139,7 +135,6 @@ class AccountInfoCard extends PureComponent {
      * Current selected ticker
      */
     ticker: PropTypes.string,
-    transaction: PropTypes.object,
     origin: PropTypes.string,
     signatureRequests: PropTypes.object,
     accountToGroupMap: PropTypes.object,
@@ -155,7 +150,6 @@ class AccountInfoCard extends PureComponent {
       ticker,
       showFiatBalance = true,
       fromAddress: rawFromAddress,
-      transaction,
       origin,
       signatureRequests,
       accountToGroupMap,
@@ -201,9 +195,9 @@ class AccountInfoCard extends PureComponent {
       ? origin
       : (originatorInfo?.url ?? strings('sdk.unknown'));
 
-    return operation === 'signing' && transaction !== undefined ? (
+    return operation === 'signing' && signatureRequest !== undefined ? (
       <ApproveTransactionHeader
-        chainId={transaction?.chainId ?? signatureRequest?.chainId}
+        chainId={signatureRequest?.chainId}
         origin={actualOriginUrl}
         url={actualOriginUrl}
         from={rawFromAddress}
@@ -273,7 +267,6 @@ const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   ticker: selectEvmTicker(state),
-  transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
   signatureRequests: selectSignatureRequests(state),
   accountToGroupMap: selectAccountToGroupMap(state),

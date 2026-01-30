@@ -27,6 +27,8 @@ import {
   TronResourceSymbol,
 } from '../../core/Multichain/constants';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
+import { selectAllTokens } from '../tokensController';
+import { selectSelectedInternalAccountAddress } from '../accountsController';
 
 const getStateForAssetSelector = (state: RootState) => {
   const {
@@ -260,6 +262,8 @@ export const selectAsset = createSelector(
     selectStakedAssets,
     (state: RootState) =>
       state.engine.backgroundState.TokenListController.tokensChainsCache,
+    selectAllTokens,
+    selectSelectedInternalAccountAddress,
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
@@ -273,7 +277,16 @@ export const selectAsset = createSelector(
       params: { address: string; chainId: string; isStaked?: boolean },
     ) => params.isStaked,
   ],
-  (assets, stakedAssets, tokensChainsCache, address, chainId, isStaked) => {
+  (
+    assets,
+    stakedAssets,
+    tokensChainsCache,
+    allTokens,
+    selectedAddress,
+    address,
+    chainId,
+    isStaked,
+  ) => {
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>
@@ -286,7 +299,16 @@ export const selectAsset = createSelector(
           return item.assetId === address && itemIsStaked === targetIsStaked;
         });
 
-    return asset ? assetToToken(asset, tokensChainsCache) : undefined;
+    // Look up rwaData from the original token in allTokens
+    const originalToken = selectedAddress
+      ? allTokens?.[chainId as Hex]?.[selectedAddress]?.find(
+          (token) => token.address.toLowerCase() === address.toLowerCase(),
+        )
+      : undefined;
+
+    const rwaData = (originalToken as TokenI | undefined)?.rwaData;
+
+    return asset ? assetToToken(asset, tokensChainsCache, rwaData) : undefined;
   },
 );
 
@@ -297,6 +319,7 @@ const oneHundredths = 0.01;
 function assetToToken(
   asset: Asset & { isStaked?: boolean },
   tokensChainsCache: TokenListState['tokensChainsCache'],
+  rwaData?: TokenI['rwaData'],
 ): TokenI {
   return {
     address: asset.assetId,
@@ -337,6 +360,7 @@ function assetToToken(
     isNative: asset.isNative,
     ticker: asset.symbol,
     accountType: asset.accountType,
+    rwaData,
   };
 }
 

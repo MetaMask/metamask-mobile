@@ -6,7 +6,7 @@ const styleSheet = () =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 6,
+      paddingVertical: 16,
     },
     perpIcon: {
       marginRight: 16,

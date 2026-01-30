@@ -1,4 +1,3 @@
-import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
@@ -25,6 +24,7 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
 import { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
@@ -140,44 +140,10 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     });
   };
 
-  const handleLendingRedirect = async () => {
-    if (!asset?.chainId) return;
-
-    const networkClientId =
-      Engine.context.NetworkController.findNetworkClientIdByChainId(
-        toHex(asset.chainId),
-      );
-
-    if (!networkClientId) {
-      console.error(
-        `EarnTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${asset.chainId}`,
-      );
-      return;
-    }
-
-    trace({ name: TraceName.EarnDepositScreen });
-    await Engine.context.NetworkController.setActiveNetwork(networkClientId);
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
-        .addProperties({
-          action_type: 'deposit',
-          location: EVENT_LOCATIONS.HOME_SCREEN,
-          network: network?.name,
-          text: 'Earn',
-          token: asset.symbol,
-          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        })
-        .build(),
-    );
-
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: {
-        token: asset,
-      },
-    });
-  };
+  const handleLendingRedirect = useStablecoinLendingRedirect({
+    asset,
+    location: EVENT_LOCATIONS.HOME_SCREEN,
+  });
 
   const onEarnButtonPress = async () => {
     if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {

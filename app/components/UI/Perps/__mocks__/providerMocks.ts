@@ -52,6 +52,10 @@ export const createMockHyperLiquidProvider =
       subscribeToOrders: jest.fn(),
       subscribeToAccount: jest.fn(),
       setUserFeeDiscount: jest.fn(),
+      // WebSocket connection state methods
+      getWebSocketConnectionState: jest.fn(),
+      subscribeToConnectionState: jest.fn().mockReturnValue(() => undefined),
+      reconnect: jest.fn().mockResolvedValue(undefined),
     }) as unknown as jest.Mocked<HyperLiquidProvider>;
 
 export const createMockOrderResult = () => ({
@@ -85,7 +89,7 @@ export const createMockOrder = (overrides = {}) => ({
 });
 
 export const createMockPosition = (overrides = {}) => ({
-  coin: 'BTC',
+  symbol: 'BTC',
   size: '0.5',
   entryPrice: '50000',
   positionValue: '25000',

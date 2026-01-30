@@ -51,7 +51,7 @@ export const executionServiceInit: ControllerInitFunction<
           fromHomepage: { current: false },
           toggleUrlModal: () => null,
           tabId: false,
-          isWalletConnect: true,
+          isWalletConnect: false,
           isMMSDK: false,
           url: { current: '' },
           analytics: {},
@@ -65,6 +65,7 @@ export const executionServiceInit: ControllerInitFunction<
   return {
     controller: new WebViewExecutionService({
       messenger: controllerMessenger,
+      // @ts-expect-error The stream type doesn't match because of a version mismatch.
       setupSnapProvider,
       createWebView,
       removeWebView,

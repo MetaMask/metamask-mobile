@@ -2,14 +2,14 @@ import NotificationDetailsView from '../../pages/Notifications/NotificationDetai
 import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeNetworkAbstractions } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import { loginToApp } from '../../viewHelper';
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,
 } from './utils/mocks';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {

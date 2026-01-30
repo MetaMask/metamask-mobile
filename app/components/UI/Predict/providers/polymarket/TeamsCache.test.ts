@@ -276,32 +276,6 @@ describe('TeamsCache', () => {
     });
   });
 
-  describe('getNflTeam', () => {
-    beforeEach(async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockNflTeams,
-      });
-      await TeamsCache.getInstance().ensureLeagueLoaded('nfl');
-    });
-
-    it('returns NFL team by abbreviation', () => {
-      const cache = TeamsCache.getInstance();
-
-      const team = cache.getNflTeam('den');
-
-      expect(team?.name).toBe('Denver Broncos');
-    });
-
-    it('returns undefined for unknown NFL team', () => {
-      const cache = TeamsCache.getInstance();
-
-      const team = cache.getNflTeam('unknown');
-
-      expect(team).toBeUndefined();
-    });
-  });
-
   describe('isLeagueLoaded', () => {
     it('returns false for unloaded league', () => {
       const cache = TeamsCache.getInstance();

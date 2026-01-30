@@ -1,6 +1,6 @@
-import Matchers from '../../../../framework/Matchers.ts';
+import Matchers from '../../../../../tests/framework/Matchers.ts';
 import { BrowserViewSelectorsIDs } from '../../../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import Assertions from '../../../../framework/Assertions.ts';
+import Assertions from '../../../../../tests/framework/Assertions.ts';
 
 class HistoryDisclosureWebsite {
   async verifyUniswapElementNotExist(): Promise<void> {

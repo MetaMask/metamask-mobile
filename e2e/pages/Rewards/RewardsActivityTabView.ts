@@ -1,5 +1,5 @@
 import { REWARDS_VIEW_SELECTORS } from '../../../app/components/UI/Rewards/Views/RewardsView.constants';
-import Matchers from '../../framework/Matchers';
+import Matchers from '../../../tests/framework/Matchers';
 
 class RewardsActivityTabView {
   // FlatList container

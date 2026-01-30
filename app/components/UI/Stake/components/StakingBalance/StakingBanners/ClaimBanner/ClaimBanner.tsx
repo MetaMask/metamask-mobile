@@ -18,7 +18,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
-import { selectConfirmationRedesignFlags } from '../../../../../../../selectors/featureFlagController/confirmations';
+
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -58,11 +58,8 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const { pooledStakesData } = usePooledStakes(chainId);
 
   const { isStakingSupportedChain } = useStakingChain();
-  const confirmationRedesignFlags = useSelector(
-    selectConfirmationRedesignFlags,
-  );
-  const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_confirmations;
+  // TODO: Remove dead code as we are not using the legacy confirmations anymore
+  const isStakingDepositRedesignedEnabled = true;
   const navigation = useNavigation();
 
   useFocusEffect(

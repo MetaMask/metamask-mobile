@@ -1,6 +1,7 @@
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import {
+  useTransactionPayIsMaxAmount,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -67,6 +68,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
+  const useTransactionPayIsMaxAmountMock = jest.mocked(
+    useTransactionPayIsMaxAmount,
+  );
 
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -78,6 +82,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     useTransactionPayRequiredTokensMock.mockReturnValue([REQUIRED_TOKEN_MOCK]);
     useTransactionPayTotalsMock.mockReturnValue(TOTALS_MOCK);
     useTokenWithBalanceMock.mockReturnValue(NATIVE_TOKEN_MOCK);
+    useTransactionPayIsMaxAmountMock.mockReturnValue(false);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
@@ -130,6 +135,21 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         },
         setPayToken: jest.fn(),
       });
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert when isMax is true regardless of required token amount', () => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          ...REQUIRED_TOKEN_MOCK,
+          amountUsd: '100.00',
+        },
+      ]);
 
       const { result } = runHook();
 

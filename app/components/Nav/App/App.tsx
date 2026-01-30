@@ -1,9 +1,5 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import {
-  useNavigation,
-  useRoute,
-  useNavigationState,
-} from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
@@ -26,7 +22,6 @@ import { useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
-  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
@@ -36,6 +31,9 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import PerpsWebSocketHealthToast, {
+  WebSocketHealthToastProvider,
+} from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -54,7 +52,6 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
@@ -66,6 +63,7 @@ import SDKLoadingModal from '../../Views/SDK/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
+import QRSigningTransactionModal from '../../UI/QRHardware/QRSigningTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
@@ -84,8 +82,6 @@ import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Con
 import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
-import { MetaMetrics } from '../../../core/Analytics';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
@@ -151,16 +147,14 @@ import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
-import { useMetrics } from '../../hooks/useMetrics';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
-import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
+import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -598,6 +592,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.CARD.NOTIFICATION}
       component={CardNotification}
     />
+    <Stack.Screen
+      name={Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS}
+      component={MultichainTransactionDetailsSheet}
+    />
   </Stack.Navigator>
 );
 
@@ -852,21 +850,6 @@ const MultichainPrivateKeyList = () => {
   );
 };
 
-const ModalConfirmationRequest = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-    mode={'modal'}
-  >
-    <Stack.Screen
-      name={Routes.CONFIRMATION_REQUEST_MODAL}
-      component={Confirm}
-    />
-  </Stack.Navigator>
-);
-
 const ModalSwitchAccountType = () => (
   <Stack.Navigator
     screenOptions={{
@@ -1042,6 +1025,19 @@ const AppFlow = () => {
               },
             }),
           }}
+          name={Routes.QR_SIGNING_TRANSACTION_MODAL}
+          component={QRSigningTransactionModal}
+        />
+        <Stack.Screen
+          options={{
+            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+            cardStyle: { backgroundColor: importedColors.transparent },
+            cardStyleInterpolator: () => ({
+              overlayStyle: {
+                opacity: 0,
+              },
+            }),
+          }}
           name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
           component={LedgerMessageSignModal}
         />
@@ -1071,7 +1067,7 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.CONFIRMATION_REQUEST_MODAL}
           options={emptyNavHeaderOptions}
-          component={ModalConfirmationRequest}
+          component={Confirm}
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
@@ -1091,11 +1087,8 @@ const AppFlow = () => {
 };
 
 const App: React.FC = () => {
-  const navigation = useNavigation();
-  const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
   const isFirstRender = useRef(true);
-  const { isEnabled: checkMetricsEnabled } = useMetrics();
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -1138,111 +1131,6 @@ const App: React.FC = () => {
   const existingUser = useSelector(selectExistingUser);
 
   useEffect(() => {
-    const appTriggeredAuth = async () => {
-      try {
-        if (existingUser) {
-          // Check if we came from Settings screen to skip auto-authentication
-          const previousRoute = routes[routes.length - 2]?.name;
-
-          if (previousRoute === Routes.SETTINGS_VIEW) {
-            return;
-          }
-
-          // only proceed if biometric is enabled else rerouted to lock screen
-          const authType = await Authentication.getType();
-          if (authType.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
-            navigation.reset({ routes: [{ name: Routes.ONBOARDING.LOGIN }] });
-            return;
-          }
-
-          // This should only be called if the auth type is not password, which is not the case so consider removing it
-          await trace(
-            {
-              name: TraceName.AppStartBiometricAuthentication,
-              op: TraceOperation.BiometricAuthentication,
-            },
-            async () => {
-              await Authentication.appTriggeredAuth();
-            },
-          );
-
-          // Only show metrics optin for SRP users
-          if (!isSeedlessOnboardingLoginFlow) {
-            const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-              OPTIN_META_METRICS_UI_SEEN,
-            );
-
-            if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
-              const resetParams = {
-                routes: [
-                  {
-                    name: Routes.ONBOARDING.ROOT_NAV,
-                    params: {
-                      screen: Routes.ONBOARDING.NAV,
-                      params: {
-                        screen: Routes.ONBOARDING.OPTIN_METRICS,
-                      },
-                    },
-                  },
-                ],
-              };
-              navigation.reset(resetParams);
-              return;
-            }
-          }
-
-          // Navigate to home for both SRP users (who have seen metrics) and social login users
-          navigation.reset({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          });
-        } else {
-          navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
-        }
-      } catch (error) {
-        const errorMessage = (error as Error).message;
-        // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
-        const locked =
-          errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
-
-        // Track vault corruption with enabled state checking
-        trackVaultCorruption(errorMessage, {
-          error_type: 'app_startup_authentication_failure',
-          context: 'app_initialization_unlock_failed',
-        });
-
-        // Only call lockApp if there is an existing user to prevent unnecessary calls
-        await Authentication.lockApp({ reset: false, locked });
-        trackErrorAsAnalytics(
-          'App: Max Attempts Reached',
-          errorMessage,
-          `Unlock attempts: 1`,
-        );
-        if (locked) {
-          Logger.error(
-            new Error(errorMessage),
-            'Nav/App: Error in appTriggeredAuth:',
-          );
-        }
-        // We are not logging when it's a keychain error
-      }
-    };
-    appTriggeredAuth().catch((error) => {
-      Logger.error(error, 'App: Error in appTriggeredAuth');
-    });
-    // existingUser and isMetaMetricsUISeen are not present in the dependency array because they are not needed to re-run the effect when they change and it will cause a bug.
-  }, [navigation]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const initMetrics = async () => {
-      await MetaMetrics.getInstance().configure();
-    };
-
-    initMetrics().catch((err) => {
-      Logger.error(err, 'Error initializing MetaMetrics');
-    });
-  }, []);
-
-  useEffect(() => {
     async function startApp() {
       try {
         const currentVersion = getVersion();
@@ -1276,11 +1164,12 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <WebSocketHealthToastProvider>
       <AppFlow />
       <Toast ref={toastRef} />
+      <PerpsWebSocketHealthToast />
       <ProfilerManager />
-    </>
+    </WebSocketHealthToastProvider>
   );
 };
 

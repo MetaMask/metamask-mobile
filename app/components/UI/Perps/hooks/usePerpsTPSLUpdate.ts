@@ -36,7 +36,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
       try {
         const result = await updatePositionTPSL({
-          coin: position.coin,
+          symbol: position.symbol,
           takeProfitPrice,
           stopLossPrice,
           trackingData,
@@ -49,7 +49,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           // Apply optimistic update immediately for better UX
           // This updates the UI before the WebSocket confirms the change
           stream.positions.updatePositionTPSLOptimistic(
-            position.coin,
+            position.symbol,
             takeProfitPrice,
             stopLossPrice,
           );
@@ -91,7 +91,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
             },
             extra: {
               positionContext: {
-                coin: position.coin,
+                symbol: position.symbol,
                 size: position.size,
                 entryPrice: position.entryPrice,
                 unrealizedPnl: position.unrealizedPnl,

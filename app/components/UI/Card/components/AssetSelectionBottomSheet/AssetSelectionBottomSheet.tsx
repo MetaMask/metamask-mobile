@@ -10,8 +10,6 @@ import {
   CardTokenAllowance,
   DelegationSettingsResponse,
 } from '../../types';
-import { useSelector } from 'react-redux';
-import { selectUserCardLocation } from '../../../../../core/redux/slices/card';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -65,7 +63,6 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import {
   getCaipChainId,
-  getValidLineaChainIds,
   normalizeSymbol,
   shouldProcessNetwork,
 } from '../../util/buildTokenList';
@@ -121,20 +118,11 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const { sdk } = useCardSDK();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
-  const userCardLocation = useSelector(selectUserCardLocation);
-
-  // Helper: Get valid Linea chain IDs based on user location (uses shared utility)
-  const getValidLineaChainIdsForLocation = useCallback(
-    (settings: DelegationSettingsResponse | null): Set<string> =>
-      getValidLineaChainIds(settings, userCardLocation),
-    [userCardLocation],
-  );
 
   // Helper: Check if token should be filtered out
   const shouldFilterOutToken = useCallback(
     (
       token: CardTokenAllowance & { chainName: string },
-      validLineaChainIds: Set<string>,
       hideSolana: boolean,
     ): boolean => {
       const networkLower = token.chainName.toLowerCase();
@@ -154,12 +142,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
       // Filter Solana if requested
       if (hideSolana && isSolana) {
         return true;
-      }
-
-      // Filter Linea tokens by location
-      const isLineaToken = networkLower === 'linea';
-      if (isLineaToken && validLineaChainIds.size > 0) {
-        return !validLineaChainIds.has(token.caipChainId);
       }
 
       return false;
@@ -247,8 +229,8 @@ const AssetSelectionBottomSheet: React.FC = () => {
     (
       network: DelegationSettingsResponse['networks'][0],
       hideSolana: boolean,
-    ): boolean => shouldProcessNetwork(network, userCardLocation, hideSolana),
-    [userCardLocation],
+    ): boolean => shouldProcessNetwork(network, hideSolana),
+    [],
   );
 
   // Helper: Get token address (handles staging/development environments)
@@ -316,16 +298,10 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const supportedTokens = useMemo<CardTokenAllowance[]>(() => {
     if (!sdk) return [];
 
-    const validLineaChainIds =
-      getValidLineaChainIdsForLocation(delegationSettings);
-
     // Process user tokens
     const userTokens: CardTokenAllowance[] = (tokensWithAllowances || [])
       .map(mapUserToken)
-      .filter(
-        (token) =>
-          !shouldFilterOutToken(token, validLineaChainIds, hideSolanaAssets),
-      );
+      .filter((token) => !shouldFilterOutToken(token, hideSolanaAssets));
 
     // Add supported tokens from delegation settings that user doesn't have in wallet
     const supportedFromSettings: CardTokenAllowance[] = [];
@@ -409,7 +385,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
     sdk,
     hideSolanaAssets,
     delegationSettings,
-    getValidLineaChainIdsForLocation,
     mapUserToken,
     shouldFilterOutToken,
     shouldProcessNetworkForLocation,

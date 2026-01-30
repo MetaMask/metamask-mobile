@@ -23,8 +23,10 @@ import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
-import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectMerklCampaignClaimingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -36,17 +38,28 @@ import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
+import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
 import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import {
+  useMerklRewards,
+  isEligibleForMerklRewards,
+} from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
+import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
+import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -73,6 +86,12 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       alignContent: 'center',
+    },
+    centered: {
+      textAlign: 'center',
+    },
+    stockBadgeWrapper: {
+      marginLeft: 4,
     },
   });
 
@@ -107,25 +126,50 @@ export const TokenListItem = React.memo(
       }),
     );
 
+    const { isStockToken } = useRWAToken();
+
     const chainId = asset?.chainId as Hex;
 
     const networkName = useNetworkName(chainId);
 
-    const { getEarnToken } = useEarnTokens();
-
-    // Earn feature flags
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
     );
 
+    const { getEarnToken } = useEarnTokens();
+
+    const earnToken = getEarnToken(asset as TokenI);
+
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
-    const { getMusdOutputChainId } = useMusdConversionTokens();
     const { initiateConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
     const shouldShowConvertToMusdCta = useMemo(
       () => shouldShowTokenListItemCta(asset),
       [asset, shouldShowTokenListItemCta],
+    );
+
+    // Check for claimable Merkl rewards
+    const isMerklCampaignClaimingEnabled = useSelector(
+      selectMerklCampaignClaimingEnabledFlag,
+    );
+    const { claimableReward } = useMerklRewards({
+      asset,
+    });
+
+    const isEligibleForMerkl = useMemo(
+      () =>
+        asset?.chainId && asset?.address
+          ? isEligibleForMerklRewards(
+              asset.chainId as Hex,
+              asset.address as Hex | undefined,
+            )
+          : false,
+      [asset?.chainId, asset?.address],
+    );
+
+    const hasClaimableBonus = Boolean(
+      isMerklCampaignClaimingEnabled && claimableReward && isEligibleForMerkl,
     );
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
@@ -145,7 +189,12 @@ export const TokenListItem = React.memo(
               location: EVENT_LOCATIONS.TOKEN_LIST_ITEM,
               redirects_to: getRedirectLocation(),
               cta_type: MUSD_CTA_TYPES.SECONDARY,
-              cta_text: strings('earn.musd_conversion.convert_to_musd'),
+              cta_text: strings(
+                'earn.musd_conversion.get_a_percentage_musd_bonus',
+                {
+                  percentage: MUSD_CONVERSION_APY,
+                },
+              ),
               network_chain_id: chainId,
               network_name: networkName,
               asset_symbol: asset?.symbol,
@@ -164,7 +213,6 @@ export const TokenListItem = React.memo(
         const assetChainId = toHex(asset.chainId);
 
         await initiateConversion({
-          outputChainId: getMusdOutputChainId(assetChainId),
           preferredPaymentToken: {
             address: toHex(asset.address),
             chainId: assetChainId,
@@ -183,7 +231,6 @@ export const TokenListItem = React.memo(
       asset?.symbol,
       chainId,
       createEventBuilder,
-      getMusdOutputChainId,
       hasSeenConversionEducationScreen,
       initiateConversion,
       networkName,
@@ -198,12 +245,61 @@ export const TokenListItem = React.memo(
       pricePercentChange1d !== undefined &&
       Number.isFinite(pricePercentChange1d);
 
+    const onItemPress = useCallback(
+      (token: TokenI, scrollToMerklRewards?: boolean) => {
+        trace({ name: TraceName.AssetDetails });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+            .addProperties({
+              source: isFullView
+                ? 'mobile-token-list-page'
+                : 'mobile-token-list',
+              chain_id: token.chainId,
+              token_symbol: token.symbol,
+            })
+            .build(),
+        );
+
+        navigation.navigate('Asset', {
+          ...token,
+          scrollToMerklRewards,
+        });
+      },
+      [isFullView, trackEvent, createEventBuilder, navigation],
+    );
+
+    const handleLendingRedirect = useStablecoinLendingRedirect({
+      asset: asset as TokenI,
+      location: EARN_EVENT_LOCATIONS.HOME_SCREEN,
+    });
+
     const secondaryBalanceDisplay = useMemo(() => {
+      if (hasClaimableBonus) {
+        return {
+          text: strings('earn.claim_bonus'),
+          color: TextColor.Primary,
+          onPress: asset ? () => onItemPress(asset as TokenI, true) : undefined,
+        };
+      }
+
       if (shouldShowConvertToMusdCta) {
         return {
-          text: strings('earn.musd_conversion.convert_to_musd'),
+          text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
           color: TextColor.Primary,
           onPress: handleConvertToMUSD,
+        };
+      }
+
+      if (
+        isStablecoinLendingEnabled &&
+        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+      ) {
+        return {
+          text: `${strings('stake.earn')}`,
+          color: TextColor.Primary,
+          onPress: handleLendingRedirect,
         };
       }
 
@@ -228,35 +324,22 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
-      handleConvertToMUSD,
+      hasClaimableBonus,
+      shouldShowConvertToMusdCta,
+      isStablecoinLendingEnabled,
+      earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      shouldShowConvertToMusdCta,
+      asset,
+      onItemPress,
+      handleConvertToMUSD,
+      handleLendingRedirect,
     ]);
-
-    const earnToken = getEarnToken(asset as TokenI);
 
     const networkBadgeSource = useMemo(
       () => (chainId ? NetworkBadgeSource(chainId) : null),
       [chainId],
     );
-
-    const onItemPress = (token: TokenI) => {
-      trace({ name: TraceName.AssetDetails });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-          .addProperties({
-            source: isFullView ? 'mobile-token-list-page' : 'mobile-token-list',
-            chain_id: token.chainId,
-            token_symbol: token.symbol,
-          })
-          .build(),
-      );
-
-      navigation.navigate('Asset', {
-        ...token,
-      });
-    };
 
     const isStakeable = useSelector((state: RootState) =>
       selectIsStakeableToken(state, asset as TokenI),
@@ -270,20 +353,11 @@ export const TokenListItem = React.memo(
 
       const shouldShowStakeCta = isStakeable && !asset?.isStaked;
 
-      const shouldShowStablecoinLendingCta =
-        earnToken && isStablecoinLendingEnabled;
-
-      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
+      if (shouldShowStakeCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [
-      asset,
-      earnToken,
-      isStablecoinLendingEnabled,
-      isStakeable,
-      shouldShowConvertToMusdCta,
-    ]);
+    }, [asset, isStakeable, shouldShowConvertToMusdCta]);
 
     if (!asset || !chainId) {
       return null;
@@ -342,6 +416,9 @@ export const TokenListItem = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
+            {isStockToken(asset as BridgeToken) && (
+              <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+            )}
             {renderEarnCta()}
           </View>
         </View>

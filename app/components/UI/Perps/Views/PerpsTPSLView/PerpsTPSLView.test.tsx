@@ -194,7 +194,7 @@ describe('PerpsTPSLView', () => {
 
   const defaultRouteParams = {
     currentPrice: 3000,
-    coin: 'ETH',
+    symbol: 'ETH',
     direction: 'long',
     onConfirm: jest.fn(),
   };
@@ -571,7 +571,7 @@ describe('PerpsTPSLView', () => {
   describe('Edge Cases', () => {
     it('displays entry price when editing existing position', () => {
       const mockPosition: Position = {
-        coin: 'ETH',
+        symbol: 'ETH',
         entryPrice: '2800.00',
         size: '0.5',
         positionValue: '1400.00',

@@ -145,7 +145,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     if ((!takeProfitPrice || !stopLossPrice) && orders && orders.length > 0) {
       const parentOrder = orders.find(
         (order) =>
-          order.symbol === position.coin &&
+          order.symbol === position.symbol &&
           !order.isTrigger &&
           (order.takeProfitPrice || order.stopLossPrice),
       );
@@ -159,7 +159,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     const hasTakeProfit = takeProfitPrice && parseFloat(takeProfitPrice) > 0;
     const hasStopLoss = stopLossPrice && parseFloat(stopLossPrice) > 0;
     return Boolean(hasTakeProfit || hasStopLoss);
-  }, [position.takeProfitPrice, position.stopLossPrice, position.coin, orders]);
+  }, [
+    position.takeProfitPrice,
+    position.stopLossPrice,
+    position.symbol,
+    orders,
+  ]);
 
   const handleAutoCloseButtonPress = () => {
     if (onAutoClosePress) {
@@ -240,7 +245,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 ? formatPerpsFiat(absoluteSize * currentPrice, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
-                : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.coin)}`}
+                : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.symbol)}`}
             </Text>
           </View>
           <View style={styles.iconButtonContainer}>
@@ -317,7 +322,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               // Parent orders: same symbol, not trigger orders, have TP/SL children
               const parentOrder = orders.find(
                 (order) =>
-                  order.symbol === position.coin &&
+                  order.symbol === position.symbol &&
                   !order.isTrigger &&
                   (order.takeProfitPrice || order.stopLossPrice),
               );
@@ -442,7 +447,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 ? formatPerpsFiat(position.liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })
-                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
+                : PERPS_CONSTANTS.FallbackPriceDisplay}
             </Text>
             {liquidationDistance !== null && (
               <>

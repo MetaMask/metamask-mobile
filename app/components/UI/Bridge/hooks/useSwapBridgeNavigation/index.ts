@@ -50,9 +50,8 @@ export const isAssetFromTrending = (asset: unknown) =>
   asset.isFromTrending === true;
 
 export enum SwapBridgeNavigationLocation {
-  TabBar = 'TabBar',
-  TokenDetails = 'TokenDetails',
-  Swaps = 'Swaps',
+  MainView = 'Main View',
+  TokenView = 'Token View',
   Rewards = 'Rewards',
 }
 
@@ -203,7 +202,7 @@ export const useSwapBridgeNavigation = ({
       });
 
       // Track Swap button click with new consolidated event
-      const isFromNavbar = location === SwapBridgeNavigationLocation.TabBar;
+      const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;
       trackActionButtonClick(trackEvent, createEventBuilder, {
         action_name: ActionButtonType.SWAP,
         // Omit action_position for navbar to avoid confusion with main action buttons

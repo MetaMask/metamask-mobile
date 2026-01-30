@@ -22,7 +22,7 @@ describe('PerpsDeveloperOptionsSection', () => {
 
   it('renders the perpetual trading heading', () => {
     const { getByText } = renderWithProvider(<PerpsDeveloperOptionsSection />);
-    expect(getByText('Perps Trading')).toBeVisible();
+    expect(getByText('Perps trading')).toBeVisible();
   });
 
   it('renders the PerpsTestnetToggle component', () => {

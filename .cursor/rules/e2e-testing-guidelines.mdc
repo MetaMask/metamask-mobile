@@ -163,7 +163,7 @@ export default new LoginPage();
   ```
 
 ### Framework Imports - MANDATORY
-- ALWAYS import framework utilities from `e2e/framework/index.ts`, not from individual utility files
+- ALWAYS import framework utilities from `tests/framework/index.ts`, not from individual utility files
 - Use the centralized framework exports for consistency and maintainability
 
 ### Element State Checking Configuration

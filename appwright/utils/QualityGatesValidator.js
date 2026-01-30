@@ -6,6 +6,8 @@
  * Designed to be used in the reporter when generating reports.
  */
 
+import QualityGateError from './QualityGateError.js';
+
 /**
  * @typedef {Object} StepResult
  * @property {number} index - Step index (0-based)
@@ -510,7 +512,7 @@ class QualityGatesValidator {
         .map((v) => v.message)
         .join('\n  • ');
 
-      throw new Error(
+      throw new QualityGateError(
         `Quality Gates FAILED for "${testName}":\n  • ${violationMessages}`,
       );
     }

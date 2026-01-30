@@ -18,43 +18,46 @@ import { login } from '../../../../utils/Flows.js';
 import ConfirmationScreen from '../../../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../../wdio/screen-objects/AmountScreen.js';
-import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures';
+import AppwrightGestures from '../../../../../tests/framework/AppwrightGestures';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
+import { PerformanceLogin, PerformanceLaunch } from '../../../../tags.js';
 
-test('Cold Start: Measure ColdStart To Login Screen', async ({
-  device,
-  performanceTracker,
-}, testInfo) => {
-  WelcomeScreen.device = device;
-  TermOfUseScreen.device = device;
-  OnboardingScreen.device = device;
-  CreateNewWalletScreen.device = device;
-  MetaMetricsScreen.device = device;
-  OnboardingSucessScreen.device = device;
-  OnboardingSheet.device = device;
-  WalletAccountModal.device = device;
-  SkipAccountSecurityModal.device = device;
-  ImportFromSeedScreen.device = device;
-  CreatePasswordScreen.device = device;
-  WalletMainScreen.device = device;
-  AccountListComponent.device = device;
-  AddAccountModal.device = device;
-  WalletActionModal.device = device;
-  ConfirmationScreen.device = device;
-  AmountScreen.device = device;
-  LoginScreen.device = device;
-  await login(device);
-  await WalletMainScreen.waitForBalanceToStabilize();
-  // await importSRPFlow(device, process.env.TEST_SRP_2);
-  // await importSRPFlow(device, process.env.TEST_SRP_3);
-  await AppwrightGestures.terminateApp(device);
-  await AppwrightGestures.activateApp(device);
-  const timer1 = new TimerHelper(
-    'Time since the the app is launched, until login screen appears',
-    { ios: 1000, android: 3000 },
+test.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
+  test('Cold Start: Measure ColdStart To Login Screen', async ({
     device,
-  );
-  await timer1.measure(() => LoginScreen.waitForScreenToDisplay());
-  performanceTracker.addTimer(timer1);
-  await performanceTracker.attachToTest(testInfo);
-});
+    performanceTracker,
+  }, testInfo) => {
+    WelcomeScreen.device = device;
+    TermOfUseScreen.device = device;
+    OnboardingScreen.device = device;
+    CreateNewWalletScreen.device = device;
+    MetaMetricsScreen.device = device;
+    OnboardingSucessScreen.device = device;
+    OnboardingSheet.device = device;
+    WalletAccountModal.device = device;
+    SkipAccountSecurityModal.device = device;
+    ImportFromSeedScreen.device = device;
+    CreatePasswordScreen.device = device;
+    WalletMainScreen.device = device;
+    AccountListComponent.device = device;
+    AddAccountModal.device = device;
+    WalletActionModal.device = device;
+    ConfirmationScreen.device = device;
+    AmountScreen.device = device;
+    LoginScreen.device = device;
+    await login(device);
+    await WalletMainScreen.waitForBalanceToStabilize();
+    // await importSRPFlow(device, process.env.TEST_SRP_2);
+    // await importSRPFlow(device, process.env.TEST_SRP_3);
+    await AppwrightGestures.terminateApp(device);
+    await AppwrightGestures.activateApp(device);
+    const timer1 = new TimerHelper(
+      'Time since the the app is launched, until login screen appears',
+      { ios: 1000, android: 3000 },
+      device,
+    );
+    await timer1.measure(() => LoginScreen.waitForScreenToDisplay());
+    performanceTracker.addTimer(timer1);
+    await performanceTracker.attachToTest(testInfo);
+  });
+}); // End describe

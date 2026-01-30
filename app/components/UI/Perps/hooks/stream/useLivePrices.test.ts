@@ -71,7 +71,7 @@ describe('usePerpsLivePrices', () => {
 
     // Simulate price update for BTC
     const btcUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
       price: '50000',
       timestamp: Date.now(),
     };
@@ -86,7 +86,7 @@ describe('usePerpsLivePrices', () => {
 
     // Simulate price update for ETH
     const ethUpdate: PriceUpdate = {
-      coin: 'ETH-PERP',
+      symbol: 'ETH-PERP',
       price: '3000',
       timestamp: Date.now(),
     };
@@ -207,7 +207,7 @@ describe('usePerpsLivePrices', () => {
 
     // Add prices one by one
     const btcUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
       price: '50000',
       timestamp: Date.now(),
     };
@@ -221,7 +221,7 @@ describe('usePerpsLivePrices', () => {
     });
 
     const ethUpdate: PriceUpdate = {
-      coin: 'ETH-PERP',
+      symbol: 'ETH-PERP',
       price: '3000',
       timestamp: Date.now() + 1000,
     };
@@ -241,7 +241,7 @@ describe('usePerpsLivePrices', () => {
 
     // Update existing price
     const btcUpdate2: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
       price: '51000',
       timestamp: Date.now() + 2000,
     };
@@ -317,7 +317,7 @@ describe('usePerpsLivePrices', () => {
 
     // Send valid update to ensure it still works
     const validUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
       price: '50000',
       timestamp: Date.now(),
     };
@@ -348,7 +348,7 @@ describe('usePerpsLivePrices', () => {
 
     // Add some prices
     const btcUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
       price: '50000',
       timestamp: Date.now(),
     };

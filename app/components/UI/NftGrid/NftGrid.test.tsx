@@ -20,13 +20,19 @@ const mockTrackEvent = jest.fn();
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock navigation
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    push: mockPush,
-  }),
-  useFocusEffect: jest.fn(),
-}));
+jest.mock('@react-navigation/native', () => {
+  const React = jest.requireActual('react');
+  return {
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      push: mockPush,
+    }),
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      // Use real useEffect to ensure cleanup runs on unmount
+      React.useEffect(() => callback(), [callback]);
+    },
+  };
+});
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -58,6 +64,15 @@ jest.mock('../../hooks/useNftDetection', () => ({
     detectNfts: mockDetectNfts,
     abortDetection: mockAbortDetection,
     chainIdsToDetectNftsFor: ['0x1'],
+  }),
+}));
+
+// Mock useNftRefresh
+const mockOnRefresh = jest.fn();
+jest.mock('./useNftRefresh', () => ({
+  useNftRefresh: () => ({
+    refreshing: false,
+    onRefresh: mockOnRefresh,
   }),
 }));
 
@@ -111,7 +126,6 @@ jest.mock('@shopify/flash-list', () => ({
 jest.mock('@metamask/react-native-actionsheet', () => () => null);
 
 // Mock child components with minimal complexity
-jest.mock('./NftGridRefreshControl', () => () => null);
 jest.mock('./NftGridItemActionSheet', () => () => null);
 jest.mock('./NftGridHeader', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -346,6 +360,7 @@ describe('NftGrid', () => {
     jest.useFakeTimers();
     mockDetectNfts.mockClear();
     mockAbortDetection.mockClear();
+    mockOnRefresh.mockClear();
   });
 
   afterEach(() => {

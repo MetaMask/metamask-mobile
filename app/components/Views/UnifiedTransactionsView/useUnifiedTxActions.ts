@@ -9,7 +9,7 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
@@ -23,6 +23,7 @@ import {
   createLedgerTransactionModalNavDetails,
   type ReplacementTxParams,
 } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 
 type Maybe<T> = T | null | undefined;
 
@@ -296,10 +297,19 @@ export function useUnifiedTxActions() {
     }
   };
 
-  const signQRTransaction = async (tx: TransactionMeta) => {
-    const { ApprovalController } = Engine.context;
-    await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
-  };
+  const signQRTransaction = useCallback(
+    async (transactionMeta: TransactionMeta) => {
+      navigation.navigate(
+        ...createQRSigningTransactionModalNavDetails({
+          transactionId: transactionMeta.id,
+          onConfirmationComplete: () => {
+            // Modal handles confirmation/rejection internally
+          },
+        }),
+      );
+    },
+    [navigation],
+  );
 
   const signLedgerTransaction = async (transaction: LedgerSignRequest) => {
     const deviceId = await getDeviceId();

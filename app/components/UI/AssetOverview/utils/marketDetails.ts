@@ -1,4 +1,7 @@
 import { formatWithThreshold } from '../../../../util/assets';
+import { localizeLargeNumber } from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 
 export interface MarketData {
   marketCap?: number;
@@ -32,6 +35,32 @@ interface FormatMarketDetailsOptions {
 }
 
 /**
+ * Applies French-specific formatting to a number string with suffix.
+ * French typography requires non-breaking spaces between numbers and units/abbreviations.
+ * - Converts uppercase 'K' to lowercase 'k' (defensive, as translations should already provide 'k')
+ * - Adds non-breaking space between number and suffix
+ */
+const applyFrenchFormatting = (locale: string, formatted: string): string => {
+  const isFrench = locale.split(/[-_]/)[0]?.toLowerCase() === 'fr';
+  if (!isFrench) {
+    return formatted;
+  }
+
+  // Check if the string ends with a suffix (any non-digit, non-decimal-separator character)
+  // This handles all locale-specific suffixes (k, K, M, B, T, Tsd., Mio., etc.)
+  const suffixMatch = formatted.match(/([^\d.,\s]+)$/);
+  if (!suffixMatch) {
+    return formatted;
+  }
+
+  const suffix = suffixMatch[1];
+  const numberPart = formatted.slice(0, -suffix.length);
+  // Convert uppercase K to lowercase k (defensive, translations should already be correct)
+  const finalSuffix = suffix === 'K' ? 'k' : suffix;
+  return `${numberPart}\xa0${finalSuffix}`;
+};
+
+/**
  * Formats market details with consistent formatting options.
  * Applies conversion rate only when data is in native units (cached native asset data).
  */
@@ -42,26 +71,60 @@ export const formatMarketDetails = (
   const { locale, currentCurrency, needsConversion, conversionRate } = options;
   const multiplier = needsConversion && conversionRate ? conversionRate : 1;
 
+  // Helper to format currency value using localizeLargeNumber
+  const formatCurrency = (value: number): string => {
+    const absValue = Math.abs(value);
+    if (absValue < 1_000) {
+      return getIntlNumberFormatter(locale, {
+        style: 'currency',
+        currency: currentCurrency,
+        currencyDisplay: 'narrowSymbol',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+    }
+
+    const i18n = { t: (key: string) => strings(key) };
+    let formatted = localizeLargeNumber(i18n, absValue, { includeK: true });
+    const decimalSeparator =
+      getIntlNumberFormatter(locale, { style: 'decimal' })
+        .format(1.1)
+        .replace(/\d/g, '')
+        .charAt(0) || '.';
+    formatted = formatted.replace('.', decimalSeparator);
+    formatted = applyFrenchFormatting(locale, formatted);
+
+    const currencyFormatter = getIntlNumberFormatter(locale, {
+      style: 'currency',
+      currency: currentCurrency,
+      currencyDisplay: 'narrowSymbol',
+    });
+    const currencySymbol = currencyFormatter
+      .format(1)
+      .replace(/[\d.,\s]/g, '')
+      .trim();
+    const isCurrencyAfter = currencyFormatter
+      .format(1)
+      .endsWith(currencySymbol);
+
+    const isFrench = locale.split(/[-_]/)[0]?.toLowerCase() === 'fr';
+    const nbSp = isFrench ? '\xa0' : ' ';
+
+    return isCurrencyAfter
+      ? `${value < 0 ? '-' : ''}${formatted}${nbSp}${currencySymbol}`
+      : `${value < 0 ? '-' : ''}${currencySymbol}${formatted}`;
+  };
+
+  // Format market cap with M/B suffixes and 2 decimal places
   const marketCap =
     marketData.marketCap && marketData.marketCap > 0
-      ? formatWithThreshold(marketData.marketCap * multiplier, 0.01, locale, {
-          style: 'currency',
-          notation: 'compact',
-          currency: currentCurrency,
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
+      ? formatCurrency(marketData.marketCap * multiplier)
       : null;
 
+  // Format total volume with M/B suffixes and 2 decimal places
   const totalVolume =
     marketData.totalVolume && marketData.totalVolume > 0
-      ? formatWithThreshold(marketData.totalVolume * multiplier, 0.01, locale, {
-          style: 'currency',
-          notation: 'compact',
-          currency: currentCurrency,
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
+      ? formatCurrency(marketData.totalVolume * multiplier)
       : null;
 
   const volumeToMarketCap =
@@ -78,14 +141,40 @@ export const formatMarketDetails = (
         )
       : null;
 
+  // Format circulating supply with K/M/B suffixes and 2 decimal places
   const circulatingSupply =
     marketData.circulatingSupply && marketData.circulatingSupply > 0
-      ? formatWithThreshold(marketData.circulatingSupply, 0.01, locale, {
-          style: 'decimal',
-          notation: 'compact',
-          maximumFractionDigits: 2,
-          minimumFractionDigits: 2,
-        })
+      ? (() => {
+          const absValue = Math.abs(marketData.circulatingSupply);
+          const isNegative = marketData.circulatingSupply < 0;
+
+          // For values < 1K, use standard decimal formatting
+          if (absValue < 1_000) {
+            const formatter = getIntlNumberFormatter(locale, {
+              style: 'decimal',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+            return formatter.format(marketData.circulatingSupply);
+          }
+
+          // Use localizeLargeNumber for values >= 1K
+          const i18n = { t: (key: string) => strings(key) };
+          let formatted = localizeLargeNumber(i18n, absValue, {
+            includeK: true,
+          });
+
+          // Get locale-specific decimal separator and replace if needed
+          const sampleFormatter = getIntlNumberFormatter(locale, {
+            style: 'decimal',
+          });
+          const decimalSeparator =
+            sampleFormatter.format(1.1).replace(/\d/g, '').charAt(0) || '.';
+          formatted = formatted.replace('.', decimalSeparator);
+          formatted = applyFrenchFormatting(locale, formatted);
+
+          return `${isNegative ? '-' : ''}${formatted}`;
+        })()
       : null;
 
   const allTimeHigh =
@@ -104,20 +193,10 @@ export const formatMarketDetails = (
         })
       : null;
 
+  // Format fully diluted with M/B suffixes and 2 decimal places
   const fullyDiluted =
     marketData.dilutedMarketCap && marketData.dilutedMarketCap > 0
-      ? formatWithThreshold(
-          marketData.dilutedMarketCap * multiplier,
-          0.01,
-          locale,
-          {
-            style: 'currency',
-            notation: 'compact',
-            currency: currentCurrency,
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        )
+      ? formatCurrency(marketData.dilutedMarketCap * multiplier)
       : null;
 
   return {

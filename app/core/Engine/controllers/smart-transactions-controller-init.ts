@@ -9,7 +9,6 @@ import {
   type SmartTransactionsControllerMessenger,
 } from '@metamask/smart-transactions-controller';
 import type { SmartTransactionsControllerInitMessenger } from '../messengers/smart-transactions-controller-messenger';
-import { selectSwapsChainFeatureFlags } from '../../../reducers/swaps';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
@@ -43,7 +42,7 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
   SmartTransactionsController,
   SmartTransactionsControllerMessenger,
   SmartTransactionsControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, persistedState, getState }) => {
+> = ({ controllerMessenger, initMessenger, persistedState }) => {
   const trackMetaMetricsEvent = (params: {
     event: MetaMetricsEventName;
     category: MetaMetricsEventCategory;
@@ -72,8 +71,6 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
     state: persistedState.SmartTransactionsController,
     supportedChainIds: getAllowedSmartTransactionsChainIds(),
     clientId: ClientId.Mobile,
-    getFeatureFlags: () => selectSwapsChainFeatureFlags(getState()),
-
     // TODO: Return MetaMetrics props once we enable HW wallets for smart
     // transactions.
     getMetaMetricsProps: () => Promise.resolve({}),

@@ -215,7 +215,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "fontWeight": "400",
                       "height": 46,
                       "letterSpacing": 0,
-                      "lineHeight": 20,
                       "opacity": 1,
                       "paddingVertical": 2,
                       "textAlignVertical": "center",
@@ -370,7 +369,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "fontWeight": "400",
                       "height": 46,
                       "letterSpacing": 0,
-                      "lineHeight": 20,
                       "opacity": 1,
                       "paddingVertical": 2,
                       "textAlignVertical": "center",
@@ -529,6 +527,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               {
                 "flexDirection": "column",
                 "marginBottom": 16,
+                "marginTop": "auto",
                 "rowGap": 18,
                 "width": "100%",
               }

@@ -76,7 +76,7 @@ const mockSelectPerpsMarketFilterPreferences =
 
 // Test data helper functions
 const createMockPosition = (overrides: Partial<Position> = {}): Position => ({
-  coin: 'BTC',
+  symbol: 'BTC',
   size: '0.5',
   entryPrice: '45000',
   positionValue: '22500',
@@ -158,8 +158,8 @@ describe('usePerpsHomeData', () => {
 
     // Create mock data
     mockPositions = [
-      createMockPosition({ coin: 'BTC' }),
-      createMockPosition({ coin: 'ETH' }),
+      createMockPosition({ symbol: 'BTC' }),
+      createMockPosition({ symbol: 'ETH' }),
     ];
 
     mockOrders = [
@@ -303,7 +303,10 @@ describe('usePerpsHomeData', () => {
 
     // Set default return values for the selectors
     mockSelectPerpsWatchlistMarkets.mockReturnValue(['BTC', 'ETH']);
-    mockSelectPerpsMarketFilterPreferences.mockReturnValue('volume');
+    mockSelectPerpsMarketFilterPreferences.mockReturnValue({
+      optionId: 'volume',
+      direction: 'desc',
+    });
   });
 
   describe('Initial state and data loading', () => {
@@ -327,7 +330,7 @@ describe('usePerpsHomeData', () => {
     it('applies default limits to data', () => {
       // Create more data than default limits
       const manyPositions = Array.from({ length: 10 }, (_, i) =>
-        createMockPosition({ coin: `COIN${i}` }),
+        createMockPosition({ symbol: `COIN${i}` }),
       );
       const manyOrders = Array.from({ length: 10 }, (_, i) =>
         createMockOrder({ symbol: `COIN${i}` }),
@@ -359,7 +362,7 @@ describe('usePerpsHomeData', () => {
 
     it('respects custom limits from parameters', () => {
       const manyPositions = Array.from({ length: 10 }, (_, i) =>
-        createMockPosition({ coin: `COIN${i}` }),
+        createMockPosition({ symbol: `COIN${i}` }),
       );
 
       mockUsePerpsLivePositions.mockReturnValue({
@@ -502,9 +505,10 @@ describe('usePerpsHomeData', () => {
     });
 
     it('uses default direction when sort option not found', () => {
-      mockSelectPerpsMarketFilterPreferences.mockReturnValue(
-        'unknown-sort-option' as never,
-      );
+      mockSelectPerpsMarketFilterPreferences.mockReturnValue({
+        optionId: 'unknown-sort-option' as never,
+        direction: 'desc',
+      });
 
       renderHook(() => usePerpsHomeData());
 
@@ -523,13 +527,13 @@ describe('usePerpsHomeData', () => {
   });
 
   describe('Search filtering', () => {
-    it('filters positions by coin field', () => {
+    it('filters positions by symbol field', () => {
       const { result } = renderHook(() =>
         usePerpsHomeData({ searchQuery: 'BTC' }),
       );
 
       expect(result.current.positions).toHaveLength(1);
-      expect(result.current.positions[0].coin).toBe('BTC');
+      expect(result.current.positions[0].symbol).toBe('BTC');
     });
 
     it('filters orders by symbol field', () => {
@@ -595,7 +599,7 @@ describe('usePerpsHomeData', () => {
       );
 
       expect(result.current.positions.length).toBeGreaterThan(0);
-      expect(result.current.positions[0].coin).toBe('BTC');
+      expect(result.current.positions[0].symbol).toBe('BTC');
     });
 
     it('trims whitespace from search query', () => {
@@ -604,7 +608,7 @@ describe('usePerpsHomeData', () => {
       );
 
       expect(result.current.positions).toHaveLength(1);
-      expect(result.current.positions[0].coin).toBe('BTC');
+      expect(result.current.positions[0].symbol).toBe('BTC');
     });
 
     it('returns all data when search query is empty', () => {
@@ -628,7 +632,7 @@ describe('usePerpsHomeData', () => {
     });
 
     it('handles undefined fields gracefully', () => {
-      const positionWithoutCoin = createMockPosition({ coin: undefined });
+      const positionWithoutCoin = createMockPosition({ symbol: undefined });
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [positionWithoutCoin],
         isInitialLoading: false,
@@ -818,7 +822,7 @@ describe('usePerpsHomeData', () => {
 
       const initialPositions = result.current.positions;
 
-      const newPositions = [createMockPosition({ coin: 'SOL' })];
+      const newPositions = [createMockPosition({ symbol: 'SOL' })];
       mockUsePerpsLivePositions.mockReturnValue({
         positions: newPositions,
         isInitialLoading: false,
@@ -885,17 +889,17 @@ describe('usePerpsHomeData', () => {
       rerender({ searchQuery: 'BTC' });
 
       expect(result.current.positions).toHaveLength(1);
-      expect(result.current.positions[0].coin).toBe('BTC');
+      expect(result.current.positions[0].symbol).toBe('BTC');
     });
   });
 
   describe('Combined scenarios', () => {
     it('applies search and limits together', () => {
       const manyPositions = [
-        createMockPosition({ coin: 'BTC' }),
-        createMockPosition({ coin: 'BTC' }),
-        createMockPosition({ coin: 'BTC' }),
-        createMockPosition({ coin: 'ETH' }),
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'ETH' }),
       ];
 
       mockUsePerpsLivePositions.mockReturnValue({
@@ -908,7 +912,7 @@ describe('usePerpsHomeData', () => {
       );
 
       expect(result.current.positions).toHaveLength(2);
-      expect(result.current.positions.every((p) => p.coin === 'BTC')).toBe(
+      expect(result.current.positions.every((p) => p.symbol === 'BTC')).toBe(
         true,
       );
     });

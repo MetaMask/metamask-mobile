@@ -8,6 +8,8 @@ export const SettingsViewSelectorsText = {
 
 export const SettingsViewSelectorsIDs = {
   SETTINGS_SCROLL_ID: 'settings-scroll',
+  SETTINGS_HEADER: 'settings-header',
+  BACK_BUTTON: 'settings-back-button',
   GENERAL: 'general-settings',
   SECURITY: 'security-settings',
   ADVANCED: 'advanced-settings',
@@ -24,4 +26,5 @@ export const SettingsViewSelectorsIDs = {
   BACKUP_AND_SYNC: 'backup-and-sync-settings',
   DEVELOPER_OPTIONS: 'developer-options-settings',
   SNAPS: 'snaps',
+  REGION: 'region-settings',
 };

@@ -1,4 +1,3 @@
-import { toLowerCaseEquals } from '../../util/general';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { UnlockWalletErrorType } from './types';
 import { MIN_PASSWORD_LENGTH, UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -11,26 +10,20 @@ import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedles
  * @returns - void
  */
 export const handlePasswordSubmissionError = (error: Error) => {
-  const loginErrorMessage = error.message;
+  const loginErrorMessage = error.message || error.toString();
 
   if (error instanceof SeedlessOnboardingControllerError) {
     // Detected seedless onboarding controller error. Propogate error.
     throw error;
   } else if (
-    toLowerCaseEquals(
-      loginErrorMessage,
-      UNLOCK_WALLET_ERROR_MESSAGES.WRONG_PASSWORD,
-    ) ||
-    toLowerCaseEquals(
-      loginErrorMessage,
+    containsErrorMessage(error, UNLOCK_WALLET_ERROR_MESSAGES.WRONG_PASSWORD) ||
+    containsErrorMessage(
+      error,
       UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_WRONG_PASSWORD,
     ) ||
-    toLowerCaseEquals(
-      loginErrorMessage,
+    containsErrorMessage(
+      error,
       UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_WRONG_PASSWORD_2,
-    ) ||
-    loginErrorMessage.includes(
-      UNLOCK_WALLET_ERROR_MESSAGES.PASSWORD_REQUIREMENTS_NOT_MET,
     )
   ) {
     // Invalid password.
@@ -38,25 +31,24 @@ export const handlePasswordSubmissionError = (error: Error) => {
       `${UnlockWalletErrorType.INVALID_PASSWORD}: ${loginErrorMessage}`,
     );
   } else if (
-    loginErrorMessage === UNLOCK_WALLET_ERROR_MESSAGES.PASSCODE_NOT_SET
+    containsErrorMessage(error, UNLOCK_WALLET_ERROR_MESSAGES.PASSCODE_NOT_SET)
   ) {
     // Password is not set. Is this an empty password?
     throw new Error(
       `${UnlockWalletErrorType.PASSWORD_NOT_SET}: ${loginErrorMessage}`,
     );
   } else if (
-    loginErrorMessage ===
-    UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS
+    containsErrorMessage(
+      error,
+      UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
+    )
   ) {
     // User cancelled biometrics.
     throw new Error(
       `${UnlockWalletErrorType.IOS_USER_CANCELLED_BIOMETRICS}: ${loginErrorMessage}`,
     );
   } else if (
-    toLowerCaseEquals(
-      loginErrorMessage,
-      UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_PIN_DENIED,
-    )
+    containsErrorMessage(error, UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_PIN_DENIED)
   ) {
     // Pin code denied.
     throw new Error(

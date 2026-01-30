@@ -1,6 +1,6 @@
 import { SmokeNetworkExpansion } from '../../tags';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import TestHelpers from '../../helpers';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';

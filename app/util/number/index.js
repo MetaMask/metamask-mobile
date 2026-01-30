@@ -959,31 +959,40 @@ export const safeBNToHex = (value) => {
 
 /**
  * Formats a potentially large number to the nearest unit.
- * e.g. 1T for trillions, 2.3B for billions, 4.56M for millions, 7,890 for thousands, etc.
+ * e.g. 1T for trillions, 2.3B for billions, 4.56M for millions, 7.89K for thousands, etc.
  *
- * @param t - An I18nContext translator.
+ * @param i18n - An I18nContext translator with a `t` method.
  * @param number - The number to format.
+ * @param options - Optional formatting options.
+ * @param options.decimals - Number of decimal places (default: 2).
+ * @param options.includeK - Whether to include K suffix for thousands (default: false for backward compatibility).
  * @returns A localized string of the formatted number + unit.
  */
-export const localizeLargeNumber = (i18n, number) => {
+export const localizeLargeNumber = (i18n, number, options = {}) => {
+  const { decimals = 2, includeK = false } = options;
   const oneTrillion = 1000000000000;
   const oneBillion = 1000000000;
   const oneMillion = 1000000;
+  const oneThousand = 1000;
 
   if (number >= oneTrillion) {
-    return `${(number / oneTrillion).toFixed(2)}${i18n.t(
+    return `${(number / oneTrillion).toFixed(decimals)}${i18n.t(
       'token.trillion_abbreviation',
     )}`;
   } else if (number >= oneBillion) {
-    return `${(number / oneBillion).toFixed(2)}${i18n.t(
+    return `${(number / oneBillion).toFixed(decimals)}${i18n.t(
       'token.billion_abbreviation',
     )}`;
   } else if (number >= oneMillion) {
-    return `${(number / oneMillion).toFixed(2)}${i18n.t(
+    return `${(number / oneMillion).toFixed(decimals)}${i18n.t(
       'token.million_abbreviation',
     )}`;
+  } else if (includeK && number >= oneThousand) {
+    return `${(number / oneThousand).toFixed(decimals)}${i18n.t(
+      'token.thousand_abbreviation',
+    )}`;
   }
-  return number.toFixed(2);
+  return number.toFixed(decimals);
 };
 
 export const convertDecimalToPercentage = (decimal) => {

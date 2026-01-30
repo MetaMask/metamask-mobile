@@ -25,7 +25,11 @@ export function getTokenRatesControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['TokensController:getState', 'NetworkController:getState'],
+    actions: [
+      'TokensController:getState',
+      'NetworkController:getState',
+      'NetworkEnablementController:getState',
+    ],
     events: ['TokensController:stateChange', 'NetworkController:stateChange'],
     messenger,
   });

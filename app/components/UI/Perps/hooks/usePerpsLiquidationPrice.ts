@@ -66,7 +66,7 @@ export const usePerpsLiquidationPrice = (
 
           // For invalid leverage errors, show a clear message instead of 0.00
           if (errorMessage.includes('Invalid leverage')) {
-            setLiquidationPrice(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY);
+            setLiquidationPrice(PERPS_CONSTANTS.FallbackPriceDisplay);
           } else {
             setLiquidationPrice('0.00');
           }

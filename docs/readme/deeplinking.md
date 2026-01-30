@@ -10,6 +10,7 @@
 - [Creating New Links](#creating-new-links)
 - [Adding New Handlers](#adding-new-handlers)
 - [Signature Verification](#signature-verification) → [See Verification Diagrams](./deeplinking-diagrams.md#signature-creation-and-verification-detail)
+- [Analytics](#analytics) → [See Analytics Documentation](./deeplink-analytics.md)
 - [Testing Links](#testing-links)
 - [Security Considerations](#security-considerations)
 - [Custom Schemes Explained](#custom-uri-schemes-explained)
@@ -397,6 +398,28 @@ describe('handleYourAction', () => {
 - **Selective Signing**: Only critical params need signing
 - **Forward Compatibility**: Add new unsigned params without breaking signatures
 - **Flexible Testing**: Add debug params to signed production links
+
+## Analytics
+
+MetaMask Mobile tracks deep link usage through a consolidated `DEEP_LINK_USED` analytics event that captures:
+
+- Route information and user actions
+- App installation status (deferred vs. regular deep links via Branch.io)
+- Signature validation results
+- Interstitial modal interactions
+- UTM parameters for attribution
+- Route-specific sensitive properties
+
+For comprehensive analytics documentation, see [Deep Link Analytics](./deeplink-analytics.md).
+
+### Quick Overview
+
+The analytics system:
+
+- Fetches Branch.io parameters once per deep link to detect deferred deep links
+- Creates analytics contexts with all relevant information
+- Tracks a single `DEEP_LINK_USED` event with both standard and sensitive properties
+- Handles errors gracefully without blocking deep link processing
 
 ## Testing Links
 

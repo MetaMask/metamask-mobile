@@ -29,7 +29,7 @@ exports[`IPFSGatewaySettings render matches snapshot 1`] = `
         }
       }
     >
-      IPFS Gateway
+      IPFS gateway
     </Text>
     <View
       style={

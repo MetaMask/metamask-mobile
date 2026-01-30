@@ -11,9 +11,51 @@ import {
   TrustSignalDisplayState,
   AddressTrustSignalRequest,
 } from '../../types/trustSignals';
+import { useApproveTransactionData } from '../useApproveTransactionData';
+import { useSignatureRequest } from '../signatures/useSignatureRequest';
+import {
+  isRecognizedPermit,
+  isPermitDaiRevoke,
+  parseAndNormalizeSignTypedData,
+} from '../../utils/signature';
 
 export function useAddressTrustSignalAlerts(): Alert[] {
   const transactionMetadata = useTransactionMetadataRequest();
+  const { isRevoke: isTransactionRevoke, isLoading: isRevokeLoading } =
+    useApproveTransactionData();
+  const signatureRequest = useSignatureRequest();
+
+  const isSignatureRevoke = useMemo(() => {
+    if (!signatureRequest || !isRecognizedPermit(signatureRequest)) {
+      return false;
+    }
+
+    const msgData = signatureRequest.messageParams?.data;
+    if (!msgData || typeof msgData !== 'string') {
+      return false;
+    }
+
+    try {
+      const {
+        domain: { verifyingContract },
+        message: { allowed, tokenId, value },
+      } = parseAndNormalizeSignTypedData(msgData);
+
+      const isNFTPermit = tokenId !== undefined;
+      if (isNFTPermit) {
+        return false;
+      }
+
+      const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+      const isZeroValueRevoke = value === '0' || value === 0;
+
+      return isDaiRevoke || isZeroValueRevoke;
+    } catch {
+      return false;
+    }
+  }, [signatureRequest]);
+
+  const isRevoke = Boolean(isTransactionRevoke) || isSignatureRevoke;
 
   const addressesToScan = useMemo((): AddressTrustSignalRequest[] => {
     if (!transactionMetadata?.chainId) {
@@ -30,7 +72,6 @@ export function useAddressTrustSignalAlerts(): Alert[] {
       });
     }
 
-    // Add spender address from approval transactions
     if (transactionMetadata.txParams?.data) {
       const spenderAddress = extractSpenderFromApprovalData(
         transactionMetadata.txParams.data as unknown as Hex,
@@ -49,7 +90,7 @@ export function useAddressTrustSignalAlerts(): Alert[] {
   const trustSignalResults = useAddressTrustSignals(addressesToScan);
 
   return useMemo(() => {
-    if (addressesToScan.length === 0) {
+    if (addressesToScan.length === 0 || isRevokeLoading || isRevoke) {
       return [];
     }
 
@@ -93,5 +134,5 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     }
 
     return alerts;
-  }, [addressesToScan.length, trustSignalResults]);
+  }, [addressesToScan.length, isRevoke, isRevokeLoading, trustSignalResults]);
 }

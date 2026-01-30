@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useOriginSource } from './useOriginSource';
-import { SourceType } from './useMetrics/useMetrics.types';
+import { SourceType } from './useAnalytics/useAnalytics.types';
 import AppConstants from '../../core/AppConstants';
 import { RootState } from '../../reducers';
 

@@ -43,7 +43,19 @@ describe('handleDeeplink', () => {
 
     handleDeeplink({ uri: testUri });
 
-    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(testUri);
+    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(testUri, undefined);
+    expect(mockCheckForDeeplink).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
+    expect(mockLoggerError).not.toHaveBeenCalled();
+  });
+
+  it('processes valid URI with source and passes source to setCurrentDeeplink', () => {
+    const testUri = 'metamask://test-deeplink';
+    const testSource = 'push-notification';
+
+    handleDeeplink({ uri: testUri, source: testSource });
+
+    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(testUri, testSource);
     expect(mockCheckForDeeplink).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
     expect(mockLoggerError).not.toHaveBeenCalled();
@@ -81,7 +93,7 @@ describe('handleDeeplink', () => {
 
     handleDeeplink({ uri: complexUri });
 
-    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(complexUri);
+    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(complexUri, undefined);
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
   });
 
@@ -111,7 +123,7 @@ describe('handleDeeplink', () => {
 
     handleDeeplink({ uri: testUri });
 
-    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(testUri);
+    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(testUri, undefined);
     expect(mockLoggerError).toHaveBeenCalledWith(
       mockError,
       'Deeplink: Error parsing deeplink',

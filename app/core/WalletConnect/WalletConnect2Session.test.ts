@@ -321,6 +321,71 @@ describe('WalletConnect2Session', () => {
     });
   });
 
+  it('normalizes URLs without protocol for legacy session compatibility', () => {
+    const sessionWithoutProtocol = {
+      ...mockSession,
+      peer: {
+        metadata: { url: 'example.com', name: 'Test App', icons: [] },
+      },
+    } as unknown as SessionTypes.Struct;
+
+    const newSession = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: sessionWithoutProtocol,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    expect(newSession).toBeTruthy();
+    // The session should initialize successfully with normalized URL
+    expect((newSession as any).hostname).toBe('example.com');
+  });
+
+  it('throws error for completely invalid URLs', () => {
+    const sessionWithInvalidUrl = {
+      ...mockSession,
+      peer: {
+        metadata: {
+          url: 'not a valid url with spaces',
+          name: 'Test App',
+          icons: [],
+        },
+      },
+    } as unknown as SessionTypes.Struct;
+
+    expect(() => {
+      new WalletConnect2Session({
+        web3Wallet: mockClient,
+        session: sessionWithInvalidUrl,
+        channelId: 'test-channel',
+        deeplink: true,
+        navigation: mockNavigation,
+      });
+    }).toThrow(
+      'Invalid dApp URL in session metadata: not a valid url with spaces',
+    );
+  });
+
+  it('throws error for empty URL', () => {
+    const sessionWithEmptyUrl = {
+      ...mockSession,
+      peer: {
+        metadata: { url: '', name: 'Test App', icons: [] },
+      },
+    } as unknown as SessionTypes.Struct;
+
+    expect(() => {
+      new WalletConnect2Session({
+        web3Wallet: mockClient,
+        session: sessionWithEmptyUrl,
+        channelId: 'test-channel',
+        deeplink: true,
+        navigation: mockNavigation,
+      });
+    }).toThrow('Invalid dApp URL in session metadata: ');
+  });
+
   it('sets deeplink correctly', () => {
     session.setDeeplink(false);
     expect((session as any).deeplink).toBe(false);

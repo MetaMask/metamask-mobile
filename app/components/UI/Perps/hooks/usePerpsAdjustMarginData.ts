@@ -7,14 +7,14 @@ import {
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
   calculateMaxRemovableMargin,
-  calculateNewLiquidationPrice,
+  estimateLiquidationPrice,
 } from '../utils/marginUtils';
 import { MARGIN_ADJUSTMENT_CONFIG } from '../constants/perpsConfig';
 import type { Position } from '../controllers/types';
 
 export interface UsePerpsAdjustMarginDataParams {
-  /** Coin symbol from route params to identify the position */
-  coin: string;
+  /** Symbol from route params to identify the position */
+  symbol: string;
   /** Mode: 'add' or 'remove' */
   mode: 'add' | 'remove';
   /** Current user input amount */
@@ -64,32 +64,32 @@ export interface UsePerpsAdjustMarginDataReturn {
 export function usePerpsAdjustMarginData(
   params: UsePerpsAdjustMarginDataParams,
 ): UsePerpsAdjustMarginDataReturn {
-  const { coin, mode, inputAmount } = params;
+  const { symbol, mode, inputAmount } = params;
   const isAddMode = mode === 'add';
 
   // Live data subscriptions
   const { positions, isInitialLoading } = usePerpsLivePositions();
   const { account } = usePerpsLiveAccount();
   const livePrices = usePerpsLivePrices({
-    symbols: coin ? [coin] : [],
+    symbols: symbol ? [symbol] : [],
     throttleMs: 1000,
   });
   const { markets } = usePerpsMarkets();
 
-  // Find live position for this coin
+  // Find live position for this symbol
   const position = useMemo(
-    () => positions?.find((p) => p.coin === coin) || null,
-    [positions, coin],
+    () => positions?.find((p) => p.symbol === symbol) || null,
+    [positions, symbol],
   );
 
   // Get market info for max leverage fallback
   const marketInfo = useMemo(
-    () => (coin ? markets.find((m) => m.symbol === coin) : null),
-    [coin, markets],
+    () => (symbol ? markets.find((m) => m.symbol === symbol) : null),
+    [symbol, markets],
   );
   const maxLeverage = marketInfo?.maxLeverage
     ? parseInt(marketInfo.maxLeverage, 10)
-    : MARGIN_ADJUSTMENT_CONFIG.FALLBACK_MAX_LEVERAGE;
+    : MARGIN_ADJUSTMENT_CONFIG.FallbackMaxLeverage;
 
   // Derived values from live position
   const currentMargin = useMemo(
@@ -123,8 +123,8 @@ export function usePerpsAdjustMarginData(
   );
 
   const currentPrice = useMemo(
-    () => parseFloat(livePrices?.[coin]?.price || '0'),
-    [livePrices, coin],
+    () => parseFloat(livePrices?.[symbol]?.price || '0'),
+    [livePrices, symbol],
   );
 
   const availableBalance = useMemo(
@@ -166,31 +166,28 @@ export function usePerpsAdjustMarginData(
     return Math.max(0, currentMargin - inputAmount);
   }, [isAddMode, currentMargin, inputAmount]);
 
-  // Calculate new liquidation price
+  // Estimate new liquidation price using anchored + delta approach.
+  // Starts from Hyperliquid's actual liquidation price and applies margin delta.
+  // To avoid flicker on submit, the view resets inputAmount to 0 immediately,
+  // which makes newMargin === currentMargin, returning currentLiquidationPrice.
   const newLiquidationPrice = useMemo(() => {
     if (newMargin === 0 || positionSize === 0) return currentLiquidationPrice;
 
-    if (isAddMode) {
-      const marginPerUnit = newMargin / positionSize;
-      return isLong
-        ? Math.max(0, entryPrice - marginPerUnit)
-        : entryPrice + marginPerUnit;
-    }
-
-    return calculateNewLiquidationPrice({
+    return estimateLiquidationPrice({
+      isLong,
+      currentMargin,
       newMargin,
       positionSize,
-      entryPrice,
-      isLong,
       currentLiquidationPrice,
+      maxLeverage,
     });
   }, [
-    isAddMode,
+    isLong,
+    currentMargin,
     newMargin,
     positionSize,
-    entryPrice,
-    isLong,
     currentLiquidationPrice,
+    maxLeverage,
   ]);
 
   // Calculate liquidation distance

@@ -95,7 +95,9 @@ jest.mock('../../hooks/usePerpsHomeActions', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
-  usePerpsEventTracking: jest.fn(),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -149,19 +151,29 @@ jest.mock('react-native-safe-area-context', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: 'Box',
-  BoxFlexDirection: {
-    Row: 'Row',
-  },
-  BoxAlignItems: {
-    Center: 'Center',
-  },
-  TextVariant: {
-    HeadingSm: 'heading-sm',
-    HeadingLg: 'heading-lg',
-  },
-}));
+// Mock design system - needed because real module requires tailwind setup
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const React = jest.requireActual('react');
+  return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    ButtonIcon: ({
+      testID,
+      onPress,
+    }: {
+      testID?: string;
+      onPress?: () => void;
+    }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    Text: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(RNText, { testID }, children),
+    Box: 'Box',
+  };
+});
 
 // Mock stylesheet
 jest.mock('./PerpsHomeView.styles', () => ({}));
@@ -561,7 +573,7 @@ describe('PerpsHomeView', () => {
       ...mockDefaultData,
       positions: [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
           positionValue: '25000',
@@ -603,7 +615,7 @@ describe('PerpsHomeView', () => {
       orders: [
         {
           orderId: '123',
-          coin: 'ETH',
+          symbol: 'ETH',
           side: 'buy' as const,
           size: '1.0',
           limitPrice: '3000',
@@ -667,7 +679,7 @@ describe('PerpsHomeView', () => {
       ...mockDefaultData,
       positions: [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
           positionValue: '25000',
@@ -712,7 +724,7 @@ describe('PerpsHomeView', () => {
       orders: [
         {
           orderId: '123',
-          coin: 'ETH',
+          symbol: 'ETH',
           side: 'buy' as const,
           size: '1.0',
           limitPrice: '3000',
@@ -741,7 +753,7 @@ describe('PerpsHomeView', () => {
     // Assert - Verify navigation card is rendered (if it has a testID)
     // Or just verify component renders without error
     // The navigation card is tested separately
-    expect(getByTestId('perps-home-back-button')).toBeTruthy();
+    expect(getByTestId('back-button')).toBeTruthy();
   });
 
   it('renders main sections', () => {

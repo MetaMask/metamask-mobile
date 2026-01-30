@@ -23,14 +23,23 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
       chainId: NetworkToCaipChainId.ETHEREUM,
     }),
   },
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   {
-    id: NetworkToCaipChainId.LINEA,
-    name: 'Linea',
-    caipChainId: NetworkToCaipChainId.LINEA,
+    id: NetworkToCaipChainId.SOLANA,
+    name: 'Solana',
+    caipChainId: NetworkToCaipChainId.SOLANA,
     isSelected: false,
     imageSource: getNetworkImageSource({
-      chainId: NetworkToCaipChainId.LINEA,
+      chainId: NetworkToCaipChainId.SOLANA,
     }),
+  },
+  ///: END:ONLY_INCLUDE_IF
+  {
+    id: NetworkToCaipChainId.BNB,
+    name: 'BNB Chain',
+    caipChainId: NetworkToCaipChainId.BNB,
+    isSelected: false,
+    imageSource: getNetworkImageSource({ chainId: NetworkToCaipChainId.BNB }),
   },
   {
     id: NetworkToCaipChainId.BASE,
@@ -41,6 +50,15 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
       chainId: NetworkToCaipChainId.BASE,
     }),
   },
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  {
+    id: TrxScope.Mainnet,
+    name: 'Tron',
+    caipChainId: TrxScope.Mainnet,
+    isSelected: false,
+    imageSource: getNetworkImageSource({ chainId: TrxScope.Mainnet }),
+  },
+  ///: END:ONLY_INCLUDE_IF
   {
     id: NetworkToCaipChainId.ARBITRUM,
     name: 'Arbitrum',
@@ -48,40 +66,6 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
     isSelected: false,
     imageSource: getNetworkImageSource({
       chainId: NetworkToCaipChainId.ARBITRUM,
-    }),
-  },
-  {
-    id: NetworkToCaipChainId.BNB,
-    name: 'BNB Chain',
-    caipChainId: NetworkToCaipChainId.BNB,
-    isSelected: false,
-    imageSource: getNetworkImageSource({ chainId: NetworkToCaipChainId.BNB }),
-  },
-  {
-    id: NetworkToCaipChainId.OPTIMISM,
-    name: 'OP',
-    caipChainId: NetworkToCaipChainId.OPTIMISM,
-    isSelected: false,
-    imageSource: getNetworkImageSource({
-      chainId: NetworkToCaipChainId.OPTIMISM,
-    }),
-  },
-  {
-    id: NetworkToCaipChainId.POLYGON,
-    name: 'Polygon',
-    caipChainId: NetworkToCaipChainId.POLYGON,
-    isSelected: false,
-    imageSource: getNetworkImageSource({
-      chainId: NetworkToCaipChainId.POLYGON,
-    }),
-  },
-  {
-    id: NetworkToCaipChainId.SEI,
-    name: 'Sei',
-    caipChainId: NetworkToCaipChainId.SEI,
-    isSelected: false,
-    imageSource: getNetworkImageSource({
-      chainId: NetworkToCaipChainId.SEI,
     }),
   },
   {
@@ -94,6 +78,42 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
     }),
   },
   {
+    id: NetworkToCaipChainId.POLYGON,
+    name: 'Polygon',
+    caipChainId: NetworkToCaipChainId.POLYGON,
+    isSelected: false,
+    imageSource: getNetworkImageSource({
+      chainId: NetworkToCaipChainId.POLYGON,
+    }),
+  },
+  {
+    id: NetworkToCaipChainId.LINEA,
+    name: 'Linea',
+    caipChainId: NetworkToCaipChainId.LINEA,
+    isSelected: false,
+    imageSource: getNetworkImageSource({
+      chainId: NetworkToCaipChainId.LINEA,
+    }),
+  },
+  {
+    id: NetworkToCaipChainId.OPTIMISM,
+    name: 'OP',
+    caipChainId: NetworkToCaipChainId.OPTIMISM,
+    isSelected: false,
+    imageSource: getNetworkImageSource({
+      chainId: NetworkToCaipChainId.OPTIMISM,
+    }),
+  },
+  {
+    id: NetworkToCaipChainId.SEI,
+    name: 'Sei',
+    caipChainId: NetworkToCaipChainId.SEI,
+    isSelected: false,
+    imageSource: getNetworkImageSource({
+      chainId: NetworkToCaipChainId.SEI,
+    }),
+  },
+  {
     id: NetworkToCaipChainId.ZKSYNC_ERA,
     name: 'zkSync Era',
     caipChainId: NetworkToCaipChainId.ZKSYNC_ERA,
@@ -102,24 +122,4 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
       chainId: NetworkToCaipChainId.ZKSYNC_ERA,
     }),
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  {
-    id: NetworkToCaipChainId.SOLANA,
-    name: 'Solana',
-    caipChainId: NetworkToCaipChainId.SOLANA,
-    isSelected: false,
-    imageSource: getNetworkImageSource({
-      chainId: NetworkToCaipChainId.SOLANA,
-    }),
-  },
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  {
-    id: TrxScope.Mainnet,
-    name: 'Tron',
-    caipChainId: TrxScope.Mainnet,
-    isSelected: false,
-    imageSource: getNetworkImageSource({ chainId: TrxScope.Mainnet }),
-  },
-  ///: END:ONLY_INCLUDE_IF
 ];

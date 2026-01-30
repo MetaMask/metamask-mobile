@@ -45,8 +45,6 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         // Fix for placeholder text shifting with custom Geist fonts
         // Use minimal padding that works cross-platform with preloaded fonts
         paddingVertical: Platform.OS === 'ios' ? 2 : 1,
-        // Ensure consistent line height for custom font baseline alignment
-        lineHeight: Platform.OS === 'ios' ? 20 : 22,
         fontFamily: getFontFamily(textVariant),
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,

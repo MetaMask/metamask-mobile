@@ -21,7 +21,7 @@ const { useFocusEffect } = require('@react-navigation/native') as {
 
 const mockPositions: Position[] = [
   {
-    coin: 'BTC',
+    symbol: 'BTC',
     size: '0.5',
     entryPrice: '45000',
     positionValue: '22500',
@@ -44,7 +44,7 @@ const mockPositions: Position[] = [
     stopLossCount: 0,
   },
   {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2',
     entryPrice: '3000',
     positionValue: '6000',
@@ -94,6 +94,7 @@ describe('usePerpsPositions', () => {
       subscribeToPositions: jest.fn(),
       subscribeToOrderFills: jest.fn(),
       depositWithConfirmation: jest.fn(),
+      depositWithOrder: jest.fn(),
       clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
@@ -271,7 +272,7 @@ describe('usePerpsPositions', () => {
 
       const newPositions: Position[] = [
         {
-          coin: 'SOL',
+          symbol: 'SOL',
           size: '10',
           entryPrice: '95',
           positionValue: '950',
@@ -591,7 +592,7 @@ describe('usePerpsPositions', () => {
     it('handles positions with negative PnL', async () => {
       const positionsWithNegativePnl: Position[] = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '-0.5', // Short position
           entryPrice: '45000',
           positionValue: '22500',
@@ -630,7 +631,7 @@ describe('usePerpsPositions', () => {
     it('handles positions with TP/SL orders', async () => {
       const positionsWithTPSL: Position[] = [
         {
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '2',
           entryPrice: '3000',
           positionValue: '6000',

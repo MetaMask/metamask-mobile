@@ -104,7 +104,10 @@ describe('perps controller init', () => {
         testnet: {},
         mainnet: {},
       },
-      marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+      marketFilterPreferences: {
+        optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
+      },
       hip3ConfigVersion: 0,
       withdrawInProgress: false,
       lastWithdrawResult: null,
@@ -115,7 +118,7 @@ describe('perps controller init', () => {
         activeWithdrawalId: null,
       },
       depositRequests: [],
-      initializationState: InitializationState.UNINITIALIZED,
+      initializationState: InitializationState.Uninitialized,
       initializationError: null,
       initializationAttempts: 0,
     };

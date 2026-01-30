@@ -669,7 +669,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      expect(getByText('Switch to Smart account')).toBeTruthy();
+      expect(getByText('Switch to smart account')).toBeTruthy();
     });
 
     it('calls navigate function when option to switch account type is clicked', () => {
@@ -677,7 +677,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      fireEvent.press(getByText('Switch to Smart account'));
+      fireEvent.press(getByText('Switch to smart account'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'ConfirmationSwitchAccountType',

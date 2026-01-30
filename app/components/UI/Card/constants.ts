@@ -17,7 +17,6 @@ export const AUTHENTICATED_CACHE_DURATION = 60 * 1000;
 export const UNAUTHENTICATED_CACHE_DURATION = 5 * 60 * 1000;
 export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
   'linea',
-  'linea-us',
   'solana',
   'base',
 ];
@@ -25,10 +24,6 @@ export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
 
 export const cardNetworkInfos: Record<CardNetwork, CardNetworkInfo> = {
   linea: {
-    caipChainId: 'eip155:59144',
-    rpcUrl: LINEA_MAINNET_RPC_URL,
-  },
-  'linea-us': {
     caipChainId: 'eip155:59144',
     rpcUrl: LINEA_MAINNET_RPC_URL,
   },

@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import Utilities from './framework/Utilities';
+import Utilities from '../tests/framework/Utilities';
 
 /**
  * Before all tests, modify the app launch arguments to include the blacklistURLs.

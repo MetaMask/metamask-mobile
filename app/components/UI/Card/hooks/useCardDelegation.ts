@@ -19,6 +19,7 @@ import { ARBITRARY_ALLOWANCE } from '../constants';
 import { toTokenMinimalUnit } from '../../../../util/number';
 import AppConstants from '../../../../core/AppConstants';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { useNeedsGasFaucet } from './useNeedsGasFaucet';
 
 /**
  * Custom error class for user-initiated cancellations
@@ -39,6 +40,7 @@ interface DelegationParams {
   amount: string;
   currency: string;
   network: CardNetwork;
+  faucet?: boolean;
 }
 
 /**
@@ -59,6 +61,12 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
     isLoading: false,
     error: null,
   });
+
+  const {
+    needsFaucet,
+    isLoading: isFaucetCheckLoading,
+    refetch: refetchFaucetCheck,
+  } = useNeedsGasFaucet(token);
 
   /**
    * Generate SIWE signature message
@@ -223,6 +231,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         delegation_amount: isNaN(Number(params.amount))
           ? 0
           : Number(params.amount),
+        faucet: params.faucet ?? false,
       };
 
       try {
@@ -243,9 +252,13 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
           throw new Error('No account found');
         }
 
-        // Step 1: Generate delegation token
+        // Step 1: Generate delegation token (pass faucet flag if user needs gas)
         const { token: delegationJWTToken, nonce } =
-          await sdk.generateDelegationToken(params.network, address);
+          await sdk.generateDelegationToken(
+            params.network,
+            address,
+            needsFaucet,
+          );
 
         // Step 2: Generate and sign SIWE message
         const signatureMessage = generateSignatureMessage(address, nonce);
@@ -304,11 +317,16 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       executeApprovalTransaction,
       trackEvent,
       createEventBuilder,
+      needsFaucet,
     ],
   );
 
   return {
     ...state,
     submitDelegation,
+    // Faucet check state
+    needsFaucet,
+    isFaucetCheckLoading,
+    refetchFaucetCheck,
   };
 };

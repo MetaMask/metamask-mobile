@@ -541,7 +541,7 @@ describe('getNotificationDetails', () => {
         "description": "Verify your payment method and card support",
         "duration": 5000,
         "status": "error",
-        "title": "Purchase of ETH has failed! Please try again, sorry for the inconvenience!",
+        "title": "Purchase of ETH failed. Please try again momentarily.",
       }
     `);
 
@@ -554,7 +554,7 @@ describe('getNotificationDetails', () => {
         "description": "Your ETH is now available",
         "duration": 5000,
         "status": "success",
-        "title": "Your purchase of 0.01 ETH was successful!",
+        "title": "Your purchase of 0.01 ETH was successful.",
       }
     `);
   });
@@ -600,7 +600,7 @@ describe('getNotificationDetails', () => {
     });
     expect(completedDetails).toMatchInlineSnapshot(`
       {
-        "description": "Your order was successful!.",
+        "description": "Your order was successful.",
         "duration": 5000,
         "status": "success",
         "title": "Order completed",

@@ -6,7 +6,6 @@ import {
   shouldProcessNetwork,
   buildTokenListFromSettings,
   buildQuickSelectTokens,
-  getValidLineaChainIds,
   QUICK_SELECT_TOKENS,
   LINEA_CAIP_CHAIN_ID,
 } from './buildTokenList';
@@ -109,7 +108,7 @@ describe('buildTokenList utilities', () => {
     it('returns false for unsupported networks', () => {
       const network = createNetwork('ethereum');
 
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, false);
 
       expect(result).toBe(false);
     });
@@ -117,7 +116,7 @@ describe('buildTokenList utilities', () => {
     it('returns false for networks with no network name', () => {
       const network = createNetwork('');
 
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, false);
 
       expect(result).toBe(false);
     });
@@ -125,7 +124,7 @@ describe('buildTokenList utilities', () => {
     it('returns false for solana when hideSolana is true', () => {
       const network = createNetwork('solana');
 
-      const result = shouldProcessNetwork(network, 'international', true);
+      const result = shouldProcessNetwork(network, true);
 
       expect(result).toBe(false);
     });
@@ -133,7 +132,7 @@ describe('buildTokenList utilities', () => {
     it('returns true for solana when hideSolana is false', () => {
       const network = createNetwork('solana');
 
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, false);
 
       expect(result).toBe(true);
     });
@@ -141,39 +140,15 @@ describe('buildTokenList utilities', () => {
     it('returns true for linea when user is international', () => {
       const network = createNetwork('linea');
 
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, false);
 
       expect(result).toBe(true);
-    });
-
-    it('returns false for linea when user is US', () => {
-      const network = createNetwork('linea');
-
-      const result = shouldProcessNetwork(network, 'us', false);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true for linea-us when user is US', () => {
-      const network = createNetwork('linea-us');
-
-      const result = shouldProcessNetwork(network, 'us', false);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false for linea-us when user is international', () => {
-      const network = createNetwork('linea-us');
-
-      const result = shouldProcessNetwork(network, 'international', false);
-
-      expect(result).toBe(false);
     });
 
     it('returns true for base network', () => {
       const network = createNetwork('base');
 
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, false);
 
       expect(result).toBe(true);
     });
@@ -191,7 +166,6 @@ describe('buildTokenList utilities', () => {
     it('returns empty array when delegationSettings is null', () => {
       const result = buildTokenListFromSettings({
         delegationSettings: null,
-        userLocation: 'international',
       });
 
       expect(result).toEqual([]);
@@ -204,7 +178,6 @@ describe('buildTokenList utilities', () => {
           count: 0,
           _links: { self: '' },
         } as unknown as DelegationSettingsResponse,
-        userLocation: 'international',
       });
 
       expect(result).toEqual([]);
@@ -225,7 +198,6 @@ describe('buildTokenList utilities', () => {
 
       const result = buildTokenListFromSettings({
         delegationSettings,
-        userLocation: 'international',
       });
 
       expect(result).toHaveLength(1);
@@ -257,7 +229,6 @@ describe('buildTokenList utilities', () => {
 
       const result = buildTokenListFromSettings({
         delegationSettings,
-        userLocation: 'international',
       });
 
       expect(result[0].symbol).toBe('USDT');
@@ -278,7 +249,6 @@ describe('buildTokenList utilities', () => {
 
       const result = buildTokenListFromSettings({
         delegationSettings,
-        userLocation: 'international',
       });
 
       expect(result).toHaveLength(0);
@@ -300,7 +270,6 @@ describe('buildTokenList utilities', () => {
 
       const result = buildTokenListFromSettings({
         delegationSettings,
-        userLocation: 'international',
       });
 
       expect(result).toHaveLength(1);
@@ -327,7 +296,6 @@ describe('buildTokenList utilities', () => {
 
       const result = buildTokenListFromSettings({
         delegationSettings,
-        userLocation: 'international',
         getSupportedTokensByChainId: mockGetSupportedTokens,
       });
 
@@ -350,7 +318,6 @@ describe('buildTokenList utilities', () => {
 
       const result = buildTokenListFromSettings({
         delegationSettings,
-        userLocation: 'international',
       });
 
       expect(result[0].stagingTokenAddress).toBe('0xStagingUSDC');
@@ -371,7 +338,6 @@ describe('buildTokenList utilities', () => {
 
       const result = buildTokenListFromSettings({
         delegationSettings,
-        userLocation: 'international',
       });
 
       expect(result[0].stagingTokenAddress).toBeUndefined();
@@ -401,7 +367,6 @@ describe('buildTokenList utilities', () => {
 
       const result = buildTokenListFromSettings({
         delegationSettings,
-        userLocation: 'international',
         hideSolana: true,
       });
 
@@ -424,7 +389,6 @@ describe('buildTokenList utilities', () => {
 
       const result = buildTokenListFromSettings({
         delegationSettings,
-        userLocation: 'international',
         hideSolana: false,
       });
 
@@ -516,115 +480,6 @@ describe('buildTokenList utilities', () => {
 
       expect(result[0].symbol).toBe('mUSD');
       expect(result[1].symbol).toBe('USDC');
-    });
-  });
-
-  describe('getValidLineaChainIds', () => {
-    const createDelegationSettings = (
-      networks: DelegationSettingsResponse['networks'],
-    ): DelegationSettingsResponse => ({
-      networks,
-      count: networks.length,
-      _links: { self: 'https://api.example.com' },
-    });
-
-    it('returns empty set when delegationSettings is null', () => {
-      const result = getValidLineaChainIds(null, 'international');
-
-      expect(result.size).toBe(0);
-    });
-
-    it('returns empty set when networks is undefined', () => {
-      const result = getValidLineaChainIds(
-        {
-          networks: undefined,
-          count: 0,
-          _links: { self: '' },
-        } as unknown as DelegationSettingsResponse,
-        'international',
-      );
-
-      expect(result.size).toBe(0);
-    });
-
-    it('returns linea chain ID for international users', () => {
-      const delegationSettings = createDelegationSettings([
-        {
-          network: 'linea',
-          chainId: '59144',
-          environment: 'production',
-          delegationContract: '0x123',
-          tokens: {},
-        },
-      ]);
-
-      const result = getValidLineaChainIds(delegationSettings, 'international');
-
-      expect(result.has('eip155:59144')).toBe(true);
-    });
-
-    it('returns linea-us chain ID for US users', () => {
-      const delegationSettings = createDelegationSettings([
-        {
-          network: 'linea-us',
-          chainId: '59144',
-          environment: 'production',
-          delegationContract: '0x123',
-          tokens: {},
-        },
-      ]);
-
-      const result = getValidLineaChainIds(delegationSettings, 'us');
-
-      expect(result.has('eip155:59144')).toBe(true);
-    });
-
-    it('excludes linea for US users', () => {
-      const delegationSettings = createDelegationSettings([
-        {
-          network: 'linea',
-          chainId: '59144',
-          environment: 'production',
-          delegationContract: '0x123',
-          tokens: {},
-        },
-      ]);
-
-      const result = getValidLineaChainIds(delegationSettings, 'us');
-
-      expect(result.size).toBe(0);
-    });
-
-    it('excludes linea-us for international users', () => {
-      const delegationSettings = createDelegationSettings([
-        {
-          network: 'linea-us',
-          chainId: '59144',
-          environment: 'production',
-          delegationContract: '0x123',
-          tokens: {},
-        },
-      ]);
-
-      const result = getValidLineaChainIds(delegationSettings, 'international');
-
-      expect(result.size).toBe(0);
-    });
-
-    it('ignores non-linea networks', () => {
-      const delegationSettings = createDelegationSettings([
-        {
-          network: 'base',
-          chainId: '8453',
-          environment: 'production',
-          delegationContract: '0x123',
-          tokens: {},
-        },
-      ]);
-
-      const result = getValidLineaChainIds(delegationSettings, 'international');
-
-      expect(result.size).toBe(0);
     });
   });
 

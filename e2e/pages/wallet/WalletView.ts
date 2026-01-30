@@ -7,10 +7,10 @@ import {
   PredictPositionsHeaderSelectorsIDs,
   PredictPositionSelectorsIDs,
 } from '../../../app/components/UI/Predict/Predict.testIds';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 import TestHelpers from '../../helpers.js';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 8;

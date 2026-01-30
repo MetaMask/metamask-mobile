@@ -17,6 +17,11 @@ export interface SiteData {
   displayUrl: string;
   logoUrl?: string;
   featured?: boolean;
+  /**
+   * When true, applies additional padding around the logo image.
+   * Useful for logos that extend to the edges (like the MetaMask fox).
+   */
+  logoNeedsPadding?: boolean;
 }
 
 interface SiteRowItemProps {
@@ -35,14 +40,16 @@ const SiteRowItem = ({ site, onPress }: SiteRowItemProps) => {
 
   return (
     <TouchableOpacity
-      testID="site-row-item"
+      testID={`site-row-item-${site.name}`}
       onPress={onPress}
       style={tw.style('flex-row items-center py-2')}
     >
       {/* Logo */}
       <Box twClassName="flex-row items-center flex-1">
         {site.logoUrl && !imageError ? (
-          <Box twClassName="w-10 h-10 rounded-full bg-white border border-muted mr-4 overflow-hidden items-center justify-center p-0.1">
+          <Box
+            twClassName={`w-10 h-10 rounded-full bg-white border border-muted mr-4 overflow-hidden items-center justify-center ${site.logoNeedsPadding ? 'p-1' : 'p-0.1'}`}
+          >
             <Image
               testID="site-logo-image"
               source={{ uri: site.logoUrl }}

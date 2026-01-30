@@ -3,8 +3,8 @@ import Selectors from '../helpers/Selectors';
 import {
   AccountListBottomSheetSelectorsIDs,
 } from '../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect } from 'appwright';
 
 class AccountListComponent {
@@ -43,7 +43,7 @@ class AccountListComponent {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
       await AppwrightGestures.scrollIntoView(this.device, this.addAccountButton, {scrollParams: {direction: 'down'}});
-      await AppwrightGestures.tap(await this.addAccountButton); 
+      await AppwrightGestures.tap(await this.addAccountButton);
     }
   }
 
@@ -81,7 +81,7 @@ class AccountListComponent {
     const startTime = Date.now();
     const pollInterval = 500;
     const initialWaitTimeout = 5000; // 5 seconds to wait for syncing/discovering to appear
-    
+
     const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
 
     const syncingElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Syncing');
@@ -93,7 +93,7 @@ class AccountListComponent {
     while (Date.now() - startTime < initialWaitTimeout) {
       const isSyncing = await syncingElement.isVisible({ timeout: 200 }).catch(() => false);
       const isDiscovering = await discoveringElement.isVisible({ timeout: 200 }).catch(() => false);
-      
+
       if (isSyncing || isDiscovering) {
         syncingDetected = true;
         console.log(`✅ Step 1: Loading detected after ${getElapsed()}s (Syncing: ${isSyncing}, Discovering: ${isDiscovering})`);

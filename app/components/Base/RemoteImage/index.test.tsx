@@ -336,13 +336,19 @@ describe('RemoteImage', () => {
   });
 
   describe('Image Dimensions', () => {
+    let dimensionsSpy: jest.SpyInstance;
+
     beforeEach(() => {
-      jest.spyOn(Dimensions, 'get').mockReturnValue({
+      dimensionsSpy = jest.spyOn(Dimensions, 'get').mockReturnValue({
         width: 400,
         height: 800,
         scale: 1,
         fontScale: 1,
       });
+    });
+
+    afterEach(() => {
+      dimensionsSpy.mockRestore();
     });
 
     it('calculates dimensions for horizontal image', async () => {

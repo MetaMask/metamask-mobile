@@ -70,8 +70,8 @@ interface UsePerpsOrderFeesParams {
   orderType: 'market' | 'limit';
   /** Order amount in USD */
   amount: string;
-  /** Coin symbol for the trade (e.g., 'BTC', 'ETH') */
-  coin?: string;
+  /** Symbol for the trade (e.g., 'BTC', 'ETH') */
+  symbol?: string;
   /** Whether this is opening or closing a position */
   isClosing?: boolean;
   /** User's limit price */
@@ -104,7 +104,7 @@ export function clearRewardsCaches(): void {
 export function usePerpsOrderFees({
   orderType,
   amount,
-  coin = 'ETH',
+  symbol = 'ETH',
   isClosing = false,
   limitPrice,
   direction,
@@ -128,7 +128,7 @@ export function usePerpsOrderFees({
       direction,
       bestAsk: currentAskPrice,
       bestBid: currentBidPrice,
-      coin,
+      symbol,
     });
   }, [
     orderType,
@@ -136,7 +136,7 @@ export function usePerpsOrderFees({
     direction,
     currentAskPrice,
     currentBidPrice,
-    coin,
+    symbol,
   ]);
 
   // Clear stale cache on component mount to force fresh API call
@@ -189,7 +189,7 @@ export function usePerpsOrderFees({
 
         // Measure fee discount API call performance
         setMeasurement(
-          PerpsMeasurementName.PERPS_REWARDS_FEE_DISCOUNT_API_CALL,
+          PerpsMeasurementName.PerpsRewardsFeeDiscountApiCall,
           feeDiscountDuration,
           'millisecond',
         );
@@ -205,7 +205,7 @@ export function usePerpsOrderFees({
           address,
           discountBips,
           timestamp: Date.now(),
-          ttl: PERFORMANCE_CONFIG.FEE_DISCOUNT_CACHE_DURATION_MS,
+          ttl: PERFORMANCE_CONFIG.FeeDiscountCacheDurationMs,
         };
 
         return { discountBips };
@@ -256,14 +256,14 @@ export function usePerpsOrderFees({
             perpsContext: {
               type: isClose ? 'CLOSE_POSITION' : 'OPEN_POSITION',
               usdFeeValue: estimatedFeeUSD.toString(),
-              coin: tradeCoin,
+              coin: tradeCoin, // EstimatePerpsContextDto uses 'coin' field
             },
           },
         };
 
         DevLogger.log('Rewards: Points estimation request via controller', {
           estimatePointsDto,
-          coin: tradeCoin,
+          symbol: tradeCoin,
           size: amountNum,
           isClose,
         });
@@ -277,7 +277,7 @@ export function usePerpsOrderFees({
 
         // Measure points estimation API call performance
         setMeasurement(
-          PerpsMeasurementName.PERPS_REWARDS_POINTS_ESTIMATION_API_CALL,
+          PerpsMeasurementName.PerpsRewardsPointsEstimationApiCall,
           pointsEstimationDuration,
           'millisecond',
         );
@@ -285,7 +285,7 @@ export function usePerpsOrderFees({
         DevLogger.log('Rewards: Points estimated via controller', {
           pointsEstimate: result.pointsEstimate,
           bonusBips: result.bonusBips,
-          coin: tradeCoin,
+          symbol: tradeCoin,
           size: amountNum,
           isClose,
           duration: `${pointsEstimationDuration.toFixed(0)}ms`,
@@ -295,7 +295,7 @@ export function usePerpsOrderFees({
       } catch (error) {
         DevLogger.log('Rewards: Error estimating points via controller', {
           error: error instanceof Error ? error.message : String(error),
-          coin: tradeCoin,
+          symbol: tradeCoin,
           amount: tradeAmount,
         });
         // Non-blocking - return null if fails
@@ -342,7 +342,7 @@ export function usePerpsOrderFees({
         const shouldSimulateFeeDiscount =
           __DEV__ &&
           Number.parseFloat(amount) ===
-            DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
+            DEVELOPMENT_CONFIG.SimulateFeeDiscountAmount;
 
         let discountData: { discountBips?: number };
 
@@ -429,7 +429,7 @@ export function usePerpsOrderFees({
         const pointsData = await estimatePoints(
           userAddress,
           amount,
-          coin,
+          symbol,
           isClosing,
           actualFeeUSD,
         );
@@ -447,7 +447,7 @@ export function usePerpsOrderFees({
               bonusBips: pointsData.bonusBips,
               basePointsPerDollar,
               timestamp: now,
-              ttl: PERFORMANCE_CONFIG.POINTS_CALCULATION_CACHE_DURATION_MS,
+              ttl: PERFORMANCE_CONFIG.PointsCalculationCacheDurationMs,
             };
 
             DevLogger.log('Rewards: Cached points calculation parameters', {
@@ -455,7 +455,7 @@ export function usePerpsOrderFees({
               bonusBips: pointsData.bonusBips,
               basePointsPerDollar,
               cacheExpiry: new Date(
-                now + PERFORMANCE_CONFIG.POINTS_CALCULATION_CACHE_DURATION_MS,
+                now + PERFORMANCE_CONFIG.PointsCalculationCacheDurationMs,
               ).toISOString(),
             });
           }
@@ -479,7 +479,7 @@ export function usePerpsOrderFees({
         return {};
       }
     },
-    [amount, coin, isClosing, estimatePoints],
+    [amount, symbol, isClosing, estimatePoints],
   );
 
   /**
@@ -540,7 +540,7 @@ export function usePerpsOrderFees({
           orderType,
           isMaker,
           amount,
-          coin,
+          symbol,
         });
 
         if (!isComponentMounted) return;
@@ -624,7 +624,7 @@ export function usePerpsOrderFees({
     orderType,
     isMaker,
     amount,
-    coin,
+    symbol,
     calculateFees,
     applyFeeDiscount,
     handlePointsEstimation,

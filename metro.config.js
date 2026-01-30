@@ -100,7 +100,7 @@ module.exports = function (baseConfig) {
                   type: 'sourceFile',
                   filePath: path.resolve(
                     __dirname,
-                    'e2e/module-mocking/sentry/react-native.ts',
+                    'tests/module-mocking/sentry/react-native.ts',
                   ),
                 };
               }
@@ -109,7 +109,7 @@ module.exports = function (baseConfig) {
                   type: 'sourceFile',
                   filePath: path.resolve(
                     __dirname,
-                    'e2e/module-mocking/sentry/core.ts',
+                    'tests/module-mocking/sentry/core.ts',
                   ),
                 };
               }

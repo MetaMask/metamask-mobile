@@ -6,6 +6,7 @@ import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 import { AccountState } from '../providers/types';
+import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 
 interface UsePredictWalletParams {
   /**
@@ -29,6 +30,7 @@ export const usePredictAccountState = ({
   loadOnMount = true,
   refreshOnFocus = true,
 }: UsePredictWalletParams = {}) => {
+  const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +54,15 @@ export const usePredictAccountState = ({
           setIsLoading(true);
         }
         setError(null);
+
+        try {
+          await ensurePolygonNetworkExists();
+        } catch (networkError) {
+          DevLogger.log(
+            'usePredictAccountState: Failed to ensure Polygon network exists',
+            networkError,
+          );
+        }
 
         const controller = Engine.context.PredictController;
         const accountStateResponse = await controller.getAccountState({
@@ -95,7 +106,7 @@ export const usePredictAccountState = ({
         setIsRefreshing(false);
       }
     },
-    [providerId],
+    [providerId, ensurePolygonNetworkExists],
   );
 
   // Load account state on mount if enabled

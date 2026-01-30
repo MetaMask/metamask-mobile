@@ -69,7 +69,7 @@ export const useIsPriceDeviatedAboveThreshold = (
 
     const deviation = Math.abs((perpsPrice - spotPrice) / spotPrice);
 
-    const threshold = VALIDATION_THRESHOLDS.PRICE_DEVIATION;
+    const threshold = VALIDATION_THRESHOLDS.PriceDeviation;
 
     return deviation > threshold;
   }, [symbol, priceUpdate?.price, priceUpdate?.markPrice]);

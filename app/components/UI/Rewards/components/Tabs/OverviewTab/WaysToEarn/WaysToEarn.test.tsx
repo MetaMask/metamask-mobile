@@ -7,11 +7,6 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
 import { SwapBridgeNavigationLocation } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
-import {
-  selectRewardsCardSpendFeatureFlags,
-  selectRewardsMusdDepositEnabledFlag,
-} from '../../../../../../../selectors/featureFlagController/rewards';
-import { selectMusdHoldingEnabledFlag } from '../../../../../../../selectors/featureFlagController/rewards/rewardsEnabled';
 import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
@@ -27,10 +22,7 @@ const mockGoToBuy = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 let mockIsFirstTimePerpsUser = false;
-let mockIsCardSpendEnabled = false;
 let mockIsPredictEnabled = false;
-let mockIsMusdDepositEnabled = false;
-let mockIsMusdHoldingEnabled = false;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -80,14 +72,6 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
-
-// Mock selectMusdHoldingEnabledFlag selector
-jest.mock(
-  '../../../../../../../selectors/featureFlagController/rewards/rewardsEnabled',
-  () => ({
-    selectMusdHoldingEnabledFlag: jest.fn(),
-  }),
-);
 
 // Mock useMetrics hook
 jest.mock('../../../../../../hooks/useMetrics', () => ({
@@ -244,10 +228,7 @@ describe('WaysToEarn', () => {
     jest.clearAllMocks();
     openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     mockIsFirstTimePerpsUser = false;
-    mockIsCardSpendEnabled = false;
     mockIsPredictEnabled = false;
-    mockIsMusdDepositEnabled = false;
-    mockIsMusdHoldingEnabled = false;
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -268,17 +249,8 @@ describe('WaysToEarn', () => {
       if (selector === selectIsFirstTimePerpsUser) {
         return mockIsFirstTimePerpsUser;
       }
-      if (selector === selectRewardsCardSpendFeatureFlags) {
-        return mockIsCardSpendEnabled;
-      }
       if (selector === selectPredictEnabledFlag) {
         return mockIsPredictEnabled;
-      }
-      if (selector === selectRewardsMusdDepositEnabledFlag) {
-        return mockIsMusdDepositEnabled;
-      }
-      if (selector === selectMusdHoldingEnabledFlag) {
-        return mockIsMusdHoldingEnabled;
       }
       return undefined;
     });
@@ -331,12 +303,10 @@ describe('WaysToEarn', () => {
     expect(getByText('Loyalty bonus')).toBeOnTheScreen();
     // Predict hidden when flag disabled
     expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
-    // MM Card Spend hidden when flag disabled
-    expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
-    // Deposit mUSD hidden when flag disabled
-    expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
-    // Hold mUSD hidden when flag disabled
-    expect(queryByText('Hold mUSD')).not.toBeOnTheScreen();
+    // Card, Deposit mUSD, and Hold mUSD are always visible
+    expect(getByText('MetaMask Card')).toBeOnTheScreen();
+    expect(getByText('Deposit mUSD')).toBeOnTheScreen();
+    expect(getByText('Hold mUSD')).toBeOnTheScreen();
   });
 
   it('displays correct descriptions for each earning way', () => {
@@ -349,9 +319,9 @@ describe('WaysToEarn', () => {
     expect(getByText('10 points per 50 from friends')).toBeOnTheScreen();
     expect(getByText('Earn points from past trades')).toBeOnTheScreen();
     expect(queryByText('20 points per $10 prediction')).not.toBeOnTheScreen();
-    expect(queryByText('1 point per $1 spent')).not.toBeOnTheScreen();
-    expect(queryByText('2 points per $100 deposited')).not.toBeOnTheScreen();
-    expect(queryByText('10 points per $100 deposited')).not.toBeOnTheScreen();
+    expect(getByText('1 point per $1 spent')).toBeOnTheScreen();
+    expect(getByText('2 points per $100 deposited')).toBeOnTheScreen();
+    expect(getByText('10 points per $100 deposited')).toBeOnTheScreen();
   });
 
   it('opens referral bottom sheet modal when referral item is pressed', () => {
@@ -671,25 +641,17 @@ describe('WaysToEarn', () => {
   });
 
   describe('Card spend', () => {
-    it('shows Card earning way only when feature flag is enabled', () => {
-      // Arrange
-      const { queryByText, rerender } = render(<WaysToEarn />);
+    it('shows Card earning way', () => {
+      // Arrange & Act
+      const { getByText } = render(<WaysToEarn />);
 
-      // Assert hidden by default
-      expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
-
-      // Enable flag
-      mockIsCardSpendEnabled = true;
-      rerender(<WaysToEarn />);
-
-      // Assert visible now
-      expect(queryByText('MetaMask Card')).toBeOnTheScreen();
-      expect(queryByText('1 point per $1 spent')).toBeOnTheScreen();
+      // Assert
+      expect(getByText('MetaMask Card')).toBeOnTheScreen();
+      expect(getByText('1 point per $1 spent')).toBeOnTheScreen();
     });
 
     it('opens modal and navigates to Card root on CTA', () => {
       // Arrange
-      mockIsCardSpendEnabled = true;
       const { getByText } = render(<WaysToEarn />);
 
       // Open card info modal
@@ -711,25 +673,17 @@ describe('WaysToEarn', () => {
   });
 
   describe('Deposit mUSD', () => {
-    it('shows Deposit mUSD earning way only when feature flag is enabled', () => {
-      // Arrange
-      const { queryByText, rerender } = render(<WaysToEarn />);
+    it('shows Deposit mUSD earning way', () => {
+      // Arrange & Act
+      const { getByText } = render(<WaysToEarn />);
 
-      // Assert hidden by default
-      expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
-
-      // Enable flag
-      mockIsMusdDepositEnabled = true;
-      rerender(<WaysToEarn />);
-
-      // Assert visible now
-      expect(queryByText('Deposit mUSD')).toBeOnTheScreen();
-      expect(queryByText('2 points per $100 deposited')).toBeOnTheScreen();
+      // Assert
+      expect(getByText('Deposit mUSD')).toBeOnTheScreen();
+      expect(getByText('2 points per $100 deposited')).toBeOnTheScreen();
     });
 
     it('opens modal for deposit mUSD earning way when pressed', () => {
       // Arrange
-      mockIsMusdDepositEnabled = true;
       const { getByText } = render(<WaysToEarn />);
       const depositMusdButton = getByText('Deposit mUSD');
 
@@ -757,7 +711,6 @@ describe('WaysToEarn', () => {
 
     it('opens URL when deposit mUSD CTA is pressed', () => {
       // Arrange
-      mockIsMusdDepositEnabled = true;
       const { getByText } = render(<WaysToEarn />);
       const depositMusdButton = getByText('Deposit mUSD');
 
@@ -786,25 +739,17 @@ describe('WaysToEarn', () => {
   });
 
   describe('Hold mUSD', () => {
-    it('shows Hold mUSD earning way only when feature flag is enabled', () => {
-      // Arrange
-      const { queryByText, rerender } = render(<WaysToEarn />);
+    it('shows Hold mUSD earning way', () => {
+      // Arrange & Act
+      const { getByText } = render(<WaysToEarn />);
 
-      // Assert hidden by default
-      expect(queryByText('Hold mUSD')).not.toBeOnTheScreen();
-
-      // Enable flag
-      mockIsMusdHoldingEnabled = true;
-      rerender(<WaysToEarn />);
-
-      // Assert visible now
-      expect(queryByText('Hold mUSD')).toBeOnTheScreen();
-      expect(queryByText('10 points per $100 deposited')).toBeOnTheScreen();
+      // Assert
+      expect(getByText('Hold mUSD')).toBeOnTheScreen();
+      expect(getByText('10 points per $100 deposited')).toBeOnTheScreen();
     });
 
     it('opens modal for hold mUSD earning way when pressed', () => {
       // Arrange
-      mockIsMusdHoldingEnabled = true;
       const { getByText } = render(<WaysToEarn />);
       const holdMusdButton = getByText('Hold mUSD');
 
@@ -832,7 +777,6 @@ describe('WaysToEarn', () => {
 
     it('calls goToBuy with correct assetId when hold mUSD CTA is pressed', () => {
       // Arrange
-      mockIsMusdHoldingEnabled = true;
       const { getByText } = render(<WaysToEarn />);
       const holdMusdButton = getByText('Hold mUSD');
 
@@ -881,9 +825,6 @@ describe('WaysToEarn', () => {
 
   describe('useRampNavigation integration', () => {
     it('creates correct mUSD assetId using toCaipAssetType and getDecimalChainId', () => {
-      // Arrange
-      mockIsMusdHoldingEnabled = true;
-
       // Act
       render(<WaysToEarn />);
 
@@ -1005,27 +946,24 @@ describe('WaysToEarn', () => {
       // Arrange & Act
       const { getByText, queryByText } = render(<WaysToEarn />);
 
-      // Assert - Core 4 ways should be visible
+      // Assert - Core ways should be visible
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Perps')).toBeOnTheScreen();
       expect(getByText('Refer friends')).toBeOnTheScreen();
       expect(getByText('Loyalty bonus')).toBeOnTheScreen();
+      expect(getByText('MetaMask Card')).toBeOnTheScreen();
+      expect(getByText('Deposit mUSD')).toBeOnTheScreen();
+      expect(getByText('Hold mUSD')).toBeOnTheScreen();
 
-      // Feature-flagged ways should be hidden
+      // Predict still gated by feature flag
       expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
-      expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
-      expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
-      expect(queryByText('Hold mUSD')).not.toBeOnTheScreen();
     });
   });
 
   describe('Feature flag combinations', () => {
-    it('displays all earning ways when all feature flags are enabled', () => {
+    it('displays all earning ways when predict feature flag is enabled', () => {
       // Arrange
-      mockIsCardSpendEnabled = true;
       mockIsPredictEnabled = true;
-      mockIsMusdDepositEnabled = true;
-      mockIsMusdHoldingEnabled = true;
 
       // Act
       const { getByText } = render(<WaysToEarn />);
@@ -1041,12 +979,9 @@ describe('WaysToEarn', () => {
       expect(getByText('Hold mUSD')).toBeOnTheScreen();
     });
 
-    it('filters out disabled earning ways correctly', () => {
+    it('filters out predict when predict flag is disabled', () => {
       // Arrange
-      mockIsCardSpendEnabled = false;
       mockIsPredictEnabled = false;
-      mockIsMusdDepositEnabled = false;
-      mockIsMusdHoldingEnabled = false;
 
       // Act
       const { getByText, queryByText } = render(<WaysToEarn />);
@@ -1056,46 +991,18 @@ describe('WaysToEarn', () => {
       expect(getByText('Perps')).toBeOnTheScreen();
       expect(getByText('Refer friends')).toBeOnTheScreen();
       expect(getByText('Loyalty bonus')).toBeOnTheScreen();
+      expect(getByText('MetaMask Card')).toBeOnTheScreen();
+      expect(getByText('Deposit mUSD')).toBeOnTheScreen();
+      expect(getByText('Hold mUSD')).toBeOnTheScreen();
 
-      // Assert - Feature-flagged ways should be hidden
+      // Assert - Predict should be hidden
       expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
-      expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
-      expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
-      expect(queryByText('Hold mUSD')).not.toBeOnTheScreen();
-    });
-
-    it('displays only feature-flagged earning ways when core ways are filtered', () => {
-      // Arrange
-      mockIsCardSpendEnabled = true;
-      mockIsPredictEnabled = true;
-      mockIsMusdDepositEnabled = true;
-      mockIsMusdHoldingEnabled = true;
-
-      // Act
-      const { getByText } = render(<WaysToEarn />);
-
-      // Assert - All ways should be visible
-      const allWays = [
-        'Swap',
-        'Perps',
-        'Refer friends',
-        'Loyalty bonus',
-        'Prediction markets',
-        'MetaMask Card',
-        'Deposit mUSD',
-        'Hold mUSD',
-      ];
-
-      allWays.forEach((way) => {
-        expect(getByText(way)).toBeOnTheScreen();
-      });
     });
   });
 
   describe('mUSD assetId memoization', () => {
     it('creates mUSD assetId only once despite multiple renders', () => {
       // Arrange
-      mockIsMusdHoldingEnabled = true;
       mockGetDecimalChainId.mockClear();
       mockToCaipAssetType.mockClear();
 
@@ -1111,9 +1018,6 @@ describe('WaysToEarn', () => {
     });
 
     it('uses correct chain ID and address for mUSD assetId', () => {
-      // Arrange
-      mockIsMusdHoldingEnabled = true;
-
       // Act
       render(<WaysToEarn />);
 
@@ -1203,11 +1107,8 @@ describe('WaysToEarn', () => {
     });
 
     it('handles feature-flagged earning way types without throwing errors', () => {
-      // Arrange - Enable all feature flags
+      // Arrange - Enable predict feature flag
       mockIsPredictEnabled = true;
-      mockIsCardSpendEnabled = true;
-      mockIsMusdDepositEnabled = true;
-      mockIsMusdHoldingEnabled = true;
 
       const flaggedTypes = [
         { type: WayToEarnType.PREDICT, buttonText: 'Prediction markets' },
@@ -1216,7 +1117,7 @@ describe('WaysToEarn', () => {
         { type: WayToEarnType.HOLD_MUSD, buttonText: 'Hold mUSD' },
       ];
 
-      // Act & Assert - All flagged types should work without throwing
+      // Act & Assert - All types should work without throwing
       flaggedTypes.forEach(({ buttonText }) => {
         const { getByText } = render(<WaysToEarn />);
         const button = getByText(buttonText);
@@ -1275,25 +1176,16 @@ describe('WaysToEarn', () => {
           type: WayToEarnType.CARD,
           buttonText: 'MetaMask Card',
           expectedCTALabel: 'Manage card',
-          enableFlag: () => {
-            mockIsCardSpendEnabled = true;
-          },
         },
         {
           type: WayToEarnType.DEPOSIT_MUSD,
           buttonText: 'Deposit mUSD',
           expectedCTALabel: 'Deposit mUSD',
-          enableFlag: () => {
-            mockIsMusdDepositEnabled = true;
-          },
         },
         {
           type: WayToEarnType.HOLD_MUSD,
           buttonText: 'Hold mUSD',
           expectedCTALabel: 'Hold mUSD',
-          enableFlag: () => {
-            mockIsMusdHoldingEnabled = true;
-          },
         },
       ];
 
@@ -1319,9 +1211,6 @@ describe('WaysToEarn', () => {
         // Cleanup
         jest.clearAllMocks();
         mockIsPredictEnabled = false;
-        mockIsCardSpendEnabled = false;
-        mockIsMusdDepositEnabled = false;
-        mockIsMusdHoldingEnabled = false;
       });
     });
   });
@@ -1388,17 +1277,11 @@ describe('WaysToEarn', () => {
         },
         {
           buttonText: 'MetaMask Card',
-          enableFlag: () => {
-            mockIsCardSpendEnabled = true;
-          },
           expectedNavigation: () =>
             expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT),
         },
         {
           buttonText: 'Deposit mUSD',
-          enableFlag: () => {
-            mockIsMusdDepositEnabled = true;
-          },
           expectedNavigation: () =>
             expect(openURLSpy).toHaveBeenCalledWith(
               'https://go.metamask.io/turtle-musd',
@@ -1406,9 +1289,6 @@ describe('WaysToEarn', () => {
         },
         {
           buttonText: 'Hold mUSD',
-          enableFlag: () => {
-            mockIsMusdHoldingEnabled = true;
-          },
           expectedNavigation: () =>
             expect(mockGoToBuy).toHaveBeenCalledWith({
               assetId:
@@ -1449,9 +1329,6 @@ describe('WaysToEarn', () => {
         // Cleanup
         jest.clearAllMocks();
         mockIsPredictEnabled = false;
-        mockIsCardSpendEnabled = false;
-        mockIsMusdDepositEnabled = false;
-        mockIsMusdHoldingEnabled = false;
       });
     });
   });

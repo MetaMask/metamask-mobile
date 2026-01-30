@@ -16,15 +16,15 @@ import Accordion, {
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 // TODO: Remove legacy import
-import BlockaidBannerLink from '../../legacy/components/BlockaidBanner/BlockaidBannerLink';
+import BlockaidBannerLink from '../../components/blockaid-banner/BlockaidBannerLink';
 import {
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
-} from '../../legacy/components/BlockaidBanner/BlockaidBanner.constants';
+} from '../../components/blockaid-banner/BlockaidBanner.constants';
 import {
   Reason,
   SecurityAlertResponse,
-} from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/blockaid-banner/BlockaidBanner.types';
 import styleSheet from './blockaid-alert-content.styles';
 
 interface BlockaidAlertContentProps {

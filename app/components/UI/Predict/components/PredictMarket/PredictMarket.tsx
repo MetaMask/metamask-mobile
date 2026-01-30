@@ -19,12 +19,13 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   isCarousel = false,
 }) => {
-  if (market.game?.league === 'nfl') {
+  if (market.game) {
     return (
       <PredictMarketSportCard
         market={market}
         testID={testID}
         entryPoint={entryPoint}
+        isCarousel={isCarousel}
       />
     );
   }

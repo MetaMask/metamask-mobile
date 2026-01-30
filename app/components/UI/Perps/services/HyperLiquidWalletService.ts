@@ -4,12 +4,9 @@ import {
   type Hex,
   isValidHexAddress,
 } from '@metamask/utils';
-import Engine from '../../../../core/Engine';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
-import { strings } from '../../../../../locales/i18n';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
+import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
+import type { PerpsPlatformDependencies } from '../controllers/types';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -18,7 +15,14 @@ import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 export class HyperLiquidWalletService {
   private isTestnet: boolean;
 
-  constructor(options: { isTestnet?: boolean } = {}) {
+  // Platform dependencies for account access and signing
+  private readonly deps: PerpsPlatformDependencies;
+
+  constructor(
+    deps: PerpsPlatformDependencies,
+    options: { isTestnet?: boolean } = {},
+  ) {
+    this.deps = deps;
     this.isTestnet = options.isTestnet || false;
   }
 
@@ -43,11 +47,11 @@ export class HyperLiquidWalletService {
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
   } {
-    // Get current EVM account using the standardized utility
-    const evmAccount = getEvmAccountFromSelectedAccountGroup();
+    // Get current EVM account using the injected controllers.accounts
+    const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
 
     if (!evmAccount?.address) {
-      throw new Error(strings('perps.errors.noAccountSelected'));
+      throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
     }
 
     const address = evmAccount.address as Hex;
@@ -69,10 +73,11 @@ export class HyperLiquidWalletService {
       }): Promise<Hex> => {
         // Get FRESH account on every sign to handle account switches
         // This prevents race conditions where wallet adapter was created with old account
-        const currentEvmAccount = getEvmAccountFromSelectedAccountGroup();
+        const currentEvmAccount =
+          this.deps.controllers.accounts.getSelectedEvmAccount();
 
         if (!currentEvmAccount?.address) {
-          throw new Error(strings('perps.errors.noAccountSelected'));
+          throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
         }
 
         const currentAddress = currentEvmAccount.address as Hex;
@@ -85,21 +90,23 @@ export class HyperLiquidWalletService {
           message: params.message,
         };
 
-        DevLogger.log('HyperLiquidWalletService: Signing typed data', {
-          address: currentAddress,
-          primaryType: params.primaryType,
-          domain: params.domain,
-        });
+        this.deps.debugLogger.log(
+          'HyperLiquidWalletService: Signing typed data',
+          {
+            address: currentAddress,
+            primaryType: params.primaryType,
+            domain: params.domain,
+          },
+        );
 
-        // Use Engine's KeyringController to sign
-        const signature =
-          await Engine.context.KeyringController.signTypedMessage(
-            {
-              from: currentAddress,
-              data: typedData,
-            },
-            SignTypedDataVersion.V4,
-          );
+        // Use injected controllers.keyring to sign
+        const signature = await this.deps.controllers.keyring.signTypedMessage(
+          {
+            from: currentAddress,
+            data: typedData,
+          },
+          'V4',
+        );
 
         return signature as Hex;
       },
@@ -109,13 +116,13 @@ export class HyperLiquidWalletService {
   }
 
   /**
-   * Get current account ID using the standardized account utility
+   * Get current account ID using the injected controllers.accounts
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const evmAccount = getEvmAccountFromSelectedAccountGroup();
+    const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
 
     if (!evmAccount?.address) {
-      throw new Error(strings('perps.errors.noAccountSelected'));
+      throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
     }
 
     const chainId = getChainId(this.isTestnet);
@@ -132,9 +139,7 @@ export class HyperLiquidWalletService {
     const address = parsed.address as Hex;
 
     if (!isValidHexAddress(address)) {
-      throw new Error(
-        strings('perps.errors.invalidAddressFormat', { address }),
-      );
+      throw new Error(PERPS_ERROR_CODES.INVALID_ADDRESS_FORMAT);
     }
 
     return address;

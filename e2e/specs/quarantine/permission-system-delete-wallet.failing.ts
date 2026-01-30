@@ -13,15 +13,15 @@ import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWal
 import LoginView from '../../pages/wallet/LoginView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import ToastModal from '../../pages/wallet/ToastModal';
 import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
-import { DappVariants } from '../../framework/Constants';
+import { DappVariants } from '../../../tests/framework/Constants';
 
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';

@@ -18,6 +18,7 @@ export { usePerpsNavigation } from './usePerpsNavigation';
 // Connection management hooks
 export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 export { usePerpsConnection } from './usePerpsConnection';
+export { useWebSocketHealthToast } from './useWebSocketHealthToast';
 
 // State hooks (Redux selectors)
 // Portfolio balance hook (for wallet integration)
@@ -66,6 +67,7 @@ export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
+export { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 export { usePerpsTPSLForm } from './usePerpsTPSLForm';
@@ -93,6 +95,9 @@ export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
 
 // Utility hooks
 export { useStableArray } from './useStableArray';
+
+// Tab view hooks
+export { usePerpsTabExploreData } from './usePerpsTabExploreData';
 
 // Stream hooks (WebSocket subscriptions)
 export * from './stream';

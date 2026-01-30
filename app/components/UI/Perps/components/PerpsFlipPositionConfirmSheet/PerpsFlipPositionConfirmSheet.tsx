@@ -60,10 +60,10 @@ const PerpsFlipPositionConfirmSheet: React.FC<
 
   // Get current price
   const prices = usePerpsLivePrices({
-    symbols: [position.coin],
+    symbols: [position.symbol],
     throttleMs: 1000,
   });
-  const currentPrice = prices[position.coin];
+  const currentPrice = prices[position.symbol];
   const price = parseFloat(currentPrice?.price || '0');
   const markPrice = parseFloat(currentPrice?.markPrice || '0');
 
@@ -74,13 +74,13 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   );
 
   // Get top of book for maker/taker fee determination
-  const topOfBook = usePerpsTopOfBook({ symbol: position.coin });
+  const topOfBook = usePerpsTopOfBook({ symbol: position.symbol });
 
   // Calculate estimated fees
   const feeResults = usePerpsOrderFees({
     orderType: 'market',
     amount: usdAmount,
-    coin: position.coin,
+    symbol: position.symbol,
     isClosing: false,
     direction: oppositeDirection,
     currentAskPrice: topOfBook?.bestAsk
@@ -225,7 +225,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                     {strings('perps.flip_position.est_size')}
                   </Text>
                   <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                    {positionSize} {getPerpsDisplaySymbol(position.coin)}
+                    {positionSize} {getPerpsDisplaySymbol(position.symbol)}
                   </Text>
                 </View>
               </View>

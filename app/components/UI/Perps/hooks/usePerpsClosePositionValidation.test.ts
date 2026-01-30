@@ -17,7 +17,7 @@ describe('usePerpsClosePositionValidation', () => {
   });
 
   const defaultParams = {
-    coin: 'BTC',
+    symbol: 'BTC',
     closePercentage: 50,
     closeAmount: '0.5',
     orderType: 'market' as const,
@@ -169,7 +169,7 @@ describe('usePerpsClosePositionValidation', () => {
     const currentPrice = defaultParams.currentPrice;
     const priceAboveThreshold =
       currentPrice *
-      (1 + VALIDATION_THRESHOLDS.LIMIT_PRICE_DIFFERENCE_WARNING + 0.1);
+      (1 + VALIDATION_THRESHOLDS.LimitPriceDifferenceWarning + 0.1);
 
     const params = {
       ...defaultParams,

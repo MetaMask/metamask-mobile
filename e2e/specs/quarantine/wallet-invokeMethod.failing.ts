@@ -5,18 +5,18 @@ import { SolScope } from '@metamask/keyring-api';
 import TestHelpers from '../../helpers';
 import { SmokeMultiChainAPI } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import { DappVariants } from '../../framework/Constants';
+import { DappVariants } from '../../../tests/framework/Constants';
 
 const SOLANA_MAINNET_CHAIN_ID = SolScope.Mainnet;
 
@@ -24,7 +24,7 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
   it('should be able to call method: signIn', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withSolanaFixture().build(),
+        fixture: new FixtureBuilder().build(),
         dapps: [
           {
             dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,

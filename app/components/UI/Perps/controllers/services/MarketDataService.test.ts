@@ -1,16 +1,16 @@
 import { MarketDataService } from './MarketDataService';
-import { createMockServiceContext } from '../../__mocks__/serviceMocks';
+import {
+  createMockServiceContext,
+  createMockInfrastructure,
+} from '../../__mocks__/serviceMocks';
 import {
   createMockHyperLiquidProvider,
   createMockPosition,
   createMockOrder,
 } from '../../__mocks__/providerMocks';
-import { trace, endTrace } from '../../../../../util/trace';
-import Logger from '../../../../../util/Logger';
-import { setMeasurement } from '@sentry/react-native';
 import type { ServiceContext } from './ServiceContext';
 import type {
-  IPerpsProvider,
+  PerpsProvider,
   Position,
   AccountState,
   Order,
@@ -20,25 +20,24 @@ import type {
   FeeCalculationResult,
   FeeCalculationParams,
   AssetRoute,
+  PerpsPlatformDependencies,
 } from '../types';
 import type { CandleData } from '../../types/perps-types';
 import type { CandlePeriod } from '../../constants/chartConfig';
 
-jest.mock('../../../../../util/trace');
-jest.mock('../../../../../util/Logger');
-jest.mock('@sentry/react-native');
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
-jest.mock('react-native-performance', () => ({
-  now: jest.fn(() => 1000),
-}));
 
 describe('MarketDataService', () => {
-  let mockProvider: jest.Mocked<IPerpsProvider>;
+  let mockProvider: jest.Mocked<PerpsProvider>;
   let mockContext: ServiceContext;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
+  let marketDataService: MarketDataService;
 
   beforeEach(() => {
     mockProvider =
-      createMockHyperLiquidProvider() as unknown as jest.Mocked<IPerpsProvider>;
+      createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
+    mockDeps = createMockInfrastructure();
+    marketDataService = new MarketDataService(mockDeps);
     mockContext = createMockServiceContext({
       errorContext: { controller: 'MarketDataService', method: 'test' },
     });
@@ -54,16 +53,16 @@ describe('MarketDataService', () => {
       const mockPositions: Position[] = [createMockPosition()];
       mockProvider.getPositions.mockResolvedValue(mockPositions);
 
-      const result = await MarketDataService.getPositions({
+      const result = await marketDataService.getPositions({
         provider: mockProvider,
         context: mockContext,
       });
 
       expect(result).toEqual(mockPositions);
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Perps Get Positions' }),
       );
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Perps Get Positions',
           data: { success: true },
@@ -76,7 +75,7 @@ describe('MarketDataService', () => {
       const mockPositions: Position[] = [createMockPosition()];
       mockProvider.getPositions.mockResolvedValue(mockPositions);
 
-      await MarketDataService.getPositions({
+      await marketDataService.getPositions({
         provider: mockProvider,
         context: mockContext,
       });
@@ -91,13 +90,13 @@ describe('MarketDataService', () => {
       mockProvider.getPositions.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.getPositions({
+        marketDataService.getPositions({
           provider: mockProvider,
           context: mockContext,
         }),
       ).rejects.toThrow('Network error');
 
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ success: false }),
         }),
@@ -113,7 +112,7 @@ describe('MarketDataService', () => {
         stateManager: undefined,
       });
 
-      const result = await MarketDataService.getPositions({
+      const result = await marketDataService.getPositions({
         provider: mockProvider,
         context: contextWithoutState,
       });
@@ -126,7 +125,7 @@ describe('MarketDataService', () => {
       mockProvider.getPositions.mockResolvedValue(mockPositions);
       const params = { skipCache: true };
 
-      await MarketDataService.getPositions({
+      await marketDataService.getPositions({
         provider: mockProvider,
         params,
         context: mockContext,
@@ -140,7 +139,7 @@ describe('MarketDataService', () => {
       mockProvider.getPositions.mockRejectedValue(error);
 
       await expect(
-        MarketDataService.getPositions({
+        marketDataService.getPositions({
           provider: mockProvider,
           context: mockContext,
         }),
@@ -168,16 +167,16 @@ describe('MarketDataService', () => {
       ];
       mockProvider.getOrderFills.mockResolvedValue(mockOrderFills);
 
-      const result = await MarketDataService.getOrderFills({
+      const result = await marketDataService.getOrderFills({
         provider: mockProvider,
         context: mockContext,
       });
 
       expect(result).toEqual(mockOrderFills);
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Perps Order Fills Fetch' }),
       );
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({ data: { success: true } }),
       );
     });
@@ -187,13 +186,13 @@ describe('MarketDataService', () => {
       mockProvider.getOrderFills.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.getOrderFills({
+        marketDataService.getOrderFills({
           provider: mockProvider,
           context: mockContext,
         }),
       ).rejects.toThrow('API error');
 
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
         mockError,
         expect.objectContaining({
           tags: expect.objectContaining({ feature: 'perps' }),
@@ -205,7 +204,7 @@ describe('MarketDataService', () => {
       mockProvider.getOrderFills.mockResolvedValue([]);
       const params = { startTime: Date.now() - 86400000, limit: 50 };
 
-      await MarketDataService.getOrderFills({
+      await marketDataService.getOrderFills({
         provider: mockProvider,
         params,
         context: mockContext,
@@ -220,16 +219,16 @@ describe('MarketDataService', () => {
       const mockOrders: Order[] = [createMockOrder()];
       mockProvider.getOrders.mockResolvedValue(mockOrders);
 
-      const result = await MarketDataService.getOrders({
+      const result = await marketDataService.getOrders({
         provider: mockProvider,
         context: mockContext,
       });
 
       expect(result).toEqual(mockOrders);
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Perps Orders Fetch' }),
       );
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({ data: { success: true } }),
       );
     });
@@ -239,14 +238,14 @@ describe('MarketDataService', () => {
       mockProvider.getOrders.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.getOrders({
+        marketDataService.getOrders({
           provider: mockProvider,
           context: mockContext,
         }),
       ).rejects.toThrow('Failed to fetch orders');
 
-      expect(Logger.error).toHaveBeenCalled();
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ success: false }),
         }),
@@ -259,14 +258,14 @@ describe('MarketDataService', () => {
       const mockOrders: Order[] = [createMockOrder({ status: 'open' })];
       mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
 
-      const result = await MarketDataService.getOpenOrders({
+      const result = await marketDataService.getOpenOrders({
         provider: mockProvider,
         context: mockContext,
       });
 
       expect(result).toEqual(mockOrders);
-      expect(trace).toHaveBeenCalled();
-      expect(setMeasurement).toHaveBeenCalled();
+      expect(mockDeps.tracer.trace).toHaveBeenCalled();
+      expect(mockDeps.tracer.setMeasurement).toHaveBeenCalled();
     });
 
     it('handles errors in open orders fetch', async () => {
@@ -274,13 +273,13 @@ describe('MarketDataService', () => {
       mockProvider.getOpenOrders.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.getOpenOrders({
+        marketDataService.getOpenOrders({
           provider: mockProvider,
           context: mockContext,
         }),
       ).rejects.toThrow('Connection timeout');
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 
@@ -296,13 +295,13 @@ describe('MarketDataService', () => {
       ];
       mockProvider.getFunding.mockResolvedValue(mockFunding);
 
-      const result = await MarketDataService.getFunding({
+      const result = await marketDataService.getFunding({
         provider: mockProvider,
         context: mockContext,
       });
 
       expect(result).toEqual(mockFunding);
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Perps Funding Fetch' }),
       );
     });
@@ -312,13 +311,13 @@ describe('MarketDataService', () => {
       mockProvider.getFunding.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.getFunding({
+        marketDataService.getFunding({
           provider: mockProvider,
           context: mockContext,
         }),
       ).rejects.toThrow('Funding data unavailable');
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 
@@ -333,14 +332,14 @@ describe('MarketDataService', () => {
       };
       mockProvider.getAccountState.mockResolvedValue(mockAccountState);
 
-      const result = await MarketDataService.getAccountState({
+      const result = await marketDataService.getAccountState({
         provider: mockProvider,
         context: mockContext,
       });
 
       expect(result).toEqual(mockAccountState);
       expect(mockContext.stateManager?.update).toHaveBeenCalled();
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Perps Get Account State' }),
       );
     });
@@ -349,7 +348,7 @@ describe('MarketDataService', () => {
       mockProvider.getAccountState.mockResolvedValue(null as never);
 
       await expect(
-        MarketDataService.getAccountState({
+        marketDataService.getAccountState({
           provider: mockProvider,
           context: mockContext,
         }),
@@ -357,7 +356,7 @@ describe('MarketDataService', () => {
         'Failed to get account state: received null/undefined response',
       );
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
 
     it('handles errors and updates error state', async () => {
@@ -365,14 +364,14 @@ describe('MarketDataService', () => {
       mockProvider.getAccountState.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.getAccountState({
+        marketDataService.getAccountState({
           provider: mockProvider,
           context: mockContext,
         }),
       ).rejects.toThrow('Account fetch failed');
 
       expect(mockContext.stateManager?.update).toHaveBeenCalled();
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             success: false,
@@ -392,13 +391,13 @@ describe('MarketDataService', () => {
       };
       mockProvider.getAccountState.mockResolvedValue(mockAccountState);
 
-      await MarketDataService.getAccountState({
+      await marketDataService.getAccountState({
         provider: mockProvider,
         params: { source: 'user-action' },
         context: mockContext,
       });
 
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({
           tags: expect.objectContaining({ source: 'user-action' }),
         }),
@@ -414,13 +413,13 @@ describe('MarketDataService', () => {
       };
       mockProvider.getHistoricalPortfolio.mockResolvedValue(mockResult);
 
-      const result = await MarketDataService.getHistoricalPortfolio({
+      const result = await marketDataService.getHistoricalPortfolio({
         provider: mockProvider,
         context: mockContext,
       });
 
       expect(result).toEqual(mockResult);
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Perps Get Historical Portfolio' }),
       );
     });
@@ -432,7 +431,7 @@ describe('MarketDataService', () => {
       };
 
       await expect(
-        MarketDataService.getHistoricalPortfolio({
+        marketDataService.getHistoricalPortfolio({
           provider: providerWithoutMethod as never,
           context: mockContext,
         }),
@@ -444,14 +443,14 @@ describe('MarketDataService', () => {
       mockProvider.getHistoricalPortfolio.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.getHistoricalPortfolio({
+        marketDataService.getHistoricalPortfolio({
           provider: mockProvider,
           context: mockContext,
         }),
       ).rejects.toThrow('Portfolio data error');
 
       expect(mockContext.stateManager?.update).toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 
@@ -463,14 +462,14 @@ describe('MarketDataService', () => {
       ];
       mockProvider.getMarkets.mockResolvedValue(mockMarkets);
 
-      const result = await MarketDataService.getMarkets({
+      const result = await marketDataService.getMarkets({
         provider: mockProvider,
         context: mockContext,
       });
 
       expect(result).toEqual(mockMarkets);
       expect(mockContext.stateManager?.update).toHaveBeenCalled();
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Perps Get Markets' }),
       );
     });
@@ -478,15 +477,15 @@ describe('MarketDataService', () => {
     it('includes symbol count in trace tags when symbols provided', async () => {
       mockProvider.getMarkets.mockResolvedValue([]);
 
-      await MarketDataService.getMarkets({
+      await marketDataService.getMarkets({
         provider: mockProvider,
         params: { symbols: ['BTC', 'ETH', 'SOL'] },
         context: mockContext,
       });
 
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({
-          tags: expect.objectContaining({ symbolCount: 3 }),
+          tags: expect.objectContaining({ symbolCount: '3' }),
         }),
       );
     });
@@ -496,14 +495,14 @@ describe('MarketDataService', () => {
       mockProvider.getMarkets.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.getMarkets({
+        marketDataService.getMarkets({
           provider: mockProvider,
           context: mockContext,
         }),
       ).rejects.toThrow('Markets unavailable');
 
       expect(mockContext.stateManager?.update).toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 
@@ -515,8 +514,9 @@ describe('MarketDataService', () => {
         getAvailableDexs: jest.fn().mockResolvedValue(mockDexs),
       };
 
-      const result = await MarketDataService.getAvailableDexs({
+      const result = await marketDataService.getAvailableDexs({
         provider: providerWithDexs as never,
+        context: mockContext,
       });
 
       expect(result).toEqual(mockDexs);
@@ -529,12 +529,13 @@ describe('MarketDataService', () => {
       };
 
       await expect(
-        MarketDataService.getAvailableDexs({
+        marketDataService.getAvailableDexs({
           provider: providerWithoutDexs as never,
+          context: mockContext,
         }),
       ).rejects.toThrow('Provider does not support HIP-3 DEXs');
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 
@@ -548,9 +549,10 @@ describe('MarketDataService', () => {
       };
       mockProvider.calculateLiquidationPrice.mockResolvedValue('45000');
 
-      const result = await MarketDataService.calculateLiquidationPrice({
+      const result = await marketDataService.calculateLiquidationPrice({
         provider: mockProvider,
         params,
+        context: mockContext,
       });
 
       expect(result).toBe('45000');
@@ -570,13 +572,14 @@ describe('MarketDataService', () => {
       mockProvider.calculateLiquidationPrice.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.calculateLiquidationPrice({
+        marketDataService.calculateLiquidationPrice({
           provider: mockProvider,
           params,
+          context: mockContext,
         }),
       ).rejects.toThrow('Calculation failed');
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 
@@ -588,9 +591,10 @@ describe('MarketDataService', () => {
       };
       mockProvider.calculateMaintenanceMargin.mockResolvedValue(500);
 
-      const result = await MarketDataService.calculateMaintenanceMargin({
+      const result = await marketDataService.calculateMaintenanceMargin({
         provider: mockProvider,
         params,
+        context: mockContext,
       });
 
       expect(result).toBe(500);
@@ -605,13 +609,14 @@ describe('MarketDataService', () => {
       mockProvider.calculateMaintenanceMargin.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.calculateMaintenanceMargin({
+        marketDataService.calculateMaintenanceMargin({
           provider: mockProvider,
           params,
+          context: mockContext,
         }),
       ).rejects.toThrow('Margin calculation error');
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 
@@ -619,9 +624,10 @@ describe('MarketDataService', () => {
     it('fetches max leverage for asset', async () => {
       mockProvider.getMaxLeverage.mockResolvedValue(20);
 
-      const result = await MarketDataService.getMaxLeverage({
+      const result = await marketDataService.getMaxLeverage({
         provider: mockProvider,
         asset: 'BTC',
+        context: mockContext,
       });
 
       expect(result).toBe(20);
@@ -633,13 +639,14 @@ describe('MarketDataService', () => {
       mockProvider.getMaxLeverage.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.getMaxLeverage({
+        marketDataService.getMaxLeverage({
           provider: mockProvider,
           asset: 'INVALID',
+          context: mockContext,
         }),
       ).rejects.toThrow('Asset not found');
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 
@@ -647,7 +654,7 @@ describe('MarketDataService', () => {
     it('calculates fees successfully', async () => {
       const params: FeeCalculationParams = {
         orderType: 'market',
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '0.1',
         isMaker: false,
       };
@@ -660,9 +667,10 @@ describe('MarketDataService', () => {
       };
       mockProvider.calculateFees.mockResolvedValue(mockFees);
 
-      const result = await MarketDataService.calculateFees({
+      const result = await marketDataService.calculateFees({
         provider: mockProvider,
         params,
+        context: mockContext,
       });
 
       expect(result).toEqual(mockFees);
@@ -671,7 +679,7 @@ describe('MarketDataService', () => {
     it('handles fee calculation errors', async () => {
       const params: FeeCalculationParams = {
         orderType: 'limit',
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '0.1',
         isMaker: true,
       };
@@ -679,20 +687,21 @@ describe('MarketDataService', () => {
       mockProvider.calculateFees.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.calculateFees({
+        marketDataService.calculateFees({
           provider: mockProvider,
           params,
+          context: mockContext,
         }),
       ).rejects.toThrow('Fee calculation failed');
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 
   describe('validateOrder', () => {
     it('validates order successfully', async () => {
       const params = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market' as const,
@@ -700,9 +709,10 @@ describe('MarketDataService', () => {
       const mockResult = { isValid: true };
       mockProvider.validateOrder.mockResolvedValue(mockResult);
 
-      const result = await MarketDataService.validateOrder({
+      const result = await marketDataService.validateOrder({
         provider: mockProvider,
         params,
+        context: mockContext,
       });
 
       expect(result).toEqual(mockResult);
@@ -710,7 +720,7 @@ describe('MarketDataService', () => {
 
     it('returns validation error when order invalid', async () => {
       const params = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.001',
         orderType: 'market' as const,
@@ -718,9 +728,10 @@ describe('MarketDataService', () => {
       const mockResult = { isValid: false, error: 'Size too small' };
       mockProvider.validateOrder.mockResolvedValue(mockResult);
 
-      const result = await MarketDataService.validateOrder({
+      const result = await marketDataService.validateOrder({
         provider: mockProvider,
         params,
+        context: mockContext,
       });
 
       expect(result).toEqual(mockResult);
@@ -728,7 +739,7 @@ describe('MarketDataService', () => {
 
     it('handles validation errors', async () => {
       const params = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market' as const,
@@ -737,28 +748,30 @@ describe('MarketDataService', () => {
       mockProvider.validateOrder.mockRejectedValue(mockError);
 
       await expect(
-        MarketDataService.validateOrder({
+        marketDataService.validateOrder({
           provider: mockProvider,
           params,
+          context: mockContext,
         }),
       ).rejects.toThrow('Validation service unavailable');
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 
   describe('validateClosePosition', () => {
     it('validates close position request', async () => {
       const params = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
       };
       const mockResult = { isValid: true };
       mockProvider.validateClosePosition.mockResolvedValue(mockResult);
 
-      const result = await MarketDataService.validateClosePosition({
+      const result = await marketDataService.validateClosePosition({
         provider: mockProvider,
         params,
+        context: mockContext,
       });
 
       expect(result).toEqual(mockResult);
@@ -766,15 +779,16 @@ describe('MarketDataService', () => {
 
     it('returns error when close position invalid', async () => {
       const params = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '10',
       };
       const mockResult = { isValid: false, error: 'Position size mismatch' };
       mockProvider.validateClosePosition.mockResolvedValue(mockResult);
 
-      const result = await MarketDataService.validateClosePosition({
+      const result = await marketDataService.validateClosePosition({
         provider: mockProvider,
         params,
+        context: mockContext,
       });
 
       expect(result).toEqual(mockResult);
@@ -794,7 +808,7 @@ describe('MarketDataService', () => {
       ];
       mockProvider.getWithdrawalRoutes.mockReturnValue(mockRoutes);
 
-      const result = MarketDataService.getWithdrawalRoutes({
+      const result = marketDataService.getWithdrawalRoutes({
         provider: mockProvider,
       });
 
@@ -806,12 +820,12 @@ describe('MarketDataService', () => {
         throw new Error('Routes unavailable');
       });
 
-      const result = MarketDataService.getWithdrawalRoutes({
+      const result = marketDataService.getWithdrawalRoutes({
         provider: mockProvider,
       });
 
+      // Silent fail - withdrawal routes are not critical
       expect(result).toEqual([]);
-      expect(Logger.error).toHaveBeenCalled();
     });
   });
 
@@ -821,7 +835,7 @@ describe('MarketDataService', () => {
         'https://explorer.example.com',
       );
 
-      const result = MarketDataService.getBlockExplorerUrl({
+      const result = marketDataService.getBlockExplorerUrl({
         provider: mockProvider,
       });
 
@@ -834,7 +848,7 @@ describe('MarketDataService', () => {
         `https://explorer.example.com/address/${address}`,
       );
 
-      const result = MarketDataService.getBlockExplorerUrl({
+      const result = marketDataService.getBlockExplorerUrl({
         provider: mockProvider,
         address,
       });
@@ -846,7 +860,7 @@ describe('MarketDataService', () => {
 
   describe('fetchHistoricalCandles', () => {
     const mockCandleData: CandleData = {
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: '1h' as CandlePeriod,
       candles: [
         {
@@ -870,9 +884,9 @@ describe('MarketDataService', () => {
         fetchHistoricalCandles: jest.fn().mockResolvedValue(mockCandleData),
       };
 
-      const result = await MarketDataService.fetchHistoricalCandles({
+      const result = await marketDataService.fetchHistoricalCandles({
         provider: mockProvider,
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as CandlePeriod,
         limit: 100,
         context: mockContext,
@@ -882,10 +896,10 @@ describe('MarketDataService', () => {
       expect(
         hyperLiquidProvider.clientService.fetchHistoricalCandles,
       ).toHaveBeenCalledWith('BTC', '1h', 100, undefined);
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Perps Fetch Historical Candles' }),
       );
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Perps Fetch Historical Candles',
           data: { success: true },
@@ -897,16 +911,16 @@ describe('MarketDataService', () => {
       const providerWithoutClient = { ...mockProvider };
 
       await expect(
-        MarketDataService.fetchHistoricalCandles({
+        marketDataService.fetchHistoricalCandles({
           provider: providerWithoutClient,
-          coin: 'BTC',
+          symbol: 'BTC',
           interval: '1h' as CandlePeriod,
           context: mockContext,
         }),
       ).rejects.toThrow('Historical candles not supported by provider');
 
-      expect(Logger.error).toHaveBeenCalled();
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ success: false }),
         }),
@@ -925,9 +939,9 @@ describe('MarketDataService', () => {
       };
 
       await expect(
-        MarketDataService.fetchHistoricalCandles({
+        marketDataService.fetchHistoricalCandles({
           provider: mockProvider,
-          coin: 'BTC',
+          symbol: 'BTC',
           interval: '1h' as CandlePeriod,
           context: mockContext,
         }),

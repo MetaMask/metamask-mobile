@@ -47,27 +47,17 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 4,
       marginRight: 4,
     },
+    headerContainerWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
     listContainer: {
       flex: 1,
     },
     listContainerWithTabBar: {
       flex: 1,
     },
-    tabsContainer: {
-      flex: 1,
-      paddingTop: 12,
-    },
-    tabScrollView: {
-      flex: 1,
-    },
-    tabContentContainer: {},
-    tabBarContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-    },
-
     listHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',

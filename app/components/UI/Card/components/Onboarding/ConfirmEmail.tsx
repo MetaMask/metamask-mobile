@@ -28,13 +28,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
-import { Platform, TextInputProps } from 'react-native';
-
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select<TextInputProps['autoComplete']>({
-  android: 'sms-otp',
-  default: 'one-time-code',
-});
 
 const ConfirmEmail = () => {
   const navigation = useNavigation();
@@ -241,8 +235,7 @@ const ConfirmEmail = () => {
           size={TextFieldSize.Lg}
           value={confirmCode}
           keyboardType="number-pad"
-          textContentType="oneTimeCode"
-          autoComplete={autoComplete}
+          autoComplete="one-time-code"
           maxLength={CODE_LENGTH}
           accessibilityLabel={strings(
             'card.card_onboarding.confirm_email.code_label',
@@ -330,6 +323,7 @@ const ConfirmEmail = () => {
       })}
       formFields={renderFormFields()}
       actions={renderActions()}
+      stickyActions
     />
   );
 };

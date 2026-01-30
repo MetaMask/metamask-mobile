@@ -69,6 +69,7 @@ export const useValidateReferralCode = (
   const debouncedValidation = useCallback(
     debounce(async (code: string) => {
       setUnknownError(false);
+      setError('');
       const validationError = await validateCode(code);
       setError(validationError);
       setIsValidating(false);

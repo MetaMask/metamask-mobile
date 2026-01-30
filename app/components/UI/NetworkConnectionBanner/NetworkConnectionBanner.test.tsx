@@ -7,26 +7,34 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 jest.mock('../../hooks/useNetworkConnectionBanner');
 
-jest.mock('../../../util/theme', () => ({
-  useAppTheme: jest.fn(() => ({
-    colors: {
-      background: {
-        section: '#FFFFFF',
-      },
-      icon: {
-        default: '#000000',
-      },
-      error: {
-        muted: '#FFE5E5',
-        default: '#FF0000',
-      },
+jest.mock('../../../util/theme', () => {
+  const mockThemeColors = {
+    background: {
+      default: '#FFFFFF',
+      section: '#FFFFFF',
     },
+    icon: {
+      default: '#000000',
+    },
+    error: {
+      muted: '#FFE5E5',
+      default: '#FF0000',
+    },
+  };
+
+  const theme = {
+    colors: mockThemeColors,
     themeAppearance: 'light',
     typography: {},
     shadows: {},
     brandColors: {},
-  })),
-}));
+  };
+
+  return {
+    useAppTheme: jest.fn(() => theme),
+    mockTheme: theme,
+  };
+});
 
 // Necessary because we mock SVGs by default
 jest.mock('@metamask/design-system-react-native', () => {
@@ -57,10 +65,11 @@ describe('NetworkConnectionBanner', () => {
   });
 
   describe('when banner is not visible', () => {
-    it('should not render when visible is false', () => {
+    it('does not render when visible is false', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         networkConnectionBannerState: { visible: false },
         updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
       });
 
       const { root } = renderWithProvider(<NetworkConnectionBanner />);
@@ -95,7 +104,7 @@ describe('NetworkConnectionBanner', () => {
     ];
 
     it.each(customNetworkStatusTestCases)(
-      'should render the banner with correct structure for $status status with custom network',
+      'renders the banner with correct structure for $status status with custom network',
       ({ status, expectedMessage, updateRpcButtonText }) => {
         useNetworkConnectionBannerMock.mockReturnValue({
           networkConnectionBannerState: {
@@ -107,6 +116,7 @@ describe('NetworkConnectionBanner', () => {
             isInfuraEndpoint: false,
           },
           updateRpc: mockUpdateRpc,
+          switchToInfura: jest.fn(),
         });
 
         const { getByTestId, getByText } = renderWithProvider(
@@ -120,7 +130,7 @@ describe('NetworkConnectionBanner', () => {
     );
 
     it.each(infuraNetworkStatusTestCases)(
-      'should render the banner with correct structure for $status status with Infura network',
+      'renders the banner with correct structure for $status status with Infura network',
       ({ status, expectedMessage }) => {
         useNetworkConnectionBannerMock.mockReturnValue({
           networkConnectionBannerState: {
@@ -132,6 +142,7 @@ describe('NetworkConnectionBanner', () => {
             isInfuraEndpoint: true,
           },
           updateRpc: mockUpdateRpc,
+          switchToInfura: jest.fn(),
         });
 
         const { getByTestId, getByText, queryByText } = renderWithProvider(
@@ -146,7 +157,7 @@ describe('NetworkConnectionBanner', () => {
     );
 
     it.each(customNetworkStatusTestCases)(
-      'should call updateRpc when Update RPC button is pressed for $status status',
+      'calls updateRpc when Update RPC button is pressed for $status status',
       ({ status, updateRpcButtonText }) => {
         useNetworkConnectionBannerMock.mockReturnValue({
           networkConnectionBannerState: {
@@ -158,6 +169,7 @@ describe('NetworkConnectionBanner', () => {
             isInfuraEndpoint: false,
           },
           updateRpc: mockUpdateRpc,
+          switchToInfura: jest.fn(),
         });
 
         const { getByText } = renderWithProvider(<NetworkConnectionBanner />);
@@ -187,7 +199,7 @@ describe('NetworkConnectionBanner', () => {
     ];
 
     it.each(emptyNameTestCases)(
-      'should handle network with empty name for $status status',
+      'handles network with empty name for $status status',
       ({ status, expectedMessage }) => {
         useNetworkConnectionBannerMock.mockReturnValue({
           networkConnectionBannerState: {
@@ -199,6 +211,7 @@ describe('NetworkConnectionBanner', () => {
             isInfuraEndpoint: true,
           },
           updateRpc: mockUpdateRpc,
+          switchToInfura: jest.fn(),
         });
 
         const { getByText } = renderWithProvider(<NetworkConnectionBanner />);
@@ -207,7 +220,7 @@ describe('NetworkConnectionBanner', () => {
       },
     );
 
-    it('should handle multiple rapid button presses', () => {
+    it('handles multiple rapid button presses', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         networkConnectionBannerState: {
           visible: true,
@@ -218,6 +231,7 @@ describe('NetworkConnectionBanner', () => {
           isInfuraEndpoint: false,
         },
         updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
       });
 
       const { getByText } = renderWithProvider(<NetworkConnectionBanner />);

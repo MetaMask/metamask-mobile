@@ -49,3 +49,9 @@ export const selectMultichainAccountsIntroModalSeen = (state: RootState) =>
  */
 export const selectMusdConversionEducationSeen = (state: RootState) =>
   state.user?.musdConversionEducationSeen ?? false;
+
+/**
+ * Selects the musdConversionAssetDetailCtasSeen state
+ */
+export const selectMusdConversionAssetDetailCtasSeen = (state: RootState) =>
+  state.user?.musdConversionAssetDetailCtasSeen ?? {};

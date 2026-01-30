@@ -21,6 +21,7 @@ jobs:
       semver: ${{ steps.extract-version.outputs.semver }}
       has-label: ${{ steps.check-label.outputs.has-label }}
       branch-name: ${{ steps.extract-version.outputs.branch-name }}
+      pr-number: ${{ steps.check-label.outputs.pr-number }}
     permissions:
       pull-requests: read
     steps:
@@ -63,6 +64,7 @@ jobs:
           fi
 
           echo "Found PR #$PR_NUMBER"
+          echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
           # Check if PR has the auto-rc-builds label
           LABELS=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name' || echo "")
@@ -94,13 +96,25 @@ jobs:
       - validate-and-check-label
       - bump-version
     if: needs.validate-and-check-label.outputs.has-label == 'true'
+    outputs:
+      android-public-url: ${{ steps.rc-build.outputs.android-public-url }}
+      bitrise-pipeline-url: ${{ steps.rc-build.outputs.bitrise-pipeline-url }}
+      build-number: ${{ steps.rc-build.outputs.build-number }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn install --immutable
       - name: Trigger RC Build
+        id: rc-build
         env:
           SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
           GH_REF_NAME: ${{ github.ref_name }}
@@ -109,4 +123,33 @@ jobs:
           BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
           BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         run: ./.github/scripts/rc-builds.sh
+
+  post-rc-build-comment:
+    name: Post RC Build Comment
+    runs-on: ubuntu-latest
+    needs:
+      - validate-and-check-label
+      - trigger-rc-build
+    if: always() && needs.trigger-rc-build.result == 'success' && needs.validate-and-check-label.outputs.pr-number != ''
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Post RC Build Comment
+        run: node scripts/post-rc-build-comment.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.validate-and-check-label.outputs.pr-number }}
+          SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
+          BUILD_NUMBER: ${{ needs.trigger-rc-build.outputs.build-number }}
+          ANDROID_PUBLIC_URL: ${{ needs.trigger-rc-build.outputs.android-public-url }}
+          BITRISE_PIPELINE_URL: ${{ needs.trigger-rc-build.outputs.bitrise-pipeline-url }}

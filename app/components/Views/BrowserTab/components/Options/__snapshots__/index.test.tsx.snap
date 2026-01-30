@@ -315,7 +315,7 @@ exports[`Options should render options correctly 1`] = `
         }
         testID="browser-options-menu-add-favorites"
       >
-        Add to Favorites
+        Add to favorites
       </Text>
     </TouchableOpacity>
     <TouchableOpacity

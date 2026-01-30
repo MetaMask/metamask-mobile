@@ -42,24 +42,24 @@ describe('usePerpsSorting', () => {
       const { result } = renderHook(() => usePerpsSorting());
 
       expect(result.current.selectedOptionId).toBe(
-        MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+        MARKET_SORTING_CONFIG.DefaultSortOptionId,
       );
       expect(result.current.sortBy).toBe(
-        MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
+        MARKET_SORTING_CONFIG.SortFields.Volume,
       );
       expect(result.current.direction).toBe(
-        MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        MARKET_SORTING_CONFIG.DefaultDirection,
       );
     });
 
     it('initializes with custom sort option', () => {
       const { result } = renderHook(() =>
-        usePerpsSorting({ initialOptionId: 'priceChange-asc' }),
+        usePerpsSorting({ initialOptionId: 'priceChange' }),
       );
 
-      expect(result.current.selectedOptionId).toBe('priceChange-asc');
+      expect(result.current.selectedOptionId).toBe('priceChange');
       expect(result.current.sortBy).toBe('priceChange');
-      expect(result.current.direction).toBe('asc');
+      expect(result.current.direction).toBe('desc');
     });
   });
 
@@ -80,14 +80,10 @@ describe('usePerpsSorting', () => {
       const { result } = renderHook(() => usePerpsSorting());
 
       act(() => {
-        result.current.handleOptionChange(
-          'priceChange-asc',
-          'priceChange',
-          'asc',
-        );
+        result.current.handleOptionChange('priceChange', 'priceChange', 'asc');
       });
 
-      expect(result.current.selectedOptionId).toBe('priceChange-asc');
+      expect(result.current.selectedOptionId).toBe('priceChange');
       expect(result.current.sortBy).toBe('priceChange');
       expect(result.current.direction).toBe('asc');
     });
@@ -96,14 +92,10 @@ describe('usePerpsSorting', () => {
       const { result } = renderHook(() => usePerpsSorting());
 
       act(() => {
-        result.current.handleOptionChange(
-          'priceChange-desc',
-          'priceChange',
-          'desc',
-        );
+        result.current.handleOptionChange('priceChange', 'priceChange', 'desc');
       });
 
-      expect(result.current.selectedOptionId).toBe('priceChange-desc');
+      expect(result.current.selectedOptionId).toBe('priceChange');
       expect(result.current.sortBy).toBe('priceChange');
       expect(result.current.direction).toBe('desc');
     });
@@ -128,8 +120,8 @@ describe('usePerpsSorting', () => {
 
       expect(mockSortMarkets).toHaveBeenCalledWith({
         markets: mockMarkets,
-        sortBy: MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        sortBy: MARKET_SORTING_CONFIG.SortFields.Volume,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       });
     });
 
@@ -155,11 +147,7 @@ describe('usePerpsSorting', () => {
       const { result } = renderHook(() => usePerpsSorting());
 
       act(() => {
-        result.current.handleOptionChange(
-          'priceChange-asc',
-          'priceChange',
-          'asc',
-        );
+        result.current.handleOptionChange('priceChange', 'priceChange', 'asc');
       });
 
       act(() => {
@@ -216,8 +204,8 @@ describe('usePerpsSorting', () => {
 
       expect(mockSortMarkets).toHaveBeenCalledWith({
         markets: [],
-        sortBy: MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        sortBy: MARKET_SORTING_CONFIG.SortFields.Volume,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       });
     });
 
@@ -230,10 +218,10 @@ describe('usePerpsSorting', () => {
 
       expect(result.current.selectedOptionId).toBe('invalid-option');
       expect(result.current.sortBy).toBe(
-        MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
+        MARKET_SORTING_CONFIG.SortFields.Volume,
       );
       expect(result.current.direction).toBe(
-        MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        MARKET_SORTING_CONFIG.DefaultDirection,
       );
     });
 
@@ -247,11 +235,7 @@ describe('usePerpsSorting', () => {
       expect(result.current.sortBy).toBe('fundingRate');
 
       act(() => {
-        result.current.handleOptionChange(
-          'priceChange-asc',
-          'priceChange',
-          'asc',
-        );
+        result.current.handleOptionChange('priceChange', 'priceChange', 'asc');
       });
 
       expect(result.current.sortBy).toBe('priceChange');

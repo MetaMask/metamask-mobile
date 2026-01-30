@@ -1,7 +1,11 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { baseStyles } from '../../../styles/common';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import {
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 import { ISelectOptionSheet } from './types';
@@ -43,21 +47,19 @@ const SelectOptionSheet = ({
   };
 
   return (
-    <View style={baseStyles.flexGrow}>
-      <TouchableOpacity onPress={showPicker} testID={SELECT_DROP_DOWN}>
-        <View style={styles.dropdown}>
-          <Text style={styles.selectedOption} numberOfLines={1}>
-            {renderDisplayValue()}
-          </Text>
-          <Icon
-            name={'arrow-drop-down'}
-            size={24}
-            color={colors.icon.default}
-            style={styles.iconDropdown}
-          />
-        </View>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity onPress={showPicker} testID={SELECT_DROP_DOWN}>
+      <View style={styles.dropdown}>
+        <Text style={styles.selectedOption} numberOfLines={1}>
+          {renderDisplayValue()}
+        </Text>
+        <Icon
+          name={IconName.ArrowDown}
+          size={IconSize.Xs}
+          color={IconColor.IconAlternative}
+          twClassName="mr-2"
+        />
+      </View>
+    </TouchableOpacity>
   );
 };
 

@@ -1,4 +1,4 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
 import { SendActionViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendActionView.selectors';
 

@@ -141,7 +141,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                 }
               }
             >
-              Connect an airgapped hardware wallet that communicates through QR-codes.
+              Connect an airgapped hardware wallet that communicates through QR codes.
             </Text>
             <Text
               onPress={[Function]}
@@ -160,7 +160,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                 ]
               }
             >
-              How it works?
+              How it works
             </Text>
             <Text
               style={

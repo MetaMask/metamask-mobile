@@ -1,5 +1,5 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import { SpamFilterModalSelectorText } from '../../selectors/Browser/SpamFilterModal.selectors';
 
 class SpamFilterModal {

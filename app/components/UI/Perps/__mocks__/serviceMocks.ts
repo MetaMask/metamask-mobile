@@ -3,26 +3,92 @@
  * Provides reusable mock implementations for ServiceContext and related types
  */
 
-import type { IMetaMetrics } from '../../../../core/Analytics/MetaMetrics.types';
 import type { ServiceContext } from '../controllers/services/ServiceContext';
 import type {
   PerpsControllerState,
   InitializationState,
 } from '../controllers/PerpsController';
+import type { PerpsPlatformDependencies } from '../controllers/types';
 
 /**
- * Create a mock IMetaMetrics instance
+ * Create a mock PerpsPlatformDependencies instance.
+ * Returns a type-safe mock with jest.Mock functions for all methods.
+ * Uses `as unknown as jest.Mocked<PerpsPlatformDependencies>` pattern
+ * to ensure compatibility with both the interface contract and Jest mock APIs.
+ *
+ * Architecture:
+ * - Observability: logger, debugLogger, metrics, performance, tracer (stateless utilities)
+ * - Platform: streamManager (mobile/extension specific capabilities)
+ * - Controllers: consolidated access to all external controllers
  */
-export const createMockAnalytics = (): jest.Mocked<IMetaMetrics> =>
-  ({
-    isEnabled: jest.fn(() => true),
-    enable: jest.fn(),
-    enableSocialLogin: jest.fn(),
-    addTraitsToUser: jest.fn(),
-    group: jest.fn(),
-    trackEvent: jest.fn(),
-    trackAnonymousEvent: jest.fn(),
-  }) as unknown as jest.Mocked<IMetaMetrics>;
+export const createMockInfrastructure =
+  (): jest.Mocked<PerpsPlatformDependencies> =>
+    ({
+      // === Observability (stateless utilities) ===
+      logger: {
+        error: jest.fn(),
+      },
+      debugLogger: {
+        log: jest.fn(),
+      },
+      metrics: {
+        trackEvent: jest.fn(),
+        isEnabled: jest.fn(() => true),
+        trackPerpsEvent: jest.fn(),
+      },
+      performance: {
+        now: jest.fn(() => Date.now()),
+      },
+      tracer: {
+        trace: jest.fn(() => undefined),
+        endTrace: jest.fn(),
+        setMeasurement: jest.fn(),
+      },
+
+      // === Platform Services ===
+      streamManager: {
+        pauseChannel: jest.fn(),
+        resumeChannel: jest.fn(),
+      },
+
+      // === Controller Access (ALL controllers consolidated) ===
+      controllers: {
+        // Account operations (wraps AccountsController)
+        accounts: {
+          getSelectedEvmAccount: jest.fn(() => ({
+            address: '0x1234567890abcdef1234567890abcdef12345678',
+          })),
+          formatAccountToCaipId: jest.fn(
+            (address: string, chainId: string) =>
+              `eip155:${chainId}:${address}`,
+          ),
+        },
+        // Keyring operations (wraps KeyringController)
+        keyring: {
+          signTypedMessage: jest.fn().mockResolvedValue('0xSignatureResult'),
+        },
+        // Network operations (wraps NetworkController)
+        network: {
+          getChainIdForNetwork: jest.fn().mockReturnValue('0x1'),
+          findNetworkClientIdForChain: jest.fn().mockReturnValue('mainnet'),
+        },
+        // Transaction operations (wraps TransactionController)
+        transaction: {
+          submit: jest.fn().mockResolvedValue({
+            result: Promise.resolve('0xTransactionHash'),
+            transactionMeta: { id: 'tx-id-123', hash: '0xTransactionHash' },
+          }),
+        },
+        // Rewards operations (wraps RewardsController, optional)
+        rewards: {
+          getFeeDiscount: jest.fn().mockResolvedValue(0),
+        },
+        // Authentication operations (wraps AuthenticationController)
+        authentication: {
+          getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+        },
+      },
+    }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
 /**
  * Create a mock PerpsControllerState
@@ -66,7 +132,10 @@ export const createMockPerpsControllerState = (
     testnet: {},
     mainnet: {},
   },
-  marketFilterPreferences: 'volume',
+  marketFilterPreferences: {
+    optionId: 'volume',
+    direction: 'desc',
+  },
   lastError: null,
   lastUpdateTimestamp: Date.now(),
   hip3ConfigVersion: 0,
@@ -75,6 +144,8 @@ export const createMockPerpsControllerState = (
 
 /**
  * Create a mock ServiceContext with optional overrides
+ * Note: infrastructure is no longer part of ServiceContext - it's now injected
+ * into service instances via constructor.
  */
 export const createMockServiceContext = (
   overrides: Partial<ServiceContext> = {},
@@ -83,7 +154,6 @@ export const createMockServiceContext = (
     provider: 'hyperliquid',
     isTestnet: false,
   },
-  analytics: createMockAnalytics(),
   errorContext: {
     controller: 'TestService',
     method: 'testMethod',

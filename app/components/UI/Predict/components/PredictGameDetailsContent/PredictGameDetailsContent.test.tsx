@@ -66,30 +66,6 @@ jest.mock('../PredictGameDetailsFooter/PredictGameAboutSheet', () => {
   };
 });
 
-jest.mock('../PredictSportTeamGradient', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockPredictSportTeamGradient({
-    children,
-    testID,
-    awayColor,
-    homeColor,
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-    awayColor?: string;
-    homeColor?: string;
-  }) {
-    return (
-      <View
-        testID={testID}
-        accessibilityHint={`away:${awayColor ?? 'undefined'},home:${homeColor ?? 'undefined'}`}
-      >
-        {children}
-      </View>
-    );
-  };
-});
-
 jest.mock('../PredictSportScoreboard', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -458,29 +434,6 @@ describe('PredictGameDetailsContent', () => {
       );
 
       expect(toJSON()).toBeNull();
-    });
-  });
-
-  describe('Gradient Integration', () => {
-    it('renders gradient with team colors', () => {
-      const market = createMockMarket();
-
-      const { getByTestId } = render(
-        <PredictGameDetailsContent
-          market={market}
-          onBack={mockOnBack}
-          onRefresh={mockOnRefresh}
-          onBetPress={mockOnBetPress}
-          refreshing={false}
-        />,
-      );
-
-      const gradient = getByTestId('game-details-gradient');
-
-      expect(gradient).toBeOnTheScreen();
-      expect(gradient.props.accessibilityHint).toBe(
-        'away:#0000FF,home:#FF0000',
-      );
     });
   });
 

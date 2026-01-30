@@ -98,7 +98,7 @@ exports[`BrowserTab render Browser 1`] = `
         >
           <SvgMock
             fill="currentColor"
-            name="Close"
+            name="ArrowLeft"
             style={
               [
                 {
@@ -163,7 +163,7 @@ exports[`BrowserTab render Browser 1`] = `
                 onChangeText={[Function]}
                 onFocus={[Function]}
                 onSubmitEditing={[Function]}
-                placeholder="Search by token, site or address"
+                placeholder="Search by site or address"
                 placeholderTextColor="#b7bbc8"
                 returnKeyType="go"
                 selectTextOnFocus={true}
@@ -422,10 +422,51 @@ exports[`BrowserTab render Browser 1`] = `
         }
       >
         <View
-          allowsInlineMediaPlayback={true}
-          applicationNameForUserAgent="WebView MetaMaskMobile"
-          decelerationRate={0.998}
-          injectedJavaScriptBeforeContentLoaded="(function () {
+          pointerEvents="none"
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 9997,
+              },
+              {
+                "height": 80,
+              },
+              {
+                "display": "flex",
+                "opacity": 0,
+                "transform": [
+                  {
+                    "translateY": -80,
+                  },
+                ],
+              },
+            ]
+          }
+        >
+          <ActivityIndicator
+            color="#4459ff"
+            size="small"
+          />
+        </View>
+        <View
+          collapsable={false}
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <View
+            allowsInlineMediaPlayback={true}
+            applicationNameForUserAgent="WebView MetaMaskMobile"
+            decelerationRate={0.998}
+            injectedJavaScriptBeforeContentLoaded="(function () {
   var __mmHistory = window.history;
   var __mmPushState = __mmHistory.pushState;
   var __mmReplaceState = __mmHistory.replaceState;
@@ -474,34 +515,80 @@ exports[`BrowserTab render Browser 1`] = `
     __mm__updateUrl();
   };
   })();
+
+  (function() {
+    let lastScrollY = -1; // Start at -1 to ensure first position is always sent
+    let rafPending = false;
+    
+    const sendScrollPosition = () => {
+      const currentScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop || 0);
+      if (currentScrollY !== lastScrollY) {
+        lastScrollY = currentScrollY;
+        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'SCROLL_POSITION',
+          payload: { scrollY: currentScrollY }
+        }));
+      }
+    };
+    
+    // Debounced scroll handler using requestAnimationFrame for better Android performance
+    const onScroll = () => {
+      if (!rafPending) {
+        rafPending = true;
+        requestAnimationFrame(() => {
+          sendScrollPosition();
+          rafPending = false;
+        });
+      }
+    };
+    
+    // Listen to multiple events for better reliability on Android
+    window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('touchend', sendScrollPosition, { passive: true });
+    
+    // Send initial position after DOM is ready
+    if (document.readyState === 'complete') {
+      sendScrollPosition();
+    } else {
+      window.addEventListener('load', sendScrollPosition);
+    }
+    
+    // Also send on page visibility change (tab switch back)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        sendScrollPosition();
+      }
+    });
+  })();
 "
-          onFileDownload={[Function]}
-          onLoadEnd={[Function]}
-          onLoadProgress={[Function]}
-          onLoadStart={[Function]}
-          onMessage={[Function]}
-          onNavigationStateChange={[Function]}
-          onShouldStartLoadWithRequest={[Function]}
-          originWhitelist={
-            [
-              "*",
-            ]
-          }
-          paymentRequestEnabled={true}
-          renderError={[Function]}
-          source={
-            {
-              "uri": "https://metamask.io",
+            onFileDownload={[Function]}
+            onLoadEnd={[Function]}
+            onLoadProgress={[Function]}
+            onLoadStart={[Function]}
+            onMessage={[Function]}
+            onNavigationStateChange={[Function]}
+            onShouldStartLoadWithRequest={[Function]}
+            originWhitelist={
+              [
+                "*",
+              ]
             }
-          }
-          style={
-            {
-              "flex": 1,
+            paymentRequestEnabled={true}
+            renderError={[Function]}
+            source={
+              {
+                "uri": "https://metamask.io",
+              }
             }
-          }
-          testID="browser-webview"
-          webviewDebuggingEnabled={true}
-        />
+            style={
+              {
+                "flex": 1,
+              }
+            }
+            testID="browser-webview"
+            webviewDebuggingEnabled={true}
+          />
+        </View>
       </View>
       <View
         style={

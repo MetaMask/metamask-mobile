@@ -2,15 +2,15 @@ import { loginToApp } from '../../../viewHelper';
 import { SmokePerformance } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import TestHelpers from '../../../helpers';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import { toChecksumAddress } from 'ethereumjs-util';
 import {
   CORE_USER_STATE,
   POWER_USER_STATE,
-} from '../../../framework/fixtures/constants';
+} from '../../../../tests/framework/fixtures/constants';
 import {
   PerformanceTestReporter,
   createUserProfileTests,

@@ -1,7 +1,7 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import { SkipAccountSecurityModalSelectorsIDs } from '../../../app/components/UI/SkipAccountSecurityModal/SkipAccountSecurityModal.testIds';
 import { expect as appwrightExpect } from 'appwright';
 

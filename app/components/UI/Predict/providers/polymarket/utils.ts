@@ -659,7 +659,8 @@ export const parsePolymarketEvents = (
         id: event.id,
         slug: event.slug,
         providerId: 'polymarket',
-        title: event.title,
+        // TODO: remove this temporary fix for Super Bowl LX
+        title: event.id === '188978' ? 'Super Bowl LX' : event.title,
         description: event.description,
         image: event.icon,
         status: event.closed
@@ -787,9 +788,9 @@ export const getParsedMarketsFromPolymarketApi = async (
   let queryParamsEvents = `${limitParam}&${active}&${archived}&${closed}&${ascending}&${offsetParam}&${liquidity}&${volume}`;
 
   const categoryTagMap: Record<PredictCategory, string> = {
-    trending: '&exclude_tag_id=100639&order=volume24hr',
-    new: '&order=startDate&exclude_tag_id=100639&exclude_tag_id=102169',
-    sports: '&tag_slug=sports&&exclude_tag_id=100639&order=volume24hr',
+    trending: '&order=volume24hr',
+    new: '&order=startDate&exclude_tag_id=102169',
+    sports: '&tag_slug=sports&order=volume24hr',
     crypto: '&tag_slug=crypto&order=volume24hr',
     politics: '&tag_slug=politics&order=volume24hr',
   };

@@ -27,7 +27,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 const createMockPosition = (overrides: Partial<Position> = {}): Position => ({
-  coin: 'BTC',
+  symbol: 'BTC',
   size: '0.5',
   entryPrice: '50000',
   positionValue: '25000',
@@ -65,7 +65,7 @@ describe('usePerpsCloseAllPositions', () => {
     // Arrange
     const positions = [
       createMockPosition(),
-      createMockPosition({ coin: 'ETH' }),
+      createMockPosition({ symbol: 'ETH' }),
     ];
 
     // Act
@@ -99,7 +99,7 @@ describe('usePerpsCloseAllPositions', () => {
     // Arrange
     const positions = [
       createMockPosition(),
-      createMockPosition({ coin: 'ETH' }),
+      createMockPosition({ symbol: 'ETH' }),
     ];
     const mockResult = {
       success: true,
@@ -132,7 +132,7 @@ describe('usePerpsCloseAllPositions', () => {
     // Arrange
     const positions = [
       createMockPosition(),
-      createMockPosition({ coin: 'ETH' }),
+      createMockPosition({ symbol: 'ETH' }),
     ];
     const mockResult = {
       success: false,
@@ -162,7 +162,7 @@ describe('usePerpsCloseAllPositions', () => {
     // Arrange
     const positions = [
       createMockPosition(),
-      createMockPosition({ coin: 'ETH' }),
+      createMockPosition({ symbol: 'ETH' }),
     ];
     const mockResult = {
       success: false,

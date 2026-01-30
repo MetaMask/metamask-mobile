@@ -7,6 +7,7 @@ import {
 } from '../../../util/remoteFeatureFlag';
 import { selectBasicFunctionalityEnabled } from '../../settings';
 
+// TODO: Remove hardcoded true when feature flag is properly configured
 const DEFAULT_FULL_PAGE_ACCOUNT_LIST_ENABLED = false;
 export const FULL_PAGE_ACCOUNT_LIST_FLAG_NAME = 'fullPageAccountList';
 

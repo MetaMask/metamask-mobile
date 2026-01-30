@@ -124,8 +124,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 jest.mock('../../../util/phishingDetection', () => ({
-  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
-  getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
+  getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: false }),
 }));
 
 jest.mock('../../../util/browser', () => ({
@@ -336,12 +335,90 @@ describe('Browser - Rendering and Initialization', () => {
         </NavigationContainer>
       </Provider>,
     );
-    // Check if myFunction was called
+    // Check if navigate was called to show the modal
     expect(navigationSpy).toHaveBeenCalledWith(
       Routes.MODAL.MAX_BROWSER_TABS_MODAL,
     );
 
     // Clean up the spy
+    navigationSpy.mockRestore();
+  });
+
+  it('opens URL in active tab when max tabs reached and fromTrending is true', () => {
+    const mockUpdateTab = jest.fn();
+    const mockCreateNewTab = jest.fn();
+
+    const { rerender } = renderWithProvider(
+      <Provider store={mockStore(mockInitialState)}>
+        <NavigationContainer independent>
+          <Stack.Navigator>
+            <Stack.Screen name={Routes.BROWSER.VIEW}>
+              {() => (
+                <Browser
+                  route={routeMock}
+                  tabs={mockTabs}
+                  activeTab={1}
+                  navigation={mockNavigation}
+                  createNewTab={mockCreateNewTab}
+                  closeAllTabs={jest.fn}
+                  closeTab={jest.fn}
+                  setActiveTab={jest.fn}
+                  updateTab={mockUpdateTab}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>,
+      { state: { ...mockInitialState } },
+    );
+
+    const newSiteUrl = 'https://example.com';
+    const navigationSpy = jest.spyOn(mockNavigation, 'navigate');
+
+    // rerender with a new URL when max tabs are reached, coming from Explore (fromTrending)
+    rerender(
+      <Provider store={mockStore(mockInitialState)}>
+        <NavigationContainer independent>
+          <Stack.Navigator>
+            <Stack.Screen name={Routes.BROWSER.VIEW}>
+              {() => (
+                <Browser
+                  route={{
+                    params: {
+                      newTabUrl: newSiteUrl,
+                      timestamp: Date.now(),
+                      fromTrending: true,
+                    },
+                  }}
+                  tabs={mockTabs}
+                  activeTab={1}
+                  navigation={mockNavigation}
+                  createNewTab={mockCreateNewTab}
+                  closeAllTabs={jest.fn}
+                  closeTab={jest.fn}
+                  setActiveTab={jest.fn}
+                  updateTab={mockUpdateTab}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>,
+    );
+
+    // Does not navigate to the max browser tabs modal
+    expect(navigationSpy).not.toHaveBeenCalled();
+
+    // Dpes not create a new tab
+    expect(mockCreateNewTab).not.toHaveBeenCalled();
+
+    // Updates the active tab with the new URL
+    expect(mockUpdateTab).toHaveBeenCalledWith(1, {
+      url: newSiteUrl,
+      isArchived: false,
+    });
+
     navigationSpy.mockRestore();
   });
 

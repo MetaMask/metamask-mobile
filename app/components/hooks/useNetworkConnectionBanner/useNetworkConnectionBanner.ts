@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useContext, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex, hexToNumber } from '@metamask/utils';
 import { NetworkStatus } from '@metamask/network-controller';
@@ -21,6 +21,12 @@ import {
 } from '../../../core/Engine/controllers/network-controller/utils';
 import onlyKeepHost from '../../../util/onlyKeepHost';
 import { INFURA_PROJECT_ID } from '../../../constants/network';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { strings } from '../../../../locales/i18n';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 const infuraProjectId = INFURA_PROJECT_ID ?? '';
 
@@ -40,10 +46,17 @@ const useNetworkConnectionBanner = (): {
     status: NetworkConnectionBannerStatus,
     chainId: string,
   ) => void;
+  /**
+   * Switch the default RPC endpoint to Infura for the current unavailable network.
+   * Only available when the network has an Infura endpoint to switch to.
+   * Returns a promise that resolves when the switch is complete (or rejects on error).
+   */
+  switchToInfura: () => Promise<void>;
 } => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { toastRef } = useContext(ToastContext);
   const networkConnectionBannerState = useSelector(
     selectNetworkConnectionBannerState,
   );
@@ -109,6 +122,7 @@ const useNetworkConnectionBanner = (): {
         networkName: string;
         rpcUrl: string;
         isInfuraEndpoint: boolean;
+        infuraNetworkClientId?: string;
       } | null = null;
 
       for (const evmEnabledNetworkChainId of evmEnabledNetworksChainIds) {
@@ -133,15 +147,29 @@ const useNetworkConnectionBanner = (): {
               continue;
             }
 
+            const defaultRpcEndpointIndex =
+              networkConfig.defaultRpcEndpointIndex || 0;
             const rpcUrl =
-              networkConfig.rpcEndpoints[
-                networkConfig.defaultRpcEndpointIndex || 0
-              ]?.url || networkConfig.rpcEndpoints[0]?.url;
+              networkConfig.rpcEndpoints[defaultRpcEndpointIndex]?.url ||
+              networkConfig.rpcEndpoints[0]?.url;
 
             const isInfuraEndpoint = getIsMetaMaskInfuraEndpointUrl(
               rpcUrl,
               infuraProjectId,
             );
+
+            // For custom endpoints (non-Infura), check if there's an Infura
+            // endpoint available for this network that we can switch to
+            let infuraNetworkClientId: string | undefined;
+            if (!isInfuraEndpoint) {
+              const infuraEndpoint = networkConfig.rpcEndpoints.find(
+                (endpoint, index) =>
+                  index !== defaultRpcEndpointIndex &&
+                  getIsMetaMaskInfuraEndpointUrl(endpoint.url, infuraProjectId),
+              );
+              // Store the networkClientId of the Infura endpoint
+              infuraNetworkClientId = infuraEndpoint?.networkClientId;
+            }
 
             firstUnavailableNetwork = {
               chainId: evmEnabledNetworkChainId,
@@ -149,6 +177,7 @@ const useNetworkConnectionBanner = (): {
               networkName: networkConfig.name,
               rpcUrl,
               isInfuraEndpoint,
+              infuraNetworkClientId,
             };
 
             break; // Only show one banner at a time
@@ -182,6 +211,8 @@ const useNetworkConnectionBanner = (): {
               networkName: firstUnavailableNetwork.networkName,
               rpcUrl: firstUnavailableNetwork.rpcUrl,
               isInfuraEndpoint: firstUnavailableNetwork.isInfuraEndpoint,
+              infuraNetworkClientId:
+                firstUnavailableNetwork.infuraNetworkClientId,
             }),
           );
         }
@@ -256,9 +287,102 @@ const useNetworkConnectionBanner = (): {
     }
   }, [networkConnectionBannerState, trackEvent, createEventBuilder]);
 
+  /**
+   * Switch the default RPC endpoint to Infura for the current unavailable network.
+   */
+  const switchToInfura = useCallback(async () => {
+    if (!networkConnectionBannerState.visible) {
+      return;
+    }
+
+    const { chainId, status } = networkConnectionBannerState;
+
+    const networkConfiguration =
+      Engine.context.NetworkController.getNetworkConfigurationByChainId(
+        chainId,
+      );
+    if (!networkConfiguration) {
+      return;
+    }
+
+    const { infuraNetworkClientId } = networkConnectionBannerState;
+    if (!infuraNetworkClientId) {
+      return;
+    }
+
+    // Find the endpoint index by networkClientId
+    const infuraEndpointIndex = networkConfiguration.rpcEndpoints.findIndex(
+      (endpoint) => endpoint.networkClientId === infuraNetworkClientId,
+    );
+    // Skip if endpoint not found or it's already the default
+    if (
+      infuraEndpointIndex === -1 ||
+      infuraEndpointIndex === networkConfiguration.defaultRpcEndpointIndex
+    ) {
+      return;
+    }
+
+    // Track the switch to MetaMask default RPC event
+    const sanitizedUrl = sanitizeRpcUrl(networkConnectionBannerState.rpcUrl);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED,
+      )
+        .addProperties({
+          banner_type: status,
+          chain_id_caip: `eip155:${hexToNumber(chainId)}`,
+          rpc_endpoint_url: sanitizedUrl,
+          rpc_domain: sanitizedUrl,
+        })
+        .build(),
+    );
+
+    try {
+      // Update the network configuration to use the Infura endpoint as default
+      await Engine.context.NetworkController.updateNetwork(
+        chainId,
+        {
+          ...networkConfiguration,
+          defaultRpcEndpointIndex: infuraEndpointIndex,
+        },
+        {
+          replacementSelectedRpcEndpointIndex: infuraEndpointIndex,
+        },
+      );
+
+      // Hide banner immediately to prevent stale "Switch to MetaMask default RPC" button
+      // The normal status check logic will re-show it with fresh data if network is still unavailable
+      dispatch(hideNetworkConnectionBanner());
+
+      // Show success toast
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings(
+              'network_connection_banner.updated_to_metamask_default',
+            ),
+          },
+        ],
+        iconName: IconName.Confirmation,
+        hasNoTimeout: false,
+      });
+    } catch {
+      // Error is already handled by updateNetwork which shows a warning
+      // Do not show success toast on failure
+    }
+  }, [
+    networkConnectionBannerState,
+    trackEvent,
+    createEventBuilder,
+    toastRef,
+    dispatch,
+  ]);
+
   return {
     networkConnectionBannerState,
     updateRpc,
+    switchToInfura,
   };
 };
 

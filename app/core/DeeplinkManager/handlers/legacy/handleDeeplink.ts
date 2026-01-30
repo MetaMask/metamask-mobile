@@ -4,7 +4,7 @@ import { AppStateEventProcessor } from '../../../AppStateEventListener';
 import ReduxService from '../../../redux';
 import SDKConnectV2 from '../../../SDKConnectV2';
 
-export function handleDeeplink(opts: { uri?: string }) {
+export function handleDeeplink(opts: { uri?: string; source?: string }) {
   // This is the earliest JS entry point for deeplinks. We must handle SDKConnectV2
   // links here immediately to establish the WebSocket connection as fast as possible,
   // without waiting for the app to be unlocked or fully onboarded.
@@ -17,10 +17,10 @@ export function handleDeeplink(opts: { uri?: string }) {
   }
 
   const { dispatch } = ReduxService.store;
-  const { uri } = opts;
+  const { uri, source } = opts;
   try {
     if (uri && typeof uri === 'string') {
-      AppStateEventProcessor.setCurrentDeeplink(uri);
+      AppStateEventProcessor.setCurrentDeeplink(uri, source);
       dispatch(checkForDeeplink());
     }
   } catch (e) {

@@ -80,7 +80,6 @@ const PredictBuyPreview = () => {
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
-  // Prepare analytics properties
   const analyticsProperties = useMemo(
     () => ({
       marketId: market?.id,
@@ -92,13 +91,18 @@ const PredictBuyPreview = () => {
       liquidity: market?.liquidity,
       volume: market?.volume,
       sharePrice: outcomeToken?.price,
-      // Market type: binary if 1 outcome group, multi-outcome otherwise
       marketType:
         market?.outcomes?.length === 1
           ? PredictEventValues.MARKET_TYPE.BINARY
           : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
-      // Outcome: use actual outcome token title (e.g., "Yes", "No", "Trump", "Biden", etc.)
       outcome: outcomeToken?.title?.toLowerCase(),
+      marketSlug: market?.slug,
+      gameId: market?.game?.id,
+      gameStartTime: market?.game?.startTime,
+      gameLeague: market?.game?.league,
+      gameStatus: market?.game?.status,
+      gamePeriod: market?.game?.period,
+      gameClock: market?.game?.elapsed,
     }),
     [market, outcomeToken, entryPoint],
   );

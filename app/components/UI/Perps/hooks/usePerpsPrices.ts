@@ -57,8 +57,8 @@ export function usePerpsPrices(
       const updated = { ...prev };
 
       // Always update with pending prices when flushing
-      for (const [coin, price] of pendingUpdates) {
-        updated[coin] = price;
+      for (const [symbol, price] of pendingUpdates) {
+        updated[symbol] = price;
       }
 
       return updated;
@@ -66,8 +66,7 @@ export function usePerpsPrices(
   }, []);
 
   // Use provided debounce or fall back to default
-  const debounceDelay =
-    throttleMs ?? PERFORMANCE_CONFIG.PRICE_UPDATE_DEBOUNCE_MS;
+  const debounceDelay = throttleMs ?? PERFORMANCE_CONFIG.PriceUpdateDebounceMs;
 
   // Track if we've received the first update for each symbol
   // This only resets when symbols change, not debounce settings
@@ -78,13 +77,13 @@ export function usePerpsPrices(
     (newPrices: PriceUpdate[]) => {
       // Check if any of these are first updates
       const hasFirstUpdate = newPrices.some(
-        (price) => !hasReceivedFirstUpdate.current.has(price.coin),
+        (price) => !hasReceivedFirstUpdate.current.has(price.symbol),
       );
 
       // Store updates in pending map
       for (const price of newPrices) {
-        pendingUpdatesRef.current.set(price.coin, price);
-        hasReceivedFirstUpdate.current.add(price.coin);
+        pendingUpdatesRef.current.set(price.symbol, price);
+        hasReceivedFirstUpdate.current.add(price.symbol);
       }
 
       // If this is the first update for any symbol, flush immediately

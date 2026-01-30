@@ -35,6 +35,10 @@ export const tokenListControllerInit: ControllerInitFunction<
       ),
   });
 
+  controller.initialize().catch(() => {
+    // Initialization failed
+  });
+
   return {
     controller,
   };

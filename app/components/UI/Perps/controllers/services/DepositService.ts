@@ -1,10 +1,11 @@
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import type { TransactionParams } from '@metamask/transaction-controller';
-import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils';
+// Use generateTransferData from existing mobile utils which already handles
+// ethereumjs-abi types and ABI encoding
 import { generateTransferData } from '../../../../../util/transactions';
 import { generateDepositId } from '../../utils/idUtils';
-import type { IPerpsProvider } from '../types';
+import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 
 // Temporary to avoid estimation failures due to insufficient balance
 const DEPOSIT_GAS_LIMIT = toHex(100000);
@@ -15,8 +16,20 @@ const DEPOSIT_GAS_LIMIT = toHex(100000);
  * Handles deposit transaction preparation and validation.
  * Stateless service that prepares transaction data for TransactionController.
  * Controller handles TransactionController integration and promise lifecycle.
+ *
+ * Instance-based service with constructor injection of platform dependencies.
  */
 export class DepositService {
+  private readonly deps: PerpsPlatformDependencies;
+
+  /**
+   * Create a new DepositService instance
+   * @param deps - Platform dependencies for logging, metrics, etc.
+   */
+  constructor(deps: PerpsPlatformDependencies) {
+    this.deps = deps;
+  }
+
   /**
    * Prepare deposit transaction for confirmation
    * Extracts transaction construction logic from controller
@@ -25,14 +38,14 @@ export class DepositService {
    * @param options.provider - Active provider instance
    * @returns Transaction data ready for TransactionController.addTransaction
    */
-  static async prepareTransaction(options: {
-    provider: IPerpsProvider;
-  }): Promise<{
+  async prepareTransaction(options: { provider: PerpsProvider }): Promise<{
     transaction: TransactionParams;
     assetChainId: Hex;
     currentDepositId: string;
   }> {
     const { provider } = options;
+
+    this.deps.debugLogger.log('DepositService: Preparing deposit transaction');
 
     // Generate deposit request ID for tracking
     const currentDepositId = generateDepositId();
@@ -48,8 +61,8 @@ export class DepositService {
       amount: '0x0',
     });
 
-    // Get EVM account from selected account group
-    const evmAccount = getEvmAccountFromSelectedAccountGroup();
+    // Get EVM account from selected account group via dependency injection
+    const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
     if (!evmAccount) {
       throw new Error(
         'No EVM-compatible account found in selected account group',
@@ -70,6 +83,13 @@ export class DepositService {
       data: transferData,
       gas: DEPOSIT_GAS_LIMIT,
     };
+
+    this.deps.debugLogger.log('DepositService: Deposit transaction prepared', {
+      depositId: currentDepositId,
+      assetChainId,
+      from: accountAddress,
+      to: tokenAddress,
+    });
 
     return {
       transaction,

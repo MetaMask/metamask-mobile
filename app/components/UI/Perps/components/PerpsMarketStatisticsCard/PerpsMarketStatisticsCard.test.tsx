@@ -151,7 +151,7 @@ describe('PerpsMarketStatisticsCard', () => {
   it('displays zero funding rate in default color', () => {
     const zeroFundingStats = {
       ...mockMarketStats,
-      fundingRate: FUNDING_RATE_CONFIG.ZERO_DISPLAY,
+      fundingRate: FUNDING_RATE_CONFIG.ZeroDisplay,
     };
 
     const { getByText } = render(
@@ -161,7 +161,7 @@ describe('PerpsMarketStatisticsCard', () => {
       />,
     );
 
-    const fundingRateText = getByText(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
+    const fundingRateText = getByText(FUNDING_RATE_CONFIG.ZeroDisplay);
     expect(fundingRateText).toBeOnTheScreen();
   });
 
@@ -337,7 +337,7 @@ describe('PerpsMarketStatisticsCard', () => {
       );
 
       // Should display zero funding rate
-      expect(getByText(FUNDING_RATE_CONFIG.ZERO_DISPLAY)).toBeOnTheScreen();
+      expect(getByText(FUNDING_RATE_CONFIG.ZeroDisplay)).toBeOnTheScreen();
     });
   });
 });

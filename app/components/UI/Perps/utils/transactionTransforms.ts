@@ -1,4 +1,5 @@
 import { BigNumber } from 'bignumber.js';
+import { strings } from '../../../../../locales/i18n';
 import {
   Funding,
   Order,
@@ -12,7 +13,6 @@ import {
   PerpsTransaction,
 } from '../types/transactionHistory';
 import { formatOrderLabel } from './orderUtils';
-import { strings } from '../../../../../locales/i18n';
 import { getPerpsDisplaySymbol } from './marketUtils';
 
 /**

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useCardSDK } from '../sdk';
 import {
   CardDetailsResponse,
@@ -17,14 +17,7 @@ interface CardDetailsResult {
   warning: CardStateWarning | null;
 }
 
-interface State {
-  isLoadingPollCardStatusUntilProvisioned: boolean;
-}
-
 const useCardDetails = () => {
-  const [state, setState] = useState<State>({
-    isLoadingPollCardStatusUntilProvisioned: false,
-  });
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const { sdk } = useCardSDK();
 
@@ -79,63 +72,12 @@ const useCardDetails = () => {
     fetchData: fetchCardDetails,
   } = cacheResult;
 
-  // Poll logic to check if card is provisioned
-  // max polling attempts is 10, polling interval is 2 seconds
-  const pollCardStatusUntilProvisioned = useCallback(
-    async (maxAttempts: number = 10, pollingInterval: number = 2000) => {
-      setState((prevState) => ({
-        ...prevState,
-        isLoadingPollCardStatusUntilProvisioned: true,
-      }));
-      for (let i = 0; i < maxAttempts; i++) {
-        try {
-          const cardDetailsResponse = await sdk?.getCardDetails();
-          if (!cardDetailsResponse) {
-            setState((prevState) => ({
-              ...prevState,
-              isLoadingPollCardStatusUntilProvisioned: false,
-            }));
-            return false;
-          }
-          if (cardDetailsResponse.status === CardStatus.ACTIVE) {
-            setState((prevState) => ({
-              ...prevState,
-              isLoadingPollCardStatusUntilProvisioned: false,
-            }));
-            // Refresh card details after provisioning
-            await fetchCardDetails();
-            return true;
-          }
-
-          await new Promise((resolve) => setTimeout(resolve, pollingInterval));
-        } catch (err) {
-          setState((prevState) => ({
-            ...prevState,
-            isLoadingPollCardStatusUntilProvisioned: false,
-          }));
-          return false;
-        }
-      }
-
-      // Max polling attempts reached without finding ACTIVE status
-      setState((prevState) => ({
-        ...prevState,
-        isLoadingPollCardStatusUntilProvisioned: false,
-      }));
-      return false;
-    },
-    [sdk, fetchCardDetails],
-  );
-
   return {
     cardDetails: cardDetailsData?.cardDetails ?? null,
     warning: cardDetailsData?.warning ?? null,
     isLoading,
     error,
-    isLoadingPollCardStatusUntilProvisioned:
-      state.isLoadingPollCardStatusUntilProvisioned,
     fetchCardDetails,
-    pollCardStatusUntilProvisioned,
   };
 };
 

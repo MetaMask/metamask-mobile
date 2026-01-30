@@ -289,6 +289,10 @@ describe('useCardProviderAuthentication', () => {
         expectedStringKey: 'card.card_authentication.errors.server_error',
       },
       {
+        errorType: CardErrorType.INVALID_OTP_CODE,
+        expectedStringKey: 'card.card_authentication.errors.invalid_otp_code',
+      },
+      {
         errorType: CardErrorType.UNKNOWN_ERROR,
         expectedStringKey: 'card.card_authentication.errors.unknown_error',
       },

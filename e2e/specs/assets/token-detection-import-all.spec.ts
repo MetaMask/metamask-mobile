@@ -2,10 +2,10 @@
 import { loginToApp } from '../../viewHelper';
 import { RegressionAssets } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import TestHelpers from '../../helpers';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 
 const ETHEREUM_NAME = 'Ethereum';
 const USDC_NAME = 'USDCoin';

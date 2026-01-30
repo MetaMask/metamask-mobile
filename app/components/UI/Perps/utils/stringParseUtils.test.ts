@@ -1,4 +1,4 @@
-import { parseCommaSeparatedString } from './stringParseUtils';
+import { parseCommaSeparatedString, stripQuotes } from './stringParseUtils';
 
 describe('parseCommaSeparatedString', () => {
   it('parses comma-separated values', () => {
@@ -53,5 +53,43 @@ describe('parseCommaSeparatedString', () => {
       'abc:*',
       'ETH',
     ]);
+  });
+
+  it('preserves quotes (use stripQuotes separately if needed)', () => {
+    expect(parseCommaSeparatedString('"xyz", "abc"')).toEqual([
+      '"xyz"',
+      '"abc"',
+    ]);
+  });
+});
+
+describe('stripQuotes', () => {
+  it('strips double quotes', () => {
+    expect(stripQuotes('"xyz"')).toBe('xyz');
+  });
+
+  it('strips single quotes', () => {
+    expect(stripQuotes("'xyz'")).toBe('xyz');
+  });
+
+  it('returns unchanged if no surrounding quotes', () => {
+    expect(stripQuotes('xyz')).toBe('xyz');
+  });
+
+  it('returns unchanged for mismatched quotes', () => {
+    expect(stripQuotes('"xyz\'')).toBe('"xyz\'');
+  });
+
+  it('returns unchanged for partial quotes', () => {
+    expect(stripQuotes('"xyz')).toBe('"xyz');
+  });
+
+  it('handles empty string', () => {
+    expect(stripQuotes('')).toBe('');
+  });
+
+  it('handles string with only quotes', () => {
+    expect(stripQuotes('""')).toBe('');
+    expect(stripQuotes("''")).toBe('');
   });
 });

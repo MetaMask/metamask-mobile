@@ -32,7 +32,7 @@ interface PerpsRecentActivityListProps {
 const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   transactions,
   isLoading,
-  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();

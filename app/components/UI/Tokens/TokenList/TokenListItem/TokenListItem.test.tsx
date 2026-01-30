@@ -17,11 +17,37 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { toHex } from '@metamask/controller-utils';
 import { strings } from '../../../../../../locales/i18n';
 
+import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
   StakeButton: () => null,
   default: () => null,
 }));
+
+// Mock useRWAToken hook
+const mockIsStockToken = jest.fn();
+const mockIsTokenTradingOpen = jest.fn();
+jest.mock('../../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isStockToken: mockIsStockToken,
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+  }),
+}));
+
+// Mock StockBadge component to simplify testing
+jest.mock('../../../shared/StockBadge', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ token }: { token: unknown }) => (
+      <Text testID="stock-badge">{`Stock Badge: ${(token as { symbol?: string })?.symbol}`}</Text>
+    ),
+  };
+});
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -72,8 +98,6 @@ jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   }),
 }));
 
-import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
-
 jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
   useMusdConversionTokens: jest.fn(() => ({
     isConversionToken: jest.fn().mockReturnValue(false),
@@ -96,6 +120,20 @@ jest.mock('../../../Earn/hooks/useMusdCtaVisibility', () => ({
   }),
 }));
 
+jest.mock('../../../Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: jest.fn(() => ({
+    isEligible: true,
+    isLoading: false,
+    geolocation: 'US',
+    blockedCountries: [],
+  })),
+}));
+
+const mockUseMusdConversionEligibility =
+  useMusdConversionEligibility as jest.MockedFunction<
+    typeof useMusdConversionEligibility
+  >;
+
 jest.mock('../../../../Views/confirmations/hooks/useNetworkName', () => ({
   useNetworkName: () => 'Ethereum Mainnet',
 }));
@@ -111,8 +149,6 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
   default: () => ({ isStakingSupportedChain: false }),
   useStakingChainByChainId: () => ({ isStakingSupportedChain: false }),
 }));
-
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../Earn/selectors/featureFlags';
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
@@ -248,6 +284,8 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     pricePercentChange1d?: number;
     isMusdConversionEnabled?: boolean;
     isTokenWithCta?: boolean;
+    isGeoEligible?: boolean;
+    isStockToken?: boolean;
   }
 
   function prepareMocks({
@@ -255,9 +293,14 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     pricePercentChange1d = 5.67,
     isMusdConversionEnabled = false,
     isTokenWithCta = false,
+    isGeoEligible = true,
+    isStockToken = false,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
+    // Stock token mocks
+    mockIsStockToken.mockReturnValue(isStockToken);
+    mockIsTokenTradingOpen.mockResolvedValue(true);
     jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
     mockBuild.mockReturnValue({ name: 'mock-built-event' });
     mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
@@ -266,7 +309,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     }));
 
     mockShouldShowTokenListItemCta.mockReturnValue(
-      isMusdConversionEnabled && isTokenWithCta,
+      isMusdConversionEnabled && isTokenWithCta && isGeoEligible,
     );
 
     // mUSD conversion mocks
@@ -275,10 +318,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     );
     mockUseMusdConversionTokens.mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
-      getMusdOutputChainId: jest.fn().mockReturnValue('0xe708'),
       filterAllowedTokens: jest.fn(),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
+    });
+    mockUseMusdConversionEligibility.mockReturnValue({
+      isEligible: isGeoEligible,
+      isLoading: false,
+      geolocation: isGeoEligible ? 'US' : 'GB',
+      blockedCountries: isGeoEligible ? [] : ['GB'],
     });
 
     // Default mock setup
@@ -511,7 +559,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       jest.clearAllMocks();
     });
 
-    it('displays "Convert to mUSD" CTA when asset is convertible stablecoin with positive balance', () => {
+    it('displays "Get 3% mUSD bonus" CTA when asset is convertible stablecoin with positive balance', () => {
       prepareMocks({
         asset: usdcAsset,
         isMusdConversionEnabled: true,
@@ -527,7 +575,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(getByText('Convert to mUSD')).toBeOnTheScreen();
+      expect(getByText('Get 3% mUSD bonus')).toBeOnTheScreen();
     });
 
     it('displays percentage change when mUSD conversion flag is disabled', () => {
@@ -548,7 +596,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(getByText('+2.50%')).toBeOnTheScreen();
-      expect(queryByText('Convert to mUSD')).toBeNull();
+      expect(queryByText('Get 3% mUSD bonus')).toBeNull();
     });
 
     it('displays percentage change when asset is not a convertible stablecoin', () => {
@@ -575,6 +623,28 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(getByText('+3.20%')).toBeOnTheScreen();
+      expect(queryByText('Get 3% mUSD bonus')).toBeNull();
+    });
+
+    it('hides mUSD conversion CTA when user is geo-blocked', () => {
+      prepareMocks({
+        asset: usdcAsset,
+        pricePercentChange1d: 1.5,
+        isMusdConversionEnabled: true,
+        isTokenWithCta: true,
+        isGeoEligible: false,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText('+1.50%')).toBeOnTheScreen();
       expect(queryByText('Convert to mUSD')).toBeNull();
     });
 
@@ -600,7 +670,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: '0xe708',
           preferredPaymentToken: {
             address: toHex('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'),
             chainId: toHex('0x1'),
@@ -610,7 +679,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       });
     });
 
-    it('tracks mUSD conversion CTA clicked event when Convert to mUSD is pressed and education screen has not been seen', async () => {
+    it('tracks mUSD conversion CTA clicked event when pressed and education screen has not been seen', async () => {
       // Arrange
       mockHasSeenConversionEducationScreen = false;
       prepareMocks({
@@ -658,7 +727,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         location: 'token_list_item',
         redirects_to: 'conversion_education_screen',
         cta_type: 'musd_conversion_secondary_cta',
-        cta_text: strings('earn.musd_conversion.convert_to_musd'),
+        cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
         network_chain_id: usdcAsset.chainId,
         network_name: 'Ethereum Mainnet',
         asset_symbol: usdcAsset.symbol,
@@ -668,7 +739,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
 
-    it('tracks mUSD conversion CTA clicked event when Convert to mUSD is pressed and education screen has been seen', async () => {
+    it('tracks mUSD conversion CTA clicked event pressed and education screen has been seen', async () => {
       // Arrange
       mockHasSeenConversionEducationScreen = true;
       prepareMocks({
@@ -716,7 +787,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         location: 'token_list_item',
         redirects_to: 'custom_amount_screen',
         cta_type: 'musd_conversion_secondary_cta',
-        cta_text: strings('earn.musd_conversion.convert_to_musd'),
+        cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
         network_chain_id: usdcAsset.chainId,
         network_name: 'Ethereum Mainnet',
         asset_symbol: usdcAsset.symbol,
@@ -724,6 +797,167 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+  });
+
+  describe('Stock Badge', () => {
+    const stockAsset = {
+      ...defaultAsset,
+      symbol: 'AAPL',
+      name: 'Apple Inc.',
+      rwaData: {
+        instrumentType: 'stock',
+        market: { nextOpen: '2024-01-01', nextClose: '2024-01-02' },
+      },
+    };
+
+    const assetKey: FlashListAssetKey = {
+      address: '0x456',
+      chainId: '0x1',
+      isStaked: false,
+    };
+
+    it('renders StockBadge when asset is a stock token', () => {
+      prepareMocks({
+        asset: stockAsset,
+        isStockToken: true,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
+      expect(mockIsStockToken).toHaveBeenCalled();
+    });
+
+    it('does NOT render StockBadge when asset is NOT a stock token', () => {
+      prepareMocks({
+        asset: defaultAsset,
+        isStockToken: false,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(queryByTestId('stock-badge')).toBeNull();
+      expect(mockIsStockToken).toHaveBeenCalled();
+    });
+
+    it('passes the asset to isStockToken function', () => {
+      prepareMocks({
+        asset: stockAsset,
+        isStockToken: true,
+      });
+
+      renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(mockIsStockToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'AAPL',
+          name: 'Apple Inc.',
+        }),
+      );
+    });
+
+    it('renders StockBadge with correct token prop', () => {
+      prepareMocks({
+        asset: stockAsset,
+        isStockToken: true,
+      });
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText('Stock Badge: AAPL')).toBeOnTheScreen();
+    });
+
+    it('renders StockBadge alongside other token information', () => {
+      prepareMocks({
+        asset: stockAsset,
+        isStockToken: true,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText('Apple Inc.')).toBeOnTheScreen();
+      expect(getByText('1.23 AAPL')).toBeOnTheScreen();
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
+    });
+
+    it('renders StockBadge with percentage change when both conditions are met', () => {
+      prepareMocks({
+        asset: stockAsset,
+        isStockToken: true,
+        pricePercentChange1d: 2.5,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
+      expect(getByText('+2.50%')).toBeOnTheScreen();
+    });
+
+    it('does NOT render StockBadge when RWA feature flag is disabled (isStockToken returns false)', () => {
+      prepareMocks({
+        asset: {
+          ...stockAsset,
+          rwaData: {
+            instrumentType: 'stock',
+            market: { nextOpen: '2024-01-01', nextClose: '2024-01-02' },
+          },
+        },
+        isStockToken: false, // RWA disabled, so isStockToken returns false
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(queryByTestId('stock-badge')).toBeNull();
     });
   });
 });

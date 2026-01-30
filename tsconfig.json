@@ -64,6 +64,7 @@
     "node_modules/expect-webdriverio",
     "node_modules/expect-webdriverio/jest",
     "e2e/**/*",
+    "tests/**/*",
     "appwright/**/*"
   ],
   "exclude": [

@@ -38,6 +38,7 @@ import { BigNumber } from 'bignumber.js';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];

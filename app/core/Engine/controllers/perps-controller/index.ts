@@ -6,6 +6,7 @@ import {
 } from '../../../../components/UI/Perps/controllers';
 import { applyE2EControllerMocks } from '../../../../components/UI/Perps/utils/e2eBridgePerps';
 import { parseCommaSeparatedString } from '../../../../components/UI/Perps/utils/stringParseUtils';
+import { createMobileInfrastructure } from '../../../../components/UI/Perps/adapters/mobileInfrastructure';
 
 /**
  * Initialize the PerpsController.
@@ -28,6 +29,7 @@ export const perpsControllerInit: ControllerInitFunction<
   const controller = new PerpsController({
     messenger: controllerMessenger,
     state: perpsControllerState,
+    infrastructure: createMobileInfrastructure(),
     clientConfig: {
       fallbackBlockedRegions: parseCommaSeparatedString(
         process.env.MM_PERPS_BLOCKED_REGIONS ?? '',

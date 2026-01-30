@@ -63,7 +63,7 @@ describe('MultichainAddressRow', () => {
     const mockCallback = jest.fn();
     const copyParams = {
       callback: mockCallback,
-      successMessage: 'Copied to clipboard!',
+      toastMessage: 'Address copied',
     };
 
     const { getByTestId } = render(
@@ -126,14 +126,14 @@ describe('MultichainAddressRow', () => {
     expect(component).toBeTruthy();
   });
 
-  it('shows success message when copy is triggered', () => {
+  it('calls callback when copy button is pressed', async () => {
     const mockCallback = jest.fn();
     const copyParams = {
       callback: mockCallback,
-      successMessage: 'Copied to clipboard!',
+      toastMessage: 'Address copied',
     };
 
-    const { getByTestId, queryByText } = render(
+    const { getByTestId } = render(
       <MultichainAddressRow
         {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS}
         copyParams={copyParams}
@@ -145,8 +145,8 @@ describe('MultichainAddressRow', () => {
     // Simulate pressing the copy button
     fireEvent.press(copyButton);
 
-    // Success message should be displayed
-    expect(queryByText(copyParams.successMessage)).toBeTruthy();
+    // Callback should be called
+    expect(mockCallback).toHaveBeenCalled();
   });
 
   it('renders custom icons with proper callbacks', () => {
@@ -175,15 +175,43 @@ describe('MultichainAddressRow', () => {
     expect(mockIconCallback).toHaveBeenCalled();
   });
 
-  it('does not display success message if copyParams is not provided', () => {
-    const { queryByText } = render(
+  it('shows toast when copy button is pressed and toastRef is provided', async () => {
+    const mockCallback = jest.fn();
+    const mockShowToast = jest.fn();
+    const mockToastRef = {
+      current: {
+        showToast: mockShowToast,
+        closeToast: jest.fn(),
+      },
+    };
+    const copyParams = {
+      callback: mockCallback,
+      toastRef: mockToastRef,
+      toastMessage: 'Address copied',
+    };
+
+    const { getByTestId } = render(
       <MultichainAddressRow
         {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS}
-        copyParams={undefined}
+        copyParams={copyParams}
       />,
     );
 
-    expect(queryByText('Copied to clipboard!')).toBeNull();
+    const copyButton = getByTestId(MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID);
+
+    // Simulate pressing the copy button
+    fireEvent.press(copyButton);
+
+    // Wait for async operations
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Toast should be called with Plain variant (no icon)
+    expect(mockShowToast).toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: expect.stringContaining('Plain'),
+      }),
+    );
   });
 
   it('renders truncated address correctly when copyParams is missing', () => {
@@ -208,15 +236,5 @@ describe('MultichainAddressRow', () => {
 
     const actionsContainer = getByTestId(MULTICHAIN_ADDRESS_ROW_TEST_ID);
     expect(actionsContainer).toBeTruthy();
-  });
-
-  it('completes animation steps for green flash', () => {
-    const { getByTestId } = render(
-      <MultichainAddressRow {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS} />,
-    );
-
-    // Check animation overlay exists
-    const overlay = getByTestId(MULTICHAIN_ADDRESS_ROW_TEST_ID);
-    expect(overlay).toBeTruthy();
   });
 });

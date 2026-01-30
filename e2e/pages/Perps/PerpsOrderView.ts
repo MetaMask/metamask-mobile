@@ -1,7 +1,7 @@
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import Assertions from '../../framework/Assertions';
-import Utilities from '../../framework/Utilities';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Assertions from '../../../tests/framework/Assertions';
+import Utilities from '../../../tests/framework/Utilities';
 import {
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,

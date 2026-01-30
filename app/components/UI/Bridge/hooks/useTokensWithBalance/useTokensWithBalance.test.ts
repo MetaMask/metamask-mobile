@@ -48,7 +48,7 @@ describe('useTokensWithBalance', () => {
         decimals: 18,
         chainId: mockChainId,
         balance: '3.0',
-        balanceFiat: '$6000',
+        balanceFiat: '$6,000.00',
         tokenFiatAmount: 6000,
       });
     });
@@ -76,13 +76,13 @@ describe('useTokensWithBalance', () => {
 
       expect(token1).toMatchObject({
         balance: '1.0',
-        balanceFiat: '$20000',
+        balanceFiat: '$20,000.00',
         tokenFiatAmount: 20000,
       });
 
       expect(token2).toMatchObject({
         balance: '2.0',
-        balanceFiat: '$200000',
+        balanceFiat: '$200,000.00',
         tokenFiatAmount: 200000,
       });
 
@@ -97,7 +97,7 @@ describe('useTokensWithBalance', () => {
         symbol: 'ETH',
         chainId: optimismChainId,
         balance: '20.0',
-        balanceFiat: '$40000',
+        balanceFiat: '$40,000.00',
         tokenFiatAmount: 40000,
       });
 
@@ -108,7 +108,7 @@ describe('useTokensWithBalance', () => {
         name: 'Foo Token',
         chainId: optimismChainId,
         balance: '5.0',
-        balanceFiat: '$80000',
+        balanceFiat: '$80,000.00',
         tokenFiatAmount: 80000,
       });
     });
@@ -190,10 +190,10 @@ describe('useTokensWithBalance', () => {
 
     await waitFor(() => {
       const token1 = result.current.find((t) => t.address === token1Address);
-      expect(token1?.balanceFiat).toBe('$0');
+      expect(token1?.balanceFiat).toBe('$0.00');
 
       const token3 = result.current.find((t) => t.address === token3Address);
-      expect(token3?.balanceFiat).toBe('$0');
+      expect(token3?.balanceFiat).toBe('$0.00');
     });
   });
 });
