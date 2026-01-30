@@ -525,6 +525,7 @@ export const BrowserPure = (props) => {
 
 const Browser = React.memo(BrowserPure);
 Browser.displayName = 'Browser';
+Browser.propTypes = BrowserPure.propTypes;
 
 const mapStateToProps = (state) => ({
   tabs: state.browser.tabs,
@@ -580,10 +581,7 @@ BrowserPure.propTypes = {
 
 export { default as createBrowserNavDetails } from './Browser.types';
 
-export const ConnectedBrowser = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(Browser);
+const ConnectedBrowser = connect(mapStateToProps, mapDispatchToProps)(Browser);
 ConnectedBrowser.displayName = 'ConnectedBrowser';
 
 const MemoConnectedBrowser = ({ route, ...props }) => {
@@ -594,6 +592,6 @@ const MemoConnectedBrowser = ({ route, ...props }) => {
   }
   return <ConnectedBrowser route={previousRoute.current} {...props} />;
 };
-MemoConnectedBrowser.propTypes = ConnectedBrowser.propTypes;
+MemoConnectedBrowser.propTypes = BrowserPure.propTypes;
 
 export default MemoConnectedBrowser;

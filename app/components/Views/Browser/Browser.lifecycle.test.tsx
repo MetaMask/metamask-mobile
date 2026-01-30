@@ -5,7 +5,7 @@
 // 2. if tabs.length <= 4, create a new tab
 
 import React, { ComponentType } from 'react';
-import { Browser as BrowserComponent } from './index';
+import { BrowserPure as BrowserComponent } from './index';
 import { BrowserComponentProps } from './Browser.types';
 import Routes from '../../../constants/navigation/Routes';
 import renderWithProvider from '../../../util/test/renderWithProvider';

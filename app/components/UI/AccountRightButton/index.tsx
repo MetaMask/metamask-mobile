@@ -205,4 +205,4 @@ const AccountRightButton = ({
 const AccountRightButtonMemoized = React.memo(AccountRightButton);
 AccountRightButtonMemoized.displayName = 'AccountRightButton';
 
-export default AccountRightButton;
+export default AccountRightButtonMemoized;
