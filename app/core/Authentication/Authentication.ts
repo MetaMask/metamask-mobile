@@ -872,7 +872,7 @@ class AuthenticationService {
             {
               text: strings('login.biometric_changed_alert_confirm'),
               onPress: () => {
-                // reset Password
+                // reset biometric
                 this.resetPassword();
               },
             },
