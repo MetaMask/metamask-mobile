@@ -107,6 +107,7 @@ import { initialState as cardInitialState } from '../../../core/redux/slices/car
 import {
   NavigationProp,
   ParamListBase,
+  RouteProp,
   useFocusEffect,
   useRoute,
 } from '@react-navigation/native';
@@ -810,7 +811,7 @@ describe('Wallet', () => {
     jest.useFakeTimers();
     jest.mocked(useRoute).mockReturnValueOnce({
       params: { openNetworkSelector: true },
-    });
+    } as RouteProp<ParamListBase, string>);
 
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
