@@ -23,7 +23,17 @@ export interface AnalyticsTrackingEvent {
 interface AnalyticsEventBuilderInterface {
   /**
    * Add regular properties (non-sensitive) to the event
-   * @param properties - Properties to add to the event
+   *
+   * IMPORTANT: AnalyticsEventProperties does not allow undefined values.
+   * If your properties object can contain undefined values, use filterUndefinedValues()
+   * from 'app/util/analytics/filterUndefinedValues' before calling this method.
+   *
+   * @param properties - Properties to add to the event (no undefined values allowed)
+   * @example
+   * import { filterUndefinedValues } from '@/util/analytics/filterUndefinedValues';
+   *
+   * const props = { key: possiblyUndefinedValue };
+   * builder.addProperties(filterUndefinedValues(props));
    */
   addProperties: (
     properties: AnalyticsEventProperties,
@@ -31,7 +41,17 @@ interface AnalyticsEventBuilderInterface {
 
   /**
    * Add sensitive properties (will be anonymized) to the event
-   * @param properties - Sensitive properties to add to the event
+   *
+   * IMPORTANT: AnalyticsEventProperties does not allow undefined values.
+   * If your properties object can contain undefined values, use filterUndefinedValues()
+   * from 'app/util/analytics/filterUndefinedValues' before calling this method.
+   *
+   * @param properties - Sensitive properties to add to the event (no undefined values allowed)
+   * @example
+   * import { filterUndefinedValues } from '@/util/analytics/filterUndefinedValues';
+   *
+   * const sensitiveProps = { address: possiblyUndefinedAddress };
+   * builder.addSensitiveProperties(filterUndefinedValues(sensitiveProps));
    */
   addSensitiveProperties: (
     properties: AnalyticsEventProperties,
