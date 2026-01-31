@@ -22,7 +22,6 @@ import AuthenticationError from './AuthenticationError';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
   AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-  AUTHENTICATION_FAILED_TO_LOGIN,
   AUTHENTICATION_FAILED_WALLET_CREATION,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
@@ -72,7 +71,6 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
-import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { setAllowLoginWithRememberMe } from '../../actions/security';
@@ -684,64 +682,6 @@ class AuthenticationService {
     }
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
-  };
-
-  /**
-   * Manual user password entry for login
-   * @param password - password provided by user
-   * @param authData - type of authentication required to fetch password from keychain
-   */
-  userEntryAuth = async (
-    password: string,
-    authData: AuthData,
-  ): Promise<void> => {
-    try {
-      trace({
-        name: TraceName.VaultCreation,
-        op: TraceOperation.VaultCreation,
-      });
-
-      if (authData.oauth2Login) {
-        // if seedless flow - rehydrate
-        await this.rehydrateSeedPhrase(password);
-      } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
-        // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-        await this.syncPasswordAndUnlockWallet(password);
-      } else {
-        // else srp flow
-        await this.loginVaultCreation(password);
-      }
-
-      endTrace({ name: TraceName.VaultCreation });
-
-      await this.storePassword(password, authData.currentAuthType);
-      await this.dispatchLogin();
-      this.authData = authData;
-
-      // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
-      // discovery...).
-      // NOTE: We do not await on purpose, to run those operations in the background.
-      // eslint-disable-next-line no-void
-      void this.postLoginAsyncOperations();
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      if (e instanceof SeedlessOnboardingControllerError) {
-        throw e;
-      }
-
-      if ((e as Error).message.includes('SeedlessOnboardingController')) {
-        throw e;
-      }
-
-      throw new AuthenticationError(
-        (e as Error).message,
-        AUTHENTICATION_FAILED_TO_LOGIN,
-        this.authData,
-      );
-    }
-    password = this.wipeSensitiveData();
   };
 
   /**
