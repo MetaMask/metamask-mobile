@@ -15,7 +15,6 @@ import SecureKeychain from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';
 import AuthenticationError from './AuthenticationError';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
   AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   AUTHENTICATION_FAILED_TO_LOGIN,
   AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -1119,6 +1118,18 @@ describe('Authentication', () => {
       });
 
       it('does not break authentication flow when discovery fails', async () => {
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: mockDispatch,
+          getState: () => ({
+            user: { existingUser: true },
+          }),
+        } as unknown as ReduxStore);
+
+        // Mock MetaMetrics.getInstance to return true for isEnabled
+        jest
+          .spyOn(MetaMetrics, 'getInstance')
+          .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
+
         // Set up pending discovery that will be checked on unlock
         await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
 
@@ -1128,7 +1139,7 @@ describe('Authentication', () => {
           .mockReturnValue(mockCredentials);
 
         // App unlock should succeed even if retry fails
-        await expect(Authentication.appTriggeredAuth()).resolves.not.toThrow();
+        await expect(Authentication.unlockWallet()).resolves.not.toThrow();
       });
 
       it('sets SOLANA_DISCOVERY_PENDING when discovery fails in createWalletVaultAndKeychain', async () => {
@@ -1180,6 +1191,20 @@ describe('Authentication', () => {
         let mockAttemptMultichainAccountWalletDiscovery: jest.SpyInstance;
 
         beforeEach(() => {
+          // Mock Redux store with user state for unlockWallet tests
+          jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+            dispatch: mockDispatch,
+            getState: () => ({
+              user: { existingUser: true },
+              security: { allowLoginWithRememberMe: true },
+            }),
+          } as unknown as ReduxStore);
+
+          // Mock MetaMetrics.getInstance to return true for isEnabled
+          jest
+            .spyOn(MetaMetrics, 'getInstance')
+            .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
+
           // Spy on the private method
           mockAttemptAccountDiscovery = jest
             .spyOn(
@@ -1213,7 +1238,7 @@ describe('Authentication', () => {
             .fn()
             .mockReturnValue(mockCredentials);
 
-          await Authentication.appTriggeredAuth();
+          await Authentication.unlockWallet();
 
           expect(mockAttemptAccountDiscovery).toHaveBeenCalled();
         });
@@ -1226,7 +1251,7 @@ describe('Authentication', () => {
             .fn()
             .mockReturnValue(mockCredentials);
 
-          await Authentication.appTriggeredAuth();
+          await Authentication.unlockWallet();
 
           expect(mockAttemptAccountDiscovery).not.toHaveBeenCalled();
         });
@@ -1239,7 +1264,7 @@ describe('Authentication', () => {
             .fn()
             .mockReturnValue(mockCredentials);
 
-          await Authentication.appTriggeredAuth();
+          await Authentication.unlockWallet();
 
           expect(mockAttemptAccountDiscovery).not.toHaveBeenCalled();
         });
@@ -1266,7 +1291,7 @@ describe('Authentication', () => {
             .mockReturnValue(mockCredentials);
 
           await expect(
-            Authentication.appTriggeredAuth(),
+            Authentication.unlockWallet(),
           ).resolves.not.toThrow();
 
           expect(console.warn).toHaveBeenCalledWith(
@@ -1295,7 +1320,7 @@ describe('Authentication', () => {
 
           // Does not throw and completes authentication
           await expect(
-            Authentication.appTriggeredAuth(),
+            Authentication.unlockWallet(),
           ).resolves.not.toThrow();
 
           expect(mockAttemptAccountDiscovery).toHaveBeenCalled();
@@ -1304,40 +1329,6 @@ describe('Authentication', () => {
             'solana',
             expect.any(Error),
           );
-        });
-
-        it('throws AuthenticationError when appTriggeredAuth fails', async () => {
-          const mockDispatch = jest.fn();
-          jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-            dispatch: mockDispatch,
-            getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-          } as unknown as ReduxStore);
-
-          const Engine = jest.requireMock('../Engine');
-
-          Engine.context.KeyringController.setLocked.mockResolvedValue(
-            undefined,
-          );
-
-          // Mock getGenericPassword to return null to trigger error
-          SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(null);
-
-          try {
-            await Authentication.appTriggeredAuth();
-            throw new Error('Expected an error to be thrown');
-          } catch (error) {
-            expect(mockDispatch).toHaveBeenCalledWith(logOut());
-            expect(error).toBeInstanceOf(AuthenticationError);
-            expect((error as AuthenticationError).customErrorMessage).toBe(
-              AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-            );
-            expect((error as AuthenticationError).message).toBe(
-              AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-            );
-            await Promise.resolve();
-            jest.runAllTimers();
-            expect(mockDispatch).toHaveBeenCalledWith(logOut());
-          }
         });
 
         it('throws AuthenticationError when userEntryAuth fails', async () => {
@@ -1453,7 +1444,7 @@ describe('Authentication', () => {
             .fn()
             .mockReturnValue(mockCredentials);
 
-          await Authentication.appTriggeredAuth();
+          await Authentication.unlockWallet();
 
           // Wait for the asynchronous call to `postLoginAsyncOperations`.
           await Promise.resolve();
@@ -1478,7 +1469,7 @@ describe('Authentication', () => {
             .fn()
             .mockReturnValue(mockCredentials);
 
-          await Authentication.appTriggeredAuth();
+          await Authentication.unlockWallet();
 
           // Wait for the asynchronous call to `postLoginAsyncOperations`.
           await Promise.resolve();

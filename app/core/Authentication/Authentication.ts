@@ -21,7 +21,6 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
   AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   AUTHENTICATION_FAILED_TO_LOGIN,
   AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -874,75 +873,6 @@ class AuthenticationService {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();
       passwordToUse = this.wipeSensitiveData();
-    }
-  };
-
-  /**
-   * Attempts to use biometric/pin code/remember me to login
-   * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
-   */
-  appTriggeredAuth = async (
-    options: {
-      disableAutoLogout?: boolean;
-    } = {},
-  ): Promise<void> => {
-    const disableAutoLogout = options?.disableAutoLogout;
-    try {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const credentials: any = await SecureKeychain.getGenericPassword();
-      const password = credentials?.password;
-      if (!password) {
-        throw new AuthenticationError(
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-          this.authData,
-        );
-      }
-      trace({
-        name: TraceName.VaultCreation,
-        op: TraceOperation.VaultCreation,
-      });
-      // check for seedless password outdated
-      const isSeedlessPasswordOutdated =
-        await this.checkIsSeedlessPasswordOutdated(false);
-      if (isSeedlessPasswordOutdated) {
-        throw new AuthenticationError(
-          'Seedless password is outdated',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-          this.authData,
-        );
-      } else {
-        await this.loginVaultCreation(password);
-      }
-      endTrace({ name: TraceName.VaultCreation });
-
-      await this.dispatchLogin();
-      this.dispatchPasswordSet();
-
-      // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
-      // discovery...).
-      // NOTE: We do not await on purpose, to run those operations in the background.
-      // eslint-disable-next-line no-void
-      void this.postLoginAsyncOperations();
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      const errorMessage = (e as Error).message;
-
-      // Track authentication failures that could indicate vault/keychain issues to Segment
-      trackVaultCorruption(errorMessage, {
-        error_type: 'authentication_service_failure',
-        context: 'app_triggered_auth_failed',
-      });
-
-      !disableAutoLogout && this.lockApp({ reset: false });
-      throw new AuthenticationError(
-        errorMessage,
-        AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-        this.authData,
-      );
     }
   };
 
