@@ -41,6 +41,7 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../../util/device';
+import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
 
 interface CheckoutParams {
   url: string;
@@ -181,6 +182,11 @@ const CheckoutWebView = () => {
     }
   };
 
+  const handleShouldStartLoadWithRequest = useCallback(
+    ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
+    [],
+  );
+
   if (sdkError) {
     return (
       <BottomSheet
@@ -294,6 +300,7 @@ const CheckoutWebView = () => {
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
+          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
           testID="checkout-webview"
         />
