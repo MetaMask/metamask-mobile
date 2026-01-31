@@ -1,0 +1,2704 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InputStepper complete component snapshot renders complete component correctly 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="Enter value"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 40,
+              "fontWeight": "400",
+              "height": 50,
+              "letterSpacing": 0,
+              "lineHeight": 50,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="42.5"
+        />
+      </View>
+      <View
+        testID="input-stepper-post-value"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              {
+                "borderWidth": 0,
+                "fontSize": 40,
+                "height": 50,
+                "lineHeight": 50,
+              },
+            ]
+          }
+        >
+          %
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper complete component snapshot renders with description 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 40,
+              "fontWeight": "400",
+              "height": 50,
+              "letterSpacing": 0,
+              "lineHeight": 50,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="42.5"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper description row should render InputStepperDescriptionRow 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 40,
+              "fontWeight": "400",
+              "height": 50,
+              "letterSpacing": 0,
+              "lineHeight": 50,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="5"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper input renders correct style when value character length is less or equal to 10 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 40,
+              "fontWeight": "400",
+              "height": 50,
+              "letterSpacing": 0,
+              "lineHeight": 50,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="1,234,567,890"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper input renders correct style when value character length is less or equal to 15 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 35,
+              "fontWeight": "400",
+              "height": 43.75,
+              "letterSpacing": 0,
+              "lineHeight": 43.75,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="123,456,789,012,345"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper input renders correct style when value character length is less or equal to 20 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "height": 37.5,
+              "letterSpacing": 0,
+              "lineHeight": 37.5,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="12,345,678,901,234,567,000"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper input renders correct style when value character length is less or equal to 25 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 25,
+              "fontWeight": "400",
+              "height": 31.25,
+              "letterSpacing": 0,
+              "lineHeight": 31.25,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="1,234,567,890,123,456,800,000,000"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper input renders correct style when value character length is more than 25 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 20,
+              "fontWeight": "400",
+              "height": 25,
+              "letterSpacing": 0,
+              "lineHeight": 25,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="12,345,678,901,234,568,000,000,000"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper minus button renders correct style of minus button when disabled 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 40,
+              "fontWeight": "400",
+              "height": 50,
+              "letterSpacing": 0,
+              "lineHeight": 50,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="0"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper minus button renders correct style of minus button when enabled 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 40,
+              "fontWeight": "400",
+              "height": 50,
+              "letterSpacing": 0,
+              "lineHeight": 50,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="50"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper plus button renders correct style of plus button when disabled 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 40,
+              "fontWeight": "400",
+              "height": 50,
+              "letterSpacing": 0,
+              "lineHeight": 50,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="100"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InputStepper plus button renders correct style of plus button when enabled 1`] = `
+<View
+  style={
+    {
+      "gap": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-minus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Minus"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "width": 100,
+        }
+      }
+    >
+      <View>
+        <TextInput
+          autoFocus={true}
+          caretHidden={false}
+          editable={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="0"
+          showSoftInputOnFocus={false}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#4459ff",
+              "borderWidth": 0,
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 40,
+              "fontWeight": "400",
+              "height": 50,
+              "letterSpacing": 0,
+              "lineHeight": 50,
+              "opacity": 1,
+              "paddingVertical": 2,
+              "textAlignVertical": "center",
+            }
+          }
+          testID="input-stepper-input"
+          value="50"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#3c4d9d0f",
+            },
+          ]
+        }
+        testID="input-stepper-plus-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Add"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
