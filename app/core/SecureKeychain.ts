@@ -198,8 +198,11 @@ const SecureKeychain = {
           AUTHENTICATION_TYPE.REMEMBER_ME,
       });
     } else {
-      // Setting a password without a type does not save it
-      return await this.resetGenericPassword();
+      // PASSWORD type: store without biometric/passcode protection
+      await metrics.addTraitsToUser({
+        [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
+      });
+      //Don't add any access control parameter
     }
 
     const encryptedPassword = await instance.encryptPassword(password);
