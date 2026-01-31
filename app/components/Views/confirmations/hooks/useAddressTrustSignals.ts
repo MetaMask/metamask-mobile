@@ -10,13 +10,19 @@ import {
 } from '../types/trustSignals';
 
 /**
- * Get the trust signal display state from an address scan result type
+ * Get the trust signal display state from an address scan result type.
+ *
+ * When the result type is Benign and a label is present, we consider
+ * the address as Verified. This aligns with the extension's behavior
+ * where labeled benign addresses are shown as verified.
  *
  * @param resultType - The result type from the address scan
+ * @param label - Optional label from the scan result
  * @returns The trust signal display state
  */
 function getTrustState(
   resultType: string | undefined,
+  label: string | null | undefined,
 ): TrustSignalDisplayState {
   if (!resultType) {
     return TrustSignalDisplayState.Unknown;
@@ -30,6 +36,10 @@ function getTrustState(
     case AddressScanResultType.Loading:
       return TrustSignalDisplayState.Loading;
     case AddressScanResultType.Benign:
+      // Benign with label = Verified, without = Unknown
+      return label
+        ? TrustSignalDisplayState.Verified
+        : TrustSignalDisplayState.Unknown;
     default:
       return TrustSignalDisplayState.Unknown;
   }
@@ -50,10 +60,13 @@ export function useAddressTrustSignals(
 
   return useMemo(
     () =>
-      addressScanResults.map(({ scanResult }) => ({
-        state: getTrustState(scanResult?.result_type),
-        label: scanResult?.label || null,
-      })),
+      addressScanResults.map(({ scanResult }) => {
+        const label = scanResult?.label || null;
+        return {
+          state: getTrustState(scanResult?.result_type, label),
+          label,
+        };
+      }),
     [addressScanResults],
   );
 }
