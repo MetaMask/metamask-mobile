@@ -8,6 +8,7 @@ import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
+  useTransactionPayIsPostQuote,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -29,6 +30,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const isSourceGasFeeToken = totals?.fees.isSourceGasFeeToken ?? false;
   const isPendingAlert = Boolean(pendingAmountUsd !== undefined);
   const isMax = useTransactionPayIsMaxAmount();
+  const isPostQuote = useTransactionPayIsPostQuote();
 
   const sourceChainId = payToken?.chainId ?? '0x0';
 
@@ -82,19 +84,27 @@ export function useInsufficientPayTokenBalanceAlert({
     return new BigNumber(totals?.fees.sourceNetwork.max.raw ?? '0');
   }, [isLoading, totals]);
 
+  // For post-quote (withdrawal) flows, the source funds come from the withdrawal
+  // transaction itself, not from the user's existing balance. Skip input/fees checks.
   const isInsufficientForInput = useMemo(
-    () => payToken && totalAmountUsd.isGreaterThan(balanceUsd ?? '0'),
-    [balanceUsd, payToken, totalAmountUsd],
+    () =>
+      !isPostQuote &&
+      payToken &&
+      totalAmountUsd.isGreaterThan(balanceUsd ?? '0'),
+    [balanceUsd, isPostQuote, payToken, totalAmountUsd],
   );
 
   const isInsufficientForFees = useMemo(
     () =>
+      !isPostQuote &&
       !isPendingAlert &&
       payToken &&
       totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
-    [balanceRaw, isPendingAlert, payToken, totalSourceAmountRaw],
+    [balanceRaw, isPendingAlert, isPostQuote, payToken, totalSourceAmountRaw],
   );
 
+  // For post-quote flows, we still need to check if the user has enough native
+  // token to pay for gas on the source network (e.g., POL for Polygon)
   const isInsufficientForSourceNetwork = useMemo(
     () =>
       payToken &&

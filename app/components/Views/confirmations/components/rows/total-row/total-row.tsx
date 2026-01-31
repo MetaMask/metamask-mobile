@@ -14,28 +14,56 @@ import {
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { isWithdrawalTransaction } from '../../../utils/transaction';
 
-export function TotalRow() {
+export interface TotalRowProps {
+  /** The user's input amount in USD (used for withdrawal "You'll receive" calculation) */
+  inputAmountUsd?: string;
+}
+
+export function TotalRow({ inputAmountUsd }: TotalRowProps) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
+  const transactionMeta = useTransactionMetadataRequest();
+  const isWithdrawal = isWithdrawalTransaction(transactionMeta);
 
+  // For withdrawals: You'll receive = Input amount - Provider fee
+  // (Network fees are paid separately from POL balance, not deducted from withdrawal)
+  // For deposits: Total = source + all fees
   const totalUsd = useMemo(() => {
-    if (!totals?.total) return '';
+    if (!totals) return '';
 
-    return formatFiat(new BigNumber(totals.total.usd));
-  }, [totals, formatFiat]);
+    if (isWithdrawal && inputAmountUsd) {
+      const inputUsd = new BigNumber(inputAmountUsd);
+      const providerFee = new BigNumber(totals.fees?.provider?.usd ?? 0);
+
+      const youReceive = inputUsd.minus(providerFee);
+      return formatFiat(
+        youReceive.isPositive() ? youReceive : new BigNumber(0),
+      );
+    }
+
+    if (totals.total) {
+      return formatFiat(new BigNumber(totals.total.usd));
+    }
+
+    return '';
+  }, [totals, formatFiat, isWithdrawal, inputAmountUsd]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="total-row-skeleton" />;
   }
 
+  // For withdrawals, use "You'll receive" label
+  const label = isWithdrawal
+    ? strings('confirm.label.you_receive')
+    : strings('confirm.label.total');
+
   return (
     <View testID="total-row">
-      <InfoRow
-        label={strings('confirm.label.total')}
-        rowVariant={InfoRowVariant.Small}
-      >
+      <InfoRow label={label} rowVariant={InfoRowVariant.Small}>
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}

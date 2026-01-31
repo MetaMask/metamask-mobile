@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useWithdrawalToken } from '../../../hooks/pay/useWithdrawalToken';
 import { TouchableOpacity } from 'react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import {
@@ -36,6 +37,7 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
+  const { isWithdrawal } = useWithdrawalToken();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
@@ -56,6 +58,11 @@ export function PayWithRow() {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [canEdit, navigation, setConfirmationMetric]);
 
+  const label = isWithdrawal
+    ? strings('confirm.label.receive_as')
+    : strings('confirm.label.pay_with');
+
+  // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
     [formatFiat, payToken?.balanceUsd],
@@ -84,15 +91,18 @@ export function PayWithRow() {
           color={TextColor.Default}
           testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
         >
-          {`${strings('confirm.label.pay_with')} ${payToken.symbol}`}
+          {`${label} ${payToken.symbol}`}
         </Text>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Alternative}
-          testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
-        >
-          {balanceUsdFormatted}
-        </Text>
+        {/* For deposits, show the user's balance; for withdrawals, no balance needed */}
+        {!isWithdrawal && (
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+            testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+          >
+            {balanceUsdFormatted}
+          </Text>
+        )}
         {canEdit && from && (
           <Icon
             name={IconName.ArrowDown}
