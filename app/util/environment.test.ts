@@ -1,19 +1,19 @@
 import { isProduction } from './environment';
 
-const originalNodeEnvironment = process.env.NODE_ENV;
+const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
 
 describe('isProduction', () => {
   afterAll(() => {
-    Object.defineProperty(process.env, 'NODE_ENV', {
-      value: originalNodeEnvironment,
+    Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
+      value: originalMetamaskEnvironment,
       writable: true,
       enumerable: true,
       configurable: true,
     });
   });
 
-  it('returns true when NODE_ENV is "production"', () => {
-    Object.defineProperty(process.env, 'NODE_ENV', {
+  it('returns true when METAMASK_ENVIRONMENT is "production"', () => {
+    Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
       value: 'production',
       writable: true,
       enumerable: true,
@@ -22,8 +22,8 @@ describe('isProduction', () => {
     expect(isProduction()).toBe(true);
   });
 
-  it('returns false when NODE_ENV is "development"', () => {
-    Object.defineProperty(process.env, 'NODE_ENV', {
+  it('returns false when METAMASK_ENVIRONMENT is "development"', () => {
+    Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
       value: 'development',
       writable: true,
       enumerable: true,
@@ -32,8 +32,8 @@ describe('isProduction', () => {
     expect(isProduction()).toBe(false);
   });
 
-  it('returns false when NODE_ENV is "test"', () => {
-    Object.defineProperty(process.env, 'NODE_ENV', {
+  it('returns false when METAMASK_ENVIRONMENT is "test"', () => {
+    Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
       value: 'test',
       writable: true,
       enumerable: true,

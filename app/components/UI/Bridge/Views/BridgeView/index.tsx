@@ -600,6 +600,7 @@ const BridgeView = () => {
                 token={sourceToken}
                 tokenBalance={latestSourceBalance}
                 onMaxPress={handleSourceMaxPress}
+                isQuoteSponsored={isQuoteSponsored}
               />
             ) : null}
           </Box>
