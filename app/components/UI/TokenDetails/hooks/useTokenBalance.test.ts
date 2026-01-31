@@ -48,9 +48,37 @@ describe('useTokenBalance', () => {
 
     const { result } = renderHookWithProvider(() => useTokenBalance(token));
 
+    expect(mockSelectAsset).toHaveBeenCalledWith(expect.any(Object), {
+      address: token.address,
+      chainId: token.chainId,
+      isStaked: false,
+    });
     expect(result.current.balance).toBe('100');
     expect(result.current.fiatBalance).toBe('$100.00');
     expect(result.current.tokenFormattedBalance).toBe('100 DAI');
+  });
+
+  it('passes through isStaked when token is staked', () => {
+    const token = {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x1',
+      isStaked: true,
+    } as TokenI;
+
+    mockSelectAsset.mockReturnValue({
+      balance: '2',
+      balanceFiat: '$4,800.00',
+      symbol: 'ETH',
+      isStaked: true,
+    } as TokenI);
+
+    renderHookWithProvider(() => useTokenBalance(token));
+
+    expect(mockSelectAsset).toHaveBeenCalledWith(expect.any(Object), {
+      address: token.address,
+      chainId: token.chainId,
+      isStaked: true,
+    });
   });
 
   it('returns staked TRX asset for Tron native token', () => {
@@ -78,6 +106,11 @@ describe('useTokenBalance', () => {
 
     const { result } = renderHookWithProvider(() => useTokenBalance(tronToken));
 
+    expect(mockSelectAsset).toHaveBeenCalledWith(expect.any(Object), {
+      address: tronToken.address,
+      chainId: tronToken.chainId,
+      isStaked: false,
+    });
     expect(result.current.balance).toBe('1000');
     expect(result.current.fiatBalance).toBe('$100.00');
     expect(result.current.tokenFormattedBalance).toBe('1000 TRX');

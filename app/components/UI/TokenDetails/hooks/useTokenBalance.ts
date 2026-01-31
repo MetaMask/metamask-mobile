@@ -27,7 +27,7 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
     selectAsset(state, {
       address: token.address,
       chainId: token.chainId as Hex,
-      isStaked: false,
+      isStaked: Boolean(token.isStaked),
     }),
   );
 

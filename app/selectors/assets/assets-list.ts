@@ -28,7 +28,10 @@ import {
 } from '../../core/Multichain/constants';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 import { selectAllTokens } from '../tokensController';
-import { selectSelectedInternalAccountAddress } from '../accountsController';
+import {
+  selectSelectedInternalAccountAddress,
+  selectSelectedInternalAccountId,
+} from '../accountsController';
 
 const getStateForAssetSelector = (state: RootState) => {
   const {
@@ -264,6 +267,7 @@ export const selectAsset = createSelector(
       state.engine.backgroundState.TokenListController.tokensChainsCache,
     selectAllTokens,
     selectSelectedInternalAccountAddress,
+    selectSelectedInternalAccountId,
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
@@ -283,20 +287,39 @@ export const selectAsset = createSelector(
     tokensChainsCache,
     allTokens,
     selectedAddress,
+    selectedAccountId,
     address,
     chainId,
     isStaked,
   ) => {
+    /**
+     * Note: Without this, the selector would return the wrong asset for the selected account on EVM chains.
+     * This caused Staked Ethereum to not update when switching accounts.
+     * We want to apply this to EVM chains only.
+     */
+    const shouldScopeToSelectedAccount =
+      Boolean(selectedAccountId) && typeof chainId === 'string'
+        ? chainId.startsWith('0x')
+        : false;
+
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>
-            item.chainId === chainId && item.stakedAsset.assetId === address,
+            item.chainId === chainId &&
+            (!shouldScopeToSelectedAccount ||
+              item.accountId === selectedAccountId) &&
+            item.stakedAsset.assetId === address,
         )?.stakedAsset
       : assets[chainId]?.find((item: Asset & { isStaked?: boolean }) => {
           // Normalize isStaked values: treat undefined as false
           const itemIsStaked = Boolean(item.isStaked);
           const targetIsStaked = Boolean(isStaked);
-          return item.assetId === address && itemIsStaked === targetIsStaked;
+          return (
+            item.assetId === address &&
+            (!shouldScopeToSelectedAccount ||
+              item.accountId === selectedAccountId) &&
+            itemIsStaked === targetIsStaked
+          );
         });
 
     // Look up rwaData from the original token in allTokens
