@@ -450,7 +450,10 @@
     "reset_wallet_desc_bold": "permanently erased",
     "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
-    "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information."
+    "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information.",
+    "biometric_changed": "Biometric Changed",
+    "biometric_changed_alert_desc": "Your biometric has been changed. Please re-enable biometric from settings.",
+    "biometric_changed_alert_confirm": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
