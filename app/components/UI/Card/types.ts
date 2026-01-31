@@ -496,6 +496,7 @@ export interface OrderPaymentConfig {
  */
 export interface CreateOrderResponse {
   orderId: string;
+  requestId: string;
   paymentConfig: OrderPaymentConfig;
 }
 
@@ -503,6 +504,7 @@ export interface CreateOrderResponse {
  * Status of an order
  */
 export type OrderStatus =
+  | 'STARTED'
   | 'PENDING'
   | 'COMPLETED'
   | 'FAILED'

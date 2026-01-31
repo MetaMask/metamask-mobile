@@ -28,9 +28,12 @@ import {
 } from 'react-native-device-info';
 import {
   selectAlwaysShowCardButton,
+  selectIsDaimoDemo,
   setAlwaysShowCardButton,
+  setIsDaimoDemo,
 } from '../../../../core/redux/slices/card';
 import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagController/card';
+import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
 
 /**
  * Main view for app Experimental Settings
@@ -40,12 +43,16 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const performanceMetrics = useSelector(selectPerformanceMetrics);
   const cardExperimentalSwitch = useSelector(selectCardExperimentalSwitch);
   const alwaysShowCardButton = useSelector(selectAlwaysShowCardButton);
-
+  const isDaimoDemo = useSelector(selectIsDaimoDemo);
   const isFullScreenModal = route?.params?.isFullScreenModal;
 
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
+
+  const canShowDaimoDemoToggle = NON_PRODUCTION_ENVIRONMENTS.includes(
+    process.env.METAMASK_ENVIRONMENT ?? '',
+  );
 
   useEffect(
     () => {
@@ -94,6 +101,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     dispatch(setAlwaysShowCardButton(value));
   };
 
+  const handleDaimoDemoToggle = (value: boolean) => {
+    dispatch(setIsDaimoDemo(value));
+  };
+
   const renderCardSettings = () => (
     <View style={styles.heading}>
       <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
@@ -110,6 +121,26 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         value={alwaysShowCardButton}
         onValueChange={handleAlwaysShowCardButtonToggle}
         testID="always-show-card-button-switch"
+      />
+    </View>
+  );
+
+  const renderDaimoDemoSettings = () => (
+    <View style={styles.heading}>
+      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        {strings('experimental_settings.daimo_demo_title')}
+      </Text>
+      <Text
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
+        style={styles.desc}
+      >
+        {strings('experimental_settings.daimo_demo_desc')}
+      </Text>
+      <Switch
+        value={isDaimoDemo}
+        onValueChange={handleDaimoDemoToggle}
+        testID="is-daimo-demo-switch"
       />
     </View>
   );
@@ -165,6 +196,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     <ScrollView style={styles.wrapper}>
       {renderWalletConnectSettings()}
       {cardExperimentalSwitch && renderCardSettings()}
+      {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
       {isTest && renderPerformanceSettings()}
     </ScrollView>
   );

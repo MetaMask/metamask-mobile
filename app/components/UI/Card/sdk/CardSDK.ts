@@ -228,7 +228,7 @@ export class CardSDK {
       tags: {
         feature: 'card',
         operation,
-        errorType: type.toLowerCase().replace(/_/g, '_'),
+        errorType: type.toLowerCase(),
       },
       context: {
         name: this.getContextName(operation),
@@ -1870,7 +1870,10 @@ export class CardSDK {
       },
     );
 
-  getRegistrationStatus = async (onboardingId: string): Promise<UserResponse> =>
+  getRegistrationStatus = async (
+    onboardingId: string,
+    location?: CardLocation,
+  ): Promise<UserResponse> =>
     this.withErrorHandling(
       'getRegistrationStatus',
       'auth/register',
@@ -1881,6 +1884,7 @@ export class CardSDK {
           {
             fetchOptions: { method: 'GET' },
             authenticated: false,
+            ...(location && { location }),
           },
         );
 

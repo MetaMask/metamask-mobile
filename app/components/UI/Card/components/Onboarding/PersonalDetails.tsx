@@ -98,10 +98,7 @@ const PersonalDetails = () => {
         setDateOfBirth('');
       }
 
-      // Use countryOfResidence as fallback since countryOfNationality is not populated
-      setNationalityKey(
-        userData.countryOfNationality || userData.countryOfResidence || '',
-      );
+      setNationalityKey(userData.countryOfNationality || '');
       setSSN(userData.ssn || '');
     }
   }, [userData]);

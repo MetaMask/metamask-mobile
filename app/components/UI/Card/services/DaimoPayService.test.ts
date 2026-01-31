@@ -3,26 +3,7 @@ import DaimoPayService, {
   DaimoPayEvent,
 } from './DaimoPayService';
 import { CardErrorType } from '../types';
-import {
-  getDaimoEnvironment,
-  isDaimoProduction,
-  isDaimoDemo,
-} from '../util/getDaimoEnvironment';
-
-// Mock the environment helper
-jest.mock('../util/getDaimoEnvironment', () => ({
-  getDaimoEnvironment: jest.fn(),
-  isDaimoProduction: jest.fn(),
-  isDaimoDemo: jest.fn(),
-}));
-
-const mockGetDaimoEnvironment = getDaimoEnvironment as jest.MockedFunction<
-  typeof getDaimoEnvironment
->;
-const mockIsDaimoProduction = isDaimoProduction as jest.MockedFunction<
-  typeof isDaimoProduction
->;
-const mockIsDaimoDemo = isDaimoDemo as jest.MockedFunction<typeof isDaimoDemo>;
+import { getDaimoEnvironment } from '../util/getDaimoEnvironment';
 
 // Mock fetch
 const mockFetch = jest.fn();
@@ -32,19 +13,20 @@ describe('DaimoPayService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetch.mockReset();
-    // Default to demo mode
-    mockGetDaimoEnvironment.mockReturnValue('demo');
-    mockIsDaimoProduction.mockReturnValue(false);
-    mockIsDaimoDemo.mockReturnValue(true);
+  });
+
+  describe('getDaimoEnvironment helper', () => {
+    it('returns demo when isDaimoDemo is true', () => {
+      expect(getDaimoEnvironment(true)).toBe('demo');
+    });
+
+    it('returns production when isDaimoDemo is false', () => {
+      expect(getDaimoEnvironment(false)).toBe('production');
+    });
   });
 
   describe('createPayment', () => {
-    describe('demo mode', () => {
-      beforeEach(() => {
-        mockGetDaimoEnvironment.mockReturnValue('demo');
-        mockIsDaimoProduction.mockReturnValue(false);
-      });
-
+    describe('demo mode (isDaimoDemo: true)', () => {
       it('creates a payment successfully with demo config ($0.25 USD)', async () => {
         const mockPayId = 'test-pay-id-123';
         mockFetch.mockResolvedValueOnce({
@@ -52,7 +34,9 @@ describe('DaimoPayService', () => {
           json: () => Promise.resolve({ id: mockPayId }),
         });
 
-        const result = await DaimoPayService.createPayment();
+        const result = await DaimoPayService.createPayment({
+          isDaimoDemo: true,
+        });
 
         expect(result.payId).toBe(mockPayId);
         expect(mockFetch).toHaveBeenCalledWith(
@@ -83,7 +67,9 @@ describe('DaimoPayService', () => {
           text: () => Promise.resolve('Internal Server Error'),
         });
 
-        await expect(DaimoPayService.createPayment()).rejects.toMatchObject({
+        await expect(
+          DaimoPayService.createPayment({ isDaimoDemo: true }),
+        ).rejects.toMatchObject({
           type: CardErrorType.SERVER_ERROR,
         });
       });
@@ -94,7 +80,9 @@ describe('DaimoPayService', () => {
           json: () => Promise.resolve({}),
         });
 
-        await expect(DaimoPayService.createPayment()).rejects.toMatchObject({
+        await expect(
+          DaimoPayService.createPayment({ isDaimoDemo: true }),
+        ).rejects.toMatchObject({
           type: CardErrorType.SERVER_ERROR,
           message: expect.stringContaining('missing payment ID'),
         });
@@ -103,20 +91,25 @@ describe('DaimoPayService', () => {
       it('throws CardError on network error', async () => {
         mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-        await expect(DaimoPayService.createPayment()).rejects.toMatchObject({
+        await expect(
+          DaimoPayService.createPayment({ isDaimoDemo: true }),
+        ).rejects.toMatchObject({
           type: CardErrorType.NETWORK_ERROR,
         });
       });
     });
 
-    describe('production mode', () => {
-      beforeEach(() => {
-        mockGetDaimoEnvironment.mockReturnValue('production');
-        mockIsDaimoProduction.mockReturnValue(true);
-        mockIsDaimoDemo.mockReturnValue(false);
+    describe('production mode (isDaimoDemo: false)', () => {
+      it('throws error when cardSDK is not provided', async () => {
+        await expect(
+          DaimoPayService.createPayment({ isDaimoDemo: false }),
+        ).rejects.toMatchObject({
+          type: CardErrorType.VALIDATION_ERROR,
+          message: expect.stringContaining('CardSDK is required'),
+        });
       });
 
-      it('throws error when cardSDK is not provided', async () => {
+      it('uses production mode by default when isDaimoDemo is not specified', async () => {
         await expect(DaimoPayService.createPayment()).rejects.toMatchObject({
           type: CardErrorType.VALIDATION_ERROR,
           message: expect.stringContaining('CardSDK is required'),
@@ -126,28 +119,29 @@ describe('DaimoPayService', () => {
   });
 
   describe('pollPaymentStatus', () => {
-    describe('demo mode', () => {
-      beforeEach(() => {
-        mockGetDaimoEnvironment.mockReturnValue('demo');
-        mockIsDaimoProduction.mockReturnValue(false);
-        mockIsDaimoDemo.mockReturnValue(true);
-      });
-
+    describe('demo mode (isDaimoDemo: true)', () => {
       it('returns pending status in demo mode', async () => {
-        const result = await DaimoPayService.pollPaymentStatus('test-pay-id');
+        const result = await DaimoPayService.pollPaymentStatus('test-pay-id', {
+          isDaimoDemo: true,
+        });
 
         expect(result.status).toBe('pending');
       });
     });
 
-    describe('production mode', () => {
-      beforeEach(() => {
-        mockGetDaimoEnvironment.mockReturnValue('production');
-        mockIsDaimoProduction.mockReturnValue(true);
-        mockIsDaimoDemo.mockReturnValue(false);
+    describe('production mode (isDaimoDemo: false)', () => {
+      it('throws error when cardSDK is not provided for polling', async () => {
+        await expect(
+          DaimoPayService.pollPaymentStatus('test-pay-id', {
+            isDaimoDemo: false,
+          }),
+        ).rejects.toMatchObject({
+          type: CardErrorType.VALIDATION_ERROR,
+          message: expect.stringContaining('CardSDK is required'),
+        });
       });
 
-      it('throws error when cardSDK is not provided for polling', async () => {
+      it('uses production mode by default when isDaimoDemo is not specified', async () => {
         await expect(
           DaimoPayService.pollPaymentStatus('test-pay-id'),
         ).rejects.toMatchObject({
@@ -252,42 +246,6 @@ describe('DaimoPayService', () => {
       const result = DaimoPayService.shouldLoadInWebView('metamask://connect');
 
       expect(result).toBe(false);
-    });
-  });
-
-  describe('getEnvironment', () => {
-    it('returns current environment', () => {
-      mockGetDaimoEnvironment.mockReturnValue('demo');
-
-      const result = DaimoPayService.getEnvironment();
-
-      expect(result).toBe('demo');
-    });
-
-    it('returns production when in production environment', () => {
-      mockGetDaimoEnvironment.mockReturnValue('production');
-
-      const result = DaimoPayService.getEnvironment();
-
-      expect(result).toBe('production');
-    });
-  });
-
-  describe('isProduction', () => {
-    it('returns false in demo mode', () => {
-      mockIsDaimoProduction.mockReturnValue(false);
-
-      const result = DaimoPayService.isProduction();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true in production mode', () => {
-      mockIsDaimoProduction.mockReturnValue(true);
-
-      const result = DaimoPayService.isProduction();
-
-      expect(result).toBe(true);
     });
   });
 });

@@ -1,13 +1,8 @@
 export type DaimoEnvironment = 'demo' | 'production';
 
-export const getDaimoEnvironment = (): DaimoEnvironment => {
-  if (__DEV__) {
+export const getDaimoEnvironment = (isDaimoDemo: boolean): DaimoEnvironment => {
+  if (isDaimoDemo) {
     return 'demo';
   }
   return 'production';
 };
-
-export const isDaimoProduction = (): boolean =>
-  getDaimoEnvironment() === 'production';
-
-export const isDaimoDemo = (): boolean => getDaimoEnvironment() === 'demo';

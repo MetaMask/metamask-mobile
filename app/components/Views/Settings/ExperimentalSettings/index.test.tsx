@@ -57,6 +57,11 @@ jest.mock('../../../../core/redux/slices/card', () => ({
     type: 'card/setAlwaysShowCardButton',
     payload: value,
   })),
+  selectIsDaimoDemo: jest.fn((state) => state.card.isDaimoDemo),
+  setIsDaimoDemo: jest.fn((value) => ({
+    type: 'card/setIsDaimoDemo',
+    payload: value,
+  })),
 }));
 
 const mockStore = configureMockStore();
@@ -82,6 +87,7 @@ const initialState = {
     alwaysShowCardButton: false,
     isAuthenticatedCard: false,
     cardholderAccounts: [],
+    isDaimoDemo: false,
   },
   engine: {
     backgroundState,

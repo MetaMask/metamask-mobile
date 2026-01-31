@@ -655,6 +655,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
+        null,
       );
       expect(result.current.user).toEqual(mockUserResponse);
     });
@@ -721,6 +722,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
+        null,
       );
       expect(result.current.user).toBe(null);
     });
@@ -747,6 +749,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
+        null,
       );
       expect(mockGetErrorMessage).toHaveBeenCalledWith(mockError);
       expect(mockDispatch).toHaveBeenCalledWith({
@@ -780,6 +783,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
+        null,
       );
       expect(mockGetErrorMessage).toHaveBeenCalledWith(mockError);
       // Verify resetOnboardingState was NOT dispatched
@@ -852,6 +856,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'existing-onboarding-id',
+        null,
       );
       expect(result.current.user).toEqual(mockUserResponse);
     });
@@ -879,6 +884,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
+        null,
       );
       expect(result.current.user).toEqual(mockUserResponse);
     });

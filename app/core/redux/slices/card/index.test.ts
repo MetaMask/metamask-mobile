@@ -136,6 +136,7 @@ const MOCK_REGION_JP: Region = { key: 'JP', name: 'Japan', emoji: '🇯🇵' };
 
 const CARD_STATE_MOCK: CardSliceState = {
   cardholderAccounts: CARDHOLDER_ACCOUNTS_MOCK,
+  isDaimoDemo: false,
   priorityTokensByAddress: {
     [testAddress.toLowerCase()]: MOCK_PRIORITY_TOKEN,
   },
@@ -164,6 +165,7 @@ const CARD_STATE_MOCK: CardSliceState = {
 
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   cardholderAccounts: [],
+  isDaimoDemo: false,
   priorityTokensByAddress: {},
   lastFetchedByAddress: {},
   authenticatedPriorityToken: null,
@@ -559,6 +561,7 @@ describe('Card Reducer', () => {
     it('should reset card state', () => {
       const currentState: CardSliceState = {
         cardholderAccounts: ['0x123'],
+        isDaimoDemo: false,
         priorityTokensByAddress: {
           '0x123': MOCK_PRIORITY_TOKEN,
         },

@@ -91,7 +91,10 @@ export const CardSDKProvider = ({
     setIsLoading(true);
 
     try {
-      const userData = await sdk.getRegistrationStatus(onboardingId);
+      const userData = await sdk.getRegistrationStatus(
+        onboardingId,
+        userCardLocation,
+      );
 
       if (userData.contactVerificationId) {
         dispatch(setContactVerificationId(userData.contactVerificationId));
@@ -111,7 +114,7 @@ export const CardSDKProvider = ({
     } finally {
       setIsLoading(false);
     }
-  }, [sdk, onboardingId, dispatch]);
+  }, [sdk, onboardingId, dispatch, userCardLocation]);
 
   // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
   const [hasInitialOnboardingId] = useState(() => !!onboardingId);

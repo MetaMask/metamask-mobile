@@ -34,6 +34,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CardUserPhase } from '../types';
 import Complete from '../components/Onboarding/Complete';
+import LockManagerService from '../../../../core/LockManagerService';
 
 const Stack = createStackNavigator();
 
@@ -124,6 +125,16 @@ const OnboardingNavigator: React.FC = () => {
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
+
+  // Disable auto-lock during Card onboarding flow
+  // This allows users to minimize the app to check personal details
+  // without being locked out and redirected to wallet home
+  useEffect(() => {
+    LockManagerService.stopListening();
+    return () => {
+      LockManagerService.startListening();
+    };
+  }, []);
 
   const initialRouteName = useMemo(() => {
     // Priority 1: Use cardUserPhase if provided (from login response)
