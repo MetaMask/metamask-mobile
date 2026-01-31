@@ -1,14 +1,49 @@
 /* eslint-disable import/prefer-default-export */
 import { Platform, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import { Theme } from '../../../util/theme/models';
+import { Colors, Theme } from '../../../util/theme/models';
 
-export const createStyles = (theme: Theme) =>
+export const createStyles = (theme: Theme, colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: theme.colors.background.default,
       flex: 1,
       paddingBottom: 16,
+      height: '100%',
+    },
+    quizContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingTop: 32,
+      paddingHorizontal: 16,
+      paddingBottom: 24,
+    },
+    stepIndicatorContainer: {
+      marginBottom: 8,
+    },
+    quizButtonContainer: {
+      width: '100%',
+    },
+    quizAnsweredContainer: {
+      flex: 1,
+      alignItems: 'flex-end',
+      justifyContent: 'flex-end',
+      width: '100%',
+    },
+    quizDescription: {
+      marginTop: 24,
+    },
+    quizQuestion: {
+      width: '90%',
+      marginBottom: 24,
+    },
+    quizQuestionContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 24,
     },
     normalText: {
       color: theme.colors.text.default,
@@ -26,17 +61,15 @@ export const createStyles = (theme: Theme) =>
       ...fontStyles.normal,
     },
     seedPhraseView: {
-      marginTop: 10,
-      alignItems: 'center',
-      borderRadius: 10,
-      borderWidth: 1,
-      borderColor: theme.colors.border.default,
-      marginBottom: 16, // ensure the copy to clipboard is not clipped
+      marginTop: 16,
+      flex: 1,
+      width: '100%',
+      height: '100%',
+      minHeight: 232,
     },
     clipboardButton: {
       alignSelf: 'center',
-      width: '90%',
-      marginVertical: 5,
+      width: '100%',
     },
     revealButton: {
       alignSelf: 'center',
@@ -54,91 +87,92 @@ export const createStyles = (theme: Theme) =>
       marginBottom: Platform.OS === 'android' ? 20 : 0,
     },
     warningWrapper: {
-      backgroundColor: theme.colors.error.muted,
-      padding: 20,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: theme.colors.error.default,
-      marginTop: 16,
-      paddingBottom: 20,
-    },
-    warningRowWrapper: {
-      flexDirection: 'row',
-      flexShrink: 1,
-      alignItems: 'flex-start',
-      width: '100%',
+      fontSize: 14,
+      marginTop: 24,
     },
     warningText: {
       marginTop: 10,
       color: theme.colors.error.default,
       ...fontStyles.normal,
     },
-    input: {
-      borderWidth: 2,
-      borderRadius: 5,
-      borderColor: theme.colors.border.default,
-      padding: 10,
-      color: theme.colors.text.default,
-      ...fontStyles.normal,
-    },
-    icon: {
-      color: theme.colors.error.default,
-      position: 'relative',
-      marginTop: 3,
-    },
-    blueText: {
-      color: theme.colors.primary.default,
-    },
-    link: {
-      top: 2.5,
-    },
-    warningMessageText: {
-      marginLeft: 20,
-      marginRight: 40,
-      ...fontStyles.normal,
-      color: theme.colors.text.default,
-    },
     enterPassword: {
       marginBottom: 4,
       color: theme.colors.text.default,
     },
-    boldText: {
-      color: theme.colors.text.default,
-      ...fontStyles.bold,
-    },
     tabContainer: {
       paddingHorizontal: 16,
-    },
-    qrCodeContainer: {
-      padding: 8,
-      backgroundColor: theme.colors.background.default,
     },
     qrCodeWrapper: {
       alignSelf: 'center',
       justifyContent: 'center',
-      padding: 8,
-      backgroundColor: theme.brandColors.white,
+      marginTop: 16,
     },
-    tabUnderlineStyle: {
-      height: 2,
-      backgroundColor: theme.colors.primary.default,
+    button: {
+      width: '100%',
+      textAlign: 'center',
     },
-    tabStyle: {
-      paddingBottom: 0,
-      backgroundColor: theme.colors.background.default,
-    },
-    textStyle: {
-      fontSize: 12,
-      letterSpacing: 0.5,
-      fontFamily: fontStyles.bold.fontFamily,
-    },
-    revealModalText: {
-      marginBottom: 24,
-    },
-    tabBar: {
-      borderColor: theme.colors.border.muted,
-    },
-    stretch: {
+    seedPhraseConcealerContainer: {
       flex: 1,
+      borderRadius: 8,
+    },
+    seedPhraseConcealer: {
+      alignItems: 'center',
+      borderRadius: 8,
+      paddingHorizontal: 24,
+      paddingVertical: 45,
+      flexDirection: 'column',
+      rowGap: 16,
+      height: '100%',
+      flex: 1,
+      justifyContent: 'center',
+    },
+    blurContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      bottom: 0,
+      right: 0,
+      height: '100%',
+      borderRadius: 8,
+      flex: 1,
+    },
+    blurView: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      bottom: 0,
+      right: 0,
+      height: '100%',
+      borderRadius: 8,
+      flex: 1,
+      opacity: 0.5,
+    },
+    seedPhraseContainer: {
+      minHeight: 200,
+      flex: 1,
+      width: '100%',
+      height: '100%',
+    },
+    seedPhraseListContainer: {
+      flex: 1,
+      width: '100%',
+      height: '100%',
+    },
+    word: {
+      flex: 1,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: 40,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      backgroundColor: colors.background.muted,
+      flex: 1,
+      margin: 4,
+      columnGap: 6,
     },
   });
