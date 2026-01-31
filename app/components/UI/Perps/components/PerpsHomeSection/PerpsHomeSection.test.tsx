@@ -5,6 +5,17 @@ import PerpsHomeSection from './PerpsHomeSection';
 
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
 
+// Mock privacy mode selector
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('PerpsHomeSection', () => {
   const mockSkeleton = () => <View testID="skeleton-loader" />;
   const mockChildren = <Text testID="section-content">Content</Text>;

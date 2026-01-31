@@ -12,6 +12,10 @@ import {
 } from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import { Image } from 'react-native';
+import { useSelector } from 'react-redux';
+import SensitiveText from '../../../../../component-library/components/Texts/SensitiveText';
+import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -48,6 +52,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   marketStatus,
 }: PredictPositionProps) => {
   const tw = useTailwind();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const currentPosition = usePredictOptimisticPositionRefresh({
     position,
@@ -133,30 +138,39 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         return <Skeleton width={70} height={20} />;
       }
       return (
-        <Text
-          variant={TextVariant.BodyMd}
+        <SensitiveText
+          variant={ComponentTextVariant.BodyMD}
           color={TextColor.TextDefault}
           style={tw.style('font-medium')}
+          isHidden={privacyMode}
         >
           {formatPrice(currentValue, { maximumDecimals: 2 })}
-        </Text>
+        </SensitiveText>
       );
     }
 
     if (percentPnl > 0) {
       return (
-        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
+        <SensitiveText
+          variant={ComponentTextVariant.BodyMD}
+          color={TextColor.SuccessDefault}
+          isHidden={privacyMode}
+        >
           {strings('predict.market_details.won')}{' '}
           {formatPrice(currentValue, { maximumDecimals: 2 })}
-        </Text>
+        </SensitiveText>
       );
     }
 
     return (
-      <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
+      <SensitiveText
+        variant={ComponentTextVariant.BodyMD}
+        color={TextColor.ErrorDefault}
+        isHidden={privacyMode}
+      >
         {strings('predict.market_details.lost')}{' '}
         {formatPrice(initialValue, { maximumDecimals: 2 })}
-      </Text>
+      </SensitiveText>
     );
   };
 
@@ -181,10 +195,11 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           >
             {groupItemTitle ?? title}
           </Text>
-          <Text
-            variant={TextVariant.BodySm}
+          <SensitiveText
+            variant={ComponentTextVariant.BodySM}
             color={TextColor.TextAlternative}
             style={tw.style('font-medium')}
+            isHidden={privacyMode}
           >
             {strings('predict.position_info', {
               initialValue: formatPrice(initialValue, {
@@ -195,7 +210,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
                 maximumDecimals: 2,
               }),
             })}
-          </Text>
+          </SensitiveText>
         </Box>
         <Box twClassName="items-end justify-end ml-auto shrink-0">
           {renderValueText()}
@@ -203,17 +218,18 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             (optimistic || isPreviewLoading ? (
               <Skeleton width={55} height={16} style={tw.style('mt-1')} />
             ) : (
-              <Text
-                variant={TextVariant.BodySm}
+              <SensitiveText
+                variant={ComponentTextVariant.BodySM}
                 color={
                   percentPnl > 0
                     ? TextColor.SuccessDefault
                     : TextColor.ErrorDefault
                 }
                 style={tw.style('font-medium')}
+                isHidden={privacyMode}
               >
                 {formatPercentage(percentPnl)}
-              </Text>
+              </SensitiveText>
             ))}
         </Box>
       </Box>

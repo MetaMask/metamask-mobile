@@ -1,14 +1,17 @@
 import React, { ReactNode } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText from '../../../../../component-library/components/Texts/SensitiveText';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
 export interface PerpsHomeSectionProps {
   /**
@@ -119,6 +122,8 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   children,
   testID,
 }) => {
+  const privacyMode = useSelector(selectPrivacyMode);
+
   // Hide section if empty and showWhenEmpty is false
   if (!isLoading && isEmpty && !showWhenEmpty) {
     return null;
@@ -157,10 +162,11 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
 
         {/* Subtitle - NOT pressable */}
         {subtitle && (
-          <Text
+          <SensitiveText
             variant={TextVariant.BodySM}
             color={subtitleColor}
             testID={subtitleTestID}
+            isHidden={privacyMode}
           >
             {subtitle}
             {subtitleSuffix && (
@@ -173,7 +179,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
                 {subtitleSuffix}
               </Text>
             )}
-          </Text>
+          </SensitiveText>
         )}
       </View>
 
