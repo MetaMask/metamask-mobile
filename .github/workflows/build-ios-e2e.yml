@@ -226,7 +226,7 @@ jobs:
         id: upload-app
         uses: actions/upload-artifact@v4
         with:
-          name: MetaMask.app
+          name: main-qa-MetaMask.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           retention-days: 7
           if-no-files-found: error

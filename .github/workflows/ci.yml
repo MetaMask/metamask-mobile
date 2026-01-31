@@ -209,6 +209,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: tests/coverage/
+          pattern: coverage-*
       - name: Gather partial coverage reports into one directory
         shell: bash
         run: |
