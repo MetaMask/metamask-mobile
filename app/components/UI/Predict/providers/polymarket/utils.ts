@@ -667,6 +667,7 @@ export const parsePolymarketEvents = (
           ? PredictMarketStatus.CLOSED
           : PredictMarketStatus.OPEN,
         recurrence: getRecurrence(event.series),
+        startDate: event.startDate,
         endDate: event.endDate,
         category,
         tags: tags.map((t) => t.label),

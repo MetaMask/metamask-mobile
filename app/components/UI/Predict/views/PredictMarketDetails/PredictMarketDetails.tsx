@@ -4,13 +4,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, {
-  useMemo,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   Image,
   InteractionManager,
@@ -55,10 +49,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictDetailsChart, {
   ChartSeries,
 } from '../../components/PredictDetailsChart/PredictDetailsChart';
-import {
-  DAY_IN_MS,
-  getTimestampInMs,
-} from '../../components/PredictDetailsChart/utils';
 import PredictPositionDetail from '../../components/PredictPositionDetail';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
@@ -99,14 +89,8 @@ const DEFAULT_FIDELITY_BY_INTERVAL: Partial<
   [PredictPriceHistoryInterval.ONE_DAY]: 60, // 1-hour resolution for 1-day window
   [PredictPriceHistoryInterval.ONE_WEEK]: 240, // 4-hour resolution for 7-day window
   [PredictPriceHistoryInterval.ONE_MONTH]: 720, // 12-hour resolution for month-long window
-  [PredictPriceHistoryInterval.MAX]: 1440, // 24-hour resolution for max window
+  // MAX fidelity is calculated dynamically in usePredictPriceHistory based on marketStartDate
 };
-
-const MAX_INTERVAL_SHORT_RANGE_THRESHOLD_DAYS = 30;
-const MAX_INTERVAL_SHORT_RANGE_MS =
-  MAX_INTERVAL_SHORT_RANGE_THRESHOLD_DAYS * DAY_IN_MS;
-const MAX_INTERVAL_SHORT_RANGE_FIDELITY =
-  DEFAULT_FIDELITY_BY_INTERVAL[PredictPriceHistoryInterval.ONE_WEEK] ?? 240;
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -124,10 +108,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     useState<PredictPriceHistoryInterval>(
       PredictPriceHistoryInterval.ONE_MONTH,
     );
-  const [maxIntervalAdaptiveFidelity, setMaxIntervalAdaptiveFidelity] =
-    useState<number | null>(null);
-  const maxFidelityLockedRef = useRef<boolean>(false);
-  const prevTimeframeRef = useRef<PredictPriceHistoryInterval | null>(null);
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
@@ -338,16 +318,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     [chartOpenOutcomes],
   );
 
-  const selectedFidelity = useMemo(() => {
-    if (
-      selectedTimeframe === PredictPriceHistoryInterval.MAX &&
-      maxIntervalAdaptiveFidelity
-    ) {
-      return maxIntervalAdaptiveFidelity;
-    }
+  // Fidelity for non-MAX intervals (MAX is calculated dynamically in the hook)
+  const selectedFidelity = useMemo(
+    () => DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe],
+    [selectedTimeframe],
+  );
 
-    return DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
-  }, [selectedTimeframe, maxIntervalAdaptiveFidelity]);
   const {
     priceHistories,
     isFetching: isPriceHistoryFetching,
@@ -358,78 +334,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     interval: selectedTimeframe,
     providerId,
     fidelity: selectedFidelity,
+    marketStartDate: market?.startDate,
     enabled: chartOutcomeTokenIds.length > 0,
   });
-
-  const primaryMaxIntervalRangeMs = useMemo(() => {
-    if (selectedTimeframe !== PredictPriceHistoryInterval.MAX) {
-      return null;
-    }
-
-    const primaryHistory = priceHistories[0] ?? [];
-    if (primaryHistory.length === 0) {
-      return null;
-    }
-
-    const timestamps = primaryHistory.map((point) =>
-      getTimestampInMs(point.timestamp),
-    );
-
-    return Math.max(...timestamps) - Math.min(...timestamps);
-  }, [priceHistories, selectedTimeframe]);
-
-  useEffect(() => {
-    const prevTimeframe = prevTimeframeRef.current;
-    const justSwitchedToMax =
-      selectedTimeframe === PredictPriceHistoryInterval.MAX &&
-      prevTimeframe !== PredictPriceHistoryInterval.MAX;
-
-    // update the ref for next render
-    prevTimeframeRef.current = selectedTimeframe;
-
-    // when switching away from MAX, reset the fidelity and unlock for next MAX selection
-    if (selectedTimeframe !== PredictPriceHistoryInterval.MAX) {
-      if (maxIntervalAdaptiveFidelity !== null) {
-        setMaxIntervalAdaptiveFidelity(null);
-      }
-      maxFidelityLockedRef.current = false;
-      return;
-    }
-
-    // skip if already locked to prevent feedback loop
-    if (maxFidelityLockedRef.current) {
-      return;
-    }
-
-    // wait for fetch to complete before making decisions
-    if (isPriceHistoryFetching) {
-      return;
-    }
-
-    // skip if just switched to MAX - data is still from previous timeframe
-    if (justSwitchedToMax) {
-      return;
-    }
-
-    // wait for valid range data before making a decision
-    if (
-      typeof primaryMaxIntervalRangeMs !== 'number' ||
-      primaryMaxIntervalRangeMs <= 0
-    ) {
-      return;
-    }
-
-    // make one-shot fidelity decision and lock to prevent re-evaluation
-    if (primaryMaxIntervalRangeMs < MAX_INTERVAL_SHORT_RANGE_MS) {
-      setMaxIntervalAdaptiveFidelity(MAX_INTERVAL_SHORT_RANGE_FIDELITY);
-    }
-    maxFidelityLockedRef.current = true;
-  }, [
-    primaryMaxIntervalRangeMs,
-    maxIntervalAdaptiveFidelity,
-    selectedTimeframe,
-    isPriceHistoryFetching,
-  ]);
 
   const chartData: ChartSeries[] = useMemo(() => {
     const palette = [
