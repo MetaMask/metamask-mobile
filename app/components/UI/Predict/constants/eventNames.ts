@@ -78,6 +78,7 @@ export const PredictEventValues = {
     HOMEPAGE_POSITIONS: 'homepage_positions',
     HOMEPAGE_NEW_PREDICTION: 'homepage_new_prediction',
     HOMEPAGE_BALANCE: 'homepage_balance',
+    HOMEPAGE_FEATURED: 'homepage_featured',
     MAIN_TRADE_BUTTON: 'main_trade_button',
     REWARDS: 'rewards',
     GTM_MODAL: 'gtm_modal',

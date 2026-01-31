@@ -2,6 +2,7 @@ import React from 'react';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictEntryPoint } from '../../contexts';
 import PredictMarketSingle from '../PredictMarketSingle';
 import PredictMarketMultiple from '../PredictMarketMultiple';
 import PredictMarketSportCard from '../PredictMarketSportCard';
@@ -16,9 +17,14 @@ interface PredictMarketProps {
 const PredictMarket: React.FC<PredictMarketProps> = ({
   market,
   testID,
-  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  entryPoint: propEntryPoint,
   isCarousel = false,
 }) => {
+  const contextEntryPoint = usePredictEntryPoint();
+  const entryPoint =
+    contextEntryPoint ??
+    propEntryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
   if (market.game) {
     return (
       <PredictMarketSportCard
