@@ -1,9 +1,9 @@
-import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
-import { selectCountriesRequest } from '../../../../selectors/rampsController';
 import {
-  ExecuteRequestOptions,
+  selectCountries,
+  selectCountriesRequest,
+} from '../../../../selectors/rampsController';
+import {
   RequestSelectorResult,
   type Country,
 } from '@metamask/ramps-controller';
@@ -13,6 +13,10 @@ import {
  */
 export interface UseRampsCountriesResult {
   /**
+   * The list of countries available for ramp actions.
+   */
+  countries: Country[];
+  /**
    * Whether the countries request is currently loading.
    */
   isLoading: boolean;
@@ -20,52 +24,25 @@ export interface UseRampsCountriesResult {
    * The error message if the request failed, or null.
    */
   error: string | null;
-  /**
-   * The cached countries data if available, or null.
-   */
-  countries: Country[] | null;
-  /**
-   * Fetch countries for a given action.
-   */
-  fetchCountries: (
-    action?: 'buy' | 'sell',
-    options?: ExecuteRequestOptions,
-  ) => Promise<Country[]>;
 }
 
 /**
- * Hook to get countries request state from RampsController.
+ * Hook to get countries state from RampsController.
  * This hook assumes Engine is already initialized.
  *
- * @param action - Optional action type ('buy' or 'sell'). Defaults to 'buy'.
- * @returns Countries request state and fetch function.
+ * @returns Countries state.
  */
-export function useRampsCountries(
-  action: 'buy' | 'sell' = 'buy',
-): UseRampsCountriesResult {
-  const requestSelector = useMemo(
-    () => selectCountriesRequest(action),
-    [action],
-  );
+export function useRampsCountries(): UseRampsCountriesResult {
+  const countries = useSelector(selectCountries);
 
-  const { isFetching, error, data } = useSelector(
-    requestSelector,
+  const { isFetching, error } = useSelector(
+    selectCountriesRequest,
   ) as RequestSelectorResult<Country[]>;
 
-  const fetchCountries = useCallback(
-    async (
-      fetchAction: 'buy' | 'sell' = action,
-      options?: ExecuteRequestOptions,
-    ) =>
-      await Engine.context.RampsController.getCountries(fetchAction, options),
-    [action],
-  );
-
   return {
-    countries: data ?? null,
+    countries,
     isLoading: isFetching,
     error,
-    fetchCountries,
   };
 }
 

@@ -101,13 +101,13 @@ jest.mock('react-native', () => {
   };
 });
 
-let mockPreferredProvider: Provider | null = createMockProvider();
-const mockSetPreferredProvider = jest.fn();
+let mockSelectedProvider: Provider | null = createMockProvider();
+const mockSetSelectedProvider = jest.fn();
 
 jest.mock('../../../hooks/useRampsController', () => ({
   useRampsController: () => ({
-    preferredProvider: mockPreferredProvider,
-    setPreferredProvider: mockSetPreferredProvider,
+    selectedProvider: mockSelectedProvider,
+    setSelectedProvider: mockSetSelectedProvider,
   }),
 }));
 
@@ -152,7 +152,7 @@ function renderWithProvider(component: React.ComponentType) {
 describe('SettingsModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPreferredProvider = createMockProvider();
+    mockSelectedProvider = createMockProvider();
     mockGetProviderToken.mockResolvedValue({
       success: false,
       error: 'No token found',
@@ -208,7 +208,7 @@ describe('SettingsModal', () => {
     });
 
     it('hides contact support when provider has no support URL', () => {
-      mockPreferredProvider = createMockProvider({ links: [] });
+      mockSelectedProvider = createMockProvider({ links: [] });
 
       const { queryByText } = renderWithProvider(SettingsModal);
 
@@ -218,7 +218,7 @@ describe('SettingsModal', () => {
 
   describe('logout (Transak only)', () => {
     beforeEach(() => {
-      mockPreferredProvider = createMockTransakProvider();
+      mockSelectedProvider = createMockTransakProvider();
       mockGetProviderToken.mockResolvedValue({
         success: true,
         token: {
@@ -251,7 +251,7 @@ describe('SettingsModal', () => {
         expect(mockResetProviderToken).toHaveBeenCalled();
       });
 
-      expect(mockSetPreferredProvider).toHaveBeenCalledWith(null);
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(null);
       expect(mockShowToast).toHaveBeenCalledWith({
         variant: 'Icon',
         labelOptions: [{ label: 'Successfully logged out' }],
@@ -286,7 +286,7 @@ describe('SettingsModal', () => {
     });
 
     it('hides logout option for non-Transak providers even when authenticated', async () => {
-      mockPreferredProvider = createMockProvider();
+      mockSelectedProvider = createMockProvider();
 
       const { queryByText } = renderWithProvider(SettingsModal);
 
@@ -298,7 +298,7 @@ describe('SettingsModal', () => {
 
   describe('when user is not authenticated', () => {
     beforeEach(() => {
-      mockPreferredProvider = createMockTransakProvider();
+      mockSelectedProvider = createMockTransakProvider();
       mockGetProviderToken.mockResolvedValue({
         success: false,
         error: 'No token found',
@@ -316,7 +316,7 @@ describe('SettingsModal', () => {
 
   describe('when no preferred provider is set', () => {
     beforeEach(() => {
-      mockPreferredProvider = null;
+      mockSelectedProvider = null;
     });
 
     it('hides contact support option', () => {

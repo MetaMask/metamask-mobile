@@ -25,10 +25,7 @@ jest.mock('@react-navigation/native', () => {
 
 const mockSetUserRegion = jest.fn().mockResolvedValue(undefined);
 const mockFetchUserRegion = jest.fn().mockResolvedValue(null);
-const mockFetchCountries = jest.fn().mockResolvedValue([]);
-const mockFetchProviders = jest.fn().mockResolvedValue({ providers: [] });
-const mockFetchTokens = jest.fn().mockResolvedValue(null);
-const mockSetPreferredProvider = jest.fn();
+const mockSetSelectedProvider = jest.fn();
 
 const createMockCountry = (
   isoCode: string,
@@ -42,7 +39,7 @@ const createMockCountry = (
   name,
   flag,
   states,
-  supported,
+  supported: { buy: supported, sell: supported },
   recommended,
   phone: { prefix: '', placeholder: '', template: '' },
   currency: '',
@@ -55,7 +52,7 @@ const createMockState = (
 ): State => ({
   stateId,
   name,
-  supported,
+  supported: { buy: supported, sell: supported },
 });
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
@@ -70,13 +67,13 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
       name: countryCode,
       phone: { prefix: '', placeholder: '', template: '' },
       currency: '',
-      supported: true,
+      supported: { buy: true, sell: true },
     },
     state: stateCode
       ? {
           stateId: stateCode,
           name: stateCode,
-          supported: true,
+          supported: { buy: true, sell: true },
         }
       : null,
     regionCode: regionCode.toLowerCase(),
@@ -101,20 +98,24 @@ const mockUseRampsControllerInitialValues: ReturnType<
   userRegionError: null,
   setUserRegion: mockSetUserRegion,
   fetchUserRegion: mockFetchUserRegion,
-  preferredProvider: null,
-  setPreferredProvider: mockSetPreferredProvider,
+  selectedProvider: null,
+  setSelectedProvider: mockSetSelectedProvider,
   providers: [],
   providersLoading: false,
   providersError: null,
-  fetchProviders: mockFetchProviders,
   tokens: null,
+  selectedToken: null,
+  setSelectedToken: jest.fn(),
   tokensLoading: false,
   tokensError: null,
-  fetchTokens: mockFetchTokens,
   countries: mockRegions,
   countriesLoading: false,
   countriesError: null,
-  fetchCountries: mockFetchCountries,
+  paymentMethods: [],
+  selectedPaymentMethod: null,
+  setSelectedPaymentMethod: jest.fn(),
+  paymentMethodsLoading: false,
+  paymentMethodsError: null,
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
@@ -155,48 +156,22 @@ describe('RegionSelector', () => {
   it('renders loading state when regions are loading', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
-      countries: null,
+      countries: [],
       countriesLoading: true,
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('calls fetchCountries when regions are null', () => {
-    mockUseRampsControllerValues = {
-      ...mockUseRampsControllerInitialValues,
-      countries: null,
-      countriesLoading: false,
-      countriesError: null,
-    };
-    render(RegionSelector);
-    expect(mockFetchCountries).toHaveBeenCalled();
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
   it('renders error state when countries error occurs', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: 'Failed to fetch countries',
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('calls fetchCountries when retry button is pressed on error', () => {
-    mockUseRampsControllerValues = {
-      ...mockUseRampsControllerInitialValues,
-      countries: null,
-      countriesLoading: false,
-      countriesError: 'Failed to fetch countries',
-    };
-    render(RegionSelector);
-    jest.clearAllMocks();
-    const retryButton = screen.getByTestId('retry-countries-button');
-    fireEvent.press(retryButton);
-    expect(mockFetchCountries).toHaveBeenCalled();
   });
 
   it('renders with selected user region', () => {
@@ -377,7 +352,7 @@ describe('RegionSelector', () => {
   it('renders state without stateId', () => {
     const stateWithoutId: State = {
       name: 'State Without ID',
-      supported: true,
+      supported: { buy: true, sell: true },
     };
     const regionsWithStateWithoutId = [
       createMockCountry('US', 'United States', '🇺🇸', [stateWithoutId]),
@@ -461,13 +436,13 @@ describe('RegionSelector', () => {
         name: 'United States',
         phone: { prefix: '', placeholder: '', template: '' },
         currency: '',
-        supported: true,
+        supported: { buy: true, sell: true },
         states: [createMockState('CA', 'California')],
       },
       state: {
         stateId: 'CA',
         name: 'California',
-        supported: true,
+        supported: { buy: true, sell: true },
       },
       regionCode: 'us-ca',
     };
@@ -490,7 +465,7 @@ describe('RegionSelector', () => {
     const standaloneState: State = {
       stateId: 'TX',
       name: 'Texas',
-      supported: true,
+      supported: { buy: true, sell: true },
     };
     const regionsWithStandaloneState = [
       createMockCountry('US', 'United States', '🇺🇸', [
@@ -598,7 +573,7 @@ describe('RegionSelector', () => {
   it('does not call setUserRegion when region selection has empty regionId', async () => {
     const stateWithoutId: State = {
       name: 'State Without ID',
-      supported: true,
+      supported: { buy: true, sell: true },
     };
     const regionsWithStateWithoutId = [
       createMockCountry('US', 'United States', '🇺🇸', [stateWithoutId]),
@@ -730,7 +705,7 @@ describe('RegionSelector', () => {
         name: 'United States',
         phone: { prefix: '', placeholder: '', template: '' },
         currency: '',
-        supported: true,
+        supported: { buy: true, sell: true },
       },
       state: null,
       regionCode: 'us',
@@ -758,7 +733,7 @@ describe('RegionSelector', () => {
     const standaloneState: State = {
       stateId: 'CA',
       name: 'California',
-      supported: true,
+      supported: { buy: true, sell: true },
     };
     const regionsWithStandaloneState = [
       createMockCountry('US', 'United States', '🇺🇸', [standaloneState]),

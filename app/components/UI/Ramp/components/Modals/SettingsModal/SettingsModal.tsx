@@ -45,7 +45,7 @@ function SettingsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
-  const { preferredProvider, setPreferredProvider } = useRampsController();
+  const { selectedProvider, setSelectedProvider } = useRampsController();
 
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
@@ -55,7 +55,7 @@ function SettingsModal() {
 
     const checkAuthentication = async () => {
       // Only Transak supports native authentication/logout
-      if (preferredProvider?.id !== TRANSAK_PROVIDER_ID) {
+      if (selectedProvider?.id !== TRANSAK_PROVIDER_ID) {
         if (isMounted) {
           setIsAuthenticatedWithProvider(false);
         }
@@ -81,9 +81,9 @@ function SettingsModal() {
     return () => {
       isMounted = false;
     };
-  }, [preferredProvider?.id]);
+  }, [selectedProvider?.id]);
 
-  const supportUrl = preferredProvider?.links?.find(
+  const supportUrl = selectedProvider?.links?.find(
     (link) => link.name === PROVIDER_LINKS.SUPPORT,
   )?.url;
 
@@ -107,7 +107,7 @@ function SettingsModal() {
   const handleLogOut = useCallback(async () => {
     try {
       await resetProviderToken();
-      setPreferredProvider(null);
+      setSelectedProvider(null);
 
       sheetRef.current?.onCloseBottomSheet();
       toastRef?.current?.showToast({
@@ -139,7 +139,7 @@ function SettingsModal() {
         hasNoTimeout: false,
       });
     }
-  }, [setPreferredProvider, toastRef]);
+  }, [setSelectedProvider, toastRef]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -168,11 +168,11 @@ function SettingsModal() {
         />
       )}
 
-      {isAuthenticatedWithProvider && preferredProvider && (
+      {isAuthenticatedWithProvider && selectedProvider && (
         <MenuItem
           iconName={IconName.Logout}
           title={strings('fiat_on_ramp.build_quote_settings_modal.log_out', {
-            provider: preferredProvider.name,
+            provider: selectedProvider.name,
           })}
           onPress={handleLogOut}
         />

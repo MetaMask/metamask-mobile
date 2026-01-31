@@ -17,7 +17,7 @@ const mockUserRegion: UserRegion = {
       template: 'XXX-XXX-XXXX',
     },
     currency: 'USD',
-    supported: true,
+    supported: { buy: true, sell: true },
   },
   state: { stateId: 'CA', name: 'California' },
   regionCode: 'us-ca',
@@ -35,7 +35,7 @@ jest.mock('../../../../core/Engine', () => {
         template: 'XXX-XXX-XXXX',
       },
       currency: 'USD',
-      supported: true,
+      supported: { buy: true, sell: true },
     },
     state: { stateId: 'CA', name: 'California' },
     regionCode: 'us-ca',
@@ -44,7 +44,7 @@ jest.mock('../../../../core/Engine', () => {
   return {
     context: {
       RampsController: {
-        updateUserRegion: jest.fn().mockResolvedValue(mockUserRegionValue),
+        init: jest.fn().mockResolvedValue(mockUserRegionValue),
         setUserRegion: jest.fn().mockResolvedValue(mockUserRegionValue),
       },
     },
@@ -106,7 +106,7 @@ describe('useRampsUserRegion', () => {
     it('returns isLoading true when request is loading', () => {
       const store = createMockStore({
         requests: {
-          'updateUserRegion:[]': {
+          'init:[]': {
             status: RequestStatus.LOADING,
             data: null,
             error: null,
@@ -126,7 +126,7 @@ describe('useRampsUserRegion', () => {
     it('returns error from request state', () => {
       const store = createMockStore({
         requests: {
-          'updateUserRegion:[]': {
+          'init:[]': {
             status: RequestStatus.ERROR,
             data: null,
             error: 'Network error',
@@ -143,49 +143,44 @@ describe('useRampsUserRegion', () => {
   });
 
   describe('fetchUserRegion', () => {
-    it('calls updateUserRegion without options when called with no arguments', async () => {
+    it('calls init without options when called with no arguments', async () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
       await result.current.fetchUserRegion();
-      expect(
-        Engine.context.RampsController.updateUserRegion,
-      ).toHaveBeenCalledWith(undefined);
+      expect(Engine.context.RampsController.init).toHaveBeenCalledWith(
+        undefined,
+      );
     });
 
-    it('calls updateUserRegion with forceRefresh true when specified', async () => {
+    it('calls init with forceRefresh true when specified', async () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
       await result.current.fetchUserRegion({ forceRefresh: true });
-      expect(
-        Engine.context.RampsController.updateUserRegion,
-      ).toHaveBeenCalledWith({
+      expect(Engine.context.RampsController.init).toHaveBeenCalledWith({
         forceRefresh: true,
       });
     });
 
-    it('calls updateUserRegion with forceRefresh false when specified', async () => {
+    it('calls init with forceRefresh false when specified', async () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
       await result.current.fetchUserRegion({ forceRefresh: false });
-      expect(
-        Engine.context.RampsController.updateUserRegion,
-      ).toHaveBeenCalledWith({
+      expect(Engine.context.RampsController.init).toHaveBeenCalledWith({
         forceRefresh: false,
       });
     });
 
-    it('rejects with error when updateUserRegion fails', async () => {
+    it('rejects with error when init fails', async () => {
       const store = createMockStore();
-      const mockUpdateUserRegion = Engine.context.RampsController
-        .updateUserRegion as jest.Mock;
-      mockUpdateUserRegion.mockReset();
-      mockUpdateUserRegion.mockRejectedValue(new Error('Network error'));
+      const mockInit = Engine.context.RampsController.init as jest.Mock;
+      mockInit.mockReset();
+      mockInit.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
@@ -226,17 +221,16 @@ describe('useRampsUserRegion', () => {
   describe('useEffect error handling', () => {
     it('returns default state when fetchUserRegion rejects in useEffect', async () => {
       const store = createMockStore();
-      const mockUpdateUserRegion = Engine.context.RampsController
-        .updateUserRegion as jest.Mock;
-      mockUpdateUserRegion.mockReset();
-      mockUpdateUserRegion.mockRejectedValue(new Error('Fetch failed'));
+      const mockInit = Engine.context.RampsController.init as jest.Mock;
+      mockInit.mockReset();
+      mockInit.mockRejectedValue(new Error('Fetch failed'));
 
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
 
       await waitFor(() => {
-        expect(mockUpdateUserRegion).toHaveBeenCalled();
+        expect(mockInit).toHaveBeenCalled();
       });
 
       expect(result.current).toMatchObject({
