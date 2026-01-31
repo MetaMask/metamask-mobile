@@ -1483,9 +1483,41 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const dexParam = dex || undefined;
         return infoClient
           .metaAndAssetCtxs(dexParam ? { dex: dexParam } : undefined)
-          .then((result) => {
-            const meta = result?.[0] || null;
+          .then(async (result) => {
+            let meta = result?.[0] || null;
             const assetCtxs = result?.[1] || [];
+
+            // FALLBACK: If combined endpoint returns null/empty meta, try dedicated meta endpoint
+            if (!meta?.universe) {
+              Logger.error(
+                new Error(
+                  'metaAndAssetCtxs returned null meta, attempting fallback to meta()',
+                ),
+                this.getErrorContext('buildAssetMapping.metaFallback', {
+                  dex: dex ?? 'main',
+                  hasMetaAndCtxsResponse: !!result,
+                  hasMetaAtIndex0: !!result?.[0],
+                  assetCtxsLength: assetCtxs?.length ?? 0,
+                }),
+              );
+              try {
+                meta = await infoClient.meta(
+                  dexParam ? { dex: dexParam } : undefined,
+                );
+                if (meta?.universe) {
+                  DevLogger.log(
+                    `[buildAssetMapping] meta() fallback succeeded for ${dex || 'main'}`,
+                    { universeSize: meta.universe.length },
+                  );
+                }
+              } catch (fallbackError) {
+                DevLogger.log(
+                  `[buildAssetMapping] meta() fallback also failed for ${dex || 'main'}`,
+                  fallbackError,
+                );
+              }
+            }
+
             // Cache meta for later use by getCachedMeta
             if (meta?.universe) {
               this.cachedMetaByDex.set(dexKey, meta);
@@ -1494,7 +1526,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
               // Cache assetCtxs for getMarketDataWithPrices (avoids duplicate metaAndAssetCtxs calls)
               this.subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
             }
-            return { dex, meta, success: true as const };
+
+            // Return success only if we have valid meta with universe
+            const success = !!meta?.universe;
+            return { dex, meta, success: success as typeof success };
           })
           .catch((error) => {
             DevLogger.log(
@@ -4894,6 +4929,37 @@ export class HyperLiquidProvider implements IPerpsProvider {
             meta = metaAndCtxs?.[0] || null;
             assetCtxs = metaAndCtxs?.[1] || [];
 
+            // FALLBACK: If combined endpoint returns null/empty meta, try dedicated meta endpoint
+            if (!meta?.universe) {
+              Logger.error(
+                new Error(
+                  'metaAndAssetCtxs returned null meta, attempting fallback to meta()',
+                ),
+                this.getErrorContext('getMarketDataWithPrices.metaFallback', {
+                  dex: dex ?? 'main',
+                  hasMetaAndCtxsResponse: !!metaAndCtxs,
+                  hasMetaAtIndex0: !!metaAndCtxs?.[0],
+                  assetCtxsLength: assetCtxs?.length ?? 0,
+                }),
+              );
+              try {
+                meta = await infoClient.meta(
+                  dexParam ? { dex: dexParam } : undefined,
+                );
+                if (meta?.universe) {
+                  DevLogger.log(
+                    `[getMarketDataWithPrices] meta() fallback succeeded for ${dex || 'main'}`,
+                    { universeSize: meta.universe.length },
+                  );
+                }
+              } catch (fallbackError) {
+                DevLogger.log(
+                  `[getMarketDataWithPrices] meta() fallback also failed for ${dex || 'main'}`,
+                  fallbackError,
+                );
+              }
+            }
+
             // IMPORTANT: Populate cache for buildAssetMapping and other methods to reuse
             if (meta?.universe) {
               this.cachedMetaByDex.set(dexKey, meta);
@@ -4912,12 +4978,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
             dexParam ? { dex: dexParam } : undefined,
           );
 
+          // Return success only if we have valid meta with universe
           return {
             dex,
             meta,
             assetCtxs,
             allMids: dexAllMids || {},
-            success: true,
+            success: !!meta?.universe,
           };
         } catch (error) {
           Logger.error(

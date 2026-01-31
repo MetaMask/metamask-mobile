@@ -2968,7 +2968,7 @@ describe('HyperLiquidProvider', () => {
 
   describe('Additional Error Handling and Edge Cases', () => {
     describe('ensureReady and buildAssetMapping', () => {
-      it('should handle meta fetch failure in buildAssetMapping', async () => {
+      it('should handle meta fetch failure in buildAssetMapping when both endpoints fail', async () => {
         // Create a fresh provider to test buildAssetMapping
         const freshProvider = new HyperLiquidProvider();
 
@@ -2999,6 +2999,74 @@ describe('HyperLiquidProvider', () => {
 
         expect(result.success).toBe(false);
         expect(result.error).toContain('Network timeout');
+      });
+
+      it('should fallback to meta() in buildAssetMapping when metaAndAssetCtxs returns null meta', async () => {
+        // Create a fresh provider to test buildAssetMapping fallback
+        const freshProvider = new HyperLiquidProvider();
+
+        const mockMeta = {
+          universe: [
+            { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+            { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          ],
+        };
+
+        const mockMetaFn = jest.fn().mockResolvedValue(mockMeta);
+
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            // meta() returns valid data as fallback
+            meta: mockMetaFn,
+            // metaAndAssetCtxs returns null meta (simulating partial failure)
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([null, []]),
+            allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
+          }),
+        );
+
+        MockedHyperLiquidClientService.mockImplementation(
+          () => mockClientService,
+        );
+
+        // Trigger ensureReady -> buildAssetMapping by calling getMarkets
+        const markets = await freshProvider.getMarkets();
+
+        // Should have used the meta() fallback
+        expect(mockMetaFn).toHaveBeenCalled();
+        // Should return the markets from the fallback
+        expect(markets.length).toBeGreaterThan(0);
+      });
+
+      it('should handle buildAssetMapping when meta() fallback also fails', async () => {
+        // Create a fresh provider to test buildAssetMapping
+        const freshProvider = new HyperLiquidProvider();
+
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            // meta() also fails
+            meta: jest.fn().mockRejectedValue(new Error('Fallback failed')),
+            // metaAndAssetCtxs returns null meta
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([null, []]),
+          }),
+        );
+
+        MockedHyperLiquidClientService.mockImplementation(
+          () => mockClientService,
+        );
+
+        // Try to place an order which will trigger ensureReady -> buildAssetMapping
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+        };
+
+        const result = await freshProvider.placeOrder(orderParams);
+
+        // Should fail because asset mapping couldn't be built
+        expect(result.success).toBe(false);
       });
 
       it('should handle string response from meta endpoint', async () => {
@@ -3311,7 +3379,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('getMarketDataWithPrices error scenarios', () => {
-      it('should handle missing perpsMeta', async () => {
+      it('should handle missing perpsMeta when both metaAndAssetCtxs and meta() return null', async () => {
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockResolvedValue(null),
@@ -3321,6 +3389,76 @@ describe('HyperLiquidProvider', () => {
           }),
         );
 
+        await expect(provider.getMarketDataWithPrices()).rejects.toThrow(
+          'Failed to fetch market data - no markets available',
+        );
+      });
+
+      it('should fallback to meta() when metaAndAssetCtxs returns null meta', async () => {
+        const mockMeta = {
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        };
+
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            // meta() returns valid data as fallback
+            meta: jest.fn().mockResolvedValue(mockMeta),
+            allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+            predictedFundings: jest.fn().mockResolvedValue([]),
+            // metaAndAssetCtxs returns null meta (simulating partial failure)
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([null, []]),
+          }),
+        );
+
+        // Create fresh provider to avoid cached state from other tests
+        const freshProvider = new HyperLiquidProvider();
+
+        // Should succeed by falling back to meta()
+        const result = await freshProvider.getMarketDataWithPrices();
+        expect(Array.isArray(result)).toBe(true);
+        expect(result.length).toBeGreaterThan(0);
+        expect(result[0].symbol).toBe('BTC');
+      });
+
+      it('should fallback to meta() when metaAndAssetCtxs returns undefined meta', async () => {
+        const mockMeta = {
+          universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 50 }],
+        };
+
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            // meta() returns valid data as fallback
+            meta: jest.fn().mockResolvedValue(mockMeta),
+            allMids: jest.fn().mockResolvedValue({ ETH: '3000' }),
+            predictedFundings: jest.fn().mockResolvedValue([]),
+            // metaAndAssetCtxs returns undefined (simulating malformed response)
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([undefined, []]),
+          }),
+        );
+
+        // Create fresh provider to avoid cached state from other tests
+        const freshProvider = new HyperLiquidProvider();
+
+        // Should succeed by falling back to meta()
+        const result = await freshProvider.getMarketDataWithPrices();
+        expect(Array.isArray(result)).toBe(true);
+        expect(result.length).toBeGreaterThan(0);
+        expect(result[0].symbol).toBe('ETH');
+      });
+
+      it('should handle meta() fallback failure gracefully', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            // meta() also fails
+            meta: jest.fn().mockRejectedValue(new Error('Network timeout')),
+            allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+            predictedFundings: jest.fn().mockResolvedValue([]),
+            // metaAndAssetCtxs returns null meta
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([null, []]),
+          }),
+        );
+
+        // Should still throw the "no markets available" error
         await expect(provider.getMarketDataWithPrices()).rejects.toThrow(
           'Failed to fetch market data - no markets available',
         );
