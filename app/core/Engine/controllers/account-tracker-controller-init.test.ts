@@ -56,6 +56,7 @@ describe('AccountTrackerControllerInit', () => {
       getStakedBalanceForChain: expect.any(Function),
       accountsApiChainIds: expect.any(Function),
       allowExternalServices: expect.any(Function),
+      isOnboarded: expect.any(Function),
     });
   });
 });
