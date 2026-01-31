@@ -52,10 +52,10 @@ function NFTCollectionField(props: NFTCollectionFieldProps) {
 
       {/* Collection Description */}
       <View style={styles.boxLeft}>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyMD}>
           {strings('collectible.collection')}
         </Text>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
           {props.collectionName}
         </Text>
       </View>

@@ -25,17 +25,17 @@ function SwapsRateField(props: SwapsRateFieldProps) {
     <View style={styles.row}>
       <Avatar
         variant={AvatarVariant.Icon}
-        size={AvatarSize.Md}
+        size={AvatarSize.Lg}
         style={styles.badgeWrapper}
         name={IconName.SwapHorizontal}
         backgroundColor={theme.colors.info.muted}
         iconColor={IconColor.Info}
       />
       <View style={styles.boxLeft}>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyMD}>
           {strings('notifications.rate')}
         </Text>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
           {props.rate}
         </Text>
       </View>
