@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
+import { useSelector } from 'react-redux';
 import {
   View,
   Pressable,
@@ -73,6 +74,7 @@ import {
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
 import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import { selectPredictHotTabFlag } from '../../selectors/featureFlags';
 
 interface FeedTab {
   key: PredictCategory;
@@ -212,6 +214,7 @@ interface PredictTabContentProps {
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
+  customQueryParams?: string;
 }
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
@@ -221,6 +224,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   headerHeight,
   tabBarHeight,
   headerHidden,
+  customQueryParams,
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
@@ -240,7 +244,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     refetch,
     fetchMore,
     isFetchingMore,
-  } = usePredictMarketData({ category, pageSize: 20 });
+  } = usePredictMarketData({ category, pageSize: 20, customQueryParams });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -396,6 +400,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
+  const hotTabFlag = useSelector(selectPredictHotTabFlag);
 
   useEffect(() => {
     pagerRef.current?.setPage(activeIndex);
@@ -406,6 +411,16 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
       onPageChange(e.nativeEvent.position);
     },
     [onPageChange],
+  );
+
+  const getCustomQueryParams = useCallback(
+    (tab: FeedTab) => {
+      if (tab.key === 'hot') {
+        return hotTabFlag.queryParams;
+      }
+      return undefined;
+    },
+    [hotTabFlag.queryParams],
   );
 
   return (
@@ -430,6 +445,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
             headerHidden={headerHidden}
+            customQueryParams={getCustomQueryParams(tab)}
           />
         </View>
       ))}
@@ -574,18 +590,23 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 };
 
 const PredictFeed: React.FC = () => {
-  // This can't be a constant at the top of the file because it would not
-  // react to locale changes in the app.
-  const tabs: FeedTab[] = useMemo(
-    () => [
+  const hotTabFlag = useSelector(selectPredictHotTabFlag);
+
+  const tabs: FeedTab[] = useMemo(() => {
+    const baseTabs: FeedTab[] = [
       { key: 'trending', label: strings('predict.category.trending') },
       { key: 'new', label: strings('predict.category.new') },
       { key: 'sports', label: strings('predict.category.sports') },
       { key: 'crypto', label: strings('predict.category.crypto') },
       { key: 'politics', label: strings('predict.category.politics') },
-    ],
-    [],
-  );
+    ];
+
+    if (hotTabFlag.enabled) {
+      baseTabs.unshift({ key: 'hot', label: strings('predict.category.hot') });
+    }
+
+    return baseTabs;
+  }, [hotTabFlag.enabled]);
 
   const tw = useTailwind();
   const { colors } = useTheme();
