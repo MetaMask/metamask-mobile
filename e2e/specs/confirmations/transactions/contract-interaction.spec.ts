@@ -1,5 +1,5 @@
 import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { SmokeConfirmations } from '../../../tags';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -23,7 +23,7 @@ import { LocalNode } from '../../../../tests/framework/types';
 import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
 import Browser from '../../../pages/Browser/BrowserView';
 
-describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
+describe(SmokeConfirmations('Contract Interaction'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   const testSpecificMock = async (mockServer: Mockttp) => {

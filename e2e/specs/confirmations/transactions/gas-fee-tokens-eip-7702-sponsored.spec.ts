@@ -9,7 +9,7 @@ import {
   LocalNodeType,
   Utilities,
 } from '../../../../tests/framework';
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { SmokeConfirmations } from '../../../tags';
 import { AnvilPort } from '../../../../tests/framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
@@ -176,9 +176,7 @@ const performSendTransaction = async () => {
 };
 
 describe(
-  SmokeConfirmationsRedesigned(
-    'Send native asset using EIP-7702 - Success Case',
-  ),
+  SmokeConfirmations('Send native asset using EIP-7702 - Success Case'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(2500000);
@@ -237,9 +235,7 @@ describe(
 );
 
 describe(
-  SmokeConfirmationsRedesigned(
-    'Send native asset using EIP-7702 - Failure Case',
-  ),
+  SmokeConfirmations('Send native asset using EIP-7702 - Failure Case'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(2500000);

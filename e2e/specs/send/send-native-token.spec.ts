@@ -8,7 +8,7 @@ import {
   DappVariants,
   LOCAL_NODE_RPC_URL,
 } from '../../../tests/framework/Constants';
-import { SmokeConfirmationsRedesigned } from '../../tags';
+import { SmokeConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { LocalNode } from '../../../tests/framework/types';
@@ -20,7 +20,7 @@ import { validateTransactionHashInTransactionFinalizedEvent } from './metricsVal
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
-describe(SmokeConfirmationsRedesigned('Send native asset'), () => {
+describe(SmokeConfirmations('Send native asset'), () => {
   it('should send ETH to an address', async () => {
     await withFixtures(
       {

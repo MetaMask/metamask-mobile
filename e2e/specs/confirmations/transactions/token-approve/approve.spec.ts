@@ -1,5 +1,5 @@
 import { SMART_CONTRACTS } from '../../../../../app/util/test/smart-contracts';
-import { SmokeConfirmationsRedesigned } from '../../../../tags';
+import { SmokeConfirmations } from '../../../../tags';
 import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
@@ -24,7 +24,7 @@ import { confirmationFeatureFlags } from '../../../../../tests/api-mocking/mock-
 import { LocalNode } from '../../../../../tests/framework/types';
 import { AnvilManager } from '../../../../../tests/seeder/anvil-manager';
 
-describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
+describe(SmokeConfirmations('Token Approve - approve method'), () => {
   const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
   const ERC_721_CONTRACT = SMART_CONTRACTS.NFTS;
 

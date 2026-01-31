@@ -9,7 +9,7 @@ import {
   LocalNodeType,
   Matchers,
 } from '../../../../tests/framework';
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { SmokeConfirmations } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
@@ -140,7 +140,7 @@ const SIMULATION_GAS_STATION_MOCK = {
 };
 
 describe(
-  SmokeConfirmationsRedesigned('Send native asset Gas Station using EIP-7702'),
+  SmokeConfirmations('Send native asset Gas Station using EIP-7702'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(2500000);

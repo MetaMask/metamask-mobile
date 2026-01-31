@@ -11,7 +11,7 @@ import TestDApp from '../../../pages/Browser/TestDApp.ts';
 import NetworkListModal from '../../../pages/Network/NetworkListModal.ts';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
 import WalletView from '../../../pages/wallet/WalletView.ts';
-import { SmokeConfirmationsRedesigned } from '../../../tags.js';
+import { SmokeConfirmations } from '../../../tags.js';
 import Assertions from '../../../../tests/framework/Assertions.ts';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper.ts';
 import { DappVariants } from '../../../../tests/framework/Constants.ts';
@@ -30,7 +30,7 @@ async function changeNetworkFromNetworkListModal(networkName: string) {
   await NetworkListModal.changeNetworkTo(networkName);
 }
 
-describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
+describe(SmokeConfirmations('Dapp Network Switching'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,

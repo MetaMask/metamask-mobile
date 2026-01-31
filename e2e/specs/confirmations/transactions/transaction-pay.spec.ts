@@ -1,6 +1,6 @@
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { SmokeConfirmations } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import {
   remoteFeatureEip7702,
@@ -24,7 +24,7 @@ import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomS
 import ActivitiesView from '../../../pages/Transactions/ActivitiesView';
 import PredictMarketList from '../../../../tests/page-objects/Predict/PredictMarketList';
 
-describe(SmokeConfirmationsRedesigned('Transaction Pay'), () => {
+describe(SmokeConfirmations('Transaction Pay'), () => {
   it('deposits to predict balance', async () => {
     await withFixtures(
       {
