@@ -157,6 +157,7 @@ const transactionIconSwapFailed = require('../../../images/transaction-icons/swa
 
 const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.musdConversion,
+  TransactionType.musdClaim,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictClaim,
