@@ -150,7 +150,6 @@ describe('PredictPicks', () => {
     mockUsePredictActionGuard.mockReturnValue({
       executeGuardedAction: mockExecuteGuardedAction,
       isEligible: true,
-      hasNoBalance: false,
     });
     mockFormatPrice.mockImplementation(
       (value: number | string, _options?: { maximumDecimals?: number }) => {

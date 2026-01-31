@@ -568,7 +568,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         });
       },
       {
-        checkBalance: true,
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
       },
     );
