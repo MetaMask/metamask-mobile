@@ -274,7 +274,7 @@
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",
     "@metamask/react-native-search-api": "1.0.1",
-    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch",
+    "@metamask/react-native-webview": "^14.6.0",
     "@metamask/remote-feature-flag-controller": "^4.0.0",
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/sample-controllers": "^3.0.0",

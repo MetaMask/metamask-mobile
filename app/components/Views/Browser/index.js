@@ -437,12 +437,9 @@ export const Browser = (props) => {
     () =>
       tabs
         .filter((tab) => !tab.isArchived)
-        .map((tab) => {
-          // If the tab is not the active tab, don't render it
-          if (activeTabId !== tab.id) return null;
-
+        .map((tab) =>
           // If the tab is the active tab, render it
-          return tab.url || !isTokenDiscoveryBrowserEnabled() ? (
+          tab.url || !isTokenDiscoveryBrowserEnabled() ? (
             <BrowserTab
               key={`tab_${tab.id}`}
               id={tab.id}
@@ -464,8 +461,8 @@ export const Browser = (props) => {
               newTab={newTab}
               updateTabInfo={updateTabInfo}
             />
-          );
-        }),
+          ),
+        ),
     [
       tabs,
       shouldShowTabs,
@@ -473,7 +470,6 @@ export const Browser = (props) => {
       homePageUrl,
       updateTabInfo,
       showTabsView,
-      activeTabId,
       route.params?.fromTrending,
       route.params?.fromPerps,
     ],
