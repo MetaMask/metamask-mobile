@@ -15,6 +15,7 @@ import styleSheet from './StockBadge.styles';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import { Box } from '../../Box/Box';
+import { hasRwaData } from '../../../../util/swaps/rwaUtils';
 
 interface StockBadgeProps {
   /**
@@ -25,15 +26,6 @@ interface StockBadgeProps {
   token?: unknown;
   style?: ViewStyle;
 }
-
-/**
- * Checks if the token has rwaData property
- */
-const hasRwaData = (token: unknown): token is { rwaData: unknown } =>
-  typeof token === 'object' &&
-  token !== null &&
-  'rwaData' in token &&
-  token.rwaData !== undefined;
 
 /**
  * StockBadge component displays a badge indicating that a token is a stock/RWA token.
@@ -66,7 +58,7 @@ const StockBadge: React.FC<StockBadgeProps> = ({ token, style }) => {
       <View style={styles.stockBadge}>
         {showClockIcon && (
           <Icon
-            name={IconName.Clock}
+            name={IconName.ClockHalfDotted}
             size={IconSize.Xs}
             color={IconColor.Alternative}
           />

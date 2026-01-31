@@ -56,6 +56,7 @@ import checkSVG from './assets/check.svg';
 import circlexSVG from './assets/circle-x.svg';
 import clockfilledSVG from './assets/clock-filled.svg';
 import clockSVG from './assets/clock.svg';
+import ClockHalfDottedSVG from './assets/clock-half-dotted.svg';
 import closeSVG from './assets/close.svg';
 import clouddownloadSVG from './assets/cloud-download.svg';
 import clouduploadSVG from './assets/cloud-upload.svg';
@@ -334,6 +335,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.CircleX]: circlexSVG,
   [IconName.ClockFilled]: clockfilledSVG,
   [IconName.Clock]: clockSVG,
+  [IconName.ClockHalfDotted]: ClockHalfDottedSVG,
   [IconName.Close]: closeSVG,
   [IconName.CloudDownload]: clouddownloadSVG,
   [IconName.CloudUpload]: clouduploadSVG,

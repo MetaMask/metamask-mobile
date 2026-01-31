@@ -126,6 +126,7 @@ export enum IconName {
   CircleX = 'CircleX',
   ClockFilled = 'ClockFilled',
   Clock = 'Clock',
+  ClockHalfDotted = 'ClockHalfDotted',
   Close = 'Close',
   CloudDownload = 'CloudDownload',
   CloudUpload = 'CloudUpload',

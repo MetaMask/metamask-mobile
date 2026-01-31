@@ -8,6 +8,7 @@ import BlockExplorersModal from './components/TransactionDetails/BlockExplorersM
 import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
+import MarketClosedBottomSheet from './components/MarketClosedBottomSheets/MarketClosedBottomSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -63,6 +64,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL}
       component={RecipientSelectorModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL}
+      component={MarketClosedBottomSheet}
     />
   </ModalStack.Navigator>
 );
