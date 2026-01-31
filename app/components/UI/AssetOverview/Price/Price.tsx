@@ -95,30 +95,15 @@ const Price = ({
   return (
     <>
       <View style={styles.wrapper}>
-        {asset.name ? (
-          <View>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {asset.name}
-            </Text>
-            <View style={styles.assetWrapper}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
-                {ticker}
-              </Text>
-              {stockTokenBadge}
-            </View>
-          </View>
-        ) : (
-          <View style={styles.assetWrapper}>
-            <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
-            {stockTokenBadge}
-          </View>
-        )}
+        <View style={styles.assetWrapper}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+          >
+            {asset.name ? `${asset.name} (${ticker})` : ticker}
+          </Text>
+          {stockTokenBadge}
+        </View>
         {!isNaN(price) && (
           <Text
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
