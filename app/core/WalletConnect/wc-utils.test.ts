@@ -79,10 +79,13 @@ jest.mock('@walletconnect/utils', () => ({
 
 describe('WalletConnect Utils', () => {
   let mockNavigation: jest.Mocked<NavigationContainerRef>;
+  let originalMaxLoopCounter: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockStore = (StoreModule as any).store;
 
   beforeEach(() => {
+    originalMaxLoopCounter = networkModalOnboardingConfig.MAX_LOOP_COUNTER;
+
     mockNavigation = {
       getCurrentRoute: jest.fn(),
       navigate: jest.fn(),
@@ -97,6 +100,10 @@ describe('WalletConnect Utils', () => {
     });
 
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    networkModalOnboardingConfig.MAX_LOOP_COUNTER = originalMaxLoopCounter;
   });
 
   describe('parseWalletConnectUri', () => {
@@ -190,6 +197,19 @@ describe('WalletConnect Utils', () => {
           networkOnboardedState: { '1': true },
         },
       });
+      await expect(
+        waitForNetworkModalOnboarding({ chainId: '1' }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('does not throw timeout when network is onboarded on the last allowed iteration', async () => {
+      networkModalOnboardingConfig.MAX_LOOP_COUNTER = 1;
+      mockStore.getState.mockReturnValue({
+        networkOnboarded: {
+          networkOnboardedState: { '1': true },
+        },
+      });
+
       await expect(
         waitForNetworkModalOnboarding({ chainId: '1' }),
       ).resolves.toBeUndefined();
