@@ -1290,9 +1290,7 @@ describe('Authentication', () => {
             .fn()
             .mockReturnValue(mockCredentials);
 
-          await expect(
-            Authentication.unlockWallet(),
-          ).resolves.not.toThrow();
+          await expect(Authentication.unlockWallet()).resolves.not.toThrow();
 
           expect(console.warn).toHaveBeenCalledWith(
             'Failed to check/retry discovery:',
@@ -1319,9 +1317,7 @@ describe('Authentication', () => {
             .mockReturnValue(mockCredentials);
 
           // Does not throw and completes authentication
-          await expect(
-            Authentication.unlockWallet(),
-          ).resolves.not.toThrow();
+          await expect(Authentication.unlockWallet()).resolves.not.toThrow();
 
           expect(mockAttemptAccountDiscovery).toHaveBeenCalled();
           expect(console.warn).toHaveBeenCalledWith(
@@ -1330,7 +1326,7 @@ describe('Authentication', () => {
             expect.any(Error),
           );
         });
-        
+
         it('throws AuthenticationError when newWalletAndRestore fails', async () => {
           const mockDispatch = jest.fn();
           jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
