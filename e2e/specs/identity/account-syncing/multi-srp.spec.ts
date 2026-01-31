@@ -10,7 +10,10 @@ import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController';
-import { goToImportSrp, inputSrp } from '../../multisrp/utils';
+import {
+  goToImportSrp,
+  inputSrp,
+} from '../../../../tests/flows/accounts.flow.ts';
 import ImportSrpView from '../../../pages/importSrp/ImportSrpView';
 import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../utils/constants';
 import { createUserStorageController } from '../utils/mocks';
