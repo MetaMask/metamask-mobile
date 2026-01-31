@@ -139,6 +139,19 @@ describe('useApprovalRequest', () => {
 
       expect(Engine.acceptPendingApproval).not.toHaveBeenCalled();
     });
+
+    it('does nothing if approval request was removed before confirm', () => {
+      const pendingApprovals = { [APPROVAL_REQUEST.id]: APPROVAL_REQUEST };
+      mockSelector(pendingApprovals);
+
+      const { onConfirm } = useApprovalRequest();
+
+      delete pendingApprovals[APPROVAL_REQUEST.id];
+
+      onConfirm();
+
+      expect(Engine.acceptPendingApproval).not.toHaveBeenCalled();
+    });
   });
 
   describe('onReject', () => {
@@ -159,6 +172,19 @@ describe('useApprovalRequest', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSelector({} as any);
       useApprovalRequest().onReject();
+
+      expect(Engine.rejectPendingApproval).not.toHaveBeenCalled();
+    });
+
+    it('does nothing if approval request was removed before reject', () => {
+      const pendingApprovals = { [APPROVAL_REQUEST.id]: APPROVAL_REQUEST };
+      mockSelector(pendingApprovals);
+
+      const { onReject } = useApprovalRequest();
+
+      delete pendingApprovals[APPROVAL_REQUEST.id];
+
+      onReject();
 
       expect(Engine.rejectPendingApproval).not.toHaveBeenCalled();
     });

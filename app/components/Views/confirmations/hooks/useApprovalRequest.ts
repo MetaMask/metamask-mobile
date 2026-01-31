@@ -23,31 +23,51 @@ const useApprovalRequest = () => {
     [firstPendingApproval],
   );
 
+  const hasPendingApproval = useCallback(
+    (approvalId?: string) =>
+      Boolean(approvalId && pendingApprovals?.[approvalId]),
+    [pendingApprovals],
+  );
+
   const onConfirm = useCallback(
     async (
       opts?: Parameters<typeof Engine.acceptPendingApproval>[2],
       value?: Parameters<typeof Engine.acceptPendingApproval>[1],
     ) => {
-      if (!approvalRequest) return;
+      if (!approvalRequest) {
+        return;
+      }
+
+      // Approval may already be resolved/removed (e.g., Smart Transactions finishing in the background).
+      if (!hasPendingApproval(approvalRequest.id)) {
+        return;
+      }
+
       await Engine.acceptPendingApproval(
         approvalRequest.id,
         { ...approvalRequest.requestData, ...(value || {}) },
         opts,
       );
     },
-    [approvalRequest],
+    [approvalRequest, hasPendingApproval],
   );
 
   const onReject = useCallback(
     (error?: Error) => {
-      if (!approvalRequest) return;
+      if (!approvalRequest) {
+        return;
+      }
+
+      if (!hasPendingApproval(approvalRequest.id)) {
+        return;
+      }
 
       Engine.rejectPendingApproval(
         approvalRequest.id,
         error ?? providerErrors.userRejectedRequest(),
       );
     },
-    [approvalRequest],
+    [approvalRequest, hasPendingApproval],
   );
 
   const pageMeta = useMemo(
