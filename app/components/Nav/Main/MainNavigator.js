@@ -1103,6 +1103,7 @@ const MainNavigator = () => {
         component={EarnScreenStack}
         options={{
           headerShown: false,
+          animationEnabled: true,
           cardStyleInterpolator: ({ current, layouts }) => ({
             cardStyle: {
               transform: [
