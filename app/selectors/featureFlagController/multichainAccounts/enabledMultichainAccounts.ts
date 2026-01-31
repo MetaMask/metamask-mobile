@@ -3,9 +3,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import {
   isMultichainAccountsRemoteFeatureEnabled,
-  STATE_1_FLAG,
   STATE_2_FLAG,
-  MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
   MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
 } from '../../../multichain-accounts/remote-feature-flag';
 
@@ -26,22 +24,6 @@ const createMultichainAccountsStateSelector = (
       featureVersionsToCheck,
     ),
   );
-
-/**
- * Selector to check if multichain accounts state 1 is enabled.
- * Returns true if the feature is enabled for state 1 or state 2.
- */
-export const selectMultichainAccountsState1Enabled =
-  createMultichainAccountsStateSelector([
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
-      featureKey: STATE_1_FLAG,
-    },
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-      featureKey: STATE_2_FLAG,
-    },
-  ]);
 
 /**
  * Selector to check if multichain accounts state 2 is enabled.
