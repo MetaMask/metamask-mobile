@@ -248,9 +248,14 @@ describe('usePerpsTransactionHistory', () => {
         endTime: undefined,
       });
 
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith(mockFills);
+      // Fills are enriched with detailedOrderType from matching orders
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
+        { ...mockFills[0], detailedOrderType: 'Market' },
+      ]);
+      // Orders are passed with a fillSizeByOrderId Map for accurate filled percentage calculation
       expect(mockTransformOrdersToTransactions).toHaveBeenCalledWith(
         mockOrders,
+        expect.any(Map),
       );
       expect(mockTransformFundingToTransactions).toHaveBeenCalledWith(
         mockFunding,

@@ -376,10 +376,15 @@ export function transformFillsToTransactions(
 /**
  * Transform abstract Order objects to PerpsTransaction format
  * @param orders - Array of abstract Order objects
+ * @param fillSizeByOrderId - Optional map of orderId to total filled size (from actual fills).
+ * When provided, uses actual fill data to calculate accurate filled percentages.
+ * This is important because HyperLiquid's historical orders API returns sz=0 for all
+ * completed orders, making it impossible to calculate partial fill percentages without fill data.
  * @returns Array of PerpsTransaction objects
  */
 export function transformOrdersToTransactions(
   orders: Order[],
+  fillSizeByOrderId?: Map<string, BigNumber>,
 ): PerpsTransaction[] {
   return orders.map((order) => {
     const {
@@ -428,15 +433,50 @@ export function transformOrdersToTransactions(
         : PerpsOrderTransactionStatus.Queued;
     }
 
-    // Calculate filled percentage from abstract types
-    const filledPercent = BigNumber(size).isEqualTo(0)
-      ? '100'
-      : BigNumber(originalSize)
+    // Calculate filled percentage - prefer actual fill data when available
+    let filledPercent: string;
+    const actualFilledSize = fillSizeByOrderId?.get(orderId);
+
+    if (actualFilledSize !== undefined) {
+      // Use actual fill data for accurate percentage
+      const origSize = BigNumber(originalSize);
+
+      if (origSize.isZero()) {
+        filledPercent = '0';
+      } else {
+        filledPercent = actualFilledSize
+          .dividedBy(origSize)
+          .multipliedBy(100)
+          .toFixed(0); // Round to whole number
+      }
+    } else if (isCompleted || isTriggered) {
+      // Filled/triggered orders are 100% filled
+      filledPercent = '100';
+    } else if (isCancelled || isRejected) {
+      // Canceled/rejected orders without fills = 0% filled
+      filledPercent = '0';
+    } else {
+      // Open/pending orders - use the order's size fields
+      const sizeIsZero = BigNumber(size).isEqualTo(0);
+      const originalSizeIsZero = BigNumber(originalSize).isZero();
+
+      if (sizeIsZero && originalSizeIsZero) {
+        // Position-bound TP/SL orders have no fixed size (both are 0)
+        // They're not filled yet - they're just tied to the position size
+        filledPercent = '0';
+      } else if (sizeIsZero) {
+        // Regular order with 0 remaining size = fully filled
+        filledPercent = '100';
+      } else {
+        // Partially filled order
+        filledPercent = BigNumber(originalSize)
           .minus(size)
           .dividedBy(originalSize)
           .absoluteValue()
           .multipliedBy(100)
           .toString();
+      }
+    }
 
     return {
       id: `${orderId}-${timestamp}`,
