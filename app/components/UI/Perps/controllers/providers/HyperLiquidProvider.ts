@@ -3126,9 +3126,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Explicitly ensure builder fee approval for trading
       await this.ensureBuilderFeeApproval();
 
-      // Get all current positions
-      // Force fresh API data (not WebSocket cache) since we're about to mutate positions
-      const positions = await this.getPositions({ skipCache: true });
+      // Get all current positions from cache (avoids 429 rate limiting)
+      const positions = await this.getPositions();
 
       // Filter positions based on params
       positionsToClose =
@@ -3619,8 +3618,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.ensureReady();
       await this.ensureBuilderFeeApproval();
 
-      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
-      const positions = await this.getPositions({ skipCache: true });
+      const positions = await this.getPositions();
       const position = positions.find((p) => p.symbol === params.symbol);
 
       if (!position) {
@@ -3759,8 +3757,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.ensureReady();
 
       // Get current position to determine direction
-      // Force fresh API data since we're about to mutate the position
-      const positions = await this.getPositions({ skipCache: true });
+      const positions = await this.getPositions();
       const position = positions.find((p) => p.symbol === symbol);
 
       if (!position) {
