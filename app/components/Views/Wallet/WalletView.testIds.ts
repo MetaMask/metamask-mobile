@@ -85,6 +85,7 @@ export const WalletViewSelectorsIDs = {
   BALANCE_EMPTY_STATE_CONTAINER: 'account-group-balance-empty-state',
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
+  LEADERBOARD_CTA: 'leaderboard-cta-banner',
 } as const;
 
 export const WalletViewSelectorsText = {
