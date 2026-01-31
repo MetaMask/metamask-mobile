@@ -82,6 +82,7 @@ import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../select
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
+import TestLightweightChart from './TestLightweightChart';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -668,6 +669,7 @@ class Asset extends PureComponent {
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
                 />
+                <TestLightweightChart height={300} />
                 <ActivityHeader asset={asset} />
               </>
             }
@@ -692,6 +694,7 @@ class Asset extends PureComponent {
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
                 />
+                <TestLightweightChart height={300} />
                 <ActivityHeader asset={asset} />
               </>
             }
