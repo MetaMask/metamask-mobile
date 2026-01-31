@@ -32,7 +32,6 @@ export function getTokenListControllerMessenger(
       'StorageService:getAllKeys',
       'StorageService:setItem',
       'StorageService:getItem',
-      'StorageService:removeItem',
     ],
     events: ['NetworkController:stateChange'],
     messenger,
