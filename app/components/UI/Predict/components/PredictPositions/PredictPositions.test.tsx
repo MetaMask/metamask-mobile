@@ -2,8 +2,10 @@ import { screen, act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { usePredictPrices } from '../../hooks/usePredictPrices';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 import PredictPositions, { PredictPositionsHandle } from './PredictPositions';
+import PredictPositionComponent from '../PredictPosition/PredictPosition';
 
 // Mock FlashList to manually render items for proper test rendering
 jest.mock('@shopify/flash-list', () => {
@@ -48,6 +50,7 @@ jest.mock('@shopify/flash-list', () => {
 });
 
 jest.mock('../../hooks/usePredictPositions');
+jest.mock('../../hooks/usePredictPrices');
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -99,6 +102,12 @@ jest.mock('../PredictNewButton', () => 'PredictNewButton');
 const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
   typeof usePredictPositions
 >;
+const mockUsePredictPrices = usePredictPrices as jest.MockedFunction<
+  typeof usePredictPrices
+>;
+
+const mockPredictPositionComponent =
+  PredictPositionComponent as unknown as jest.Mock;
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -178,6 +187,12 @@ describe('PredictPositions', () => {
     jest.clearAllMocks();
     // Reset mock to default return value for each test
     mockUsePredictPositions.mockReturnValue(defaultMockHookReturn);
+    mockUsePredictPrices.mockReturnValue({
+      prices: { providerId: 'polymarket', results: [] },
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
   });
 
   afterEach(() => {
@@ -945,6 +960,103 @@ describe('PredictPositions', () => {
       expect(
         screen.getByTestId('predict-claimable-positions-list'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Real-time prices', () => {
+    it('requests CLOB prices for each active position', () => {
+      // Arrange
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          ...defaultMockHookReturn,
+          positions: mockPositions,
+          isLoading: false,
+        })
+        .mockReturnValueOnce({
+          ...defaultMockHookReturn,
+          positions: [],
+          isLoading: false,
+        });
+
+      // Act
+      renderWithProvider(<PredictPositions />);
+
+      // Assert
+      expect(mockUsePredictPrices).toHaveBeenCalledWith({
+        queries: [
+          {
+            marketId: mockPositions[0].marketId,
+            outcomeId: mockPositions[0].outcomeId,
+            outcomeTokenId: mockPositions[0].outcomeTokenId,
+          },
+          {
+            marketId: mockPositions[1].marketId,
+            outcomeId: mockPositions[1].outcomeId,
+            outcomeTokenId: mockPositions[1].outcomeTokenId,
+          },
+        ],
+        providerId: 'polymarket',
+        enabled: true,
+        pollingInterval: 5000,
+      });
+    });
+
+    it('passes updated currentValue and percentPnl to PredictPosition when prices are returned', () => {
+      // Arrange
+      const positions: PredictPosition[] = [
+        createMockPosition({
+          id: 'p-1',
+          marketId: 'm-1',
+          outcomeId: 'o-1',
+          outcomeTokenId: 't-1',
+          size: 10,
+          initialValue: 10,
+          currentValue: 999,
+          percentPnl: 999,
+        }),
+      ];
+
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          ...defaultMockHookReturn,
+          positions,
+          isLoading: false,
+        })
+        .mockReturnValueOnce({
+          ...defaultMockHookReturn,
+          positions: [],
+          isLoading: false,
+        });
+
+      mockUsePredictPrices.mockReturnValue({
+        prices: {
+          providerId: 'polymarket',
+          results: [
+            {
+              marketId: 'm-1',
+              outcomeId: 'o-1',
+              outcomeTokenId: 't-1',
+              entry: { buy: 0.2, sell: 0.19 },
+            },
+          ],
+        },
+        isFetching: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      // Act
+      renderWithProvider(<PredictPositions />);
+
+      // Assert
+      const firstCallProps = mockPredictPositionComponent.mock.calls[0][0] as {
+        position: PredictPosition;
+        skipOptimisticRefresh?: boolean;
+      };
+
+      expect(firstCallProps.skipOptimisticRefresh).toBe(true);
+      expect(firstCallProps.position.currentValue).toBe(2);
+      expect(firstCallProps.position.percentPnl).toBe(-80);
     });
   });
 });
