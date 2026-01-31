@@ -508,13 +508,13 @@ describe('Confirm', () => {
     });
   });
 
-  it('sets navigation options with header shown for full screen confirmations', () => {
+  it('sets navigation options with header hidden for full screen confirmations', () => {
     renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
     });
 
     expect(mockSetOptions).toHaveBeenCalledWith({
-      headerShown: true,
+      headerShown: false,
       gestureEnabled: true,
     });
   });

@@ -2,11 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { ScrollView } from 'react-native';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import { useTheme } from '../../../../../util/theme';
+
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { POOLED_STAKING_FAQ_URL } from '../../constants';
 import styleSheet from './PoolStakingLearnMoreModal.styles';
@@ -47,6 +46,7 @@ type PoolStakingLearnMoreModalRouteProp = RouteProp<
 
 const PoolStakingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
 
   const route = useRoute<PoolStakingLearnMoreModalRouteProp>();
   const { chainId: routeChainId } = route.params;
@@ -125,11 +125,10 @@ const PoolStakingLearnMoreModal = () => {
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
       <ScrollView bounces={false}>
-        <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingSM}>
-            {strings('stake.stake_eth_and_earn')}
-          </Text>
-        </BottomSheetHeader>
+        <HeaderCenter
+          title={strings('stake.stake_eth_and_earn')}
+          onClose={handleClose}
+        />
         {Boolean(reversedVaultApys.length) && activeTimespanApyAverage && (
           <InteractiveTimespanChart
             dataPoints={reversedVaultApys}
@@ -156,6 +155,7 @@ const PoolStakingLearnMoreModal = () => {
               ...getGraphInsetsByDataPointLength(
                 activeTimespanApyAverage.numDays,
               ),
+              color: colors.success.default,
             }}
             isLoading={isLoadingVaultApyAverages || isLoadingVaultApys}
           />

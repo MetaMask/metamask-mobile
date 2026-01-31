@@ -17,7 +17,6 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 8,
       ...theme.shadows.size.sm,
       elevation: 11,
-      paddingHorizontal: 16,
       paddingVertical: 24,
     },
     modalHeader: {
@@ -41,7 +40,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.default,
       marginTop: 16,
       paddingVertical: 20,
-      paddingHorizontal: 20,
+      paddingHorizontal: 16,
       borderRadius: 8,
       display: 'flex',
       alignItems: 'center',
