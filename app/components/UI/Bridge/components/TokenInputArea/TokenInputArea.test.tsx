@@ -2,7 +2,12 @@ import React from 'react';
 import { initialState } from '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { TokenInputArea, TokenInputAreaType, getDisplayAmount } from '.';
+import {
+  TokenInputArea,
+  TokenInputAreaType,
+  calculateFontSize,
+  getDisplayAmount,
+} from '.';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
@@ -371,6 +376,33 @@ describe('TokenInputArea', () => {
     // After conversion to zero address, Polygon native token is treated as native
     // Native tokens show Max button when gasless swaps are enabled
     expect(getByText('Max')).toBeTruthy();
+  });
+});
+
+describe('calculateFontSize', () => {
+  it('returns 40 for lengths up to 10', () => {
+    expect(calculateFontSize(5)).toBe(40);
+    expect(calculateFontSize(10)).toBe(40);
+  });
+
+  it('returns 35 for lengths between 11 and 15', () => {
+    expect(calculateFontSize(11)).toBe(35);
+    expect(calculateFontSize(15)).toBe(35);
+  });
+
+  it('returns 30 for lengths between 16 and 20', () => {
+    expect(calculateFontSize(16)).toBe(30);
+    expect(calculateFontSize(20)).toBe(30);
+  });
+
+  it('returns 25 for lengths between 21 and 25', () => {
+    expect(calculateFontSize(21)).toBe(25);
+    expect(calculateFontSize(25)).toBe(25);
+  });
+
+  it('returns 20 for lengths greater than 25', () => {
+    expect(calculateFontSize(26)).toBe(20);
+    expect(calculateFontSize(100)).toBe(20);
   });
 });
 

@@ -23,7 +23,9 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingListHeader } from '../../../UI/Trending/components/TrendingListHeader';
-import TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
+import TrendingTokensList, {
+  TrendingFilterContext,
+} from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import {
   SortTrendingBy,
@@ -44,6 +46,8 @@ import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingToken
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
+import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
+import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -135,6 +139,7 @@ const TrendingTokensFullView = () => {
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
+  const sessionManager = TrendingFeedSessionManager.getInstance();
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
   const [selectedTimeOption, setSelectedTimeOption] = useState<TimeOption>(
     TimeOption.TwentyFourHours,
@@ -253,21 +258,102 @@ const TrendingTokensFullView = () => {
     selectedTimeOption,
   ]);
 
+  // Compute filter context for analytics tracking
+  const filterContext: TrendingFilterContext = useMemo(
+    () => ({
+      timeFilter: selectedTimeOption,
+      sortOption: selectedPriceChangeOption,
+      networkFilter:
+        selectedNetwork && selectedNetwork.length > 0
+          ? selectedNetwork[0]
+          : 'all',
+      isSearchResult: Boolean(searchQuery?.trim()),
+    }),
+    [
+      selectedTimeOption,
+      selectedPriceChangeOption,
+      selectedNetwork,
+      searchQuery,
+    ],
+  );
+
+  // Track search events with debounce
+  useSearchTracking({
+    searchQuery,
+    resultsCount: trendingTokens.length,
+    isLoading,
+    timeFilter: selectedTimeOption,
+    sortOption: selectedPriceChangeOption || PriceChangeOption.PriceChange,
+    networkFilter:
+      selectedNetwork && selectedNetwork.length > 0
+        ? selectedNetwork[0]
+        : 'all',
+  });
+
   const handlePriceChangeSelect = useCallback(
     (option: PriceChangeOption, sortDirection: SortDirection) => {
+      const previousValue =
+        selectedPriceChangeOption || PriceChangeOption.PriceChange;
       setSelectedPriceChangeOption(option);
       setPriceChangeSortDirection(sortDirection);
+
+      // Track filter change if value actually changed
+      if (option !== previousValue) {
+        sessionManager.trackFilterChange({
+          filter_type: 'sort',
+          previous_value: previousValue,
+          new_value: option,
+          time_filter: selectedTimeOption,
+          sort_option: option,
+          network_filter:
+            selectedNetwork && selectedNetwork.length > 0
+              ? selectedNetwork[0]
+              : 'all',
+        });
+      }
     },
-    [],
+    [
+      selectedPriceChangeOption,
+      selectedTimeOption,
+      selectedNetwork,
+      sessionManager,
+    ],
   );
 
   const handlePriceChangePress = useCallback(() => {
     setShowPriceChangeBottomSheet(true);
   }, []);
 
-  const handleNetworkSelect = useCallback((chainIds: CaipChainId[] | null) => {
-    setSelectedNetwork(chainIds);
-  }, []);
+  const handleNetworkSelect = useCallback(
+    (chainIds: CaipChainId[] | null) => {
+      const previousValue =
+        selectedNetwork && selectedNetwork.length > 0
+          ? selectedNetwork[0]
+          : 'all';
+      const newValue = chainIds && chainIds.length > 0 ? chainIds[0] : 'all';
+
+      setSelectedNetwork(chainIds);
+
+      // Track filter change if value actually changed
+      if (newValue !== previousValue) {
+        sessionManager.trackFilterChange({
+          filter_type: 'network',
+          previous_value: previousValue,
+          new_value: newValue,
+          time_filter: selectedTimeOption,
+          sort_option:
+            selectedPriceChangeOption || PriceChangeOption.PriceChange,
+          network_filter: newValue,
+        });
+      }
+    },
+    [
+      selectedNetwork,
+      selectedTimeOption,
+      selectedPriceChangeOption,
+      sessionManager,
+    ],
+  );
 
   const handleAllNetworksPress = useCallback(() => {
     setShowNetworkBottomSheet(true);
@@ -275,10 +361,32 @@ const TrendingTokensFullView = () => {
 
   const handleTimeSelect = useCallback(
     (selectedSortBy: SortTrendingBy, timeOption: TimeOption) => {
+      const previousValue = selectedTimeOption;
       setSortBy(selectedSortBy);
       setSelectedTimeOption(timeOption);
+
+      // Track filter change if value actually changed
+      if (timeOption !== previousValue) {
+        sessionManager.trackFilterChange({
+          filter_type: 'time',
+          previous_value: previousValue,
+          new_value: timeOption,
+          time_filter: timeOption,
+          sort_option:
+            selectedPriceChangeOption || PriceChangeOption.PriceChange,
+          network_filter:
+            selectedNetwork && selectedNetwork.length > 0
+              ? selectedNetwork[0]
+              : 'all',
+        });
+      }
     },
-    [],
+    [
+      selectedTimeOption,
+      selectedPriceChangeOption,
+      selectedNetwork,
+      sessionManager,
+    ],
   );
 
   const handle24hPress = useCallback(() => {
@@ -424,6 +532,7 @@ const TrendingTokensFullView = () => {
           <TrendingTokensList
             trendingTokens={trendingTokens}
             selectedTimeOption={selectedTimeOption}
+            filterContext={filterContext}
             refreshControl={
               <RefreshControl
                 colors={[theme.colors.primary.default]}
