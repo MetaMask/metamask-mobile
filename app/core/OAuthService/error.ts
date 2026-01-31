@@ -40,8 +40,13 @@ export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
 
 export class OAuthError extends Error {
   public readonly code: OAuthErrorType;
+  public readonly data: Record<string, unknown>;
 
-  constructor(errMessage: string | Error, code: OAuthErrorType) {
+  constructor(
+    errMessage: string | Error,
+    code: OAuthErrorType,
+    data?: Record<string, unknown>,
+  ) {
     if (errMessage instanceof Error) {
       super(errMessage.message);
       this.stack = errMessage.stack;
@@ -51,5 +56,6 @@ export class OAuthError extends Error {
     }
     this.message = `${OAuthErrorMessages[code]} - ${errMessage}`;
     this.code = code;
+    this.data = data || {};
   }
 }
