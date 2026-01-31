@@ -91,7 +91,10 @@ export function* appLockStateMachine() {
     yield take(UserActionType.LOCKED_APP);
 
     // Navigate to lock screen.
-    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);
+    NavigationService.navigation?.reset({
+      index: 0,
+      routes: [{ name: Routes.LOCK_SCREEN }],
+    });
 
     // App state listener for prompting authentication when the app is foregrounded.
     yield call(appStateListenerTask);
