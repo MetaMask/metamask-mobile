@@ -1038,6 +1038,922 @@ describe('RewardsController', () => {
 
       jest.useRealTimers();
     });
+
+    it('should add successful estimate to history with flattened swap context', async () => {
+      const mockSwapContext = {
+        srcAsset: {
+          id: 'eip155:1/slip44:60' as const,
+          amount: '1000000000000000000',
+          usdPrice: '2500.00',
+        },
+        destAsset: {
+          id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const,
+          amount: '2500000000',
+          usdPrice: '1.00',
+        },
+        feeAsset: {
+          id: 'eip155:1/slip44:60' as const,
+          amount: '5000000000000000',
+          usdPrice: '2500.00',
+        },
+      };
+
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          swapContext: mockSwapContext,
+        },
+      };
+
+      const mockResponse = {
+        pointsEstimate: 150,
+        bonusBips: 300,
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
+
+      expect(controller.state.pointsEstimateHistory).toHaveLength(0);
+
+      await controller.estimatePoints(mockRequest);
+
+      expect(controller.state.pointsEstimateHistory).toHaveLength(1);
+      const historyEntry = controller.state.pointsEstimateHistory[0];
+
+      // Verify flattened request fields
+      expect(historyEntry.requestActivityType).toBe(mockRequest.activityType);
+      expect(historyEntry.requestAccount).toBe(mockRequest.account);
+
+      // Verify flattened swap source asset fields
+      expect(historyEntry.requestSwapSrcAssetId).toBe(
+        mockSwapContext.srcAsset.id,
+      );
+      expect(historyEntry.requestSwapSrcAssetAmount).toBe(
+        mockSwapContext.srcAsset.amount,
+      );
+      expect(historyEntry.requestSwapSrcAssetUsdPrice).toBe(
+        mockSwapContext.srcAsset.usdPrice,
+      );
+
+      // Verify flattened swap destination asset fields
+      expect(historyEntry.requestSwapDestAssetId).toBe(
+        mockSwapContext.destAsset.id,
+      );
+      expect(historyEntry.requestSwapDestAssetAmount).toBe(
+        mockSwapContext.destAsset.amount,
+      );
+      expect(historyEntry.requestSwapDestAssetUsdPrice).toBe(
+        mockSwapContext.destAsset.usdPrice,
+      );
+
+      // Verify flattened swap fee asset fields
+      expect(historyEntry.requestSwapFeeAssetId).toBe(
+        mockSwapContext.feeAsset.id,
+      );
+      expect(historyEntry.requestSwapFeeAssetAmount).toBe(
+        mockSwapContext.feeAsset.amount,
+      );
+      expect(historyEntry.requestSwapFeeAssetUsdPrice).toBe(
+        mockSwapContext.feeAsset.usdPrice,
+      );
+
+      // Verify flattened response fields
+      expect(historyEntry.responsePointsEstimate).toBe(
+        mockResponse.pointsEstimate,
+      );
+      expect(historyEntry.responseBonusBips).toBe(mockResponse.bonusBips);
+      expect(historyEntry.timestamp).toBe(now);
+
+      jest.useRealTimers();
+    });
+
+    it('should add successful estimate to history with flattened perps context', async () => {
+      const mockPerpsContext = {
+        type: 'OPEN_POSITION' as const,
+        usdFeeValue: '12.34',
+        coin: 'ETH',
+      };
+
+      const mockRequest = {
+        activityType: 'PERPS' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          perpsContext: mockPerpsContext,
+        },
+      };
+
+      const mockResponse = {
+        pointsEstimate: 200,
+        bonusBips: 100,
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
+
+      await controller.estimatePoints(mockRequest);
+
+      const historyEntry = controller.state.pointsEstimateHistory[0];
+
+      // Verify flattened perps context fields
+      expect(historyEntry.requestPerpsType).toBe(mockPerpsContext.type);
+      expect(historyEntry.requestPerpsUsdFeeValue).toBe(
+        mockPerpsContext.usdFeeValue,
+      );
+      expect(historyEntry.requestPerpsCoin).toBe(mockPerpsContext.coin);
+
+      jest.useRealTimers();
+    });
+
+    it('should add successful estimate to history with flattened predict context', async () => {
+      const mockPredictFeeAsset = {
+        id: 'eip155:1/slip44:60' as const,
+        amount: '1000000000000000',
+        usdPrice: '2.50',
+      };
+
+      const mockRequest = {
+        activityType: 'PREDICT' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          predictContext: {
+            feeAsset: mockPredictFeeAsset,
+          },
+        },
+      };
+
+      const mockResponse = {
+        pointsEstimate: 50,
+        bonusBips: 0,
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
+
+      await controller.estimatePoints(mockRequest);
+
+      const historyEntry = controller.state.pointsEstimateHistory[0];
+
+      // Verify flattened predict context fields
+      expect(historyEntry.requestPredictFeeAssetId).toBe(
+        mockPredictFeeAsset.id,
+      );
+      expect(historyEntry.requestPredictFeeAssetAmount).toBe(
+        mockPredictFeeAsset.amount,
+      );
+      expect(historyEntry.requestPredictFeeAssetUsdPrice).toBe(
+        mockPredictFeeAsset.usdPrice,
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('should add successful estimate to history with flattened shield context', async () => {
+      const mockShieldFeeAsset = {
+        id: 'eip155:1/slip44:60' as const,
+        amount: '2000000000000000',
+        usdPrice: '5.00',
+      };
+
+      const mockRequest = {
+        activityType: 'SHIELD' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          shieldContext: {
+            feeAsset: mockShieldFeeAsset,
+          },
+        },
+      };
+
+      const mockResponse = {
+        pointsEstimate: 75,
+        bonusBips: 50,
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
+
+      await controller.estimatePoints(mockRequest);
+
+      const historyEntry = controller.state.pointsEstimateHistory[0];
+
+      // Verify flattened shield context fields
+      expect(historyEntry.requestShieldFeeAssetId).toBe(mockShieldFeeAsset.id);
+      expect(historyEntry.requestShieldFeeAssetAmount).toBe(
+        mockShieldFeeAsset.amount,
+      );
+      expect(historyEntry.requestShieldFeeAssetUsdPrice).toBe(
+        mockShieldFeeAsset.usdPrice,
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('should not add to history when rewards are disabled', async () => {
+      const isDisabled = () => true;
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled,
+      });
+
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      await disabledController.estimatePoints(mockRequest);
+
+      expect(disabledController.state.pointsEstimateHistory).toHaveLength(0);
+    });
+
+    it('should limit history to 50 entries', async () => {
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const mockResponse = {
+        pointsEstimate: 100,
+        bonusBips: 0,
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
+
+      // Make 55 calls - should only keep last 50
+      for (let i = 0; i < 55; i++) {
+        jest.setSystemTime(now + i); // Ensure unique timestamps
+        await controller.estimatePoints(mockRequest);
+      }
+
+      expect(controller.state.pointsEstimateHistory).toHaveLength(50);
+
+      jest.useRealTimers();
+    });
+
+    it('should store estimates in history keyed by timestamp', async () => {
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      let callCount = 0;
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          callCount += 1;
+          return Promise.resolve({
+            pointsEstimate: callCount * 100,
+            bonusBips: 0,
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+      jest.setSystemTime(now);
+      await controller.estimatePoints(mockRequest);
+      jest.setSystemTime(now + 1000);
+      await controller.estimatePoints(mockRequest);
+      jest.setSystemTime(now + 2000);
+      await controller.estimatePoints(mockRequest);
+
+      // Array is ordered by timestamp (most recent first)
+      const entries = controller.state.pointsEstimateHistory;
+      expect(entries).toHaveLength(3);
+
+      // Verify order (most recent first)
+      expect(entries[0].responsePointsEstimate).toBe(300);
+      expect(entries[1].responsePointsEstimate).toBe(200);
+      expect(entries[2].responsePointsEstimate).toBe(100);
+
+      // Verify timestamps are in descending order
+      expect(entries[0].timestamp).toBe(now + 2000);
+      expect(entries[1].timestamp).toBe(now + 1000);
+      expect(entries[2].timestamp).toBe(now);
+
+      jest.useRealTimers();
+    });
+
+    it('should return successful estimate even when history tracking fails', async () => {
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const mockResponse = {
+        pointsEstimate: 100,
+        bonusBips: 200,
+      };
+
+      const now = 1700000000000;
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000),
+        endDate: new Date(now + 86400000),
+        tiers: createTestTiers(),
+        activityTypes: [],
+      };
+
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+            previous: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
+
+      // Spy on addPointsEstimateToHistory and make it throw
+      const historyError = new Error('State update failed');
+      const addHistorySpy = jest
+        .spyOn(controller, 'addPointsEstimateToHistory')
+        .mockImplementation(() => {
+          throw historyError;
+        });
+
+      // Act - should not throw despite history tracking failure
+      const result = await controller.estimatePoints(mockRequest);
+
+      // Assert - estimate should be returned successfully
+      expect(result).toEqual(mockResponse);
+
+      // Verify the history method was called
+      expect(addHistorySpy).toHaveBeenCalledWith(mockRequest, mockResponse);
+
+      // Verify the error was logged (not the main estimate error)
+      expect(Logger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to add points estimate to history:',
+        'State update failed',
+      );
+
+      // Verify the misleading "Failed to estimate points" was NOT logged
+      expect(Logger.log).not.toHaveBeenCalledWith(
+        'RewardsController: Failed to estimate points:',
+        expect.anything(),
+      );
+
+      addHistorySpy.mockRestore();
+      jest.useRealTimers();
+    });
+  });
+
+  describe('addPointsEstimateToHistory', () => {
+    it('adds entry to history with basic request/response fields', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const response = {
+        pointsEstimate: 100,
+        bonusBips: 200,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      expect(controller.state.pointsEstimateHistory).toHaveLength(1);
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      expect(entry.timestamp).toBe(now);
+      expect(entry.requestActivityType).toBe('SWAP');
+      expect(entry.requestAccount).toBe(CAIP_ACCOUNT_1);
+      expect(entry.responsePointsEstimate).toBe(100);
+      expect(entry.responseBonusBips).toBe(200);
+
+      jest.useRealTimers();
+    });
+
+    it('flattens swap context fields into history entry', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const mockSwapContext = {
+        srcAsset: {
+          id: 'eip155:1/slip44:60' as const,
+          amount: '1000000000000000000',
+          usdPrice: '2500.00',
+        },
+        destAsset: {
+          id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const,
+          amount: '2500000000',
+          usdPrice: '1.00',
+        },
+        feeAsset: {
+          id: 'eip155:1/slip44:60' as const,
+          amount: '5000000000000000',
+          usdPrice: '2500.00',
+        },
+      };
+
+      const request = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          swapContext: mockSwapContext,
+        },
+      };
+
+      const response = {
+        pointsEstimate: 150,
+        bonusBips: 300,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      expect(entry.requestSwapSrcAssetId).toBe('eip155:1/slip44:60');
+      expect(entry.requestSwapSrcAssetAmount).toBe('1000000000000000000');
+      expect(entry.requestSwapSrcAssetUsdPrice).toBe('2500.00');
+      expect(entry.requestSwapDestAssetId).toBe(
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      );
+      expect(entry.requestSwapDestAssetAmount).toBe('2500000000');
+      expect(entry.requestSwapDestAssetUsdPrice).toBe('1.00');
+      expect(entry.requestSwapFeeAssetId).toBe('eip155:1/slip44:60');
+      expect(entry.requestSwapFeeAssetAmount).toBe('5000000000000000');
+      expect(entry.requestSwapFeeAssetUsdPrice).toBe('2500.00');
+
+      jest.useRealTimers();
+    });
+
+    it('flattens single perps context fields into history entry', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const mockPerpsContext = {
+        type: 'CLOSE_POSITION' as const,
+        coin: 'BTC',
+        usdFeeValue: '15.75',
+      };
+
+      const request = {
+        activityType: 'PERPS' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          perpsContext: mockPerpsContext,
+        },
+      };
+
+      const response = {
+        pointsEstimate: 200,
+        bonusBips: 150,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      expect(entry.requestPerpsType).toBe('CLOSE_POSITION');
+      expect(entry.requestPerpsCoin).toBe('BTC');
+      expect(entry.requestPerpsUsdFeeValue).toBe('15.75');
+
+      jest.useRealTimers();
+    });
+
+    it('excludes perps context fields when perpsContext is an array', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const mockPerpsContextArray = [
+        {
+          type: 'CLOSE_POSITION' as const,
+          coin: 'BTC',
+          usdFeeValue: '10.50',
+        },
+        {
+          type: 'CLOSE_POSITION' as const,
+          coin: 'ETH',
+          usdFeeValue: '5.25',
+        },
+      ];
+
+      const request = {
+        activityType: 'PERPS' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          perpsContext: mockPerpsContextArray,
+        },
+      };
+
+      const response = {
+        pointsEstimate: 300,
+        bonusBips: 100,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      // Perps fields should not be present when context is an array
+      expect(entry.requestPerpsType).toBeUndefined();
+      expect(entry.requestPerpsCoin).toBeUndefined();
+      expect(entry.requestPerpsUsdFeeValue).toBeUndefined();
+      // Basic fields should still be present
+      expect(entry.requestActivityType).toBe('PERPS');
+      expect(entry.responsePointsEstimate).toBe(300);
+
+      jest.useRealTimers();
+    });
+
+    it('flattens predict context fields into history entry', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request = {
+        activityType: 'PREDICT' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          predictContext: {
+            feeAsset: {
+              id: 'eip155:8453/slip44:60' as const,
+              amount: '1000000000000000',
+              usdPrice: '2500.00',
+            },
+          },
+        },
+      };
+
+      const response = {
+        pointsEstimate: 75,
+        bonusBips: 50,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      expect(entry.requestPredictFeeAssetId).toBe('eip155:8453/slip44:60');
+      expect(entry.requestPredictFeeAssetAmount).toBe('1000000000000000');
+      expect(entry.requestPredictFeeAssetUsdPrice).toBe('2500.00');
+
+      jest.useRealTimers();
+    });
+
+    it('flattens shield context fields into history entry', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request = {
+        activityType: 'SHIELD' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          shieldContext: {
+            feeAsset: {
+              id: 'eip155:1/slip44:60' as const,
+              amount: '2000000000000000',
+              usdPrice: '2500.00',
+            },
+          },
+        },
+      };
+
+      const response = {
+        pointsEstimate: 50,
+        bonusBips: 25,
+      };
+
+      controller.addPointsEstimateToHistory(request, response);
+
+      const entry = controller.state.pointsEstimateHistory[0];
+
+      expect(entry.requestShieldFeeAssetId).toBe('eip155:1/slip44:60');
+      expect(entry.requestShieldFeeAssetAmount).toBe('2000000000000000');
+      expect(entry.requestShieldFeeAssetUsdPrice).toBe('2500.00');
+
+      jest.useRealTimers();
+    });
+
+    it('limits history to 50 entries', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const response = {
+        pointsEstimate: 100,
+        bonusBips: 0,
+      };
+
+      // Add 55 entries
+      for (let i = 0; i < 55; i++) {
+        jest.setSystemTime(now + i);
+        controller.addPointsEstimateToHistory(request, response);
+      }
+
+      expect(controller.state.pointsEstimateHistory).toHaveLength(50);
+
+      jest.useRealTimers();
+    });
+
+    it('adds new entries at the beginning (most recent first)', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request1 = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const request2 = {
+        activityType: 'PERPS' as const,
+        account: CAIP_ACCOUNT_2,
+        activityContext: {},
+      };
+
+      const response1 = {
+        pointsEstimate: 100,
+        bonusBips: 0,
+      };
+
+      const response2 = {
+        pointsEstimate: 200,
+        bonusBips: 50,
+      };
+
+      jest.setSystemTime(now);
+      controller.addPointsEstimateToHistory(request1, response1);
+
+      jest.setSystemTime(now + 1000);
+      controller.addPointsEstimateToHistory(request2, response2);
+
+      const entries = controller.state.pointsEstimateHistory;
+      expect(entries).toHaveLength(2);
+
+      // Most recent entry should be first
+      expect(entries[0].timestamp).toBe(now + 1000);
+      expect(entries[0].requestActivityType).toBe('PERPS');
+      expect(entries[0].responsePointsEstimate).toBe(200);
+
+      // Older entry should be second
+      expect(entries[1].timestamp).toBe(now);
+      expect(entries[1].requestActivityType).toBe('SWAP');
+      expect(entries[1].responsePointsEstimate).toBe(100);
+
+      jest.useRealTimers();
+    });
+
+    it('preserves oldest entries within limit when trimming', () => {
+      const now = 1700000000000;
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+
+      const request = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      // Add 55 entries with different timestamps and points
+      for (let i = 0; i < 55; i++) {
+        jest.setSystemTime(now + i);
+        controller.addPointsEstimateToHistory(request, {
+          pointsEstimate: i + 1,
+          bonusBips: 0,
+        });
+      }
+
+      const entries = controller.state.pointsEstimateHistory;
+
+      // Should have exactly 50 entries
+      expect(entries).toHaveLength(50);
+
+      // Most recent entry (55th added) should be first
+      expect(entries[0].responsePointsEstimate).toBe(55);
+      expect(entries[0].timestamp).toBe(now + 54);
+
+      // Oldest kept entry should be the 6th one added (indices 5-54 are kept)
+      expect(entries[49].responsePointsEstimate).toBe(6);
+      expect(entries[49].timestamp).toBe(now + 5);
+
+      jest.useRealTimers();
+    });
   });
 
   describe('hasActiveSeason', () => {
@@ -14274,6 +15190,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "pointsEstimateHistory": [],
           "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},
@@ -14292,6 +15209,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "pointsEstimateHistory": [],
           "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},
