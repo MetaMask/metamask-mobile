@@ -446,7 +446,7 @@ export const BrowserPure = (props) => {
         screen: Routes.TRENDING_FEED,
       });
     }
-  }, [tabs, setShouldShowTabs, navigation]);
+  }, [tabs, activeTabId, setShouldShowTabs, navigation]);
 
   const renderTabList = useCallback(() => {
     if (shouldShowTabs) {
@@ -470,7 +470,6 @@ export const BrowserPure = (props) => {
     newTab,
     closeTab,
     closeTabsView,
-    closeAllTabs,
   ]);
 
   const renderBrowserTabWindows = useCallback(
