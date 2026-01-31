@@ -15,6 +15,10 @@ if [ -f "$SUMMARY_FILE" ]; then
     iosCount=$(jq -r '.platformDevices.iOS | length' "$SUMMARY_FILE")
     totalDevices=$((androidCount + iosCount))
     
+    # Get failed tests statistics
+    totalFailedTests=$(jq -r '.failedTestsStats.totalFailedTests // 0' "$SUMMARY_FILE")
+    teamsAffected=$(jq -r '.failedTestsStats.teamsAffected // 0' "$SUMMARY_FILE")
+    
     # Determine test results status by checking job statuses via GitHub API
     if [ -n "$GITHUB_TOKEN" ] && [ -n "$GITHUB_RUN_ID" ]; then
         
@@ -104,6 +108,93 @@ if [ -f "$SUMMARY_FILE" ]; then
     SUMMARY+="  • Android: $androidImportedWalletStatus\n"
     SUMMARY+="  • iOS: $iosImportedWalletStatus\n\n"
     SUMMARY+="---------------\n\n"
+    
+    # Add failed tests section if there are failures
+    if [ "$totalFailedTests" -gt 0 ]; then
+        SUMMARY+="*:rotating_light: Failed Tests (${totalFailedTests}):*\n\n"
+        
+        # Get all team IDs that have failed tests
+        teamIds=$(jq -r '.failedTestsStats.failedTestsByTeam | keys[]' "$SUMMARY_FILE" 2>/dev/null)
+        
+        for teamId in $teamIds; do
+            # Get team info including the proper Slack mention format
+            teamName=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].team.teamName // \"Unknown Team\"" "$SUMMARY_FILE")
+            slackMention=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].team.slackMention // \"$teamId\"" "$SUMMARY_FILE")
+            
+            # List each failed test for this team
+            testCount=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests | length" "$SUMMARY_FILE")
+            
+            for ((i=0; i<testCount; i++)); do
+                testName=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].testName" "$SUMMARY_FILE")
+                testFilePath=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].testFilePath // \"unknown\"" "$SUMMARY_FILE")
+                platform=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].platform" "$SUMMARY_FILE")
+                device=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].device" "$SUMMARY_FILE")
+                failureReason=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].failureReason // \"unknown\"" "$SUMMARY_FILE")
+                
+                # Extract just the filename from the path
+                testFile=$(basename "$testFilePath" 2>/dev/null || echo "$testFilePath")
+                
+                # Format the device (remove + and clean up)
+                deviceDisplay=$(echo "$device" | sed 's/+/ /g')
+                
+                # Format the failure reason for display
+                case "$failureReason" in
+                    "quality_gates_exceeded")
+                        reasonDisplay="Quality Gates Exceeded"
+                        ;;
+                    "timedOut")
+                        reasonDisplay="Test Timed Out"
+                        ;;
+                    "test_error"|"failed")
+                        reasonDisplay="Test Error"
+                        ;;
+                    *)
+                        reasonDisplay="$failureReason"
+                        ;;
+                esac
+                
+                # Output the test failure info in the requested format
+                SUMMARY+=":x: *Test failed:* \`${testFile}\`\n"
+                SUMMARY+="• *Device:* ${platform} - ${deviceDisplay}\n"
+                SUMMARY+="• *Team:* ${slackMention}\n"
+                SUMMARY+="• *Reason:* ${reasonDisplay}\n"
+                
+                # Check if this test has quality gates violations - show the table
+                hasViolations=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations | length // 0" "$SUMMARY_FILE" 2>/dev/null)
+                
+                if [ "$hasViolations" != "null" ] && [ "$hasViolations" -gt 0 ]; then
+                    SUMMARY+="\`\`\`\n"
+                    SUMMARY+="Step                     | Actual    | Expected  | Exceeded\n"
+                    SUMMARY+="-------------------------|-----------|-----------|------------\n"
+                    
+                    # Get each violation
+                    violationsCount=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations | length" "$SUMMARY_FILE")
+                    for ((v=0; v<violationsCount; v++)); do
+                        vType=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].type" "$SUMMARY_FILE")
+                        vActual=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].actual" "$SUMMARY_FILE")
+                        vThreshold=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].threshold" "$SUMMARY_FILE")
+                        vExceeded=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].exceeded" "$SUMMARY_FILE")
+                        vPercentOver=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].percentOver" "$SUMMARY_FILE")
+                        
+                        if [ "$vType" = "step" ]; then
+                            vStepName=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].qualityGatesViolations[$v].stepName" "$SUMMARY_FILE" | cut -c1-23)
+                            # Pad step name to 23 chars
+                            paddedName=$(printf "%-23s" "$vStepName")
+                            SUMMARY+="${paddedName} | ${vActual}ms | ${vThreshold}ms | +${vExceeded}ms (+${vPercentOver}%)\n"
+                        else
+                            SUMMARY+="TOTAL                   | ${vActual}ms | ${vThreshold}ms | +${vExceeded}ms (+${vPercentOver}%)\n"
+                        fi
+                    done
+                    SUMMARY+="\`\`\`\n"
+                fi
+                
+                SUMMARY+="\n"
+            done
+        done
+        
+        SUMMARY+="---------------\n\n"
+    fi
+    
     SUMMARY+="*Build Info:*\n"
     SUMMARY+="• Commit Hash: \`$GITHUB_SHA\`\n"
     SUMMARY+="• Branch: \`$GITHUB_REF_NAME\`\n"

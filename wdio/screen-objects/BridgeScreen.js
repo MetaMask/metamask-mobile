@@ -32,11 +32,6 @@ class BridgeScreen {
   }
   get destinationTokenArea(){
     return AppwrightSelectors.getElementByID(this._device, PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA);
-
-  }
-  get seeAllDropDown(){
-    return AppwrightSelectors.getElementByText(this._device, "See all");
-
   }
 
   getNetworkButton(networkName) {

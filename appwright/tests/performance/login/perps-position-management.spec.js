@@ -42,11 +42,11 @@ async function screensSetup(device) {
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
 test.describe(PerformancePreps, () => {
-  test('Perps open position and close it', async ({
-    device,
-    performanceTracker,
-  }, testInfo) => {
-    test.setTimeout(10 * 60 * 1000); // 10 minutes
+  test(
+    'Perps open position and close it',
+    { tag: '@mm-perps-engineering-team' },
+    async ({ device, performanceTracker }, testInfo) => {
+      test.setTimeout(10 * 60 * 1000); // 10 minutes
 
     const selectPerpsMainScreenTimer = new TimerHelper(
       'Perps tutorial screen visible',
@@ -79,8 +79,8 @@ test.describe(PerformancePreps, () => {
     await screensSetup(device);
     await login(device);
 
-    // Perps requires independent account for each device to avoid clashes when running tests in parallel
-    await selectAccountDevice(device, testInfo);
+      // Perps requires independent account for each device to avoid clashes when running tests in parallel
+      await selectAccountDevice(device, testInfo);
 
     await TabBarModal.tapActionButton();
     await WalletActionModal.tapPerpsButton();
