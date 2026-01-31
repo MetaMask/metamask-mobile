@@ -245,7 +245,9 @@ class TestSnaps {
       TestSnapViewSelectorWebIDS[buttonLocator],
     );
     await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tapWebElement(webElement);
+    await Gestures.tap(webElement, {
+      elemDescription: `tapButton:: ${buttonLocator}`,
+    });
   }
 
   async tapOkButton() {
