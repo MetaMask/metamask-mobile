@@ -3,8 +3,10 @@ import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 
 import TronStakePreview from './TronStakePreview';
-import { TRON_RESOURCE } from '../../../../../../core/Multichain/constants';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
+import {
+  selectTronResourcesBySelectedAccountGroup,
+  TronResourcesMap,
+} from '../../../../../../selectors/assets/assets-list';
 import type { ComputeFeeResult } from '../../../utils/tron-staking-snap';
 
 jest.mock('react-redux', () => ({
@@ -38,22 +40,24 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 const mockUseSelector = useSelector as jest.Mock;
 
+const createMockResourcesMap = (totalStakedTrx: number): TronResourcesMap => ({
+  energy: undefined,
+  bandwidth: undefined,
+  maxEnergy: undefined,
+  maxBandwidth: undefined,
+  stakedTrxForEnergy: undefined,
+  stakedTrxForBandwidth: undefined,
+  totalStakedTrx,
+});
+
 describe('TronStakePreview', () => {
   beforeEach(() => {
-    const mockResources = [
-      {
-        symbol: TRON_RESOURCE.STRX_ENERGY,
-        balance: '10',
-      },
-      {
-        symbol: TRON_RESOURCE.STRX_BANDWIDTH,
-        balance: '5',
-      },
-    ];
+    // Default: 10 + 5 = 15 TRX staked
+    const mockResourcesMap = createMockResourcesMap(15);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTronResourcesBySelectedAccountGroup) {
-        return mockResources;
+        return mockResourcesMap;
       }
       return undefined;
     });
@@ -68,6 +72,40 @@ describe('TronStakePreview', () => {
 
     expect(getByText('Est. annual reward')).toBeOnTheScreen();
     expect(getByText(/0[,.]670 TRX/)).toBeOnTheScreen();
+  });
+
+  it('calculates annual reward from floating-point balances without precision errors', () => {
+    // This test verifies BigNumber is used for calculations.
+    // totalStakedTrx is now pre-computed in the selector using BigNumber,
+    // so floating-point errors like 65.48463 + 65.48463 = 130.96926000000002 are avoided.
+    const mockResourcesMap = createMockResourcesMap(130.96926);
+
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTronResourcesBySelectedAccountGroup) {
+        return mockResourcesMap;
+      }
+      return undefined;
+    });
+
+    // Stake amount of 10, total staked is 130.96926 + 10 = 140.96926
+    // Annual reward = 140.96926 * 0.0335 = 4.722 (rounded to 3 decimals)
+    const { getByText } = render(<TronStakePreview stakeAmount="10" />);
+
+    expect(getByText('Est. annual reward')).toBeOnTheScreen();
+    expect(getByText(/4[,.]722 TRX/)).toBeOnTheScreen();
+  });
+
+  it('displays existing staked balance reward when stakeAmount is empty string', () => {
+    // When user clears input, stakeAmount becomes ''.
+    // new BigNumber('') returns NaN, which must not propagate to the UI.
+    // With existing staked balance (15 TRX), reward = 15 * 0.0335 = 0.503 TRX
+    const { getByText, queryByText } = render(
+      <TronStakePreview stakeAmount="" />,
+    );
+
+    expect(getByText('Est. annual reward')).toBeOnTheScreen();
+    expect(getByText(/0[,.]503 TRX/)).toBeOnTheScreen();
+    expect(queryByText(/NaN/)).toBeNull();
   });
 
   it('shows release information without annual reward when mode is unstake', () => {
