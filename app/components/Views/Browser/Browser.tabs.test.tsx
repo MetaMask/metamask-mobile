@@ -363,8 +363,13 @@ describe('Browser - Tab Operations', () => {
         }
       });
 
-      // closeTabsView should call navigation.goBack when tabs.length === 0
-      expect(mockNavigation.goBack).toHaveBeenCalled();
+      // closeTabsView should navigate to Explore when tabs.length === 0
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        {
+          screen: Routes.TRENDING_FEED,
+        },
+      );
     });
 
     it('hides tabs view when closing tabs view with tabs remaining', () => {
