@@ -18,10 +18,7 @@ import PredictPositions, {
 } from '../../components/PredictPositions/PredictPositions';
 import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
 import PredictOffline from '../../components/PredictOffline';
-import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
-import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
 import { PredictTabViewSelectorsIDs } from '../../Predict.testIds';
-import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 import { TraceName } from '../../../../../util/trace';
@@ -45,10 +42,6 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
     const isHomepageRedesignV1Enabled = useSelector(
       selectHomepageRedesignV1Enabled,
     );
-
-    usePredictDepositToasts();
-    usePredictClaimToasts();
-    usePredictWithdrawToasts();
 
     const hasError = Boolean(positionsError || headerError);
 

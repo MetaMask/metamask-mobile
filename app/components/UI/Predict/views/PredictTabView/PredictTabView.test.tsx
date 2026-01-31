@@ -12,18 +12,6 @@ import { PredictTabViewSelectorsIDs } from '../../Predict.testIds';
  */
 
 // Mock custom Predict hooks
-jest.mock('../../hooks/usePredictDepositToasts', () => ({
-  usePredictDepositToasts: jest.fn(),
-}));
-
-jest.mock('../../hooks/usePredictClaimToasts', () => ({
-  usePredictClaimToasts: jest.fn(),
-}));
-
-jest.mock('../../hooks/usePredictWithdrawToasts', () => ({
-  usePredictWithdrawToasts: jest.fn(),
-}));
-
 jest.mock('../../hooks/usePredictMeasurement', () => ({
   usePredictMeasurement: jest.fn(),
 }));

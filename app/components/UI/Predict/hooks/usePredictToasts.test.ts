@@ -8,6 +8,10 @@ import {
 import { usePredictToasts } from './usePredictToasts';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast';
+import {
+  usePredictContextSafe,
+  PredictTransactionEvent,
+} from '../context/PredictProvider';
 
 // Mock @react-navigation/native
 jest.mock('@react-navigation/native', () => ({
@@ -60,6 +64,16 @@ jest.mock('../../../../core/Engine', () => ({
     unsubscribe: jest.fn(),
   },
 }));
+
+// Mock PredictContextSafe
+jest.mock('../context/PredictProvider', () => ({
+  usePredictContextSafe: jest.fn(),
+  PredictTransactionEvent: {},
+}));
+
+const mockUsePredictContextSafe = usePredictContextSafe as jest.MockedFunction<
+  typeof usePredictContextSafe
+>;
 
 describe('usePredictToasts', () => {
   let mockSubscribeCallback:
@@ -731,10 +745,8 @@ describe('usePredictToasts', () => {
 
   describe('toast styling', () => {
     it('includes spinner accessory for pending toast', async () => {
-      // Arrange
       renderHook(() => usePredictToasts(defaultConfig), { wrapper });
 
-      // Act
       await act(async () => {
         mockSubscribeCallback?.({
           transactionMeta: {
@@ -744,7 +756,6 @@ describe('usePredictToasts', () => {
         });
       });
 
-      // Assert
       await waitFor(() => {
         const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
         expect(toastCall.startAccessory).toBeDefined();
@@ -752,10 +763,8 @@ describe('usePredictToasts', () => {
     });
 
     it('uses success icon color for confirmed toast', async () => {
-      // Arrange
       renderHook(() => usePredictToasts(defaultConfig), { wrapper });
 
-      // Act
       await act(async () => {
         mockSubscribeCallback?.({
           transactionMeta: {
@@ -765,18 +774,15 @@ describe('usePredictToasts', () => {
         });
       });
 
-      // Assert
       await waitFor(() => {
         const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
-        expect(toastCall.iconColor).toBe('#013330'); // accent03.dark
+        expect(toastCall.iconColor).toBe('#013330');
       });
     });
 
     it('uses error icon color for failed toast', async () => {
-      // Arrange
       renderHook(() => usePredictToasts(defaultConfig), { wrapper });
 
-      // Act
       await act(async () => {
         mockSubscribeCallback?.({
           transactionMeta: {
@@ -786,10 +792,228 @@ describe('usePredictToasts', () => {
         });
       });
 
-      // Assert
       await waitFor(() => {
         const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
-        expect(toastCall.iconColor).toBe('#ca3542'); // error.default
+        expect(toastCall.iconColor).toBe('#ca3542');
+      });
+    });
+  });
+
+  describe('rejected transaction status', () => {
+    it('clears transaction when transaction is rejected', async () => {
+      renderHook(() => usePredictToasts(defaultConfig), { wrapper });
+
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.rejected,
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          } as TransactionMeta,
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockClearTransaction).toHaveBeenCalled();
+      });
+    });
+
+    it('does not show toast when transaction is rejected', async () => {
+      renderHook(() => usePredictToasts(defaultConfig), { wrapper });
+
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.rejected,
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          } as TransactionMeta,
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('batch ID filtering', () => {
+    it('processes transactions matching the batch ID', async () => {
+      const configWithBatchId = {
+        ...defaultConfig,
+        transactionBatchId: 'batch-123',
+      };
+      renderHook(() => usePredictToasts(configWithBatchId), { wrapper });
+
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.confirmed,
+            batchId: 'batch-123',
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          } as unknown as TransactionMeta,
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalled();
+      });
+    });
+
+    it('ignores transactions not matching the batch ID', async () => {
+      const configWithBatchId = {
+        ...defaultConfig,
+        transactionBatchId: 'batch-123',
+      };
+      renderHook(() => usePredictToasts(configWithBatchId), { wrapper });
+
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.confirmed,
+            batchId: 'different-batch',
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          } as unknown as TransactionMeta,
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('context subscription', () => {
+    let mockDepositSubscriber: jest.Mock;
+    let mockClaimSubscriber: jest.Mock;
+    let mockWithdrawSubscriber: jest.Mock;
+
+    beforeEach(() => {
+      mockDepositSubscriber = jest.fn(() => jest.fn());
+      mockClaimSubscriber = jest.fn(() => jest.fn());
+      mockWithdrawSubscriber = jest.fn(() => jest.fn());
+    });
+
+    it('uses context subscription for deposit when context is available', () => {
+      mockUsePredictContextSafe.mockReturnValue({
+        subscribeToDepositEvents: mockDepositSubscriber,
+        subscribeToClaimEvents: mockClaimSubscriber,
+        subscribeToWithdrawEvents: mockWithdrawSubscriber,
+      });
+
+      renderHook(() => usePredictToasts(defaultConfig), { wrapper });
+
+      expect(mockDepositSubscriber).toHaveBeenCalled();
+      expect(Engine.controllerMessenger.subscribe).not.toHaveBeenCalled();
+    });
+
+    it('uses context subscription for claim when context is available', () => {
+      mockUsePredictContextSafe.mockReturnValue({
+        subscribeToDepositEvents: mockDepositSubscriber,
+        subscribeToClaimEvents: mockClaimSubscriber,
+        subscribeToWithdrawEvents: mockWithdrawSubscriber,
+      });
+
+      const claimConfig = {
+        ...defaultConfig,
+        transactionType: TransactionType.predictClaim,
+      };
+      renderHook(() => usePredictToasts(claimConfig), { wrapper });
+
+      expect(mockClaimSubscriber).toHaveBeenCalled();
+    });
+
+    it('uses context subscription for withdraw when context is available', () => {
+      mockUsePredictContextSafe.mockReturnValue({
+        subscribeToDepositEvents: mockDepositSubscriber,
+        subscribeToClaimEvents: mockClaimSubscriber,
+        subscribeToWithdrawEvents: mockWithdrawSubscriber,
+      });
+
+      const withdrawConfig = {
+        ...defaultConfig,
+        transactionType: TransactionType.predictWithdraw,
+      };
+      renderHook(() => usePredictToasts(withdrawConfig), { wrapper });
+
+      expect(mockWithdrawSubscriber).toHaveBeenCalled();
+    });
+
+    it('falls back to direct subscription for unsupported transaction types', () => {
+      mockUsePredictContextSafe.mockReturnValue({
+        subscribeToDepositEvents: mockDepositSubscriber,
+        subscribeToClaimEvents: mockClaimSubscriber,
+        subscribeToWithdrawEvents: mockWithdrawSubscriber,
+      });
+
+      const unsupportedConfig = {
+        ...defaultConfig,
+        transactionType: TransactionType.swap,
+      };
+      renderHook(() => usePredictToasts(unsupportedConfig), { wrapper });
+
+      expect(Engine.controllerMessenger.subscribe).toHaveBeenCalled();
+    });
+
+    it('falls back to direct subscription when context is null', () => {
+      mockUsePredictContextSafe.mockReturnValue(null);
+
+      renderHook(() => usePredictToasts(defaultConfig), { wrapper });
+
+      expect(Engine.controllerMessenger.subscribe).toHaveBeenCalled();
+    });
+
+    it('processes events from context subscription', async () => {
+      let contextCallback: ((event: PredictTransactionEvent) => void) | null =
+        null;
+      mockUsePredictContextSafe.mockReturnValue({
+        subscribeToDepositEvents: jest.fn((cb) => {
+          contextCallback = cb;
+          return jest.fn();
+        }),
+        subscribeToClaimEvents: mockClaimSubscriber,
+        subscribeToWithdrawEvents: mockWithdrawSubscriber,
+      });
+
+      renderHook(() => usePredictToasts(defaultConfig), { wrapper });
+
+      await act(async () => {
+        contextCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          } as TransactionMeta,
+          status: TransactionStatus.confirmed,
+          type: 'deposit',
+          timestamp: Date.now(),
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('no pending toast config', () => {
+    it('does not show pending toast when pendingToastConfig is not provided', async () => {
+      const configWithoutPending = {
+        transactionType: TransactionType.predictDeposit,
+        confirmedToastConfig: defaultConfig.confirmedToastConfig,
+        errorToastConfig: defaultConfig.errorToastConfig,
+        clearTransaction: mockClearTransaction,
+      };
+      renderHook(() => usePredictToasts(configWithoutPending), { wrapper });
+
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.approved,
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          } as TransactionMeta,
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
       });
     });
   });

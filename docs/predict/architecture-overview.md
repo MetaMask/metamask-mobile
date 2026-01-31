@@ -145,38 +145,34 @@ Files using `StyleSheet.create()` instead of Tailwind:
 3. `polymarket/utils.ts:662` - "remove this temporary fix for Super Bowl LX"
 4. `PredictPositions.tsx:123` - "Sort positions in controller"
 
-#### 5. Toast Event Subscription Issues (Critical)
+#### 5. Toast Event Subscription Issues ✅ RESOLVED
 
-**Problem**: Toast hooks (`usePredictDepositToasts`, `usePredictClaimToasts`, `usePredictWithdrawToasts`) are mounted only in `PredictTabView`. When the user navigates away from the Predict tab, these hooks unmount and unsubscribe from `TransactionController:transactionStatusUpdated` events.
+**Problem**: Toast hooks (`usePredictDepositToasts`, `usePredictClaimToasts`, `usePredictWithdrawToasts`) were mounted only in `PredictTabView`. When the user navigated away from the Predict tab, these hooks unmounted and unsubscribed from `TransactionController:transactionStatusUpdated` events.
 
-**Impact**: If a transaction completes while the user is on a different tab, the toast notification is never shown.
+**Solution Implemented**: Created `PredictProvider` mounted at app-level in `Root/index.tsx` that:
 
-**Current Mounting Location**:
+- Subscribes to `TransactionController:transactionStatusUpdated` events globally
+- Routes events to type-specific subscribers (deposit/claim/withdraw)
+- Includes `PredictTransactionToastHandler` that displays toasts and manages pending states
+- Feature-flag gated via `PredictProviderGated`
+
+**Old hooks removed**:
+
+- ~~`usePredictDepositToasts`~~ (deleted)
+- ~~`usePredictClaimToasts`~~ (deleted)
+- ~~`usePredictWithdrawToasts`~~ (deleted)
+
+**New architecture**:
 
 ```typescript
-// PredictTabView.tsx (lines 39-41)
-const PredictTabView = () => {
-  usePredictDepositToasts(); // Mounted here only
-  usePredictClaimToasts(); // Unmounts when tab switches
-  usePredictWithdrawToasts(); // Events are missed
-  // ...
-};
-```
-
-**Subscription Pattern**:
-
-```typescript
-// usePredictToasts.tsx (lines 202-255)
-useEffect(() => {
-  Engine.controllerMessenger.subscribe(
-    'TransactionController:transactionStatusUpdated',
-    handleTransactionStatusUpdate,
-  );
-  return () => {
-    // Cleanup runs when component unmounts (tab switch)
-    Engine.controllerMessenger.unsubscribe(...);
-  };
-}, [...]);
+// app/components/Views/Root/index.tsx
+<ToastContextWrapper>
+  <PredictProviderGated>  {/* Handles all toast notifications */}
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  </PredictProviderGated>
+</ToastContextWrapper>
 ```
 
 #### 6. No Centralized Data Fetching Layer
@@ -239,9 +235,9 @@ useEffect(() => {
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### New: App-Level Provider Hierarchy
+### App-Level Provider Hierarchy
 
-The Predict feature will introduce providers that mount at the app level to solve event subscription and data caching issues:
+The Predict feature uses providers mounted at the app level to solve event subscription and data caching issues:
 
 ```
 Root (app/components/Views/Root/index.tsx)
@@ -252,28 +248,32 @@ Root (app/components/Views/Root/index.tsx)
                 └── NavigationProvider
                     └── ControllersGate
                         └── ToastContextWrapper
-                            └── ErrorBoundary
-                                └── App
-                                    └── PredictProvider (NEW - global subscriptions)
-                                        └── PredictQueryProvider (NEW - data cache)
+                            └── PredictProviderGated (✅ IMPLEMENTED)
+                                └── ErrorBoundary
+                                    └── App
+                                        └── PredictQueryProvider (PLANNED - data cache)
                                             └── AppFlow
 ```
 
 **Why App-Level?**
 
-- **PredictProvider**: Must persist across all navigation to catch transaction events
+- **PredictProvider** ✅: Persists across all navigation to catch transaction events
 - **PredictQueryProvider**: Cache should survive tab switches for instant data on return
 
 ### Target Directory Structure
 
 ```
 app/components/UI/Predict/
-├── context/                       # NEW: App-level providers
-│   ├── PredictProvider/           # Global event subscriptions
+├── context/                       # App-level providers
+│   ├── PredictProvider/           # ✅ IMPLEMENTED - Global event subscriptions
 │   │   ├── PredictProvider.tsx
+│   │   ├── PredictProvider.types.ts
+│   │   ├── PredictProviderGated.tsx
+│   │   ├── PredictTransactionToastHandler.tsx
+│   │   ├── usePredictContext.ts
 │   │   ├── PredictProvider.test.tsx
 │   │   └── index.ts
-│   ├── PredictQueryProvider/      # Data fetching cache layer
+│   ├── PredictQueryProvider/      # PLANNED - Data fetching cache layer
 │   │   ├── PredictQueryProvider.tsx
 │   │   ├── PredictQueryClient.ts  # Cache management
 │   │   ├── usePredictQuery.ts     # Main hook
@@ -309,16 +309,16 @@ app/components/UI/Predict/
 
 ### Target Metrics
 
-| Metric                   | Current          | Target                                    |
-| ------------------------ | ---------------- | ----------------------------------------- |
-| PredictMarketDetails.tsx | 1,391 lines      | <500 lines                                |
-| PredictFeed.tsx          | 738 lines        | <400 lines                                |
-| PredictController.ts     | 2,401 lines      | <2,000 lines                              |
-| StyleSheet files         | 10               | 0                                         |
-| Duplicate chart types    | 2                | 1 (unified)                               |
-| Toast hooks              | 4 separate       | 1 unified                                 |
-| App-level providers      | 0                | 2 (PredictProvider, PredictQueryProvider) |
-| Data fetching hooks      | 12+ inconsistent | All using usePredictQuery                 |
+| Metric                   | Current          | Target                                     | Status |
+| ------------------------ | ---------------- | ------------------------------------------ | ------ |
+| PredictMarketDetails.tsx | 1,391 lines      | <500 lines                                 | ⬜     |
+| PredictFeed.tsx          | 738 lines        | <400 lines                                 | ⬜     |
+| PredictController.ts     | 2,401 lines      | <2,000 lines                               | ⬜     |
+| StyleSheet files         | 10               | 0                                          | ⬜     |
+| Duplicate chart types    | 2                | 1 (unified)                                | ⬜     |
+| Toast hooks              | ~~4 separate~~   | 1 unified (PredictTransactionToastHandler) | ✅     |
+| App-level providers      | ~~0~~            | 2 (PredictProvider, PredictQueryProvider)  | 1/2 ✅ |
+| Data fetching hooks      | 12+ inconsistent | All using usePredictQuery                  | ⬜     |
 
 ---
 
@@ -523,14 +523,14 @@ selectPredictPendingWithdraw(); // Pending withdraw
 
 ### Hook Categories
 
-| Category            | Count | Purpose                                        |
-| ------------------- | ----- | ---------------------------------------------- |
-| Trading Operations  | 6     | Order placement, claims, deposits, withdrawals |
-| Data Fetching       | 8     | Markets, positions, prices, history            |
-| Real-time Updates   | 3     | WebSocket-based live data                      |
-| UI State            | 8     | Bottom sheets, scroll, measurements            |
-| Toast Notifications | 5 → 1 | Transaction feedback (to be consolidated)      |
-| Utility             | 2     | Optimistic updates, debounce                   |
+| Category            | Count     | Purpose                                             |
+| ------------------- | --------- | --------------------------------------------------- |
+| Trading Operations  | 6         | Order placement, claims, deposits, withdrawals      |
+| Data Fetching       | 8         | Markets, positions, prices, history                 |
+| Real-time Updates   | 3         | WebSocket-based live data                           |
+| UI State            | 8         | Bottom sheets, scroll, measurements                 |
+| Toast Notifications | ~~5~~ → 1 | ✅ Consolidated into PredictTransactionToastHandler |
+| Utility             | 2         | Optimistic updates, debounce                        |
 
 ### Hook Naming Convention
 
@@ -684,60 +684,50 @@ views/PredictMarketDetails/
 - Benefits from design system tokens
 - Better dark/light mode support
 
-### Decision 6: App-Level PredictProvider for Global Event Subscriptions
+### Decision 6: App-Level PredictProvider for Global Event Subscriptions ✅ IMPLEMENTED
 
-**Decision**: Create a `PredictProvider` component mounted at the app level (in `App.tsx`) that handles all transaction event subscriptions.
+**Decision**: Create a `PredictProvider` component mounted at the app level (in `Root/index.tsx`) that handles all transaction event subscriptions.
 
-**Problem Being Solved**: Toast hooks currently mount in `PredictTabView` and unsubscribe when the user navigates away, causing missed transaction events.
+**Problem Solved**: Toast hooks were mounted only in `PredictTabView` and unsubscribed when the user navigated away, causing missed transaction events.
 
-**Rationale**:
+**Implementation**:
 
-- Event subscriptions persist across all navigation
-- No missed transaction events regardless of current screen
-- Centralized event handling logic
-- Cleaner separation between event handling and UI
-
-**Implementation Approach**:
-
-```typescript
-// context/PredictProvider/PredictProvider.tsx
-const PredictProvider = ({ children }) => {
-  // Subscribe to TransactionController events ONCE at app level
-  useEffect(() => {
-    const handleTransactionUpdate = ({ transactionMeta }) => {
-      // Check if this is a Predict transaction
-      if (isPredictTransaction(transactionMeta)) {
-        // Queue the event for consumption by any interested hooks
-        eventQueue.push(transactionMeta);
-        notifySubscribers();
-      }
-    };
-
-    Engine.controllerMessenger.subscribe(
-      'TransactionController:transactionStatusUpdated',
-      handleTransactionUpdate,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(...);
-    };
-  }, []);
-
-  return (
-    <PredictContext.Provider value={{ /* event queue, subscribe method */ }}>
-      {children}
-    </PredictContext.Provider>
-  );
-};
+```
+app/components/UI/Predict/context/PredictProvider/
+├── PredictProvider.tsx              # Context provider with event subscriptions
+├── PredictProvider.types.ts         # TypeScript types
+├── PredictProviderGated.tsx         # Feature-flag gated wrapper
+├── PredictTransactionToastHandler.tsx # Handles toast display + state clearing
+├── usePredictContext.ts             # Consumer hooks
+├── PredictProvider.test.tsx         # 17 unit tests
+└── index.ts                         # Exports
 ```
 
-**Migration Path**:
+**Key Components**:
 
-1. Create PredictProvider with event queue
-2. Create `usePredictTransactionEvents` hook to consume events
-3. Refactor existing toast hooks to use the new hook
-4. Mount PredictProvider in App.tsx
-5. Remove direct subscriptions from toast hooks
+1. **PredictProvider**: Subscribes to `TransactionController:transactionStatusUpdated` and routes events to type-specific subscribers
+2. **PredictTransactionToastHandler**: Renders inside provider, displays toasts and calls controller methods to clear pending states
+3. **PredictProviderGated**: Wraps provider with feature flag check (`selectPredictEnabledFlag`)
+
+**Mounting Location**:
+
+```typescript
+// app/components/Views/Root/index.tsx
+<ToastContextWrapper>
+  <PredictProviderGated>
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  </PredictProviderGated>
+</ToastContextWrapper>
+```
+
+**Old hooks removed** (net -721 lines):
+
+- ~~`usePredictDepositToasts.tsx`~~ + test
+- ~~`usePredictClaimToasts.tsx`~~ + test
+- ~~`usePredictWithdrawToasts.ts`~~ + test
+- Hook calls removed from `PredictTabView.tsx`
 
 ### Decision 7: PredictQueryProvider - Lightweight React Query Alternative
 

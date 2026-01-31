@@ -89,38 +89,36 @@ These tasks are prerequisites for other work and have the highest impact on main
 
 ### Task 4: Create PredictProvider (App-Level Event Subscriptions)
 
-**Status**: ⬜ Pending
+**Status**: ✅ Completed
 
-- **Files**:
+- **Files Created**:
   - `app/components/UI/Predict/context/PredictProvider/PredictProvider.tsx`
-  - `app/components/UI/Predict/context/PredictProvider/usePredictTransactionEvents.ts`
-  - `app/components/Nav/App/App.tsx` (mount provider)
+  - `app/components/UI/Predict/context/PredictProvider/PredictProvider.types.ts`
+  - `app/components/UI/Predict/context/PredictProvider/PredictProviderGated.tsx`
+  - `app/components/UI/Predict/context/PredictProvider/PredictTransactionToastHandler.tsx`
+  - `app/components/UI/Predict/context/PredictProvider/usePredictContext.ts`
+  - `app/components/UI/Predict/context/PredictProvider/PredictProvider.test.tsx`
+  - `app/components/UI/Predict/context/PredictProvider/index.ts`
+  - `app/components/UI/Predict/context/index.ts`
+- **Files Modified**:
+  - `app/components/Views/Root/index.tsx` (mount provider)
+  - `app/components/UI/Predict/hooks/usePredictToasts.tsx` (use context subscription)
 - **Effort**: L (4-6 hours)
-- **Description**: Create app-level provider to handle TransactionController event subscriptions globally, fixing the issue where toast hooks miss events when user navigates away from Predict tab.
+- **Description**: Created app-level provider to handle TransactionController event subscriptions globally, fixing the issue where toast hooks miss events when user navigates away from Predict tab.
 
-**Problem Being Solved**:
+**Implementation Completed**:
 
-Currently, toast hooks (`usePredictDepositToasts`, etc.) are mounted only in `PredictTabView`. When the user switches tabs, these hooks unmount and unsubscribe from events, causing missed transaction notifications.
+1. ✅ Created `PredictProvider` with event subscription to `TransactionController:transactionStatusUpdated`
+2. ✅ Created subscription manager pattern for type-specific event routing (deposit/claim/withdraw)
+3. ✅ Created `PredictTransactionToastHandler` component that displays toasts and manages state
+4. ✅ Created `PredictProviderGated` with feature flag check
+5. ✅ Mounted in `Root/index.tsx` inside `ToastContextWrapper`
+6. ✅ Refactored `usePredictToasts` to use context subscription with fallback
 
-**Implementation**:
+**Commits**:
 
-1. Create `PredictProvider` with event subscription to `TransactionController:transactionStatusUpdated`
-2. Create event queue for Predict transaction events
-3. Create `usePredictTransactionEvents` hook to consume events
-4. Mount `PredictProvider` in `App.tsx` (after `ToastContextWrapper`)
-5. Refactor existing toast hooks to use `usePredictTransactionEvents`
-
-**Verification**:
-
-```bash
-# Verify provider mounted in App.tsx
-grep -n "PredictProvider" app/components/Nav/App/App.tsx
-
-# Run tests
-yarn jest app/components/UI/Predict/context/PredictProvider/
-```
-
-- **Commit**: `feat(predict): add PredictProvider for global event subscriptions`
+- `feat(predict): add PredictProvider for app-level transaction event handling`
+- `refactor(predict): remove redundant toast hooks now handled by PredictProvider`
 
 ---
 
@@ -293,27 +291,20 @@ yarn lint:tsc
 
 ### Task 11: Consolidate Toast Hooks
 
-**Status**: ⬜ Pending
+**Status**: ✅ Completed (via Task 4)
 
-- **Files**:
-  - `app/components/UI/Predict/hooks/usePredictToasts.tsx`
-  - `app/components/UI/Predict/hooks/usePredictDepositToasts.tsx`
-  - `app/components/UI/Predict/hooks/usePredictClaimToasts.tsx`
-  - `app/components/UI/Predict/hooks/usePredictWithdrawToasts.ts`
-- **Effort**: M (2-3 hours)
-- **Current State**: 4 separate hooks with duplicated logic
-- **Target State**: 1 unified hook with backward-compatible exports
-- **Actions**:
-  - [ ] Create `usePredictToast(type: 'deposit' | 'claim' | 'withdraw' | 'order')`
-  - [ ] Re-export old hooks as aliases for backward compatibility
-- **Verification**:
-  ```bash
-  yarn jest app/components/UI/Predict/hooks/usePredictToasts
-  yarn jest app/components/UI/Predict/hooks/usePredictDepositToasts
-  yarn jest app/components/UI/Predict/hooks/usePredictClaimToasts
-  yarn jest app/components/UI/Predict/hooks/usePredictWithdrawToasts
-  ```
-- **Commit**: `refactor(predict): consolidate toast hooks into unified usePredictToast`
+- **Files Deleted** (redundant after PredictProvider):
+  - ~~`app/components/UI/Predict/hooks/usePredictDepositToasts.tsx`~~ + test
+  - ~~`app/components/UI/Predict/hooks/usePredictClaimToasts.tsx`~~ + test
+  - ~~`app/components/UI/Predict/hooks/usePredictWithdrawToasts.ts`~~ + test
+- **Files Modified**:
+  - `app/components/UI/Predict/views/PredictTabView/PredictTabView.tsx` (removed hook calls)
+  - `app/components/UI/Predict/views/PredictTabView/PredictTabView.test.tsx` (removed mocks)
+- **Effort**: Completed as part of Task 4
+- **Resolution**: Instead of consolidating into one hook, toast handling was moved entirely to `PredictTransactionToastHandler` inside `PredictProvider`. The old hooks were deleted (~1,746 lines removed).
+- **Remaining**: `usePredictToasts.tsx` kept as generic utility hook for components needing custom toast behavior (e.g., specific batch tracking)
+- **Commits**:
+  - `refactor(predict): remove redundant toast hooks now handled by PredictProvider`
 
 ---
 
@@ -528,12 +519,13 @@ Tasks are organized into waves that can be executed in parallel within each wave
 │ Task 1: Architecture Overview Doc       ✅ Completed        │
 │ Task 2: Refactoring Tasks Doc           ✅ Completed        │
 │ Task 3: Implementation Guide Doc        ✅ Completed        │
-│ Task 4: Create PredictProvider          ⬜ Pending (P0)     │
+│ Task 4: Create PredictProvider          ✅ Completed        │
 │ Task 5: Create PredictQueryProvider     ⬜ Pending (P0)     │
 │ Task 6: Remove Super Bowl Fix           ⬜ Pending          │
 │ Task 7: Fix Navigation TODO             ⬜ Pending          │
 └─────────────────────────────────────────────────────────────┘
-Tasks 4-5 are the new architectural foundations.
+Task 4 complete - PredictProvider handles global event subscriptions.
+Task 5 is next architectural foundation.
 Tasks 6-7 are quick cleanup wins.
 ```
 
@@ -544,10 +536,10 @@ Tasks 6-7 are quick cleanup wins.
 │ Task 8: Decompose PredictMarketDetails  ⬜ Pending          │
 │ Task 9: Decompose PredictFeed           ⬜ Pending          │
 │ Task 10: Extract Controller Error Handling ⬜ Pending       │
-│ Task 11: Consolidate Toast Hooks        ⬜ Pending          │
+│ Task 11: Consolidate Toast Hooks        ✅ Completed        │
 └─────────────────────────────────────────────────────────────┘
-All tasks in Wave 2 can run in parallel.
-Task 11 benefits from Task 4 (PredictProvider) being complete.
+Task 11 completed as part of Task 4 (PredictProvider).
+Remaining tasks can run in parallel.
 ```
 
 ### Wave 3: P1 Styling & Types (After Wave 2)
@@ -582,12 +574,12 @@ All tasks can run in parallel.
 ### Overall Progress
 
 ```
-Wave 1: ██████████░░░░░░░░░░  43% (3/7 tasks)
-Wave 2: ░░░░░░░░░░░░░░░░░░░░   0% (0/4 tasks)
+Wave 1: ████████████░░░░░░░░  57% (4/7 tasks)
+Wave 2: █████░░░░░░░░░░░░░░░  25% (1/4 tasks)
 Wave 3: ░░░░░░░░░░░░░░░░░░░░   0% (0/13 tasks)
 Wave 4: ░░░░░░░░░░░░░░░░░░░░   0% (0/4 tasks)
 ────────────────────────────────────────────
-Total:  ████░░░░░░░░░░░░░░░░  11% (3/28 tasks)
+Total:  ██████░░░░░░░░░░░░░░  18% (5/28 tasks)
 ```
 
 ### Task Checklist
