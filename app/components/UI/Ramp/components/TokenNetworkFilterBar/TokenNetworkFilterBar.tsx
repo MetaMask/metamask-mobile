@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, memo } from 'react';
 import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -109,4 +109,4 @@ function TokenNetworkFilterBar({
   );
 }
 
-export default TokenNetworkFilterBar;
+export default memo(TokenNetworkFilterBar);
