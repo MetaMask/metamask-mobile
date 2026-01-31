@@ -1,16 +1,16 @@
-import ImportSrpView from '../../pages/importSrp/ImportSrpView';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../../tests/framework/Assertions.ts';
-import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
-import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
-import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
-import { RevealSeedViewSelectorsText } from '../../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import SettingsView from '../../pages/Settings/SettingsView';
-import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails.ts';
+import ImportSrpView from '../../e2e/pages/importSrp/ImportSrpView.ts';
+import AccountListBottomSheet from '../../e2e/pages/wallet/AccountListBottomSheet.ts';
+import AddAccountBottomSheet from '../../e2e/pages/wallet/AddAccountBottomSheet.ts';
+import WalletView from '../../e2e/pages/wallet/WalletView.ts';
+import Assertions from '../framework/Assertions.ts';
+import SRPListItemComponent from '../../e2e/pages/wallet/MultiSrp/Common/SRPListItemComponent.ts';
+import SrpQuizModal from '../../e2e/pages/Settings/SecurityAndPrivacy/SrpQuizModal.ts';
+import RevealSecretRecoveryPhrase from '../../e2e/pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.ts';
+import { RevealSeedViewSelectorsText } from '../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds.ts';
+import TabBarComponent from '../../e2e/pages/wallet/TabBarComponent.ts';
+import SettingsView from '../../e2e/pages/Settings/SettingsView.ts';
+import SecurityAndPrivacyView from '../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.ts';
+import AccountDetails from '../../e2e/pages/MultichainAccounts/AccountDetails.ts';
 
 const PASSWORD = '123123123';
 

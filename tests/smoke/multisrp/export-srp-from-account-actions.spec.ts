@@ -1,11 +1,14 @@
-import { SmokeWalletPlatform } from '../../tags';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../viewHelper';
-import { goToAccountActions, completeSrpQuiz } from './utils';
-import { defaultOptions } from '../../../tests/seeder/anvil-manager';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { SmokeWalletPlatform } from '../../../e2e/tags';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import { loginToApp } from '../../../e2e/viewHelper.ts';
+import {
+  goToAccountActions,
+  completeSrpQuiz,
+} from '../../flows/accounts.flow.ts';
+import { defaultOptions } from '../../seeder/anvil-manager.ts';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks.ts';
 
 const FIRST_DEFAULT_HD_KEYRING_ACCOUNT = 0;
 const FIRST_IMPORTED_HD_KEYRING_ACCOUNT = 2;

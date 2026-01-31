@@ -1,17 +1,17 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import { SmokeTrade } from '../../tags';
-import Assertions from '../../../tests/framework/Assertions';
-import StakeView from '../../pages/Stake/StakeView';
-import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import { LocalNode, LocalNodeType } from '../../framework/types.ts';
+import { loginToApp } from '../../../e2e/viewHelper.ts';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView.ts';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
+import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal.ts';
+import { SmokeTrade } from '../../../e2e/tags';
+import Assertions from '../../framework/Assertions.ts';
+import StakeView from '../../../e2e/pages/Stake/StakeView.ts';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils.ts';
+import { AnvilManager } from '../../seeder/anvil-manager.ts';
 
 describe(SmokeTrade('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;

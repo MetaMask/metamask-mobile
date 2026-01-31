@@ -1,13 +1,13 @@
-import WalletView from '../../pages/wallet/WalletView';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import TestHelpers from '../../helpers';
-import Assertions from '../../../tests/framework/Assertions';
-import NftDetectionModal from '../../pages/wallet/NftDetectionModal';
-import { RegressionAssets } from '../../tags';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { loginToApp } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import TestHelpers from '../../../e2e/helpers';
+import Assertions from '../../framework/Assertions';
+import NftDetectionModal from '../../../e2e/pages/wallet/NftDetectionModal';
+import { RegressionAssets } from '../../../e2e/tags';
 
-import { NftDetectionModalSelectorsText } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds';
+import { NftDetectionModalSelectorsText } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds.ts';
 
 describe.skip(RegressionAssets('NFT Detection Modal'), () => {
   beforeAll(async () => {

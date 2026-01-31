@@ -1,22 +1,19 @@
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletView from '../../pages/wallet/WalletView';
-import FundActionMenu from '../../pages/UI/FundActionMenu';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { Assertions } from '../../../tests/framework';
-import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import { RegressionTrade } from '../../tags';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { LocalNodeType } from '../../../tests/framework/types';
-import { Hardfork } from '../../../tests/seeder/anvil-manager';
-import {
-  RampsRegions,
-  RampsRegionsEnum,
-} from '../../../tests/framework/Constants';
+import { loginToApp } from '../../../e2e/viewHelper.ts';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
+import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
+import FundActionMenu from '../../../e2e/pages/UI/FundActionMenu.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import { Assertions } from '../../framework';
+import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView.ts';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet.ts';
+import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView.ts';
+import { RegressionTrade } from '../../../e2e/tags';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import { LocalNodeType } from '../../framework/types.ts';
+import { Hardfork } from '../../seeder/anvil-manager.ts';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants.ts';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../../tests/api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup.ts';
 
 // Anvil configuration for local blockchain node
 const anvilLocalNodeOptions = {

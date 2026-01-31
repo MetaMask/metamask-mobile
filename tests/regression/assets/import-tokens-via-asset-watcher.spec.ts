@@ -1,28 +1,28 @@
-import { RegressionNetworkAbstractions } from '../../tags';
-import TestHelpers from '../../helpers';
-import { loginToApp, navigateToBrowserView } from '../../viewHelper';
+import { RegressionNetworkAbstractions } from '../../../e2e/tags';
+import TestHelpers from '../../../e2e/helpers';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+} from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import TestDApp from '../../pages/Browser/TestDApp';
-import Assertions from '../../../tests/framework/Assertions';
-import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
-import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import TestDApp from '../../../e2e/pages/Browser/TestDApp';
+import Assertions from '../../framework/Assertions';
+import AssetWatchBottomSheet from '../../../e2e/pages/Transactions/AssetWatchBottomSheet';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
 import {
   AnvilPort,
   buildPermissions,
-} from '../../../tests/framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../../tests/framework/Constants';
+} from '../../framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../framework/Constants';
 import {
   setEthAccounts,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import { LocalNode } from '../../../tests/framework/types';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { LocalNode } from '../../framework';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
