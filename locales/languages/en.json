@@ -1094,6 +1094,10 @@
       "your_funds_are_available_to_trade": "Your funds are available to trade",
       "track": "Track"
     },
+    "one_click_trade": {
+      "tx_creation_failed_title": "Could not open position",
+      "tx_creation_failed_description": "Transaction creation failed. Please try again."
+    },
     "withdrawal": {
       "title": "Withdraw",
       "insufficient_funds": "Insufficient funds",
