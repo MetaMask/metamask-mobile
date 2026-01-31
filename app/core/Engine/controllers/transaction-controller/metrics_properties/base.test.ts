@@ -5,6 +5,12 @@ import {
 
 import { getTransactionTypeValue } from './base';
 
+describe('TransactionType', () => {
+  it('defines perpsDepositAndOrder (required by Perps one-click trading)', () => {
+    expect(TransactionType.perpsDepositAndOrder).toBe('perpsDepositAndOrder');
+  });
+});
+
 describe('getTransactionTypeValue', () => {
   it('returns correct string value for snake case conversion cases', () => {
     expect(getTransactionTypeValue(TransactionType.bridgeApproval)).toBe(
