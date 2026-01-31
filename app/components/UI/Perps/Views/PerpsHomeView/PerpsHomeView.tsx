@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, ScrollView, Modal, Linking } from 'react-native';
+import { View, ScrollView, Modal } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
@@ -44,9 +44,7 @@ import {
   LEARN_MORE_CONFIG,
   SUPPORT_CONFIG,
   FEEDBACK_CONFIG,
-  PERPS_CONSTANTS,
 } from '../../constants/perpsConfig';
-import { ensureError } from '../../../../../util/errorUtils';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -59,7 +57,6 @@ import HeaderCenter from '../../../../../component-library/components-temp/Heade
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
-import Logger from '../../../../../util/Logger';
 import { TraceName } from '../../../../../util/trace';
 import {
   PerpsEventProperties,
@@ -234,9 +231,11 @@ const PerpsHomeView = () => {
         })
         .build(),
     );
-    // Navigate to MarketListView with search enabled
+    // Navigate to MarketListView with search enabled and 'all' category
+    // When user closes search, they should see all markets (not a specific category)
     perpsNavigation.navigateToMarketList({
       defaultSearchVisible: true,
+      defaultMarketTypeFilter: 'all',
       source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
       button_clicked: PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
@@ -302,14 +301,15 @@ const PerpsHomeView = () => {
         })
         .build(),
     );
-    // Open survey in external browser
-    Linking.openURL(FEEDBACK_CONFIG.Url).catch((error: unknown) => {
-      Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Failed to open feedback survey URL',
-      });
+    // Open survey in in-app browser (same pattern as Contact Support)
+    navigation.navigate(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: FEEDBACK_CONFIG.Url,
+        title: strings(FEEDBACK_CONFIG.TitleKey),
+      },
     });
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, navigation]);
 
   const navigationItems: NavigationItem[] = useMemo(() => {
     const items: NavigationItem[] = [
