@@ -15,6 +15,7 @@ import {
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import styles from './index.styles';
+import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -155,11 +156,27 @@ const AccountStatus = ({
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={['top', 'bottom']}
+      testID={
+        type === 'found'
+          ? AccountStatusSelectorIDs.ACCOUNT_FOUND_CONTAINER
+          : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CONTAINER
+      }
+    >
       <View style={styles.root}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>
-            <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.DisplayMD}
+              color={TextColor.Default}
+              testID={
+                type === 'found'
+                  ? AccountStatusSelectorIDs.ACCOUNT_FOUND_TITLE
+                  : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_TITLE
+              }
+            >
               {type === 'found'
                 ? strings('account_status.account_already_exists')
                 : strings('account_status.account_not_found')}
@@ -201,6 +218,11 @@ const AccountStatus = ({
                 ? strings(buttonLabelForFoundTypeAccountStatus())
                 : strings('account_status.create_new_wallet')
             }
+            testID={
+              type === 'found'
+                ? AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON
+                : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CREATE_BUTTON
+            }
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -210,6 +232,11 @@ const AccountStatus = ({
               navigation.goBack();
             }}
             label={strings('account_status.use_different_login_method')}
+            testID={
+              type === 'found'
+                ? AccountStatusSelectorIDs.ACCOUNT_FOUND_DIFFERENT_METHOD_BUTTON
+                : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_DIFFERENT_METHOD_BUTTON
+            }
           />
         </View>
       </View>

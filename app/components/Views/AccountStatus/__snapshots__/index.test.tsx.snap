@@ -15,6 +15,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
       "flex": 1,
     }
   }
+  testID="account-status-found-container-id"
 >
   <View
     style={
@@ -54,6 +55,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
                 "lineHeight": 40,
               }
             }
+            testID="account-status-found-title-id"
           >
             Wallet already exists
           </Text>
@@ -128,6 +130,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-found-login-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -166,6 +169,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -202,6 +206,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
       "flex": 1,
     }
   }
+  testID="account-status-found-container-id"
 >
   <View
     style={
@@ -241,6 +246,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
                 "lineHeight": 40,
               }
             }
+            testID="account-status-found-title-id"
           >
             Wallet already exists
           </Text>
@@ -315,6 +321,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-found-login-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -353,6 +360,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -389,6 +397,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
       "flex": 1,
     }
   }
+  testID="account-status-not-found-container-id"
 >
   <View
     style={
@@ -428,6 +437,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
                 "lineHeight": 40,
               }
             }
+            testID="account-status-not-found-title-id"
           >
             Wallet not found
           </Text>
@@ -502,6 +512,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-not-found-create-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -540,6 +551,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-not-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -576,6 +588,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
       "flex": 1,
     }
   }
+  testID="account-status-found-container-id"
 >
   <View
     style={
@@ -615,6 +628,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
                 "lineHeight": 40,
               }
             }
+            testID="account-status-found-title-id"
           >
             Wallet already exists
           </Text>
@@ -689,6 +703,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-found-login-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -727,6 +742,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -763,6 +779,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
       "flex": 1,
     }
   }
+  testID="account-status-found-container-id"
 >
   <View
     style={
@@ -802,6 +819,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
                 "lineHeight": 40,
               }
             }
+            testID="account-status-found-title-id"
           >
             Wallet already exists
           </Text>
@@ -876,6 +894,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-found-login-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -914,6 +933,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -950,6 +970,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
       "flex": 1,
     }
   }
+  testID="account-status-not-found-container-id"
 >
   <View
     style={
@@ -989,6 +1010,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
                 "lineHeight": 40,
               }
             }
+            testID="account-status-not-found-title-id"
           >
             Wallet not found
           </Text>
@@ -1063,6 +1085,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-not-found-create-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -1101,6 +1124,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
             "paddingHorizontal": 16,
           }
         }
+        testID="account-status-not-found-different-method-button-id"
       >
         <Text
           accessibilityRole="text"
