@@ -1,4 +1,5 @@
 import { TokenI } from '../../Tokens/types';
+import { NAVIGATION_PARAMS_DELAY_MS } from '../../../../constants/navigation/delays';
 
 /**
  * Perps feature constants
@@ -148,7 +149,7 @@ export const PERFORMANCE_CONFIG = {
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs
-  NavigationParamsDelayMs: 200,
+  NavigationParamsDelayMs: NAVIGATION_PARAMS_DELAY_MS,
 
   // Tab control reset delay (milliseconds)
   // Delay to reset programmatic tab control after tab switching to prevent render loops

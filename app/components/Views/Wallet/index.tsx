@@ -109,7 +109,7 @@ import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
-import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
+import { NAVIGATION_PARAMS_DELAY_MS } from '../../../constants/navigation/delays';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { Token } from '@metamask/assets-controllers';
@@ -233,6 +233,10 @@ interface WalletTokensTabViewProps {
     shouldSelectPerpsTab?: boolean;
     initialTab?: string;
   };
+}
+
+interface WalletRouteParams {
+  openNetworkSelector?: boolean;
 }
 
 const WalletTokensTabView = forwardRef<
@@ -446,7 +450,7 @@ const WalletTokensTabView = forwardRef<
               initialTab: undefined,
             });
           }
-        }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+        }, NAVIGATION_PARAMS_DELAY_MS);
 
         return () => clearTimeout(timer);
       }
@@ -1042,6 +1046,27 @@ const Wallet = ({
         .build(),
     );
   }, [navigate, chainId, trackEvent, createEventBuilder]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const shouldOpenNetworkSelector = (
+        route.params as WalletRouteParams | undefined
+      )?.openNetworkSelector;
+
+      if (!shouldOpenNetworkSelector) {
+        return;
+      }
+
+      const timer = setTimeout(() => {
+        onTitlePress();
+        if (navigation?.setParams) {
+          navigation.setParams({ openNetworkSelector: false });
+        }
+      }, NAVIGATION_PARAMS_DELAY_MS);
+
+      return () => clearTimeout(timer);
+    }, [navigation, onTitlePress, route.params]),
+  );
 
   /**
    * Handle network filter called when app is mounted and tokenNetworkFilter is empty
