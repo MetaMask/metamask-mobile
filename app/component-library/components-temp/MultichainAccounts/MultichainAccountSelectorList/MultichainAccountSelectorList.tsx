@@ -15,7 +15,6 @@ import { useStyles } from '../../../hooks';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
 import TextFieldSearch from '../../../components/Form/TextFieldSearch';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectMultichainAccountsState1Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import AccountListHeader from './AccountListHeader';
 import AccountListCell from './AccountListCell';
@@ -53,9 +52,6 @@ const MultichainAccountSelectorList = ({
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
-  const isMultichainAccountsEnabled = useSelector(
-    selectMultichainAccountsState1Enabled,
-  );
   const accountSectionsFromSelector = useSelector(selectAccountGroupsByWallet);
   const accountSections = accountSectionsProp || accountSectionsFromSelector;
   const internalAccountsById = useSelector(selectInternalAccountsById);
@@ -108,11 +104,7 @@ const MultichainAccountSelectorList = ({
   );
 
   const walletSections = useMemo((): WalletSection[] => {
-    if (
-      !isMultichainAccountsEnabled ||
-      !accountSections ||
-      accountSections.length === 0
-    ) {
+    if (!accountSections || accountSections.length === 0) {
       return [];
     }
 
@@ -122,7 +114,7 @@ const MultichainAccountSelectorList = ({
       walletName: section.title,
       walletId: section.wallet.id,
     }));
-  }, [isMultichainAccountsEnabled, accountSections]);
+  }, [accountSections]);
 
   const filteredWalletSections = useMemo((): WalletSection[] => {
     if (!debouncedSearchText.trim()) {
