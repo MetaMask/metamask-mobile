@@ -335,8 +335,9 @@ export class HyperLiquidClientService {
       const intervalMs = this.getIntervalMilliseconds(interval);
       const startTime = now - limit * intervalMs;
 
-      // Use the SDK's InfoClient to fetch candle data
-      const infoClient = this.getInfoClient();
+      // Use HTTP client for candle fetches - it's stateless and more reliable
+      // WebSocket client can get into stale connection states during network instability
+      const infoClient = this.getInfoClient({ useHttp: true });
       const data = await infoClient.candleSnapshot({
         coin,
         interval,
@@ -426,105 +427,108 @@ export class HyperLiquidClientService {
       ? Math.min(calculateCandleCount(duration, interval), 500)
       : 100; // Default to 100 if no duration provided
 
-    // 1. Fetch initial historical data
-    this.fetchHistoricalCandles(coin, interval, initialLimit)
-      .then((initialData) => {
-        // Don't proceed if already unsubscribed
-        if (isUnsubscribed) {
-          return;
-        }
+    // Helper to handle successful fetch and set up WebSocket subscription
+    const handleFetchSuccess = (initialData: CandleData | null) => {
+      // Don't proceed if already unsubscribed
+      if (isUnsubscribed) {
+        return;
+      }
 
-        currentCandleData = initialData;
-        if (currentCandleData) {
-          callback(currentCandleData);
-        }
+      currentCandleData = initialData;
+      if (currentCandleData) {
+        callback(currentCandleData);
+      }
 
-        // 2. Subscribe to WebSocket for new candles
-        const subscription = subscriptionClient.candle(
-          { coin, interval },
-          (candleEvent) => {
-            // Don't process events if already unsubscribed
-            if (isUnsubscribed) {
-              return;
-            }
+      // Subscribe to WebSocket for new candles
+      const subscription = subscriptionClient.candle(
+        { coin, interval },
+        (candleEvent) => {
+          // Don't process events if already unsubscribed
+          if (isUnsubscribed) {
+            return;
+          }
 
-            // Transform SDK CandleEvent to our Candle format
-            const newCandle = {
-              time: candleEvent.t,
-              open: candleEvent.o.toString(),
-              high: candleEvent.h.toString(),
-              low: candleEvent.l.toString(),
-              close: candleEvent.c.toString(),
-              volume: candleEvent.v.toString(),
+          // Transform SDK CandleEvent to our Candle format
+          const newCandle = {
+            time: candleEvent.t,
+            open: candleEvent.o.toString(),
+            high: candleEvent.h.toString(),
+            low: candleEvent.l.toString(),
+            close: candleEvent.c.toString(),
+            volume: candleEvent.v.toString(),
+          };
+
+          if (!currentCandleData) {
+            currentCandleData = {
+              coin,
+              interval,
+              candles: [newCandle],
             };
+          } else {
+            // Check if this is an update to the last candle or a new candle
+            const candles = currentCandleData.candles;
+            const lastCandle = candles[candles.length - 1];
 
-            if (!currentCandleData) {
+            if (lastCandle && lastCandle.time === newCandle.time) {
+              // Update existing candle (live candle update)
+              // Create new array with updated last element to trigger React re-render
               currentCandleData = {
-                coin,
-                interval,
-                candles: [newCandle],
+                ...currentCandleData,
+                candles: [...candles.slice(0, -1), newCandle],
               };
             } else {
-              // Check if this is an update to the last candle or a new candle
-              const candles = currentCandleData.candles;
-              const lastCandle = candles[candles.length - 1];
-
-              if (lastCandle && lastCandle.time === newCandle.time) {
-                // Update existing candle (live candle update)
-                // Create new array with updated last element to trigger React re-render
-                currentCandleData = {
-                  ...currentCandleData,
-                  candles: [...candles.slice(0, -1), newCandle],
-                };
-              } else {
-                // New candle (completed candle)
-                // Create new array with added element to trigger React re-render
-                currentCandleData = {
-                  ...currentCandleData,
-                  candles: [...candles, newCandle],
-                };
-              }
+              // New candle (completed candle)
+              // Create new array with added element to trigger React re-render
+              currentCandleData = {
+                ...currentCandleData,
+                candles: [...candles, newCandle],
+              };
             }
+          }
 
-            callback(currentCandleData);
-          },
-        );
+          callback(currentCandleData);
+        },
+      );
 
-        // Store cleanup function
-        subscription
-          .then((sub) => {
-            wsUnsubscribe = () => sub.unsubscribe();
-            // If already unsubscribed while waiting, clean up immediately
-            if (isUnsubscribed && wsUnsubscribe) {
-              wsUnsubscribe();
-              wsUnsubscribe = null;
-            }
-          })
-          .catch((error) => {
-            const errorInstance = ensureError(error);
+      // Store cleanup function
+      subscription
+        .then((sub) => {
+          wsUnsubscribe = () => sub.unsubscribe();
+          // If already unsubscribed while waiting, clean up immediately
+          if (isUnsubscribed && wsUnsubscribe) {
+            wsUnsubscribe();
+            wsUnsubscribe = null;
+          }
+        })
+        .catch((error) => {
+          const errorInstance = ensureError(error);
 
-            // Log to Sentry: WebSocket subscription failure prevents live updates
-            Logger.error(errorInstance, {
-              tags: {
-                feature: PERPS_CONSTANTS.FEATURE_NAME,
-                service: 'HyperLiquidClientService',
-                network: this.isTestnet ? 'testnet' : 'mainnet',
+          // Log to Sentry: WebSocket subscription failure prevents live updates
+          Logger.error(errorInstance, {
+            tags: {
+              feature: PERPS_CONSTANTS.FEATURE_NAME,
+              service: 'HyperLiquidClientService',
+              network: this.isTestnet ? 'testnet' : 'mainnet',
+            },
+            context: {
+              name: 'websocket_subscription',
+              data: {
+                operation: 'subscribeToCandles',
+                coin,
+                interval,
+                phase: 'ws_subscription',
               },
-              context: {
-                name: 'websocket_subscription',
-                data: {
-                  operation: 'subscribeToCandles',
-                  coin,
-                  interval,
-                  phase: 'ws_subscription',
-                },
-              },
-            });
-
-            // Notify caller of error
-            onError?.(errorInstance);
+            },
           });
-      })
+
+          // Notify caller of error
+          onError?.(errorInstance);
+        });
+    };
+
+    // 1. Fetch initial historical data
+    this.fetchHistoricalCandles(coin, interval, initialLimit)
+      .then(handleFetchSuccess)
       .catch((error) => {
         const errorInstance = ensureError(error);
 
