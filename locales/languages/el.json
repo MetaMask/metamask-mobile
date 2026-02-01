@@ -25,6 +25,8 @@
       "title": "Ειδοποίηση",
       "checkbox_label": "Έχω ενημερωθεί για τους κινδύνους και εξακολουθώ να θέλω να συνεχίσω",
       "got_it_btn": "Κατανοητό",
+      "acknowledge_btn": "Acknowledge",
+      "close_btn": "Close",
       "alert_details": "Λεπτομέρειες ειδοποίησης"
     },
     "confirm_modal": {
@@ -196,7 +198,10 @@
     "placeholder": "Αναζήτηση ανά ιστότοπο ή διεύθυνση",
     "recents": "Πρόσφατα",
     "favorites": "Αγαπημένα",
-    "sites": "Ιστότοποι"
+    "sites": "Ιστότοποι",
+    "tokens": "Trending tokens",
+    "perps": "Perps",
+    "predictions": "Predictions"
   },
   "navigation": {
     "back": "Πίσω",
@@ -1008,6 +1013,7 @@
       "set_stop_loss_subtitle": "Ορίστε περιορισμό ζημιών στο {{price}} ({{percent}})",
       "set_button": "Ορίστε"
     },
+    "confirm": "Confirm",
     "deposit": {
       "title": "Ποσό προς κατάθεση",
       "get_usdc_hyperliquid": "Αποκτήστε USDC • Hyperliquid",
@@ -1081,6 +1087,8 @@
       "error_toast": "Η συναλλαγή απέτυχε",
       "error_generic": "Τα κεφάλαιά σας έχουν επιστραφεί",
       "in_progress": "Προσθήκη κεφαλαίων για συμβόλαια αορίστου διάρκειας (perps)",
+      "depositing_your_funds": "Depositing your funds",
+      "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Εκτ. χρόνος: {{time}}",
       "funds_available_momentarily": "Τα κεφάλαια θα είναι σύντομα διαθέσιμα",
       "your_funds_are_available_to_trade": "Τα κεφάλαιά σας είναι διαθέσιμα για συναλλαγές",
@@ -1247,6 +1255,16 @@
           "description": "Εκτέλεση μόνο στην τιμή που έχετε ορίσει ή σε καλύτερη"
         }
       },
+      "payment_token": "Payment token",
+      "select_payment_token": "Select payment token",
+      "select_token": "Select token",
+      "no_payment_tokens": "No payment tokens available",
+      "swap": "SWAP",
+      "swap_submitted": "Swap Submitted",
+      "transaction_id": "Transaction ID: {{txId}}",
+      "swap_failed": "Swap Failed",
+      "swap_error_message": "Failed to submit swap transaction: {{error}}",
+      "swap_converting": "Converting balance to USDC on ARBITRUM",
       "success": {
         "title": "Η εντολή υποβλήθηκε επιτυχώς",
         "subtitle": "Η θέση σας {{direction}} για το {{asset}} έχει δημιουργηθεί",
@@ -1275,7 +1293,10 @@
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Η παραγγελία απέτυχε",
       "your_funds_have_been_returned_to_you": "Τα κεφάλαιά σας έχουν επιστραφεί",
-      "order_cancelled_success": "Η εντολή {{detailedOrderType}} ακυρώθηκε"
+      "order_cancelled_success": "Η εντολή {{detailedOrderType}} ακυρώθηκε",
+      "pay_with_token_required": "Token selection required",
+      "select_token_to_pay_with": "Please select a token to pay with before placing your order",
+      "initializing": "Initializing order..."
     },
     "price_deviation_warning": {
       "message": "Η τιμή έχει αποκλίνει υπερβολικά από την τρέχουσα τιμή. Δεν είναι δυνατή η έναρξη νέων θέσεων αυτή τη στιγμή."
@@ -1766,14 +1787,18 @@
       "commodities": "Εμπορεύματα",
       "stocks_and_commodities": "Εξερευνήστε μετοχές και εμπορεύματα",
       "tabs": {
-        "all": "Όλα",
         "crypto": "Κρύπτο",
-        "stocks_and_commodities": "Μετοχές"
+        "stocks": "Stocks",
+        "commodities": "Commodities",
+        "forex": "Forex",
+        "new": "New"
       },
       "filter_by": "Φιλτράρισμα κατά",
       "forex": "Forex",
       "watchlist": "Λίστα παρακολούθησης",
-      "markets": "Αγορές"
+      "markets": "Αγορές",
+      "explore_markets": "Explore markets",
+      "see_all_perps": "See all perps"
     },
     "learn_more": {
       "title": "Μάθετε για τα Perps",
@@ -3136,7 +3161,12 @@
       "generate_trace_test": "Δημιουργία δοκιμής ιχνηλάτησης",
       "generate_trace_test_desc": "Δημιουργία δοκιμαστικής ιχνηλάτισης Sentry για προγραμματιστές.",
       "navigate_to_sample_feature": "Μετάβαση στη δοκιμαστική λειτουργία",
-      "sample_feature_desc": "Δοκιμαστική λειτουργία ως πρότυπο για προγραμματιστές."
+      "sample_feature_desc": "Δοκιμαστική λειτουργία ως πρότυπο για προγραμματιστές.",
+      "card": {
+        "title": "Card",
+        "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
+        "reset_onboarding_button": "Reset Onboarding State"
+      }
     },
     "feature_flag_override": {
       "title": "Παράκαμψη ρύθμισης λειτουργίας",
@@ -3265,8 +3295,10 @@
   "screenshot_deterrent": {
     "title": "Ειδοποίηση ασφαλείας",
     "description": "Τα στιγμιότυπα οθόνης δεν είναι ένας ασφαλής τρόπος για να διατηρείτε τη {{credentialName}}. Αποθηκεύστε την κάπου που δεν έχει δημιουργηθεί αντίγραφο ασφαλείας στο διαδίκτυο για να διαφυλάξετε τον λογαριασμό σας.",
+    "card_description": "Screenshots of your card details could be accessed by others. Never share your card number or CVV.",
     "srp_text": "Μυστική Φράση Ανάκτησής σας",
-    "priv_key_text": "Ιδιωτικό κλειδί"
+    "priv_key_text": "Ιδιωτικό κλειδί",
+    "card_text": "card details"
   },
   "password_reset": {
     "password_title": "Κωδικός πρόσβασης",
@@ -6610,9 +6642,72 @@
       "swap_description": "Ανταλλάξτε tokens σε {{symbol}} στο {{chainName}}",
       "select_method": "Επιλέξτε μέθοδο"
     },
+    "password_bottomsheet": {
+      "title": "Enter password",
+      "description": "Enter your wallet password to view card details.",
+      "placeholder": "Password",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "error_empty": "Please enter your password",
+      "error_incorrect": "Incorrect password. Please try again."
+    },
+    "choose_your_card": {
+      "title": "Choose your card",
+      "upgrade_title": "Upgrade to Metal",
+      "continue_button": "Continue",
+      "virtual_card": {
+        "name": "Orange Virtual Card",
+        "price": "Free",
+        "feature_1": "Virtual card for Apple Pay and Google Pay",
+        "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)",
+        "feature_3": "1% USDC cashback on every purchase"
+      },
+      "metal_card": {
+        "name": "Metal Card",
+        "price": "$199/year",
+        "feature_1": "Engraved metal card and virtual card for Apple Pay and Google Pay",
+        "feature_2": "3% cashback on the first $10,000 spent each year, then 1% after that",
+        "feature_3": "No foreign transaction fees"
+      }
+    },
+    "review_order": {
+      "title": "Review your order",
+      "subtitle": "We can only ship to residential addresses.",
+      "shipping_address": "Shipping address",
+      "metal_card_quantity": "1 Metal Card",
+      "metal_card_price": "$199",
+      "metal_card_total": "$199 per year",
+      "fees": "Fees",
+      "fees_free": "Free",
+      "renews": "Renews",
+      "renews_annually": "Annually",
+      "total": "Total",
+      "pay": "Pay",
+      "payment_creation_error": "Failed to create payment. Please try again."
+    },
+    "order_completed": {
+      "title": "YOUR CARD\nIS ORDERED",
+      "subtitle": "It should arrive in 4 to 6 weeks.",
+      "description": "Set up your virtual card and add it to your digital wallet to start earning cashback.",
+      "set_up_card_button": "Set up card",
+      "back_to_card_button": "Back to Card"
+    },
+    "recurring_fee_modal": {
+      "title": "Recurring fee",
+      "description": "A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.",
+      "learn_more": "Learn more",
+      "got_it": "Got it"
+    },
+    "daimo_pay_modal": {
+      "load_error": "Failed to load payment page. Please try again.",
+      "timeout_error": "Payment verification timed out. Please check your transaction status.",
+      "payment_bounced_error": "Payment failed. Please try again with a different payment method.",
+      "close": "Close",
+      "try_again": "Try again"
+    },
     "card_onboarding": {
-      "title": "Ξοδέψτε \nκαι \nΚερδίστε",
-      "description": "Η MetaMask Card είναι ο γρήγορος και εύκολος τρόπος να ξοδέψετε τα κρυπτονομίσματά σας και να κερδίσετε έως 3% επιστροφή.",
+      "title": "Spend\nand Earn",
+      "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
       "apply_now_button": "Κάντε αίτηση τώρα",
       "login_button": "Σύνδεση",
       "not_now_button": "Όχι τώρα",
@@ -6702,8 +6797,14 @@
       },
       "kyc_failed": {
         "title": "Δεν πληροίτε τα κριτήρια για την MetaMask Card αυτή τη στιγμή",
-        "description": "Ο συνεργάτης μας εγκρίνει βάσει συγκεκριμένων κριτηρίων. Μάθετε περισσότερα.",
+        "description": "Eligibility is determined by our partner's regulatory and verification checks.",
         "close_button": "Επιστροφή στην αρχική σελίδα"
+      },
+      "kyc_pending": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "footer_text": "Approvals usually take around 12 hours.\nWe'll notify you when a decision is made.",
+        "got_it_button": "Got it"
       },
       "personal_details": {
         "title": "Προσθέστε τα στοιχεία σας",
@@ -6734,8 +6835,8 @@
       },
       "complete": {
         "title": "Τα καταφέρατε!",
-        "description": "Ας ρυθμίσουμε την κάρτα σας, για να ξεκινήσετε να χρησιμοποιείτε τα κρυπτονομίσματά σας.",
-        "confirm_button": "Ρύθμιση κάρτας"
+        "description": "Finish setting up your card so you can start spending your crypto.",
+        "confirm_button": "Finish setup"
       },
       "account_exists": {
         "title": "Έχετε ήδη λογαριασμό",
@@ -6790,6 +6891,7 @@
       "logout_confirmation_confirm": "Αποσύνδεση",
       "enable_card_error": "Αποτυχία ενεργοποίησης της κάρτας. Προσπαθήστε ξανά αργότερα.",
       "view_card_details_error": "Unable to load card details. Please try again.",
+      "biometric_verification_required": "Authentication required to view card details.",
       "warnings": {
         "close_spending_limit": {
           "title": "Έχετε σχεδόν φτάσει το όριο δαπανών σας",
@@ -6855,7 +6957,9 @@
         "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
-        "card_tos_title": "Terms and conditions"
+        "card_tos_title": "Terms and conditions",
+        "order_metal_card": "Metal Card",
+        "order_metal_card_description": "Order your physical Metal Card now"
       }
     },
     "card_spending_limit": {
@@ -7027,7 +7131,10 @@
       "account_already_registered": "Αυτός ο λογαριασμός είναι ήδη συνδεδεμένος με άλλο προφίλ Ανταμοιβών. Παρακαλούμε αλλάξτε λογαριασμό για να συνεχίσετε.",
       "request_rejected": "Απορρίψατε το αίτημα.",
       "failed_to_claim_reward": "Η ενεργοποίηση της ανταμοιβής απέτυχε. Προσπαθήστε ξανά σε λίγο.",
-      "service_not_available": "Η υπηρεσία δεν είναι διαθέσιμη αυτήν τη στιγμή. Παρακαλούμε προσπαθήστε ξανά σε λίγο."
+      "service_not_available": "Η υπηρεσία δεν είναι διαθέσιμη αυτήν τη στιγμή. Παρακαλούμε προσπαθήστε ξανά σε λίγο.",
+      "invalid_referral_code": "Invalid referral code. Please check and try again.",
+      "already_referred": "You have already been referred by another user.",
+      "cannot_use_own_referral_code": "You cannot use your own referral code."
     },
     "claim_reward_error": {
       "title": "Η ενεργοποίηση της ανταμοιβής απέτυχε"
@@ -7065,6 +7172,8 @@
     "activity_empty_title": "Δεν υπάρχει πρόσφατη δραστηριότητα.",
     "activity_empty_description": "Χρησιμοποιήστε το MetaMask για να κερδίζετε πόντους, να ανεβαίνετε επίπεδο και να ξεκλειδώνετε ανταμοιβές.",
     "activity_empty_link": "Δείτε τρόπους για να κερδίσετε",
+    "filter_title": "Filter by activity type",
+    "filter_all": "All",
     "events": {
       "to": "προς",
       "musd_deposit_for": "Για την {{date}}",
@@ -7084,6 +7193,7 @@
         "stop_loss": "ΛΚ/ΠΖ",
         "predict": "Πρόβλεψη",
         "musd_deposit": "Κατάθεση σε mUSD",
+        "apply_referral_bonus": "Referral code bonus",
         "uncategorized_event": "Μη κατηγοριοποιημένο συμβάν"
       },
       "date": "Ημερομηνία",
@@ -7177,6 +7287,14 @@
       "link_account_button": "Προσθήκη",
       "link_account_failed_error": "Αποτυχία προσθήκης λογαριασμού",
       "link_account_unknown_error": "Παρουσιάστηκε άγνωστο σφάλμα"
+    },
+    "referred_by_code": {
+      "title": "Referral Code",
+      "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
+      "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
+      "input_placeholder": "Enter referral code",
+      "invalid_code": "Invalid referral code",
+      "apply_button": "Apply referral code"
     },
     "optout": {
       "title": "Διαγραφή προόδου Ανταμοιβών",
@@ -7357,6 +7475,7 @@
   },
   "transaction_details": {
     "title": {
+      "musd_conversion": "Converted to mUSD",
       "perps_deposit": "Χρηματοδότηση για perps",
       "predict_claim": "Κέρδη που καταβλήθηκαν",
       "predict_deposit": "Λογαριασμός Προβλέψεων με διαθέσιμα κεφάλαια",
@@ -7380,6 +7499,7 @@
       "bridge_receive": "Θα λάβετε {{targetSymbol}} στο {{targetChain}}",
       "bridge_receive_loading": "Bridge receive",
       "default": "Συναλλαγή",
+      "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
       "perps_deposit": "Προσθήκη κεφαλαίων",
       "predict_deposit": "Προσθήκη κεφαλαίων",
       "swap": "Ανταλλαγή tokens",
