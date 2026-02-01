@@ -25,6 +25,8 @@
       "title": "Alerto",
       "checkbox_label": "Kinikilala ko ang panganib at gusto ko pa ring magpatuloy",
       "got_it_btn": "Nakuha ko",
+      "acknowledge_btn": "Acknowledge",
+      "close_btn": "Close",
       "alert_details": "Mga detalye ng alerto"
     },
     "confirm_modal": {
@@ -196,7 +198,10 @@
     "placeholder": "Maghanap ayon sa site o address",
     "recents": "Mga Kamakailan",
     "favorites": "Mga Paborito",
-    "sites": "Mga Site"
+    "sites": "Mga Site",
+    "tokens": "Trending tokens",
+    "perps": "Perps",
+    "predictions": "Predictions"
   },
   "navigation": {
     "back": "Bumalik",
@@ -1008,6 +1013,7 @@
       "set_stop_loss_subtitle": "Itakda ang stop loss sa {{price}} ({{percent}})",
       "set_button": "Itakda"
     },
+    "confirm": "Confirm",
     "deposit": {
       "title": "Halagang idedeposito",
       "get_usdc_hyperliquid": "Kumuha ng USDC • Hyperliquid",
@@ -1081,6 +1087,8 @@
       "error_toast": "Nabigo ang transaksyon",
       "error_generic": "Naibalik na ang mga pondo sa iyo",
       "in_progress": "Nagdadagdag ng mga pondo sa Perps",
+      "depositing_your_funds": "Depositing your funds",
+      "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Tinatayang {{time}}",
       "funds_available_momentarily": "Magiging available ang mga pondo sa isang sandali",
       "your_funds_are_available_to_trade": "Ang iyong mga pondo ay available na i-trade",
@@ -1247,6 +1255,16 @@
           "description": "Magpatupad lang sa itinakda mong presyo o mas magandang presyo"
         }
       },
+      "payment_token": "Payment token",
+      "select_payment_token": "Select payment token",
+      "select_token": "Select token",
+      "no_payment_tokens": "No payment tokens available",
+      "swap": "SWAP",
+      "swap_submitted": "Swap Submitted",
+      "transaction_id": "Transaction ID: {{txId}}",
+      "swap_failed": "Swap Failed",
+      "swap_error_message": "Failed to submit swap transaction: {{error}}",
+      "swap_converting": "Converting balance to USDC on ARBITRUM",
       "success": {
         "title": "Matagumpay na nailagay ang order",
         "subtitle": "Nagawa na ang iyong {{direction}} na posisyon para sa {{asset}}",
@@ -1275,7 +1293,10 @@
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Nabigo ang order",
       "your_funds_have_been_returned_to_you": "Naibalik na ang iyong mga pondo sa iyo",
-      "order_cancelled_success": "Ang {{detailedOrderType}} na order ay nakansela"
+      "order_cancelled_success": "Ang {{detailedOrderType}} na order ay nakansela",
+      "pay_with_token_required": "Token selection required",
+      "select_token_to_pay_with": "Please select a token to pay with before placing your order",
+      "initializing": "Initializing order..."
     },
     "price_deviation_warning": {
       "message": "Masyado ng malayo ang presyo mula sa presyo ng spot. Hindi mabubuksan ang mga bagong posisyon sa pagkakataong ito."
@@ -1766,14 +1787,18 @@
       "commodities": "Mga Commodity",
       "stocks_and_commodities": "Tuklasin ang mga stock at commodity",
       "tabs": {
-        "all": "Lahat",
         "crypto": "Crypto",
-        "stocks_and_commodities": "Stocks"
+        "stocks": "Stocks",
+        "commodities": "Commodities",
+        "forex": "Forex",
+        "new": "New"
       },
       "filter_by": "I-filter ayon sa",
       "forex": "Forex",
       "watchlist": "Watchlist",
-      "markets": "Market"
+      "markets": "Market",
+      "explore_markets": "Explore markets",
+      "see_all_perps": "See all perps"
     },
     "learn_more": {
       "title": "Alamin ang tungkol sa Perps",
@@ -3136,7 +3161,12 @@
       "generate_trace_test": "Lumikha ng trace test",
       "generate_trace_test_desc": "Lumikha ng pagsubaybay sa developer test Sentry.",
       "navigate_to_sample_feature": "Mag-navigate ng sampol na feature",
-      "sample_feature_desc": "Isang sampol na feature bilang template para sa mga developer."
+      "sample_feature_desc": "Isang sampol na feature bilang template para sa mga developer.",
+      "card": {
+        "title": "Card",
+        "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
+        "reset_onboarding_button": "Reset Onboarding State"
+      }
     },
     "feature_flag_override": {
       "title": "Pag-override ng feature na flag",
@@ -3265,8 +3295,10 @@
   "screenshot_deterrent": {
     "title": "Alertong pangkaligtasan",
     "description": "Ang mga screenshot ay hindi ligtas na paraan para subaybayan ang iyong {{credentialName}}. Ilagay ito sa isang lugar na hindi naka-back up online para mapanatiling ligtas ang iyong account.",
+    "card_description": "Screenshots of your card details could be accessed by others. Never share your card number or CVV.",
     "srp_text": "Lihim na Parirala sa Pagbawi (Secret Recovery Phrase)",
-    "priv_key_text": "Pribadong key"
+    "priv_key_text": "Pribadong key",
+    "card_text": "card details"
   },
   "password_reset": {
     "password_title": "Password",
@@ -6610,9 +6642,72 @@
       "swap_description": "I-swap ang mga token sa {{symbol}} sa {{chainName}}",
       "select_method": "Pumili ng paraan"
     },
+    "password_bottomsheet": {
+      "title": "Enter password",
+      "description": "Enter your wallet password to view card details.",
+      "placeholder": "Password",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "error_empty": "Please enter your password",
+      "error_incorrect": "Incorrect password. Please try again."
+    },
+    "choose_your_card": {
+      "title": "Choose your card",
+      "upgrade_title": "Upgrade to Metal",
+      "continue_button": "Continue",
+      "virtual_card": {
+        "name": "Orange Virtual Card",
+        "price": "Free",
+        "feature_1": "Virtual card for Apple Pay and Google Pay",
+        "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)",
+        "feature_3": "1% USDC cashback on every purchase"
+      },
+      "metal_card": {
+        "name": "Metal Card",
+        "price": "$199/year",
+        "feature_1": "Engraved metal card and virtual card for Apple Pay and Google Pay",
+        "feature_2": "3% cashback on the first $10,000 spent each year, then 1% after that",
+        "feature_3": "No foreign transaction fees"
+      }
+    },
+    "review_order": {
+      "title": "Review your order",
+      "subtitle": "We can only ship to residential addresses.",
+      "shipping_address": "Shipping address",
+      "metal_card_quantity": "1 Metal Card",
+      "metal_card_price": "$199",
+      "metal_card_total": "$199 per year",
+      "fees": "Fees",
+      "fees_free": "Free",
+      "renews": "Renews",
+      "renews_annually": "Annually",
+      "total": "Total",
+      "pay": "Pay",
+      "payment_creation_error": "Failed to create payment. Please try again."
+    },
+    "order_completed": {
+      "title": "YOUR CARD\nIS ORDERED",
+      "subtitle": "It should arrive in 4 to 6 weeks.",
+      "description": "Set up your virtual card and add it to your digital wallet to start earning cashback.",
+      "set_up_card_button": "Set up card",
+      "back_to_card_button": "Back to Card"
+    },
+    "recurring_fee_modal": {
+      "title": "Recurring fee",
+      "description": "A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.",
+      "learn_more": "Learn more",
+      "got_it": "Got it"
+    },
+    "daimo_pay_modal": {
+      "load_error": "Failed to load payment page. Please try again.",
+      "timeout_error": "Payment verification timed out. Please check your transaction status.",
+      "payment_bounced_error": "Payment failed. Please try again with a different payment method.",
+      "close": "Close",
+      "try_again": "Try again"
+    },
     "card_onboarding": {
-      "title": "Gumastos \nat \nKumita",
-      "description": "Ang MetaMask Card ang mabilis at madaling paraan para gastusin ang crypto mo at kumita ng 3% na cashback.",
+      "title": "Spend\nand Earn",
+      "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
       "apply_now_button": "Mag-apply ngayon",
       "login_button": "Mag-log in",
       "not_now_button": "Hindi sa ngayon",
@@ -6702,8 +6797,14 @@
       },
       "kyc_failed": {
         "title": "Hindi ka kwalipikado para sa MetaMask Card sa ngayon",
-        "description": "Nag-aapruba ang aming partner batay sa nakatakdang pamantayan. Matuto pa.",
+        "description": "Eligibility is determined by our partner's regulatory and verification checks.",
         "close_button": "Bumalik sa home"
+      },
+      "kyc_pending": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "footer_text": "Approvals usually take around 12 hours.\nWe'll notify you when a decision is made.",
+        "got_it_button": "Got it"
       },
       "personal_details": {
         "title": "Ilagay ang impormasyon mo",
@@ -6734,8 +6835,8 @@
       },
       "complete": {
         "title": "Pasok ka na!",
-        "description": "I-set up ang card mo para masimulan mo nang gastusin ang crypto mo.",
-        "confirm_button": "I-set up ang card ko"
+        "description": "Finish setting up your card so you can start spending your crypto.",
+        "confirm_button": "Finish setup"
       },
       "account_exists": {
         "title": "Mayroon ka nang account",
@@ -6790,6 +6891,7 @@
       "logout_confirmation_confirm": "Mag-log out",
       "enable_card_error": "Hindi napagana ang card. Subukan ulit mamaya.",
       "view_card_details_error": "Unable to load card details. Please try again.",
+      "biometric_verification_required": "Authentication required to view card details.",
       "warnings": {
         "close_spending_limit": {
           "title": "Malapit mo nang maabot ang limitasyon mo sa paggastos",
@@ -6855,7 +6957,9 @@
         "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
-        "card_tos_title": "Terms and conditions"
+        "card_tos_title": "Terms and conditions",
+        "order_metal_card": "Metal Card",
+        "order_metal_card_description": "Order your physical Metal Card now"
       }
     },
     "card_spending_limit": {
@@ -7027,7 +7131,10 @@
       "account_already_registered": "Nakarehistro na ang account na ito gamit ang ibang profile ng Rewards. Pakilipat ang account para magpatuloy.",
       "request_rejected": "Tinanggihan mo ang kahilingan.",
       "failed_to_claim_reward": "Nabigong ma-claim ang reward. Pakisubukang muli maya-maya.",
-      "service_not_available": "Hindi available sa sandaling ito ang serbisyo. Pakisubukang muli maya-maya."
+      "service_not_available": "Hindi available sa sandaling ito ang serbisyo. Pakisubukang muli maya-maya.",
+      "invalid_referral_code": "Invalid referral code. Please check and try again.",
+      "already_referred": "You have already been referred by another user.",
+      "cannot_use_own_referral_code": "You cannot use your own referral code."
     },
     "claim_reward_error": {
       "title": "Nabigong ma-claim ang reward"
@@ -7065,6 +7172,8 @@
     "activity_empty_title": "Walang kamakailang aktibidad.",
     "activity_empty_description": "Gamitin ang MetaMask para makaipon ng point, mag-level-up, at ma-unlock ang mga reward.",
     "activity_empty_link": "Tingnan ang mga paraan para kumita",
+    "filter_title": "Filter by activity type",
+    "filter_all": "All",
     "events": {
       "to": "sa/Kay",
       "musd_deposit_for": "Para sa {{date}}",
@@ -7084,6 +7193,7 @@
         "stop_loss": "TP/SL",
         "predict": "Prediksyon",
         "musd_deposit": "depositong mUSD",
+        "apply_referral_bonus": "Referral code bonus",
         "uncategorized_event": "Hindi nakakategoryang event"
       },
       "date": "Petsa",
@@ -7177,6 +7287,14 @@
       "link_account_button": "Idagdag",
       "link_account_failed_error": "Bigong maidagdag ang account",
       "link_account_unknown_error": "Nagkaroon ng hindi kilalang error"
+    },
+    "referred_by_code": {
+      "title": "Referral Code",
+      "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
+      "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
+      "input_placeholder": "Enter referral code",
+      "invalid_code": "Invalid referral code",
+      "apply_button": "Apply referral code"
     },
     "optout": {
       "title": "Umalis sa Rewards program",
@@ -7357,6 +7475,7 @@
   },
   "transaction_details": {
     "title": {
+      "musd_conversion": "Converted to mUSD",
       "perps_deposit": "Pinondohang perps account",
       "predict_claim": "Na-claim na mga panalo",
       "predict_deposit": "Pinondohang Hinulaang account",
@@ -7380,6 +7499,7 @@
       "bridge_receive": "Tanggapin ang {{targetSymbol}} sa {{targetChain}}",
       "bridge_receive_loading": "Bridge receive",
       "default": "Transaksyon",
+      "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
       "perps_deposit": "Magdagdag ng pondo",
       "predict_deposit": "Magdagdag ng pondo",
       "swap": "Ipagpalit ang mga token",

@@ -25,6 +25,8 @@
       "title": "경고",
       "checkbox_label": "본인은 위험을 인지했으며 계속 진행하기 원합니다",
       "got_it_btn": "컨펌",
+      "acknowledge_btn": "Acknowledge",
+      "close_btn": "Close",
       "alert_details": "경고 세부 정보"
     },
     "confirm_modal": {
@@ -196,7 +198,10 @@
     "placeholder": "사이트 또는 주소로 검색",
     "recents": "최근",
     "favorites": "즐겨찾기",
-    "sites": "사이트"
+    "sites": "사이트",
+    "tokens": "Trending tokens",
+    "perps": "Perps",
+    "predictions": "Predictions"
   },
   "navigation": {
     "back": "뒤로",
@@ -1008,6 +1013,7 @@
       "set_stop_loss_subtitle": "손절가를 {{price}}({{percent}})(으)로 설정",
       "set_button": "설정"
     },
+    "confirm": "Confirm",
     "deposit": {
       "title": "예치 금액",
       "get_usdc_hyperliquid": "USDC 받기 • Hyperliquid",
@@ -1081,6 +1087,8 @@
       "error_toast": "트랜잭션 실패",
       "error_generic": "자금이 반환되었습니다",
       "in_progress": "무기한 선물에 자금 추가 중",
+      "depositing_your_funds": "Depositing your funds",
+      "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "예상 시간: {{time}}",
       "funds_available_momentarily": "자금을 곧 사용할 수 있습니다",
       "your_funds_are_available_to_trade": "자금을 거래에 사용할 수 있습니다",
@@ -1247,6 +1255,16 @@
           "description": "지정 가격 이상에서만 체결"
         }
       },
+      "payment_token": "Payment token",
+      "select_payment_token": "Select payment token",
+      "select_token": "Select token",
+      "no_payment_tokens": "No payment tokens available",
+      "swap": "SWAP",
+      "swap_submitted": "Swap Submitted",
+      "transaction_id": "Transaction ID: {{txId}}",
+      "swap_failed": "Swap Failed",
+      "swap_error_message": "Failed to submit swap transaction: {{error}}",
+      "swap_converting": "Converting balance to USDC on ARBITRUM",
       "success": {
         "title": "주문이 접수되었습니다",
         "subtitle": "{{asset}}에 대한 {{direction}} 포지션이 생성되었습니다",
@@ -1275,7 +1293,10 @@
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "주문 실패",
       "your_funds_have_been_returned_to_you": "자금이 반환되었습니다",
-      "order_cancelled_success": "{{detailedOrderType}} 주문 취소 완료"
+      "order_cancelled_success": "{{detailedOrderType}} 주문 취소 완료",
+      "pay_with_token_required": "Token selection required",
+      "select_token_to_pay_with": "Please select a token to pay with before placing your order",
+      "initializing": "Initializing order..."
     },
     "price_deviation_warning": {
       "message": "가격이 현물 가격에서 너무 크게 벗어났습니다. 현재는 새로운 포지션을 열 수 없습니다."
@@ -1766,14 +1787,18 @@
       "commodities": "상품",
       "stocks_and_commodities": "주식 및 원자재 살펴보기",
       "tabs": {
-        "all": "모두",
         "crypto": "암호화폐",
-        "stocks_and_commodities": "주식"
+        "stocks": "Stocks",
+        "commodities": "Commodities",
+        "forex": "Forex",
+        "new": "New"
       },
       "filter_by": "필터링 기준:",
       "forex": "외환",
       "watchlist": "관심 목록",
-      "markets": "시장"
+      "markets": "시장",
+      "explore_markets": "Explore markets",
+      "see_all_perps": "See all perps"
     },
     "learn_more": {
       "title": "무기한 선물에 대해 알아보기",
@@ -3136,7 +3161,12 @@
       "generate_trace_test": "트레이스 테스트 생성",
       "generate_trace_test_desc": "Sentry 트레이스 개발자 테스트를 생성합니다.",
       "navigate_to_sample_feature": "샘플 기능으로 이동",
-      "sample_feature_desc": "개발자를 위한 템플릿용 샘플 기능."
+      "sample_feature_desc": "개발자를 위한 템플릿용 샘플 기능.",
+      "card": {
+        "title": "Card",
+        "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
+        "reset_onboarding_button": "Reset Onboarding State"
+      }
     },
     "feature_flag_override": {
       "title": "기능 플래그 무시",
@@ -3265,8 +3295,10 @@
   "screenshot_deterrent": {
     "title": "안전성 알림",
     "description": "스크린숏은 {{credentialName}}(을)를 보관하기에 안전한 방법이 아닙니다. 계정을 안전하게 유지하려면 온라인으로 백업이 되지 않는 곳에 보관하세요.",
+    "card_description": "Screenshots of your card details could be accessed by others. Never share your card number or CVV.",
     "srp_text": "비밀복구구문입니다",
-    "priv_key_text": "개인 키"
+    "priv_key_text": "개인 키",
+    "card_text": "card details"
   },
   "password_reset": {
     "password_title": "비밀번호",
@@ -6610,9 +6642,72 @@
       "swap_description": "{{chainName}} 체인에서 토큰을 {{symbol}}(으)로 스왑",
       "select_method": "방법 선택"
     },
+    "password_bottomsheet": {
+      "title": "Enter password",
+      "description": "Enter your wallet password to view card details.",
+      "placeholder": "Password",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "error_empty": "Please enter your password",
+      "error_incorrect": "Incorrect password. Please try again."
+    },
+    "choose_your_card": {
+      "title": "Choose your card",
+      "upgrade_title": "Upgrade to Metal",
+      "continue_button": "Continue",
+      "virtual_card": {
+        "name": "Orange Virtual Card",
+        "price": "Free",
+        "feature_1": "Virtual card for Apple Pay and Google Pay",
+        "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)",
+        "feature_3": "1% USDC cashback on every purchase"
+      },
+      "metal_card": {
+        "name": "Metal Card",
+        "price": "$199/year",
+        "feature_1": "Engraved metal card and virtual card for Apple Pay and Google Pay",
+        "feature_2": "3% cashback on the first $10,000 spent each year, then 1% after that",
+        "feature_3": "No foreign transaction fees"
+      }
+    },
+    "review_order": {
+      "title": "Review your order",
+      "subtitle": "We can only ship to residential addresses.",
+      "shipping_address": "Shipping address",
+      "metal_card_quantity": "1 Metal Card",
+      "metal_card_price": "$199",
+      "metal_card_total": "$199 per year",
+      "fees": "Fees",
+      "fees_free": "Free",
+      "renews": "Renews",
+      "renews_annually": "Annually",
+      "total": "Total",
+      "pay": "Pay",
+      "payment_creation_error": "Failed to create payment. Please try again."
+    },
+    "order_completed": {
+      "title": "YOUR CARD\nIS ORDERED",
+      "subtitle": "It should arrive in 4 to 6 weeks.",
+      "description": "Set up your virtual card and add it to your digital wallet to start earning cashback.",
+      "set_up_card_button": "Set up card",
+      "back_to_card_button": "Back to Card"
+    },
+    "recurring_fee_modal": {
+      "title": "Recurring fee",
+      "description": "A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.",
+      "learn_more": "Learn more",
+      "got_it": "Got it"
+    },
+    "daimo_pay_modal": {
+      "load_error": "Failed to load payment page. Please try again.",
+      "timeout_error": "Payment verification timed out. Please check your transaction status.",
+      "payment_bounced_error": "Payment failed. Please try again with a different payment method.",
+      "close": "Close",
+      "try_again": "Try again"
+    },
     "card_onboarding": {
-      "title": "결제와\n동시에\n수익 창출",
-      "description": "MetaMask 카드를 이용하면 암호화폐를 쉽고 빠르게 결제하며 최대 3%의 캐시백을 받을 수 있습니다.",
+      "title": "Spend\nand Earn",
+      "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
       "apply_now_button": "지금 신청",
       "login_button": "로그인",
       "not_now_button": "나중에",
@@ -6702,8 +6797,14 @@
       },
       "kyc_failed": {
         "title": "현재 MetaMask 카드를 이용할 수 있는 자격이 없습니다",
-        "description": "파트너사는 정해진 기준에 따라 승인 여부를 결정합니다. 자세히 알아보기.",
+        "description": "Eligibility is determined by our partner's regulatory and verification checks.",
         "close_button": "홈으로 돌아가기"
+      },
+      "kyc_pending": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "footer_text": "Approvals usually take around 12 hours.\nWe'll notify you when a decision is made.",
+        "got_it_button": "Got it"
       },
       "personal_details": {
         "title": "정보 추가",
@@ -6734,8 +6835,8 @@
       },
       "complete": {
         "title": "가입이 완료되었습니다!",
-        "description": "암호화폐를 사용하기 위해 카드를 설정해 보세요.",
-        "confirm_button": "카드 설정하기"
+        "description": "Finish setting up your card so you can start spending your crypto.",
+        "confirm_button": "Finish setup"
       },
       "account_exists": {
         "title": "이미 계정이 있습니다",
@@ -6790,6 +6891,7 @@
       "logout_confirmation_confirm": "로그아웃",
       "enable_card_error": "카드를 활성화할 수 없습니다. 나중에 다시 시도하세요.",
       "view_card_details_error": "Unable to load card details. Please try again.",
+      "biometric_verification_required": "Authentication required to view card details.",
       "warnings": {
         "close_spending_limit": {
           "title": "이용한도가 얼마 남지 않았습니다",
@@ -6855,7 +6957,9 @@
         "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
-        "card_tos_title": "Terms and conditions"
+        "card_tos_title": "Terms and conditions",
+        "order_metal_card": "Metal Card",
+        "order_metal_card_description": "Order your physical Metal Card now"
       }
     },
     "card_spending_limit": {
@@ -7027,7 +7131,10 @@
       "account_already_registered": "이 계정은 이미 다른 보상 프로필에 등록되어 있습니다. 계정을 변경한 후 계속 진행하세요.",
       "request_rejected": "요청을 거부하셨습니다.",
       "failed_to_claim_reward": "보상을 수령할 수 없습니다. 잠시 후 다시 시도해 주세요.",
-      "service_not_available": "현재 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해 주세요."
+      "service_not_available": "현재 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+      "invalid_referral_code": "Invalid referral code. Please check and try again.",
+      "already_referred": "You have already been referred by another user.",
+      "cannot_use_own_referral_code": "You cannot use your own referral code."
     },
     "claim_reward_error": {
       "title": "보상을 수령할 수 없습니다"
@@ -7065,6 +7172,8 @@
     "activity_empty_title": "최근 활동이 없습니다.",
     "activity_empty_description": "MetaMask로 포인트를 획득하고 보상을 잠금 해제하세요.",
     "activity_empty_link": "포인트 적립 방법 보기",
+    "filter_title": "Filter by activity type",
+    "filter_all": "All",
     "events": {
       "to": "수신:",
       "musd_deposit_for": "{{date}}",
@@ -7084,6 +7193,7 @@
         "stop_loss": "익절/손절",
         "predict": "예측",
         "musd_deposit": "mUSD 예치",
+        "apply_referral_bonus": "Referral code bonus",
         "uncategorized_event": "미분류 이벤트"
       },
       "date": "날짜",
@@ -7177,6 +7287,14 @@
       "link_account_button": "추가",
       "link_account_failed_error": "계정 추가 실패",
       "link_account_unknown_error": "알 수 없는 오류가 발생했습니다"
+    },
+    "referred_by_code": {
+      "title": "Referral Code",
+      "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
+      "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
+      "input_placeholder": "Enter referral code",
+      "invalid_code": "Invalid referral code",
+      "apply_button": "Apply referral code"
     },
     "optout": {
       "title": "보상 프로그램 영구 탈퇴",
@@ -7357,6 +7475,7 @@
   },
   "transaction_details": {
     "title": {
+      "musd_conversion": "Converted to mUSD",
       "perps_deposit": "입금 완료된 무기한 선물 계정",
       "predict_claim": "수익금 수령함",
       "predict_deposit": "예측 계정에 입금함",
@@ -7380,6 +7499,7 @@
       "bridge_receive": "{{targetChain}}에서 {{targetSymbol}} 받기",
       "bridge_receive_loading": "Bridge receive",
       "default": "트랜잭션",
+      "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
       "perps_deposit": "자금 추가",
       "predict_deposit": "자금 추가",
       "swap": "토큰 스왑",

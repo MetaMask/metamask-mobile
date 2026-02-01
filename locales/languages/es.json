@@ -25,6 +25,8 @@
       "title": "Alerta",
       "checkbox_label": "Soy consciente del riesgo y aún así deseo continuar",
       "got_it_btn": "Entendido",
+      "acknowledge_btn": "Acknowledge",
+      "close_btn": "Close",
       "alert_details": "Detalles de la alerta"
     },
     "confirm_modal": {
@@ -196,7 +198,10 @@
     "placeholder": "Búsqueda por sitio o dirección",
     "recents": "Recientes",
     "favorites": "Favoritos",
-    "sites": "Sitios"
+    "sites": "Sitios",
+    "tokens": "Trending tokens",
+    "perps": "Perps",
+    "predictions": "Predictions"
   },
   "navigation": {
     "back": "Volver",
@@ -1008,6 +1013,7 @@
       "set_stop_loss_subtitle": "Establece el límite de pérdidas en un ({{percent}}) de {{price}}",
       "set_button": "Establecer"
     },
+    "confirm": "Confirm",
     "deposit": {
       "title": "Monto a depositar",
       "get_usdc_hyperliquid": "Obtén USDC • Hyperliquid",
@@ -1081,6 +1087,8 @@
       "error_toast": "Transacción fallida",
       "error_generic": "Se te han devuelto los fondos",
       "in_progress": "Añadir fondos a contratos perpetuos",
+      "depositing_your_funds": "Depositing your funds",
+      "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "{{time}} est.",
       "funds_available_momentarily": "Los fondos estarán disponibles momentáneamente",
       "your_funds_are_available_to_trade": "Tus fondos están disponibles para operar",
@@ -1247,6 +1255,16 @@
           "description": "Ejecutar únicamente al precio especificado o mejor"
         }
       },
+      "payment_token": "Payment token",
+      "select_payment_token": "Select payment token",
+      "select_token": "Select token",
+      "no_payment_tokens": "No payment tokens available",
+      "swap": "SWAP",
+      "swap_submitted": "Swap Submitted",
+      "transaction_id": "Transaction ID: {{txId}}",
+      "swap_failed": "Swap Failed",
+      "swap_error_message": "Failed to submit swap transaction: {{error}}",
+      "swap_converting": "Converting balance to USDC on ARBITRUM",
       "success": {
         "title": "Orden realizada correctamente",
         "subtitle": "Se creó tu posición {{direction}} para {{asset}}",
@@ -1275,7 +1293,10 @@
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Orden fallida",
       "your_funds_have_been_returned_to_you": "Se te han devuelto los fondos",
-      "order_cancelled_success": "Orden de {{detailedOrderType}} cancelada"
+      "order_cancelled_success": "Orden de {{detailedOrderType}} cancelada",
+      "pay_with_token_required": "Token selection required",
+      "select_token_to_pay_with": "Please select a token to pay with before placing your order",
+      "initializing": "Initializing order..."
     },
     "price_deviation_warning": {
       "message": "El precio se ha desviado demasiado del precio al contado. No se pueden abrir nuevas posiciones en este momento."
@@ -1766,14 +1787,18 @@
       "commodities": "Materias primas",
       "stocks_and_commodities": "Explora acciones y materias primas",
       "tabs": {
-        "all": "Todas",
         "crypto": "Cripto",
-        "stocks_and_commodities": "Acciones"
+        "stocks": "Stocks",
+        "commodities": "Commodities",
+        "forex": "Forex",
+        "new": "New"
       },
       "filter_by": "Filtrar por",
       "forex": "Forex",
       "watchlist": "Lista de seguimiento",
-      "markets": "Mercados"
+      "markets": "Mercados",
+      "explore_markets": "Explore markets",
+      "see_all_perps": "See all perps"
     },
     "learn_more": {
       "title": "Más información sobre contratos perpetuos",
@@ -3136,7 +3161,12 @@
       "generate_trace_test": "Generar prueba de rastreo",
       "generate_trace_test_desc": "Generar un rastreo de Sentry de prueba para desarrolladores.",
       "navigate_to_sample_feature": "Ir a la función de muestra",
-      "sample_feature_desc": "Una función de muestra como plantilla para desarrolladores."
+      "sample_feature_desc": "Una función de muestra como plantilla para desarrolladores.",
+      "card": {
+        "title": "Card",
+        "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
+        "reset_onboarding_button": "Reset Onboarding State"
+      }
     },
     "feature_flag_override": {
       "title": "Anulación de la bandera de función",
@@ -3265,8 +3295,10 @@
   "screenshot_deterrent": {
     "title": "Alerta de seguridad",
     "description": "Las capturas de pantalla no son una forma segura de realizar un seguimiento de su {{credentialName}}. Guárdelo en algún lugar que no se respalde en línea para mantener su cuenta segura.",
+    "card_description": "Screenshots of your card details could be accessed by others. Never share your card number or CVV.",
     "srp_text": "Frase secreta de recuperación",
-    "priv_key_text": "Clave privada"
+    "priv_key_text": "Clave privada",
+    "card_text": "card details"
   },
   "password_reset": {
     "password_title": "Contraseña",
@@ -6610,9 +6642,72 @@
       "swap_description": "Canjea tokens por {{symbol}} en {{chainName}}",
       "select_method": "Seleccionar método"
     },
+    "password_bottomsheet": {
+      "title": "Enter password",
+      "description": "Enter your wallet password to view card details.",
+      "placeholder": "Password",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "error_empty": "Please enter your password",
+      "error_incorrect": "Incorrect password. Please try again."
+    },
+    "choose_your_card": {
+      "title": "Choose your card",
+      "upgrade_title": "Upgrade to Metal",
+      "continue_button": "Continue",
+      "virtual_card": {
+        "name": "Orange Virtual Card",
+        "price": "Free",
+        "feature_1": "Virtual card for Apple Pay and Google Pay",
+        "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)",
+        "feature_3": "1% USDC cashback on every purchase"
+      },
+      "metal_card": {
+        "name": "Metal Card",
+        "price": "$199/year",
+        "feature_1": "Engraved metal card and virtual card for Apple Pay and Google Pay",
+        "feature_2": "3% cashback on the first $10,000 spent each year, then 1% after that",
+        "feature_3": "No foreign transaction fees"
+      }
+    },
+    "review_order": {
+      "title": "Review your order",
+      "subtitle": "We can only ship to residential addresses.",
+      "shipping_address": "Shipping address",
+      "metal_card_quantity": "1 Metal Card",
+      "metal_card_price": "$199",
+      "metal_card_total": "$199 per year",
+      "fees": "Fees",
+      "fees_free": "Free",
+      "renews": "Renews",
+      "renews_annually": "Annually",
+      "total": "Total",
+      "pay": "Pay",
+      "payment_creation_error": "Failed to create payment. Please try again."
+    },
+    "order_completed": {
+      "title": "YOUR CARD\nIS ORDERED",
+      "subtitle": "It should arrive in 4 to 6 weeks.",
+      "description": "Set up your virtual card and add it to your digital wallet to start earning cashback.",
+      "set_up_card_button": "Set up card",
+      "back_to_card_button": "Back to Card"
+    },
+    "recurring_fee_modal": {
+      "title": "Recurring fee",
+      "description": "A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.",
+      "learn_more": "Learn more",
+      "got_it": "Got it"
+    },
+    "daimo_pay_modal": {
+      "load_error": "Failed to load payment page. Please try again.",
+      "timeout_error": "Payment verification timed out. Please check your transaction status.",
+      "payment_bounced_error": "Payment failed. Please try again with a different payment method.",
+      "close": "Close",
+      "try_again": "Try again"
+    },
     "card_onboarding": {
-      "title": "Gasta\ny\ngana",
-      "description": "La tarjeta MetaMask es la forma rápida y fácil de gastar tus criptomonedas y obtener hasta un 3 % de cashback.",
+      "title": "Spend\nand Earn",
+      "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
       "apply_now_button": "Aplicar ahora",
       "login_button": "Iniciar sesión",
       "not_now_button": "Ahora no",
@@ -6702,8 +6797,14 @@
       },
       "kyc_failed": {
         "title": "No eres elegible para la tarjeta MetaMask en este momento",
-        "description": "Nuestro socio aprueba según criterios establecidos. Obtén más información.",
+        "description": "Eligibility is determined by our partner's regulatory and verification checks.",
         "close_button": "Volver a inicio"
+      },
+      "kyc_pending": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "footer_text": "Approvals usually take around 12 hours.\nWe'll notify you when a decision is made.",
+        "got_it_button": "Got it"
       },
       "personal_details": {
         "title": "Agrega tu información",
@@ -6734,8 +6835,8 @@
       },
       "complete": {
         "title": "¡Estás dentro!",
-        "description": "Configuremos tu tarjeta para que puedas comenzar a gastar tus criptomonedas.",
-        "confirm_button": "Configurar mi tarjeta"
+        "description": "Finish setting up your card so you can start spending your crypto.",
+        "confirm_button": "Finish setup"
       },
       "account_exists": {
         "title": "Ya tienes una cuenta",
@@ -6790,6 +6891,7 @@
       "logout_confirmation_confirm": "Cerrar sesión",
       "enable_card_error": "No se pudo habilitar la tarjeta. Inténtelo de nuevo más tarde.",
       "view_card_details_error": "Unable to load card details. Please try again.",
+      "biometric_verification_required": "Authentication required to view card details.",
       "warnings": {
         "close_spending_limit": {
           "title": "Estás cerca de tu límite de gasto",
@@ -6855,7 +6957,9 @@
         "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
-        "card_tos_title": "Terms and conditions"
+        "card_tos_title": "Terms and conditions",
+        "order_metal_card": "Metal Card",
+        "order_metal_card_description": "Order your physical Metal Card now"
       }
     },
     "card_spending_limit": {
@@ -7027,7 +7131,10 @@
       "account_already_registered": "Esta cuenta ya está registrada con otro perfil de Recompensas. Cambia de cuenta para continuar.",
       "request_rejected": "Rechazaste la solicitud.",
       "failed_to_claim_reward": "No se pudo reclamar la recompensa. Inténtalo de nuevo en breve.",
-      "service_not_available": "El servicio no está disponible en este momento. Inténtalo de nuevo en breve."
+      "service_not_available": "El servicio no está disponible en este momento. Inténtalo de nuevo en breve.",
+      "invalid_referral_code": "Invalid referral code. Please check and try again.",
+      "already_referred": "You have already been referred by another user.",
+      "cannot_use_own_referral_code": "You cannot use your own referral code."
     },
     "claim_reward_error": {
       "title": "No se pudo reclamar la recompensa"
@@ -7065,6 +7172,8 @@
     "activity_empty_title": "Ninguna actividad reciente.",
     "activity_empty_description": "Utiliza MetaMask para ganar puntos, subir de nivel y desbloquear recompensas.",
     "activity_empty_link": "Ver formas de ganar",
+    "filter_title": "Filter by activity type",
+    "filter_all": "All",
     "events": {
       "to": "para",
       "musd_deposit_for": "Para el {{date}}",
@@ -7084,6 +7193,7 @@
         "stop_loss": "TG/LP",
         "predict": "Predicción",
         "musd_deposit": "Depósito en mUSD",
+        "apply_referral_bonus": "Referral code bonus",
         "uncategorized_event": "Evento sin categoría"
       },
       "date": "Fecha",
@@ -7177,6 +7287,14 @@
       "link_account_button": "Agregar",
       "link_account_failed_error": "Error al agregar la cuenta",
       "link_account_unknown_error": "Ocurrió un error desconocido"
+    },
+    "referred_by_code": {
+      "title": "Referral Code",
+      "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
+      "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
+      "input_placeholder": "Enter referral code",
+      "invalid_code": "Invalid referral code",
+      "apply_button": "Apply referral code"
     },
     "optout": {
       "title": "Eliminar del programa de Recompensas",
@@ -7357,6 +7475,7 @@
   },
   "transaction_details": {
     "title": {
+      "musd_conversion": "Converted to mUSD",
       "perps_deposit": "Cuenta financiada de perps",
       "predict_claim": "Ganancias reclamadas",
       "predict_deposit": "Cuenta de Predict financiada",
@@ -7380,6 +7499,7 @@
       "bridge_receive": "Recibir {{targetSymbol}} en {{targetChain}}",
       "bridge_receive_loading": "Bridge receive",
       "default": "Transacción",
+      "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
       "perps_deposit": "Agregar fondos",
       "predict_deposit": "Agregar fondos",
       "swap": "Canjear tokens",
