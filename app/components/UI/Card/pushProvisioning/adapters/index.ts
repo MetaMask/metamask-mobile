@@ -5,17 +5,12 @@
  */
 
 // Card provider adapters
-export {
-  type ICardProviderAdapter,
-  GalileoCardAdapter,
-  MockCardAdapter,
-  type MockCardConfig,
-} from './card';
+export { type ICardProviderAdapter, GalileoCardAdapter } from './card';
 
 // Wallet provider adapters
 export {
   type IWalletProviderAdapter,
   GoogleWalletAdapter,
-  MockWalletAdapter,
-  type MockWalletConfig,
+  AppleWalletAdapter,
+  type TokenInfo,
 } from './wallet';

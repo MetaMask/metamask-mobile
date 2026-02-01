@@ -23,14 +23,9 @@ import DaimoPayService from '../../services/DaimoPayService';
 import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import type { ShippingAddress } from '../../util/buildUserAddress';
 
-export interface ShippingAddress {
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  zip: string;
-}
+export type { ShippingAddress };
 
 export interface ReviewOrderParams {
   shippingAddress?: ShippingAddress;

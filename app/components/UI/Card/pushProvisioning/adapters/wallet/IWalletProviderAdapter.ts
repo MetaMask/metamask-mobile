@@ -2,19 +2,19 @@
  * Wallet Provider Adapter Interface
  *
  * Defines the contract for mobile wallet adapters that handle
- * card tokenization and provisioning to Google Wallet.
+ * card tokenization and provisioning to mobile wallets.
  */
 
 import { PlatformOSType } from 'react-native';
 import {
   WalletType,
-  WalletData,
   WalletEligibility,
   CardTokenStatus,
   ProvisionCardParams,
   ProvisioningResult,
   CardActivationEvent,
 } from '../../types';
+import { TokenInfo } from './utils';
 
 /**
  * Interface for mobile wallet provider adapters.
@@ -27,6 +27,7 @@ import {
  * - Check existing card status in wallet
  * - Retrieve wallet-specific data for provisioning
  * - Handle the provisioning flow with the native SDK
+ * - Resume provisioning for cards requiring activation
  * - Listen for card activation events
  */
 export interface IWalletProviderAdapter {
@@ -56,7 +57,7 @@ export interface IWalletProviderAdapter {
    * Get detailed wallet eligibility information
    *
    * This provides more details than checkAvailability(), including
-   * whether a specific card is already in the wallet.
+   * whether a specific card is already in the wallet and its status.
    *
    * @param lastFourDigits - Optional card last 4 digits to check for existing card
    * @returns Promise resolving to wallet eligibility details
@@ -70,29 +71,6 @@ export interface IWalletProviderAdapter {
    * @returns Promise resolving to the card's token status
    */
   getCardStatus(lastFourDigits: string): Promise<CardTokenStatus>;
-
-  /**
-   * Get the status of a card by its token identifier
-   *
-   * @param tokenIdentifier - The token reference ID
-   * @param cardNetwork - The card network
-   * @returns Promise resolving to the card's token status
-   */
-  getCardStatusByIdentifier(
-    tokenIdentifier: string,
-    cardNetwork: string,
-  ): Promise<CardTokenStatus>;
-
-  /**
-   * Get wallet-specific data needed for provisioning
-   *
-   * For Google Wallet, this returns:
-   * - deviceId: The stable hardware ID
-   * - walletAccountId: The active wallet ID
-   *
-   * @returns Promise resolving to wallet data
-   */
-  getWalletData(): Promise<WalletData>;
 
   /**
    * Provision a card to the wallet
@@ -110,15 +88,15 @@ export interface IWalletProviderAdapter {
   provisionCard(params: ProvisionCardParams): Promise<ProvisioningResult>;
 
   /**
-   * Resume provisioning for a card that requires activation
+   * Resume provisioning for a card that requires activation (Yellow Path)
    *
-   * If a card was previously added but requires additional
+   * On Android, if a card was previously added but requires additional
    * verification, this method resumes the provisioning flow.
    *
    * @param tokenReferenceId - The token reference ID from Google
-   * @param cardNetwork - The card network
-   * @param cardholderName - The cardholder's name
-   * @param lastFourDigits - The last 4 digits of the card
+   * @param cardNetwork - The card network (e.g., 'MASTERCARD')
+   * @param cardholderName - Optional cardholder name
+   * @param lastFourDigits - Optional last 4 digits of the card
    * @returns Promise resolving to the provisioning result
    */
   resumeProvisioning?(
@@ -131,15 +109,12 @@ export interface IWalletProviderAdapter {
   /**
    * List all tokens in the wallet
    *
+   * Returns information about all tokenized cards in the wallet.
+   * Useful for syncing card status and finding token IDs for resume flow.
+   *
    * @returns Promise resolving to array of token information
    */
-  listTokens?(): Promise<
-    {
-      identifier: string;
-      lastDigits: string;
-      tokenState: number;
-    }[]
-  >;
+  listTokens?(): Promise<TokenInfo[]>;
 
   /**
    * Add a listener for card activation events

@@ -1,3 +1,4 @@
+/* eslint-disable arrow-body-style */
 /**
  * Push Provisioning Service
  *
@@ -5,32 +6,28 @@
  * Coordinates between card provider adapters and wallet provider adapters.
  */
 
-import { Platform, PlatformOSType } from 'react-native';
 import {
-  ProvisioningRequest,
   ProvisioningResult,
   ProvisioningError,
   ProvisioningErrorCode,
-  WalletEligibility,
-  DeviceInfo,
   CardDisplayInfo,
   CardActivationEvent,
+  UserAddress,
+  CardDetails,
 } from '../types';
 import { ICardProviderAdapter } from '../adapters/card/ICardProviderAdapter';
 import { IWalletProviderAdapter } from '../adapters/wallet/IWalletProviderAdapter';
-import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
+import { getWalletName } from '../constants';
 
 /**
  * Options for initiating provisioning
  */
 export interface ProvisioningOptions {
-  /** The card ID to provision */
-  cardId: string;
-  /** Skip eligibility check (for resuming provisioning) */
-  skipEligibilityCheck?: boolean;
-  /** Enable debug logging */
-  enableLogs?: boolean;
+  /** Card details from CardHome (includes holderName, panLast4, status, etc.) */
+  cardDetails: CardDetails;
+  /** User address for Google Wallet provisioning (from user profile) */
+  userAddress?: UserAddress;
 }
 
 /**
@@ -45,103 +42,13 @@ export interface ProvisioningOptions {
 export class PushProvisioningService {
   private cardAdapter: ICardProviderAdapter | null;
   private walletAdapter: IWalletProviderAdapter | null;
-  private enableLogs: boolean;
 
   constructor(
     cardAdapter: ICardProviderAdapter | null,
     walletAdapter: IWalletProviderAdapter | null,
-    enableLogs = false,
   ) {
     this.cardAdapter = cardAdapter;
     this.walletAdapter = walletAdapter;
-    this.enableLogs = enableLogs;
-  }
-
-  /**
-   * Get the current platform
-   */
-  private getPlatform(): PlatformOSType {
-    const platform = Platform.OS;
-    if (platform !== 'android' && platform !== 'ios') {
-      throw new ProvisioningError(
-        ProvisioningErrorCode.PLATFORM_NOT_SUPPORTED,
-        strings('card.push_provisioning.error_platform_not_supported'),
-      );
-    }
-    return platform;
-  }
-
-  /**
-   * Get device information
-   */
-  private getDeviceInfo(): DeviceInfo {
-    return {
-      platform: this.getPlatform(),
-      osVersion: Platform.Version?.toString(),
-    };
-  }
-
-  /**
-   * Check if push provisioning is available on this device
-   */
-  async isAvailable(): Promise<boolean> {
-    try {
-      if (!this.walletAdapter) {
-        this.logDebug('isAvailable: No wallet adapter for platform', {
-          platform: Platform.OS,
-        });
-        return false;
-      }
-
-      return await this.walletAdapter.checkAvailability();
-    } catch (error) {
-      this.logDebug('isAvailable: Error', {
-        message: error instanceof Error ? error.message : String(error),
-        code: error instanceof ProvisioningError ? error.code : undefined,
-      });
-      return false;
-    }
-  }
-
-  /**
-   * Check wallet eligibility for a specific card
-   */
-  async checkEligibility(lastFourDigits?: string): Promise<WalletEligibility> {
-    try {
-      if (!this.walletAdapter) {
-        return {
-          isAvailable: false,
-          canAddCard: false,
-          ineligibilityReason: strings(
-            'card.push_provisioning.error_wallet_not_available',
-          ),
-        };
-      }
-      return await this.walletAdapter.getEligibility(lastFourDigits);
-    } catch (error) {
-      this.logDebug('checkEligibility error', error);
-      return {
-        isAvailable: false,
-        canAddCard: false,
-        ineligibilityReason:
-          error instanceof Error
-            ? error.message
-            : strings('card.push_provisioning.error_unknown'),
-      };
-    }
-  }
-
-  /**
-   * Get card display information
-   */
-  async getCardDisplayInfo(cardId: string): Promise<CardDisplayInfo> {
-    if (!this.cardAdapter) {
-      throw new ProvisioningError(
-        ProvisioningErrorCode.CARD_PROVIDER_NOT_FOUND,
-        strings('card.push_provisioning.error_card_provider_not_found'),
-      );
-    }
-    return await this.cardAdapter.getCardDetails(cardId);
   }
 
   /**
@@ -152,9 +59,7 @@ export class PushProvisioningService {
   async initiateProvisioning(
     options: ProvisioningOptions,
   ): Promise<ProvisioningResult> {
-    const { cardId, skipEligibilityCheck = false } = options;
-
-    this.logDebug('initiateProvisioning', { cardId });
+    const { cardDetails, userAddress } = options;
 
     try {
       // 1. Validate adapters are available
@@ -168,44 +73,43 @@ export class PushProvisioningService {
       if (!this.walletAdapter) {
         throw new ProvisioningError(
           ProvisioningErrorCode.WALLET_NOT_AVAILABLE,
-          strings('card.push_provisioning.error_wallet_not_available'),
+          strings('card.push_provisioning.error_wallet_not_available', {
+            walletName: getWalletName(),
+          }),
         );
       }
 
-      // 2. Check card eligibility
-      if (!skipEligibilityCheck) {
-        const cardEligibility = await this.cardAdapter.checkEligibility(cardId);
-        if (!cardEligibility.eligible) {
-          throw new ProvisioningError(
-            ProvisioningErrorCode.CARD_NOT_ELIGIBLE,
-            cardEligibility.reason ??
-              strings('card.push_provisioning.error_card_not_eligible'),
-          );
-        }
-      }
-
-      // 3. Check wallet availability
+      // 2. Check wallet availability
       const walletAvailable = await this.walletAdapter.checkAvailability();
       if (!walletAvailable) {
         throw new ProvisioningError(
           ProvisioningErrorCode.WALLET_NOT_AVAILABLE,
-          strings('card.push_provisioning.error_wallet_not_available'),
+          strings('card.push_provisioning.error_wallet_not_available', {
+            walletName: getWalletName(),
+          }),
         );
       }
 
-      // 4. Get card details for provisioning
-      const cardDetails = await this.cardAdapter.getCardDetails(cardId);
+      const { id: cardId, holderName, panLast4, expiryDate } = cardDetails;
+
+      // 3. Build CardDisplayInfo from card details
+      const cardDisplayInfo: CardDisplayInfo = {
+        cardId,
+        cardholderName: holderName,
+        expiryDate,
+        lastFourDigits: panLast4,
+        cardNetwork: 'MASTERCARD',
+        cardDescription: `MetaMask Card ending in ${panLast4}`,
+      };
 
       // 5. Provision the card
       return await this.provisionCard(
         this.cardAdapter,
         this.walletAdapter,
-        cardId,
-        cardDetails,
+        cardDisplayInfo,
+        userAddress,
       );
     } catch (error) {
-      this.logDebug('initiateProvisioning error', error);
-
       if (error instanceof ProvisioningError) {
         return {
           status: 'error',
@@ -229,39 +133,53 @@ export class PushProvisioningService {
   /**
    * Provision card to wallet
    *
-   * Flow:
-   * 1. Get wallet data (deviceId, walletAccountId)
+   * Handles platform-specific provisioning flows:
+   *
+   * Google Wallet (Android):
+   * 1. Send card ID to card provider API
    * 2. Get opaque payment card from card provider
    * 3. Call wallet adapter to push tokenize
+   *
+   * Apple Pay (iOS):
+   * 1. Call provisionCard with card data and issuerEncryptCallback
+   * 2. PassKit presents UI and returns nonce, certificates via callback
+   * 3. Callback calls card provider to get encrypted payload
+   * 4. Return encrypted payload to PassKit
    */
   private async provisionCard(
     cardAdapter: ICardProviderAdapter,
     walletAdapter: IWalletProviderAdapter,
-    cardId: string,
-    cardDetails: CardDisplayInfo,
+    cardDisplayInfo: CardDisplayInfo,
+    userAddress?: UserAddress,
   ): Promise<ProvisioningResult> {
-    this.logDebug('provisionCard', { cardId });
-
-    // 1. Get wallet data
-    const walletData = await walletAdapter.getWalletData();
-
-    if (!walletData.deviceId || !walletData.walletAccountId) {
-      throw new ProvisioningError(
-        ProvisioningErrorCode.WALLET_NOT_INITIALIZED,
-        strings('card.push_provisioning.error_wallet_not_initialized'),
+    // Handle Apple Pay flow (iOS)
+    if (walletAdapter.walletType === 'apple_wallet') {
+      return this.provisionCardToAppleWallet(
+        cardAdapter,
+        walletAdapter,
+        cardDisplayInfo,
       );
     }
 
-    // 2. Get opaque payment card from card provider
-    const deviceInfo = this.getDeviceInfo();
-    const request: ProvisioningRequest = {
-      cardId,
-      walletType: walletAdapter.walletType,
-      deviceInfo,
-      walletData,
-    };
+    // Handle Google Wallet flow (Android)
+    return this.provisionCardToGoogleWallet(
+      cardAdapter,
+      walletAdapter,
+      cardDisplayInfo,
+      userAddress,
+    );
+  }
 
-    const response = await cardAdapter.getOpaquePaymentCard(request);
+  /**
+   * Provision card to Google Wallet
+   */
+  private async provisionCardToGoogleWallet(
+    cardAdapter: ICardProviderAdapter,
+    walletAdapter: IWalletProviderAdapter,
+    cardDisplayInfo: CardDisplayInfo,
+    userAddress?: UserAddress,
+  ): Promise<ProvisioningResult> {
+    const response = await cardAdapter.getOpaquePaymentCard();
 
     if (!response.success || !response.encryptedPayload?.opaquePaymentCard) {
       throw new ProvisioningError(
@@ -270,65 +188,53 @@ export class PushProvisioningService {
       );
     }
 
-    // 3. Provision the card
+    // 3. Provision the card with user address from CardHome
     return await walletAdapter.provisionCard({
-      cardNetwork: cardDetails.cardNetwork,
-      cardholderName: cardDetails.cardholderName,
-      lastFourDigits: cardDetails.lastFourDigits,
-      cardDescription: cardDetails.cardDescription,
+      cardNetwork: cardDisplayInfo.cardNetwork,
+      cardholderName: cardDisplayInfo.cardholderName,
+      lastFourDigits: cardDisplayInfo.lastFourDigits,
+      cardDescription: cardDisplayInfo.cardDescription,
       encryptedPayload: response.encryptedPayload,
+      userAddress,
     });
   }
 
   /**
-   * Resume provisioning for a card that requires activation
+   * Provision card to Apple Wallet
+   *
+   * Apple Pay uses a callback-based flow where PassKit provides
+   * cryptographic data (nonce, certificates) that must be sent
+   * to the card provider to get the encrypted payload.
    */
-  async resumeProvisioning(
-    tokenReferenceId: string,
-    cardNetwork: string,
-    cardholderName?: string,
-    lastFourDigits?: string,
+  private async provisionCardToAppleWallet(
+    cardAdapter: ICardProviderAdapter,
+    walletAdapter: IWalletProviderAdapter,
+    cardDisplayInfo: CardDisplayInfo,
   ): Promise<ProvisioningResult> {
-    if (!this.walletAdapter) {
-      return {
-        status: 'error',
-        error: new ProvisioningError(
-          ProvisioningErrorCode.WALLET_NOT_AVAILABLE,
-          strings('card.push_provisioning.error_wallet_not_available'),
-        ),
-      };
-    }
-
-    try {
-      if (!this.walletAdapter.resumeProvisioning) {
-        return {
-          status: 'error',
-          error: new ProvisioningError(
-            ProvisioningErrorCode.UNKNOWN_ERROR,
-            strings('card.push_provisioning.error_unknown'),
-          ),
-        };
-      }
-
-      return await this.walletAdapter.resumeProvisioning(
-        tokenReferenceId,
-        cardNetwork,
-        cardholderName,
-        lastFourDigits,
+    // Create the issuer encrypt callback that will be called by PassKit
+    const issuerEncryptCallback = async (
+      nonce: string,
+      nonceSignature: string,
+      certificates: string[],
+    ) => {
+      // Call card provider to get encrypted payload
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return await cardAdapter.getApplePayEncryptedPayload!(
+        nonce,
+        nonceSignature,
+        certificates,
       );
-    } catch (error) {
-      this.logDebug('resumeProvisioning error', error);
-      return {
-        status: 'error',
-        error: new ProvisioningError(
-          ProvisioningErrorCode.UNKNOWN_ERROR,
-          error instanceof Error
-            ? error.message
-            : strings('card.push_provisioning.error_unknown'),
-          error instanceof Error ? error : undefined,
-        ),
-      };
-    }
+    };
+
+    // Provision the card with the callback
+    return await walletAdapter.provisionCard({
+      cardNetwork: cardDisplayInfo.cardNetwork,
+      cardholderName: cardDisplayInfo.cardholderName,
+      lastFourDigits: cardDisplayInfo.lastFourDigits,
+      cardDescription: cardDisplayInfo.cardDescription,
+      encryptedPayload: {}, // Empty for Apple Pay - data comes via callback
+      issuerEncryptCallback,
+    });
   }
 
   /**
@@ -342,18 +248,6 @@ export class PushProvisioningService {
     }
     return this.walletAdapter.addActivationListener(callback);
   }
-
-  /**
-   * Log debug information
-   */
-  private logDebug(method: string, data: unknown): void {
-    if (this.enableLogs) {
-      Logger.log(
-        `PushProvisioningService.${method}`,
-        JSON.stringify(data, null, 2),
-      );
-    }
-  }
 }
 
 /**
@@ -362,7 +256,6 @@ export class PushProvisioningService {
 export function createPushProvisioningService(
   cardAdapter: ICardProviderAdapter | null,
   walletAdapter: IWalletProviderAdapter | null,
-  enableLogs = __DEV__,
 ): PushProvisioningService {
-  return new PushProvisioningService(cardAdapter, walletAdapter, enableLogs);
+  return new PushProvisioningService(cardAdapter, walletAdapter);
 }

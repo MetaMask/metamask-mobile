@@ -17,49 +17,12 @@
  * ## Usage
  *
  * ```tsx
- * import {
- *   usePushProvisioning,
- *   useWalletAvailability,
- * } from '@app/components/UI/Card/pushProvisioning';
+ * import { usePushProvisioning } from '@app/components/UI/Card/pushProvisioning';
  *
- * const { isAvailable, eligibility } = useWalletAvailability({ lastFourDigits: '1234' });
- * const { initiateProvisioning, isProvisioning } = usePushProvisioning({ cardId: 'card-123' });
- * ```
- *
- * ## Development Mode - Mock Providers
- *
- * In development (`__DEV__`), you can use mock adapters to bypass real SDK dependencies:
- *
- * ### Mock Wallet Provider (for Google Wallet)
- *
- * When developing without Google's TapAndPay allowlist, enable the mock wallet:
- *
- * **Option 1: Environment variable**
- * ```bash
- * MOCK_WALLET_PROVIDER=true yarn start:android
- * ```
- *
- * **Option 2: Programmatic toggle**
- * ```tsx
- * import { setUseMockWalletProvider } from '@app/components/UI/Card/pushProvisioning';
- *
- * // Enable mock wallet provider
- * setUseMockWalletProvider(true);
- *
- * // Disable mock (use real provider)
- * setUseMockWalletProvider(false);
- *
- * // Reset to use environment variable
- * setUseMockWalletProvider(null);
- * ```
- *
- * ### Mock Card Provider
- *
- * ```tsx
- * import { MockCardAdapter } from '@app/components/UI/Card/pushProvisioning';
- *
- * // Create mock adapter for local testing
- * const mockAdapter = new MockCardAdapter();
+ * const { initiateProvisioning, isProvisioning, canAddToWallet } = usePushProvisioning({
+ *   cardId: 'card-123',
+ *   cardholderName: 'John Doe',
+ * });
  * ```
  */
 
@@ -70,24 +33,17 @@ export * from './types';
 export * from './constants';
 
 // Provider factory functions
-export {
-  getCardProvider,
-  getWalletProvider,
-  setUseMockWalletProvider,
-} from './providers';
+export { getCardProvider, getWalletProvider } from './providers';
 
 // Adapters
 export {
   // Card provider adapters
   type ICardProviderAdapter,
   GalileoCardAdapter,
-  MockCardAdapter,
-  type MockCardConfig,
   // Wallet provider adapters
   type IWalletProviderAdapter,
   GoogleWalletAdapter,
-  MockWalletAdapter,
-  type MockWalletConfig,
+  AppleWalletAdapter,
 } from './adapters';
 
 // Service
@@ -98,4 +54,4 @@ export {
 } from './service';
 
 // Hooks
-export { usePushProvisioning, useWalletAvailability } from './hooks';
+export { usePushProvisioning } from './hooks';

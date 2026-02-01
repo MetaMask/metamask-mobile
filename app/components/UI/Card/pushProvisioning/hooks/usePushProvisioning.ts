@@ -14,6 +14,7 @@ import {
   UsePushProvisioningReturn,
   CardActivationEvent,
   WalletEligibility,
+  ProvisioningErrorCode,
 } from '../types';
 import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
@@ -44,7 +45,6 @@ import { strings } from '../../../../../../locales/i18n';
  *   isProvisioning,
  *   isSuccess,
  * } = usePushProvisioning({
- *   cardId: 'card-123',
  *   onSuccess: (result) => console.log('Provisioned!', result),
  *   onError: (error) => console.error('Failed:', error),
  * });
@@ -56,13 +56,13 @@ import { strings } from '../../../../../../locales/i18n';
 export function usePushProvisioning(
   options: UsePushProvisioningOptions,
 ): UsePushProvisioningReturn {
-  const { cardId, lastFourDigits, onSuccess, onError, onCancel } = options;
+  const { cardDetails, userAddress, onSuccess, onError, onCancel } = options;
 
   const [status, setStatus] = useState<ProvisioningStatus>('idle');
   const [error, setError] = useState<ProvisioningError | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  // Get SDK and user location
+  // Get SDK and location
   const { sdk: cardSDK, isLoading: isSDKLoading } = useCardSDK();
   const userCardLocation = useSelector(selectUserCardLocation);
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
@@ -92,13 +92,15 @@ export function usePushProvisioning(
   const [isEligibilityCheckLoading, setIsEligibilityCheckLoading] =
     useState(true);
 
+  const lastFourDigits = cardDetails?.panLast4;
+
   useEffect(() => {
     let isMounted = true;
 
     const checkEligibility = async () => {
       setIsEligibilityCheckLoading(true);
 
-      if (!walletAdapter) {
+      if (!walletAdapter || !lastFourDigits) {
         if (isMounted) {
           setEligibility({
             isAvailable: false,
@@ -137,7 +139,7 @@ export function usePushProvisioning(
 
   // Create service with adapters
   const service = useMemo(
-    () => createPushProvisioningService(cardAdapter, walletAdapter, __DEV__),
+    () => createPushProvisioningService(cardAdapter, walletAdapter),
     [cardAdapter, walletAdapter],
   );
 
@@ -153,19 +155,52 @@ export function usePushProvisioning(
     onCancelRef.current = onCancel;
   }, [onSuccess, onError, onCancel]);
 
-  // Set up activation listener
+  // Ref for analytics tracking (to use in listener without dependency)
+  const trackEventRef = useRef<typeof trackEvent>(trackEvent);
+  const createEventBuilderRef =
+    useRef<typeof createEventBuilder>(createEventBuilder);
+  const cardAdapterProviderIdRef = useRef(cardAdapter?.providerId);
+  const walletAdapterTypeRef = useRef(walletAdapter?.walletType);
+
+  useEffect(() => {
+    trackEventRef.current = trackEvent;
+    createEventBuilderRef.current = createEventBuilder;
+    cardAdapterProviderIdRef.current = cardAdapter?.providerId;
+    walletAdapterTypeRef.current = walletAdapter?.walletType;
+  }, [
+    trackEvent,
+    createEventBuilder,
+    cardAdapter?.providerId,
+    walletAdapter?.walletType,
+  ]);
+
+  // Set up activation listener for success events (card activated after provisioning)
   useEffect(() => {
     const unsubscribe = service.addActivationListener(
       (event: CardActivationEvent) => {
         if (event.status === 'activated') {
           setStatus('success');
+
+          // Track analytics
+          try {
+            trackEventRef.current(
+              createEventBuilderRef
+                .current(MetaMetricsEvents.CARD_PUSH_PROVISIONING_COMPLETED)
+                .addProperties({
+                  card_provider_id: cardAdapterProviderIdRef.current,
+                  wallet_type: walletAdapterTypeRef.current,
+                  token_id: event.tokenId,
+                })
+                .build(),
+            );
+          } catch {
+            // Silently ignore analytics errors
+          }
+
           onSuccessRef.current?.({
             status: 'success',
             tokenId: event.tokenId,
           });
-        } else if (event.status === 'canceled') {
-          setStatus('idle');
-          onCancelRef.current?.();
         } else if (event.status === 'failed') {
           setStatus('error');
         }
@@ -188,6 +223,7 @@ export function usePushProvisioning(
           createEventBuilder(event)
             .addProperties({
               card_provider_id: cardAdapter?.providerId,
+              wallet_type: walletAdapter?.walletType,
               ...properties,
             })
             .build(),
@@ -196,11 +232,19 @@ export function usePushProvisioning(
         // Silently ignore analytics errors
       }
     },
-    [cardAdapter?.providerId, trackEvent, createEventBuilder],
+    [
+      cardAdapter?.providerId,
+      walletAdapter?.walletType,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   /**
    * Initiate provisioning
+   *
+   * Note: Success events are handled by the activation listener (onCardActivated).
+   * Cancel and error events are handled here since they come directly from the SDK.
    */
   const initiateProvisioning =
     useCallback(async (): Promise<ProvisioningResult> => {
@@ -209,25 +253,34 @@ export function usePushProvisioning(
 
       trackAnalyticsEvent(MetaMetricsEvents.CARD_PUSH_PROVISIONING_STARTED);
 
+      if (!cardDetails) {
+        setStatus('error');
+        setError(
+          new ProvisioningError(
+            ProvisioningErrorCode.INVALID_CARD_DATA,
+            strings('card.push_provisioning.error_invalid_card_data'),
+          ),
+        );
+        return {
+          status: 'error',
+          error: new ProvisioningError(
+            ProvisioningErrorCode.INVALID_CARD_DATA,
+            strings('card.push_provisioning.error_invalid_card_data'),
+          ),
+        };
+      }
+
       try {
         const provisioningOptions: ProvisioningOptions = {
-          cardId,
-          enableLogs: __DEV__,
+          cardDetails,
+          userAddress,
         };
 
         setStatus('provisioning');
         const result = await service.initiateProvisioning(provisioningOptions);
 
-        if (result.status === 'success') {
-          setStatus('success');
-          trackAnalyticsEvent(
-            MetaMetricsEvents.CARD_PUSH_PROVISIONING_COMPLETED,
-            {
-              token_id: result.tokenId,
-            },
-          );
-          onSuccessRef.current?.(result);
-        } else if (result.status === 'canceled') {
+        // Handle cancel and error - success is handled by the activation listener
+        if (result.status === 'canceled') {
           setStatus('idle');
           trackAnalyticsEvent(
             MetaMetricsEvents.CARD_PUSH_PROVISIONING_CANCELED,
@@ -238,7 +291,6 @@ export function usePushProvisioning(
           setError(result.error ?? null);
           trackAnalyticsEvent(MetaMetricsEvents.CARD_PUSH_PROVISIONING_FAILED, {
             error_code: result.error?.code,
-            error_message: result.error?.message,
           });
           if (result.error) {
             onErrorRef.current?.(result.error);
@@ -263,7 +315,6 @@ export function usePushProvisioning(
 
         trackAnalyticsEvent(MetaMetricsEvents.CARD_PUSH_PROVISIONING_FAILED, {
           error_code: provisioningError.code,
-          error_message: provisioningError.message,
         });
 
         onErrorRef.current?.(provisioningError);
@@ -273,7 +324,7 @@ export function usePushProvisioning(
           error: provisioningError,
         };
       }
-    }, [cardId, trackAnalyticsEvent, service]);
+    }, [cardDetails, userAddress, trackAnalyticsEvent, service]);
 
   /**
    * Reset status to idle
@@ -289,9 +340,14 @@ export function usePushProvisioning(
 
   const isLoading = isSDKLoading || isEligibilityCheckLoading;
 
+  // Check if card is eligible (status must be 'ACTIVE')
+  const isCardEligible = cardDetails?.status === 'ACTIVE';
+
   const canAddToWallet =
     isAuthenticated &&
     !isLoading &&
+    !!cardDetails &&
+    isCardEligible &&
     isCardProviderAvailable &&
     isWalletProviderAvailable &&
     eligibility?.isAvailable === true &&

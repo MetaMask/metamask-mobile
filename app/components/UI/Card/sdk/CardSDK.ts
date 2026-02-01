@@ -2226,169 +2226,171 @@ export class CardSDK {
   }
 
   /**
-   * Create a provisioning request for push provisioning to mobile wallets.
+   * Create Google Wallet provisioning request
    *
-   * This method sends card data and wallet information to the card provider API
-   * to generate an encrypted payload that can be used for provisioning to
-   * Apple Pay or Google Wallet.
+   * This method sends card ID to the card provider API
+   * to generate an encrypted opaque payment card for Google Wallet provisioning.
    *
-   * For Apple Pay (iOS):
-   * - Endpoint: /v1/card/wallet/provision/apple (not yet implemented)
-   * - Requires nonce, nonceSignature, and certificates from PassKit SDK
-   * - Returns encryptedPassData, activationData, and ephemeralPublicKey
+   * Google Wallet provisioning flow:
+   * 1. App sends card ID to card provider API
+   * 2. Card provider returns opaquePaymentCard (OPC)
    *
-   * For Google Wallet (Android):
-   * - Endpoint: /v1/card/wallet/provision/google
-   * - Requires clientDeviceID and clientWalletAccountID from Tap and Pay SDK
-   * - Returns opaquePaymentCard (OPC) for use with TapAndPay SDK pushTokenize()
-   *
-   * @param params - The provisioning request parameters
-   * @returns Promise resolving to the provisioning response with encrypted data
+   * @param params - The Google Wallet provisioning request parameters
+   * @returns Promise resolving to the provisioning response with encrypted opaque payment card
    * @see https://dev.api.baanx.com/v1/card/wallet/provision/google
    */
-  createProvisioningRequest = async (params: {
-    cardId: string;
-    walletType: 'apple_pay' | 'google_wallet';
-    deviceId?: string;
-    walletAccountId?: string;
-    // Apple Pay specific
-    nonce?: string;
-    nonceSignature?: string;
-    certificates?: string[];
-  }): Promise<{
-    // Common fields
+  createGoogleWalletProvisioningRequest = async (): Promise<{
     cardNetwork: string;
     lastFourDigits: string;
     cardholderName: string;
     cardDescription?: string;
-    // Apple Pay response fields
-    encryptedPassData?: string;
-    activationData?: string;
-    ephemeralPublicKey?: string;
-    // Google Wallet response fields
-    opaquePaymentCard?: string;
+    opaquePaymentCard: string;
   }> => {
-    if (!this.isCardEnabled) {
-      throw new CardError(
-        CardErrorType.SERVER_ERROR,
-        'Card feature is not enabled',
-      );
-    }
+    const endpoint = 'card/wallet/provision/google';
 
-    let endpoint: string;
-    let requestBody: Record<string, unknown>;
-
-    if (params.walletType === 'apple_pay') {
-      // Apple Pay provisioning request (endpoint TBD)
-      endpoint = '/v1/card/wallet/provision/apple';
-      requestBody = {
-        nonce: params.nonce,
-        nonceSignature: params.nonceSignature,
-        certificates: params.certificates,
-      };
-    } else {
-      // Google Wallet provisioning request
-      // API: POST /v1/card/wallet/provision/google
-      // Body: { clientWalletAccountID, clientDeviceID }
-      endpoint = '/v1/card/wallet/provision/google';
-      requestBody = {};
-    }
-
-    this.logDebugInfo('createProvisioningRequest', {
-      endpoint,
-      walletType: params.walletType,
-      deviceId: params.deviceId,
-      walletAccountId: params.walletAccountId,
-    });
-
-    const response = await this.makeRequest(endpoint, {
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
       fetchOptions: {
         method: 'POST',
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({}),
       },
       authenticated: true,
     });
 
     if (!response.ok) {
-      let responseBody = null;
-      try {
-        responseBody = await response.json();
-      } catch {
-        // If we can't parse response, continue without it
-      }
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
 
-      if (response.status === 401 || response.status === 403) {
-        throw new CardError(
-          CardErrorType.INVALID_CREDENTIALS,
-          responseBody?.message ||
-            'Authentication failed. Please try logging in again.',
-        );
-      }
-
-      if (response.status === 404) {
-        throw new CardError(
-          CardErrorType.NO_CARD,
-          responseBody?.message || 'Card not found',
-        );
-      }
-
-      if (response.status === 422) {
-        throw new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          responseBody?.message || 'Invalid provisioning request data',
-        );
-      }
-
-      if (response.status === 429) {
-        throw new CardError(
-          CardErrorType.SERVER_ERROR,
-          responseBody?.message ||
-            'Rate limit exceeded. Please try again later.',
-        );
-      }
-
-      Logger.log(
-        responseBody,
-        `CardSDK: Failed to create provisioning request. Status: ${response.status}`,
-      );
-
-      throw new CardError(
-        CardErrorType.SERVER_ERROR,
-        responseBody?.message ||
-          'Failed to create provisioning request. Please try again.',
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to create Google Wallet provisioning request. Please try again.',
+        'createGoogleWalletProvisioningRequest',
+        endpoint,
+        response.status,
       );
     }
 
-    const responseData = await response.json();
-    this.logDebugInfo('createProvisioningRequest response', responseData);
-
-    // Handle Google Wallet response format: { success: true, data: { opaquePaymentCard: "..." } }
-    if (params.walletType === 'google_wallet') {
-      if (!responseData.success) {
-        throw new CardError(
-          CardErrorType.SERVER_ERROR,
-          'Provisioning request failed',
-        );
-      }
-
-      const data = responseData.data || {};
-      return {
-        cardNetwork: data.cardNetwork || 'MASTERCARD',
-        lastFourDigits: data.lastFourDigits || data.panLast4 || '',
-        cardholderName: data.cardholderName || data.holderName || '',
-        cardDescription: data.cardDescription,
-        opaquePaymentCard: data.opaquePaymentCard,
+    const responseData = (await response.json()) as {
+      success: boolean;
+      data?: {
+        cardNetwork?: string;
+        lastFourDigits?: string;
+        panLast4?: string;
+        cardholderName?: string;
+        holderName?: string;
+        cardDescription?: string;
+        opaquePaymentCard?: string;
       };
+    };
+
+    if (!responseData.success || !responseData.data?.opaquePaymentCard) {
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        'Google Wallet provisioning response missing opaquePaymentCard',
+        'createGoogleWalletProvisioningRequest',
+        endpoint,
+      );
     }
 
-    // Handle Apple Pay response format (structure TBD)
-    const data = responseData.data || responseData;
+    const data = responseData.data;
+
     return {
       cardNetwork: data.cardNetwork || 'MASTERCARD',
       lastFourDigits: data.lastFourDigits || data.panLast4 || '',
       cardholderName: data.cardholderName || data.holderName || '',
       cardDescription: data.cardDescription,
-      // Apple Pay fields
+      opaquePaymentCard: data.opaquePaymentCard as string,
+    };
+  };
+
+  /**
+   * Create Apple Pay provisioning request
+   *
+   * This method sends cryptographic data from PassKit to the card provider API
+   * to generate an encrypted payload for Apple Pay in-app provisioning.
+   *
+   * Apple Pay in-app provisioning flow:
+   * 1. App presents PKAddPaymentPassViewController
+   * 2. PassKit SDK returns nonce, nonceSignature, and certificates
+   * 3. This method sends those to the card provider API
+   * 4. Card provider returns encrypted payload
+   * 5. App returns encrypted payload to PassKit to complete provisioning
+   *
+   * @param params - The Apple Pay provisioning request parameters
+   * @returns Promise resolving to the encrypted Apple Pay payload
+   * @see https://dev.api.baanx.com/v1/card/wallet/provision/apple
+   */
+  createApplePayProvisioningRequest = async (params: {
+    nonce: string;
+    nonceSignature: string;
+    certificates: string[];
+  }): Promise<{
+    encryptedPassData: string;
+    activationData: string;
+    ephemeralPublicKey: string;
+  }> => {
+    const endpoint = 'card/wallet/provision/apple';
+
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({
+          nonce: params.nonce,
+          nonceSignature: params.nonceSignature,
+          certificates: params.certificates,
+        }),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to create Apple Pay provisioning request. Please try again.',
+        'createApplePayProvisioningRequest',
+        endpoint,
+        response.status,
+      );
+    }
+
+    const responseData = (await response.json()) as {
+      success?: boolean;
+      data?: {
+        encryptedPassData?: string;
+        activationData?: string;
+        ephemeralPublicKey?: string;
+      };
+      encryptedPassData?: string;
+      activationData?: string;
+      ephemeralPublicKey?: string;
+    };
+
+    const data = responseData.data || responseData;
+
+    if (
+      !data.encryptedPassData ||
+      !data.activationData ||
+      !data.ephemeralPublicKey
+    ) {
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        'Apple Pay provisioning response missing required fields',
+        'createApplePayProvisioningRequest',
+        endpoint,
+      );
+    }
+
+    return {
       encryptedPassData: data.encryptedPassData,
       activationData: data.activationData,
       ephemeralPublicKey: data.ephemeralPublicKey,

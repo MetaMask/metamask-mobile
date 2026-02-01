@@ -5,4 +5,3 @@
  */
 
 export { usePushProvisioning } from './usePushProvisioning';
-export { useWalletAvailability } from './useWalletAvailability';

@@ -1,8 +1,8 @@
 /**
- * Google Wallet Provider Adapter
+ * Apple Wallet Provider Adapter
  *
- * Implementation of IWalletProviderAdapter for Google Wallet on Android.
- * Wraps the react-native-wallet library's Android-specific methods.
+ * Implementation of IWalletProviderAdapter for Apple Wallet on iOS.
+ * Wraps the react-native-wallet library's iOS-specific methods.
  *
  * Currently only Mastercard is supported.
  */
@@ -11,86 +11,55 @@ import { Platform, PlatformOSType } from 'react-native';
 import {
   WalletType,
   WalletEligibility,
-  CardTokenStatus,
   ProvisionCardParams,
   ProvisioningResult,
   CardActivationEvent,
   ProvisioningError,
   ProvisioningErrorCode,
-  UserAddress,
+  CardTokenStatus,
 } from '../../types';
 import { IWalletProviderAdapter } from './IWalletProviderAdapter';
 import {
   mapCardStatus,
   mapTokenizationStatus,
-  validateTokenArray,
   createErrorResult,
   logAdapterError,
-  TokenInfo,
-  TokenizationStatus,
 } from './utils';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
 import { getWalletName } from '../../constants';
 
-// Types from react-native-wallet for Android
-interface AndroidCardData {
+// Types from react-native-wallet for iOS
+interface IOSCardData {
   network: string;
-  opaquePaymentCard: string;
   cardHolderName: string;
   lastDigits: string;
-  userAddress: {
-    name: string;
-    addressOne: string;
-    addressTwo?: string;
-    administrativeArea: string;
-    locality: string;
-    countryCode: string;
-    postalCode: string;
-    phoneNumber: string;
-  };
+  cardDescription: string;
 }
 
-interface AndroidResumeCardData {
-  network: string;
-  tokenReferenceID: string;
-  cardHolderName?: string;
-  lastDigits?: string;
+interface IOSEncryptPayload {
+  encryptedPassData: string;
+  activationData: string;
+  ephemeralPublicKey: string;
 }
 
 /**
- * Convert our UserAddress to Android format
- */
-function toAndroidUserAddress(
-  address: UserAddress,
-): AndroidCardData['userAddress'] {
-  return {
-    name: address.name,
-    addressOne: address.addressOne,
-    addressTwo: address.addressTwo,
-    administrativeArea: address.administrativeArea,
-    locality: address.locality,
-    countryCode: address.countryCode,
-    postalCode: address.postalCode,
-    phoneNumber: address.phoneNumber,
-  };
-}
-
-/**
- * Google Wallet Provider Adapter
+ * Apple Wallet Provider Adapter
  *
- * This adapter handles card provisioning to Google Wallet on Android devices.
- * It uses the react-native-wallet library to interact with the Tap and Pay SDK.
+ * This adapter handles card provisioning to Apple Wallet on iOS devices.
+ * It uses the react-native-wallet library to interact with the PassKit SDK.
  *
- * Google Wallet Provisioning Flow:
- * 1. Check if Google Wallet is available on the device
- * 3. Get opaque payment card from card provider
- * 4. Call pushTokenize with the opaque payment card
- * 5. Google/network creates and provisions the token
+ * Apple Pay In-App Provisioning Flow:
+ * 1. Check if Apple Wallet is available on the device (PKAddPaymentPassViewController)
+ * 2. Present the Add Payment Pass view to the user
+ * 3. PassKit SDK returns nonce, nonceSignature, and certificates
+ * 4. Send these to the card provider API to get encrypted payload
+ * 5. Return encrypted payload to PassKit to complete provisioning
+ * 6. Apple Wallet adds the card
  */
-export class GoogleWalletAdapter implements IWalletProviderAdapter {
-  readonly walletType: WalletType = 'google_wallet';
-  readonly platform: PlatformOSType = 'android';
+export class AppleWalletAdapter implements IWalletProviderAdapter {
+  readonly walletType: WalletType = 'apple_wallet';
+  readonly platform: PlatformOSType = 'ios';
 
   private activationListeners: Set<(event: CardActivationEvent) => void>;
   private walletModule: typeof import('@expensify/react-native-wallet') | null =
@@ -110,7 +79,7 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
    * Initialize the wallet module lazily
    */
   private async initializeWalletModule(): Promise<void> {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'ios') {
       return;
     }
 
@@ -121,7 +90,7 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
       this.moduleLoadError =
         error instanceof Error ? error : new Error(String(error));
       Logger.log(
-        'GoogleWalletAdapter: Failed to load wallet module',
+        'AppleWalletAdapter: Failed to load wallet module',
         this.moduleLoadError.message,
       );
     }
@@ -150,7 +119,7 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
             walletName: getWalletName(),
           });
 
-      Logger.log('GoogleWalletAdapter.getWalletModule: Module not available', {
+      Logger.log('AppleWalletAdapter.getWalletModule: Module not available', {
         hasModule: !!this.walletModule,
         loadError: this.moduleLoadError?.message,
         platform: Platform.OS,
@@ -167,13 +136,11 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
   }
 
   /**
-   * Check if Google Wallet is available on this device
+   * Check if Apple Wallet is available on this device
    */
   async checkAvailability(): Promise<boolean> {
-    if (Platform.OS !== 'android') {
-      Logger.log(
-        'GoogleWalletAdapter: Not available - platform is not Android',
-      );
+    if (Platform.OS !== 'ios') {
+      Logger.log('AppleWalletAdapter: Not available - platform is not iOS');
       return false;
     }
 
@@ -182,12 +149,12 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
       const isAvailable = await wallet.checkWalletAvailability();
 
       if (!isAvailable) {
-        Logger.log('GoogleWalletAdapter: Not available');
+        Logger.log('AppleWalletAdapter: Not available');
       }
 
       return isAvailable;
     } catch (error) {
-      Logger.log('GoogleWalletAdapter: Not available - Error:', {
+      Logger.log('AppleWalletAdapter: Not available - Error:', {
         message: error instanceof Error ? error.message : String(error),
       });
       return false;
@@ -202,7 +169,6 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
    * - Whether card can be added
    * - Current card status in wallet
    * - Recommended action (add_card, resume, none, etc.)
-   * - Token reference ID for resume flow
    */
   async getEligibility(lastFourDigits?: string): Promise<WalletEligibility> {
     const isAvailable = await this.checkAvailability();
@@ -220,16 +186,9 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
     }
 
     let existingCardStatus: CardTokenStatus | undefined;
-    let tokenReferenceId: string | undefined;
 
     if (lastFourDigits) {
       existingCardStatus = await this.getCardStatus(lastFourDigits);
-
-      // If card requires activation, find its token ID for resume flow
-      if (existingCardStatus === 'requires_activation') {
-        const token = await this.findTokenByLastDigits(lastFourDigits);
-        tokenReferenceId = token?.identifier;
-      }
     }
 
     // Determine recommended action based on card status
@@ -242,7 +201,6 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
       existingCardStatus,
       ineligibilityReason,
       recommendedAction,
-      tokenReferenceId,
     };
   }
 
@@ -263,9 +221,11 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
         };
 
       case 'requires_activation':
+        // Apple Wallet doesn't have a separate resume flow like Google
+        // Users need to re-add the card
         return {
           canAddCard: true,
-          recommendedAction: 'resume',
+          recommendedAction: 'add_card',
         };
 
       case 'active':
@@ -308,7 +268,7 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
   }
 
   /**
-   * Check the status of a specific card in Google Wallet
+   * Check the status of a specific card in Apple Wallet
    */
   async getCardStatus(lastFourDigits: string): Promise<CardTokenStatus> {
     try {
@@ -316,25 +276,26 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
       const status = await wallet.getCardStatusBySuffix(lastFourDigits);
       return mapCardStatus(status);
     } catch (error) {
-      logAdapterError('GoogleWalletAdapter', 'getCardStatus', error);
+      logAdapterError('AppleWalletAdapter', 'getCardStatus', error);
       return 'not_found';
     }
   }
 
   /**
-   * Provision a card to Google Wallet
+   * Provision a card to Apple Wallet
    *
-   * This method automatically handles the Yellow Path (requires activation) case:
-   * 1. Checks if the card requires activation
-   * 2. If so, automatically resumes provisioning
-   * 3. Otherwise, adds the card normally
+   * This uses the PassKit SDK's in-app provisioning flow with a callback
+   * pattern. The SDK presents the Add Payment Pass view, which returns
+   * cryptographic data (nonce, certificates) that must be sent to the
+   * card provider to get the encrypted payload.
    *
-   * This makes the resume flow transparent to the user.
+   * @param params - The provisioning parameters
+   * @returns Promise resolving to the provisioning result
    */
   async provisionCard(
     params: ProvisionCardParams,
   ): Promise<ProvisioningResult> {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'ios') {
       return {
         status: 'error',
         error: new ProvisioningError(
@@ -344,7 +305,9 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
       };
     }
 
-    if (!params.encryptedPayload.opaquePaymentCard) {
+    // Apple Pay requires the issuer encrypt callback to be provided
+    const { issuerEncryptCallback } = params;
+    if (!issuerEncryptCallback) {
       return {
         status: 'error',
         error: new ProvisioningError(
@@ -355,115 +318,63 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
     }
 
     try {
-      // Check if card requires activation (Yellow Path)
-      const cardStatus = await this.getCardStatus(params.lastFourDigits);
-
-      if (cardStatus === 'requires_activation') {
-        // Find existing token for resume
-        const existingToken = await this.findTokenByLastDigits(
-          params.lastFourDigits,
-        );
-
-        if (existingToken) {
-          // Resume the provisioning automatically
-          return this.resumeProvisioning(
-            existingToken.identifier,
-            params.cardNetwork,
-            params.cardholderName,
-            params.lastFourDigits,
-          );
-        }
-        // Token not found - fall through to add new card
-      }
-
-      // Normal flow - add new card
-      return this.addNewCard(params);
-    } catch (error) {
-      logAdapterError('GoogleWalletAdapter', 'provisionCard', error);
-      return createErrorResult(
-        error,
-        ProvisioningErrorCode.UNKNOWN_ERROR,
-        strings('card.push_provisioning.error_unknown'),
-      );
-    }
-  }
-
-  /**
-   * Add a new card to Google Wallet
-   *
-   * Internal method that handles the actual card addition via the Tap and Pay SDK.
-   */
-  private async addNewCard(
-    params: ProvisionCardParams,
-  ): Promise<ProvisioningResult> {
-    const wallet = await this.getWalletModule();
-
-    // Build user address with defaults if not provided
-    const userAddress = params.userAddress ?? {
-      name: params.cardholderName,
-      addressOne: '',
-      administrativeArea: '',
-      locality: '',
-      countryCode: 'US',
-      postalCode: '',
-      phoneNumber: '',
-    };
-
-    // opaquePaymentCard is validated in provisionCard() before calling this method
-    const cardData: AndroidCardData = {
-      network: params.cardNetwork,
-      opaquePaymentCard: params.encryptedPayload.opaquePaymentCard as string,
-      cardHolderName: params.cardholderName,
-      lastDigits: params.lastFourDigits,
-      userAddress: toAndroidUserAddress(userAddress),
-    };
-
-    const status = await wallet.addCardToGoogleWallet(cardData);
-
-    return {
-      status: mapTokenizationStatus(status as TokenizationStatus),
-    };
-  }
-
-  /**
-   * Resume provisioning for a card that requires activation (Yellow Path)
-   *
-   * On Android, if a card was previously added but requires additional
-   * verification, this method resumes the provisioning flow.
-   */
-  async resumeProvisioning(
-    tokenReferenceId: string,
-    cardNetwork: string,
-    cardholderName?: string,
-    lastFourDigits?: string,
-  ): Promise<ProvisioningResult> {
-    if (Platform.OS !== 'android') {
-      return {
-        status: 'error',
-        error: new ProvisioningError(
-          ProvisioningErrorCode.PLATFORM_NOT_SUPPORTED,
-          strings('card.push_provisioning.error_platform_not_supported'),
-        ),
-      };
-    }
-
-    try {
       const wallet = await this.getWalletModule();
 
-      const resumeData: AndroidResumeCardData = {
-        network: cardNetwork,
-        tokenReferenceID: tokenReferenceId,
-        cardHolderName: cardholderName,
-        lastDigits: lastFourDigits,
+      const cardData: IOSCardData = {
+        network: params.cardNetwork.toLowerCase(),
+        cardHolderName: params.cardholderName || 'Card Holder', // Fallback for staging environment
+        lastDigits: params.lastFourDigits,
+        cardDescription:
+          params.cardDescription ||
+          `MetaMask Card ending in ${params.lastFourDigits}`,
       };
 
-      const status = await wallet.resumeAddCardToGoogleWallet(resumeData);
+      // Validate required fields before calling native code
+      if (
+        !cardData.network ||
+        !cardData.cardHolderName ||
+        !cardData.lastDigits ||
+        !cardData.cardDescription
+      ) {
+        return {
+          status: 'error',
+          error: new ProvisioningError(
+            ProvisioningErrorCode.INVALID_CARD_DATA,
+            strings('card.push_provisioning.error_invalid_card_data'),
+          ),
+        };
+      }
+
+      // Call addCardToAppleWallet with the callback
+      // The callback is invoked by PassKit with nonce, nonceSignature, and certificates
+      // We must call the card provider to get the encrypted payload and return it
+      const status = await wallet.addCardToAppleWallet(
+        cardData,
+        async (
+          nonce: string,
+          nonceSignature: string,
+          certificates: string[],
+        ): Promise<IOSEncryptPayload> => {
+          // Call the issuer encrypt callback to get encrypted data from card provider
+          const encryptedPayload = await issuerEncryptCallback(
+            nonce,
+            nonceSignature,
+            certificates,
+          );
+
+          return {
+            encryptedPassData: encryptedPayload.encryptedPassData,
+            activationData: encryptedPayload.activationData,
+            ephemeralPublicKey: encryptedPayload.ephemeralPublicKey,
+          };
+        },
+      );
 
       return {
         status: mapTokenizationStatus(status),
       };
     } catch (error) {
-      logAdapterError('GoogleWalletAdapter', 'resumeProvisioning', error);
+      logAdapterError('AppleWalletAdapter', 'provisionCard', error);
       return createErrorResult(
         error,
         ProvisioningErrorCode.UNKNOWN_ERROR,
@@ -473,36 +384,10 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
   }
 
   /**
-   * List all tokens in Google Wallet
-   *
-   * Returns information about all tokenized cards.
-   * Useful for finding token IDs for the resume flow.
-   */
-  async listTokens(): Promise<TokenInfo[]> {
-    try {
-      const wallet = await this.getWalletModule();
-      const tokens = await wallet.listTokens();
-      return validateTokenArray(tokens);
-    } catch (error) {
-      logAdapterError('GoogleWalletAdapter', 'listTokens', error);
-      return [];
-    }
-  }
-
-  /**
-   * Find token ID for a card by its last four digits
-   *
-   * Helper method to find the token reference ID for resume flow.
-   */
-  async findTokenByLastDigits(
-    lastFourDigits: string,
-  ): Promise<TokenInfo | null> {
-    const tokens = await this.listTokens();
-    return tokens.find((t) => t.lastDigits === lastFourDigits) ?? null;
-  }
-
-  /**
    * Add a listener for card activation events
+   *
+   * On iOS, this listens for PKPassLibraryDidChange notifications
+   * and checks for newly activated passes.
    */
   addActivationListener(
     callback: (event: CardActivationEvent) => void,
@@ -549,9 +434,11 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
 
       this.listenerSubscription = wallet.addListener(
         'onCardActivated',
-        (data: { actionStatus: string; tokenId?: string }) => {
+        (data) => {
+          Logger.log('AppleWalletAdapter: onCardActivated', data);
+          // data is onCardActivatedPayload: { tokenId: string; actionStatus: 'active' | 'canceled' }
           const event: CardActivationEvent = {
-            tokenId: data.tokenId,
+            serialNumber: data.tokenId,
             status:
               data.actionStatus === 'active'
                 ? 'activated'
@@ -563,7 +450,7 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
         },
       );
     } catch (error) {
-      Logger.log('GoogleWalletAdapter: Failed to set up native listener', {
+      Logger.log('AppleWalletAdapter: Failed to set up native listener', {
         message: error instanceof Error ? error.message : String(error),
       });
     }
@@ -577,7 +464,7 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
       try {
         callback(event);
       } catch (error) {
-        Logger.log('GoogleWalletAdapter: Error in activation listener', {
+        Logger.log('AppleWalletAdapter: Error in activation listener', {
           message: error instanceof Error ? error.message : String(error),
         });
       }

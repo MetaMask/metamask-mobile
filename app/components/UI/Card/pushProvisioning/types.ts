@@ -6,8 +6,6 @@
  * from card providers (Galileo, etc.).
  */
 
-import { PlatformOSType } from 'react-native';
-
 // ============================================================================
 // Enums and Constants
 // ============================================================================
@@ -15,7 +13,7 @@ import { PlatformOSType } from 'react-native';
 /**
  * Supported card provider identifiers
  */
-export type CardProviderId = 'galileo' | 'monavate' | 'mock';
+export type CardProviderId = 'galileo' | 'monavate';
 
 /**
  * Supported mobile wallet types
@@ -65,11 +63,6 @@ export enum ProvisioningErrorCode {
   ENCRYPTION_FAILED = 'ENCRYPTION_FAILED',
   INVALID_CARD_DATA = 'INVALID_CARD_DATA',
 
-  // Network errors
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  TIMEOUT_ERROR = 'TIMEOUT_ERROR',
-  SERVER_ERROR = 'SERVER_ERROR',
-
   // User actions
   USER_CANCELED = 'USER_CANCELED',
 
@@ -81,26 +74,6 @@ export enum ProvisioningErrorCode {
 // ============================================================================
 // Device and Wallet Data Types
 // ============================================================================
-
-/**
- * Device information for provisioning requests
- */
-export interface DeviceInfo {
-  platform: PlatformOSType;
-  deviceId?: string;
-  deviceModel?: string;
-  osVersion?: string;
-}
-
-/**
- * Wallet-specific data needed for provisioning
- */
-export interface WalletData {
-  /** Device identifier from the wallet SDK */
-  deviceId?: string;
-  /** Wallet account identifier (Android only) */
-  walletAccountId?: string;
-}
 
 /**
  * User address for card provisioning
@@ -137,24 +110,25 @@ export interface CardDisplayInfo {
 // ============================================================================
 
 /**
- * Request to create a provisioning payload
- */
-export interface ProvisioningRequest {
-  /** Unique card identifier */
-  cardId: string;
-  /** Target wallet type */
-  walletType: WalletType;
-  /** Device information */
-  deviceInfo: DeviceInfo;
-  /** Wallet-specific data */
-  walletData: WalletData;
-}
-
-/**
  * Encrypted payload for wallet provisioning
  */
 export interface EncryptedPayload {
   opaquePaymentCard?: string;
+}
+
+/**
+ * Apple Pay encrypted payload returned by the card provider
+ *
+ * This data is returned after sending nonce, nonceSignature, and certificates
+ * to the card provider's Apple Pay provisioning endpoint.
+ */
+export interface ApplePayEncryptedPayload {
+  /** Encrypted card data for PassKit */
+  encryptedPassData: string;
+  /** Activation data for the pass */
+  activationData: string;
+  /** Ephemeral public key used for encryption */
+  ephemeralPublicKey: string;
 }
 
 /**
@@ -180,6 +154,23 @@ export interface ProvisionCardParams {
   cardDescription?: string;
   encryptedPayload: EncryptedPayload;
   userAddress?: UserAddress;
+  /**
+   * Callback for Apple Pay in-app provisioning
+   *
+   * When provisioning to Apple Wallet, PassKit provides nonce, nonceSignature,
+   * and certificates that must be sent to the card provider to get the
+   * encrypted payload. This callback handles that exchange.
+   *
+   * @param nonce - Cryptographic nonce from PassKit
+   * @param nonceSignature - Signature of the nonce
+   * @param certificates - Array of certificate strings from PassKit
+   * @returns Promise resolving to the encrypted payload from card provider
+   */
+  issuerEncryptCallback?: (
+    nonce: string,
+    nonceSignature: string,
+    certificates: string[],
+  ) => Promise<ApplePayEncryptedPayload>;
 }
 
 /**
@@ -188,13 +179,22 @@ export interface ProvisionCardParams {
 export interface ProvisioningResult {
   status: 'success' | 'canceled' | 'error';
   tokenId?: string;
-  primaryAccountIdentifier?: string;
   error?: ProvisioningError;
 }
 
 // ============================================================================
 // Wallet Eligibility Types
 // ============================================================================
+
+/**
+ * Recommended action based on card status
+ */
+export type WalletAction =
+  | 'add_card' // Card not in wallet, show "Add to Wallet" button
+  | 'resume' // Card requires activation (Yellow Path), show "Continue Setup"
+  | 'none' // Card is active, hide button
+  | 'contact_support' // Card is suspended/deactivated, show help option
+  | 'wait'; // Card is pending, show status message
 
 /**
  * Wallet eligibility check result
@@ -208,6 +208,10 @@ export interface WalletEligibility {
   existingCardStatus?: CardTokenStatus;
   /** Reason if card cannot be added */
   ineligibilityReason?: string;
+  /** Recommended action based on card status */
+  recommendedAction?: WalletAction;
+  /** Token reference ID for resume flow (if status is 'requires_activation') */
+  tokenReferenceId?: string;
 }
 
 // ============================================================================
@@ -247,70 +251,6 @@ export class ProvisioningError extends Error {
     this.originalError = originalError;
     this.metadata = metadata;
   }
-
-  /**
-   * Check if the error is recoverable (user can retry)
-   */
-  get isRecoverable(): boolean {
-    return [
-      ProvisioningErrorCode.NETWORK_ERROR,
-      ProvisioningErrorCode.TIMEOUT_ERROR,
-      ProvisioningErrorCode.SERVER_ERROR,
-    ].includes(this.code);
-  }
-
-  /**
-   * Check if the error was caused by user action
-   */
-  get isUserCanceled(): boolean {
-    return this.code === ProvisioningErrorCode.USER_CANCELED;
-  }
-}
-
-// ============================================================================
-// Configuration Types
-// ============================================================================
-
-/**
- * Card provider configuration
- */
-export interface CardProviderConfig {
-  apiBaseUrl: string;
-  apiKey?: string;
-  timeout?: number;
-  enableLogs?: boolean;
-}
-
-/**
- * Galileo-specific configuration
- */
-export interface GalileoConfig extends CardProviderConfig {
-  programId?: string;
-}
-
-// ============================================================================
-// API Request/Response Types (for CardSDK extension)
-// ============================================================================
-
-/**
- * Parameters for creating a provisioning request via CardSDK
- */
-export interface CreateProvisioningRequestParams {
-  cardId: string;
-  walletType: WalletType;
-  deviceId?: string;
-  walletAccountId?: string;
-}
-
-/**
- * Response from creating a provisioning request
- */
-export interface CreateProvisioningResponse {
-  cardNetwork: CardNetwork;
-  lastFourDigits: string;
-  cardholderName: string;
-  cardDescription?: string;
-  opaquePaymentCard?: string;
 }
 
 // ============================================================================
@@ -318,12 +258,24 @@ export interface CreateProvisioningResponse {
 // ============================================================================
 
 /**
+ * Card details from CardHome (to avoid duplicate API calls)
+ */
+export interface CardDetails {
+  id: string;
+  holderName: string;
+  panLast4: string;
+  status: string;
+  expiryDate?: string;
+}
+
+/**
  * Options for usePushProvisioning hook
  */
 export interface UsePushProvisioningOptions {
-  cardId: string;
-  /** Last 4 digits of the card PAN, used to check if card is already in wallet */
-  lastFourDigits?: string;
+  /** Card details from CardHome (includes holderName, panLast4, status, etc.) */
+  cardDetails?: CardDetails | null;
+  /** User address for Google Wallet provisioning (from user profile) */
+  userAddress?: UserAddress;
   onSuccess?: (result: ProvisioningResult) => void;
   onError?: (error: ProvisioningError) => void;
   onCancel?: () => void;
@@ -347,24 +299,4 @@ export interface UsePushProvisioningReturn {
 
   isLoading: boolean;
   canAddToWallet: boolean;
-}
-
-/**
- * Options for useWalletAvailability hook
- */
-export interface UseWalletAvailabilityOptions {
-  lastFourDigits?: string;
-  checkOnMount?: boolean;
-}
-
-/**
- * Return type for useWalletAvailability hook
- */
-export interface UseWalletAvailabilityReturn {
-  isLoading: boolean;
-  isAvailable: boolean;
-  eligibility: WalletEligibility | null;
-  walletType: WalletType | null;
-  checkAvailability: () => Promise<WalletEligibility>;
-  error: Error | null;
 }

@@ -6,4 +6,3 @@
 
 export { type ICardProviderAdapter } from './ICardProviderAdapter';
 export { GalileoCardAdapter } from './GalileoCardAdapter';
-export { MockCardAdapter, type MockCardConfig } from './MockCardAdapter';
