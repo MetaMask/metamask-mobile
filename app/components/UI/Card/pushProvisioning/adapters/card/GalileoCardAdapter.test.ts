@@ -51,8 +51,9 @@ describe('GalileoCardAdapter', () => {
     });
 
     it('throws ProvisioningError when opaquePaymentCard is missing', async () => {
+      // Test edge case where SDK returns invalid data
       mockCardSDK.createGoogleWalletProvisioningRequest.mockResolvedValue({
-        opaquePaymentCard: null,
+        opaquePaymentCard: '',
         cardNetwork: 'MASTERCARD',
         lastFourDigits: '1234',
         cardholderName: 'John Doe',
@@ -61,8 +62,16 @@ describe('GalileoCardAdapter', () => {
       await expect(adapter.getOpaquePaymentCard()).rejects.toThrow();
     });
 
-    it('throws ProvisioningError when SDK returns null', async () => {
-      mockCardSDK.createGoogleWalletProvisioningRequest.mockResolvedValue(null);
+    it('throws ProvisioningError when SDK returns undefined', async () => {
+      // Test edge case where SDK returns null/undefined - use type assertion for testing
+      mockCardSDK.createGoogleWalletProvisioningRequest.mockResolvedValue(
+        undefined as unknown as {
+          cardNetwork: string;
+          lastFourDigits: string;
+          cardholderName: string;
+          opaquePaymentCard: string;
+        },
+      );
 
       await expect(adapter.getOpaquePaymentCard()).rejects.toMatchObject({
         code: ProvisioningErrorCode.ENCRYPTION_FAILED,
@@ -114,8 +123,9 @@ describe('GalileoCardAdapter', () => {
     });
 
     it('throws ProvisioningError when encryptedPassData is missing', async () => {
+      // Test edge case - use type assertion for testing invalid data
       mockCardSDK.createApplePayProvisioningRequest.mockResolvedValue({
-        encryptedPassData: null,
+        encryptedPassData: '',
         activationData: 'activation-data',
         ephemeralPublicKey: 'ephemeral-key',
       });
@@ -132,9 +142,10 @@ describe('GalileoCardAdapter', () => {
     });
 
     it('throws ProvisioningError when activationData is missing', async () => {
+      // Test edge case - use type assertion for testing invalid data
       mockCardSDK.createApplePayProvisioningRequest.mockResolvedValue({
         encryptedPassData: 'encrypted-pass-data',
-        activationData: null,
+        activationData: '',
         ephemeralPublicKey: 'ephemeral-key',
       });
 
@@ -150,10 +161,11 @@ describe('GalileoCardAdapter', () => {
     });
 
     it('throws ProvisioningError when ephemeralPublicKey is missing', async () => {
+      // Test edge case - use type assertion for testing invalid data
       mockCardSDK.createApplePayProvisioningRequest.mockResolvedValue({
         encryptedPassData: 'encrypted-pass-data',
         activationData: 'activation-data',
-        ephemeralPublicKey: null,
+        ephemeralPublicKey: '',
       });
 
       await expect(
