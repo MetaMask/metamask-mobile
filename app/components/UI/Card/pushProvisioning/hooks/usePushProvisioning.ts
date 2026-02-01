@@ -20,7 +20,10 @@ import { getCardProvider, getWalletProvider } from '../providers';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { useCardSDK } from '../../sdk';
-import { selectUserCardLocation } from '../../../../../core/redux/slices/card';
+import {
+  selectIsAuthenticatedCard,
+  selectUserCardLocation,
+} from '../../../../../core/redux/slices/card';
 import { strings } from '../../../../../../locales/i18n';
 
 /**
@@ -62,6 +65,7 @@ export function usePushProvisioning(
   // Get SDK and user location
   const { sdk: cardSDK, isLoading: isSDKLoading } = useCardSDK();
   const userCardLocation = useSelector(selectUserCardLocation);
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
 
   // Create the adapters based on user location and platform
   const cardAdapter = useMemo(() => {
@@ -286,6 +290,7 @@ export function usePushProvisioning(
   const isLoading = isSDKLoading || isEligibilityCheckLoading;
 
   const canAddToWallet =
+    isAuthenticated &&
     !isLoading &&
     isCardProviderAvailable &&
     isWalletProviderAvailable &&
