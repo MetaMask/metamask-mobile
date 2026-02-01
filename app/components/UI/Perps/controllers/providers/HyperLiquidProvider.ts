@@ -247,6 +247,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Filtering is applied on-demand (cheap array operations) - no need for separate processed cache
   private cachedMetaByDex = new Map<string, MetaResponse>();
 
+  // Cache for spot metadata (tokens, pairs) - session-based, cleared on disconnect
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private cachedSpotMeta: any = null;
+
   // Cache for perpDexs data (deployerFeeScale for dynamic fee calculation)
   // TTL-based cache - fee scales rarely change
   private perpDexsCache: {
@@ -868,6 +872,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Fetch spot metadata with session-based caching
+   * Contains token info (USDC, USDH indices) needed for collateral checks
+   * @returns SpotMeta response with tokens and universe arrays
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async getCachedSpotMeta(): Promise<any> {
+    // Return cached data if available
+    if (this.cachedSpotMeta) {
+      return this.cachedSpotMeta;
+    }
+
+    // Fetch from API
+    const infoClient = this.clientService.getInfoClient();
+    const spotMeta = await infoClient.spotMeta();
+
+    // Cache for session
+    this.cachedSpotMeta = spotMeta;
+    return spotMeta;
+  }
+
+  /**
    * Fetch perpDexs data with TTL-based caching
    * Returns deployerFeeScale info needed for dynamic fee calculation
    * @returns Array of ExtendedPerpDex objects (null entries represent main DEX)
@@ -1051,10 +1076,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return this.cachedUsdcTokenId;
     }
 
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
-    const usdcToken = spotMeta.tokens.find((t) => t.name === 'USDC');
+    const usdcToken = spotMeta.tokens.find(
+      (t: { name: string }) => t.name === 'USDC',
+    );
     if (!usdcToken) {
       throw new Error('USDC token not found in spot metadata');
     }
@@ -1073,8 +1099,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   private async isUsdhCollateralDex(dexName: string): Promise<boolean> {
     const meta = await this.getCachedMeta({ dexName });
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
     const collateralToken = spotMeta.tokens.find(
       (t: { index: number }) => t.index === meta.collateralToken,
@@ -1192,7 +1217,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     amount: number,
   ): Promise<{ success: boolean; filledSize?: number; error?: string }> {
     const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
     // Find USDH and USDC tokens by name
     const usdhToken = spotMeta.tokens.find(
@@ -1457,6 +1482,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.blocklistMarkets,
     );
 
+    // Pre-fetch spot metadata in parallel (needed for isUsdhCollateralDex checks)
+    // This ensures spotMeta is cached before any HIP-3 orders are attempted
+    // Non-blocking - will retry when needed
+    const spotMetaPromise = this.getCachedSpotMeta().catch(() => null);
+
     // Fetch metadata for each DEX in parallel using metaAndAssetCtxs
     // Optimization: Check cache first - getMarketDataWithPrices may have already fetched
     // If not cached, fetch via metaAndAssetCtxs and populate cache for other methods
@@ -1565,6 +1595,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
       }
     });
+
+    // Await spotMeta pre-fetch (non-blocking, just ensures it's cached if network is healthy)
+    await spotMetaPromise;
 
     const allKeys = Array.from(this.coinToAssetId.keys());
     const mainDexKeys = allKeys.filter((k) => !k.includes(':')).slice(0, 5);
@@ -6286,6 +6319,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.referralCheckCache.clear();
       this.builderFeeCheckCache.clear();
       this.cachedMetaByDex.clear();
+      this.cachedSpotMeta = null;
       this.perpDexsCache = { data: null, timestamp: 0 };
 
       // Clear pending promise trackers to prevent memory leaks and ensure clean state
