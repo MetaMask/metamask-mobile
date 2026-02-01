@@ -80,6 +80,8 @@ import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import useLoadCardData from '../../hooks/useLoadCardData';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
+import useAuthentication from '../../../../../core/Authentication/hooks/useAuthentication';
+import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
 import { CardActions } from '../../util/metrics';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
@@ -92,6 +94,8 @@ import { createAddFundsModalNavigationDetails } from '../../components/AddFundsB
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { usePushProvisioning } from '../../pushProvisioning';
 import { AddToWalletButton } from '@expensify/react-native-wallet';
+import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
+import { createPasswordBottomSheetNavigationDetails } from '../../components/PasswordBottomSheet';
 import type { ShippingAddress } from '../ReviewOrder';
 
 /**
@@ -131,6 +135,7 @@ const CardHome = () => {
     imageUrl: cardDetailsImageUrl,
     clearImageUrl: clearCardDetailsImageUrl,
   } = useCardDetailsToken();
+  const { reauthenticate } = useAuthentication();
   const hasTrackedCardHomeView = useRef(false);
   const hasLoadedCardHomeView = useRef(false);
   const hasCompletedInitialFetchRef = useRef(false);
@@ -532,8 +537,7 @@ const CardHome = () => {
     ],
   );
 
-  const onCardDetailsImageError = useCallback(() => {
-    clearCardDetailsImageUrl();
+  const showCardDetailsErrorToast = useCallback(() => {
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
       labelOptions: [
@@ -542,25 +546,14 @@ const CardHome = () => {
       hasNoTimeout: false,
       iconName: IconName.Warning,
     });
-  }, [clearCardDetailsImageUrl, toastRef]);
+  }, [toastRef]);
 
-  const viewCardDetailsAction = useCallback(async () => {
-    if (isCardDetailsLoading || isCardDetailsImageLoading) {
-      return;
-    }
+  const onCardDetailsImageError = useCallback(() => {
+    clearCardDetailsImageUrl();
+    showCardDetailsErrorToast();
+  }, [clearCardDetailsImageUrl, showCardDetailsErrorToast]);
 
-    if (cardDetailsImageUrl) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.HIDE_CARD_DETAILS_BUTTON,
-          })
-          .build(),
-      );
-      clearCardDetailsImageUrl();
-      return;
-    }
-
+  const fetchAndShowCardDetails = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
@@ -573,10 +566,68 @@ const CardHome = () => {
     try {
       await fetchCardDetailsToken(cardDetails?.type);
     } catch {
+      showCardDetailsErrorToast();
+    }
+  }, [
+    fetchCardDetailsToken,
+    showCardDetailsErrorToast,
+    cardDetails?.type,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
+  const viewCardDetailsAction = useCallback(async () => {
+    if (isCardDetailsLoading || isCardDetailsImageLoading) {
+      return;
+    }
+
+    // If already showing details, just hide them (no auth needed)
+    if (cardDetailsImageUrl) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.HIDE_CARD_DETAILS_BUTTON,
+          })
+          .build(),
+      );
+      clearCardDetailsImageUrl();
+      return;
+    }
+
+    // Require biometric verification before showing card details
+    try {
+      await reauthenticate();
+      // Biometric authentication succeeded
+      await fetchAndShowCardDetails();
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+
+      // Biometrics not configured - show password bottom sheet as fallback
+      if (
+        errorMessage.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        )
+      ) {
+        navigation.navigate(
+          ...createPasswordBottomSheetNavigationDetails({
+            onSuccess: fetchAndShowCardDetails,
+          }),
+        );
+        return;
+      }
+
+      // User cancelled biometric - silently return
+      if (errorMessage.includes(ReauthenticateErrorType.BIOMETRIC_ERROR)) {
+        return;
+      }
+
+      // Other authentication failures
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
-          { label: strings('card.card_home.view_card_details_error') },
+          {
+            label: strings('card.card_home.biometric_verification_required'),
+          },
         ],
         hasNoTimeout: false,
         iconName: IconName.Warning,
@@ -587,9 +638,10 @@ const CardHome = () => {
     isCardDetailsImageLoading,
     cardDetailsImageUrl,
     clearCardDetailsImageUrl,
-    fetchCardDetailsToken,
+    reauthenticate,
+    fetchAndShowCardDetails,
+    navigation,
     toastRef,
-    cardDetails?.type,
     trackEvent,
     createEventBuilder,
   ]);
@@ -1182,6 +1234,7 @@ const CardHome = () => {
           </TouchableOpacity>
         </>
       )}
+      <CardScreenshotDeterrent enabled={!!cardDetailsImageUrl} />
     </ScrollView>
   );
 };
