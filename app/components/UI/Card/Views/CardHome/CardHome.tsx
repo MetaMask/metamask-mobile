@@ -1125,13 +1125,24 @@ const CardHome = () => {
       </Box>
 
       {canAddToWallet && (
-        <Box twClassName="w-full px-4 pt-4  items-center justify-center">
-          <AddToWalletButton
-            onPress={isPushProvisioning ? undefined : initiatePushProvisioning}
-            buttonStyle="blackOutline"
-            buttonType="basic"
-            borderRadius={4}
-          />
+        <Box twClassName="w-full px-4 pt-4 items-center justify-center">
+          {isPushProvisioning ? (
+            <Box twClassName="py-3">
+              <ActivityIndicator
+                size="large"
+                color={theme.colors.primary.default}
+              />
+            </Box>
+          ) : (
+            <AddToWalletButton
+              onPress={
+                isPushProvisioning ? undefined : initiatePushProvisioning
+              }
+              buttonStyle="blackOutline"
+              buttonType="basic"
+              borderRadius={4}
+            />
+          )}
         </Box>
       )}
 
