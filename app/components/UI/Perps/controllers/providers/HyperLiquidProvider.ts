@@ -63,6 +63,7 @@ import type {
   MetaResponse,
   PerpsAssetCtx,
   FrontendOrder,
+  SpotMetaResponse,
 } from '../../types/hyperliquid-types';
 import {
   createErrorResult,
@@ -253,6 +254,10 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Cache for raw meta responses (shared across methods to avoid redundant API calls)
   // Filtering is applied on-demand (cheap array operations) - no need for separate processed cache
   private cachedMetaByDex = new Map<string, MetaResponse>();
+
+  // Session cache for spot metadata (contains USDC/USDH token info for HIP-3 collateral checks)
+  // Pre-fetched in ensureReadyForTrading() to avoid API failures during order placement
+  private cachedSpotMeta: SpotMetaResponse | null = null;
 
   // Cache for perpDexs data (deployerFeeScale for dynamic fee calculation)
   // TTL-based cache - fee scales rarely change
@@ -679,6 +684,20 @@ export class HyperLiquidProvider implements PerpsProvider {
     );
 
     this.tradingSetupPromise = (async () => {
+      // Pre-fetch spotMeta for HIP-3 operations (non-blocking if it fails)
+      // This ensures token info (USDC/USDH indices) is available during order placement
+      if (this.hip3Enabled) {
+        try {
+          await this.getCachedSpotMeta();
+        } catch (error) {
+          this.deps.debugLogger.log(
+            '[ensureReadyForTrading] spotMeta pre-fetch failed, will retry when needed',
+            error,
+          );
+          // Don't throw - spotMeta will be fetched on-demand if needed
+        }
+      }
+
       // Attempt to enable native balance abstraction
       await this.ensureDexAbstractionEnabled();
 
@@ -1078,6 +1097,36 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Fetch spot metadata with session-based caching
+   * Contains token info (USDC, USDH indices) needed for HIP-3 collateral checks
+   * Pre-fetched in ensureReadyForTrading() to ensure availability during order placement
+   * @returns SpotMetaResponse with tokens and universe data
+   */
+  private async getCachedSpotMeta(): Promise<SpotMetaResponse> {
+    if (this.cachedSpotMeta) {
+      this.deps.debugLogger.log('[getCachedSpotMeta] Using cached spotMeta', {
+        tokensCount: this.cachedSpotMeta.tokens.length,
+        universeCount: this.cachedSpotMeta.universe.length,
+      });
+      return this.cachedSpotMeta;
+    }
+
+    const infoClient = this.clientService.getInfoClient();
+    const spotMeta = await infoClient.spotMeta();
+
+    this.cachedSpotMeta = spotMeta;
+    this.deps.debugLogger.log(
+      '[getCachedSpotMeta] Fetched and cached spotMeta',
+      {
+        tokensCount: spotMeta.tokens.length,
+        universeCount: spotMeta.universe.length,
+      },
+    );
+
+    return spotMeta;
+  }
+
+  /**
    * Fetch perpDexs data with TTL-based caching
    * Returns deployerFeeScale info needed for dynamic fee calculation
    * @returns Array of ExtendedPerpDex objects (null entries represent main DEX)
@@ -1269,8 +1318,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return this.cachedUsdcTokenId;
     }
 
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
     const usdcToken = spotMeta.tokens.find((tok) => tok.name === 'USDC');
     if (!usdcToken) {
@@ -1291,8 +1339,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   private async isUsdhCollateralDex(dexName: string): Promise<boolean> {
     const meta = await this.getCachedMeta({ dexName });
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
     const collateralToken = spotMeta.tokens.find(
       (tok: { index: number }) => tok.index === meta.collateralToken,
@@ -1421,8 +1468,7 @@ export class HyperLiquidProvider implements PerpsProvider {
   private async swapUsdcToUsdh(
     amount: number,
   ): Promise<{ success: boolean; filledSize?: number; error?: string }> {
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
     // Find USDH and USDC tokens by name
     const usdhToken = spotMeta.tokens.find(
@@ -1464,6 +1510,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     );
 
     // Get current mid price
+    const infoClient = this.clientService.getInfoClient();
     const allMids = await infoClient.allMids();
     const pairKey = `@${usdhUsdcPair.index}`;
     const usdhPrice = parseFloat(allMids[pairKey] || '1');
@@ -6687,6 +6734,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // NOTE: DexAbstractionCache is global and NOT cleared on disconnect
       // to prevent repeated signing requests across reconnections
       this.cachedMetaByDex.clear();
+      this.cachedSpotMeta = null;
       this.perpDexsCache = { data: null, timestamp: 0 };
 
       // Await pending initialization before clearing to prevent the IIFE from

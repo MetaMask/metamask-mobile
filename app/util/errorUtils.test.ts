@@ -23,18 +23,18 @@ describe('ensureError', () => {
     expect(result.message).toBe('42');
   });
 
-  it('should convert null to Error with "null" as message', () => {
+  it('should convert null to Error with descriptive message', () => {
     const result = ensureError(null);
 
     expect(result).toBeInstanceOf(Error);
-    expect(result.message).toBe('null');
+    expect(result.message).toBe('Unknown error (no details provided)');
   });
 
-  it('should convert undefined to Error with "undefined" as message', () => {
+  it('should convert undefined to Error with descriptive message', () => {
     const result = ensureError(undefined);
 
     expect(result).toBeInstanceOf(Error);
-    expect(result.message).toBe('undefined');
+    expect(result.message).toBe('Unknown error (no details provided)');
   });
 
   it('should convert object to Error with stringified object as message', () => {
