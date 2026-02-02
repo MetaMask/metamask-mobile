@@ -292,6 +292,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix trending tokens inconsistencies in search results (#23408)
 - Prevent any dialogs for multichain wallet Snaps (Solana, Bitcoin, Tron) (#23218)
 
+## [7.62.2]
+
+### Fixed
+
+- fix: cherry-pick 429 rate limiting fix with coin naming convention (#25443)
+- fix(perps): potential rate limit on close positions (#25456)
+
 ## [7.62.1]
 
 ### Fixed
@@ -10196,7 +10203,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.63.0...HEAD
-[7.63.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.62.1...v7.63.0
+[7.63.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.62.2...v7.63.0
+[7.62.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.62.1...v7.62.2
 [7.62.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.62.0...v7.62.1
 [7.62.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.6...v7.62.0
 [7.61.6]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.5...v7.61.6
