@@ -14,7 +14,7 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Sign message'), () => {
     jest.setTimeout(150000);
   });
 
-  it('Should be able to sign a message', async () => {
+  it('Signs a message', async () => {
     await withTronAccountEnabled({}, async () => {
       await navigateToTronTestDApp();
 

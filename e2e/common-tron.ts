@@ -7,6 +7,7 @@ import { setupMockRequest } from '../tests/api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 const TRONGRID_API_URL = 'https://api.trongrid.io';
+const METAMASK_API_URL = 'https://token.api.cx.metamask.io';
 
 const blockResponse = {
   blockID: 'xxxxxxxx',
@@ -129,6 +130,15 @@ export async function withTronAccountEnabled(
       requestMethod: 'POST',
       url: `${TRONGRID_API_URL}/wallet/getaccountresource`,
       response: accountResourcesResponse,
+      responseCode: 200,
+    });
+
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: `${METAMASK_API_URL}/tokens/search`,
+      response: {
+        data: [],
+      },
       responseCode: 200,
     });
   };
