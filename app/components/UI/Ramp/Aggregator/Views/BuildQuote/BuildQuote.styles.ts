@@ -31,6 +31,11 @@ const styleSheet = (params: { theme: Theme }) => {
     cta: {
       paddingTop: 12,
     },
+    buttonSkeleton: {
+      height: 48, // Match ButtonSize.Lg height
+      width: '100%',
+      borderRadius: 8,
+    },
     flexRow: {
       flexDirection: 'row',
     },

@@ -235,6 +235,41 @@ let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
 
 jest.mock('../../hooks/useBalance', () => jest.fn(() => mockUseBalanceValues));
 
+const mockFetchQuotes = jest.fn();
+const mockDebouncedFetchQuotes = Object.assign(jest.fn(), {
+  cancel: jest.fn(),
+});
+
+const mockUseRampsQuotesInitialValue = {
+  quotes: {
+    success: [
+      {
+        provider: '/providers/test-provider',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.025,
+          paymentMethod: '/payments/credit-card',
+        },
+      },
+    ],
+    sorted: [],
+    error: [],
+    customActions: [],
+  },
+  isFetchingQuotes: false,
+  quotesError: null,
+  fetchQuotes: mockFetchQuotes,
+  debouncedFetchQuotes: mockDebouncedFetchQuotes,
+};
+
+const mockUseRampsQuotesValues = {
+  ...mockUseRampsQuotesInitialValue,
+};
+
+jest.mock('../../../hooks/useRampsQuotes', () => ({
+  useRampsQuotes: jest.fn(() => mockUseRampsQuotesValues),
+}));
+
 const mockSetSelectedPaymentMethodId = jest.fn();
 const mockSetSelectedAsset = jest.fn();
 const mockSetSelectedFiatCurrencyId = jest.fn();
@@ -318,6 +353,22 @@ jest.mock('../../../../../../selectors/multichainAccounts/accounts', () => ({
 
 jest.mock('../../../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../../../selectors/networkController'),
+}));
+
+jest.mock('../../../../../../selectors/rampsController', () => ({
+  ...jest.requireActual('../../../../../../selectors/rampsController'),
+  selectUserRegion: jest.fn(() => ({
+    country: {
+      defaultAmount: 100,
+      quickAmounts: [50, 100, 200, 400],
+      currency: 'USD',
+      flag: '🇺🇸',
+      name: 'United States',
+      supported: true,
+    },
+    state: null,
+    regionCode: 'us',
+  })),
 }));
 
 const mockIsNonEvmAddress = jest.fn();

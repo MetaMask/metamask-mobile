@@ -268,7 +268,7 @@
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^2.0.0",
     "@metamask/profile-sync-controller": "^27.0.0",
-    "@metamask/ramps-controller": "^4.1.0",
+    "@metamask/ramps-controller": "^5.1.0",
     "@metamask/react-native-acm": "^1.0.1",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
